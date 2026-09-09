@@ -2,6 +2,8 @@
 
 Each image is captured from the running Goo Widgets gallery. Click an image for its full resolution.
 
+These captures include local Goo renderer fixes that are not yet in the Goo `0.5.1` package.
+
 ## Refresh screenshots
 
 Install the optional [Goo DevTools](https://github.com/obselate/goo/blob/main/docs/devtools/README.md) capture tool, then run these commands from the repository root in a graphical session:
