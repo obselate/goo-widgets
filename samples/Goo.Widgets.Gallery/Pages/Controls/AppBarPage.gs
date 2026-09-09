@@ -45,7 +45,7 @@ class AppBarPage : GalleryPage {
     }
     let slotsBar = AppBar{
       Title: "Project Workspace",
-      Subtitle: "Goo Widgets / samples / Goo.Widgets.Gallery / main branch",
+      Subtitle: "Shared workspace / Design team",
       Leading: leadingNav,
       Trailing: trailingActions,
     }

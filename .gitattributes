@@ -1,3 +1,2 @@
 * text=auto eol=lf
 *.gs linguist-language=C#
-deps/** linguist-vendored=true

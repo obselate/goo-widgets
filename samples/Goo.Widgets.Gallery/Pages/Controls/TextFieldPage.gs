@@ -54,7 +54,7 @@ class TextFieldPage : GalleryPage {
     }
     let customField = baseField with{
       Label = "Workspace",
-      Value = "obselate",
+      Value = "Design team",
       AccessibilityName = "Workspace name",
       BackgroundColor = Color.Parse("#18181b"),
       TextColor = Color.Parse("#fafafa"),

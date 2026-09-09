@@ -241,5 +241,6 @@ GalleryRegistry([]GalleryCategory{
   }),
   GalleryCategory("Graphs", []GalleryPage{
     GraphCanvasPage{},
+    GraphNodeCardPage{},
   }),
 })

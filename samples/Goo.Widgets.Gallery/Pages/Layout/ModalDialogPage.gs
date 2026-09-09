@@ -6,7 +6,7 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Layout
 
 internal open class ModalDialogExample : Cell {
-  private var dialogOpen bool
+  private var dialogOpen bool = true
   private var result string = "No action"
 
   /// Builds the interactive modal-dialog example.
@@ -15,6 +15,7 @@ internal open class ModalDialogExample : Cell {
     Height: 360.0,
     Position: PositionType.Relative,
     Gap: 12.0,
+    Color: "#fafafa",
     Children: {
       ActionButton{Label: "Open dialog", OnClick: () -> { dialogOpen = true }}.Build(),
       Text{Content: result, Color: "#a1a1aa"},

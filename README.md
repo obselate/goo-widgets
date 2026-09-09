@@ -1,25 +1,24 @@
 # Goo Widgets
 
-Reusable G# building blocks for [Goo](https://github.com/obselate/goo) desktop UI projects.
-One library, organized as `Goo.Widgets.<category>`. Widgets use the public Goo API and
-accept application data and callbacks. They do not own your application, services,
-network access, global theme, or window loop.
+Reusable G# widgets for [Goo](https://github.com/obselate/goo) desktop applications.
+Import the categories you need, supply your data and callbacks, and compose the
+widgets into your Goo UI.
 
-## Use
+Browse the [gallery screenshots](samples/screenshots/README.md) or run the
+[gallery](samples/Goo.Widgets.Gallery) for interactive examples of every widget.
 
-The library starts at version `0.1.0` and depends on Goo `0.5.1`, the latest published
-Goo version verified on 2026-09-09. Dependencies are pinned and locked so a build is
-repeatable. Upgrade the Goo pin and lock files together when adopting a newer release.
+## Install
 
-Until this package is published to NuGet, build it with `bash scripts/verify.sh`, then
-install from the resulting local feed:
+Goo Widgets `0.1.0` targets .NET 10 and depends on Goo `0.5.1`.
+Until Goo Widgets is published to NuGet, install the .NET SDK specified in
+`global.json` and build a local package:
 
 ```sh
+dotnet pack src/Goo.Widgets/Goo.Widgets.gsproj -c Release -o artifacts/packages -p:RestoreLockedMode=true
 dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.0 --source /path/to/goo-widgets/artifacts/packages
 ```
 
-Keep nuget.org configured for the transitive Goo dependencies.
-Import only the categories you use:
+Keep nuget.org configured for Goo's transitive dependencies.
 
 ```gsharp
 import Goo
@@ -34,12 +33,9 @@ let save = ActionButton{
 let progress = ProgressBar{Value: 0.6}.Build()
 ```
 
-Place the returned `Blob` in any Goo `Children` collection. Build presentation widgets
-from the owning `Cell.Build` so current data and callbacks are captured. Mount stateful
-widgets with stable keys. The [gallery](samples/Goo.Widgets.Gallery) contains complete,
-compiled examples. The [consumer catalog](docs/CONSUMERS.md) records the extraction sources.
+Place the returned `Blob` in a Goo `Children` collection.
 
-| Import | Building blocks |
+| Import | Widgets and supporting types |
 | --- | --- |
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
 | `Goo.Widgets.Inputs` | TextField, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
@@ -51,58 +47,71 @@ compiled examples. The [consumer catalog](docs/CONSUMERS.md) records the extract
 | `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
 | `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
 
-## Customize
+## Compose and customize
 
-Controls expose data, callbacks, appearance properties, and primitive factories.
-Use G# `with` to derive widget values. Factories receive resolved defaults and allow
-access to the underlying Goo primitives. Each `Build()` produces a fresh tree.
-No global theme registration or initialization step is required.
-Visible focus highlights are off by default. Set `ShowFocusHighlight: true` on widgets
-that expose focus styling to enable them. Keyboard input and accessibility semantics
-remain active with either setting.
+Widgets expose data, callbacks, appearance properties, and factories for their Goo
+primitives. Use G# `with` to derive widget values. Each `Build()` creates a fresh
+tree. No global theme registration or initialization is required.
 
-## Build and verify
+- Build value widgets inside the host cell's `Build`. Mount stateful widgets such
+  as Slider, ColorPicker, MediaTransport, and GraphCanvas with
+  `Cell.Mount[Input, Widget]` and stable keys. Update host state in callbacks and
+  call the host's `Rebuild()`.
+- Goo siblings must be all keyed or all unkeyed. Give siblings keys when composing
+  mounted cells. Replacement factories must preserve required keys, handlers,
+  handles, accessibility semantics, and layout properties.
+- Return fresh mutable content from factories when building multiple instances.
+- Visible focus highlights are off by default. Set `ShowFocusHighlight: true` on
+  widgets that expose it. Keyboard input and accessibility semantics stay enabled.
+- SearchList filters supplied in-memory items and needs unique stable IDs and a
+  logical viewport width and height. The host owns remote search and storage.
+- ModalDialog overlays its parent. The host manages its bounds, stacking, focus
+  entry, restoration, and containment.
+- GraphCanvas uses supplied node positions. The host owns layout calculation,
+  selection, and viewport state. Cards keep their screen size as positions zoom.
+- WindowChrome needs a Window or callbacks for window actions. Media and upload
+  widgets emit callbacks. The host owns playback, file access, and other services.
 
-Install the exact .NET SDK from `global.json`, then run:
+## Build and run
 
 ```sh
 bash scripts/verify.sh
-GOO_DEVTOOLS=1 dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build
+dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build
 ```
 
-In a desktop session, also run native interaction checks and mount every gallery page:
+Verification restores locked dependencies, builds the library and gallery,
+checks screenshot coverage, packs the library, and runs consumer checks against
+the packaged assembly. `artifacts/`, `bin/`, and `obj/` are generated and ignored.
+
+The gallery needs a graphical session and Goo's Vulkan runtime prerequisites.
+To open one widget or run the native interaction checks:
 
 ```sh
+dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --page "Color picker"
 GOO_WIDGETS_WINDOW=1 dotnet run --project tests/Goo.Widgets.Consumer -c Release --no-build
 dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --verify
 ```
 
-The native checks exercise capture, keyboard focus, disabled input, resizing, color
-picker disposal/remount, and clean exit. Open one sample with `-- --page "Color picker"`.
-See the catalog's contracts before replacing widget factories.
+Native checks cover pointer capture, keyboard focus, disabled input, resizing,
+color picker disposal and remounting, and clean exit. Linux x64 is the verified
+runtime target. CI does not run graphical checks.
 
-The repository contains its pinned G# linter source. Restore uses nuget.org and committed
-lock files. No sibling checkout or private feed is needed. `artifacts/` is generated.
-Strict lint permits `!!` only as used after nullable default resolution in the extracted
-factory APIs. Formatting, public signatures, documentation, immutable locals, and single
-expression rules remain enabled. The package consumer is compiled against the packed
-NuGet artifact, rather than a project reference.
+## Add or change a widget
 
-The widgets are managed .NET 10 code. Desktop runtime support and native prerequisites
-follow Goo 0.5.1. The gallery requires a graphical session and Vulkan support, or Goo's
-software rendering backend. Linux x64 is the initial runtime verification target.
-Build-only CI does not establish UI behavior on other platforms.
+Keep widget code and its supporting types under `src/Goo.Widgets/<category>`.
+Every widget must have a registered `<WidgetName>Page.gs` gallery example and a
+real gallery screenshot at `samples/screenshots/<WidgetName>.png`. Helpers and
+data types do not need separate screenshots.
 
-## Repository and releases
+Add new screenshots to the [screenshot index](samples/screenshots/README.md).
+Refresh the image when a widget or its gallery presentation changes. Capture
+instructions are in that index. The verification script rejects missing gallery
+pages and screenshots.
 
-Library code lives under `src/Goo.Widgets/<category>`. The gallery is a consumer under
-`samples/`. Build tooling is under `deps/`, with provenance and licenses. Add application
-models and services to your host, rather than adding them to the widget library.
+Keep application models, services, assets, and theme policy in the host application.
+The library project owns the SemVer version. Upgrade dependency pins and lock
+files together. Releases use matching `v<Version>` tags and must not replace a
+published version. CI uploads the package and SHA-256 checksum. Package publication
+is a separate release action.
 
-Use feature branches in the same checkout and merge verified changes into `main`.
-The stable CI check is `verify`. The library project owns the version. Use SemVer,
-starting at `0.1.0`, and annotate a release with the matching `v<Version>` tag.
-Never replace a published version. The verification script creates a NuGet package
-and SHA-256 checksum. Publishing a package is a separate release action.
-
-MIT licensed. See [LICENSE](LICENSE) and the source notices in `deps/`.
+MIT licensed. See [LICENSE](LICENSE).
