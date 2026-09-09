@@ -1,0 +1,9 @@
+Cell.Mount[ColorPickerInput, ColorPicker]("color-picker", ColorPickerInput{
+  Value: rgb,
+  WheelSize: 260.0,
+  OnValueChanged: (value int32) -> { rgb = value
+    Rebuild() },
+  OnValueCommitted: (value int32) -> { rgb = value
+    committed = value
+    Rebuild() },
+})

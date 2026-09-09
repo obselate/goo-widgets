@@ -137,6 +137,72 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
   if window.IsOpen { throw InvalidOperationException("Gallery screenshot window did not close.") }
 }
 
+class Spotlight(Page GalleryPage) : Cell {
+  public override func Build() Blob -> Container {
+    Width: Length.Percent(100.0),
+    Height: Length.Percent(100.0),
+    Padding: 24.0,
+    Gap: 20.0,
+    BackgroundColor: "#09090b",
+    FlexDirection: FlexDirection.Column,
+    Children: {
+      Container{
+        FlexDirection: FlexDirection.Column,
+        Gap: 4.0,
+        Children: {
+          Text{ Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: "#fafafa" },
+          Text{ Content: Page.Title(), FontSize: 14.0, Color: "#a1a1aa" },
+        },
+      },
+      Container{
+        FlexGrow: 1.0,
+        AlignItems: AlignItems.Center,
+        JustifyContent: JustifyContent.Center,
+        Children: { Page.Build() },
+      },
+    },
+  }
+}
+
+func SpotlightWidth(page GalleryPage) int32 {
+  if page.Title() == "Color picker" { return 600 }
+  if page.Title() == "Checkbox" { return 640 }
+  if page.Title() == "Slider" { return 640 }
+  return 800
+}
+
+func SpotlightHeight(page GalleryPage) int32 {
+  if page.Title() == "Color picker" { return 560 }
+  if page.Title() == "Checkbox" { return 220 }
+  if page.Title() == "Slider" { return 430 }
+  return 600
+}
+
+func CaptureSpotlight(registry GalleryRegistry, directory string, requestedPage string) {
+  Directory.CreateDirectory(directory)
+  let page = registry.CurrentPage(registry.IndexOf(requestedPage))
+  let width = SpotlightWidth(page)
+  let height = SpotlightHeight(page)
+  let window = Window{
+    Title: "Goo Widgets spotlight: " + page.Title(),
+    Width: width,
+    Height: height,
+    Root: Spotlight(page),
+  }
+  window.Open()
+  try {
+    using let diagnostics = DevTools.Attach(window)
+    PumpFrames(window, 30)
+    let path = Path.Combine(directory, ScreenshotName(page) + ".png")
+    CaptureWindow(window, path)
+    Console.WriteLine("CAPTURED: " + path)
+  } finally {
+    window.RequestClose()
+    window.Pump(0.0)
+  }
+  if window.IsOpen { throw InvalidOperationException("Spotlight screenshot window did not close.") }
+}
+
 func Main(args []string) {
   let registry = CreateRegistry()
   if args.Length == 1 && args[0] == "--verify" {
@@ -144,6 +210,14 @@ func Main(args []string) {
     return
   }
   let requestedPage = RequestedValue(args, "--page")
+  if let spotlightDirectory = RequestedValue(args, "--spotlight") {
+    if let title = requestedPage {
+      Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+      CaptureSpotlight(registry, spotlightDirectory, title)
+      return
+    }
+    throw ArgumentException("--spotlight requires --page.")
+  }
   if let screenshotDirectory = RequestedValue(args, "--screenshots") {
     Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
     CaptureGallery(registry, screenshotDirectory, requestedPage)
