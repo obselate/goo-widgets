@@ -30,18 +30,14 @@ public class ColorMath {
 
     /// Selects a dark or light foreground from relative luminance.
     public func Foreground(rgb int32, dark int32 = 0x101216, light int32 = 0xF1F3F7) int32 {
-      let luminance = 0.2126 * Linear((rgb >> 16) & 255)
-      +0.7152 * Linear((rgb >> 8) & 255)
-      +0.0722 * Linear(rgb & 255)
+      let luminance = 0.2126 * LinearSrgb(float64((rgb >> 16) & 255) / 255.0)
+      +0.7152 * LinearSrgb(float64((rgb >> 8) & 255) / 255.0)
+      +0.0722 * LinearSrgb(float64(rgb & 255) / 255.0)
       return if luminance > 0.179 { dark } else { light }
     }
 
     /// Converts a packed color to a Goo color.
     public func GooColor(rgb int32) Color -> Color.Rgb((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255)
 
-    private func Linear(channel int32) float64 {
-      let value = float64(channel) / 255.0
-      return if value <= 0.04045 { value / 12.92 } else { Math.Pow((value + 0.055) / 1.055, 2.4) }
-    }
   }
 }

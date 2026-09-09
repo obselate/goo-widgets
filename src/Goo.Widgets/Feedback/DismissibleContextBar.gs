@@ -152,7 +152,7 @@ public data struct DismissibleContextBar {
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.SpaceBetween,
       Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: resolved.AccessibilityName!!},
     }
-    if Content != nil { root.Children.Add(Content!!) }
+    if let content = Content { root.Children.Add(content) }
     root.Children.Add(button!!)
     return root
   }

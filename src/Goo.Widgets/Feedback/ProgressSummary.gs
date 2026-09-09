@@ -72,7 +72,7 @@ public data struct ProgressSummary {
       FlexDirection: FlexDirection.Row,
       AlignItems: AlignItems.Center,
     }
-    if Leading != nil { header.Children.Add(Leading!!) }
+    if let leading = Leading { header.Children.Add(leading) }
     header.Children.Add(labelText)
     header.Children.Add(Container{FlexGrow: 1.0})
     if Detail != nil {
@@ -84,7 +84,7 @@ public data struct ProgressSummary {
       if resolved.FontFamily != nil { detailText.FontFamily = resolved.FontFamily!! }
       header.Children.Add(detailText)
     }
-    if Trailing != nil { header.Children.Add(Trailing!!) }
+    if let trailing = Trailing { header.Children.Add(trailing) }
 
     let progress = if let createProgress = createProgress {
       createProgress(resolved)

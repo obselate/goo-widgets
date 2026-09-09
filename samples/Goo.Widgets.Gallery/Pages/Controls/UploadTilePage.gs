@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Goo.Widgets.Gallery
 
@@ -17,7 +18,7 @@ class UploadTilePage : GalleryPage {
         JustifyContent: JustifyContent.Center,
         Gap: 6.0,
         Children: {
-          Text{ Content: "DOC", FontSize: 20.0, FontWeight: 700, Color: "#a1a1aa" },
+          MaterialIcons.Create("description", 28.0, Color.Parse("#a1a1aa")),
           Text{ Content: "report.pdf", FontSize: 11.0, Color: "#d4d4d8" },
         },
       },
@@ -25,7 +26,7 @@ class UploadTilePage : GalleryPage {
       Action: Container{
         PaddingLeft: 6.0, PaddingRight: 6.0, PaddingTop: 2.0, PaddingBottom: 2.0,
         BorderRadius: 4.0, BackgroundColor: Color.Parse("#27272a"),
-        Children: { Text{ Content: "x", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa" } },
+        Children: { MaterialIcons.Create("close", 12.0, Color.Parse("#a1a1aa")) },
       },
     }
 
@@ -38,7 +39,7 @@ class UploadTilePage : GalleryPage {
         JustifyContent: JustifyContent.Center,
         Gap: 6.0,
         Children: {
-          Text{ Content: "ZIP", FontSize: 20.0, FontWeight: 700, Color: "#fafafa" },
+          MaterialIcons.Create("folder_zip", 28.0),
           Text{ Content: "archive.zip", FontSize: 11.0, Color: "#d4d4d8" },
         },
       },
@@ -46,7 +47,7 @@ class UploadTilePage : GalleryPage {
       Action: Container{
         PaddingLeft: 6.0, PaddingRight: 6.0, PaddingTop: 2.0, PaddingBottom: 2.0,
         BorderRadius: 4.0, BackgroundColor: Color.Parse("#27272a"),
-        Children: { Text{ Content: "||", FontSize: 9.0, FontWeight: 700, Color: "#a1a1aa" } },
+        Children: { MaterialIcons.Create("pause", 12.0, Color.Parse("#a1a1aa")) },
       },
     }
 
@@ -60,7 +61,7 @@ class UploadTilePage : GalleryPage {
         JustifyContent: JustifyContent.Center,
         Gap: 6.0,
         Children: {
-          Text{ Content: "RAW", FontSize: 20.0, FontWeight: 700, Color: "#ef4444" },
+          MaterialIcons.Create("raw_on", 28.0, Color.Parse("#ef4444")),
           Text{ Content: "photo_raw.dng", FontSize: 11.0, Color: "#d4d4d8" },
         },
       },
@@ -87,7 +88,7 @@ class UploadTilePage : GalleryPage {
         JustifyContent: JustifyContent.Center,
         Gap: 6.0,
         Children: {
-          Text{ Content: "PNG", FontSize: 20.0, FontWeight: 700, Color: "#4ade80" },
+          MaterialIcons.Create("image", 28.0, Color.Parse("#4ade80")),
           Text{ Content: "banner.png", FontSize: 11.0, Color: "#f0fdf4" },
         },
       },

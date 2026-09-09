@@ -49,7 +49,7 @@ public data struct Avatar {
     let createImage = CreateImage
     let createFallback = CreateFallback
     let createRoot = CreateRoot
-    let imageMode = ImageSource != nil || (ImagePath != nil && ImagePath!! != "")
+    let imageMode = ImageSource != nil || (ImagePath ?? "") != ""
     let size = if Size == 0.0 { 40.0 } else { Size }
     let background = BackgroundColor ?? Color.Parse("#27272a")
     let resolved = this with{
@@ -72,26 +72,10 @@ public data struct Avatar {
     if imageMode {
       if let createImage = createImage {
         child = createImage(resolved)
-      } else if resolved.ImageSource != nil {
-        if resolved.ImagePath != nil {
-          child = Image{
-            Path: resolved.ImagePath!!,
-            Source: resolved.ImageSource!!,
-            Fit: resolved.Fit!!,
-            Width: Length.Percent(100.0),
-            Height: Length.Percent(100.0),
-          }
-        } else {
-          child = Image{
-            Source: resolved.ImageSource!!,
-            Fit: resolved.Fit!!,
-            Width: Length.Percent(100.0),
-            Height: Length.Percent(100.0),
-          }
-        }
       } else {
         child = Image{
-          Path: resolved.ImagePath!!,
+          Path: resolved.ImagePath ?? "",
+          Source: resolved.ImageSource,
           Fit: resolved.Fit!!,
           Width: Length.Percent(100.0),
           Height: Length.Percent(100.0),
@@ -99,29 +83,23 @@ public data struct Avatar {
       }
     } else if let createFallback = createFallback {
       child = createFallback(resolved)
-    } else if resolved.FontFamily != nil {
-      child = Text{
-        Content: resolved.FallbackText ?? "",
-        Color: resolved.TextColor!!,
-        FontFamily: resolved.FontFamily!!,
-        FontSize: resolved.FontSize,
-        FontWeight: resolved.FontWeight,
-      }
     } else {
-      child = Text{
+      let fallback = Text{
         Content: resolved.FallbackText ?? "",
         Color: resolved.TextColor!!,
         FontSize: resolved.FontSize,
         FontWeight: resolved.FontWeight,
       }
+      if let fontFamily = resolved.FontFamily { fallback.FontFamily = fontFamily }
+      child = fallback
     }
 
     if let createRoot = createRoot {
       return createRoot(resolved, child!!)
     }
     var semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true}
-    if resolved.AccessibilityName != nil {
-      semantics = Accessibility{Role: AccessibilityRole.Image, Name: resolved.AccessibilityName!!}
+    if let accessibilityName = resolved.AccessibilityName {
+      semantics = Accessibility{Role: AccessibilityRole.Image, Name: accessibilityName}
     }
     return Container{
       Width: resolved.Size,

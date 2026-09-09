@@ -99,8 +99,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
       ShowFocusHighlight: resolved.ShowFocusHighlight,
       TrackStyle: Style{ BackgroundGradient: ToneGradient() },
     })
-    if resolved.CreateRoot != nil {
-      return resolved.CreateRoot!! (resolved, wheel, slider)
+    if let createRoot = resolved.CreateRoot {
+      return createRoot(resolved, wheel, slider)
     }
     return Container{
       BasedOn: resolved.RootStyle,
@@ -133,11 +133,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
   private func BuildWheel() Blob {
     let x = Math.Cos(hue * Math.PI / 180.0) * radius
     let y = Math.Sin(hue * Math.PI / 180.0) * radius
-    var marker Blob? = nil
-    if resolved.CreateMarker != nil {
-      marker = resolved.CreateMarker!! (resolved, currentRgb, hue, radius)
+    let marker = if let createMarker = resolved.CreateMarker {
+      createMarker(resolved, currentRgb, hue, radius)
     } else {
-      marker = Container{
+      Container{
         BasedOn: resolved.MarkerStyle,
         Position: PositionType.Absolute,
         Left: Length.Percent(50.0 + x * 50.0),
@@ -155,16 +154,15 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
       }
     }
     let valueText = Math.Round(hue).ToString(CultureInfo.InvariantCulture) + "," + Math.Round(radius * 100.0).ToString(CultureInfo.InvariantCulture)
-    var accessibility Accessibility? = nil
-    if resolved.Disabled {
-      accessibility = Accessibility{
+    let accessibility = if resolved.Disabled {
+      Accessibility{
         Role: AccessibilityRole.Generic,
         Name: resolved.AccessibilityName!! +" color wheel",
         Value: valueText,
         ReadOnly: true,
       }
     } else {
-      accessibility = Accessibility{
+      Accessibility{
         Role: AccessibilityRole.Generic,
         Name: resolved.AccessibilityName!! +" color wheel",
         Value: valueText,
@@ -187,7 +185,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
       Focusable: !resolved.Disabled,
       HitTestSelf: !resolved.Disabled,
       Focus: if resolved.ShowFocusHighlight { Style{ OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 4.0 } } else { Style{} },
-      Accessibility: accessibility!!,
+      Accessibility: accessibility,
       OnPointerDown: (e PointerEvent) -> BeginPointer(e),
       OnPointerMove: (e PointerEvent) -> MovePointer(e),
       OnPointerUp: (e PointerEvent) -> EndPointer(e),
@@ -208,7 +206,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
           Width: Length.Percent(100.0),
           Height: Length.Percent(100.0),
           HitTestSelf: false,
-          Children: { marker!! },
+          Children: { marker },
         },
       },
     }

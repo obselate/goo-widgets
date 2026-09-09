@@ -102,16 +102,15 @@ public data struct Chip {
       CreateText = nil, CreateRoot = nil,
     }
 
-    var text Text? = nil
-    if let createText = createText {
-      text = createText(resolved)
-    } else if resolved.FontFamily != nil {
-      text = Text{Content: resolved.Label!!, FontFamily: resolved.FontFamily!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight}
+    let text = if let createText = createText {
+      createText(resolved)
     } else {
-      text = Text{Content: resolved.Label!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight}
+      let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight}
+      if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+      value
     }
     if let createRoot = createRoot {
-      return createRoot(resolved, originalLeading, text!!)
+      return createRoot(resolved, originalLeading, text)
     }
 
     let currentBg = if resolved.Selected { resolved.SelectedBackgroundColor!! } else { resolved.BackgroundColor!! }
@@ -137,11 +136,11 @@ public data struct Chip {
       },
     }
 
-    if originalLeading != nil {
-      root.Children.Add(Container{Children: {originalLeading!!}})
-      root.Children.Add(Container{Children: {text!!}})
+    if let leading = originalLeading {
+      root.Children.Add(Container{Children: {leading}})
+      root.Children.Add(Container{Children: {text}})
     } else {
-      root.Children.Add(text!!)
+      root.Children.Add(text)
     }
     return root
   }

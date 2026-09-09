@@ -143,9 +143,9 @@ public data struct TextField {
     }
     if let createRoot = createRoot { return createRoot(resolved, label, entry!!, issue) }
     let root = Container{Width: resolved.Width, FlexDirection: FlexDirection.Column, Gap: resolved.Gap, Opacity: resolved.Opacity!!, Transform: resolved.Transform!!}
-    if label != nil { root.Children.Add(label!!) }
+    if let label = label { root.Children.Add(label) }
     root.Children.Add(entry!!)
-    if issue != nil { root.Children.Add(issue!!) }
+    if let issue = issue { root.Children.Add(issue) }
     return root
   }
 }

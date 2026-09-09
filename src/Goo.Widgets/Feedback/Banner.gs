@@ -87,29 +87,21 @@ public data struct Banner {
       CreateRoot = nil,
     }
 
-    var text Text? = nil
-    if let createText = createText {
-      text = createText(resolved)
-    } else if resolved.FontFamily != nil {
-      text = Text{
-        Content: resolved.Content!!,
-        Color: resolved.TextColor!!,
-        FontFamily: resolved.FontFamily!!,
-        FontSize: resolved.FontSize,
-        FontWeight: resolved.FontWeight,
-        FlexGrow: 1.0,
-      }
+    let text = if let createText = createText {
+      createText(resolved)
     } else {
-      text = Text{
+      let value = Text{
         Content: resolved.Content!!,
         Color: resolved.TextColor!!,
         FontSize: resolved.FontSize,
         FontWeight: resolved.FontWeight,
         FlexGrow: 1.0,
       }
+      if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+      value
     }
     if let createRoot = createRoot {
-      return createRoot(resolved, text!!)
+      return createRoot(resolved, text)
     }
 
     var role = AccessibilityRole.Status
@@ -137,7 +129,7 @@ public data struct Banner {
       TransitionEasing: resolved.TransitionEasing!!,
       AlignItems: AlignItems.Center,
       Accessibility: Accessibility{Role: role, Live: live, Name: resolved.AccessibilityName!!},
-      Children: { text!! },
+      Children: { text },
     }
   }
 }

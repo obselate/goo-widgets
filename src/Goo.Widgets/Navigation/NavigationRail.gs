@@ -132,8 +132,8 @@ public data struct NavigationRail {
             Selected: selected,
           },
         }
-        if item.Content != nil {
-          button.Children.Add(item.Content!!)
+        if let content = item.Content {
+          button.Children.Add(content)
         }
         if resolved.Expanded || item.Content == nil {
           let text = Text{
@@ -143,7 +143,7 @@ public data struct NavigationRail {
             TextWrap: TextWrap.NoWrap,
             TextTrimming: TextTrimming.Ellipsis,
           }
-          if resolved.FontFamily != nil { text.FontFamily = resolved.FontFamily!! }
+          if let fontFamily = resolved.FontFamily { text.FontFamily = fontFamily }
           button.Children.Add(text)
         }
         buttons[index] = button

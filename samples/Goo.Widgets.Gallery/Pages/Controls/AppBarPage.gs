@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import Goo.Widgets.Gallery
 
@@ -16,7 +17,7 @@ class AppBarPage : GalleryPage {
       BackgroundColor: "#27272a",
       AlignItems: AlignItems.Center,
       JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "☰", FontSize: 14.0, Color: "#d4d4d8" } },
+      Children: { MaterialIcons.Create("menu", 20.0, Color.Parse("#d4d4d8")) },
     }
     let trailingActions = Container{
       FlexDirection: FlexDirection.Row,

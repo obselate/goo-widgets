@@ -102,26 +102,35 @@ public data struct AsyncImage {
       live = AccessibilityLive.Assertive
       name = name ?? resolved.ErrorText!!
       if let createError = createError { child = createError(resolved) }
-      else if resolved.FontFamily != nil { child = Text{Content: resolved.ErrorText!!, Color: resolved.ErrorTextColor!!, FontFamily: resolved.FontFamily!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight} }
-      else { child = Text{Content: resolved.ErrorText!!, Color: resolved.ErrorTextColor!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight} }
+      else { child = FallbackText(resolved.ErrorText!!, resolved.ErrorTextColor!!, resolved.FontFamily, resolved.FontSize, resolved.FontWeight) }
     } else if resolved.Loading {
       role = AccessibilityRole.Status
       live = AccessibilityLive.Polite
       name = name ?? resolved.PlaceholderText!!
       if let createPlaceholder = createPlaceholder { child = createPlaceholder(resolved) }
-      else if resolved.FontFamily != nil { child = Text{Content: resolved.PlaceholderText!!, Color: resolved.PlaceholderTextColor!!, FontFamily: resolved.FontFamily!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight} }
-      else { child = Text{Content: resolved.PlaceholderText!!, Color: resolved.PlaceholderTextColor!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight} }
-    } else if let createImage = createImage { child = createImage(resolved) }
-    else if resolved.ImageSource != nil {
-      if resolved.ImagePath != nil { child = Image{Path: resolved.ImagePath!!, Source: resolved.ImageSource!!, Fit: resolved.Fit!!, Width: Length.Percent(100.0), Height: Length.Percent(100.0)} }
-      else { child = Image{Source: resolved.ImageSource!!, Fit: resolved.Fit!!, Width: Length.Percent(100.0), Height: Length.Percent(100.0)} }
-    } else if resolved.ImagePath != nil { child = Image{Path: resolved.ImagePath!!, Fit: resolved.Fit!!, Width: Length.Percent(100.0), Height: Length.Percent(100.0)} }
-    else { child = Image{Fit: resolved.Fit!!, Width: Length.Percent(100.0), Height: Length.Percent(100.0)} }
+      else { child = FallbackText(resolved.PlaceholderText!!, resolved.PlaceholderTextColor!!, resolved.FontFamily, resolved.FontSize, resolved.FontWeight) }
+    } else if let createImage = createImage {
+      child = createImage(resolved)
+    } else {
+      child = Image{
+        Path: resolved.ImagePath ?? "",
+        Source: resolved.ImageSource,
+        Fit: resolved.Fit!!,
+        Width: Length.Percent(100.0),
+        Height: Length.Percent(100.0),
+      }
+    }
 
     if let createRoot = createRoot { return createRoot(resolved, child!!) }
     var semantics = Accessibility{Role: role, Live: live}
     if resolved.Failed || resolved.Loading || resolved.AccessibilityName != nil { semantics = Accessibility{Role: role, Live: live, Name: name!!} }
     else { semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true} }
     return Container{Width: resolved.Width, Height: resolved.Height, BorderRadius: resolved.BorderRadius!!, BorderWidth: resolved.BorderWidth!!, BorderColor: resolved.BorderColor!!, BackgroundColor: resolved.BackgroundColor!!, Opacity: resolved.Opacity!!, Transform: resolved.Transform!!, TransitionMs: resolved.TransitionMs!!, TransitionEasing: resolved.TransitionEasing!!, Overflow: Overflow.Hidden, AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center, Accessibility: semantics, Children: { child!! }}
+  }
+
+  private func FallbackText(content string, color Color, fontFamily string?, fontSize float64, fontWeight int32) Text {
+    let text = Text{Content: content, Color: color, FontSize: fontSize, FontWeight: fontWeight}
+    if let fontFamily = fontFamily { text.FontFamily = fontFamily }
+    return text
   }
 }

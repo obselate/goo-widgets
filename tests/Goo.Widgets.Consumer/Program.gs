@@ -112,6 +112,36 @@ func MaterialIconRegressions() {
   Require(buttonIcon == first, "IconButton replaced its supplied icon.")
   Require(button.Accessibility?.Name == "Add item", "IconButton lost its accessible name.")
   Require(buttonIcon.Accessibility?.Hidden == true, "IconButton icon was not decorative.")
+
+  for state in []AccessibilityChecked {AccessibilityChecked.True, AccessibilityChecked.Mixed} {
+    let checkbox = (Checkbox{State: state}.Build() as Button)!!
+    Require(checkbox.Children.Count == 1 && checkbox.Children[0] is Shape,
+      "Checkbox fell back to a font glyph for its state mark.")
+  }
+  let customMark = Text{Content: "custom"}
+  let customCheckbox = (Checkbox{State: AccessibilityChecked.True, CheckedContent: customMark}.Build() as Button)!!
+  Require(customCheckbox.Children[0] == customMark, "Checkbox replaced its custom mark.")
+
+  var windowAction = ""
+  let chrome = WindowChrome{
+    OnMinimize: () -> { windowAction = "Minimize" },
+    OnMaximize: () -> { windowAction = "Maximize" },
+    OnRestore: () -> { windowAction = "Restore" },
+    OnClose: () -> { windowAction = "Close" },
+  }
+  for maximized in []bool {false, true} {
+    let row = ((chrome with{IsMaximized = maximized}).Build() as Container)!!
+    for child in row.Children {
+      if child is Button {
+        Require(child.Children.Count == 1 && child.Children[0] is Shape,
+          "WindowChrome control lost its SVG icon.")
+        child.OnClick?.Invoke()
+        Require(windowAction == child.Accessibility?.Name, "WindowChrome icon and callback disagree.")
+      }
+    }
+    Require(row.Children[2].Accessibility?.Name == if maximized { "Restore" } else { "Maximize" },
+      "WindowChrome did not switch its maximize control state.")
+  }
 }
 
 func Main() {

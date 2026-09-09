@@ -2,6 +2,7 @@ package Goo.Widgets.Media
 
 import System
 import Goo
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 
 /// Identifies a media transport action slot.
@@ -228,21 +229,15 @@ public open class MediaTransport : Cell[MediaTransportInput] {
   }
 
   private func ActionButton(input MediaTransportInput, slot MediaTransportAction, action Action?, disabled bool) Blob {
-    var content = SlotContent(input, slot)
-    if content == nil && input.CreateActionContent != nil {
-      content = input.CreateActionContent!! (input, slot)
-    }
-    if content == nil {
-      content = Text{
-        Content: ActionLabel(slot),
-        FontSize: if slot == MediaTransportAction.Play || slot == MediaTransportAction.Pause { 13.0 } else { 12.0 },
-        FontWeight: 600,
-        Color: if slot == MediaTransportAction.Play || slot == MediaTransportAction.Pause { input.PrimaryActionTextColor!! } else { input.TextColor!! },
-        Accessibility: Accessibility{ Hidden: true },
-      }
-    }
-    if input.CreateAction != nil { return input.CreateAction!! (input, slot, content!!, action, disabled) }
     let primary = slot == MediaTransportAction.Play || slot == MediaTransportAction.Pause
+    let content = if let content = SlotContent(input, slot) {
+      content
+    } else if let createActionContent = input.CreateActionContent {
+      createActionContent(input, slot)
+    } else {
+      MaterialIcons.Create(ActionIcon(slot), if primary { 24.0 } else { 20.0 }, if primary { input.PrimaryActionTextColor!! } else { input.TextColor!! })
+    }
+    if let createAction = input.CreateAction { return createAction(input, slot, content, action, disabled) }
     return Button{
       BasedOn: if primary { input.PrimaryActionStyle } else { input.ActionStyle },
       Width: if primary { input.PrimaryActionSize } else { input.ActionSize },
@@ -258,7 +253,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
       Opacity: if disabled { 0.4 } else { 1.0 },
       Accessibility: Accessibility{ Role: AccessibilityRole.Button, Name: ActionName(slot) },
       OnClick: if disabled { nil } else { action },
-      Children: { content!! },
+      Children: { content },
     }
   }
 
@@ -284,12 +279,12 @@ public open class MediaTransport : Cell[MediaTransportInput] {
       return (seconds / 60).ToString() + ":" + (seconds % 60).ToString("D2")
     }
 
-    private func ActionLabel(slot MediaTransportAction) string -> switch slot {
-      case MediaTransportAction.Previous: "Prev"
-      case MediaTransportAction.Play: "Play"
-      case MediaTransportAction.Pause: "Pause"
-      case MediaTransportAction.Next: "Next"
-      default: ""
+    private func ActionIcon(slot MediaTransportAction) string -> switch slot {
+      case MediaTransportAction.Previous: "skip_previous"
+      case MediaTransportAction.Play: "play_arrow"
+      case MediaTransportAction.Pause: "pause"
+      case MediaTransportAction.Next: "skip_next"
+      default: "play_arrow"
     }
 
     private func ActionName(slot MediaTransportAction) string -> switch slot {

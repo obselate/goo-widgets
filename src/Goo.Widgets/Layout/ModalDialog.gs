@@ -175,8 +175,8 @@ public data struct ModalDialog {
         }
       }
     }
-    if Header != nil { dialog.Children.Add(Header!!) }
-    if Content != nil { dialog.Children.Add(Content!!) }
+    if let header = Header { dialog.Children.Add(header) }
+    if let content = Content { dialog.Children.Add(content) }
     dialog.Children.Add(actions)
 
     if let createRoot = createRoot { return createRoot(resolved, backdrop, dialog) }

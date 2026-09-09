@@ -97,27 +97,29 @@ public data struct ListRow {
       CreateTitle = nil, CreateCaption = nil, CreateRoot = nil,
     }
 
-    var title Text? = nil
-    if let createTitle = createTitle {
-      title = createTitle(resolved)
+    let title = if let createTitle = createTitle {
+      createTitle(resolved)
     } else {
-      title = Text{Content: resolved.Title!!, Color: resolved.TextColor!!, FontSize: resolved.TitleFontSize, FontWeight: resolved.TitleFontWeight}
-      if resolved.FontFamily != nil { title!!.FontFamily = resolved.FontFamily!! }
+      let value = Text{Content: resolved.Title!!, Color: resolved.TextColor!!, FontSize: resolved.TitleFontSize, FontWeight: resolved.TitleFontWeight}
+      if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+      value
     }
 
-    var caption Text? = nil
-    if resolved.Caption != nil {
+    let caption Text? = if let captionText = resolved.Caption {
       if let createCaption = createCaption {
-        caption = createCaption(resolved)
+        createCaption(resolved)
       } else {
-        caption = Text{Content: resolved.Caption!!, Color: resolved.CaptionColor!!, FontSize: resolved.CaptionFontSize, FontWeight: resolved.CaptionFontWeight}
-        if resolved.FontFamily != nil { caption!!.FontFamily = resolved.FontFamily!! }
+        let value = Text{Content: captionText, Color: resolved.CaptionColor!!, FontSize: resolved.CaptionFontSize, FontWeight: resolved.CaptionFontWeight}
+        if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+        value
       }
+    } else {
+      nil
     }
 
     let content = Container{FlexDirection: FlexDirection.Column, JustifyContent: JustifyContent.Center, Gap: resolved.ContentGap, FlexGrow: 1.0}
-    content.Children.Add(title!!)
-    if caption != nil { content.Children.Add(caption!!) }
+    content.Children.Add(title)
+    if let caption = caption { content.Children.Add(caption) }
 
     if let createRoot = createRoot { return createRoot(resolved, Leading, content, Trailing) }
 
@@ -141,9 +143,9 @@ public data struct ListRow {
       Accessibility: Accessibility{Role: AccessibilityRole.ListItem, Name: resolved.AccessibilityName!!, Selected: resolved.Selected},
     }
     if resolved.Selected { root.BoxShadow = resolved.SelectedBoxShadow!! }
-    if Leading != nil { root.Children.Add(Leading!!) }
+    if let leading = Leading { root.Children.Add(leading) }
     root.Children.Add(content)
-    if Trailing != nil { root.Children.Add(Trailing!!) }
+    if let trailing = Trailing { root.Children.Add(trailing) }
     return root
   }
 }

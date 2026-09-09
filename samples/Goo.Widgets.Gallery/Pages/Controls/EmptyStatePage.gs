@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets.Icons
 import Goo.Widgets.Feedback
 import Goo.Widgets.Gallery
 
@@ -11,7 +12,7 @@ class EmptyStatePage : GalleryPage {
     let emptyIll = Container{
       Width: 36.0, Height: 36.0, BorderRadius: 8.0, BackgroundColor: Color.Parse("#27272a"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "BOX", FontSize: 11.0, FontWeight: 700, Color: "#d4d4d8" } },
+      Children: { MaterialIcons.Create("inventory_2", 24.0, Color.Parse("#d4d4d8")) },
     }
     let emptyAct = Container{
       PaddingLeft: 12.0, PaddingRight: 12.0, PaddingTop: 5.0, PaddingBottom: 5.0,
@@ -30,7 +31,7 @@ class EmptyStatePage : GalleryPage {
     let noResIll = Container{
       Width: 36.0, Height: 36.0, BorderRadius: 8.0, BackgroundColor: Color.Parse("#27272a"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "FIND", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa" } },
+      Children: { MaterialIcons.Create("search", 24.0, Color.Parse("#a1a1aa")) },
     }
     let noResAct = Container{
       PaddingLeft: 10.0, PaddingRight: 10.0, PaddingTop: 4.0, PaddingBottom: 4.0,
@@ -50,7 +51,7 @@ class EmptyStatePage : GalleryPage {
     let permIll = Container{
       Width: 36.0, Height: 36.0, BorderRadius: 8.0, BackgroundColor: Color.Parse("#450a0a"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "LOCK", FontSize: 10.0, FontWeight: 700, Color: "#fca5a5" } },
+      Children: { MaterialIcons.Create("lock", 24.0, Color.Parse("#fca5a5")) },
     }
     let permAct = Container{
       PaddingLeft: 10.0, PaddingRight: 10.0, PaddingTop: 4.0, PaddingBottom: 4.0,

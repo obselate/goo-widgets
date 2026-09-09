@@ -59,9 +59,7 @@ public data struct IconButton {
       CreateRoot = nil,
     }
     let icon = resolved.Icon ?? Container{ Width: 0.0, Height: 0.0, Accessibility: Accessibility{ Hidden: true } }
-    if createRoot != nil {
-      return createRoot!! (resolved, icon)
-    }
+    if let createRoot = createRoot { return createRoot(resolved, icon) }
     return Button{
       BasedOn: resolved.RootStyle,
       Width: resolved.Width,

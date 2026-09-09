@@ -6,9 +6,9 @@ import Goo.Widgets.Gallery
 
 internal open class GraphCanvasExample : Cell {
   private var nodes []GraphNode = []GraphNode{
-    GraphNode{ Id: "source", Label: "Source", Position: GraphPoint{ X: 100.0, Y: 120.0 } },
-    GraphNode{ Id: "transform", Label: "Transform", Position: GraphPoint{ X: 350.0, Y: 210.0 } },
-    GraphNode{ Id: "output", Label: "Output", Position: GraphPoint{ X: 600.0, Y: 120.0 } },
+    GraphNode{ Id: "source", Label: "Source", Position: Point{ X: 100.0, Y: 120.0 } },
+    GraphNode{ Id: "transform", Label: "Transform", Position: Point{ X: 350.0, Y: 210.0 } },
+    GraphNode{ Id: "output", Label: "Output", Position: Point{ X: 600.0, Y: 120.0 } },
   }
   private let edges []GraphEdge = []GraphEdge{
     GraphEdge{ Id: "source-transform", FromId: "source", ToId: "transform" },

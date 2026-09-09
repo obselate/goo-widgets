@@ -76,10 +76,10 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
   private var pointerMode GraphPointerMode
   private var pointerId int64 = -1L
   private var draggedNodeId string?
-  private var draggedNodePosition GraphPoint
-  private var dragPointerWorld GraphPoint
-  private var marqueeStart GraphPoint
-  private var marqueeEnd GraphPoint
+  private var draggedNodePosition Point
+  private var dragPointerWorld Point
+  private var marqueeStart Point
+  private var marqueeEnd Point
   private var marqueeAdd bool
   private var marqueeToggle bool
 
@@ -253,7 +253,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
         Transform: PanelTransform{ Rotate: Math.Atan2(dy, dx) * 180.0 / Math.PI },
         HitTestSelf: false,
       }
-      layer.Children.Add(if resolved.CustomizeEdge != nil { resolved.CustomizeEdge!! (edge, stroke) } else { stroke })
+      layer.Children.Add(if let customizeEdge = resolved.CustomizeEdge { customizeEdge(edge, stroke) } else { stroke })
     }
     return layer
   }
@@ -265,10 +265,9 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
 
   private func NodeCard(node GraphNode) Blob {
     let position = ScreenPosition(NodePosition(node))
-    var displayNode = node
-    if resolved.CreateNodeContent != nil {
-      displayNode = node with{ Content = resolved.CreateNodeContent!! (node) }
-    }
+    let displayNode = if let createNodeContent = resolved.CreateNodeContent {
+      node with{Content = createNodeContent(node)}
+    } else { node }
     let card = GraphNodeCard{
       Node: displayNode,
       Selected: IsSelected(node.Id),
@@ -281,7 +280,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
       OnPointerUp: (e PointerEvent) -> EndPointer(e),
       OnPointerCancel: (e PointerEvent) -> CancelPointer(e),
     }.Build()
-    return if resolved.CustomizeNode != nil { resolved.CustomizeNode!! (node, card) } else { card }
+    return if let customizeNode = resolved.CustomizeNode { customizeNode(node, card) } else { card }
   }
 
   private func Marquee() Container {
@@ -345,15 +344,16 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     } else if pointerMode == GraphPointerMode.Marquee {
       marqueeEnd = e.Position
       Rebuild()
-    } else if pointerMode == GraphPointerMode.Node && draggedNodeId != nil {
+    } else if pointerMode == GraphPointerMode.Node {
+      guard let draggedNodeId = draggedNodeId else { return }
       let world = WorldPosition(CanvasPosition(e))
-      draggedNodePosition = GraphPoint{
+      draggedNodePosition = Point{
         X: draggedNodePosition.X + world.X - dragPointerWorld.X,
         Y: draggedNodePosition.Y + world.Y - dragPointerWorld.Y,
       }
       dragPointerWorld = world
       resolved.OnNodePositionChanged?.Invoke(GraphNodePositionChange{
-        NodeId: draggedNodeId!!,
+        NodeId: draggedNodeId,
         Position: draggedNodePosition,
       })
       Rebuild()
@@ -363,11 +363,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
   private func EndPointer(e PointerEvent) {
     if e.PointerId != pointerId { return }
     if pointerMode == GraphPointerMode.Marquee { CompleteMarquee() }
-    e.ReleaseCapture()
-    pointerMode = GraphPointerMode.None
-    pointerId = -1L
-    draggedNodeId = nil
-    Rebuild()
+    CancelPointer(e)
   }
 
   private func CancelPointer(e PointerEvent) {
@@ -384,10 +380,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     let top = Math.Min(marqueeStart.Y, marqueeEnd.Y)
     let right = Math.Max(marqueeStart.X, marqueeEnd.X)
     let bottom = Math.Max(marqueeStart.Y, marqueeEnd.Y)
-    let next = List[string]()
-    if marqueeAdd || marqueeToggle {
-      for id in resolved.SelectedNodeIds { next.Add(id) }
-    }
+    let next = if marqueeAdd || marqueeToggle { List[string](resolved.SelectedNodeIds) } else { List[string]() }
     for node in resolved.Nodes {
       let center = ScreenPosition(NodePosition(node))
       let intersects = center.X + resolved.NodeWidth * 0.5 >= left
@@ -405,8 +398,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
   }
 
   private func EmitNodeSelection(id string, modifiers KeyModifiers) bool {
-    let next = List[string]()
-    for selectedId in resolved.SelectedNodeIds { next.Add(selectedId) }
+    let next = List[string](resolved.SelectedNodeIds)
     if modifiers.Ctrl {
       if !next.Remove(id) { next.Add(id) }
     } else if modifiers.Shift {
@@ -438,24 +430,19 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     Rebuild()
   }
 
-  private func IsSelected(id string) bool {
-    for selectedId in resolved.SelectedNodeIds {
-      if selectedId == id { return true }
-    }
-    return false
-  }
+  private func IsSelected(id string) bool -> Array.IndexOf(resolved.SelectedNodeIds, id) >= 0
 
-  private func NodePosition(node GraphNode) GraphPoint {
+  private func NodePosition(node GraphNode) Point {
     if draggedNodeId == node.Id { return draggedNodePosition }
     return node.Position
   }
 
-  private func ScreenPosition(point GraphPoint) GraphPoint -> GraphPoint {
+  private func ScreenPosition(point Point) Point -> Point {
     X: point.X * viewport.Zoom + viewport.PanX,
     Y: point.Y * viewport.Zoom + viewport.PanY,
   }
 
-  private func WorldPosition(point Point) GraphPoint -> GraphPoint {
+  private func WorldPosition(point Point) Point -> Point {
     X: (point.X - viewport.PanX) / viewport.Zoom,
     Y: (point.Y - viewport.PanY) / viewport.Zoom,
   }

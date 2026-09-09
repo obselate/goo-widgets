@@ -120,8 +120,8 @@ public data struct Drawer {
       root.Left = 0.0
     }
 
-    if Content != nil {
-      root.Children.Add(Content!!)
+    if let content = Content {
+      root.Children.Add(content)
     }
 
     return root

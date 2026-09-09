@@ -79,21 +79,23 @@ public data struct UploadTile {
       CreateBody = nil, CreateStatus = nil, CreateRoot = nil,
     }
 
-    var bodyContainer Container? = nil
-    if let createBody = createBody {
-      bodyContainer = createBody(resolved, bodySlot)
+    let bodyContainer = if let createBody = createBody {
+      createBody(resolved, bodySlot)
     } else {
-      bodyContainer = Container{
+      let body = Container{
         Width: Length.Percent(100.0), FlexGrow: 1.0,
         JustifyContent: JustifyContent.Center, AlignItems: AlignItems.Center,
         PaddingLeft: resolved.Padding!!, PaddingRight: resolved.Padding!!,
         PaddingTop: resolved.Padding!!, PaddingBottom: resolved.Padding!!,
       }
-      if bodySlot != nil { bodyContainer!!.Children.Add(bodySlot!!) }
+      if let bodySlot = bodySlot {
+        body.Children.Add(bodySlot)
+      }
+      body
     }
 
     var statusContainer Container? = nil
-    if statusSlot != nil {
+    if let statusSlot = statusSlot {
       if let createStatus = createStatus {
         statusContainer = createStatus(resolved, statusSlot)
       } else {
@@ -103,12 +105,12 @@ public data struct UploadTile {
           PaddingLeft: resolved.StatusPaddingHorizontal!!, PaddingRight: resolved.StatusPaddingHorizontal!!,
           PaddingTop: resolved.StatusPaddingVertical!!, PaddingBottom: resolved.StatusPaddingVertical!!,
         }
-        statusContainer!!.Children.Add(statusSlot!!)
+        statusContainer.Children.Add(statusSlot)
       }
     }
 
     if let createRoot = createRoot {
-      return createRoot(resolved, bodyContainer!!, statusContainer, actionSlot)
+      return createRoot(resolved, bodyContainer, statusContainer, actionSlot)
     }
 
     let borderColor = if resolved.Failed { resolved.FailedBorderColor!! } else { resolved.BorderColor!! }
@@ -126,21 +128,21 @@ public data struct UploadTile {
     }
 
     let wrapBody = Container{Key: "body", Width: Length.Percent(100.0), FlexGrow: 1.0}
-    wrapBody.Children.Add(bodyContainer!!)
+    wrapBody.Children.Add(bodyContainer)
     root.Children.Add(wrapBody)
 
-    if statusContainer != nil {
+    if let statusContainer = statusContainer {
       let wrapStatus = Container{Key: "status", Width: Length.Percent(100.0)}
-      wrapStatus.Children.Add(statusContainer!!)
+      wrapStatus.Children.Add(statusContainer)
       root.Children.Add(wrapStatus)
     }
 
-    if actionSlot != nil {
+    if let actionSlot = actionSlot {
       let wrapAction = Container{
         Key: "action", Position: PositionType.Absolute,
         Top: resolved.ActionInset!!, Right: resolved.ActionInset!!,
       }
-      wrapAction.Children.Add(actionSlot!!)
+      wrapAction.Children.Add(actionSlot)
       root.Children.Add(wrapAction)
     }
 

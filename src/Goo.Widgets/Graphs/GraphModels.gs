@@ -2,14 +2,6 @@ package Goo.Widgets.Graphs
 
 import Goo
 
-/// A position in graph world coordinates.
-public data struct GraphPoint {
-  /// Horizontal world coordinate.
-  var X float64
-  /// Vertical world coordinate.
-  var Y float64
-}
-
 /// The controlled graph viewport transform.
 public data struct GraphViewport {
   /// Horizontal screen-space translation.
@@ -25,7 +17,7 @@ public data struct GraphNode {
   /// Stable node identity.
   var Id string
   /// Center position in graph world coordinates.
-  var Position GraphPoint
+  var Position Point
   /// Accessible and fallback display label.
   var Label string
   /// Optional content rendered in place of the fallback label.
@@ -47,5 +39,5 @@ public data struct GraphNodePositionChange {
   /// Identity of the moved node.
   var NodeId string
   /// Requested position in graph world coordinates.
-  var Position GraphPoint
+  var Position Point
 }

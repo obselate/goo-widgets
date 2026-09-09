@@ -185,7 +185,7 @@ public open class Slider : Cell[SliderInput] {
       OnKeyDown: (e KeyEvent) -> KeyDown(e),
       Children: { track, fill, thumb },
     }
-    if createRoot != nil { return createRoot!! (resolved, root) }
+    if let createRoot = createRoot { return createRoot(resolved, root) }
     return root
   }
 
@@ -314,7 +314,7 @@ public open class Slider : Cell[SliderInput] {
   }
 
   private func Format(value float64) string {
-    if resolved.FormatValue != nil { return resolved.FormatValue!! (value) }
+    if let formatValue = resolved.FormatValue { return formatValue(value) }
     return value.ToString("G", CultureInfo.InvariantCulture)
   }
 }

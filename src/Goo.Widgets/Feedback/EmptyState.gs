@@ -127,19 +127,19 @@ public data struct EmptyState {
 
     let copyContainer = Container{Key: "copy", FlexDirection: FlexDirection.Column, AlignItems: AlignItems.Center, Gap: resolved.TextGap!!}
     copyContainer.Children.Add(title!!)
-    if description != nil { copyContainer.Children.Add(description!!) }
+    if let description = description { copyContainer.Children.Add(description) }
 
     let root = Container{Width: resolved.Width!!, MinHeight: resolved.MinHeight!!, PaddingLeft: resolved.PaddingHorizontal!!, PaddingRight: resolved.PaddingHorizontal!!, PaddingTop: resolved.PaddingVertical!!, PaddingBottom: resolved.PaddingVertical!!, BackgroundColor: resolved.BackgroundColor!!, BorderColor: resolved.BorderColor!!, BorderWidth: resolved.BorderWidth!!, BorderRadius: resolved.BorderRadius!!, TransitionMs: resolved.TransitionMs!!, TransitionEasing: resolved.TransitionEasing!!, Opacity: resolved.Opacity!!, Transform: resolved.Transform!!, FlexDirection: FlexDirection.Column, AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center, Gap: resolved.Gap!!, Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: resolved.AccessibilityName!!}}
 
-    if illustrationSlot != nil {
+    if let illustration = illustrationSlot {
       let wrapIll = Container{Key: "illustration"}
-      wrapIll.Children.Add(illustrationSlot!!)
+      wrapIll.Children.Add(illustration)
       root.Children.Add(wrapIll)
     }
     root.Children.Add(copyContainer)
-    if actionSlot != nil {
+    if let action = actionSlot {
       let wrapAct = Container{Key: "action"}
-      wrapAct.Children.Add(actionSlot!!)
+      wrapAct.Children.Add(action)
       root.Children.Add(wrapAct)
     }
     return root

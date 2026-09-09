@@ -21,8 +21,8 @@ public class MaterialIcons {
       for resource in assembly.GetManifestResourceNames() {
         if resource.StartsWith(Prefix, StringComparison.Ordinal)
           && resource.EndsWith(Suffix, StringComparison.Ordinal) {
-          names.Add(resource.Substring(Prefix.Length, resource.Length - Prefix.Length - Suffix.Length))
-        }
+            names.Add(resource.Substring(Prefix.Length, resource.Length - Prefix.Length - Suffix.Length))
+          }
       }
       names.Sort(StringComparer.Ordinal)
       return names.ToArray()

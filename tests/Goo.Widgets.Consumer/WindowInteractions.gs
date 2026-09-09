@@ -27,7 +27,7 @@ internal class IconButtonHost : Cell {
 }
 
 internal class GraphHost : Cell {
-  internal var Position GraphPoint = GraphPoint{X: 140.0, Y: 120.0}
+  internal var Position Point = Point{X: 140.0, Y: 120.0}
   internal var Selected []string = []string{}
   internal var Card Container?
   internal var Moves int32

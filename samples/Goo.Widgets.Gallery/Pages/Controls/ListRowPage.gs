@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import Goo.Widgets.Gallery
 
@@ -11,7 +12,7 @@ class ListRowPage : GalleryPage {
     let defaultLeading = Container{
       Width: 32.0, Height: 32.0, BorderRadius: 6.0, BackgroundColor: Color.Parse("#27272a"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "IN", FontSize: 11.0, FontWeight: 700, Color: "#a1a1aa" } },
+      Children: { MaterialIcons.Create("inbox", 20.0, Color.Parse("#a1a1aa")) },
     }
     let defaultTrailing = Container{
       PaddingLeft: 8.0, PaddingRight: 8.0, PaddingTop: 3.0, PaddingBottom: 3.0,
@@ -26,7 +27,7 @@ class ListRowPage : GalleryPage {
     let selectedLeading = Container{
       Width: 32.0, Height: 32.0, BorderRadius: 6.0, BackgroundColor: Color.Parse("#3f3f46"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "SEC", FontSize: 10.0, FontWeight: 700, Color: "#fafafa" } },
+      Children: { MaterialIcons.Create("verified_user", 20.0) },
     }
     let selectedTrailing = Container{
       PaddingLeft: 8.0, PaddingRight: 8.0, PaddingTop: 3.0, PaddingBottom: 3.0,
@@ -42,7 +43,7 @@ class ListRowPage : GalleryPage {
     let compactLeading = Container{
       Width: 28.0, Height: 28.0, BorderRadius: 5.0, BackgroundColor: Color.Parse("#27272a"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "KEY", FontSize: 9.0, FontWeight: 700, Color: "#a1a1aa" } },
+      Children: { MaterialIcons.Create("keyboard", 20.0, Color.Parse("#a1a1aa")) },
     }
     let compactTrailing = Container{
       PaddingLeft: 6.0, PaddingRight: 6.0, PaddingTop: 2.0, PaddingBottom: 2.0,
@@ -58,7 +59,7 @@ class ListRowPage : GalleryPage {
     let customLeading = Container{
       Width: 36.0, Height: 36.0, BorderRadius: 8.0, BackgroundColor: Color.Parse("#14532d"),
       AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-      Children: { Text{ Content: "DEV", FontSize: 11.0, FontWeight: 700, Color: "#bbf7d0" } },
+      Children: { MaterialIcons.Create("code", 20.0, Color.Parse("#bbf7d0")) },
     }
     let customTrailing = Container{
       PaddingLeft: 8.0, PaddingRight: 8.0, PaddingTop: 3.0, PaddingBottom: 3.0,

@@ -94,25 +94,19 @@ public data struct ActionButton {
       CreateRoot = nil,
     }
 
-    var text Text? = nil
-    if let createText = createText {
-      text = createText(resolved)
-    } else if resolved.FontFamily != nil {
-      text = Text{
-        Content: resolved.Label!!,
-        FontFamily: resolved.FontFamily!!,
-        FontSize: resolved.FontSize,
-        FontWeight: resolved.FontWeight,
-      }
+    let text = if let createText = createText {
+      createText(resolved)
     } else {
-      text = Text{
+      let value = Text{
         Content: resolved.Label!!,
         FontSize: resolved.FontSize,
         FontWeight: resolved.FontWeight,
       }
+      if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+      value
     }
     if let createRoot = createRoot {
-      return createRoot(resolved, text!!)
+      return createRoot(resolved, text)
     }
 
     return Button{
@@ -144,7 +138,7 @@ public data struct ActionButton {
         Role: AccessibilityRole.Button,
         Name: resolved.AccessibilityName!!,
       },
-      Children: { text!! },
+      Children: { text },
     }
   }
 }

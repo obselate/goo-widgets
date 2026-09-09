@@ -81,9 +81,8 @@ public data struct MediaCard {
       BackgroundColor: Color.Parse("#27272a"),
       Accessibility: Accessibility{ Hidden: true },
     }
-    var content Blob? = nil
-    if createContent != nil {
-      content = createContent!! (resolved)
+    let content = if let createContent = createContent {
+      createContent(resolved)
     } else {
       let children = System.Collections.Generic.List[Blob]()
       children.Add(Text{
@@ -94,25 +93,13 @@ public data struct MediaCard {
         TextWrap: TextWrap.NoWrap,
         TextTrimming: TextTrimming.Ellipsis,
       })
-      if resolved.Subtitle != nil {
-        children.Add(Text{
-          Content: resolved.Subtitle!!,
-          FontSize: resolved.SupportingFontSize,
-          Color: resolved.SupportingColor!!,
-          TextWrap: TextWrap.NoWrap,
-          TextTrimming: TextTrimming.Ellipsis,
-        })
+      if let subtitle = resolved.Subtitle {
+        children.Add(SupportingText(resolved, subtitle))
       }
-      if resolved.Detail != nil {
-        children.Add(Text{
-          Content: resolved.Detail!!,
-          FontSize: resolved.SupportingFontSize,
-          Color: resolved.SupportingColor!!,
-          TextWrap: TextWrap.NoWrap,
-          TextTrimming: TextTrimming.Ellipsis,
-        })
+      if let detail = resolved.Detail {
+        children.Add(SupportingText(resolved, detail))
       }
-      content = Container{
+      Container{
         Width: resolved.Width,
         Height: resolved.ContentHeight,
         MinWidth: 0.0,
@@ -124,8 +111,8 @@ public data struct MediaCard {
         Children: children,
       }
     }
-    if createRoot != nil {
-      return createRoot!! (resolved, thumbnail, content!!)
+    if let createRoot = createRoot {
+      return createRoot(resolved, thumbnail, content)
     }
     return Button{
       BasedOn: resolved.RootStyle,
@@ -143,7 +130,15 @@ public data struct MediaCard {
       Hover: Style{ BackgroundColor: resolved.HoverBackgroundColor!! },
       Accessibility: Accessibility{ Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!! },
       OnClick: resolved.OnClick,
-      Children: { thumbnail, content!! },
+      Children: { thumbnail, content },
     }
+  }
+
+  private func SupportingText(input MediaCard, content string) Blob -> Text {
+    Content: content,
+    FontSize: input.SupportingFontSize,
+    Color: input.SupportingColor!!,
+    TextWrap: TextWrap.NoWrap,
+    TextTrimming: TextTrimming.Ellipsis,
   }
 }

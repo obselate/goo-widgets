@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
 public data struct Checkbox {
@@ -38,8 +39,8 @@ public data struct Checkbox {
   var BorderWidth float64?
   /// Corner radius. Nil resolves to 4 and preserves explicit zero.
   var BorderRadius float64?
-  /// Mark font size. Zero resolves to 14.
-  var FontSize float64
+  /// Mark icon size. Zero resolves to 14.
+  var MarkSize float64
   /// Transition duration. Nil resolves to 150 and preserves explicit zero.
   var TransitionMs float64?
   /// Transition easing. Nil resolves to EaseOut.
@@ -64,7 +65,7 @@ public data struct Checkbox {
       DisabledOpacity = DisabledOpacity ?? 0.5,
       BorderWidth = BorderWidth ?? 1.0,
       BorderRadius = BorderRadius ?? 4.0,
-      FontSize = if FontSize == 0.0 { 14.0 } else { FontSize },
+      MarkSize = if MarkSize == 0.0 { 14.0 } else { MarkSize },
       TransitionMs = TransitionMs ?? 150.0,
       TransitionEasing = TransitionEasing ?? Easing.EaseOut,
       CreateRoot = nil,
@@ -77,13 +78,8 @@ public data struct Checkbox {
       content = MixedContent
     }
     if active && content == nil {
-      content = Text{
-        Content: if state == AccessibilityChecked.Mixed { "−" } else { "✓" },
-        Color: resolved.MarkColor!!,
-        FontSize: resolved.FontSize,
-        FontWeight: 700,
-        Accessibility: Accessibility{Hidden: true},
-      }
+      let mark = if state == AccessibilityChecked.Mixed { "remove" } else { "check" }
+      content = MaterialIcons.Create(mark, size: resolved.MarkSize, color: resolved.MarkColor!!)
     }
 
     if let createRoot = createRoot { return createRoot(resolved, content) }
@@ -122,7 +118,7 @@ public data struct Checkbox {
         Checked: state,
       },
     }
-    if content != nil { root.Children.Add(content!!) }
+    if let content = content { root.Children.Add(content) }
     return root
   }
 }

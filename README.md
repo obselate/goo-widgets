@@ -70,6 +70,8 @@ let add = IconButton{
 `MaterialIcons.Names()` returns the available names in ordinal order. `Create`
 returns a fresh Goo `Shape` with the requested size and color, defaulting to 24
 logical pixels and `#fafafa`. Icon geometry is loaded and cached on first use.
+Default checkbox marks, media controls, window controls, and gallery icons all use
+these SVGs. Text and avatar initials use the application font.
 The shape is decorative. Give its button an accessible name.
 
 ## Compose and customize
@@ -107,6 +109,16 @@ dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build
 Verification restores locked dependencies, builds the library and gallery,
 checks screenshot coverage, packs the library, and runs consumer checks against
 the packaged assembly. `artifacts/`, `bin/`, and `obj/` are generated and ignored.
+
+For a source lint review with the standalone `gslint` tool:
+
+```sh
+gslint --strict --severity GL0005=info src/Goo.Widgets
+```
+
+GL0005 remains visible as a manual review advisory. Widget props use assertions
+after resolving defaults or assigning factory results. All other lint rules run
+at strict severity.
 
 The gallery needs a graphical session and Goo's Vulkan runtime prerequisites.
 To open one widget or run the native interaction checks:

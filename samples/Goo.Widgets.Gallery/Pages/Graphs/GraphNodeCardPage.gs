@@ -26,7 +26,7 @@ internal open class GraphNodeCardExample : Cell {
             Node: GraphNode{
               Id: "normal",
               Label: "Normal node",
-              Position: GraphPoint{ X: 140.0, Y: 96.0 },
+              Position: Point{ X: 140.0, Y: 96.0 },
             },
             CenterX: 140.0,
             CenterY: 96.0,
@@ -35,7 +35,7 @@ internal open class GraphNodeCardExample : Cell {
             Node: GraphNode{
               Id: "selected",
               Label: "Selected node",
-              Position: GraphPoint{ X: 370.0, Y: 96.0 },
+              Position: Point{ X: 370.0, Y: 96.0 },
             },
             Selected: true,
             CenterX: 370.0,
@@ -45,7 +45,7 @@ internal open class GraphNodeCardExample : Cell {
             Node: GraphNode{
               Id: "custom",
               Label: "Custom node",
-              Position: GraphPoint{ X: 600.0, Y: 96.0 },
+              Position: Point{ X: 600.0, Y: 96.0 },
               Content: Container{
                 Gap: 3.0,
                 AlignItems: AlignItems.Center,

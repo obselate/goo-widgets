@@ -82,17 +82,10 @@ public data struct ToggleSwitch {
       ActiveTransform = ActiveTransform ?? PanelTransform{Scale: 0.98},
       CreateThumb = nil, CreateRoot = nil,
     }
-    let travel = resolved.Width - (resolved.Padding * 2.0) - resolved.ThumbSize
-    var marginLeft float64 = 0.0
-    if resolved.Checked {
-      marginLeft = travel
-      if marginLeft < 0.0 {
-        marginLeft = 0.0
-      }
-    }
-    var thumb Container? = nil
-    if let createThumb = createThumb {
-      thumb = createThumb(resolved)
+    let travel = Math.Max(0.0, resolved.Width - 2.0 * (resolved.Padding + resolved.BorderWidth!!) - resolved.ThumbSize)
+    let marginLeft = if resolved.Checked { travel } else { 0.0 }
+    let thumb = if let createThumb = createThumb {
+      createThumb(resolved)
     } else {
       let thumbColor = if resolved.Disabled {
         resolved.DisabledThumbColor!!
@@ -101,7 +94,7 @@ public data struct ToggleSwitch {
       } else {
         resolved.ThumbColor!!
       }
-      thumb = Container{
+      Container{
         Width: resolved.ThumbSize,
         Height: resolved.ThumbSize,
         BackgroundColor: thumbColor,
@@ -112,7 +105,7 @@ public data struct ToggleSwitch {
       }
     }
     if let createRoot = createRoot {
-      return createRoot(resolved, thumb!!)
+      return createRoot(resolved, thumb)
     }
     let trackColor = if resolved.Disabled {
       resolved.DisabledTrackColor!!
@@ -151,7 +144,7 @@ public data struct ToggleSwitch {
         Name: resolved.AccessibilityName!!,
         Checked: if resolved.Checked { AccessibilityChecked.True } else { AccessibilityChecked.False },
       },
-      Children: { thumb!! },
+      Children: { thumb },
     }
   }
 }

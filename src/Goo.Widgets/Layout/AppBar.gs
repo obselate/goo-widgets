@@ -92,32 +92,34 @@ public data struct AppBar {
       CreateRoot = nil,
     }
 
-    var title Text? = nil
-    if let createTitle = createTitle {
-      title = createTitle(resolved)
+    let title = if let createTitle = createTitle {
+      createTitle(resolved)
     } else {
       let titleAccessibility = Accessibility{Role: AccessibilityRole.Heading, Name: resolved.Title!!, Level: resolved.HeadingLevel}
-      title = Text{Content: resolved.Title!!, FontSize: resolved.TitleFontSize, FontWeight: resolved.TitleFontWeight, Accessibility: titleAccessibility}
-      if resolved.FontFamily != nil { title!!.FontFamily = resolved.FontFamily!! }
+      let value = Text{Content: resolved.Title!!, FontSize: resolved.TitleFontSize, FontWeight: resolved.TitleFontWeight, Accessibility: titleAccessibility}
+      if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+      value
     }
 
-    var subtitle Text? = nil
-    if resolved.Subtitle != nil {
+    let subtitle Text? = if let subtitleText = resolved.Subtitle {
       if let createSubtitle = createSubtitle {
-        subtitle = createSubtitle(resolved)
+        createSubtitle(resolved)
       } else {
-        subtitle = Text{Content: resolved.Subtitle!!, Color: resolved.SubtitleColor!!, FontSize: resolved.SubtitleFontSize, FontWeight: resolved.SubtitleFontWeight}
-        if resolved.FontFamily != nil { subtitle!!.FontFamily = resolved.FontFamily!! }
+        let value = Text{Content: subtitleText, Color: resolved.SubtitleColor!!, FontSize: resolved.SubtitleFontSize, FontWeight: resolved.SubtitleFontWeight}
+        if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+        value
       }
+    } else {
+      nil
     }
 
     if let createRoot = createRoot {
-      return createRoot(resolved, Leading, title!!, subtitle, Trailing)
+      return createRoot(resolved, Leading, title, subtitle, Trailing)
     }
 
     let content = Container{FlexDirection: FlexDirection.Column, JustifyContent: JustifyContent.Center, Gap: resolved.TitleGap!!, FlexGrow: 1.0}
-    content.Children.Add(Container{Children: {title!!}})
-    if subtitle != nil { content.Children.Add(Container{Children: {subtitle!!}}) }
+    content.Children.Add(Container{Children: {title}})
+    if let subtitle = subtitle { content.Children.Add(Container{Children: {subtitle}}) }
 
     let root = Container{
       Width: resolved.Width!!,
@@ -138,9 +140,9 @@ public data struct AppBar {
       Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: resolved.AccessibilityName!!},
     }
 
-    if Leading != nil { root.Children.Add(Container{Children: {Leading!!}}) }
+    if let leading = Leading { root.Children.Add(Container{Children: {leading}}) }
     root.Children.Add(content)
-    if Trailing != nil { root.Children.Add(Container{Children: {Trailing!!}}) }
+    if let trailing = Trailing { root.Children.Add(Container{Children: {trailing}}) }
     return root
   }
 }

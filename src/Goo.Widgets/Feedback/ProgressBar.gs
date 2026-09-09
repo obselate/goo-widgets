@@ -95,12 +95,12 @@ public data struct ProgressBar {
       Maximum: 1.0,
       Now: resolved.Value,
     }
-    if resolved.AccessibilityValueText != nil {
+    if let valueText = resolved.AccessibilityValueText {
       accessibilityRange = AccessibilityValue{
         Minimum: 0.0,
         Maximum: 1.0,
         Now: resolved.Value,
-        Text: resolved.AccessibilityValueText!!,
+        Text: valueText,
       }
     }
 
@@ -108,10 +108,10 @@ public data struct ProgressBar {
       Role: AccessibilityRole.ProgressBar,
       Range: accessibilityRange,
     }
-    if resolved.AccessibilityName != nil {
+    if let accessibilityName = resolved.AccessibilityName {
       semantics = Accessibility{
         Role: AccessibilityRole.ProgressBar,
-        Name: resolved.AccessibilityName!!,
+        Name: accessibilityName,
         Range: accessibilityRange,
       }
     }

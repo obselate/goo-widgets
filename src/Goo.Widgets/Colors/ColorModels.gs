@@ -16,18 +16,10 @@ public data struct HslColor {
 
   /// Converts this value to packed 24-bit sRGB.
   public func Rgb() int32 {
-    let hue = WrapHue(Hue) / 60.0
     let saturation = Math.Clamp(Saturation, 0.0, 1.0)
     let lightness = Math.Clamp(Lightness, 0.0, 1.0)
     let chroma = (1.0 - Math.Abs(2.0 * lightness - 1.0)) * saturation
-    let x = chroma * (1.0 - Math.Abs(hue % 2.0 - 1.0))
-    let m = lightness - chroma / 2.0
-    let red = if hue < 1.0 { chroma } else { if hue < 2.0 { x } else { if hue < 4.0 { 0.0 } else { if hue < 5.0 { x } else { chroma } } } }
-    let green = if hue < 1.0 { x } else { if hue < 3.0 { chroma } else { if hue < 4.0 { x } else { 0.0 } } }
-    let blue = if hue < 2.0 { 0.0 } else { if hue < 3.0 { x } else { if hue < 5.0 { chroma } else { x } } }
-    return (int32(Math.Round((red + m) * 255.0)) << 16)
-    | (int32(Math.Round((green + m) * 255.0)) << 8)
-    | int32(Math.Round((blue + m) * 255.0))
+    return ChromaRgb(Hue, chroma, lightness - chroma / 2.0)
   }
 
   shared {
@@ -70,30 +62,10 @@ public data struct HsvColor {
 
   /// Converts this value to packed 24-bit sRGB.
   public func Rgb() int32 {
-    let hue = WrapHue(Hue) / 60.0
     let saturation = Math.Clamp(Saturation, 0.0, 1.0)
     let value = Math.Clamp(Value, 0.0, 1.0)
     let chroma = value * saturation
-    let x = chroma * (1.0 - Math.Abs(hue % 2.0 - 1.0))
-    let m = value - chroma
-    var red = 0.0
-    var green = 0.0
-    var blue = 0.0
-    if hue < 1.0 { red = chroma
-      green = x
-    } else if hue < 2.0 { red = x
-      green = chroma
-    } else if hue < 3.0 { green = chroma
-      blue = x
-    } else if hue < 4.0 { green = x
-      blue = chroma
-    } else if hue < 5.0 { red = x
-      blue = chroma
-    } else { red = chroma
-      blue = x }
-    return (int32(Math.Round((red + m) * 255.0)) << 16)
-    | (int32(Math.Round((green + m) * 255.0)) << 8)
-    | int32(Math.Round((blue + m) * 255.0))
+    return ChromaRgb(Hue, chroma, value - chroma)
   }
 
   shared {
@@ -147,9 +119,9 @@ public data struct OklchColor {
 
     /// Converts packed 24-bit sRGB to OKLCH.
     public func FromRgb(rgb int32) OklchColor {
-      let red = Linear(float64((rgb >> 16) & 255) / 255.0)
-      let green = Linear(float64((rgb >> 8) & 255) / 255.0)
-      let blue = Linear(float64(rgb & 255) / 255.0)
+      let red = LinearSrgb(float64((rgb >> 16) & 255) / 255.0)
+      let green = LinearSrgb(float64((rgb >> 8) & 255) / 255.0)
+      let blue = LinearSrgb(float64(rgb & 255) / 255.0)
       let l = Math.Cbrt(0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue)
       let m = Math.Cbrt(0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue)
       let s = Math.Cbrt(0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue)
@@ -162,8 +134,6 @@ public data struct OklchColor {
         Hue: if chroma < 0.000001 { 0.0 } else { WrapHue(Math.Atan2(b, a) * 180.0 / Math.PI) },
       }
     }
-
-    private func Linear(channel float64) float64 -> if channel <= 0.04045 { channel / 12.92 } else { Math.Pow((channel + 0.055) / 1.055, 2.4) }
 
     private func Channel(value float64) int32 {
       let clamped = Math.Clamp(value, 0.0, 1.0)
@@ -186,3 +156,21 @@ public data struct OklchColor {
 
 /// Normalizes a hue to the half-open range from zero through 360 degrees.
 public func WrapHue(hue float64) float64 -> ((hue % 360.0) + 360.0) % 360.0
+
+internal func ChromaRgb(hueDegrees float64, chroma float64, offset float64) int32 {
+  let hue = WrapHue(hueDegrees) / 60.0
+  let x = chroma * (1.0 - Math.Abs(hue % 2.0 - 1.0))
+  let (red, green, blue) = switch int32(hue) {
+    case 0: (chroma, x, 0.0)
+    case 1: (x, chroma, 0.0)
+    case 2: (0.0, chroma, x)
+    case 3: (0.0, x, chroma)
+    case 4: (x, 0.0, chroma)
+    default: (chroma, 0.0, x)
+  }
+  return (int32(Math.Round((red + offset) * 255.0)) << 16)
+  | (int32(Math.Round((green + offset) * 255.0)) << 8)
+  | int32(Math.Round((blue + offset) * 255.0))
+}
+
+internal func LinearSrgb(channel float64) float64 -> if channel <= 0.04045 { channel / 12.92 } else { Math.Pow((channel + 0.055) / 1.055, 2.4) }

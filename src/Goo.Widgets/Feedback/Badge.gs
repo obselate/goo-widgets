@@ -87,14 +87,6 @@ public data struct Badge {
     if !isDot {
       if let createText = createText {
         text = createText(resolved)
-      } else if resolved.FontFamily != nil {
-        text = Text{
-          Content: resolved.Content!!,
-          Color: resolved.TextColor!!,
-          FontFamily: resolved.FontFamily!!,
-          FontSize: resolved.FontSize,
-          FontWeight: resolved.FontWeight,
-        }
       } else {
         text = Text{
           Content: resolved.Content!!,
@@ -102,6 +94,7 @@ public data struct Badge {
           FontSize: resolved.FontSize,
           FontWeight: resolved.FontWeight,
         }
+        if let fontFamily = resolved.FontFamily { text.FontFamily = fontFamily }
       }
     }
     if let createRoot = createRoot {
@@ -109,10 +102,10 @@ public data struct Badge {
     }
 
     var semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true}
-    if resolved.AccessibilityName != nil {
+    if let accessibilityName = resolved.AccessibilityName {
       semantics = Accessibility{
         Role: AccessibilityRole.Status,
-        Name: resolved.AccessibilityName!!,
+        Name: accessibilityName,
       }
     }
     if isDot {

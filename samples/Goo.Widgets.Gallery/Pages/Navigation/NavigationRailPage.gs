@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Navigation
 
 import Goo
+import Goo.Widgets.Icons
 import Goo.Widgets.Actions
 import Goo.Widgets.Gallery
 import Goo.Widgets.Navigation
@@ -20,9 +21,9 @@ internal open class NavigationRailExample : Cell {
         AccessibilityName: "Example sections",
         OnSelect: (id string) -> { selected = id },
         Items: []NavigationItem{
-          NavigationItem{Id: "home", Label: "Home", Content: Text{Content: "H"}},
-          NavigationItem{Id: "jobs", Label: "Jobs", Content: Text{Content: "J"}},
-          NavigationItem{Id: "settings", Label: "Settings", Content: Text{Content: "S"}},
+          NavigationItem{Id: "home", Label: "Home", Content: MaterialIcons.Create("home")},
+          NavigationItem{Id: "jobs", Label: "Jobs", Content: MaterialIcons.Create("work")},
+          NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
         },
       }.Build(),
       Container{

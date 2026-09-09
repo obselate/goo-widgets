@@ -88,27 +88,29 @@ public data struct SectionHeader {
       accent = Container{Width: size, Height: size, BorderRadius: size / 2.0, BackgroundColor: resolved.AccentColor!!}
     }
 
-    var label Text? = nil
-    if let createLabel = createLabel {
-      label = createLabel(resolved)
+    let label = if let createLabel = createLabel {
+      createLabel(resolved)
     } else {
-      label = Text{Content: resolved.Label!!, Color: resolved.LabelColor!!, FontSize: resolved.LabelFontSize, FontWeight: resolved.LabelFontWeight, TextTransform: TextTransform.Uppercase}
-      if resolved.FontFamily != nil { label!!.FontFamily = resolved.FontFamily!! }
+      let value = Text{Content: resolved.Label!!, Color: resolved.LabelColor!!, FontSize: resolved.LabelFontSize, FontWeight: resolved.LabelFontWeight, TextTransform: TextTransform.Uppercase}
+      if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+      value
     }
 
     let rule = Container{Height: resolved.RuleHeight!!, BackgroundColor: resolved.RuleColor!!, FlexGrow: 1.0}
 
-    var meta Text? = nil
-    if resolved.MetaText != nil {
+    let meta Text? = if let metaText = resolved.MetaText {
       if let createMeta = createMeta {
-        meta = createMeta(resolved)
+        createMeta(resolved)
       } else {
-        meta = Text{Content: resolved.MetaText!!, Color: resolved.MetaColor!!, FontSize: resolved.MetaFontSize, FontWeight: resolved.MetaFontWeight}
-        if resolved.FontFamily != nil { meta!!.FontFamily = resolved.FontFamily!! }
+        let value = Text{Content: metaText, Color: resolved.MetaColor!!, FontSize: resolved.MetaFontSize, FontWeight: resolved.MetaFontWeight}
+        if let fontFamily = resolved.FontFamily { value.FontFamily = fontFamily }
+        value
       }
+    } else {
+      nil
     }
 
-    if let createRoot = createRoot { return createRoot(resolved, accent, label!!, rule, meta) }
+    if let createRoot = createRoot { return createRoot(resolved, accent, label, rule, meta) }
 
     var semantics = Accessibility{Role: AccessibilityRole.Heading, Name: resolved.AccessibilityName!!, Level: resolved.HeadingLevel}
     if resolved.Expanded != nil { semantics.Expanded = resolved.Expanded }
@@ -122,10 +124,10 @@ public data struct SectionHeader {
       Gap: resolved.Gap!!,
       Accessibility: semantics,
     }
-    if accent != nil { root.Children.Add(accent!!) }
-    root.Children.Add(label!!)
+    if let accent = accent { root.Children.Add(accent) }
+    root.Children.Add(label)
     root.Children.Add(rule)
-    if meta != nil { root.Children.Add(meta!!) }
+    if let meta = meta { root.Children.Add(meta) }
     return root
   }
 }

@@ -57,7 +57,7 @@ public data struct MasterDetail {
 
     var masterPane Container? = nil
     if !resolved.Narrow || !resolved.Selected {
-      masterPane = Container{
+      let pane = Container{
         Width: if resolved.Narrow { Length.Percent(100.0) } else { resolved.MasterWidth },
         Height: Length.Percent(100.0),
         MinWidth: 0.0,
@@ -69,12 +69,13 @@ public data struct MasterDetail {
         BorderRadius: resolved.BorderRadius!!,
         Overflow: Overflow.Hidden,
       }
-      if Master != nil { masterPane!!.Children.Add(Master!!) }
+      if let master = Master { pane.Children.Add(master) }
+      masterPane = pane
     }
 
     var detailPane Container? = nil
     if !resolved.Narrow || resolved.Selected {
-      detailPane = Container{
+      let pane = Container{
         Width: if resolved.Narrow { Length.Percent(100.0) } else { Length.Auto },
         Height: Length.Percent(100.0),
         MinWidth: 0.0,
@@ -88,11 +89,10 @@ public data struct MasterDetail {
         Overflow: Overflow.Hidden,
       }
       if resolved.Narrow {
-        var back Button? = nil
-        if let createBack = createBack {
-          back = createBack(resolved)
+        let back = if let createBack = createBack {
+          createBack(resolved)
         } else {
-          back = Button{
+          Button{
             Height: resolved.BackHeight,
             PaddingLeft: 12.0,
             PaddingRight: 12.0,
@@ -107,9 +107,10 @@ public data struct MasterDetail {
             Children: {Text{Content: resolved.BackLabel!!}},
           }
         }
-        detailPane!!.Children.Add(back!!)
+        pane.Children.Add(back)
       }
-      if Detail != nil { detailPane!!.Children.Add(Detail!!) }
+      if let detail = Detail { pane.Children.Add(detail) }
+      detailPane = pane
     }
 
     if let createRoot = createRoot { return createRoot(resolved, masterPane, detailPane) }
@@ -126,8 +127,8 @@ public data struct MasterDetail {
         Name: resolved.AccessibilityName!!,
       },
     }
-    if masterPane != nil { root.Children.Add(masterPane!!) }
-    if detailPane != nil { root.Children.Add(detailPane!!) }
+    if let masterPane = masterPane { root.Children.Add(masterPane) }
+    if let detailPane = detailPane { root.Children.Add(detailPane) }
     return root
   }
 }

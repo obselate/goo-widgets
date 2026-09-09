@@ -3,6 +3,7 @@ package Goo.Widgets.Layout
 import System
 import System.Collections.Generic
 import Goo
+import Goo.Widgets.Icons
 
 /// Identifies a standard window chrome command.
 public enum WindowChromeAction { Minimize; Maximize; Restore; Close }
@@ -60,7 +61,7 @@ public data struct WindowChrome {
     let createControl = CreateControl
     let createRoot = CreateRoot
     let host = Host
-    let maximized = IsMaximized ?? (host != nil && (host!!.State == WindowState.Maximized || host!!.State == WindowState.Fullscreen))
+    let maximized = IsMaximized ?? (host?.State == WindowState.Maximized || host?.State == WindowState.Fullscreen)
     let resolved = this with{
       IsMaximized = maximized,
       ShowMinimize = ShowMinimize ?? true,
@@ -81,16 +82,16 @@ public data struct WindowChrome {
     var maximize = resolved.OnMaximize
     var restore = resolved.OnRestore
     var close = resolved.OnClose
-    if host != nil {
-      if minimize == nil { minimize = () -> { host!!.State = WindowState.Minimized } }
-      if maximize == nil { maximize = () -> { host!!.State = WindowState.Maximized } }
-      if restore == nil { restore = () -> { host!!.State = WindowState.Normal } }
-      if close == nil { close = () -> { host!!.RequestClose() } }
+    if let host = host {
+      minimize ??= () -> { host.State = WindowState.Minimized }
+      maximize ??= () -> { host.State = WindowState.Maximized }
+      restore ??= () -> { host.State = WindowState.Normal }
+      close ??= () -> host.RequestClose()
     }
     let children = List[Blob]()
-    if resolved.LeadingContent != nil { children.Add(Container{ Children: { resolved.LeadingContent!! } }) }
+    if let leading = resolved.LeadingContent { children.Add(Container{ Children: { leading } }) }
     children.Add(Container{ FlexGrow: 1.0 })
-    if resolved.TrailingContent != nil { children.Add(Container{ Children: { resolved.TrailingContent!! } }) }
+    if let trailing = resolved.TrailingContent { children.Add(Container{ Children: { trailing } }) }
     if resolved.ShowMinimize!! {
       children.Add(BuildControl(resolved, WindowChromeAction.Minimize, minimize, createContent, createControl))
     }
@@ -102,8 +103,8 @@ public data struct WindowChrome {
       children.Add(BuildControl(resolved, WindowChromeAction.Close, close, createContent, createControl))
     }
     let ordered = children.ToArray()
-    if createRoot != nil {
-      return Window.DragRegion(createRoot!! (resolved, ordered))
+    if let createRoot = createRoot {
+      return Window.DragRegion(createRoot(resolved, ordered))
     }
     return Window.DragRegion(Container{
       BasedOn: resolved.RootStyle,
@@ -121,19 +122,13 @@ public data struct WindowChrome {
   private func BuildControl(resolved WindowChrome, command WindowChromeAction, action Action?,
     createContent Func[WindowChrome, WindowChromeAction, Blob]?,
     createControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?) Blob{
-      var content Blob? = nil
-      if createContent != nil {
-        content = createContent!! (resolved, command)
+      let content = if let createContent = createContent {
+        createContent(resolved, command)
       } else {
-        content = Text{
-          Content: Symbol(command),
-          FontSize: if command == WindowChromeAction.Maximize || command == WindowChromeAction.Restore { 14.0 } else { 18.0 },
-          Color: resolved.ControlColor!!,
-          Accessibility: Accessibility{ Hidden: true },
-        }
+        MaterialIcons.Create(IconName(command), 18.0, resolved.ControlColor)
       }
-      if createControl != nil {
-        return createControl!! (resolved, command, content!!, action)
+      if let createControl = createControl {
+        return createControl(resolved, command, content, action)
       }
       return Button{
         Width: resolved.ControlWidth,
@@ -148,7 +143,7 @@ public data struct WindowChrome {
         },
         Accessibility: Accessibility{ Role: AccessibilityRole.Button, Name: Name(command) },
         OnClick: action,
-        Children: { content!! },
+        Children: { content },
       }
     }
 
@@ -160,11 +155,10 @@ public data struct WindowChrome {
     default: "Window control"
   }
 
-  private func Symbol(command WindowChromeAction) string -> switch command {
-    case WindowChromeAction.Minimize: "−"
-    case WindowChromeAction.Maximize: "□"
-    case WindowChromeAction.Restore: "❐"
-    case WindowChromeAction.Close: "×"
-    default: ""
+  private func IconName(command WindowChromeAction) string -> switch command {
+    case WindowChromeAction.Minimize: "remove"
+    case WindowChromeAction.Maximize: "crop_square"
+    case WindowChromeAction.Restore: "filter_none"
+    default: "close"
   }
 }

@@ -59,16 +59,13 @@ public data struct GraphNodeCard {
     if !Double.IsFinite(padding) || padding < 0.0 { throw ArgumentOutOfRangeException("Padding") }
     if !Double.IsFinite(borderRadius) || borderRadius < 0.0 { throw ArgumentOutOfRangeException("BorderRadius") }
     if !Double.IsFinite(borderWidth) || borderWidth < 0.0 { throw ArgumentOutOfRangeException("BorderWidth") }
-    var content = Node.Content
-    if content == nil {
-      content = Text{
-        Content: Node.Label,
-        Color: ForegroundColor ?? Color.Parse("#fafafa"),
-        FontSize: 13.0,
-        FontWeight: 700,
-        TextWrap: TextWrap.NoWrap,
-        TextTrimming: TextTrimming.Ellipsis,
-      }
+    let content = Node.Content ?? Text{
+      Content: Node.Label,
+      Color: ForegroundColor ?? Color.Parse("#fafafa"),
+      FontSize: 13.0,
+      FontWeight: 700,
+      TextWrap: TextWrap.NoWrap,
+      TextTrimming: TextTrimming.Ellipsis,
     }
     return Container{
       BasedOn: RootStyle,
@@ -96,7 +93,7 @@ public data struct GraphNodeCard {
       OnPointerMove: OnPointerMove,
       OnPointerUp: OnPointerUp,
       OnPointerCancel: OnPointerCancel,
-      Children: { content!! },
+      Children: { content },
     }
   }
 }
