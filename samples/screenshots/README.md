@@ -13,6 +13,8 @@ dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --scre
 python3 scripts/verify-screenshots.py
 ```
 
+In a Wayland session, set `SDL_VIDEODRIVER=wayland` to select the native display driver.
+
 Ensure `goo` is on `PATH`, or set `GOO_CLI` to its executable or CLI DLL. The capture command opens one window, visits every widget, waits for the presentation to settle, and closes the window when finished. Screenshots include the gallery frame.
 
 To refresh just one widget, add its gallery page title:

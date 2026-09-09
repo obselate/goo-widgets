@@ -121,6 +121,7 @@ after resolving defaults or assigning factory results. All other lint rules run
 at strict severity.
 
 The gallery needs a graphical session and Goo's Vulkan runtime prerequisites.
+In a Wayland session, set `SDL_VIDEODRIVER=wayland` for native checks and screenshots.
 To open one widget or run the native interaction checks:
 
 ```sh

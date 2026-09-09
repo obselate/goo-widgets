@@ -202,7 +202,7 @@ func WindowInteractions() {
     PumpFrames(window, 3)
     MouseButton(windowId, float32(box.X + box.Width * 1.2), float32(box.Y + box.Height / 2.0), false)
     PumpFrames(window, 3)
-    Require(host.Value == 1.0 && host.Commits == 2, "Captured pointer drag did not clamp and commit at the endpoint.")
+    Require(host.Value == 1.0 && host.Commits == 2, "Captured pointer drag did not clamp and commit at the endpoint. Value=" + host.Value.ToString() + ", commits=" + host.Commits.ToString() + ", width=" + box.Width.ToString())
 
     host.RangeDisabled = true
     host.Rebuild()
