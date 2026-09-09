@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Gsharp.NET.Sdk": {
+        "type": "Direct",
+        "requested": "[0.4.1, )",
+        "resolved": "0.4.1",
+        "contentHash": "0zZqHM17JShdR4z/KgGlBYMFDsaOD6Qk/tQoyLXDmFmcNNbd6JJW5zYzYd7jWA0Xk6S9wVai/6bNEFBYyOrDWg=="
+      }
+    }
+  }
+}

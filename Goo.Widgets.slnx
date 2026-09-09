@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="src/Goo.Widgets/Goo.Widgets.gsproj" Type="9A19103F-16F7-4668-BE54-9A1E7A4F7556" />
+  <Project Path="samples/Goo.Widgets.Gallery/Goo.Widgets.Gallery.gsproj" Type="9A19103F-16F7-4668-BE54-9A1E7A4F7556" />
+</Solution>
