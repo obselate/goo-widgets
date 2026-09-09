@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-09-09
+
+- Embed portable debug symbols in the library so package debugging does not depend on a rejected external symbol checksum.
+- Validate embedded symbols before publishing.
+
 ## 0.1.0 - 2026-09-09
 
 - Initial release of 31 composable G# widgets for Goo desktop applications.

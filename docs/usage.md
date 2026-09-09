@@ -3,7 +3,7 @@
 Add the package to an existing Goo application:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.0
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
 ```
 
 Goo Widgets brings in Goo and Goo.Svg 0.5.2. The examples target .NET 10 and use Gsharp.NET.Sdk 0.4.59.
@@ -108,7 +108,7 @@ The [project](../samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj) u
     <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo.Widgets" Version="0.1.0" />
+    <PackageReference Include="Goo.Widgets" Version="0.1.1" />
     <Watch Include="**/*.gs" Exclude="bin/**;obj/**" />
   </ItemGroup>
 </Project>

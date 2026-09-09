@@ -11,11 +11,11 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.1.0` targets .NET 10 and depends on Goo and Goo.Svg `0.5.2`.
+Goo Widgets `0.1.1` targets .NET 10 and depends on Goo and Goo.Svg `0.5.2`.
 Install the package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.0
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
 ```
 
 ```gsharp
@@ -148,7 +148,8 @@ Keep application models, services, assets, and theme policy in the host applicat
 The library project owns the SemVer version. Upgrade dependency pins and lock
 files together. Releases use matching `v<Version>` tags and must not replace a
 published version. Tag builds publish through NuGet Trusted Publishing and attach
-the package, symbols, and SHA-256 checksums to the GitHub release. See the
+the package and SHA-256 checksums to the GitHub release. Debug symbols are embedded
+in the library. See the
 [release instructions](https://github.com/obselate/goo-widgets/blob/main/.github/RELEASING.md).
 
 Widget source is MIT licensed. See [LICENSE](https://github.com/obselate/goo-widgets/blob/main/LICENSE). Bundled Material Symbols
