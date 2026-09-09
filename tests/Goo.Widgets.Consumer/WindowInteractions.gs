@@ -181,6 +181,7 @@ func IconButtonInteractions() {
 }
 
 func WindowInteractions() {
+  ErgonomicWindowInteractions()
   IconButtonInteractions()
   let host = InteractiveHost{}
   let window = Window{Title: "Goo Widgets input verification", Width: 620, Height: 480, Root: host}

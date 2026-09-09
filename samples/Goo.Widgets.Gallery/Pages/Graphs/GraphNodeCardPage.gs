@@ -28,8 +28,6 @@ internal open class GraphNodeCardExample : Cell {
               Label: "Normal node",
               Position: Point{ X: 140.0, Y: 96.0 },
             },
-            CenterX: 140.0,
-            CenterY: 96.0,
           }.Build(),
           GraphNodeCard{
             Node: GraphNode{
@@ -38,8 +36,6 @@ internal open class GraphNodeCardExample : Cell {
               Position: Point{ X: 370.0, Y: 96.0 },
             },
             Selected: true,
-            CenterX: 370.0,
-            CenterY: 96.0,
           }.Build(),
           GraphNodeCard{
             Node: GraphNode{
@@ -57,8 +53,6 @@ internal open class GraphNodeCardExample : Cell {
             },
             BackgroundColor: "#172554",
             BorderColor: "#60a5fa",
-            CenterX: 600.0,
-            CenterY: 96.0,
           }.Build(),
         },
       },

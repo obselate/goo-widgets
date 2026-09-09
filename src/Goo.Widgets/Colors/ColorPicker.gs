@@ -9,16 +9,20 @@ import Goo.Widgets.Inputs
 public data struct ColorPickerInput {
   /// Current packed 24-bit sRGB value.
   var Value int32
-  /// Color model used by the wheel and tone slider.
-  var Mode ColorMode
+  /// Initial color model and any later external mode change. Nil initially resolves to OKLCH.
+  var Mode ColorMode?
   /// Accessible name. Nil resolves to Color picker.
   var AccessibilityName string?
   /// Receives preview colors during pointer and keyboard input.
   var OnValueChanged Action[int32]?
   /// Receives the final color after pointer, keyboard, or accessibility input.
   var OnValueCommitted Action[int32]?
+  /// Receives color-model changes made by the built-in mode buttons.
+  var OnModeChanged Action[ColorMode]?
   /// Whether the picker rejects input.
   var Disabled bool
+  /// Whether to show only the wheel and tone slider.
+  var Compact bool
   /// Wheel width and height. Zero resolves to 240.0.
   var WheelSize float64
   /// Tone slider height. Zero resolves to 28.0.
@@ -41,7 +45,7 @@ public data struct ColorPickerInput {
   var MarkerStyle Style?
   /// Creates the marker from resolved props and current color coordinates.
   var CreateMarker Func[ColorPickerInput, int32, float64, float64, Blob]?
-  /// Creates the final root from resolved props, wheel, and tone slider.
+  /// Replaces the default full or compact composition from resolved props, wheel, and tone slider.
   var CreateRoot Func[ColorPickerInput, Blob, Blob, Container]?
 }
 
@@ -53,6 +57,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
   private var currentRgb int32
   private var lastExternal int32
   private var currentMode ColorMode
+  private var lastExternalMode ColorMode?
   private var hue float64
   private var radius float64
   private var tone float64
@@ -69,16 +74,32 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
       dragging = false
       pointerId = -1L
     }
-    if !initialized || input.Value != lastExternal {
+    if !initialized {
       currentRgb = input.Value
       lastExternal = input.Value
-      currentMode = input.Mode
+      currentMode = input.Mode ?? ColorMode.Oklch
+      lastExternalMode = input.Mode
       ReadCoordinates(currentRgb)
       initialized = true
-    } else if input.Mode != currentMode {
-      currentMode = input.Mode
-      ReadCoordinates(currentRgb)
+    } else {
+      var coordinatesChanged = false
+      if input.Mode != lastExternalMode {
+        lastExternalMode = input.Mode
+        if let externalMode = input.Mode {
+          if externalMode != currentMode {
+            currentMode = externalMode
+            coordinatesChanged = true
+          }
+        }
+      }
+      if input.Value != lastExternal {
+        currentRgb = input.Value
+        lastExternal = input.Value
+        coordinatesChanged = true
+      }
+      if coordinatesChanged { ReadCoordinates(currentRgb) }
     }
+    resolved = resolved with{Value = currentRgb, Mode = currentMode}
     wheelSource.Update(currentMode, tone)
     let wheel = BuildWheel()
     let slider = Cell.Mount[SliderInput, Slider]("color-tone", SliderInput{
@@ -102,13 +123,18 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     if let createRoot = resolved.CreateRoot {
       return createRoot(resolved, wheel, slider)
     }
-    return Container{
+    let root = Container{
       BasedOn: resolved.RootStyle,
+      Key: "color-picker",
       Width: resolved.WheelSize,
       Gap: resolved.Gap!!,
       AlignItems: AlignItems.Stretch,
-      Children: { wheel, slider },
     }
+    if !resolved.Compact { root.Children.Add(BuildModeSelector()) }
+    root.Children.Add(wheel)
+    root.Children.Add(slider)
+    if !resolved.Compact { root.Children.Add(BuildPreview()) }
+    return root
   }
 
   private func Resolve(input ColorPickerInput) ColorPickerInput {
@@ -138,6 +164,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     } else {
       Container{
         BasedOn: resolved.MarkerStyle,
+        Key: "color-marker",
         Position: PositionType.Absolute,
         Left: Length.Percent(50.0 + x * 50.0),
         Top: Length.Percent(50.0 + y * 50.0),
@@ -180,7 +207,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
       FlexShrink: 0.0,
       Position: PositionType.Relative,
       BorderRadius: resolved.WheelSize / 2.0,
-      Cursor: Cursor.Pointer,
+      Cursor: if resolved.Disabled { Cursor.Default } else { Cursor.Pointer },
       Disabled: resolved.Disabled,
       Focusable: !resolved.Disabled,
       HitTestSelf: !resolved.Disabled,
@@ -193,6 +220,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
       OnKeyDown: (e KeyEvent) -> KeyDown(e),
       Children: {
         Image{
+          Key: "color-wheel-image",
           Source: wheelSource,
           Fit: ImageFit.Contain,
           Width: resolved.WheelSize,
@@ -200,6 +228,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
           Accessibility: Accessibility{ Hidden: true },
         },
         Container{
+          Key: "color-wheel-marker-layer",
           Position: PositionType.Absolute,
           Left: 0.0,
           Top: 0.0,
@@ -210,6 +239,82 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         },
       },
     }
+  }
+
+  private func BuildModeSelector() Blob -> Container {
+    Key: "color-modes",
+    FlexDirection: FlexDirection.Row,
+    Gap: 6.0,
+    Accessibility: Accessibility{
+      Role: AccessibilityRole.Group,
+      Name: resolved.AccessibilityName!! +" color model",
+    },
+    Children: {
+      BuildModeButton(ColorMode.Hsl, "HSL"),
+      BuildModeButton(ColorMode.Hsv, "HSV"),
+      BuildModeButton(ColorMode.Oklch, "OKLCH"),
+    },
+  }
+
+  private func BuildModeButton(mode ColorMode, label string) Blob -> Button {
+    Key: "color-mode-" + label,
+    Height: 34.0,
+    FlexGrow: 1.0,
+    PaddingLeft: 8.0,
+    PaddingRight: 8.0,
+    BorderRadius: 7.0,
+    BackgroundColor: if currentMode == mode { "#3f3f46" } else { "#27272a" },
+    Hover: Style{BackgroundColor: "#52525b"},
+    Cursor: if resolved.Disabled { Cursor.Default } else { Cursor.Pointer },
+    Disabled: resolved.Disabled,
+    Focusable: !resolved.Disabled,
+    Accessibility: Accessibility{
+      Role: AccessibilityRole.Button,
+      Name: "Use " + label + " color model",
+      Selected: currentMode == mode,
+    },
+    OnClick: () -> SelectMode(mode),
+    Children: {
+      Text{Key: "color-mode-label-" + label, Content: label, FontSize: 12.0, Color: "#fafafa"},
+    },
+  }
+
+  private func BuildPreview() Blob -> Container {
+    Key: "color-preview",
+    Height: 48.0,
+    FlexDirection: FlexDirection.Row,
+    AlignItems: AlignItems.Center,
+    Gap: 12.0,
+    Children: {
+      Container{
+        Key: "color-preview-swatch",
+        Width: 48.0,
+        Height: 48.0,
+        BorderRadius: 8.0,
+        BorderWidth: 1.0,
+        BorderColor: "#52525b",
+        BackgroundColor: ColorMath.GooColor(currentRgb),
+        Accessibility: Accessibility{
+          Role: AccessibilityRole.Image,
+          Name: "Selected color #" + ColorMath.Hex(currentRgb),
+        },
+      },
+      Text{
+        Key: "color-preview-hex",
+        Content: "#" + ColorMath.Hex(currentRgb),
+        FontSize: 14.0,
+        FontWeight: 700,
+        Color: "#fafafa",
+      },
+    },
+  }
+
+  private func SelectMode(mode ColorMode) {
+    if resolved.Disabled || mode == currentMode { return }
+    currentMode = mode
+    ReadCoordinates(currentRgb)
+    resolved.OnModeChanged?.Invoke(mode)
+    Rebuild()
   }
 
   private func ReadCoordinates(rgb int32) {

@@ -5,7 +5,7 @@ import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
 public data struct Checkbox {
-  /// Current checkbox state.
+  /// Current checkbox state. Unspecified resolves to false.
   var State AccessibilityChecked
   /// Whether activation cycles from true to mixed before false.
   var AllowMixed bool
@@ -13,7 +13,17 @@ public data struct Checkbox {
   var Disabled bool
   /// Called with the next state when the checkbox is activated.
   var OnChange Action[AccessibilityChecked]?
-  /// Accessible name. Nil resolves to an empty string.
+  /// Optional text rendered beside the checkbox mark as one interactive row.
+  var Label string?
+  /// Label text color. Nil resolves to #fafafa.
+  var LabelColor Color?
+  /// Label font size. Zero resolves to 14.
+  var LabelFontSize float64
+  /// Label font weight. Zero resolves to 500.
+  var LabelFontWeight int32
+  /// Gap between the checkbox mark and label. Nil resolves to 8.
+  var LabelGap float64?
+  /// Accessible name. Nil resolves to Label or an empty string.
   var AccessibilityName string?
   /// Optional content shown when false.
   var UncheckedContent Blob?
@@ -45,17 +55,22 @@ public data struct Checkbox {
   var TransitionMs float64?
   /// Transition easing. Nil resolves to EaseOut.
   var TransitionEasing Easing?
-  /// Creates the final button from resolved values and selected content.
+  /// Creates the final button from resolved values and selected content, replacing the default root composition.
   var CreateRoot Func[Checkbox, Blob?, Button]?
 
-  /// Builds a fresh Goo checkbox button.
+  /// Builds a fresh Goo checkbox button or labeled interactive row.
   public func Build() Blob {
     let createRoot = CreateRoot
     let onChange = OnChange
-    let state = State
+    let state = if State == AccessibilityChecked.Unspecified { AccessibilityChecked.False } else { State }
     let active = state != AccessibilityChecked.False
     let resolved = this with{
-      AccessibilityName = AccessibilityName ?? "",
+      State = state,
+      AccessibilityName = AccessibilityName ?? (Label ?? ""),
+      LabelColor = LabelColor ?? Color.Parse("#fafafa"),
+      LabelFontSize = if LabelFontSize == 0.0 { 14.0 } else { LabelFontSize },
+      LabelFontWeight = if LabelFontWeight == 0 { 500 } else { LabelFontWeight },
+      LabelGap = LabelGap ?? 8.0,
       Size = if Size == 0.0 { 20.0 } else { Size },
       BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
       CheckedBackgroundColor = CheckedBackgroundColor ?? Color.Parse("#fafafa"),
@@ -94,6 +109,57 @@ public data struct Checkbox {
           AccessibilityChecked.False
         }
         onClick = () -> onChange(next)
+      }
+    }
+    if let label = resolved.Label {
+      let markBox = Container{
+        Width: resolved.Size,
+        Height: resolved.Size,
+        BorderWidth: resolved.BorderWidth!!,
+        BorderRadius: resolved.BorderRadius!!,
+        BorderColor: if active { resolved.CheckedBorderColor!! } else { resolved.BorderColor!! },
+        BackgroundColor: if active { resolved.CheckedBackgroundColor!! } else { resolved.BackgroundColor!! },
+        TransitionMs: resolved.TransitionMs!!,
+        TransitionEasing: resolved.TransitionEasing!!,
+        AlignItems: AlignItems.Center,
+        JustifyContent: JustifyContent.Center,
+        HitTestSelf: false,
+      }
+      if let content = content { markBox.Children.Add(content) }
+      return Button{
+        Width: Length.Auto,
+        Height: resolved.Size,
+        Padding: 0.0,
+        Gap: resolved.LabelGap!!,
+        BorderWidth: 0.0,
+        BorderRadius: 0.0,
+        BackgroundColor: Color.Transparent,
+        Cursor: if resolved.Disabled { Cursor.Default } else { Cursor.Pointer },
+        Opacity: if resolved.Disabled { resolved.DisabledOpacity!! } else { 1.0 },
+        Focusable: true,
+        Disabled: resolved.Disabled,
+        OnClick: onClick,
+        TransitionMs: resolved.TransitionMs!!,
+        TransitionEasing: resolved.TransitionEasing!!,
+        FlexDirection: FlexDirection.Row,
+        AlignItems: AlignItems.Center,
+        JustifyContent: JustifyContent.FlexStart,
+        Hover: Style{BackgroundColor: Color.Transparent},
+        Active: Style{BackgroundColor: Color.Transparent},
+        Accessibility: Accessibility{
+          Role: AccessibilityRole.Checkbox,
+          Name: resolved.AccessibilityName!!,
+          Checked: state,
+        },
+        Children: {
+          markBox,
+          Text{
+            Content: label,
+            Color: resolved.LabelColor!!,
+            FontSize: resolved.LabelFontSize,
+            FontWeight: resolved.LabelFontWeight,
+          },
+        },
       }
     }
     let root = Button{

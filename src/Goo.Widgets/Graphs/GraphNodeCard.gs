@@ -9,10 +9,8 @@ public data struct GraphNodeCard {
   var Node GraphNode
   /// Whether the card uses its selected appearance.
   var Selected bool
-  /// Horizontal card center in screen coordinates.
-  var CenterX float64
-  /// Vertical card center in screen coordinates.
-  var CenterY float64
+  /// Card center in screen coordinates. Nil resolves to Node.Position.
+  var Center Point?
   /// Card width in logical pixels. Zero resolves to 160.0.
   var Width float64
   /// Card height in logical pixels. Zero resolves to 64.0.
@@ -51,11 +49,12 @@ public data struct GraphNodeCard {
     let padding = Padding ?? 12.0
     let borderRadius = BorderRadius ?? 8.0
     let borderWidth = BorderWidth ?? 1.0
+    let center = Center ?? Node.Position
     if String.IsNullOrWhiteSpace(Node.Id) { throw ArgumentException("Node identity must be nonempty.", "Node") }
     if String.IsNullOrWhiteSpace(Node.Label) { throw ArgumentException("Node label must be nonempty.", "Node") }
     if !Double.IsFinite(width) || width <= 0.0 { throw ArgumentOutOfRangeException("Width") }
     if !Double.IsFinite(height) || height <= 0.0 { throw ArgumentOutOfRangeException("Height") }
-    if !Double.IsFinite(CenterX) || !Double.IsFinite(CenterY) { throw ArgumentOutOfRangeException("CenterX") }
+    if !Double.IsFinite(center.X) || !Double.IsFinite(center.Y) { throw ArgumentOutOfRangeException("Center") }
     if !Double.IsFinite(padding) || padding < 0.0 { throw ArgumentOutOfRangeException("Padding") }
     if !Double.IsFinite(borderRadius) || borderRadius < 0.0 { throw ArgumentOutOfRangeException("BorderRadius") }
     if !Double.IsFinite(borderWidth) || borderWidth < 0.0 { throw ArgumentOutOfRangeException("BorderWidth") }
@@ -71,8 +70,8 @@ public data struct GraphNodeCard {
       BasedOn: RootStyle,
       Key: "graph-node-" + Node.Id,
       Position: PositionType.Absolute,
-      Left: CenterX - width * 0.5,
-      Top: CenterY - height * 0.5,
+      Left: center.X - width * 0.5,
+      Top: center.Y - height * 0.5,
       Width: width,
       Height: height,
       Padding: padding,

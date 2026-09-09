@@ -271,8 +271,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     let card = GraphNodeCard{
       Node: displayNode,
       Selected: IsSelected(node.Id),
-      CenterX: position.X,
-      CenterY: position.Y,
+      Center: position,
       Width: resolved.NodeWidth,
       Height: resolved.NodeHeight,
       RootStyle: resolved.NodeStyle,

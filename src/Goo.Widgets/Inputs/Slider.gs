@@ -19,9 +19,17 @@ public data struct SliderInput {
   var Step float64?
   /// Slider orientation.
   var Orientation SliderOrientation
-  /// Accessible slider name. Nil resolves to Slider.
+  /// Accessible slider name. Nil uses Label, then Slider.
   var AccessibilityName string?
-  /// Formats the accessible range value text.
+  /// Optional visible label. Also supplies the default accessible name.
+  var Label string?
+  /// Displays the current formatted value beside the label.
+  var ShowValue bool
+  /// Label color. Nil resolves to #fafafa.
+  var LabelColor Color?
+  /// Displayed value color. Nil resolves to #a1a1aa.
+  var ValueColor Color?
+  /// Formats the accessible range value and optional visible value.
   var FormatValue Func[float64, string]?
   /// Receives pointer and keyboard preview values.
   var OnValueChanged Action[float64]?
@@ -93,6 +101,8 @@ public open class Slider : Cell[SliderInput] {
     resolved.CreateRoot = nil
     let fraction = (current - resolved.Minimum!!) / (resolved.Maximum!! -resolved.Minimum!!)
     let horizontal = resolved.Orientation == SliderOrientation.Horizontal
+    let hasHeader = resolved.Label != nil || resolved.ShowValue
+    let formattedValue = Format(current)
     let track = Container{
       BasedOn: resolved.TrackStyle,
       Position: PositionType.Absolute,
@@ -141,7 +151,7 @@ public open class Slider : Cell[SliderInput] {
           Minimum: resolved.Minimum!!,
           Maximum: resolved.Maximum!!,
           Now: current,
-          Text: Format(current),
+          Text: formattedValue,
         },
       }
     } else {
@@ -160,14 +170,14 @@ public open class Slider : Cell[SliderInput] {
           Minimum: resolved.Minimum!!,
           Maximum: resolved.Maximum!!,
           Now: current,
-          Text: Format(current),
+          Text: formattedValue,
         },
       }
     }
     let root = Container{
       BasedOn: resolved.RootStyle,
       Handle: handle,
-      Width: if horizontal { resolved.Width!! } else { resolved.ThumbSize },
+      Width: if horizontal { if hasHeader { Length.Percent(100.0) } else { resolved.Width!! } } else { resolved.ThumbSize },
       Height: resolved.Height,
       FlexShrink: 0.0,
       Position: PositionType.Relative,
@@ -185,8 +195,39 @@ public open class Slider : Cell[SliderInput] {
       OnKeyDown: (e KeyEvent) -> KeyDown(e),
       Children: { track, fill, thumb },
     }
-    if let createRoot = createRoot { return createRoot(resolved, root) }
-    return root
+    let content Blob = if let createRoot = createRoot { createRoot(resolved, root) } else { root }
+    if !hasHeader { return content }
+    let header = Container{
+      Key: "slider-header",
+      FlexDirection: FlexDirection.Row,
+      AlignItems: AlignItems.Center,
+      Gap: 12.0,
+      Opacity: if resolved.Disabled { resolved.DisabledOpacity!! } else { 1.0 },
+    }
+    if let label = resolved.Label {
+      header.Children.Add(Text{
+        Key: "slider-label",
+        Content: label,
+        FontSize: 12.0,
+        Color: resolved.LabelColor!!,
+        FlexGrow: 1.0,
+      })
+    }
+    if resolved.ShowValue {
+      header.Children.Add(Text{
+        Key: "slider-value",
+        Content: formattedValue,
+        FontSize: 12.0,
+        Color: resolved.ValueColor!!,
+      })
+    }
+    content.Key ??= "slider-control"
+    return Container{
+      Width: if horizontal { resolved.Width!! } else { Length.Auto },
+      AlignItems: if horizontal { AlignItems.Stretch } else { AlignItems.Center },
+      Gap: 6.0,
+      Children: { header, content },
+    }
   }
 
   private func Resolve(input SliderInput) SliderInput {
@@ -206,7 +247,9 @@ public open class Slider : Cell[SliderInput] {
       Minimum = minimum,
       Maximum = maximum,
       Step = step,
-      AccessibilityName = input.AccessibilityName ?? "Slider",
+      AccessibilityName = input.AccessibilityName ?? input.Label ?? "Slider",
+      LabelColor = input.LabelColor ?? Color.Parse("#fafafa"),
+      ValueColor = input.ValueColor ?? Color.Parse("#a1a1aa"),
       Width = input.Width ?? Length.Percent(100.0),
       Height = if input.Height == 0.0 { if input.Orientation == SliderOrientation.Horizontal { 28.0 } else { 160.0 } } else { input.Height },
       TrackThickness = trackThickness,

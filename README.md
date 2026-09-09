@@ -18,6 +18,9 @@ Install the package from NuGet.org:
 dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
 ```
 
+The published package is `0.1.1`. The current checkout also contains unreleased
+ergonomic APIs described below. They are not available from the published package.
+
 ```gsharp
 import Goo
 import Goo.Widgets.Actions
@@ -96,6 +99,38 @@ tree. No global theme registration or initialization is required.
   selection, and viewport state. Cards keep their screen size as positions zoom.
 - WindowChrome needs a Window or callbacks for window actions. Media and upload
   widgets emit callbacks. The host owns playback, file access, and other services.
+
+## Current checkout ergonomics
+
+These additions are in the current checkout and are not part of published `0.1.1`:
+
+- `ColorPickerInput.Compact` keeps only the wheel and tone slider. The default
+  full composition also includes the mode selector and preview. Leave `Mode`
+  unset for picker-local mode switching, or supply `Mode` and update it from
+  `OnModeChanged` when the host owns the selected color model.
+- `Checkbox.Label` renders the mark and label as one interactive checkbox row.
+  `LabelColor`, `LabelFontSize`, `LabelFontWeight`, and `LabelGap` tune the row.
+- `SliderInput.Label`, `ShowValue`, and `FormatValue` add an optional visible
+  label and formatted value while retaining the slider's accessibility value.
+- `GraphNodeCard.Center` is optional and defaults to `Node.Position`. Supply a
+  screen-space `Center` only when the card needs an explicit override.
+
+```gsharp
+Checkbox{
+  Label: "Include inherited settings",
+  State: state,
+  OnChange: (next AccessibilityChecked) -> { state = next },
+}.Build()
+
+Cell.Mount[SliderInput, Slider]("opacity", SliderInput{
+  Label: "Opacity",
+  ShowValue: true,
+  FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
+  Value: opacity,
+  Minimum: 0.0,
+  Maximum: 1.0,
+})
+```
 
 ## Build and run
 

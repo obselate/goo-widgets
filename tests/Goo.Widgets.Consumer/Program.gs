@@ -149,6 +149,7 @@ func Main() {
   NumericAndIdentityRegressions()
   MaterialIconRegressions()
   SliderInteractions()
+  WidgetErgonomics()
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" { WindowInteractions() }
   Console.WriteLine("PASS: packaged G# composition, icons, copy-update, callbacks, numeric and virtual identity regressions.")
 }

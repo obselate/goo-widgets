@@ -14,16 +14,15 @@ internal open class CheckboxExample : Cell {
     AlignItems: AlignItems.Center,
     Children: {
       Checkbox{
+        Label: "Include inherited settings",
         State: state,
         AllowMixed: true,
-        AccessibilityName: "Include inherited settings",
         OnChange: (next AccessibilityChecked) -> { state = next },
       }.Build(),
-      Text{Content: "Include inherited settings", Color: "#fafafa"},
       Checkbox{
+        Label: "Unavailable option",
         State: AccessibilityChecked.False,
         Disabled: true,
-        AccessibilityName: "Unavailable option",
       }.Build(),
     },
   }

@@ -8,6 +8,10 @@ dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
 
 Goo Widgets brings in Goo and Goo.Svg 0.5.2. The examples target .NET 10 and use Gsharp.NET.Sdk 0.4.59.
 
+The package examples below use published `0.1.1`. The current checkout also has
+unreleased ergonomics described in the [README](../README.md). Those APIs are not
+available from the published package.
+
 ## Basic widgets
 
 Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Insert that result into your container's `Children` collection.
@@ -49,7 +53,14 @@ Cell.Mount[ColorPickerInput, ColorPicker]("color-picker", ColorPickerInput{
 | `Mode` | Select `ColorMode.Hsl`, `ColorMode.Hsv`, or `ColorMode.Oklch`. The input and callback values remain sRGB. |
 | `OnValueChanged` | Update the host's current color and live preview during interaction. |
 | `OnValueCommitted` | Apply or save the final selection after a completed interaction. |
+| `OnModeChanged` (current checkout) | Adopt a mode button choice when the host owns `Mode`. |
 | Mount key | Keep the same key across rebuilds so the picker retains its internal interaction state. |
+
+In the current checkout, set `Compact: true` to show only the wheel and tone
+slider. The default is the full composition with the mode selector and preview.
+Leave `Mode` unset when the picker should switch models locally through its
+built-in buttons. If the host owns the model, supply `Mode` and update that value
+from `OnModeChanged` when a mode button is pressed.
 
 The example host implements the callbacks as follows:
 
@@ -85,9 +96,41 @@ Text{
 }
 ```
 
-Changing `liveColor` from elsewhere and rebuilding the host also updates the picker. The sample's Reset button demonstrates this. The picker manages its wheel image and disposes it when Goo unmounts the cell.
+Changing `liveColor` from elsewhere and rebuilding the host also updates the picker. The sample's Reset button demonstrates this. The picker manages its wheel image and disposes it when Goo unmounts the cell. The source QuickStart uses the published input properties. Its full mode-selector and preview composition requires the current checkout.
 
-When the mounted picker has siblings, give those siblings keys as well. The complete example places it beside a keyed preview container.
+When the mounted picker has siblings, give those siblings keys as well. The complete example keys the Reset button and committed-color readout.
+
+## Current checkout ergonomics
+
+The current checkout lets a checkbox own its visible label and its full hit target:
+
+```gsharp
+Checkbox{
+  Label: "Include inherited settings",
+  State: state,
+  AllowMixed: true,
+  OnChange: (next AccessibilityChecked) -> { state = next },
+}.Build()
+```
+
+`SliderInput.Label` supplies a visible label and the default accessible name.
+`ShowValue` adds the value beside it. `FormatValue` formats both the accessible
+range text and the visible value:
+
+```gsharp
+Cell.Mount[SliderInput, Slider]("opacity", SliderInput{
+  Label: "Opacity",
+  ShowValue: true,
+  FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
+  Value: opacity,
+  Minimum: 0.0,
+  Maximum: 1.0,
+})
+```
+
+`GraphNodeCard.Center` is optional in the current checkout. It defaults to the
+node's `Position`; supply `Center: Point{ X: 300.0, Y: 120.0 }` for an explicit
+screen-space card center.
 
 ## Run the complete application
 

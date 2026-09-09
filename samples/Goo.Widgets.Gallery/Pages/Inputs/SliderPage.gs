@@ -13,13 +13,13 @@ internal open class SliderExample : Cell {
     Width: 520.0,
     Gap: 20.0,
     Children: {
-      Text{ Key: "horizontal-value", Content: "Horizontal: " + Math.Round(horizontal).ToString(), FontSize: 12.0, Color: "#fafafa" },
       Cell.Mount[SliderInput, Slider]("horizontal-slider", SliderInput{
+        Label: "Horizontal",
+        ShowValue: true,
         Value: horizontal,
         Minimum: 0.0,
         Maximum: 100.0,
         Step: 5.0,
-        AccessibilityName: "Horizontal example",
         OnValueChanged: (value float64) -> { horizontal = value
           status = "Preview " + value.ToString("0")
           Rebuild() },
@@ -35,19 +35,20 @@ internal open class SliderExample : Cell {
         Gap: 18.0,
         Children: {
           Cell.Mount[SliderInput, Slider]("vertical-slider", SliderInput{
+            Label: "Vertical",
+            ShowValue: true,
+            FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
             Value: vertical,
             Minimum: 0.0,
             Maximum: 1.0,
             Step: 0.05,
             Orientation: SliderOrientation.Vertical,
-            AccessibilityName: "Vertical example",
             OnValueChanged: (value float64) -> { vertical = value
               Rebuild() },
             OnValueCommitted: (value float64) -> { vertical = value
               status = "Vertical committed"
               Rebuild() },
           }),
-          Text{ Key: "vertical-value", Content: Math.Round(vertical * 100.0).ToString() + "%", FontSize: 12.0, Color: "#a1a1aa" },
         },
       },
       Text{ Key: "slider-status", Content: status, FontSize: 12.0, Color: "#a1a1aa" },
