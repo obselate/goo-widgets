@@ -12,6 +12,15 @@
           "Unicode.Bidi": "0.3.18"
         }
       },
+      "Goo.Svg": {
+        "type": "Direct",
+        "requested": "[0.5.1, )",
+        "resolved": "0.5.1",
+        "contentHash": "aOi+T+G4g3S3kFblnUAtZ3di+myhEYLD3M/Ze/1BjNfvL+O6pSRXx02rGwZfv96frVu57XBmcfJBvQgbnvkYXg==",
+        "dependencies": {
+          "Goo": "0.5.1"
+        }
+      },
       "Hexa.NET.SDL3": {
         "type": "Transitive",
         "resolved": "1.2.17",

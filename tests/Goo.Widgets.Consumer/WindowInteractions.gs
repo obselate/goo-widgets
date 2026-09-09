@@ -5,9 +5,26 @@ import System.Runtime.InteropServices
 import System.Threading
 import Hexa.NET.SDL3
 import Goo
+import Goo.Widgets.Actions
 import Goo.Widgets.Colors
 import Goo.Widgets.Inputs
 import Goo.Widgets.Graphs
+import Goo.Widgets.Icons
+
+internal class IconButtonHost : Cell {
+  internal var Activations int32
+  internal var Root Button?
+
+  public override func Build() Blob {
+    let button = (IconButton{
+      Icon: MaterialIcons.Create("add"), AccessibilityName: "Add item",
+      OnClick: () -> { Activations++ },
+    }.Build() as Button)!!
+    button.Handle = ElementHandle{}
+    Root = button
+    return button
+  }
+}
 
 internal class GraphHost : Cell {
   internal var Position GraphPoint = GraphPoint{X: 140.0, Y: 120.0}
@@ -139,7 +156,32 @@ func MouseMove(windowId uint32, x float32, y float32) {
   Require(SDL.PushEvent(ref event), "SDL rejected mouse movement.")
 }
 
+func IconButtonInteractions() {
+  let host = IconButtonHost{}
+  let window = Window{Title: "Goo Widgets icon button verification", Width: 120, Height: 120, Root: host}
+  window.Open()
+  try {
+    PumpFrames(window, 20)
+    let windowId = OnlyNativeWindow()
+    let button = host.Root!!
+    Require(button.Handle!!.IsMounted, "Packaged icon button did not mount.")
+    let box = button.Handle!!.BorderBox
+    let x = float32(box.X + box.Width / 2.0)
+    let y = float32(box.Y + box.Height / 2.0)
+    MouseButton(windowId, x, y, true)
+    PumpFrames(window, 2)
+    MouseButton(windowId, x, y, false)
+    PumpFrames(window, 3)
+    Require(host.Activations == 1, "Native icon button activation did not fire exactly once.")
+  } finally {
+    window.RequestClose()
+    PumpFrames(window, 3)
+  }
+  Require(!window.IsOpen, "Icon button test window did not close.")
+}
+
 func WindowInteractions() {
+  IconButtonInteractions()
   let host = InteractiveHost{}
   let window = Window{Title: "Goo Widgets input verification", Width: 620, Height: 480, Root: host}
   window.Open()

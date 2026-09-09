@@ -11,6 +11,14 @@
           "Unicode.Bidi": "0.3.18"
         }
       },
+      "Goo.Svg": {
+        "type": "Transitive",
+        "resolved": "0.5.1",
+        "contentHash": "aOi+T+G4g3S3kFblnUAtZ3di+myhEYLD3M/Ze/1BjNfvL+O6pSRXx02rGwZfv96frVu57XBmcfJBvQgbnvkYXg==",
+        "dependencies": {
+          "Goo": "0.5.1"
+        }
+      },
       "Hexa.NET.SDL3": {
         "type": "Transitive",
         "resolved": "1.2.17",
@@ -32,7 +40,8 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.5.1, )"
+          "Goo": "[0.5.1, )",
+          "Goo.Svg": "[0.5.1, )"
         }
       }
     }

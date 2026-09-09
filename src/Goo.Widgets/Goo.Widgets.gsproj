@@ -8,7 +8,7 @@
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>
     <Description>Composable, customizable widgets for Goo desktop applications, grouped by category.</Description>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageLicenseExpression>MIT AND Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/obselate/goo-widgets</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
@@ -19,7 +19,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Goo" Version="0.5.1" />
+    <PackageReference Include="Goo.Svg" Version="0.5.1" />
+    <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="../../assets/material-symbols/LICENSE" Pack="true" PackagePath="licenses/material-symbols/" />
+    <None Include="../../assets/material-symbols/README.md" Pack="true" PackagePath="licenses/material-symbols/" />
   </ItemGroup>
   <Target Name="PopulateWidgetDocumentation" AfterTargets="CoreCompile" Condition="'$(DocumentationFile)' != ''">
     <ItemGroup>

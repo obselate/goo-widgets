@@ -5,6 +5,7 @@ import Goo
 import Goo.Widgets.Actions
 import Goo.Widgets.Data
 import Goo.Widgets.Feedback
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 import Goo.Widgets.Media
@@ -92,12 +93,34 @@ func NumericAndIdentityRegressions() {
     "No-match search did not replace its virtual viewport with the empty state.")
 }
 
+func MaterialIconRegressions() {
+  let names = MaterialIcons.Names()
+  Require(names.Length == 4128, "Packaged Material icon resource count changed.")
+  let tint = Color.Parse("#22c55e")
+  for name in names {
+    let icon = MaterialIcons.Create(name, 18.0, tint)
+    Require(icon.Path.ViewBoxWidth > 0.0 && icon.Path.ViewBoxHeight > 0.0,
+      "Material icon has no usable SVG view box: " + name)
+  }
+
+  let first = MaterialIcons.Create("add", 18.0, tint)
+  let second = MaterialIcons.Create("add", 18.0, tint)
+  Require(first != second, "Material icon factory reused a mutable Shape.")
+  let button = (IconButton{AccessibilityName: "Add item", Icon: first}.Build() as Button)!!
+  Require(button.Children.Count == 1, "IconButton did not preserve its icon child.")
+  let buttonIcon = (button.Children[0] as Shape)!!
+  Require(buttonIcon == first, "IconButton replaced its supplied icon.")
+  Require(button.Accessibility?.Name == "Add item", "IconButton lost its accessible name.")
+  Require(buttonIcon.Accessibility?.Hidden == true, "IconButton icon was not decorative.")
+}
+
 func Main() {
   PackageComposition()
   NumericAndIdentityRegressions()
+  MaterialIconRegressions()
   SliderInteractions()
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" { WindowInteractions() }
-  Console.WriteLine("PASS: packaged G# composition, copy-update, callbacks, numeric and virtual identity regressions.")
+  Console.WriteLine("PASS: packaged G# composition, icons, copy-update, callbacks, numeric and virtual identity regressions.")
 }
 
 func SliderInteractions() {

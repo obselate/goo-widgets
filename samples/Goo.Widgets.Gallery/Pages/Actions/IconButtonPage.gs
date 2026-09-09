@@ -3,6 +3,7 @@ package Goo.Widgets.Gallery.Pages.Actions
 import Goo
 import Goo.Widgets.Actions
 import Goo.Widgets.Gallery
+import Goo.Widgets.Icons
 
 internal open class IconButtonExample : Cell {
   private var active bool
@@ -19,21 +20,21 @@ internal open class IconButtonExample : Cell {
         Children: {
           IconButton{
             AccessibilityName: "Add item",
-            Icon: Text{ Content: "+", FontSize: 24.0, Color: "#fafafa", Accessibility: Accessibility{ Hidden: true } },
+            Icon: MaterialIcons.Create("add"),
             OnClick: () -> { count++
               Rebuild() },
           }.Build(),
           IconButton{
             AccessibilityName: "Pin item",
             Active: active,
-            Icon: Text{ Content: "P", FontSize: 14.0, FontWeight: 700, Color: "#fafafa", Accessibility: Accessibility{ Hidden: true } },
+            Icon: MaterialIcons.Create("push_pin"),
             OnClick: () -> { active = !active
               Rebuild() },
           }.Build(),
           IconButton{
             AccessibilityName: "Unavailable action",
             Disabled: true,
-            Icon: Text{ Content: "×", FontSize: 20.0, Color: "#fafafa", Accessibility: Accessibility{ Hidden: true } },
+            Icon: MaterialIcons.Create("close"),
           }.Build(),
         },
       },

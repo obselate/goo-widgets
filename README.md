@@ -9,7 +9,7 @@ Browse the [gallery screenshots](samples/screenshots/README.md) or run the
 
 ## Install
 
-Goo Widgets `0.1.0` targets .NET 10 and depends on Goo `0.5.1`.
+Goo Widgets `0.1.0` targets .NET 10 and depends on Goo and Goo.Svg `0.5.1`.
 Until Goo Widgets is published to NuGet, install the .NET SDK specified in
 `global.json` and build a local package:
 
@@ -46,6 +46,31 @@ Place the returned `Blob` in a Goo `Children` collection.
 | `Goo.Widgets.Navigation` | NavigationRail, NavigationItem |
 | `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
 | `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
+| `Goo.Widgets.Icons` | MaterialIcons |
+
+## Material icons
+
+The library includes all 4,128 Material Symbols Outlined icons for the standard
+24px, weight 400, unfilled variant. The SVG sources total 1.92 MiB and are embedded
+in the assembly. No installed icon font or separate asset folder is needed.
+See the [asset provenance and license](assets/material-symbols/README.md).
+
+```gsharp
+import Goo
+import Goo.Widgets.Actions
+import Goo.Widgets.Icons
+
+let add = IconButton{
+  AccessibilityName: "Add item",
+  Icon: MaterialIcons.Create("add", size: 24.0, color: Color.Parse("#fafafa")),
+  OnClick: () -> AddItem(),
+}.Build()
+```
+
+`MaterialIcons.Names()` returns the available names in ordinal order. `Create`
+returns a fresh Goo `Shape` with the requested size and color, defaulting to 24
+logical pixels and `#fafafa`. Icon geometry is loaded and cached on first use.
+The shape is decorative. Give its button an accessible name.
 
 ## Compose and customize
 
@@ -114,4 +139,5 @@ files together. Releases use matching `v<Version>` tags and must not replace a
 published version. CI uploads the package and SHA-256 checksum. Package publication
 is a separate release action.
 
-MIT licensed. See [LICENSE](LICENSE).
+Widget source is MIT licensed. See [LICENSE](LICENSE). Bundled Material Symbols
+are Apache-2.0 licensed. See [their license](assets/material-symbols/LICENSE).
