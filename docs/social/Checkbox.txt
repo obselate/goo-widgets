@@ -1,6 +1,0 @@
-Checkbox{
-  Label: "Include inherited settings",
-  State: state,
-  AllowMixed: true,
-  OnChange: (next AccessibilityChecked) -> { state = next },
-}.Build()
