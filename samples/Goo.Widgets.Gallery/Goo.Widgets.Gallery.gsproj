@@ -1,0 +1,12 @@
+<Project Sdk="Gsharp.NET.Sdk/0.4.59">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Goo.Widgets.Gallery</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Goo.Widgets/Goo.Widgets.gsproj" />
+    <Watch Include="**/*.gs" Exclude="bin/**;obj/**" />
+  </ItemGroup>
+</Project>

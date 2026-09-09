@@ -1,0 +1,38 @@
+<Project Sdk="Gsharp.NET.Sdk/0.4.59">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Goo.Widgets</RootNamespace>
+    <AssemblyName>Goo.Widgets</AssemblyName>
+    <Version>0.1.0</Version>
+    <PackageId>Goo.Widgets</PackageId>
+    <Title>Goo Widgets</Title>
+    <Authors>obselate</Authors>
+    <Description>Composable, customizable widgets for Goo desktop applications, grouped by category.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/obselate/goo-widgets</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/obselate/goo-widgets</PackageProjectUrl>
+    <PackageTags>goo;gsharp;widgets;desktop;ui</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Goo" Version="0.5.1" />
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <Target Name="PopulateWidgetDocumentation" AfterTargets="CoreCompile" Condition="'$(DocumentationFile)' != ''">
+    <ItemGroup>
+      <DocFileItem Include="$(DocumentationFile)" />
+      <FinalDocFile Include="$(OutDir)$([System.IO.Path]::GetFileName('$(DocumentationFile)'))" />
+    </ItemGroup>
+  </Target>
+  <Target Name="IncludeWidgetDocumentation">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(TargetDir)Goo.Widgets.xml">
+        <TargetPath>Goo.Widgets.xml</TargetPath>
+        <FinalOutputPath>$(TargetDir)Goo.Widgets.xml</FinalOutputPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+  </Target>
+</Project>

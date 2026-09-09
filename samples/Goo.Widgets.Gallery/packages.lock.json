@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "dependencies": {
+    "net10.0": {
+      "Goo": {
+        "type": "Transitive",
+        "resolved": "0.5.1",
+        "contentHash": "kon3S6E4CarRWVQqHhsPpxPCVoijMmWBckM90GgfcGbKSnEkHXsteaUSVAdvhmEHBewbmvJ5LaZVPYVfM4nYyw==",
+        "dependencies": {
+          "Hexa.NET.SDL3": "1.2.17",
+          "Unicode.Bidi": "0.3.18"
+        }
+      },
+      "Hexa.NET.SDL3": {
+        "type": "Transitive",
+        "resolved": "1.2.17",
+        "contentHash": "575Jg8/VU/D2JumvDmC7xiRDGMO1VPiw75+c4qNebQrAsRnA+XzhgcuoC91ozYaKZT1sqkb+ChySGGV3E/wonw==",
+        "dependencies": {
+          "HexaGen.Runtime": "1.1.24"
+        }
+      },
+      "HexaGen.Runtime": {
+        "type": "Transitive",
+        "resolved": "1.1.24",
+        "contentHash": "1P5IA09EL514OeKGyJ3mSI5F9MGAId27CoSR0SzVz3Jj6m/7tn/GdONoWEUYacRSc41y+CbR6tVGcZNAldsehA=="
+      },
+      "Unicode.Bidi": {
+        "type": "Transitive",
+        "resolved": "0.3.18",
+        "contentHash": "HjVMQk+TfHDhRdavpgYS8ulyENYPSRTaViEttoPsHPUHXHk32eEAcv3YSPhTAjxd6h+6CCA+oBJWagDvOfSEZw=="
+      },
+      "goo.widgets": {
+        "type": "Project",
+        "dependencies": {
+          "Goo": "[0.5.1, )"
+        }
+      }
+    }
+  }
+}
