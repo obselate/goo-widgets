@@ -8,28 +8,23 @@ class BadgePage : GalleryPage {
   public override func Title() string -> "Badge"
 
   public override func Build() Blob {
-    let baseBadge = Badge{
-      FontSize: 12.0,
-      FontWeight: 600,
+    let defaultBadge = Badge{
+      Content: "12",
     }
-
-    let defaultBadge = baseBadge with{
-      Content = "12",
+    let errorBadge = Badge{
+      Content: "Error",
+      BackgroundColor: Color.Parse("#7f1d1d"),
     }
-    let errorBadge = baseBadge with{
-      Content = "Error",
-      BackgroundColor = Color.Parse("#7f1d1d"),
+    let successBadge = Badge{
+      Content: "Ready",
+      BackgroundColor: Color.Parse("#166534"),
     }
-    let successBadge = baseBadge with{
-      Content = "Ready",
-      BackgroundColor = Color.Parse("#166534"),
+    let warningBadge = Badge{
+      Content: "Paused",
+      BackgroundColor: Color.Parse("#854d0e"),
     }
-    let warningBadge = baseBadge with{
-      Content = "Paused",
-      BackgroundColor = Color.Parse("#854d0e"),
-    }
-    let dotBadge = baseBadge with{
-      AccessibilityName = "Unread notifications",
+    let dotBadge = Badge{
+      AccessibilityName: "Unread notifications",
     }
 
     return Container{

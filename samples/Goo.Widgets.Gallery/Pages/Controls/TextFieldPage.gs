@@ -9,26 +9,9 @@ class TextFieldPage : GalleryPage {
 
   public override func Build() Blob {
     let baseField = TextField{
-      Width: 280.0,
       EntryHeight: 44.0,
       Gap: 7.0,
-      PaddingHorizontal: 12.0,
-      FontSize: 14.0,
-      LabelFontSize: 11.0,
-      IssueFontSize: 12.0,
-      BackgroundColor: Color.Parse("#09090b"),
-      TextColor: Color.Parse("#fafafa"),
-      MutedTextColor: Color.Parse("#a1a1aa"),
-      BorderColor: Color.Parse("#3f3f46"),
-      FocusColor: Color.Parse("#d4d4d8"),
-      InvalidColor: Color.Parse("#ef4444"),
-      DisabledBackgroundColor: Color.Parse("#18181b"),
-      DisabledTextColor: Color.Parse("#71717a"),
-      BorderWidth: 1.0,
       BorderRadius: 8.0,
-      FocusRingWidth: 2.0,
-      TransitionMs: 150.0,
-      TransitionEasing: Easing.EaseOut,
     }
 
     let defaultField = baseField with{
@@ -57,13 +40,9 @@ class TextFieldPage : GalleryPage {
       Value = "Design team",
       AccessibilityName = "Workspace name",
       BackgroundColor = Color.Parse("#18181b"),
-      TextColor = Color.Parse("#fafafa"),
-      MutedTextColor = Color.Parse("#a1a1aa"),
       BorderColor = Color.Parse("#52525b"),
       FocusColor = Color.Parse("#e4e4e7"),
-      InvalidColor = Color.Parse("#ef4444"),
       DisabledBackgroundColor = Color.Parse("#09090b"),
-      DisabledTextColor = Color.Parse("#71717a"),
       BorderWidth = 1.5,
       BorderRadius = 12.0,
       FocusRingWidth = 3.0,

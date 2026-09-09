@@ -93,8 +93,6 @@ class AppBarPage : GalleryPage {
       SubtitleFontSize: 11.0,
       SubtitleFontWeight: 500,
       BackgroundColor: Color.Parse("#18181b"),
-      TextColor: Color.Parse("#fafafa"),
-      SubtitleColor: Color.Parse("#a1a1aa"),
       BorderColor: Color.Parse("#3f3f46"),
       BorderWidth: 2.0,
       Leading: badgeSlot,

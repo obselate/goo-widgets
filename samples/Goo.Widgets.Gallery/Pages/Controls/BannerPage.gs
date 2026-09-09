@@ -10,11 +10,8 @@ class BannerPage : GalleryPage {
   public override func Build() Blob {
     let baseBanner = Banner{
       MinHeight: 40.0,
-      PaddingHorizontal: 14.0,
       PaddingVertical: 8.0,
-      FontSize: 14.0,
       FontWeight: 600,
-      BorderRadius: 6.0,
     }
 
     let calmStatus = baseBanner with{

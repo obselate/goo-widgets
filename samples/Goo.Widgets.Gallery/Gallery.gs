@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery
 
 import Goo
+import Goo.Widgets.Actions
 import Goo.Widgets.Gallery.Pages.Actions
 import Goo.Widgets.Gallery.Pages.Colors
 import Goo.Widgets.Gallery.Pages.Controls
@@ -150,42 +151,23 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
         AlignItems: AlignItems.Center,
         JustifyContent: JustifyContent.SpaceBetween,
         Children: {
-          Button{
-            Padding: 10,
-            BorderRadius: 8,
-            BorderWidth: 1,
-            BorderColor: "#3f3f46",
-            BackgroundColor: "#27272a",
-            Cursor: Cursor.Pointer,
-            Focusable: true,
-            TransitionMs: 150.0,
-            TransitionEasing: Easing.EaseOut,
-            Hover: Style{BackgroundColor: "#3f3f46"},
-            Active: Style{BackgroundColor: "#18181b", Transform: PanelTransform{Scale: 0.98}},
-            Focus: Style{BorderColor: "#d4d4d8"},
+          ActionButton{
+            Label: "Back",
+            BackgroundColor: Color.Parse("#27272a"),
+            TextColor: Color.Parse("#fafafa"),
+            BorderColor: Color.Parse("#3f3f46"),
+            HoverBackgroundColor: Color.Parse("#3f3f46"),
+            ActiveBackgroundColor: Color.Parse("#18181b"),
+            BorderRadius: 8.0,
+            ShowFocusHighlight: true,
             OnClick: () -> Back(),
-            Children: {
-              Text{ Content: "Back", Color: "#fafafa" },
-            },
-          },
-          Button{
-            Padding: 10,
-            BorderRadius: 8,
-            BorderWidth: 1,
-            BorderColor: "#fafafa",
-            BackgroundColor: "#fafafa",
-            Cursor: Cursor.Pointer,
-            Focusable: true,
-            TransitionMs: 150.0,
-            TransitionEasing: Easing.EaseOut,
-            Hover: Style{BackgroundColor: "#e4e4e7"},
-            Active: Style{BackgroundColor: "#d4d4d8", Transform: PanelTransform{Scale: 0.98}},
-            Focus: Style{BorderColor: "#d4d4d8"},
+          }.Build(),
+          ActionButton{
+            Label: "Forward",
+            BorderRadius: 8.0,
+            ShowFocusHighlight: true,
             OnClick: () -> Forward(),
-            Children: {
-              Text{ Content: "Forward", Color: "#09090b" },
-            },
-          },
+          }.Build(),
         },
       },
     },

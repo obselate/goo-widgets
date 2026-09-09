@@ -20,7 +20,7 @@ class EmptyStatePage : GalleryPage {
       Children: { Text{ Content: "Create project", FontSize: 11.0, FontWeight: 600, Color: "#09090b" } },
     }
     let emptyCollection = EmptyState{
-      AccessibilityName: "Empty projects collection", HeadingLevel: 2,
+      AccessibilityName: "Empty projects collection",
       Title: "No projects yet", Description: "Get started by creating your first workspace repository.",
       Illustration: emptyIll, Action: emptyAct,
       Width: 360.0, MinHeight: 170.0,
@@ -40,7 +40,7 @@ class EmptyStatePage : GalleryPage {
       Children: { Text{ Content: "Clear filters", FontSize: 11.0, FontWeight: 600, Color: "#d4d4d8" } },
     }
     let noResults = EmptyState{
-      AccessibilityName: "No search results found", HeadingLevel: 2,
+      AccessibilityName: "No search results found",
       Title: "No matching results", Description: "Try adjusting search terms or clear existing filter tags.",
       Illustration: noResIll, Action: noResAct,
       Width: 360.0, MinHeight: 170.0,
@@ -60,7 +60,7 @@ class EmptyStatePage : GalleryPage {
       Children: { Text{ Content: "Open settings", FontSize: 11.0, FontWeight: 600, Color: "#fca5a5" } },
     }
     let permission = EmptyState{
-      AccessibilityName: "Permission required empty state", HeadingLevel: 2,
+      AccessibilityName: "Permission required empty state",
       Title: "Access restricted", Description: "You need administrator role clearance to view audit logs.",
       Illustration: permIll, Action: permAct,
       Width: 360.0, MinHeight: 170.0,

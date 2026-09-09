@@ -39,10 +39,6 @@ class AsyncImagePage : GalleryPage {
     let baseImage = AsyncImage{
       Width: 150.0,
       Height: 100.0,
-      BackgroundColor: Color.Parse("#18181b"),
-      BorderColor: Color.Parse("#3f3f46"),
-      BorderWidth: 1.0,
-      BorderRadius: 8.0,
       CreateImage: createImage,
     }
 

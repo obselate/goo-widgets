@@ -11,8 +11,6 @@ class ActionButtonPage : GalleryPage {
     let baseButton = ActionButton{
       Height: 38.0,
       MinWidth: 112.0,
-      FontSize: 14.0,
-      FontWeight: 600,
       OnClick: () -> {},
     }
 
