@@ -2,14 +2,14 @@
 
 Each image is captured from the running Goo Widgets gallery. Click an image for its full resolution.
 
-These captures include local Goo renderer fixes that are not yet in the Goo `0.5.1` package.
+These captures include the rounded edge renderer fixes in Goo `0.5.2`.
 
 ## Refresh screenshots
 
 Install the optional [Goo DevTools](https://github.com/obselate/goo/blob/main/docs/devtools/README.md) capture tool, then run these commands from the repository root in a graphical session:
 
 ```sh
-dotnet tool install --global Goo.DevTools --version 0.5.1
+dotnet tool install --global Goo.DevTools --version 0.5.2
 dotnet build samples/Goo.Widgets.Gallery -c Release
 dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --screenshots samples/screenshots
 python3 scripts/verify-screenshots.py

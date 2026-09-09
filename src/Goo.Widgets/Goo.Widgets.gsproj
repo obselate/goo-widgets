@@ -15,11 +15,13 @@
     <PackageProjectUrl>https://github.com/obselate/goo-widgets</PackageProjectUrl>
     <PackageTags>goo;gsharp;widgets;desktop;ui</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo" Version="0.5.1" />
-    <PackageReference Include="Goo.Svg" Version="0.5.1" />
+    <PackageReference Include="Goo" Version="0.5.2" />
+    <PackageReference Include="Goo.Svg" Version="0.5.2" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" />

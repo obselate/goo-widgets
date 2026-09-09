@@ -4,21 +4,19 @@ Reusable G# widgets for [Goo](https://github.com/obselate/goo) desktop applicati
 Import the categories you need, supply your data and callbacks, and compose the
 widgets into your Goo UI.
 
-Browse the [gallery screenshots](samples/screenshots/README.md) or run the
-[gallery](samples/Goo.Widgets.Gallery) for interactive examples of every widget.
+Browse the [gallery screenshots](https://github.com/obselate/goo-widgets/blob/main/samples/screenshots/README.md) or run the
+[gallery](https://github.com/obselate/goo-widgets/tree/main/samples/Goo.Widgets.Gallery) for interactive examples of every widget.
+The [usage guide](https://github.com/obselate/goo-widgets/blob/main/docs/usage.md)
+includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.1.0` targets .NET 10 and depends on Goo and Goo.Svg `0.5.1`.
-Until Goo Widgets is published to NuGet, install the .NET SDK specified in
-`global.json` and build a local package:
+Goo Widgets `0.1.0` targets .NET 10 and depends on Goo and Goo.Svg `0.5.2`.
+Install the package from NuGet.org:
 
 ```sh
-dotnet pack src/Goo.Widgets/Goo.Widgets.gsproj -c Release -o artifacts/packages -p:RestoreLockedMode=true
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.0 --source /path/to/goo-widgets/artifacts/packages
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.0
 ```
-
-Keep nuget.org configured for Goo's transitive dependencies.
 
 ```gsharp
 import Goo
@@ -53,7 +51,7 @@ Place the returned `Blob` in a Goo `Children` collection.
 The library includes all 4,128 Material Symbols Outlined icons for the standard
 24px, weight 400, unfilled variant. The SVG sources total 1.92 MiB and are embedded
 in the assembly. No installed icon font or separate asset folder is needed.
-See the [asset provenance and license](assets/material-symbols/README.md).
+See the [asset provenance and license](https://github.com/obselate/goo-widgets/blob/main/assets/material-symbols/README.md).
 
 ```gsharp
 import Goo
@@ -141,7 +139,7 @@ Every widget must have a registered `<WidgetName>Page.gs` gallery example and a
 real gallery screenshot at `samples/screenshots/<WidgetName>.png`. Helpers and
 data types do not need separate screenshots.
 
-Add new screenshots to the [screenshot index](samples/screenshots/README.md).
+Add new screenshots to the [screenshot index](https://github.com/obselate/goo-widgets/blob/main/samples/screenshots/README.md).
 Refresh the image when a widget or its gallery presentation changes. Capture
 instructions are in that index. The verification script rejects missing gallery
 pages and screenshots.
@@ -149,8 +147,9 @@ pages and screenshots.
 Keep application models, services, assets, and theme policy in the host application.
 The library project owns the SemVer version. Upgrade dependency pins and lock
 files together. Releases use matching `v<Version>` tags and must not replace a
-published version. CI uploads the package and SHA-256 checksum. Package publication
-is a separate release action.
+published version. Tag builds publish through NuGet Trusted Publishing and attach
+the package, symbols, and SHA-256 checksums to the GitHub release. See the
+[release instructions](https://github.com/obselate/goo-widgets/blob/main/.github/RELEASING.md).
 
-Widget source is MIT licensed. See [LICENSE](LICENSE). Bundled Material Symbols
-are Apache-2.0 licensed. See [their license](assets/material-symbols/LICENSE).
+Widget source is MIT licensed. See [LICENSE](https://github.com/obselate/goo-widgets/blob/main/LICENSE). Bundled Material Symbols
+are Apache-2.0 licensed. See [their license](https://github.com/obselate/goo-widgets/blob/main/assets/material-symbols/LICENSE).

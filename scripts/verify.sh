@@ -13,7 +13,7 @@ dotnet run --project tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj -c R
 
 (
   cd artifacts/packages
-  sha256sum Goo.Widgets.*.nupkg > SHA256SUMS
+  sha256sum Goo.Widgets.*.nupkg Goo.Widgets.*.snupkg > SHA256SUMS
 )
 
 git diff --check

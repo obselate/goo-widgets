@@ -90,6 +90,11 @@ jobs:
           dotnet nuget push "artifacts/packages/Goo.Widgets.$WIDGETS_VERSION.nupkg" \
             --api-key "$NUGET_API_KEY" \
             --source https://api.nuget.org/v3/index.json \
+            --no-symbols \
+            --skip-duplicate
+          dotnet nuget push "artifacts/packages/Goo.Widgets.$WIDGETS_VERSION.snupkg" \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
       - name: Create GitHub release
         env:
@@ -102,6 +107,7 @@ jobs:
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release create "$GITHUB_REF_NAME" \
               "artifacts/packages/Goo.Widgets.$WIDGETS_VERSION.nupkg" \
+              "artifacts/packages/Goo.Widgets.$WIDGETS_VERSION.snupkg" \
               artifacts/packages/SHA256SUMS \
               "${flags[@]}" \
               --verify-tag \
