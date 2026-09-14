@@ -149,6 +149,8 @@ func Main() {
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_SEARCHLIST") == "1" { SearchListInteractions()
     return }
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_DISCLOSURE") == "1" { DisclosureInteractions()
+    return }
   PackageComposition()
   NumericAndIdentityRegressions()
   MaterialIconRegressions()

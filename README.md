@@ -41,7 +41,7 @@ Place the returned `Blob` in a Goo `Children` collection.
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
 | `Goo.Widgets.Inputs` | TextField, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
-| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog |
+| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, Disclosure |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
 | `Goo.Widgets.Data` | Chip, SelectionItem |
 | `Goo.Widgets.Navigation` | NavigationRail, NavigationItem |
@@ -93,6 +93,11 @@ tree. No global theme registration or initialization is required.
   widgets that expose it. Keyboard input and accessibility semantics stay enabled.
 - SearchList filters supplied in-memory items and needs unique stable IDs and a
   logical viewport width and height. The host owns remote search and storage.
+- Disclosure owns no expanded state. Build it with `Expanded` and `OnExpandedChange`.
+  Collapsed content stays mounted under `Display.None`: it has no layout, input, or
+  accessibility presence, and mounted child state survives collapse/reopen. Removing
+  the disclosure unmounts and disposes its children normally. Factories receive resolved
+  props; retain the supplied keys, callbacks, and hidden-body contract.
 - ModalDialog overlays its parent. The host manages its bounds, stacking, focus
   entry, restoration, and containment.
 - GraphCanvas uses supplied node positions. The host owns layout calculation,

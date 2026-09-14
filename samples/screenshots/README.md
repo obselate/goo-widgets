@@ -87,6 +87,7 @@ Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetNa
 | [ModalDialog](../Goo.Widgets.Gallery/Pages/Layout/ModalDialogPage.gs) | [![ModalDialog in the Goo Widgets gallery](ModalDialog.png)](ModalDialog.png) |
 | [SectionHeader](../Goo.Widgets.Gallery/Pages/Controls/SectionHeaderPage.gs) | [![SectionHeader in the Goo Widgets gallery](SectionHeader.png)](SectionHeader.png) |
 | [WindowChrome](../Goo.Widgets.Gallery/Pages/Layout/WindowChromePage.gs) | [![WindowChrome in the Goo Widgets gallery](WindowChrome.png)](WindowChrome.png) |
+| [Disclosure](../Goo.Widgets.Gallery/Pages/Layout/DisclosurePage.gs) | [![Disclosure in the Goo Widgets gallery](Disclosure.png)](Disclosure.png) |
 
 ## Media
 

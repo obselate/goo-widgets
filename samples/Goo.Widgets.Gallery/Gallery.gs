@@ -204,6 +204,7 @@ GalleryRegistry([]GalleryCategory{
     ListRowPage{},
     MasterDetailPage{},
     ModalDialogPage{},
+    DisclosurePage{},
     WindowChromePage{},
   }),
   GalleryCategory("Media", []GalleryPage{
