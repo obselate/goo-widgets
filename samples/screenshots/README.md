@@ -103,3 +103,11 @@ Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetNa
 | Widget example | Gallery screenshot |
 | --- | --- |
 | [NavigationRail](../Goo.Widgets.Gallery/Pages/Navigation/NavigationRailPage.gs) | [![NavigationRail in the Goo Widgets gallery](NavigationRail.png)](NavigationRail.png) |
+
+## New controlled widgets
+
+| Widget example | Gallery screenshot |
+| --- | --- |
+| [SplitPane](../Goo.Widgets.Gallery/Pages/Layout/SplitPanePage.gs) | [![SplitPane](SplitPane.png)](SplitPane.png) |
+| [TabBar](../Goo.Widgets.Gallery/Pages/Navigation/TabBarPage.gs) | [![TabBar](TabBar.png)](TabBar.png) |
+| [TextArea](../Goo.Widgets.Gallery/Pages/Inputs/TextAreaPage.gs) | [![TextArea](TextArea.png)](TextArea.png) |

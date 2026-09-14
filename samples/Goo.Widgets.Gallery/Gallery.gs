@@ -183,6 +183,7 @@ GalleryRegistry([]GalleryCategory{
   GalleryCategory("Inputs", []GalleryPage{
     CheckboxPage{},
     TextFieldPage{},
+    TextAreaPage{},
     ToggleSwitchPage{},
     StepperPage{},
     UploadTilePage{},
@@ -205,6 +206,7 @@ GalleryRegistry([]GalleryCategory{
     MasterDetailPage{},
     ModalDialogPage{},
     DisclosurePage{},
+    SplitPanePage{},
     WindowChromePage{},
   }),
   GalleryCategory("Media", []GalleryPage{
@@ -218,6 +220,7 @@ GalleryRegistry([]GalleryCategory{
   }),
   GalleryCategory("Navigation", []GalleryPage{
     NavigationRailPage{},
+    TabBarPage{},
   }),
   GalleryCategory("Colors", []GalleryPage{
     ColorPickerPage{},

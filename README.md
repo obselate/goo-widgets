@@ -20,6 +20,8 @@ dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
 
 The published package is `0.1.1`. The current checkout also contains unreleased
 ergonomic APIs described below. They are not available from the published package.
+The review build is `0.1.2-preview.1` and requires the matching Goo/Goo.Svg
+`0.5.4-preview.1` packages built from the core checkout; it has not been published.
 
 ```gsharp
 import Goo
@@ -39,12 +41,12 @@ Place the returned `Blob` in a Goo `Children` collection.
 | Import | Widgets and supporting types |
 | --- | --- |
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
-| `Goo.Widgets.Inputs` | TextField, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
+| `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
-| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, Disclosure |
+| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, Disclosure, SplitPane |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
 | `Goo.Widgets.Data` | Chip, SelectionItem |
-| `Goo.Widgets.Navigation` | NavigationRail, NavigationItem |
+| `Goo.Widgets.Navigation` | NavigationRail, NavigationItem, TabBar |
 | `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
 | `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
 | `Goo.Widgets.Icons` | MaterialIcons |

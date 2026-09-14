@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add controlled SplitPane, TabBar, and mounted TextArea widgets, with native
+  interaction checks and gallery examples. The review build uses Goo 0.5.4-preview.1
+  for the new composite-widget focus and layout APIs.
+
 These changes are in the current checkout only. Published `0.1.1` is unchanged.
 
 - Add `ColorPickerInput.Compact` for the wheel and tone slider without the mode

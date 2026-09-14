@@ -156,3 +156,52 @@ The [project](../samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj) u
   </ItemGroup>
 </Project>
 ```
+
+## Controlled split panes, tabs, and multiline fields
+
+Mount `SplitPaneInput/SplitPane`, `TabBarInput/TabBar`, and `TextAreaInput/TextArea`
+with stable `Cell.Mount` keys. Update the supplied value in the host callback and
+call the host's `Rebuild()`; each mounted control retains its own interaction
+state. These APIs require the unreleased Goo 0.5.4 preview core.
+
+`SplitPane` accepts first/second content, horizontal or vertical orientation, and
+a controlled ratio or pixel value. Minima are in logical pixels. When their sum
+exceeds available space they shrink proportionally; resizing clamps presentation
+without emitting an input callback. Arrow keys use `Step`, Home/End request bounds,
+and pointer cancellation clears capture without a commit. Its accessible slider
+value describes the first pane. Handle/root factories can style the prepared
+containers; identity, pane children, input wiring, and semantics are reapplied.
+
+`TabBar` uses stable `NavigationItem.Id` values, controlled `SelectedId`, and
+`OnSelect`. Arrow keys wrap past disabled tabs; Home/End move to the first/last
+available tab. Automatic activation requests selection as focus moves; manual
+activation waits for Enter or Space. One enabled tab participates in Tab traversal.
+The strip scrolls horizontally and reveals keyboard focus. Panel content and
+mounting stay with the host. Item/root factories retain required focus and semantic
+wiring after visual customization.
+
+`TextArea` owns one default `TextEditorController` per mounted identity and disposes
+it on unmount. External `Controller` and `Layers` remain caller-owned; the controller
+cannot change within that identity. Controlled `Value` updates preserve the
+controller and valid selection endpoints and suppress `OnChange`. If an endpoint
+ceases to be a grapheme boundary, the controller's rebased selection is retained.
+A nil value preserves an external document. Read-only mode supports selection and
+copy; disabled mode rejects input. `Wrap`, `MinimumRows`, `MinimumHeight`, `Height`,
+label, validation, font, editor/root styles, and factories support field composition.
+NoWrap enables horizontal scrolling, and both modes allow vertical scrolling.
+
+The preview core packages are local review artifacts, separate from published
+Goo 0.5.3. Pack Goo, Goo.Svg, and Goo.Accessibility with
+`-p:GooReleaseVersion=0.5.4-preview.1` and the native payload paths required by the
+core packaging targets. Use an isolated NuGet cache and restore from that package
+output directory before running `scripts/verify.sh`. Publishing these widgets
+requires publishing their core dependency first. Native checks are opt-in:
+
+```sh
+GOO_WIDGETS_COMPOSITES=1 /usr/bin/python3 scripts/with-isolated-wayland.py -- \
+  dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
+```
+
+Set `GOO_WIDGETS_PROOF_DIR` to capture native results and `GOO_CLI` to the matching
+Goo DevTools executable or DLL. The runner creates a private KWin session and input
+seat and requires the platform packages listed in its docstring.
