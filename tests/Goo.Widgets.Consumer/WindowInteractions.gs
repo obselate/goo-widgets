@@ -181,6 +181,7 @@ func IconButtonInteractions() {
 }
 
 func WindowInteractions() {
+  SearchListInteractions()
   ErgonomicWindowInteractions()
   IconButtonInteractions()
   let host = InteractiveHost{}

@@ -145,6 +145,10 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_SEARCHLIST_BENCH") == "1" { SearchListBenchmarks()
+    return }
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_SEARCHLIST") == "1" { SearchListInteractions()
+    return }
   PackageComposition()
   NumericAndIdentityRegressions()
   MaterialIconRegressions()
