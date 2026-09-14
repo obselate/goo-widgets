@@ -43,12 +43,13 @@ Place the returned `Blob` in a Goo `Children` collection.
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
 | `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
-| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, Disclosure, SplitPane |
+| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, Disclosure, SplitPane, Grid, GridTrack, GridItem |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
-| `Goo.Widgets.Data` | Chip, SelectionItem |
+| `Goo.Widgets.Data` | Chip, SelectionItem, TimeAxis, TimeAxisEvent |
 | `Goo.Widgets.Navigation` | NavigationRail, NavigationItem, TabBar |
 | `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
 | `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
+| `Goo.Widgets.Charts` | DonutChart, StackedBar, ChartSeries, ChartSegment |
 | `Goo.Widgets.Icons` | MaterialIcons |
 
 ## Material icons

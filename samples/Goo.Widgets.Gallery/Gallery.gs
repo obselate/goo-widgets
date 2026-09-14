@@ -11,6 +11,8 @@ import Goo.Widgets.Gallery.Pages.Layout
 import Goo.Widgets.Gallery.Pages.Navigation
 import Goo.Widgets.Gallery.Pages.Media
 import Goo.Widgets.Gallery.Pages.Graphs
+import Goo.Widgets.Gallery.Pages.Charts
+import Goo.Widgets.Gallery.Pages.Data
 
 open class GalleryPage {
   open func Title() string;
@@ -207,6 +209,7 @@ GalleryRegistry([]GalleryCategory{
     ModalDialogPage{},
     DisclosurePage{},
     SplitPanePage{},
+    GridPage{},
     WindowChromePage{},
   }),
   GalleryCategory("Media", []GalleryPage{
@@ -217,6 +220,7 @@ GalleryRegistry([]GalleryCategory{
   }),
   GalleryCategory("Data", []GalleryPage{
     ChipPage{},
+    TimeAxisPage{},
   }),
   GalleryCategory("Navigation", []GalleryPage{
     NavigationRailPage{},
@@ -225,6 +229,7 @@ GalleryRegistry([]GalleryCategory{
   GalleryCategory("Colors", []GalleryPage{
     ColorPickerPage{},
   }),
+  GalleryCategory("Charts", []GalleryPage{DonutChartPage{}, StackedBarPage{}}),
   GalleryCategory("Graphs", []GalleryPage{
     GraphCanvasPage{},
     GraphNodeCardPage{},

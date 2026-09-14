@@ -145,6 +145,10 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_TIME_AXIS") == "1" { TimeAxisInteractions()
+    return }
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_GRID_CHARTS") == "1" { GridChartInteractions()
+    return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_COMPOSITES") == "1" { CompositeInteractions()
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_SEARCHLIST_BENCH") == "1" { SearchListBenchmarks()
@@ -158,6 +162,8 @@ func Main() {
   MaterialIconRegressions()
   TextAreaOwnership()
   TabBarContracts()
+  GridChartContracts()
+  TimeAxisContracts()
   SliderInteractions()
   WidgetErgonomics()
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" { WindowInteractions() }

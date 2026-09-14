@@ -34,6 +34,13 @@ Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetNa
 | [ActionButton](../Goo.Widgets.Gallery/Pages/Controls/ActionButtonPage.gs) | [![ActionButton in the Goo Widgets gallery](ActionButton.png)](ActionButton.png) |
 | [IconButton](../Goo.Widgets.Gallery/Pages/Actions/IconButtonPage.gs) | [![IconButton in the Goo Widgets gallery](IconButton.png)](IconButton.png) |
 
+## Charts
+
+| Widget example | Gallery screenshot |
+| --- | --- |
+| [DonutChart](../Goo.Widgets.Gallery/Pages/Charts/DonutChartPage.gs) | [![DonutChart in the Goo Widgets gallery](DonutChart.png)](DonutChart.png) |
+| [StackedBar](../Goo.Widgets.Gallery/Pages/Charts/StackedBarPage.gs) | [![StackedBar in the Goo Widgets gallery](StackedBar.png)](StackedBar.png) |
+
 ## Colors
 
 | Widget example | Gallery screenshot |
@@ -45,6 +52,7 @@ Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetNa
 | Widget example | Gallery screenshot |
 | --- | --- |
 | [Chip](../Goo.Widgets.Gallery/Pages/Controls/ChipPage.gs) | [![Chip in the Goo Widgets gallery](Chip.png)](Chip.png) |
+| [TimeAxis](../Goo.Widgets.Gallery/Pages/Data/TimeAxisPage.gs) | [![TimeAxis in the Goo Widgets gallery](TimeAxis.png)](TimeAxis.png) |
 
 ## Feedback
 
@@ -80,6 +88,7 @@ Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetNa
 
 | Widget example | Gallery screenshot |
 | --- | --- |
+| [Grid](../Goo.Widgets.Gallery/Pages/Layout/GridPage.gs) | [![Grid in the Goo Widgets gallery](Grid.png)](Grid.png) |
 | [AppBar](../Goo.Widgets.Gallery/Pages/Controls/AppBarPage.gs) | [![AppBar in the Goo Widgets gallery](AppBar.png)](AppBar.png) |
 | [Drawer](../Goo.Widgets.Gallery/Pages/Controls/DrawerPage.gs) | [![Drawer in the Goo Widgets gallery](Drawer.png)](Drawer.png) |
 | [ListRow](../Goo.Widgets.Gallery/Pages/Controls/ListRowPage.gs) | [![ListRow in the Goo Widgets gallery](ListRow.png)](ListRow.png) |

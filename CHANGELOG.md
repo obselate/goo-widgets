@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add measured Grid tracks and spans, DonutChart and StackedBar quantitative charts,
+  and a mounted TimeAxis with collision lanes, overflow, and initial viewport placement.
+  Include package contracts, native input/resize checks, and gallery captures.
+
 - Add controlled SplitPane, TabBar, and mounted TextArea widgets, with native
   interaction checks and gallery examples. The review build uses Goo 0.5.4-preview.1
   for the new composite-widget focus and layout APIs.

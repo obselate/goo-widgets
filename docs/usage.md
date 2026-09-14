@@ -205,3 +205,91 @@ GOO_WIDGETS_COMPOSITES=1 /usr/bin/python3 scripts/with-isolated-wayland.py -- \
 Set `GOO_WIDGETS_PROOF_DIR` to capture native results and `GOO_CLI` to the matching
 Goo DevTools executable or DLL. The runner creates a private KWin session and input
 seat and requires the platform packages listed in its docstring.
+
+## Measured Grid layout
+
+`Grid` places keyed `GridItem` slots in explicitly declared `Rows` and `Columns`.
+Use `GridTrack.Fixed(pixels)`, `GridTrack.Auto(minimum, maximum)`, and
+`GridTrack.Fraction(weight, minimum, maximum)`. Track constraints and gaps are in
+logical pixels. Row/column indices are zero-based; spans default to one. All slots
+share these tracks, so a header and body or multiple form sections align without
+separate width calculations. Overlapping slots paint in declaration order.
+
+Auto tracks measure real Goo text and nested content. Under a bounded constraint,
+fractional tracks divide the remaining space above their minima; capped tracks
+return excess space to other fractional tracks. Text is measured again at its
+resolved span width to determine row height. An unbounded fractional axis fits
+content. A span crossing a bounded fractional track wraps within that space rather
+than expanding an auto neighbor to its full unwrapped width. Fixed tracks stay
+fixed, and constraints may overflow when their minima exceed the container.
+Slots fill their track rectangles; their children retain normal Goo alignment.
+
+```gsharp
+Grid{
+  Columns: []GridTrack{GridTrack.Auto(70.0, 140.0), GridTrack.Fraction()},
+  Rows: []GridTrack{GridTrack.Auto(), GridTrack.Auto()},
+  ColumnGap: 12, RowGap: 8,
+  Items: []GridItem{
+    GridItem{Id: "name-label", Content: Text("Name")},
+    GridItem{Id: "name", Column: 1, Content: Text("Field notes")},
+    GridItem{Id: "description", Row: 1, ColumnSpan: 2,
+      Content: Text("A paragraph that wraps when this grid becomes narrower.")},
+  },
+}.Build()
+```
+
+The policy snapshots track and placement arrays. Build a new `Grid` description
+when data or definitions change. Stable item IDs preserve child cells and focus
+when slots move or resize. `CreateRoot` receives a prepared container; required
+layout and keyed children are reapplied after customization.
+
+## Quantitative charts
+
+`DonutChart` and `StackedBar` accept `ChartSeries` entries with a unique `Id`,
+human-readable `Label`, finite nonnegative `Value`, and optional `Color`. Both
+handle fractional quantities and zero totals, keep zero-valued entries in the
+optional legend, and normalize large values without overflowing their sum.
+Donuts draw a complete circle with two arcs when only one positive entry remains.
+
+Customize donut `Size`, `Thickness`, `TrackColor`, and `Center`; customize bar
+`Width`, `Height`, `BorderRadius`, and `TrackColor`. `ShowLegend` enables the
+default labeled values and percentages. Both expose `CreateLabel`, `CreateLegend`,
+and `CreateRoot`; donut slices use `CreateSlice`, and bars use `CreateSegment`.
+Factories receive resolved `ChartSegment` data with the fraction and accessible
+summary. Required geometry, identity, interaction, and semantics are reapplied to
+custom segments. `OnActivate` enables pointer/Enter/Space activation and Tab focus;
+`OnHover` reports a series ID or nil on leave. Omit them for passive charts.
+
+## Horizontal TimeAxis
+
+Mount `TimeAxisInput/TimeAxis` with a stable key. Supply an absolute
+`DateTimeOffset` range and identified `TimeAxisEvent` intervals. `TickInterval`,
+`FormatTick`, and `PixelsPerHour` control the ruler. Ticks begin at the range start
+and retain its UTC offset; calendar/time-zone formatting beyond that belongs in
+the formatter. Ranges are half-open, and equal event endpoints represent points.
+At most 4096 ticks and a canvas width between .01 and 1e9 logical pixels are
+accepted. This widget lays out its event set; it is not a virtual event database.
+
+Events are sorted by start and then ordinal ID, clipped to the range, and assigned
+the first available lane. `MinimumEventWidth` participates in collision handling,
+so point events cannot visually overlap another block in the same lane.
+`MaximumLanes` caps the visible lanes; a summary below the affected time interval
+holds the chronological overflow set and passes it to `OnOverflow`. `SelectedId` and `OnSelect` leave
+selection with the host. Event semantics include labels and time intervals.
+`CurrentTime` is an optional host-updated marker; the widget starts no timer.
+
+`InitialTime` or `InitialEventId` positions the viewport once at its first layout,
+using `InitialAlignment` (Center, Start, or Nearest). Unknown initial IDs are
+ignored. Subsequent marker, data, scale, and size changes do not restart centering.
+The scroll viewport supports Left/Right and Home/End. `OnViewportChanged` reports
+later offsets and visible instants on the UI thread; a host that displays those
+values should call its `Rebuild()`. A root factory can retain the prepared
+`ElementHandle` for later `JumpTo` or `ScrollTo` requests from host actions.
+The mounted widget releases its metrics subscription on removal.
+
+Tick, marker, event, overflow, and root factories customize prepared Goo blobs.
+The widget reapplies required placement, identity, scroll/input wiring, and
+semantics. See the gallery for host-selected event colors and overflow details.
+
+Native checks for these widgets use `GOO_WIDGETS_GRID_CHARTS=1` or
+`GOO_WIDGETS_TIME_AXIS=1` with the isolated runner shown above.
