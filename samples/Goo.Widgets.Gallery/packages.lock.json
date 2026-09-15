@@ -35,8 +35,8 @@
       },
       "Markdig": {
         "type": "Transitive",
-        "resolved": "0.38.0",
-        "contentHash": "zKy3JFjQvr1wbuMtbfcZVjNNCIqHxSCjGMq/CBcyNsY/MPsxqcS3o8M7CZ2kcMGGIw5LI2ZZd8rFUaFeV6SvrQ=="
+        "resolved": "1.3.2",
+        "contentHash": "fZgOC/3CswUrndjDTac70aQpYdtxbW5+5bRumR7vzvI2HJbkmgKisB1c9oT+GA6v0jB/JDR9BLa9FiPzQmaK6A=="
       },
       "StbImageSharp": {
         "type": "Transitive",
@@ -58,8 +58,8 @@
       "goo.widgets.markdown": {
         "type": "Project",
         "dependencies": {
-          "Goo.Widgets": "[0.2.1, )",
-          "Markdig": "[0.38.0, )"
+          "Goo.Widgets": "[0.2.2, )",
+          "Markdig": "[1.3.2, )"
         }
       }
     }

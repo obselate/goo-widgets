@@ -11,11 +11,11 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.2.1` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
+Goo Widgets `0.2.2` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
 Use `Gsharp.NET.Sdk/0.4.591` and install the package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.1
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.2
 ```
 
 Goo supplies the upstream G# compiler and formatter needed for native child
@@ -129,7 +129,7 @@ own time zones, storage formats, recurrence, and scheduling policy.
 
 `Goo.Widgets.Markdown` adds `Cell.Mount[MarkdownViewInput, MarkdownView]` for headings,
 paragraphs, emphasis, links, inline/fenced code, lists, quotes, rules, pipe tables,
-and GFM alerts. It depends on Markdig 0.38.0; the base widget package stays parser-free.
+and GFM alerts. It depends on Markdig 1.3.2; the base widget package stays parser-free.
 Each text block owns a selectable read-only editor with measured intrinsic height;
 selection and copying operate within that block. Links use `OnLink`, and images
 remain selectable alternative text unless `ResolveImage` supplies a Blob.

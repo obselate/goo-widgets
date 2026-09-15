@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 - 2026-09-15
+
+- Update the optional Markdown package to Markdig 1.3.2.
+
 ## 0.2.1 - 2026-09-15
 
 - Require Goo and Goo.Svg 0.5.4, which supply the updated upstream G# compiler
