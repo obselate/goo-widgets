@@ -111,6 +111,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
   private var disposed bool
 
   public init() { rootHandle.MetricsChanged += Metrics }
+  /// Releases the root geometry subscription.
   public func Dispose() {
     if disposed { return }
     disposed = true

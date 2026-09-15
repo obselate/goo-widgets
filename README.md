@@ -43,14 +43,47 @@ Place the returned `Blob` in a Goo `Children` collection.
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
 | `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
-| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, Disclosure, SplitPane, Grid, GridTrack, GridItem |
+| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
 | `Goo.Widgets.Data` | Chip, SelectionItem, DataGrid, DataGridColumn, DataGridRow, TimeAxis, TimeAxisEvent, TreeView, TreeNode |
-| `Goo.Widgets.Navigation` | NavigationRail, NavigationItem, TabBar |
+| `Goo.Widgets.Navigation` | NavigationRail, NavigationItem, TabBar, Menu, MenuItem |
 | `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
 | `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
 | `Goo.Widgets.Charts` | DonutChart, StackedBar, ChartSeries, ChartSegment |
 | `Goo.Widgets.Icons` | MaterialIcons |
+
+## Dialogs, popovers, and menus
+
+`ModalDialogHost` accepts the existing `ModalDialog` value and its factories. On
+open it focuses an AutoFocus element, the first eligible child, or the dialog
+root if no child accepts focus. Tab wraps within the active dialog. Escape calls
+OnCancel (falling back to OnClose); the backdrop calls OnClose. Closing or removing
+the host restores the previous eligible target. Nested dialogs suspend underlying
+input and accessibility until the top dialog closes. Custom cancel/confirm
+buttons keep their action callbacks and confirmation-disabled state.
+
+`Popover` takes `PopoverInput` with controlled Open, arbitrary Content, and exactly
+one Anchor handle or WindowPoint. It uses measured bounds, flips to the opposite
+side when it fits better, and clamps to Viewport (window coordinates), or its
+parent overlay bounds by default. It tracks anchor movement and resize. OnDismiss
+reports Escape, OutsideClick, or AnchorRemoved; update Open and rebuild the host.
+Tab stays in the popup and closing restores eligible prior focus. Factories
+customize the panel/root while placement, handles, input, and content stay wired.
+
+`Menu` takes `MenuInput` with an Anchor or WindowPoint for a context menu. Items
+have globally unique IDs, labels/custom content, disabled/separator state, optional
+children, and an optional per-item action overriding the shared OnActivate(id).
+Up/Down/Home/End navigate; Right/Left open and close submenus; Enter/Space activate;
+Escape closes the active level. Pointer hover also opens submenus. DismissOnActivate
+defaults to true. CreateItem, CreateSeparator, CreatePanel, and CreateRoot retain
+navigation, identity, and accessibility wiring. Hosts can use Menu or Shift+F10
+key events to open the same menu from a keyboard trigger (see the gallery).
+
+Mount these overlays under a full-window, unclipped parent. They do not create a
+portal or a native window. Their opening order only sorts siblings within an
+existing parent. Keep their controlled Open state in sync when hiding an overlay
+host externally; closing and reopening starts a fresh focus lifecycle. Native
+secondary-window ownership remains Goo's Window.Owner/Modal API.
 
 ## Material icons
 
@@ -101,8 +134,10 @@ tree. No global theme registration or initialization is required.
   accessibility presence, and mounted child state survives collapse/reopen. Removing
   the disclosure unmounts and disposes its children normally. Factories receive resolved
   props; retain the supplied keys, callbacks, and hidden-body contract.
-- ModalDialog overlays its parent. The host manages its bounds, stacking, focus
-  entry, restoration, and containment.
+- ModalDialog builds the visual overlay. Mount `Cell.Mount[ModalDialog, ModalDialogHost]`
+  for focus entry, containment, restoration, and nested modal isolation. Put sibling
+  overlay hosts under the same full-window parent; opening order determines their
+  layers within that parent. Content and confirmation work remain host-owned.
 - GraphCanvas uses supplied node positions. The host owns layout calculation,
   selection, and viewport state. Cards keep their screen size as positions zoom.
 - WindowChrome needs a Window or callbacks for window actions. Media and upload

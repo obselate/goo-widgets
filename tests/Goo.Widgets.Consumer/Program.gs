@@ -145,6 +145,8 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_OVERLAYS") == "1" { OverlayInteractions()
+    return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID") == "1" { DataGridInteractions()
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_TREE") == "1" { TreeViewInteractions()
@@ -161,6 +163,7 @@ func Main() {
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_DISCLOSURE") == "1" { DisclosureInteractions()
     return }
+  OverlayContracts()
   PackageComposition()
   NumericAndIdentityRegressions()
   MaterialIconRegressions()

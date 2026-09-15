@@ -207,6 +207,8 @@ GalleryRegistry([]GalleryCategory{
     ListRowPage{},
     MasterDetailPage{},
     ModalDialogPage{},
+    ModalDialogHostPage{},
+    PopoverPage{},
     DisclosurePage{},
     SplitPanePage{},
     GridPage{},
@@ -227,6 +229,7 @@ GalleryRegistry([]GalleryCategory{
   GalleryCategory("Navigation", []GalleryPage{
     NavigationRailPage{},
     TabBarPage{},
+    MenuPage{},
   }),
   GalleryCategory("Colors", []GalleryPage{
     ColorPickerPage{},

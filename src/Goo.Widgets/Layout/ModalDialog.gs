@@ -28,6 +28,8 @@ public data struct ModalDialog {
   var CancelText string?
   /// Confirm text used when no content is supplied. Nil resolves to "Confirm".
   var ConfirmText string?
+  /// Base overlay layer. Zero resolves to 20; mounted hosts add their opening order.
+  var ZIndex int32
   /// Dialog width. Zero resolves to 560.
   var Width float64
   /// Maximum dialog height. Nil resolves to 90%.
@@ -72,12 +74,13 @@ public data struct ModalDialog {
       CancelText = cancelText,
       ConfirmText = confirmText,
       Width = if Width == 0.0 { 560.0 } else { Width },
+      ZIndex = if ZIndex == 0 { 20 } else { ZIndex },
       MaxHeight = MaxHeight ?? Length.Percent(90.0),
       Padding = Padding ?? 20.0,
       Gap = Gap ?? 16.0,
       BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
       BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-      BackdropColor = BackdropColor ?? Color.Parse("#cc000000"),
+      BackdropColor = BackdropColor ?? Color.Rgba(0, 0, 0, 204),
       BorderWidth = BorderWidth ?? 1.0,
       BorderRadius = BorderRadius ?? 8.0,
       CreateCancel = nil,
@@ -137,6 +140,10 @@ public data struct ModalDialog {
       }
     }
 
+    cancel.OnClick = resolved.OnCancel
+    confirm.OnClick = resolved.OnConfirm
+    confirm.Disabled = resolved.ConfirmDisabled
+
     let actions = Container{
       FlexDirection: FlexDirection.Row,
       AlignItems: AlignItems.Center,
@@ -171,7 +178,7 @@ public data struct ModalDialog {
         if event.Key == Key.Escape {
           event.PreventDefault()
           event.StopPropagation()
-          onCancel()
+          if !event.Repeat { onCancel() }
         }
       }
     }
@@ -186,7 +193,7 @@ public data struct ModalDialog {
       Right: 0.0,
       Top: 0.0,
       Bottom: 0.0,
-      ZIndex: 20,
+      ZIndex: resolved.ZIndex,
       AlignItems: AlignItems.Center,
       JustifyContent: JustifyContent.Center,
       Children: {backdrop, dialog},
