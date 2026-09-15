@@ -41,7 +41,7 @@ Place the returned `Blob` in a Goo `Children` collection.
 | Import | Widgets and supporting types |
 | --- | --- |
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
-| `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, Stepper, UploadTile |
+| `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, ComboBox, ComboBoxOption, Stepper, UploadTile |
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
 | `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
@@ -84,6 +84,23 @@ portal or a native window. Their opening order only sorts siblings within an
 existing parent. Keep their controlled Open state in sync when hiding an overlay
 host externally; closing and reopening starts a fresh focus lifecycle. Native
 secondary-window ownership remains Goo's Window.Owner/Modal API.
+
+## ComboBox
+
+Mount `Cell.Mount[ComboBoxInput, ComboBox]` with stable option IDs, `SelectedId`, and
+`OnSelect`. The trigger displays the selected label/custom content or Placeholder.
+Selection changes only on activation or Enter; Escape cancels. Up/Down/Home/End
+move the active option, skip disabled options, and reveal offscreen virtual rows.
+`Searchable` adds a search field. Empty results keep the popup open without committing.
+
+Pass the handle of a full-window, unclipped container as `OverlayHost`, and keep
+the selector's ancestor overflow visible. The popup paints in that region without
+changing the selector's layout size. The host is a geometry reference, not a portal;
+ancestor clipping and stacking still apply. Opening restores the selected option,
+and closing restores trigger focus. `Open` and `Query` can be controlled with their
+callbacks; leaving them nil uses widget-owned state. Update controlled values and
+rebuild the owning Cell in callbacks. Trigger, search, row, popup, and root factories
+customize appearance while identity, input, and accessibility wiring remain applied.
 
 ## Material icons
 
