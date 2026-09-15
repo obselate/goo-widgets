@@ -1,4 +1,4 @@
-package Goo.Widgets.Themes
+package Goo.Widgets
 
 import Goo
 import Goo.Widgets.Actions
@@ -6,7 +6,7 @@ import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 
 /// Goo's rounded widget presets in Ink and Bone palettes. Copy with `with` to customize.
-public data struct GooTheme {
+public data struct Theme {
     /// Window background.
     var CanvasColor Color
     /// Panels and popovers.
@@ -72,8 +72,8 @@ public data struct GooTheme {
 
     shared {
         /// Dark Ink palette. Each access returns an independent value.
-        public prop Ink GooTheme {
-            get -> GooTheme{
+        public prop Ink Theme {
+            get -> Theme{
                 CanvasColor: "#090b10",
                 PanelColor: "#11141b",
                 FieldColor: "#090b10",
@@ -109,7 +109,7 @@ public data struct GooTheme {
         }
 
         /// Light Bone palette, including darker semantic text colors for light surfaces.
-        public prop Bone GooTheme {
+        public prop Bone Theme {
             get -> Ink with{
                 CanvasColor = "#eceded",
                 PanelColor = "#f5f6f7",

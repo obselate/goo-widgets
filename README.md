@@ -165,15 +165,14 @@ The shape is decorative. Give its button an accessible name.
 
 ## Goo theme
 
-`Goo.Widgets.Themes.GooTheme` provides the Goo palette, typography, spacing, and
-widget presets. Select `GooTheme.Ink` or `GooTheme.Bone`, then customize ordinary G#
-values with `with`:
+Import `Goo.Widgets.Theme` to use the `Ink` and `Bone` palettes directly, including
+typography, spacing, and widget presets. Customize ordinary G# values with `with`:
 
 ```gsharp
 import Goo
-import Goo.Widgets.Themes
+import Goo.Widgets.Theme
 
-let theme = GooTheme.Ink with{ControlHeight = 28.0}
+let theme = Ink with{ControlHeight = 28.0}
 
 Container{
     BasedOn: theme.CanvasStyle,

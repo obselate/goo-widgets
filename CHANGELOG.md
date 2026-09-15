@@ -2,9 +2,10 @@
 
 ## Unreleased
 
-- Add `GooTheme.Ink` and `GooTheme.Bone` palettes and rounded widget presets using ordinary G# values, with a
-  runnable sample that preserves input state when switching palettes. Use 16 px
-  medium text and semibold buttons, with bundled Vend Sans weights in the sample.
+- Add `Ink` and `Bone` palettes through `import Goo.Widgets.Theme`, with rounded
+  widget presets and a sample that preserves input state when switching palettes.
+  Use 16 px medium text and semibold buttons, with bundled Vend Sans weights in
+  the sample.
 - Add text field label casing and weight options, and slider thumb radius and
   border width and label size options for theme composition.
 

@@ -2,7 +2,7 @@ package Goo.Widgets.ThemeSample
 
 import Goo
 import Goo.Widgets.Inputs
-import Goo.Widgets.Themes
+import Goo.Widgets.Theme
 import System
 import System.IO
 
@@ -17,9 +17,9 @@ class ThemeSample : Cell {
     override func Build() Blob {
         let theme = (
             if light {
-                GooTheme.Bone
+                Bone
             } else {
-                GooTheme.Ink
+                Ink
             }
         ) with{
             ControlHeight = if compact {
