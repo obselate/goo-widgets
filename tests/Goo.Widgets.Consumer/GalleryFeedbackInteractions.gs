@@ -151,13 +151,41 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
 }
 
 func FeedbackGrid(window Window, adapter SearchListSemantics) {
+    let sequenceGrid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
+    for name in[]string{"atlas", "borealis", "cirrus", "ember", "fjord", "grove", "harbor"} {
+        for step in 0 ... 20 {
+            let row = FeedbackNode(adapter, AccessibilityRole.Row, name).Bounds
+            if row.Y + 18.0 < sequenceGrid.Y + sequenceGrid.Height - 4.0 {
+                break
+            }
+            FeedbackWheel(window, sequenceGrid, -1.0F)
+        }
+        for toggle in 0 ... 2 {
+            let before = FeedbackNode(adapter, AccessibilityRole.Row, name)
+            let wasSelected = before.Selected
+            let box = before.Bounds
+            FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20, Height: 20})
+            let after = FeedbackNode(adapter, AccessibilityRole.Row, name)
+            Console.WriteLine(
+                "grid-sequence " + name + " before-y=" + box.Y.ToString() + " after-y=" + after.Bounds.Y.ToString()
+            )
+            if Math.Abs(after.Bounds.Y - box.Y) >= .1 {
+                CaptureIssueProof(window, "gallery-grid-sequence-reset-" + name)
+            }
+            Require(
+                after.Selected != wasSelected && Math.Abs(after.Bounds.Y - box.Y) < .1,
+                "Sequential checkbox selection changed the scroll position: " + name
+            )
+        }
+    }
+    FeedbackWheel(window, sequenceGrid, 20.0F)
     let filter = FeedbackNode(adapter, AccessibilityRole.TextInput, "")
     Require(
         window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
         "Grid filter focus failed"
     )
     let grid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
-    FeedbackWheel(window, grid, -20.0F)
+    FeedbackWheel(window, grid, -0.8F)
     let clicked = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     CaptureIssueProof(window, "gallery-grid-scrolled-before-check")
     FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20})
