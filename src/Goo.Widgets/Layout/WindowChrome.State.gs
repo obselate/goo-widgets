@@ -41,13 +41,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         }
         let row = current.BuildResolved(BlankPointer)
         row.Key = "bar"
-        let root = Container(){
-            .Handle: rootHandle,
-            .FlexShrink: 0.0,
-            .OnPointerDown: PointerDown,
-            .OnKeyDown: KeyDown,
-            row
-        }
+        let root = Container{Handle: rootHandle, FlexShrink: 0.0, OnPointerDown: PointerDown, OnKeyDown: KeyDown, row}
         if current.EnableContextMenu {
             let maximized = current.IsMaximized!!
             let items = []MenuItem{

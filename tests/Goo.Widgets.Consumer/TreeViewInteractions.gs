@@ -171,12 +171,12 @@ internal class TreeHost : Cell {
         if !Passive {
             configuration.OnSelect = Select
         }
-        return Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 24,
-            .Gap: 18,
-            .BackgroundColor: "#111318",
+        return Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 24,
+            Gap: 18,
+            BackgroundColor: "#111318",
             Text{Key: "title", Content: "TreeView · controlled hierarchy", FontSize: 24, Color: "#fafafa"},
             Text{
                 Key: "hint",
@@ -184,14 +184,14 @@ internal class TreeHost : Cell {
                 Color: "#a1a1aa"
             },
             Cell.Mount[TreeViewInput, TreeView]("tree", configuration),
-            Button(){
-                .Key: "after",
-                .Handle: After,
-                .Focusable: true,
-                .Padding: 10,
-                .BackgroundColor: "#2d3550",
-                .Color: "#e0e7ff",
-                .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "After tree"},
+            Button{
+                Key: "after",
+                Handle: After,
+                Focusable: true,
+                Padding: 10,
+                BackgroundColor: "#2d3550",
+                Color: "#e0e7ff",
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "After tree"},
                 Text{Content: "Next control"}
             }
         }

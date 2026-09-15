@@ -92,11 +92,11 @@ internal class ChartParts {
                     text = create(segment, text)
                 }
                 root.Children.Add(
-                    Container(){
-                        .Key: segment.Series.Id!!,
-                        .FlexDirection: FlexDirection.Row,
-                        .AlignItems: AlignItems.Center,
-                        .Gap: 6,
+                    Container{
+                        Key: segment.Series.Id!!,
+                        FlexDirection: FlexDirection.Row,
+                        AlignItems: AlignItems.Center,
+                        Gap: 6,
                         Container{
                             Width: 9,
                             Height: 9,

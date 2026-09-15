@@ -131,12 +131,12 @@ internal class MarkdownTextView : Cell, IDisposable {
             Name: model.Block.Text ?? "",
             Multiline: true
         }
-        return Container(){
-            .Handle: handle,
-            .Layout: MarkdownIntrinsicLayout(),
-            .Width: Length.Percent(100),
-            .MinWidth: 0.0,
-            .FlexShrink: 0.0,
+        return Container{
+            Handle: handle,
+            Layout: MarkdownIntrinsicLayout(),
+            Width: Length.Percent(100),
+            MinWidth: 0.0,
+            FlexShrink: 0.0,
             editor
         }
     }
@@ -156,20 +156,20 @@ internal class MarkdownTextView : Cell, IDisposable {
         if let create = options.CreateInline {
             content = create(run, content)
         }
-        var root = Container(){.MinWidth: 0.0, content}
+        var root = Container{MinWidth: 0.0, content}
         if run.Kind == MarkdownInlineKind.Link {
-            let button = Button(){
-                .Padding: 0.0,
-                .MinWidth: 0.0,
-                .BackgroundColor: Color.Transparent,
-                .Cursor: Cursor.Pointer,
-                .OnClick: () -> current.Options.OnLink?.Invoke(run.Target ?? ""),
-                .Accessibility: Accessibility{
+            let button = Button{
+                Padding: 0.0,
+                MinWidth: 0.0,
+                BackgroundColor: Color.Transparent,
+                Cursor: Cursor.Pointer,
+                OnClick: () -> current.Options.OnLink?.Invoke(run.Target ?? ""),
+                Accessibility: Accessibility{
                     Role: AccessibilityRole.Link,
                     Name: run.Text ?? "",
                     Description: run.Title ?? ""
                 },
-                .Focus: Style{OutlineWidth: 1.0, OutlineColor: options.LinkColor!!},
+                Focus: Style{OutlineWidth: 1.0, OutlineColor: options.LinkColor!!},
                 content
             }
             button.Focusable = options.OnLink != nil

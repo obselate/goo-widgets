@@ -90,36 +90,36 @@ public data struct GraphNodeCard {
             TextWrap: TextWrap.NoWrap,
             TextTrimming: TextTrimming.Ellipsis,
         }
-        return Container(){
-            .BasedOn: RootStyle,
-            .Key: "graph-node-" + Node.Id,
-            .Position: PositionType.Absolute,
-            .Left: center.X - width * 0.5,
-            .Top: center.Y - height * 0.5,
-            .Width: width,
-            .Height: height,
-            .Padding: padding,
-            .BorderRadius: borderRadius,
-            .BorderWidth: borderWidth,
-            .BorderColor: if Selected {
+        return Container{
+            BasedOn: RootStyle,
+            Key: "graph-node-" + Node.Id,
+            Position: PositionType.Absolute,
+            Left: center.X - width * 0.5,
+            Top: center.Y - height * 0.5,
+            Width: width,
+            Height: height,
+            Padding: padding,
+            BorderRadius: borderRadius,
+            BorderWidth: borderWidth,
+            BorderColor: if Selected {
                 SelectedBorderColor ?? Color.Parse("#93c5fd")
             } else {
                 BorderColor ?? Color.Parse("#52525b")
             },
-            .BackgroundColor: if Selected {
+            BackgroundColor: if Selected {
                 SelectedBackgroundColor ?? Color.Parse("#1d4ed8")
             } else {
                 BackgroundColor ?? Color.Parse("#18181b")
             },
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Focusable: true,
-            .Cursor: Cursor.Pointer,
-            .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
-            .OnPointerDown: OnPointerDown,
-            .OnPointerMove: OnPointerMove,
-            .OnPointerUp: OnPointerUp,
-            .OnPointerCancel: OnPointerCancel,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Focusable: true,
+            Cursor: Cursor.Pointer,
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
+            OnPointerDown: OnPointerDown,
+            OnPointerMove: OnPointerMove,
+            OnPointerUp: OnPointerUp,
+            OnPointerCancel: OnPointerCancel,
             content,
         }
     }

@@ -233,10 +233,10 @@ public open class Slider : Cell[SliderInput] {
                 },
             }
         }
-        let root = Container(){
-            .BasedOn: resolved.RootStyle,
-            .Handle: handle,
-            .Width: if horizontal {
+        let root = Container{
+            BasedOn: resolved.RootStyle,
+            Handle: handle,
+            Width: if horizontal {
                 if hasHeader {
                     Length.Percent(100.0)
                 } else {
@@ -245,33 +245,33 @@ public open class Slider : Cell[SliderInput] {
             } else {
                 resolved.ThumbSize
             },
-            .Height: resolved.Height,
-            .FlexShrink: 0.0,
-            .Position: PositionType.Relative,
-            .Cursor: if horizontal {
+            Height: resolved.Height,
+            FlexShrink: 0.0,
+            Position: PositionType.Relative,
+            Cursor: if horizontal {
                 Cursor.ResizeHorizontal
             } else {
                 Cursor.ResizeVertical
             },
-            .Disabled: resolved.Disabled,
-            .Focusable: !resolved.Disabled,
-            .HitTestSelf: !resolved.Disabled,
-            .Opacity: if resolved.Disabled {
+            Disabled: resolved.Disabled,
+            Focusable: !resolved.Disabled,
+            HitTestSelf: !resolved.Disabled,
+            Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {
                 1.0
             },
-            .Focus: if resolved.ShowFocusHighlight {
+            Focus: if resolved.ShowFocusHighlight {
                 Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 3.0}
             } else {
                 Style{}
             },
-            .Accessibility: accessibility,
-            .OnPointerDown: (e PointerEvent) -> BeginPointer(e),
-            .OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            .OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            .OnPointerCancel: (e PointerEvent) -> EndPointer(e),
-            .OnKeyDown: (e KeyEvent) -> KeyDown(e),
+            Accessibility: accessibility,
+            OnPointerDown: (e PointerEvent) -> BeginPointer(e),
+            OnPointerMove: (e PointerEvent) -> MovePointer(e),
+            OnPointerUp: (e PointerEvent) -> EndPointer(e),
+            OnPointerCancel: (e PointerEvent) -> EndPointer(e),
+            OnKeyDown: (e KeyEvent) -> KeyDown(e),
             track,
             fill,
             thumb,
@@ -306,18 +306,18 @@ public open class Slider : Cell[SliderInput] {
             )
         }
         content.Key ??= "slider-control"
-        return Container(){
-            .Width: if horizontal {
+        return Container{
+            Width: if horizontal {
                 resolved.Width!!
             } else {
                 Length.Auto
             },
-            .AlignItems: if horizontal {
+            AlignItems: if horizontal {
                 AlignItems.Stretch
             } else {
                 AlignItems.Center
             },
-            .Gap: 6.0,
+            Gap: 6.0,
             header,
             content,
         }

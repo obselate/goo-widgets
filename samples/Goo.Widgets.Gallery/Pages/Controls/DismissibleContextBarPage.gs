@@ -56,35 +56,35 @@ class DismissibleContextBarPage : GalleryPage {
             Gap = 16.0,
         }
 
-        return Container(){
-            .Width: 620.0,
-            .FlexDirection: FlexDirection.Column,
-            .Gap: 14.0,
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+        return Container{
+            Width: 620.0,
+            FlexDirection: FlexDirection.Column,
+            Gap: 14.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 baseBar.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "CUSTOM ACTION", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 customActionBar.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "DISABLED", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 disabledBar.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "CUSTOM STYLE", FontSize: 10.0, FontWeight: 700, Color: "#d4d4d8"},
                 customStyleBar.Build(),
             },

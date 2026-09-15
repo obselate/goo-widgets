@@ -8,10 +8,10 @@ internal open class ColorPickerExample : Cell {
     private var rgb int32 = 0x4F8FEA
     private var committed int32 = 0x4F8FEA
 
-    public override func Build() Blob -> Container(){
-        .Width: 420.0,
-        .AlignItems: AlignItems.Center,
-        .Gap: 12.0,
+    public override func Build() Blob -> Container{
+        Width: 420.0,
+        AlignItems: AlignItems.Center,
+        Gap: 12.0,
         Cell.Mount[ColorPickerInput, ColorPicker](
             "color-picker",
             ColorPickerInput{

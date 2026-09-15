@@ -48,12 +48,12 @@ internal class ComboBoxExample : Cell {
         Rebuild()
     }
 
-    public override func Build() Blob -> Container(){
-        .Handle: overlay,
-        .Width: 720.0,
-        .Height: 430.0,
-        .Gap: 12.0,
-        .Color: "#fafafa",
+    public override func Build() Blob -> Container{
+        Handle: overlay,
+        Width: 720.0,
+        Height: 430.0,
+        Gap: 12.0,
+        Color: "#fafafa",
         Text{Key: "heading", Content: "Choose a deployment target", FontSize: 22.0, FontWeight: 700},
         Text{
             Key: "hint",
@@ -61,14 +61,14 @@ internal class ComboBoxExample : Cell {
             Color: "#a1a1aa",
             FontSize: 14.0
         },
-        Container(){
-            .Key: "fields",
-            .FlexDirection: FlexDirection.Row,
-            .Gap: 40.0,
-            Container(){
-                .Key: "fixed",
-                .Gap: 9.0,
-                .Width: 290.0,
+        Container{
+            Key: "fields",
+            FlexDirection: FlexDirection.Row,
+            Gap: 40.0,
+            Container{
+                Key: "fixed",
+                Gap: 9.0,
+                Width: 290.0,
                 Text{Key: "label", Content: "Environment", FontSize: 13.0, Color: "#a1a1aa"},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "environment",
@@ -105,10 +105,10 @@ internal class ComboBoxExample : Cell {
                     }
                 )
             },
-            Container(){
-                .Key: "search",
-                .Gap: 9.0,
-                .Width: 350.0,
+            Container{
+                Key: "search",
+                Gap: 9.0,
+                Width: 350.0,
                 Text{Key: "label", Content: "Region · 500 virtual options", FontSize: 13.0, Color: "#a1a1aa"},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "region",

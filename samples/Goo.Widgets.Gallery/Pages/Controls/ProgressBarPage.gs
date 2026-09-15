@@ -23,28 +23,28 @@ class ProgressBarPage : GalleryPage {
             AccessibilityValueText = "100%",
         }
 
-        return Container(){
-            .FlexDirection: FlexDirection.Column,
-            .AlignItems: AlignItems.Center,
-            .Gap: 20,
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.FlexStart,
-                .Gap: 6,
+        return Container{
+            FlexDirection: FlexDirection.Column,
+            AlignItems: AlignItems.Center,
+            Gap: 20,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.FlexStart,
+                Gap: 6,
                 Text{Content: "Queued (0%)", FontSize: 12, Color: "#a1a1aa"},
                 queuedBar.Build(),
             },
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.FlexStart,
-                .Gap: 6,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.FlexStart,
+                Gap: 6,
                 Text{Content: "In progress (45%)", FontSize: 12, Color: "#a1a1aa"},
                 activeBar.Build(),
             },
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.FlexStart,
-                .Gap: 6,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.FlexStart,
+                Gap: 6,
                 Text{Content: "Complete (100%)", FontSize: 12, Color: "#a1a1aa"},
                 completeBar.Build(),
             },

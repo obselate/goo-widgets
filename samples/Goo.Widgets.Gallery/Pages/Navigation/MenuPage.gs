@@ -63,12 +63,12 @@ internal class MenuExample : Cell {
         } else {
             menu.Anchor = trigger
         }
-        return Container(){
-            .Width: 720.0,
-            .Height: 420.0,
-            .Gap: 14.0,
-            .Color: "#fafafa",
-            .OnPointerDown: (event PointerEvent) -> {
+        return Container{
+            Width: 720.0,
+            Height: 420.0,
+            Gap: 14.0,
+            Color: "#fafafa",
+            OnPointerDown: (event PointerEvent) -> {
                 if event.Button == PointerButton.Secondary {
                     event.PreventDefault()
                     point = event.WindowPosition
@@ -85,24 +85,24 @@ internal class MenuExample : Cell {
                 Color: "#a1a1aa"
             },
             Text{Key: "selected", Content: selected, FontSize: 13.0, Color: "#a5b4fc"},
-            Container(){
-                .Key: "directions",
-                .FlexDirection: FlexDirection.Row,
-                .Gap: 12,
-                Button(){
-                    .Padding: 8,
-                    .BackgroundColor: "#27272a",
-                    .OnClick: () -> {
+            Container{
+                Key: "directions",
+                FlexDirection: FlexDirection.Row,
+                Gap: 12,
+                Button{
+                    Padding: 8,
+                    BackgroundColor: "#27272a",
+                    OnClick: () -> {
                         openUp = !openUp
                         isOpen = false
                         Rebuild()
                     },
                     Text{Content: openUp ? "Root: up": "Root: down"}
                 },
-                Button(){
-                    .Padding: 8,
-                    .BackgroundColor: "#27272a",
-                    .OnClick: () -> {
+                Button{
+                    Padding: 8,
+                    BackgroundColor: "#27272a",
+                    OnClick: () -> {
                         openLeft = !openLeft
                         isOpen = false
                         Rebuild()
@@ -110,18 +110,18 @@ internal class MenuExample : Cell {
                     Text{Content: openLeft ? "Submenus: left": "Submenus: right"}
                 }
             },
-            Button(){
-                .Key: "trigger",
-                .Handle: trigger,
-                .Position: PositionType.Absolute,
-                .Left: 350.0,
-                .Top: 270.0,
-                .Width: 220.0,
-                .Height: 36.0,
-                .BackgroundColor: "#27272a",
-                .BorderRadius: 6.0,
-                .OnClick: OpenTrigger,
-                .OnKeyDown: (event KeyEvent) -> {
+            Button{
+                Key: "trigger",
+                Handle: trigger,
+                Position: PositionType.Absolute,
+                Left: 350.0,
+                Top: 270.0,
+                Width: 220.0,
+                Height: 36.0,
+                BackgroundColor: "#27272a",
+                BorderRadius: 6.0,
+                OnClick: OpenTrigger,
+                OnKeyDown: (event KeyEvent) -> {
                     if event.Key == Key.Menu || event.Key == Key.F10 && event.Modifiers.Shift {
                         event.PreventDefault()
                         OpenTrigger()

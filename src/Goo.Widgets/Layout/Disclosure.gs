@@ -105,43 +105,43 @@ public data struct Disclosure {
             }
         }
         let headerRadius = Math.Max(0.0, resolved.BorderRadius!!- resolved.BorderWidth!!)
-        var header = Button(){
-            .Key: "header",
-            .MinHeight: resolved.HeaderHeight!!,
-            .FlexShrink: 0,
-            .Padding: resolved.HeaderPadding!!,
-            .Gap: resolved.Gap!!,
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.FlexStart,
-            .BackgroundColor: Color.Transparent,
-            .Color: resolved.TextColor!!,
-            .BorderWidth: 0,
-            .BorderRadius: 0,
-            .BorderTopLeftRadius: headerRadius,
-            .BorderTopRightRadius: headerRadius,
-            .BorderBottomLeftRadius: resolved.Expanded ? 0.0: headerRadius,
-            .BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
-            .Hover: Style{BackgroundColor: resolved.HoverColor!!},
-            .Focus: if resolved.ShowFocusHighlight {
+        var header = Button{
+            Key: "header",
+            MinHeight: resolved.HeaderHeight!!,
+            FlexShrink: 0,
+            Padding: resolved.HeaderPadding!!,
+            Gap: resolved.Gap!!,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.FlexStart,
+            BackgroundColor: Color.Transparent,
+            Color: resolved.TextColor!!,
+            BorderWidth: 0,
+            BorderRadius: 0,
+            BorderTopLeftRadius: headerRadius,
+            BorderTopRightRadius: headerRadius,
+            BorderBottomLeftRadius: resolved.Expanded ? 0.0: headerRadius,
+            BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
+            Hover: Style{BackgroundColor: resolved.HoverColor!!},
+            Focus: if resolved.ShowFocusHighlight {
                 Style{OutlineColor: resolved.TextColor!!, OutlineWidth: 1, OutlineOffset: -1}
             } else {
                 Style{}
             },
-            .Opacity: if resolved.Disabled {
+            Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {
                 1.0
             },
-            .Disabled: resolved.Disabled,
-            .Focusable: !resolved.Disabled,
-            .Cursor: if resolved.Disabled {
+            Disabled: resolved.Disabled,
+            Focusable: !resolved.Disabled,
+            Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
                 Cursor.Pointer
             },
-            .OnClick: action,
-            .Accessibility: Accessibility{
+            OnClick: action,
+            Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: resolved.AccessibilityName!!,
                 Expanded: resolved.Expanded,
@@ -172,15 +172,15 @@ public data struct Disclosure {
         if let create = createRoot {
             return create(resolved, header, body)
         }
-        return Container(){
-            .Width: resolved.Width!!,
-            .MinWidth: 0,
-            .FlexShrink: 0,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .BorderColor: resolved.BorderColor!!,
-            .BorderWidth: resolved.BorderWidth!!,
-            .BorderRadius: resolved.BorderRadius!!,
-            .Overflow: Overflow.Hidden,
+        return Container{
+            Width: resolved.Width!!,
+            MinWidth: 0,
+            FlexShrink: 0,
+            BackgroundColor: resolved.BackgroundColor!!,
+            BorderColor: resolved.BorderColor!!,
+            BorderWidth: resolved.BorderWidth!!,
+            BorderRadius: resolved.BorderRadius!!,
+            Overflow: Overflow.Hidden,
             header,
             body,
         }

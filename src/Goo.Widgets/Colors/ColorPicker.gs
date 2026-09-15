@@ -234,34 +234,34 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 OnAction: (request AccessibilityActionRequest) -> HandleAccessibility(request),
             }
         }
-        return Container(){
-            .BasedOn: resolved.WheelStyle,
-            .Key: "color-wheel",
-            .Handle: wheelHandle,
-            .Width: resolved.WheelSize,
-            .Height: resolved.WheelSize,
-            .FlexShrink: 0.0,
-            .Position: PositionType.Relative,
-            .BorderRadius: resolved.WheelSize / 2.0,
-            .Cursor: if resolved.Disabled {
+        return Container{
+            BasedOn: resolved.WheelStyle,
+            Key: "color-wheel",
+            Handle: wheelHandle,
+            Width: resolved.WheelSize,
+            Height: resolved.WheelSize,
+            FlexShrink: 0.0,
+            Position: PositionType.Relative,
+            BorderRadius: resolved.WheelSize / 2.0,
+            Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
                 Cursor.Pointer
             },
-            .Disabled: resolved.Disabled,
-            .Focusable: !resolved.Disabled,
-            .HitTestSelf: !resolved.Disabled,
-            .Focus: if resolved.ShowFocusHighlight {
+            Disabled: resolved.Disabled,
+            Focusable: !resolved.Disabled,
+            HitTestSelf: !resolved.Disabled,
+            Focus: if resolved.ShowFocusHighlight {
                 Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 4.0}
             } else {
                 Style{}
             },
-            .Accessibility: accessibility,
-            .OnPointerDown: (e PointerEvent) -> BeginPointer(e),
-            .OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            .OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            .OnPointerCancel: (e PointerEvent) -> EndPointer(e),
-            .OnKeyDown: (e KeyEvent) -> KeyDown(e),
+            Accessibility: accessibility,
+            OnPointerDown: (e PointerEvent) -> BeginPointer(e),
+            OnPointerMove: (e PointerEvent) -> MovePointer(e),
+            OnPointerUp: (e PointerEvent) -> EndPointer(e),
+            OnPointerCancel: (e PointerEvent) -> EndPointer(e),
+            OnKeyDown: (e KeyEvent) -> KeyDown(e),
             Image{
                 Key: "color-wheel-image",
                 Source: wheelSource,
@@ -270,24 +270,24 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Height: resolved.WheelSize,
                 Accessibility: Accessibility{Hidden: true},
             },
-            Container(){
-                .Key: "color-wheel-marker-layer",
-                .Position: PositionType.Absolute,
-                .Left: 0.0,
-                .Top: 0.0,
-                .Width: Length.Percent(100.0),
-                .Height: Length.Percent(100.0),
-                .HitTestSelf: false,
+            Container{
+                Key: "color-wheel-marker-layer",
+                Position: PositionType.Absolute,
+                Left: 0.0,
+                Top: 0.0,
+                Width: Length.Percent(100.0),
+                Height: Length.Percent(100.0),
+                HitTestSelf: false,
                 marker,
             },
         }
     }
 
-    private func BuildModeSelector() Blob -> Container(){
-        .Key: "color-modes",
-        .FlexDirection: FlexDirection.Row,
-        .Gap: 6.0,
-        .Accessibility: Accessibility{
+    private func BuildModeSelector() Blob -> Container{
+        Key: "color-modes",
+        FlexDirection: FlexDirection.Row,
+        Gap: 6.0,
+        Accessibility: Accessibility{
             Role: AccessibilityRole.Group,
             Name: resolved.AccessibilityName!!+ " color model",
         },
@@ -296,41 +296,41 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         BuildModeButton(ColorMode.Oklch, "OKLCH"),
     }
 
-    private func BuildModeButton(mode ColorMode, label string) Blob -> Button(){
-        .Key: "color-mode-" + label,
-        .Height: 34.0,
-        .FlexGrow: 1.0,
-        .PaddingLeft: 8.0,
-        .PaddingRight: 8.0,
-        .BorderRadius: 7.0,
-        .BackgroundColor: if currentMode == mode {
+    private func BuildModeButton(mode ColorMode, label string) Blob -> Button{
+        Key: "color-mode-" + label,
+        Height: 34.0,
+        FlexGrow: 1.0,
+        PaddingLeft: 8.0,
+        PaddingRight: 8.0,
+        BorderRadius: 7.0,
+        BackgroundColor: if currentMode == mode {
             "#3f3f46"
         } else {
             "#27272a"
         },
-        .Hover: Style{BackgroundColor: "#52525b"},
-        .Cursor: if resolved.Disabled {
+        Hover: Style{BackgroundColor: "#52525b"},
+        Cursor: if resolved.Disabled {
             Cursor.Default
         } else {
             Cursor.Pointer
         },
-        .Disabled: resolved.Disabled,
-        .Focusable: !resolved.Disabled,
-        .Accessibility: Accessibility{
+        Disabled: resolved.Disabled,
+        Focusable: !resolved.Disabled,
+        Accessibility: Accessibility{
             Role: AccessibilityRole.Button,
             Name: "Use " + label + " color model",
             Selected: currentMode == mode,
         },
-        .OnClick: () -> SelectMode(mode),
+        OnClick: () -> SelectMode(mode),
         Text{Key: "color-mode-label-" + label, Content: label, FontSize: 12.0, Color: "#fafafa"},
     }
 
-    private func BuildPreview() Blob -> Container(){
-        .Key: "color-preview",
-        .Height: 48.0,
-        .FlexDirection: FlexDirection.Row,
-        .AlignItems: AlignItems.Center,
-        .Gap: 12.0,
+    private func BuildPreview() Blob -> Container{
+        Key: "color-preview",
+        Height: 48.0,
+        FlexDirection: FlexDirection.Row,
+        AlignItems: AlignItems.Center,
+        Gap: 12.0,
         Container{
             Key: "color-preview-swatch",
             Width: 48.0,

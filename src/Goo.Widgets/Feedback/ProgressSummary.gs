@@ -110,10 +110,10 @@ public data struct ProgressSummary {
         if let createRoot = createRoot {
             return createRoot(resolved, header, progress)
         }
-        return Container(){
-            .Width: resolved.Width!!,
-            .Gap: resolved.Gap!!,
-            .Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: resolved.AccessibilityName!!,},
+        return Container{
+            Width: resolved.Width!!,
+            Gap: resolved.Gap!!,
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: resolved.AccessibilityName!!,},
             header,
             progress,
         }

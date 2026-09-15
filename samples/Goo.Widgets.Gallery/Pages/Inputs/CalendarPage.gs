@@ -20,10 +20,10 @@ internal class CalendarExample : Cell {
     private func Weekend(value DateOnly) bool -> value.DayOfWeek == DayOfWeek.Saturday ||
         value.DayOfWeek == DayOfWeek.Sunday
 
-    public override func Build() Blob -> Container(){
-        .Width: 720.0,
-        .Gap: 18.0,
-        .Color: "#fafafa",
+    public override func Build() Blob -> Container{
+        Width: 720.0,
+        Gap: 18.0,
+        Color: "#fafafa",
         Text{Key: "title", Content: "Dates, with your locale and constraints", FontSize: 22.0, FontWeight: 700},
         Text{
             Key: "hint",
@@ -31,13 +31,13 @@ internal class CalendarExample : Cell {
             Color: "#a1a1aa",
             FontSize: 14.0
         },
-        Container(){
-            .Key: "calendars",
-            .FlexDirection: FlexDirection.Row,
-            .Gap: 40.0,
-            Container(){
-                .Key: "english",
-                .Gap: 10.0,
+        Container{
+            Key: "calendars",
+            FlexDirection: FlexDirection.Row,
+            Gap: 40.0,
+            Container{
+                Key: "english",
+                Gap: 10.0,
                 Text{Key: "label", Content: "Sunday first · en-US", Color: "#a1a1aa", FontSize: 13.0},
                 Cell.Mount[CalendarInput, Calendar](
                     "calendar",
@@ -49,9 +49,9 @@ internal class CalendarExample : Cell {
                     }
                 )
             },
-            Container(){
-                .Key: "french",
-                .Gap: 10.0,
+            Container{
+                Key: "french",
+                Gap: 10.0,
                 Text{Key: "label", Content: "Monday first · fr-FR · weekdays only", Color: "#a1a1aa", FontSize: 13.0},
                 Cell.Mount[CalendarInput, Calendar](
                     "calendar",

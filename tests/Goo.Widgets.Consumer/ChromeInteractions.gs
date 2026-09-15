@@ -16,10 +16,10 @@ func ChromeContractControl(
     command WindowChromeAction,
     content Blob,
     action Action?
-) Button -> Button(){
-    .Focusable: true,
-    .Disabled: false,
-    .Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "wrong"},
+) Button -> Button{
+    Focusable: true,
+    Disabled: false,
+    Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "wrong"},
     Text{Content: "wrong"},
 }
 
@@ -100,15 +100,15 @@ internal class ChromeHost : Cell {
     }
 
     private func Control(input WindowChrome, command WindowChromeAction, content Blob, action Action?) Button {
-        let button = Button(){
-            .Handle: ElementHandle(),
-            .Width: input.ControlWidth,
-            .Height: input.Height,
-            .Padding: 0.0,
-            .BackgroundColor: Color.Transparent,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .OnClick: () -> {
+        let button = Button{
+            Handle: ElementHandle(),
+            Width: input.ControlWidth,
+            Height: input.Height,
+            Padding: 0.0,
+            BackgroundColor: Color.Transparent,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            OnClick: () -> {
                 BadClicks++
             },
             Text{Content: "wrong"}
@@ -119,12 +119,12 @@ internal class ChromeHost : Cell {
 
     private func Root(input WindowChrome, children[]Blob) Container {
         children[1].Handle = Blank
-        return Container(){
-            .Height: input.Height,
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .BackgroundColor: "#18181b",
-            .Focusable: true,
+        return Container{
+            Height: input.Height,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            BackgroundColor: "#18181b",
+            Focusable: true,
             Text{Content: "wrong"}
         }
     }
@@ -154,18 +154,18 @@ internal class ChromeHost : Cell {
                 CreateRoot: Root,
                 CreateControl: Control,
                 CreateMenu: Menu,
-                LeadingContent: Container(){
-                    .FlexDirection: FlexDirection.Row,
-                    .AlignItems: AlignItems.Center,
-                    .Gap: 20.0,
-                    .PaddingLeft: 12.0,
+                LeadingContent: Container{
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    Gap: 20.0,
+                    PaddingLeft: 12.0,
                     Text{Content: "Window chrome", FontSize: 14.0},
-                    Button(){
-                        .Handle: Embedded,
-                        .Width: 120.0,
-                        .Height: 28.0,
-                        .BackgroundColor: "#373044",
-                        .OnClick: () -> {
+                    Button{
+                        Handle: Embedded,
+                        Width: 120.0,
+                        Height: 28.0,
+                        BackgroundColor: "#373044",
+                        OnClick: () -> {
                             EmbeddedClicks++
                             Rebuild()
                         },
@@ -189,23 +189,23 @@ internal class ChromeHost : Cell {
             root.Children.Add(chrome)
         }
         root.Children.Add(
-            Container(){
-                .Key: "body",
-                .FlexGrow: 1.0,
-                .AlignItems: AlignItems.Center,
-                .JustifyContent: JustifyContent.Center,
-                .Gap: 18.0,
+            Container{
+                Key: "body",
+                FlexGrow: 1.0,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                Gap: 18.0,
                 Text{Content: Host?.State.ToString() ?? "Normal", FontSize: 36.0, FontWeight: 700.0},
                 Text{
                     Content: LastCommand + " · embedded: " + EmbeddedClicks.ToString(),
                     FontSize: 18.0,
                     Color: "#a5b4fc"
                 },
-                Button(){
-                    .Handle: BodyButton,
-                    .Width: 160.0,
-                    .Height: 36.0,
-                    .BackgroundColor: "#27272a",
+                Button{
+                    Handle: BodyButton,
+                    Width: 160.0,
+                    Height: 36.0,
+                    BackgroundColor: "#27272a",
                     Text{Content: "Body focus target"}
                 }
             }

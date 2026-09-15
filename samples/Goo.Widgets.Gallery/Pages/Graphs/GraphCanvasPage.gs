@@ -17,10 +17,10 @@ internal open class GraphCanvasExample : Cell {
     private var selected[]string = []string{}
     private var viewport GraphViewport = GraphViewport{PanX: 20.0, PanY: 20.0, Zoom: 0.9}
 
-    public override func Build() Blob -> Container(){
-        .Width: 740.0,
-        .Gap: 10.0,
-        .FlexDirection: FlexDirection.Column,
+    public override func Build() Blob -> Container{
+        Width: 740.0,
+        Gap: 10.0,
+        FlexDirection: FlexDirection.Column,
         Text{
             Key: "graph-instructions",
             Content: "Middle-drag to pan, wheel to zoom, drag nodes, or drag the background to select.",
@@ -58,9 +58,9 @@ internal open class GraphCanvasExample : Cell {
         },
     }
 
-    private func NodeContent(node GraphNode) Blob -> Container(){
-        .AlignItems: AlignItems.Center,
-        .Gap: 3.0,
+    private func NodeContent(node GraphNode) Blob -> Container{
+        AlignItems: AlignItems.Center,
+        Gap: 3.0,
         Text{Content: node.Label, FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
         Text{Content: node.Id, FontSize: 10.0, Color: "#d4d4d8"},
     }

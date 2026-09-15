@@ -117,21 +117,21 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         }
         let playback = ActionButton(resolved, playbackAction, resolved.OnPlayPause, !resolved.CanPlayPause!!)
         let next = ActionButton(resolved, MediaTransportAction.Next, resolved.OnNext, !resolved.CanNext!!)
-        let root = Container(){
-            .BasedOn: resolved.RootStyle,
-            .Width: resolved.Width!!,
-            .Padding: resolved.Padding!!,
-            .Gap: resolved.Gap!!,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            Container(){
-                .FlexDirection: FlexDirection.Row,
-                .AlignItems: AlignItems.Center,
-                .Gap: 12.0,
+        let root = Container{
+            BasedOn: resolved.RootStyle,
+            Width: resolved.Width!!,
+            Padding: resolved.Padding!!,
+            Gap: resolved.Gap!!,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Container{
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                Gap: 12.0,
                 TimeText(resolved.Position, resolved.TextColor!!),
-                Container(){
-                    .Width: 0.0,
-                    .MinWidth: 80.0,
-                    .FlexGrow: 1.0,
+                Container{
+                    Width: 0.0,
+                    MinWidth: 80.0,
+                    FlexGrow: 1.0,
                     Cell.Mount[SliderInput, Slider](
                         "media-position",
                         SliderInput{
@@ -156,31 +156,31 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 },
                 TimeText(resolved.Duration, resolved.TextColor!!),
             },
-            Container(){
-                .FlexDirection: FlexDirection.Row,
-                .AlignItems: AlignItems.Center,
+            Container{
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
                 Container{FlexGrow: 1.0},
-                Container(){
-                    .FlexDirection: FlexDirection.Row,
-                    .AlignItems: AlignItems.Center,
-                    .Gap: resolved.ActionGap!!,
+                Container{
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    Gap: resolved.ActionGap!!,
                     previous,
                     playback,
                     next,
                 },
-                Container(){
-                    .Width: 0.0,
-                    .MinWidth: 120.0,
-                    .FlexGrow: 1.0,
-                    .FlexDirection: FlexDirection.Row,
-                    .AlignItems: AlignItems.Center,
-                    .JustifyContent: JustifyContent.FlexEnd,
-                    .Gap: 8.0,
+                Container{
+                    Width: 0.0,
+                    MinWidth: 120.0,
+                    FlexGrow: 1.0,
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    JustifyContent: JustifyContent.FlexEnd,
+                    Gap: 8.0,
                     Text{Content: "Volume", FontSize: 12.0, Color: resolved.TextColor!!},
-                    Container(){
-                        .Width: 120.0,
-                        .PaddingLeft: 10.0,
-                        .PaddingRight: 10.0,
+                    Container{
+                        Width: 120.0,
+                        PaddingLeft: 10.0,
+                        PaddingRight: 10.0,
                         Cell.Mount[SliderInput, Slider](
                             "media-volume",
                             SliderInput{
@@ -295,45 +295,45 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         if let createAction = input.CreateAction {
             return createAction(input, slot, content, action, disabled)
         }
-        return Button(){
-            .BasedOn: if primary {
+        return Button{
+            BasedOn: if primary {
                 input.PrimaryActionStyle
             } else {
                 input.ActionStyle
             },
-            .Width: if primary {
+            Width: if primary {
                 input.PrimaryActionSize
             } else {
                 input.ActionSize
             },
-            .Height: if primary {
+            Height: if primary {
                 input.PrimaryActionSize
             } else {
                 input.ActionSize
             },
-            .Padding: 0.0,
-            .BorderRadius: if primary {
+            Padding: 0.0,
+            BorderRadius: if primary {
                 input.PrimaryActionSize / 2.0
             } else {
                 input.ActionSize / 2.0
             },
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .BackgroundColor: if primary {
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            BackgroundColor: if primary {
                 input.PrimaryActionBackgroundColor!!
             } else {
                 input.ActionBackgroundColor!!
             },
-            .Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
-            .Cursor: Cursor.Pointer,
-            .Disabled: disabled,
-            .Opacity: if disabled {
+            Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
+            Cursor: Cursor.Pointer,
+            Disabled: disabled,
+            Opacity: if disabled {
                 0.4
             } else {
                 1.0
             },
-            .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: ActionName(slot)},
-            .OnClick: if disabled {
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: ActionName(slot)},
+            OnClick: if disabled {
                 nil
             } else {
                 action

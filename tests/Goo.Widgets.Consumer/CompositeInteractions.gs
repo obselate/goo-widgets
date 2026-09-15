@@ -49,8 +49,8 @@ func TabBarContracts() {
                     NavigationItem{Id: "one", Label: "One"},
                     NavigationItem{Id: "two", Label: "Two"}
                 },
-                CreateItem: (input TabBarInput, item NavigationItem, prepared Button) -> Button(){
-                    .BorderRadius: 17,
+                CreateItem: (input TabBarInput, item NavigationItem, prepared Button) -> Button{
+                    BorderRadius: 17,
                     Text{Content: item.Label!!}
                 },
             }
@@ -141,13 +141,13 @@ internal class CompositeHost : Cell {
     }
 
     public override func Build() Blob {
-        let root = Container(){
-            .Padding: 24,
-            .Gap: 18,
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .BackgroundColor: "#09090b",
-            .Color: "#fafafa",
+        let root = Container{
+            Padding: 24,
+            Gap: 18,
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            BackgroundColor: "#09090b",
+            Color: "#fafafa",
             Text{Key: "heading", Content: "Composite widgets", FontSize: 24},
             Cell.Mount[TabBarInput, TabBar](
                 "tabs",
@@ -181,18 +181,18 @@ internal class CompositeHost : Cell {
                     MinimumSecond: 80,
                     CreateHandle: CaptureDivider,
                     CreateRoot: CaptureSplit,
-                    First: Container(){
-                        .Width: Length.Percent(100),
-                        .Height: Length.Percent(100),
-                        .Padding: 16,
-                        .BackgroundColor: "#152a36",
+                    First: Container{
+                        Width: Length.Percent(100),
+                        Height: Length.Percent(100),
+                        Padding: 16,
+                        BackgroundColor: "#152a36",
                         Text{Content: "First pane"}
                     },
-                    Second: Container(){
-                        .Width: Length.Percent(100),
-                        .Height: Length.Percent(100),
-                        .Padding: 16,
-                        .BackgroundColor: "#202236",
+                    Second: Container{
+                        Width: Length.Percent(100),
+                        Height: Length.Percent(100),
+                        Padding: 16,
+                        BackgroundColor: "#202236",
                         Text{Content: "Second pane"}
                     },
                 }

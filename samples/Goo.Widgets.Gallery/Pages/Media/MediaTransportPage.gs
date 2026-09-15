@@ -11,9 +11,9 @@ internal open class MediaTransportExample : Cell {
     private var item int32 = 1
     private var status string = "Ready"
 
-    public override func Build() Blob -> Container(){
-        .Width: 720.0,
-        .Gap: 12.0,
+    public override func Build() Blob -> Container{
+        Width: 720.0,
+        Gap: 12.0,
         Text{
             Key: "media-title",
             Content: "Example item " + item.ToString(),

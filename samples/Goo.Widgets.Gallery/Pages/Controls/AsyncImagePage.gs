@@ -19,12 +19,12 @@ class AsyncImagePage : GalleryPage {
             }
         }
         let customPlaceholder Func[AsyncImage, Blob] = (resolved) -> {
-            return Container(){
-                .Width: Length.Percent(100.0),
-                .Height: Length.Percent(100.0),
-                .AlignItems: AlignItems.Center,
-                .JustifyContent: JustifyContent.Center,
-                .BackgroundColor: Color.Parse("#27272a"),
+            return Container{
+                Width: Length.Percent(100.0),
+                Height: Length.Percent(100.0),
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                BackgroundColor: Color.Parse("#27272a"),
                 Text{
                     Content: "Custom",
                     Color: resolved.PlaceholderTextColor!!,
@@ -45,41 +45,41 @@ class AsyncImagePage : GalleryPage {
             CreatePlaceholder = customPlaceholder,
         }
 
-        return Container(){
-            .Width: Length.Percent(100.0),
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Gap: 12.0,
-            Container(){
-                .Width: 150.0,
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 6.0,
+        return Container{
+            Width: Length.Percent(100.0),
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Gap: 12.0,
+            Container{
+                Width: 150.0,
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 6.0,
                 readyImage.Build(),
                 Text{Content: "Ready", FontSize: 12.0, Color: "#a1a1aa"},
             },
-            Container(){
-                .Width: 150.0,
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 6.0,
+            Container{
+                Width: 150.0,
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 6.0,
                 loadingImage.Build(),
                 Text{Content: "Loading", FontSize: 12.0, Color: "#a1a1aa"},
             },
-            Container(){
-                .Width: 150.0,
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 6.0,
+            Container{
+                Width: 150.0,
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 6.0,
                 failedImage.Build(),
                 Text{Content: "Failed", FontSize: 12.0, Color: "#fca5a5"},
             },
-            Container(){
-                .Width: 150.0,
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 6.0,
+            Container{
+                Width: 150.0,
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 6.0,
                 customImage.Build(),
                 Text{Content: "Custom", FontSize: 12.0, Color: "#a1a1aa"},
             },

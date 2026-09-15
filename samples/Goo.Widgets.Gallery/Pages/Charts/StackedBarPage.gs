@@ -7,9 +7,9 @@ import Goo.Widgets.Gallery
 internal class StackedBarPage : GalleryPage {
     override func Title() string -> "Stacked bar"
 
-    override func Build() Blob -> Container(){
-        .Width: 580,
-        .Gap: 30,
+    override func Build() Blob -> Container{
+        Width: 580,
+        Gap: 30,
         Text{Content: "Fleet availability", FontSize: 22, Color: "#fafafa"},
         StackedBar{
             Height: 28,

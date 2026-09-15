@@ -54,12 +54,12 @@ internal class ErgonomicHost : Cell {
         checkbox.Handle = ElementHandle{}
         checkbox.Children[1].Handle = ElementHandle{}
         CheckboxRoot = checkbox
-        return Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 24.0,
-            .Gap: 16.0,
-            .BackgroundColor: "#18181b",
+        return Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 24.0,
+            Gap: 16.0,
+            BackgroundColor: "#18181b",
             checkbox,
             Cell.Mount[SliderInput, Slider](
                 "labeled-slider",

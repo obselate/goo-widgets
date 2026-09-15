@@ -235,11 +235,11 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                     time
                 )
             }
-            var blob = Container(){
-                .Width: 1,
-                .Height: canvasHeight,
-                .BackgroundColor: "#34343e",
-                .HitTestSelf: false,
+            var blob = Container{
+                Width: 1,
+                Height: canvasHeight,
+                BackgroundColor: "#34343e",
+                HitTestSelf: false,
                 Text{
                     Content: tick.Label!!,
                     Position: PositionType.Absolute,
@@ -262,18 +262,18 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         for placement in placements {
             let item = placement.Event
             let selected = item.Id == input.SelectedId
-            var blob = Button(){
-                .PaddingLeft: 8,
-                .PaddingRight: 8,
-                .BackgroundColor: selected ? Color.Parse("#4f46a5"): Color.Parse("#313b50"),
-                .BorderRadius: 4,
-                .BorderWidth: selected ? 2.0: 0.0,
-                .BorderColor: "#a5b4fc",
-                .Color: "#e4e4e7",
-                .Hover: Style{Opacity: .85},
-                .Focus: Style{BorderWidth: 2, BorderColor: "#e0e7ff"},
-                .Overflow: Overflow.Hidden,
-                .JustifyContent: JustifyContent.Center,
+            var blob = Button{
+                PaddingLeft: 8,
+                PaddingRight: 8,
+                BackgroundColor: selected ? Color.Parse("#4f46a5"): Color.Parse("#313b50"),
+                BorderRadius: 4,
+                BorderWidth: selected ? 2.0: 0.0,
+                BorderColor: "#a5b4fc",
+                Color: "#e4e4e7",
+                Hover: Style{Opacity: .85},
+                Focus: Style{BorderWidth: 2, BorderColor: "#e0e7ff"},
+                Overflow: Overflow.Hidden,
+                JustifyContent: JustifyContent.Center,
                 Text{Content: item.Label!!, FontSize: 12, TextWrap: TextWrap.NoWrap}
             }
             if placement.Width < 40.0 {
@@ -300,13 +300,13 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             for item in hidden {
                 right = Math.Min(canvasWidth, Math.Max(right, X(item.End)))
             }
-            var blob = Button(){
-                .PaddingLeft: 6,
-                .PaddingRight: 6,
-                .BackgroundColor: "#292936",
-                .Color: "#c4b5fd",
-                .BorderRadius: 4,
-                .Overflow: Overflow.Hidden,
+            var blob = Button{
+                PaddingLeft: 6,
+                PaddingRight: 6,
+                BackgroundColor: "#292936",
+                Color: "#c4b5fd",
+                BorderRadius: 4,
+                Overflow: Overflow.Hidden,
                 Text{Content: "+" + hidden.Length.ToString() + " more", FontSize: 12, TextWrap: TextWrap.NoWrap}
             }
             if let create = input.CreateOverflow {
@@ -329,11 +329,11 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         }
         if let time = input.CurrentTime {
             if time >= input.Start && time < input.End {
-                var marker = Container(){
-                    .Width: 2,
-                    .Height: canvasHeight,
-                    .BackgroundColor: input.MarkerColor!!,
-                    .HitTestSelf: false,
+                var marker = Container{
+                    Width: 2,
+                    Height: canvasHeight,
+                    BackgroundColor: input.MarkerColor!!,
+                    HitTestSelf: false,
                     Text{
                         Content: input.MarkerLabel!!,
                         Position: PositionType.Absolute,

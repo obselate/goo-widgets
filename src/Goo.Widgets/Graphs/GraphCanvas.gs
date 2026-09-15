@@ -95,22 +95,22 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             lastExternalViewport = input.Viewport
             initialized = true
         }
-        let root = Container(){
-            .BasedOn: resolved.RootStyle,
-            .Key: "graph-canvas",
-            .Handle: handle,
-            .Position: PositionType.Relative,
-            .Width: resolved.Width,
-            .Height: resolved.Height,
-            .Overflow: Overflow.Hidden,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .Focusable: true,
-            .Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Graph canvas"},
-            .OnPointerDown: (e PointerEvent) -> BeginCanvasPointer(e),
-            .OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            .OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            .OnPointerCancel: (e PointerEvent) -> CancelPointer(e),
-            .OnWheel: (e WheelEvent) -> Zoom(e),
+        let root = Container{
+            BasedOn: resolved.RootStyle,
+            Key: "graph-canvas",
+            Handle: handle,
+            Position: PositionType.Relative,
+            Width: resolved.Width,
+            Height: resolved.Height,
+            Overflow: Overflow.Hidden,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Focusable: true,
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Graph canvas"},
+            OnPointerDown: (e PointerEvent) -> BeginCanvasPointer(e),
+            OnPointerMove: (e PointerEvent) -> MovePointer(e),
+            OnPointerUp: (e PointerEvent) -> EndPointer(e),
+            OnPointerCancel: (e PointerEvent) -> CancelPointer(e),
+            OnWheel: (e WheelEvent) -> Zoom(e),
             GridLayer(),
             EdgeLayer(),
         }

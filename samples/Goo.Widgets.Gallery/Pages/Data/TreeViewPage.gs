@@ -44,13 +44,13 @@ internal class TreeViewExample : Cell {
         workstations ? AccessibilityChecked.True: AccessibilityChecked.False
     ): AccessibilityChecked.Mixed
 
-    public override func Build() Blob -> Container(){
-        .Width: 660,
-        .FlexDirection: FlexDirection.Row,
-        .Gap: 24,
-        Container(){
-            .Width: 300,
-            .Gap: 12,
+    public override func Build() Blob -> Container{
+        Width: 660,
+        FlexDirection: FlexDirection.Row,
+        Gap: 24,
+        Container{
+            Width: 300,
+            Gap: 12,
             Text{Key: "label", Content: "Single selection", FontSize: 18, Color: "#fafafa"},
             Cell.Mount[TreeViewInput, TreeView](
                 "simple",
@@ -80,9 +80,9 @@ internal class TreeViewExample : Cell {
                 }
             )
         },
-        Container(){
-            .Width: 330,
-            .Gap: 12,
+        Container{
+            Width: 330,
+            Gap: 12,
             Text{Key: "label", Content: "Host-owned check policy", FontSize: 18, Color: "#fafafa"},
             Cell.Mount[TreeViewInput, TreeView](
                 "checks",

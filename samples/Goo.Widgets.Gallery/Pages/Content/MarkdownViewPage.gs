@@ -11,17 +11,17 @@ internal class MarkdownExample : Cell {
         Rebuild()
     }
 
-    public override func Build() Blob -> Container(){
-        .Width: 720.0,
-        .Height: 450.0,
-        .Gap: 12.0,
+    public override func Build() Blob -> Container{
+        Width: 720.0,
+        Height: 450.0,
+        Gap: 12.0,
         Text{Key: "status", Content: activated, FontSize: 12.0, Color: "#a5b4fc"},
-        Container(){
-            .Key: "scroll",
-            .FlexGrow: 1.0,
-            .FlexBasis: 0.0,
-            .MinHeight: 0.0,
-            .OverflowY: Overflow.Scroll,
+        Container{
+            Key: "scroll",
+            FlexGrow: 1.0,
+            FlexBasis: 0.0,
+            MinHeight: 0.0,
+            OverflowY: Overflow.Scroll,
             Cell.Mount[MarkdownViewInput, MarkdownView](
                 "markdown",
                 MarkdownViewInput{

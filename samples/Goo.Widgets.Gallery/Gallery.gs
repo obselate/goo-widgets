@@ -101,41 +101,41 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     }
 
     public override func Build() Blob ->
-    Container(){
-        .Width: Length.Percent(100),
-        .Height: Length.Percent(100),
-        .Padding: 32,
-        .Gap: 24,
-        .BackgroundColor: "#09090b",
-        .FlexDirection: FlexDirection.Column,
-        Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.SpaceBetween,
-            Container(){
-                .Gap: 6,
+    Container{
+        Width: Length.Percent(100),
+        Height: Length.Percent(100),
+        Padding: 32,
+        Gap: 24,
+        BackgroundColor: "#09090b",
+        FlexDirection: FlexDirection.Column,
+        Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.SpaceBetween,
+            Container{
+                Gap: 6,
                 Text{Content: "Goo Widgets Gallery", FontSize: 26, FontWeight: 700, Color: "#fafafa",},
                 Text{Content: Registry.CurrentCategory(currentIndex), FontSize: 13, Color: "#a1a1aa",},
             },
             Text{Content: Registry.CurrentPage(currentIndex).Title(), FontSize: 16, Color: "#d4d4d8",},
         },
-        Container(){
-            .FlexGrow: 1,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Padding: 32,
-            .BorderRadius: 14,
-            .BorderWidth: 1,
-            .BorderColor: "#27272a",
-            .BackgroundColor: "#18181b",
-            .TransitionMs: 150.0,
-            .TransitionEasing: Easing.EaseOut,
+        Container{
+            FlexGrow: 1,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Padding: 32,
+            BorderRadius: 14,
+            BorderWidth: 1,
+            BorderColor: "#27272a",
+            BackgroundColor: "#18181b",
+            TransitionMs: 150.0,
+            TransitionEasing: Easing.EaseOut,
             Registry.CurrentPage(currentIndex).Build(),
         },
-        Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.SpaceBetween,
+        Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.SpaceBetween,
             ActionButton{
                 Label: "Back",
                 BackgroundColor: Color.Parse("#27272a"),

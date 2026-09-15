@@ -32,36 +32,36 @@ class AvatarPage : GalleryPage {
             BorderRadius = 10.0,
         }
 
-        return Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Gap: 20,
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 8,
+        return Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Gap: 20,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 8,
                 defaultAvatar.Build(),
                 Text{Content: "Default", FontSize: 12, Color: "#a1a1aa"},
             },
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 8,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 8,
                 successAvatar.Build(),
                 Text{Content: "Success", FontSize: 12, Color: "#a1a1aa"},
             },
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 8,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 8,
                 warningAvatar.Build(),
                 Text{Content: "Warning", FontSize: 12, Color: "#a1a1aa"},
             },
-            Container(){
-                .FlexDirection: FlexDirection.Column,
-                .AlignItems: AlignItems.Center,
-                .Gap: 8,
+            Container{
+                FlexDirection: FlexDirection.Column,
+                AlignItems: AlignItems.Center,
+                Gap: 8,
                 squareAvatar.Build(),
                 Text{Content: "Square", FontSize: 12, Color: "#a1a1aa"},
             },

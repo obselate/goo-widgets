@@ -8,8 +8,8 @@ class DrawerPage : GalleryPage {
     public override func Title() string -> "Drawer"
 
     public override func Build() Blob {
-        let leftNavContent = Container(){
-            .Gap: 6.0,
+        let leftNavContent = Container{
+            Gap: 6.0,
             Text{Content: "Navigation", FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
             Text{Content: "Dashboard", FontSize: 11.0, Color: "#a1a1aa"},
             Text{Content: "Analytics", FontSize: 11.0, Color: "#a1a1aa"},
@@ -21,8 +21,8 @@ class DrawerPage : GalleryPage {
             AccessibilityName: "Open left navigation drawer",
         }
 
-        let rightDetailContent = Container(){
-            .Gap: 6.0,
+        let rightDetailContent = Container{
+            Gap: 6.0,
             Text{Content: "Inspector", FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
             Text{Content: "Node ∶ #root", FontSize: 11.0, Color: "#a1a1aa"},
             Text{Content: "Status ∶ Mounted", FontSize: 11.0, Color: "#4ade80"},
@@ -37,8 +37,8 @@ class DrawerPage : GalleryPage {
 
         let closedDrawer = Drawer{Open: false, Width: 150.0, AccessibilityName: "Closed drawer off-canvas",}
 
-        let customContent = Container(){
-            .Gap: 6.0,
+        let customContent = Container{
+            Gap: 6.0,
             Text{Content: "Custom Drawer", FontSize: 12.0, FontWeight: 800, Color: "#bbf7d0"},
             Text{Content: "Emerald theme", FontSize: 10.0, Color: "#4ade80"},
         }
@@ -62,91 +62,91 @@ class DrawerPage : GalleryPage {
             AccessibilityName: "Custom styled drawer",
         }
 
-        let viewport1 = Container(){
-            .Position: PositionType.Relative,
-            .Overflow: Overflow.Hidden,
-            .Width: 280.0,
-            .Height: 135.0,
-            .BorderRadius: 8.0,
-            .BorderWidth: 1.0,
-            .BorderColor: Color.Parse("#3f3f46"),
-            .BackgroundColor: Color.Parse("#09090b"),
+        let viewport1 = Container{
+            Position: PositionType.Relative,
+            Overflow: Overflow.Hidden,
+            Width: 280.0,
+            Height: 135.0,
+            BorderRadius: 8.0,
+            BorderWidth: 1.0,
+            BorderColor: Color.Parse("#3f3f46"),
+            BackgroundColor: Color.Parse("#09090b"),
             openLeftDrawer.Build(),
         }
 
-        let viewport2 = Container(){
-            .Position: PositionType.Relative,
-            .Overflow: Overflow.Hidden,
-            .Width: 280.0,
-            .Height: 135.0,
-            .BorderRadius: 8.0,
-            .BorderWidth: 1.0,
-            .BorderColor: Color.Parse("#3f3f46"),
-            .BackgroundColor: Color.Parse("#09090b"),
+        let viewport2 = Container{
+            Position: PositionType.Relative,
+            Overflow: Overflow.Hidden,
+            Width: 280.0,
+            Height: 135.0,
+            BorderRadius: 8.0,
+            BorderWidth: 1.0,
+            BorderColor: Color.Parse("#3f3f46"),
+            BackgroundColor: Color.Parse("#09090b"),
             openRightDrawer.Build(),
         }
 
-        let viewport3 = Container(){
-            .Position: PositionType.Relative,
-            .Overflow: Overflow.Hidden,
-            .Width: 280.0,
-            .Height: 135.0,
-            .BorderRadius: 8.0,
-            .BorderWidth: 1.0,
-            .BorderColor: Color.Parse("#3f3f46"),
-            .BackgroundColor: Color.Parse("#09090b"),
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
+        let viewport3 = Container{
+            Position: PositionType.Relative,
+            Overflow: Overflow.Hidden,
+            Width: 280.0,
+            Height: 135.0,
+            BorderRadius: 8.0,
+            BorderWidth: 1.0,
+            BorderColor: Color.Parse("#3f3f46"),
+            BackgroundColor: Color.Parse("#09090b"),
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
             Text{Content: "Canvas view (drawer slid off-canvas)", FontSize: 11.0, Color: "#a1a1aa"},
             closedDrawer.Build(),
         }
 
-        let viewport4 = Container(){
-            .Position: PositionType.Relative,
-            .Overflow: Overflow.Hidden,
-            .Width: 280.0,
-            .Height: 135.0,
-            .BorderRadius: 8.0,
-            .BorderWidth: 1.0,
-            .BorderColor: Color.Parse("#3f3f46"),
-            .BackgroundColor: Color.Parse("#09090b"),
+        let viewport4 = Container{
+            Position: PositionType.Relative,
+            Overflow: Overflow.Hidden,
+            Width: 280.0,
+            Height: 135.0,
+            BorderRadius: 8.0,
+            BorderWidth: 1.0,
+            BorderColor: Color.Parse("#3f3f46"),
+            BackgroundColor: Color.Parse("#09090b"),
             customDrawer.Build(),
         }
 
-        return Container(){
-            .Width: 580.0,
-            .FlexDirection: FlexDirection.Column,
-            .Gap: 16.0,
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Row,
-                .JustifyContent: JustifyContent.SpaceBetween,
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 4.0,
+        return Container{
+            Width: 580.0,
+            FlexDirection: FlexDirection.Column,
+            Gap: 16.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Row,
+                JustifyContent: JustifyContent.SpaceBetween,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 4.0,
                     Text{Content: "OPEN LEFT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     viewport1,
                 },
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 4.0,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 4.0,
                     Text{Content: "OPEN RIGHT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     viewport2,
                 },
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Row,
-                .JustifyContent: JustifyContent.SpaceBetween,
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Row,
+                JustifyContent: JustifyContent.SpaceBetween,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 4.0,
                     Text{Content: "CLOSED OFF-CANVAS", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     viewport3,
                 },
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 4.0,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 4.0,
                     Text{Content: "CUSTOM STYLED RIGHT", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
                     viewport4,
                 },

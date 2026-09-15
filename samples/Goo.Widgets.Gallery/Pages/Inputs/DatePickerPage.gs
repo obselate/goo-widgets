@@ -75,12 +75,12 @@ internal class DatePickerExample : Cell {
         if isoDate != nil {
             iso.Value = isoDate!!
         }
-        return Container(){
-            .Handle: overlay,
-            .Width: 720.0,
-            .Height: 440.0,
-            .Gap: 14.0,
-            .Color: "#fafafa",
+        return Container{
+            Handle: overlay,
+            Width: 720.0,
+            Height: 440.0,
+            Gap: 14.0,
+            Color: "#fafafa",
             Text{Key: "title", Content: "A date field and its calendar", FontSize: 22.0, FontWeight: 700},
             Text{
                 Key: "hint",
@@ -88,19 +88,19 @@ internal class DatePickerExample : Cell {
                 Color: "#a1a1aa",
                 FontSize: 14.0
             },
-            Container(){
-                .Key: "fields",
-                .FlexDirection: FlexDirection.Row,
-                .Gap: 50.0,
-                Container(){
-                    .Key: "local",
-                    .Gap: 9.0,
+            Container{
+                Key: "fields",
+                FlexDirection: FlexDirection.Row,
+                Gap: 50.0,
+                Container{
+                    Key: "local",
+                    Gap: 9.0,
                     Text{Key: "label", Content: "Localized display · weekdays only", FontSize: 13.0, Color: "#a1a1aa"},
                     Cell.Mount[DatePickerInput, DatePicker]("date", local)
                 },
-                Container(){
-                    .Key: "iso",
-                    .Gap: 9.0,
+                Container{
+                    Key: "iso",
+                    Gap: 9.0,
                     Text{Key: "label", Content: "Custom formatter and parser", FontSize: 13.0, Color: "#a1a1aa"},
                     Cell.Mount[DatePickerInput, DatePicker]("date", iso),
                     Text{

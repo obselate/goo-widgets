@@ -126,13 +126,13 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             active = InMonth(month, candidate)
         }
         let title = month.ToString("MMMM yyyy", culture)
-        let heading = Container(){
-            .Key: "heading",
-            .Height: 32.0,
-            .FlexShrink: 0.0,
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .Gap: 8.0,
+        let heading = Container{
+            Key: "heading",
+            Height: 32.0,
+            FlexShrink: 0.0,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: 8.0,
             Navigation(-1),
             Text{
                 Key: "month",

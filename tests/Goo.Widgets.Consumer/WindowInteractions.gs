@@ -37,8 +37,8 @@ internal class GraphHost : Cell {
     internal var Card Container?
     internal var Moves int32
 
-    public override func Build() Blob -> Container(){
-        .Padding: 32,
+    public override func Build() Blob -> Container{
+        Padding: 32,
         Cell.Mount[GraphCanvasInput, GraphCanvas](
             "graph",
             GraphCanvasInput{
@@ -100,13 +100,13 @@ internal class InteractiveHost : Cell {
                 }
             )
         }
-        let root = Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 32,
-            .Gap: 20,
-            .BackgroundColor: "#18181b",
-            .Color: "#fafafa",
+        let root = Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 32,
+            Gap: 20,
+            BackgroundColor: "#18181b",
+            Color: "#fafafa",
             Text{Key: "heading", Content: "Packaged widget input checks", FontSize: 24},
             Cell.Mount[SliderInput, Slider](
                 "range",
@@ -140,7 +140,7 @@ internal class InteractiveHost : Cell {
                             Rebuild()
                         },
                         CreateRoot: (input ColorPickerInput, wheel Blob, tone Blob) -> {
-                            let container = Container(){.Gap: 12, .Width: input.WheelSize, wheel, tone}
+                            let container = Container{Gap: 12, Width: input.WheelSize, wheel, tone}
                             ColorRoot = container
                             return container
                         },

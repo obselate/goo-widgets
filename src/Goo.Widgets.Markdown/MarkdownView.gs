@@ -99,12 +99,12 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         } else if info.Kind == MarkdownBlockKind.Paragraph {
             content = Leaf(model, current.FontSize, weight, alignment)
         } else if info.Kind == MarkdownBlockKind.Code {
-            content = Container(){
-                .Padding: 12.0,
-                .BorderRadius: 5.0,
-                .MinWidth: 0.0,
-                .FlexShrink: 0.0,
-                .BackgroundColor: current.CodeBackground!!,
+            content = Container{
+                Padding: 12.0,
+                BorderRadius: 5.0,
+                MinWidth: 0.0,
+                FlexShrink: 0.0,
+                BackgroundColor: current.CodeBackground!!,
                 Leaf(model, current.FontSize * .93, 400.0, TextAlign.Left)
             }
         } else if info.Kind == MarkdownBlockKind.Rule {
@@ -142,7 +142,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         if let create = current.CreateBlock {
             content = create(info, content)
         }
-        let root = Container(){.Key: info.Id, .MinWidth: 0.0, .FlexShrink: 0.0, content}
+        let root = Container{Key: info.Id, MinWidth: 0.0, FlexShrink: 0.0, content}
         if info.Kind == MarkdownBlockKind.Heading {
             let id = info.Id!!
             let parent = model.Path.Substring(0, model.Path.LastIndexOf('/'))
@@ -263,6 +263,6 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             rowContent.Accessibility = Accessibility{Role: AccessibilityRole.Row}
             table.Children.Add(rowContent)
         }
-        return Container(){.MinWidth: 0.0, .FlexShrink: 0.0, .OverflowX: Overflow.Scroll, table}
+        return Container{MinWidth: 0.0, FlexShrink: 0.0, OverflowX: Overflow.Scroll, table}
     }
 }

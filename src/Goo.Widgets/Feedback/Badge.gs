@@ -150,22 +150,22 @@ public data struct Badge {
                 Accessibility: semantics,
             }
         }
-        return Container(){
-            .Height: resolved.Height,
-            .MinWidth: resolved.MinWidth,
-            .PaddingLeft: resolved.PaddingHorizontal,
-            .PaddingRight: resolved.PaddingHorizontal,
-            .BorderRadius: resolved.BorderRadius,
-            .BorderWidth: resolved.BorderWidth,
-            .BorderColor: resolved.BorderColor!!,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .Opacity: resolved.Opacity!!,
-            .Transform: resolved.Transform!!,
-            .TransitionMs: resolved.TransitionMs!!,
-            .TransitionEasing: resolved.TransitionEasing!!,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Accessibility: semantics,
+        return Container{
+            Height: resolved.Height,
+            MinWidth: resolved.MinWidth,
+            PaddingLeft: resolved.PaddingHorizontal,
+            PaddingRight: resolved.PaddingHorizontal,
+            BorderRadius: resolved.BorderRadius,
+            BorderWidth: resolved.BorderWidth,
+            BorderColor: resolved.BorderColor!!,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Opacity: resolved.Opacity!!,
+            Transform: resolved.Transform!!,
+            TransitionMs: resolved.TransitionMs!!,
+            TransitionEasing: resolved.TransitionEasing!!,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Accessibility: semantics,
             text!!,
         }
     }

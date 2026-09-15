@@ -172,7 +172,7 @@ public open class Menu : Cell[MenuInput] {
             row.OnPointerEnter = (event PointerEvent) -> Hover(depth, id)
             row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
             row.Children.Clear()
-            row.Children.Add(Container(){.Key: "content", .FlexGrow: 1.0, .MinWidth: 0.0, content})
+            row.Children.Add(Container{Key: "content", FlexGrow: 1.0, MinWidth: 0.0, content})
             if hasChildren {
                 row.Children.Add(Text{Key: "arrow", Content: OpensLeft() ? "‹": "›", FontSize: 18, Color: "#a1a1aa"})
             }

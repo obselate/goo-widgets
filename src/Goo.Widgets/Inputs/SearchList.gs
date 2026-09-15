@@ -146,17 +146,17 @@ public data struct SearchList {
             Accessibility = Accessibility{Role: AccessibilityRole.List, Name: AccessibilityName ?? "Choose an item"},
         }
 
-        let root = Container(){
-            .Width: width,
-            .Height: height,
-            .MinHeight: 0,
-            .MinWidth: 0,
-            .FlexShrink: 0,
-            .BackgroundColor: background,
-            .BorderWidth: 1,
-            .BorderColor: selection,
-            .BorderRadius: 4,
-            .Overflow: Overflow.Hidden,
+        let root = Container{
+            Width: width,
+            Height: height,
+            MinHeight: 0,
+            MinWidth: 0,
+            FlexShrink: 0,
+            BackgroundColor: background,
+            BorderWidth: 1,
+            BorderColor: selection,
+            BorderRadius: 4,
+            Overflow: Overflow.Hidden,
             entry,
         }
         if filtered.Count == 0 {
@@ -191,37 +191,37 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
         let id = item.Id ?? ""
         let options = Options!!
         let onSelect = options.OnSelect
-        let row = Button(){
-            .Height: options.RowHeight,
-            .Width: Length.Percent(100),
-            .FlexShrink: 0,
-            .PaddingLeft: 10,
-            .PaddingRight: 10,
-            .Gap: 10,
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.FlexStart,
-            .Focusable: true,
-            .Cursor: Cursor.Pointer,
-            .Disabled: item.Disabled,
-            .Opacity: if item.Disabled {
+        let row = Button{
+            Height: options.RowHeight,
+            Width: Length.Percent(100),
+            FlexShrink: 0,
+            PaddingLeft: 10,
+            PaddingRight: 10,
+            Gap: 10,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.FlexStart,
+            Focusable: true,
+            Cursor: Cursor.Pointer,
+            Disabled: item.Disabled,
+            Opacity: if item.Disabled {
                 0.45
             } else {
                 1.0
             },
-            .BackgroundColor: if Selected {
+            BackgroundColor: if Selected {
                 options.Selection
             } else {
                 options.Background
             },
-            .Hover: Style{BackgroundColor: options.Selection},
-            .Focus: if options.ShowFocusHighlight {
+            Hover: Style{BackgroundColor: options.Selection},
+            Focus: if options.ShowFocusHighlight {
                 Style{OutlineWidth: 1, OutlineColor: options.Focus, OutlineOffset: -1}
             } else {
                 Style{}
             },
-            .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: item.Label ?? "", Selected: Selected},
-            .OnClick: () -> {
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: item.Label ?? "", Selected: Selected},
+            OnClick: () -> {
                 if !item.Disabled {
                     onSelect?.Invoke(id)
                 }

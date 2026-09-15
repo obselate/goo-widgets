@@ -7,14 +7,14 @@ import Goo.Widgets.Layout
 internal class GridExample : Cell {
     private var narrow bool
     private var clicks int32
-    public override func Build() Blob -> Container(){
-        .Gap: 18,
-        Button(){
-            .BackgroundColor: "#244753",
-            .Padding: 10,
-            .BorderRadius: 5,
-            .Color: "#bcf3ff",
-            .OnClick: () -> {
+    public override func Build() Blob -> Container{
+        Gap: 18,
+        Button{
+            BackgroundColor: "#244753",
+            Padding: 10,
+            BorderRadius: 5,
+            Color: "#bcf3ff",
+            OnClick: () -> {
                 narrow = !narrow
             },
             Text{Content: "Toggle available width"}
@@ -38,10 +38,10 @@ internal class GridExample : Cell {
                     Row: 1,
                     Column: 2,
                     RowSpan: 2,
-                    Content: Container(){
-                        .Padding: 8,
-                        .BackgroundColor: "#173f36",
-                        .BorderRadius: 5,
+                    Content: Container{
+                        Padding: 8,
+                        BackgroundColor: "#173f36",
+                        BorderRadius: 5,
                         Text{Content: "Shared", FontSize: 12, Color: "#8de6c9"}
                     }
                 },
@@ -61,12 +61,12 @@ internal class GridExample : Cell {
                     Row: 3,
                     Column: 1,
                     ColumnSpan: 2,
-                    Content: Button(){
-                        .Padding: 10,
-                        .BackgroundColor: "#37304f",
-                        .Color: "#dbcafa",
-                        .BorderRadius: 5,
-                        .OnClick: () -> {
+                    Content: Button{
+                        Padding: 10,
+                        BackgroundColor: "#37304f",
+                        Color: "#dbcafa",
+                        BorderRadius: 5,
+                        OnClick: () -> {
                             clicks++
                         },
                         Text{Content: "Retained clicks: " + clicks.ToString()}

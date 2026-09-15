@@ -84,17 +84,17 @@ public open class TabBar : Cell[TabBarInput] {
                 AccessibilityName = source.AccessibilityName ?? source.Label ?? id
             }
             let active = id == input.SelectedId
-            var button = Button(){
-                .Opacity: item.Disabled ? .45: 1.0,
-                .Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
-                .MinHeight: input.ItemHeight!!,
-                .PaddingLeft: 16,
-                .PaddingRight: 16,
-                .FlexShrink: 0,
-                .Color: active ? "#fafafa": "#a1a1aa",
-                .BackgroundColor: active ? "#3f3f46": "#18181b",
-                .Hover: Style{BackgroundColor: "#27272a"},
-                .Focus: Style{OutlineWidth: 1, OutlineColor: "#a1a1aa", OutlineOffset: -2},
+            var button = Button{
+                Opacity: item.Disabled ? .45: 1.0,
+                Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
+                MinHeight: input.ItemHeight!!,
+                PaddingLeft: 16,
+                PaddingRight: 16,
+                FlexShrink: 0,
+                Color: active ? "#fafafa": "#a1a1aa",
+                BackgroundColor: active ? "#3f3f46": "#18181b",
+                Hover: Style{BackgroundColor: "#27272a"},
+                Focus: Style{OutlineWidth: 1, OutlineColor: "#a1a1aa", OutlineOffset: -2},
                 item.Content ?? Text{Content: item.Label!!, TextWrap: TextWrap.NoWrap},
             }
             if let create = input.CreateItem {

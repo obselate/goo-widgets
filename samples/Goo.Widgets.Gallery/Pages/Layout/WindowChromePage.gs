@@ -17,11 +17,11 @@ internal open class WindowChromeExample : Cell {
             EnableContextMenu: true,
             OverlayHost: overlay,
             LeadingContent: Text{Content: "Example window", MarginLeft: 12.0, FontSize: 12.0, Color: "#fafafa"},
-            TrailingContent: Button(){
-                .Height: 24.0,
-                .MarginRight: 8.0,
-                .BackgroundColor: "#373044",
-                .OnClick: () -> {
+            TrailingContent: Button{
+                Height: 24.0,
+                MarginRight: 8.0,
+                BackgroundColor: "#373044",
+                OnClick: () -> {
                     clicks++
                     status = "Embedded control: " + clicks.ToString()
                     Rebuild()
@@ -48,21 +48,21 @@ internal open class WindowChromeExample : Cell {
             },
         }.Build()
         chrome.Key = "chrome"
-        return Container(){
-            .Handle: overlay,
-            .Width: 640.0,
-            .Height: 260.0,
-            .BorderWidth: 1.0,
-            .BorderColor: "#3f3f46",
-            .BackgroundColor: "#09090b",
+        return Container{
+            Handle: overlay,
+            Width: 640.0,
+            Height: 260.0,
+            BorderWidth: 1.0,
+            BorderColor: "#3f3f46",
+            BackgroundColor: "#09090b",
             chrome,
-            Container(){
-                .Key: "body",
-                .FlexGrow: 1.0,
-                .Padding: 24.0,
-                .Gap: 16.0,
-                .AlignItems: AlignItems.Center,
-                .JustifyContent: JustifyContent.Center,
+            Container{
+                Key: "body",
+                FlexGrow: 1.0,
+                Padding: 24.0,
+                Gap: 16.0,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
                 Text{Content: maximized ? "Maximized": "Normal", FontSize: 28.0, FontWeight: 700.0, Color: "#fafafa"},
                 Text{
                     Content: status,

@@ -6,9 +6,9 @@ import Goo.Widgets.Navigation
 
 internal class TabBarExample : Cell {
     private var selected string = "overview"
-    public override func Build() Blob -> Container(){
-        .Width: 600,
-        .Gap: 20,
+    public override func Build() Blob -> Container{
+        Width: 600,
+        Gap: 20,
         Text{Key: "hint", Content: "Arrow keys move and select. Disabled tabs are skipped.", Color: "#a1a1aa"},
         Cell.Mount[TabBarInput, TabBar](
             "tabs",
@@ -27,12 +27,12 @@ internal class TabBarExample : Cell {
                 },
             }
         ),
-        Container(){
-            .Key: "panel",
-            .Padding: 24,
-            .MinHeight: 180,
-            .BackgroundColor: "#18181b",
-            .BorderRadius: 8,
+        Container{
+            Key: "panel",
+            Padding: 24,
+            MinHeight: 180,
+            BackgroundColor: "#18181b",
+            BorderRadius: 8,
             Text{Content: "Selected: " + selected, FontSize: 22, Color: "#fafafa"},
             Text{Content: "The host owns this panel and its mounted state.", Color: "#a1a1aa"}
         }

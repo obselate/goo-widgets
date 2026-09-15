@@ -44,35 +44,35 @@ class SectionHeaderPage : GalleryPage {
             MetaFontWeight: 600,
         }
 
-        return Container(){
-            .Width: 620.0,
-            .FlexDirection: FlexDirection.Column,
-            .Gap: 24.0,
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 6.0,
+        return Container{
+            Width: 620.0,
+            FlexDirection: FlexDirection.Column,
+            Gap: 24.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 6.0,
                 Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 defaultHeader.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 6.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 6.0,
                 Text{Content: "ACCENT + META", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
                 accentMetaHeader.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 6.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 6.0,
                 Text{Content: "COLLAPSED STATE", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 collapsedHeader.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 6.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 6.0,
                 Text{Content: "CUSTOM STYLE", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
                 customHeader.Build(),
             },

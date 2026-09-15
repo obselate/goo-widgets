@@ -205,13 +205,13 @@ public open class TreeView : Cell[TreeViewInput] {
         content.OverflowX = Overflow.Hidden
         content.OverflowY = input.Virtualize!!? Overflow.Scroll: Overflow.Hidden
         // A full-height provider realizes every row without replacing its retained subtree when the mode changes.
-        let scroll = Container(){
-            .FlexGrow: 1,
-            .FlexBasis: 0,
-            .MinWidth: 0,
-            .MinHeight: 0,
-            .OverflowX: Overflow.Hidden,
-            .OverflowY: input.Virtualize!!? Overflow.Hidden: Overflow.Scroll,
+        let scroll = Container{
+            FlexGrow: 1,
+            FlexBasis: 0,
+            MinWidth: 0,
+            MinHeight: 0,
+            OverflowX: Overflow.Hidden,
+            OverflowY: input.Virtualize!!? Overflow.Hidden: Overflow.Scroll,
             content
         }
         var root = Container{
@@ -368,11 +368,11 @@ public open class TreeView : Cell[TreeViewInput] {
         let children = List[Blob]()
         let branch = (row.Node.Children ?? []TreeNode{}).Length > 0
         if branch {
-            var expander = Button(){
-                .Width: 20,
-                .Height: 22,
-                .BackgroundColor: Color.Transparent,
-                .Padding: 2,
+            var expander = Button{
+                Width: 20,
+                Height: 22,
+                BackgroundColor: Color.Transparent,
+                Padding: 2,
                 MaterialIcons.Create(row.Expanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
             }
             if let create = snapshot.CreateExpander {
@@ -421,7 +421,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if let create = snapshot.CreateContent {
             label = create(snapshot, row, label)
         }
-        children.Add(Container(){.Key: "content", .FlexGrow: 1, .MinWidth: 0, label})
+        children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, label})
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

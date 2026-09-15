@@ -9,13 +9,13 @@ internal open class IconButtonExample : Cell {
     private var active bool
     private var count int32
 
-    public override func Build() Blob -> Container(){
-        .Gap: 16.0,
-        .AlignItems: AlignItems.Center,
-        Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .Gap: 12.0,
+    public override func Build() Blob -> Container{
+        Gap: 16.0,
+        AlignItems: AlignItems.Center,
+        Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: 12.0,
             IconButton{
                 AccessibilityName: "Add item",
                 Icon: MaterialIcons.Create("add"),

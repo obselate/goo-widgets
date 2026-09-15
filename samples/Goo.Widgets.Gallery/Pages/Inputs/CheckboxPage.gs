@@ -8,10 +8,10 @@ internal open class CheckboxExample : Cell {
     private var state AccessibilityChecked = AccessibilityChecked.Mixed
 
     /// Builds the interactive checkbox example.
-    public override func Build() Blob -> Container(){
-        .Gap: 12.0,
-        .FlexDirection: FlexDirection.Row,
-        .AlignItems: AlignItems.Center,
+    public override func Build() Blob -> Container{
+        Gap: 12.0,
+        FlexDirection: FlexDirection.Row,
+        AlignItems: AlignItems.Center,
         Checkbox{
             Label: "Include inherited settings",
             State: state,

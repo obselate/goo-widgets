@@ -177,41 +177,38 @@ public data struct DismissibleContextBar {
                     FontWeight: resolved.DismissFontWeight,
                 }
             }
-            button = Button(){
-                .Height: resolved.DismissHeight,
-                .MinWidth: resolved.DismissMinWidth,
-                .PaddingLeft: resolved.DismissPaddingHorizontal,
-                .PaddingRight: resolved.DismissPaddingHorizontal,
-                .BorderWidth: resolved.DismissBorderWidth!!,
-                .BorderColor: resolved.DismissBorderColor!!,
-                .BorderRadius: resolved.DismissBorderRadius!!,
-                .BackgroundColor: resolved.DismissBackgroundColor!!,
-                .Color: resolved.DismissTextColor!!,
-                .FlexShrink: 0.0,
-                .Cursor: Cursor.Pointer,
-                .Focusable: true,
-                .Disabled: resolved.Disabled,
-                .OnClick: resolved.OnDismiss,
-                .TransitionMs: resolved.TransitionMs!!,
-                .TransitionEasing: resolved.TransitionEasing!!,
-                .Hover: Style{BackgroundColor: resolved.DismissHoverBackgroundColor!!},
-                .Active: Style{
+            button = Button{
+                Height: resolved.DismissHeight,
+                MinWidth: resolved.DismissMinWidth,
+                PaddingLeft: resolved.DismissPaddingHorizontal,
+                PaddingRight: resolved.DismissPaddingHorizontal,
+                BorderWidth: resolved.DismissBorderWidth!!,
+                BorderColor: resolved.DismissBorderColor!!,
+                BorderRadius: resolved.DismissBorderRadius!!,
+                BackgroundColor: resolved.DismissBackgroundColor!!,
+                Color: resolved.DismissTextColor!!,
+                FlexShrink: 0.0,
+                Cursor: Cursor.Pointer,
+                Focusable: true,
+                Disabled: resolved.Disabled,
+                OnClick: resolved.OnDismiss,
+                TransitionMs: resolved.TransitionMs!!,
+                TransitionEasing: resolved.TransitionEasing!!,
+                Hover: Style{BackgroundColor: resolved.DismissHoverBackgroundColor!!},
+                Active: Style{
                     BackgroundColor: resolved.DismissActiveBackgroundColor!!,
                     Transform: resolved.DismissActiveTransform!!
                 },
-                .Focus: if resolved.ShowFocusHighlight {
+                Focus: if resolved.ShowFocusHighlight {
                     Style{BorderColor: resolved.DismissFocusBorderColor!!}
                 } else {
                     Style{}
                 },
-                .DisabledStyle: Style{
+                DisabledStyle: Style{
                     BackgroundColor: resolved.DismissDisabledBackgroundColor!!,
                     Color: resolved.DismissDisabledTextColor!!
                 },
-                .Accessibility: Accessibility{
-                    Role: AccessibilityRole.Button,
-                    Name: resolved.DismissAccessibilityName!!
-                },
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.DismissAccessibilityName!!},
                 label,
             }
         }

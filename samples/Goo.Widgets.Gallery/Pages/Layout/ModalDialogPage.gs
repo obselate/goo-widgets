@@ -10,12 +10,12 @@ internal open class ModalDialogExample : Cell {
     private var result string = "No action"
 
     /// Builds the interactive modal-dialog example.
-    public override func Build() Blob -> Container(){
-        .Width: 720.0,
-        .Height: 360.0,
-        .Position: PositionType.Relative,
-        .Gap: 12.0,
-        .Color: "#fafafa",
+    public override func Build() Blob -> Container{
+        Width: 720.0,
+        Height: 360.0,
+        Position: PositionType.Relative,
+        Gap: 12.0,
+        Color: "#fafafa",
         ActionButton{
             Label: "Open dialog",
             OnClick: () -> {

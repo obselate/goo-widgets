@@ -203,23 +203,23 @@ internal class CalendarHost : Cell {
             picker.Format = Format
             picker.Parse = Parse
         }
-        let row = Container(){
-            .Key: "controls",
-            .FlexDirection: FlexDirection.Row,
-            .Gap: 50.0,
+        let row = Container{
+            Key: "controls",
+            FlexDirection: FlexDirection.Row,
+            Gap: 50.0,
             Cell.Mount[CalendarInput, Calendar]("calendar", calendar)
         }
         if Show {
             row.Children.Add(Cell.Mount[DatePickerInput, DatePicker]("picker", picker))
         }
-        return Container(){
-            .Handle: Overlay,
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 24.0,
-            .Gap: 18.0,
-            .BackgroundColor: "#111318",
-            .Color: "#fafafa",
+        return Container{
+            Handle: Overlay,
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 24.0,
+            Gap: 18.0,
+            BackgroundColor: "#111318",
+            Color: "#fafafa",
             Text{Key: "title", Content: "Calendar and DatePicker", FontSize: 25.0, FontWeight: 700},
             Text{
                 Key: "hint",
@@ -227,12 +227,12 @@ internal class CalendarHost : Cell {
                 Color: "#a1a1aa"
             },
             Goo
-                .Button(){
-                .Key: "before",
-                .Handle: Before,
-                .Width: 150.0,
-                .Height: 34.0,
-                .BackgroundColor: "#27272a",
+                .Button{
+                Key: "before",
+                Handle: Before,
+                Width: 150.0,
+                Height: 34.0,
+                BackgroundColor: "#27272a",
                 Text{Content: "Background action"}
             },
             row

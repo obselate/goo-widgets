@@ -7,16 +7,16 @@ import Goo.Widgets.Gallery
 internal class DonutChartPage : GalleryPage {
     override func Title() string -> "Donut chart"
 
-    override func Build() Blob -> Container(){
-        .Width: 620,
-        .Gap: 26,
+    override func Build() Blob -> Container{
+        Width: 620,
+        Gap: 26,
         DonutChart{
             Size: 180,
             Thickness: 28,
             ShowLegend: true,
             AccessibilityName: "Storage capacity",
-            Center: Container(){
-                .AlignItems: AlignItems.Center,
+            Center: Container{
+                AlignItems: AlignItems.Center,
                 Text{Content: "64%", FontSize: 26, Color: "#fafafa"},
                 Text{Content: "available", FontSize: 11, Color: "#a1a1aa"}
             },
@@ -26,10 +26,10 @@ internal class DonutChartPage : GalleryPage {
                 ChartSeries{Id: "reserved", Label: "Reserved", Value: 7.5, Color: "#fbbf24"}
             },
         }.Build(),
-        Container(){
-            .FlexDirection: FlexDirection.Row,
-            .JustifyContent: JustifyContent.Center,
-            .Gap: 50,
+        Container{
+            FlexDirection: FlexDirection.Row,
+            JustifyContent: JustifyContent.Center,
+            Gap: 50,
             DonutChart{
                 Size: 100,
                 Thickness: 14,

@@ -29,15 +29,15 @@ class BannerPage : GalleryPage {
             BorderColor = Color.Parse("#166534"),
         }
 
-        return Container(){
-            .Width: 620.0,
-            .FlexDirection: FlexDirection.Column,
-            .AlignItems: AlignItems.Center,
-            .Gap: 10,
-            Container(){.Width: Length.Percent(100), .FlexDirection: FlexDirection.Column, calmStatus.Build(),},
-            Container(){.Width: Length.Percent(100), .FlexDirection: FlexDirection.Column, loudStatus.Build(),},
-            Container(){.Width: Length.Percent(100), .FlexDirection: FlexDirection.Column, alertBanner.Build(),},
-            Container(){.Width: Length.Percent(100), .FlexDirection: FlexDirection.Column, customPalette.Build(),},
+        return Container{
+            Width: 620.0,
+            FlexDirection: FlexDirection.Column,
+            AlignItems: AlignItems.Center,
+            Gap: 10,
+            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, calmStatus.Build(),},
+            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, loudStatus.Build(),},
+            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, alertBanner.Build(),},
+            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, customPalette.Build(),},
         }
     }
 }

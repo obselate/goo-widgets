@@ -136,22 +136,22 @@ public data struct MediaCard {
         if let createRoot = createRoot {
             return createRoot(resolved, thumbnail, content)
         }
-        return Button(){
-            .BasedOn: resolved.RootStyle,
-            .Width: resolved.Width,
-            .Height: resolved.ThumbnailHeight + resolved.ContentHeight,
-            .Padding: 0.0,
-            .BorderRadius: resolved.BorderRadius!!,
-            .Cursor: Cursor.Pointer,
-            .Disabled: resolved.Disabled,
-            .AlignItems: AlignItems.Stretch,
-            .TextAlign: TextAlign.Left,
-            .OverflowX: Overflow.Hidden,
-            .OverflowY: Overflow.Hidden,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
-            .OnClick: resolved.OnClick,
+        return Button{
+            BasedOn: resolved.RootStyle,
+            Width: resolved.Width,
+            Height: resolved.ThumbnailHeight + resolved.ContentHeight,
+            Padding: 0.0,
+            BorderRadius: resolved.BorderRadius!!,
+            Cursor: Cursor.Pointer,
+            Disabled: resolved.Disabled,
+            AlignItems: AlignItems.Stretch,
+            TextAlign: TextAlign.Left,
+            OverflowX: Overflow.Hidden,
+            OverflowY: Overflow.Hidden,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
+            OnClick: resolved.OnClick,
             thumbnail,
             content,
         }

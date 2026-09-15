@@ -27,11 +27,11 @@ class ActionButtonPage : GalleryPage {
         }
         let disabledButton = baseButton with{Label = "Disabled", Disabled = true,}
 
-        return Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Gap: 16,
+        return Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Gap: 16,
             primaryButton.Build(),
             successButton.Build(),
             dangerButton.Build(),

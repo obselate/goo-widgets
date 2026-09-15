@@ -100,13 +100,13 @@ internal class MarkdownHost : Cell {
     private func Resolve(run MarkdownInline) Blob? {
         Require(run.Target == "memory:diagram", "Image target changed")
         Images++
-        return Container(){
-            .Width: 240.0,
-            .Height: 56.0,
-            .BorderRadius: 6.0,
-            .BackgroundColor: "#312e81",
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
+        return Container{
+            Width: 240.0,
+            Height: 56.0,
+            BorderRadius: 6.0,
+            BackgroundColor: "#312e81",
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
             Text{Content: "Host-resolved diagram", Color: "#c7d2fe", FontSize: 14.0}
         }
     }
@@ -126,31 +126,31 @@ internal class MarkdownHost : Cell {
     + "![Build diagram](memory:diagram)\n\n---\n\n## Details\n\nMore information.\n\n## Details\n\nAnother section."
 
     public override func Build() Blob {
-        let root = Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 20.0,
-            .Gap: 12.0,
-            .BackgroundColor: "#111318",
-            .Color: "#fafafa",
-            Button(){
-                .Key: "before",
-                .Handle: Before,
-                .Height: 32.0,
-                .Width: 190.0,
-                .BackgroundColor: "#27272a",
+        let root = Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 20.0,
+            Gap: 12.0,
+            BackgroundColor: "#111318",
+            Color: "#fafafa",
+            Button{
+                Key: "before",
+                Handle: Before,
+                Height: 32.0,
+                Width: 190.0,
+                BackgroundColor: "#27272a",
                 Text{Content: "Markdown verification"}
             }
         }
         if Show {
             root.Children.Add(
-                Container(){
-                    .Key: "scroll",
-                    .Handle: Viewport,
-                    .FlexGrow: 1.0,
-                    .FlexBasis: 0.0,
-                    .MinHeight: 0.0,
-                    .OverflowY: Overflow.Scroll,
+                Container{
+                    Key: "scroll",
+                    Handle: Viewport,
+                    FlexGrow: 1.0,
+                    FlexBasis: 0.0,
+                    MinHeight: 0.0,
+                    OverflowY: Overflow.Scroll,
                     Cell.Mount[MarkdownViewInput, MarkdownView](
                         "view",
                         MarkdownViewInput{

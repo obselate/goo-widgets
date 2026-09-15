@@ -70,11 +70,11 @@ internal class SearchListHost : Cell {
         return Row(item, row)
     }
 
-    public override func Build() Blob -> Container(){
-        .Padding: 24,
-        .Gap: 16,
-        .BackgroundColor: "#09090b",
-        .Color: "#fafafa",
+    public override func Build() Blob -> Container{
+        Padding: 24,
+        Gap: 16,
+        BackgroundColor: "#09090b",
+        Color: "#fafafa",
         Text{Content: "SearchList · controlled selection", FontSize: 22},
         SearchList{
             Items: items,

@@ -44,48 +44,48 @@ class TextFieldPage : GalleryPage {
             FocusRingWidth = 3.0,
         }
 
-        return Container(){
-            .Width: 620.0,
-            .FlexDirection: FlexDirection.Column,
-            .Gap: 18.0,
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Row,
-                .AlignItems: AlignItems.FlexStart,
-                .JustifyContent: JustifyContent.Center,
-                .Gap: 24.0,
-                Container(){
-                    .Width: 280.0,
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 5.0,
+        return Container{
+            Width: 620.0,
+            FlexDirection: FlexDirection.Column,
+            Gap: 18.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.FlexStart,
+                JustifyContent: JustifyContent.Center,
+                Gap: 24.0,
+                Container{
+                    Width: 280.0,
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 5.0,
                     Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     defaultField.Build(),
                 },
-                Container(){
-                    .Width: 280.0,
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 5.0,
+                Container{
+                    Width: 280.0,
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 5.0,
                     Text{Content: "INVALID", FontSize: 10.0, FontWeight: 700, Color: "#ef4444"},
                     invalidField.Build(),
                 },
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Row,
-                .AlignItems: AlignItems.FlexStart,
-                .JustifyContent: JustifyContent.Center,
-                .Gap: 24.0,
-                Container(){
-                    .Width: 280.0,
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 5.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.FlexStart,
+                JustifyContent: JustifyContent.Center,
+                Gap: 24.0,
+                Container{
+                    Width: 280.0,
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 5.0,
                     Text{Content: "DISABLED", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     disabledField.Build(),
                 },
-                Container(){
-                    .Width: 280.0,
-                    .FlexDirection: FlexDirection.Column,
-                    .Gap: 5.0,
+                Container{
+                    Width: 280.0,
+                    FlexDirection: FlexDirection.Column,
+                    Gap: 5.0,
                     Text{Content: "CUSTOM", FontSize: 10.0, FontWeight: 700, Color: "#d4d4d8"},
                     customField.Build(),
                 },

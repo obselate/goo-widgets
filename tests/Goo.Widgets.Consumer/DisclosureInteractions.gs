@@ -12,13 +12,13 @@ internal class DisclosureChild : Cell, IDisposable {
 
     public override func Build() Blob {
         let button = Goo
-            .Button(){
-            .Handle: Handle,
-            .Height: 40,
-            .OnClick: () -> {
+            .Button{
+            Handle: Handle,
+            Height: 40,
+            OnClick: () -> {
                 Count++
             },
-            .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained child"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained child"},
             Text{Content: "Retained counter: " + Count.ToString()},
         }
         Button = button
@@ -54,12 +54,12 @@ internal class DisclosureHost : Cell {
         return body
     }
 
-    func MakeRoot(props Disclosure, header Button, body Container) Container -> Container(){
-        .Width: props.Width!!,
-        .BorderRadius: 8,
-        .BorderWidth: 1,
-        .BorderColor: "#28765c",
-        .BackgroundColor: "#102822",
+    func MakeRoot(props Disclosure, header Button, body Container) Container -> Container{
+        Width: props.Width!!,
+        BorderRadius: 8,
+        BorderWidth: 1,
+        BorderColor: "#28765c",
+        BackgroundColor: "#102822",
         header,
         body,
     }
@@ -101,11 +101,11 @@ internal class DisclosureHost : Cell {
             CreateContent: MakeBody,
             CreateRoot: MakeRoot,
         }
-        return Container(){
-            .Padding: 24,
-            .BackgroundColor: "#09090b",
-            .Color: "#fafafa",
-            .Gap: 16,
+        return Container{
+            Padding: 24,
+            BackgroundColor: "#09090b",
+            Color: "#fafafa",
+            Gap: 16,
             Text{Content: "Disclosure · retained content", FontSize: 22},
             section.Build(),
             Text{Content: "Pointer, Enter, and Space share the controlled expanded state.", Color: "#a1a1aa"}

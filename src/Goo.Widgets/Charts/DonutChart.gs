@@ -92,17 +92,17 @@ public data struct DonutChart {
         if let center = Center {
             let side = Math.Max(0, (size / 2.0 - thickness) * Math.Sqrt(2.0))
             plot.Children.Add(
-                Container(){
-                    .Key: "center",
-                    .Position: PositionType.Absolute,
-                    .Left: (size - side) / 2.0,
-                    .Top: (size - side) / 2.0,
-                    .Width: side,
-                    .Height: side,
-                    .AlignItems: AlignItems.Center,
-                    .JustifyContent: JustifyContent.Center,
-                    .Overflow: Overflow.Hidden,
-                    .HitTestSelf: false,
+                Container{
+                    Key: "center",
+                    Position: PositionType.Absolute,
+                    Left: (size - side) / 2.0,
+                    Top: (size - side) / 2.0,
+                    Width: side,
+                    Height: side,
+                    AlignItems: AlignItems.Center,
+                    JustifyContent: JustifyContent.Center,
+                    Overflow: Overflow.Hidden,
+                    HitTestSelf: false,
                     center
                 }
             )

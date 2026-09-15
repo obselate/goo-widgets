@@ -115,19 +115,19 @@ public data struct Avatar {
         if let accessibilityName = resolved.AccessibilityName {
             semantics = Accessibility{Role: AccessibilityRole.Image, Name: accessibilityName}
         }
-        return Container(){
-            .Width: resolved.Size,
-            .Height: resolved.Size,
-            .BorderRadius: resolved.BorderRadius!!,
-            .BorderWidth: resolved.BorderWidth,
-            .BorderColor: resolved.BorderColor!!,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .Opacity: resolved.Opacity!!,
-            .Transform: resolved.Transform!!,
-            .Overflow: Overflow.Hidden,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Accessibility: semantics,
+        return Container{
+            Width: resolved.Size,
+            Height: resolved.Size,
+            BorderRadius: resolved.BorderRadius!!,
+            BorderWidth: resolved.BorderWidth,
+            BorderColor: resolved.BorderColor!!,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Opacity: resolved.Opacity!!,
+            Transform: resolved.Transform!!,
+            Overflow: Overflow.Hidden,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Accessibility: semantics,
             child,
         }
     }

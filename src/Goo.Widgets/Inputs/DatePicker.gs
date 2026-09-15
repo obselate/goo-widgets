@@ -164,15 +164,15 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
         button.Children.Clear()
         button.Children.Add(MaterialIcons.Create("calendar_month", 18.0, Color.Parse("#a5b4fc")))
-        let field = Container(){
-            .Key: "field",
-            .Handle: fieldHandle,
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .BackgroundColor: "#18181b",
-            .BorderColor: invalid ? Color.Parse("#f87171"): Color.Parse("#52525b"),
-            .BorderWidth: 1.0,
-            .BorderRadius: 6.0,
+        let field = Container{
+            Key: "field",
+            Handle: fieldHandle,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            BackgroundColor: "#18181b",
+            BorderColor: invalid ? Color.Parse("#f87171"): Color.Parse("#52525b"),
+            BorderWidth: 1.0,
+            BorderRadius: 6.0,
             entry,
             button
         }

@@ -27,8 +27,8 @@ internal class DisclosureExample : Cell {
                 expanded = value
             },
             ShowFocusHighlight: true,
-            Content: Container(){
-                .Gap: 12,
+            Content: Container{
+                Gap: 12,
                 Text{
                     Key: "hint",
                     Content: "Increment, collapse, and reopen. The count stays with this section.",
@@ -54,9 +54,9 @@ internal class DisclosureExample : Cell {
                 Color: "#d1fae5"
             },
         }
-        return Container(){
-            .Width: 580,
-            .Gap: 16,
+        return Container{
+            Width: 580,
+            Gap: 16,
             Text{Content: "Enter or Space toggles the focused header.", Color: "#a1a1aa"},
             section.Build(),
             custom.Build(),

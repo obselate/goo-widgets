@@ -30,39 +30,39 @@ class ChipPage : GalleryPage {
             BorderRadius: 8.0,
         }
 
-        return Container(){
-            .FlexDirection: FlexDirection.Column,
-            .AlignItems: AlignItems.Center,
-            .Gap: 24.0,
-            Container(){
-                .FlexDirection: FlexDirection.Row,
-                .AlignItems: AlignItems.Center,
-                .Gap: 24.0,
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .AlignItems: AlignItems.Center,
-                    .Gap: 8.0,
+        return Container{
+            FlexDirection: FlexDirection.Column,
+            AlignItems: AlignItems.Center,
+            Gap: 24.0,
+            Container{
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                Gap: 24.0,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8.0,
                     Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     defaultChip.Build(),
                 },
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .AlignItems: AlignItems.Center,
-                    .Gap: 8.0,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8.0,
                     Text{Content: "SELECTED + LEADING", FontSize: 10.0, FontWeight: 700, Color: "#d4d4d8"},
                     selectedLeadingChip.Build(),
                 },
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .AlignItems: AlignItems.Center,
-                    .Gap: 8.0,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8.0,
                     Text{Content: "DISABLED SELECTED", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                     disabledSelectedChip.Build(),
                 },
-                Container(){
-                    .FlexDirection: FlexDirection.Column,
-                    .AlignItems: AlignItems.Center,
-                    .Gap: 8.0,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8.0,
                     Text{Content: "CUSTOM STYLE", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
                     customStyledChip.Build(),
                 },

@@ -166,25 +166,20 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
 }
 
 class Spotlight(Page GalleryPage) : Cell {
-    public override func Build() Blob -> Container(){
-        .Width: Length.Percent(100.0),
-        .Height: Length.Percent(100.0),
-        .Padding: 24.0,
-        .Gap: 20.0,
-        .BackgroundColor: "#09090b",
-        .FlexDirection: FlexDirection.Column,
-        Container(){
-            .FlexDirection: FlexDirection.Column,
-            .Gap: 4.0,
+    public override func Build() Blob -> Container{
+        Width: Length.Percent(100.0),
+        Height: Length.Percent(100.0),
+        Padding: 24.0,
+        Gap: 20.0,
+        BackgroundColor: "#09090b",
+        FlexDirection: FlexDirection.Column,
+        Container{
+            FlexDirection: FlexDirection.Column,
+            Gap: 4.0,
             Text{Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: "#fafafa"},
             Text{Content: Page.Title(), FontSize: 14.0, Color: "#a1a1aa"},
         },
-        Container(){
-            .FlexGrow: 1.0,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            Page.Build(),
-        },
+        Container{FlexGrow: 1.0, AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center, Page.Build(),},
     }
 }
 

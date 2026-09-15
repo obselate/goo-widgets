@@ -184,7 +184,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         button.Children.Clear()
         button.Children.Add(
-            Container(){.Key: "value", .FlexGrow: 1.0, .MinWidth: 0.0, .Overflow: Overflow.Hidden, valueContent}
+            Container{Key: "value", FlexGrow: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
         button.Children.Add(Text{Key: "arrow", Content: "⌄", Color: "#a1a1aa"})
         var root = Container{Width: current.Width, MinWidth: 0.0, Overflow: Overflow.Visible}

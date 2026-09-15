@@ -110,15 +110,15 @@ public data struct MasterDetail {
                 let back = if let createBack = createBack {
                     createBack(resolved)
                 } else {
-                    Button(){
-                        .Height: resolved.BackHeight,
-                        .PaddingLeft: 12.0,
-                        .PaddingRight: 12.0,
-                        .BackgroundColor: Color.Transparent,
-                        .Cursor: Cursor.Pointer,
-                        .Focusable: true,
-                        .OnClick: resolved.OnBack,
-                        .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.BackLabel!!,},
+                    Button{
+                        Height: resolved.BackHeight,
+                        PaddingLeft: 12.0,
+                        PaddingRight: 12.0,
+                        BackgroundColor: Color.Transparent,
+                        Cursor: Cursor.Pointer,
+                        Focusable: true,
+                        OnClick: resolved.OnBack,
+                        Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.BackLabel!!,},
                         Text{Content: resolved.BackLabel!!},
                     }
                 }

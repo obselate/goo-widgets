@@ -114,40 +114,40 @@ public data struct ModalDialog {
         let cancel = if let createCancel = createCancel {
             createCancel(resolved, cancelContent)
         } else {
-            Button(){
-                .Height: 36.0,
-                .PaddingLeft: 14.0,
-                .PaddingRight: 14.0,
-                .BorderWidth: 1.0,
-                .BorderRadius: 6.0,
-                .BorderColor: resolved.BorderColor!!,
-                .BackgroundColor: Color.Transparent,
-                .Cursor: Cursor.Pointer,
-                .Focusable: true,
-                .OnClick: resolved.OnCancel,
-                .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: cancelText},
+            Button{
+                Height: 36.0,
+                PaddingLeft: 14.0,
+                PaddingRight: 14.0,
+                BorderWidth: 1.0,
+                BorderRadius: 6.0,
+                BorderColor: resolved.BorderColor!!,
+                BackgroundColor: Color.Transparent,
+                Cursor: Cursor.Pointer,
+                Focusable: true,
+                OnClick: resolved.OnCancel,
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: cancelText},
                 cancelContent,
             }
         }
         let confirm = if let createConfirm = createConfirm {
             createConfirm(resolved, confirmContent)
         } else {
-            Button(){
-                .Height: 36.0,
-                .PaddingLeft: 14.0,
-                .PaddingRight: 14.0,
-                .BorderRadius: 6.0,
-                .BackgroundColor: Color.Parse("#fafafa"),
-                .Color: Color.Parse("#09090b"),
-                .Cursor: if resolved.ConfirmDisabled {
+            Button{
+                Height: 36.0,
+                PaddingLeft: 14.0,
+                PaddingRight: 14.0,
+                BorderRadius: 6.0,
+                BackgroundColor: Color.Parse("#fafafa"),
+                Color: Color.Parse("#09090b"),
+                Cursor: if resolved.ConfirmDisabled {
                     Cursor.Default
                 } else {
                     Cursor.Pointer
                 },
-                .Focusable: true,
-                .Disabled: resolved.ConfirmDisabled,
-                .OnClick: resolved.OnConfirm,
-                .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
+                Focusable: true,
+                Disabled: resolved.ConfirmDisabled,
+                OnClick: resolved.OnConfirm,
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
                 confirmContent,
             }
         }
@@ -156,11 +156,11 @@ public data struct ModalDialog {
         confirm.OnClick = resolved.OnConfirm
         confirm.Disabled = resolved.ConfirmDisabled
 
-        let actions = Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.FlexEnd,
-            .Gap: 8.0,
+        let actions = Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.FlexEnd,
+            Gap: 8.0,
             cancel,
             confirm,
         }
@@ -208,15 +208,15 @@ public data struct ModalDialog {
         if let createRoot = createRoot {
             return createRoot(resolved, backdrop, dialog)
         }
-        return Container(){
-            .Position: PositionType.Absolute,
-            .Left: 0.0,
-            .Right: 0.0,
-            .Top: 0.0,
-            .Bottom: 0.0,
-            .ZIndex: resolved.ZIndex,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
+        return Container{
+            Position: PositionType.Absolute,
+            Left: 0.0,
+            Right: 0.0,
+            Top: 0.0,
+            Bottom: 0.0,
+            ZIndex: resolved.ZIndex,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
             backdrop,
             dialog,
         }

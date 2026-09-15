@@ -158,12 +158,12 @@ internal class OverlayHost : Cell {
     }
 
     private func Cancel(input ModalDialog, content Blob) Button {
-        let result = Button(){
-            .Handle: ElementHandle(),
-            .Focusable: !EmptyDialog,
-            .Padding: 10.0,
-            .BackgroundColor: "#27272a",
-            .BorderRadius: 5.0,
+        let result = Button{
+            Handle: ElementHandle(),
+            Focusable: !EmptyDialog,
+            Padding: 10.0,
+            BackgroundColor: "#27272a",
+            BorderRadius: 5.0,
             content
         }
         CancelButton = result
@@ -171,12 +171,12 @@ internal class OverlayHost : Cell {
     }
 
     private func ConfirmFactory(input ModalDialog, content Blob) Button {
-        let result = Button(){
-            .Handle: ElementHandle(),
-            .Focusable: !EmptyDialog,
-            .Padding: 10.0,
-            .BackgroundColor: "#6366f1",
-            .BorderRadius: 5.0,
+        let result = Button{
+            Handle: ElementHandle(),
+            Focusable: !EmptyDialog,
+            Padding: 10.0,
+            BackgroundColor: "#6366f1",
+            BorderRadius: 5.0,
             content
         }
         ConfirmButton = result
@@ -207,14 +207,14 @@ internal class OverlayHost : Cell {
     }
 
     public override func Build() Blob {
-        let root = Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .BackgroundColor: "#111318",
-            .Padding: 24.0,
-            .Gap: 16.0,
-            .Color: "#fafafa",
-            .OnKeyDown: (event KeyEvent) -> {
+        let root = Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            BackgroundColor: "#111318",
+            Padding: 24.0,
+            Gap: 16.0,
+            Color: "#fafafa",
+            OnKeyDown: (event KeyEvent) -> {
                 BackgroundKeys++
             },
             Text{Key: "title", Content: "Managed overlays", FontSize: 26.0, FontWeight: 700},
@@ -224,37 +224,37 @@ internal class OverlayHost : Cell {
                 FontSize: 14.0,
                 Color: "#a1a1aa"
             },
-            Button(){
-                .Key: "before",
-                .Handle: Before,
-                .Width: 180.0,
-                .Height: 38.0,
-                .BackgroundColor: "#27272a",
-                .BorderRadius: 6.0,
-                .OnClick: () -> {
+            Button{
+                Key: "before",
+                Handle: Before,
+                Width: 180.0,
+                Height: 38.0,
+                BackgroundColor: "#27272a",
+                BorderRadius: 6.0,
+                OnClick: () -> {
                     BackgroundClicks++
                 },
-                .Accessibility: Accessibility{Name: "Background action"},
+                Accessibility: Accessibility{Name: "Background action"},
                 Text{Content: "Background action"}
             }
         }
         if ShowAnchor {
             root.Children.Add(
-                Button(){
-                    .Key: "anchor",
-                    .Handle: Anchor,
-                    .Position: PositionType.Absolute,
-                    .Left: AnchorX,
-                    .Top: AnchorY,
-                    .Width: 180.0,
-                    .Height: 38.0,
-                    .BackgroundColor: "#4f46e5",
-                    .BorderRadius: 6.0,
-                    .OnClick: () -> {
+                Button{
+                    Key: "anchor",
+                    Handle: Anchor,
+                    Position: PositionType.Absolute,
+                    Left: AnchorX,
+                    Top: AnchorY,
+                    Width: 180.0,
+                    Height: 38.0,
+                    BackgroundColor: "#4f46e5",
+                    BorderRadius: 6.0,
+                    OnClick: () -> {
                         PopupOpen = true
                         Rebuild()
                     },
-                    .Accessibility: Accessibility{Name: "Open popup"},
+                    Accessibility: Accessibility{Name: "Open popup"},
                     Text{Content: "Open popup"}
                 }
             )
@@ -263,8 +263,8 @@ internal class OverlayHost : Cell {
             let content = if EmptyDialog {
                 Blob(Text{Content: "No focusable children. Escape still closes this dialog."})
             } else {
-                Container(){
-                    .Gap: 12.0,
+                Container{
+                    Gap: 12.0,
                     Text{Content: "Focus stays in this dialog until it closes.", Color: "#a1a1aa"},
                     TextEntry{
                         Handle: Edit,
@@ -275,15 +275,15 @@ internal class OverlayHost : Cell {
                         BackgroundColor: "#09090b",
                         Accessibility: Accessibility{Name: "Dialog editor"}
                     },
-                    Button(){
-                        .Handle: Nested,
-                        .Height: 36.0,
-                        .BackgroundColor: "#312e81",
-                        .OnClick: () -> {
+                    Button{
+                        Handle: Nested,
+                        Height: 36.0,
+                        BackgroundColor: "#312e81",
+                        OnClick: () -> {
                             TopOpen = true
                             Rebuild()
                         },
-                        .Accessibility: Accessibility{Name: "Open nested dialog"},
+                        Accessibility: Accessibility{Name: "Open nested dialog"},
                         Text{Content: "Open nested dialog"}
                     }
                 }
@@ -328,16 +328,16 @@ internal class OverlayHost : Cell {
             AccessibilityName: "Quick details",
             Width: 280.0,
             MaxHeight: 220.0,
-            Content: Container(){
-                .Gap: 14.0,
+            Content: Container{
+                Gap: 14.0,
                 Text{Content: "Quick details", FontSize: 18.0, FontWeight: 700},
                 Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: "#c4c4cf"},
-                Button(){
-                    .Handle: PopupAction,
-                    .Height: 34.0,
-                    .BackgroundColor: "#4f46e5",
+                Button{
+                    Handle: PopupAction,
+                    Height: 34.0,
+                    BackgroundColor: "#4f46e5",
                     Text{Content: "Continue"},
-                    .Accessibility: Accessibility{Name: "Popup action"}
+                    Accessibility: Accessibility{Name: "Popup action"}
                 }
             },
             OnDismiss: PopupDismiss,

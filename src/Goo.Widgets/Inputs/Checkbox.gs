@@ -162,35 +162,35 @@ public data struct Checkbox {
             if let content = content {
                 markBox.Children.Add(content)
             }
-            return Button(){
-                .Width: Length.Auto,
-                .Height: resolved.Size,
-                .Padding: 0.0,
-                .Gap: resolved.LabelGap!!,
-                .BorderWidth: 0.0,
-                .BorderRadius: 0.0,
-                .BackgroundColor: Color.Transparent,
-                .Cursor: if resolved.Disabled {
+            return Button{
+                Width: Length.Auto,
+                Height: resolved.Size,
+                Padding: 0.0,
+                Gap: resolved.LabelGap!!,
+                BorderWidth: 0.0,
+                BorderRadius: 0.0,
+                BackgroundColor: Color.Transparent,
+                Cursor: if resolved.Disabled {
                     Cursor.Default
                 } else {
                     Cursor.Pointer
                 },
-                .Opacity: if resolved.Disabled {
+                Opacity: if resolved.Disabled {
                     resolved.DisabledOpacity!!
                 } else {
                     1.0
                 },
-                .Focusable: true,
-                .Disabled: resolved.Disabled,
-                .OnClick: onClick,
-                .TransitionMs: resolved.TransitionMs!!,
-                .TransitionEasing: resolved.TransitionEasing!!,
-                .FlexDirection: FlexDirection.Row,
-                .AlignItems: AlignItems.Center,
-                .JustifyContent: JustifyContent.FlexStart,
-                .Hover: Style{BackgroundColor: Color.Transparent},
-                .Active: Style{BackgroundColor: Color.Transparent},
-                .Accessibility: Accessibility{
+                Focusable: true,
+                Disabled: resolved.Disabled,
+                OnClick: onClick,
+                TransitionMs: resolved.TransitionMs!!,
+                TransitionEasing: resolved.TransitionEasing!!,
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.FlexStart,
+                Hover: Style{BackgroundColor: Color.Transparent},
+                Active: Style{BackgroundColor: Color.Transparent},
+                Accessibility: Accessibility{
                     Role: AccessibilityRole.Checkbox,
                     Name: resolved.AccessibilityName!!,
                     Checked: state,

@@ -245,13 +245,13 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             canvas.Children.Add(BuildHeader(snapshot, true))
         }
         canvas.Children.Add(body)
-        let scroll = Container(){
-            .FlexGrow: 1,
-            .FlexBasis: 0,
-            .MinWidth: 0,
-            .MinHeight: 0,
-            .OverflowX: Overflow.Scroll,
-            .OverflowY: Overflow.Hidden,
+        let scroll = Container{
+            FlexGrow: 1,
+            FlexBasis: 0,
+            MinWidth: 0,
+            MinHeight: 0,
+            OverflowX: Overflow.Scroll,
+            OverflowY: Overflow.Hidden,
             canvas
         }
         var root = Container{
@@ -475,18 +475,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             if filter {
                 slot.Padding = 4
                 slot.Accessibility = Accessibility{Role: AccessibilityRole.GridCell, Name: "Filter " + label}
-                slot.Children.Add(Container(){.Key: "content", .FlexGrow: 1, .MinWidth: 0, content})
+                slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
-                let sort = Button(){
-                    .Key: "content",
-                    .FlexGrow: 1,
-                    .MinWidth: 0,
-                    .PaddingLeft: 10,
-                    .PaddingRight: 10,
-                    .BackgroundColor: Color.Transparent,
-                    .Focusable: column.Sortable && snapshot.OnSort != nil && !snapshot.Disabled,
-                    .OnClick: () -> Sort(id),
-                    .Accessibility: Accessibility{
+                let sort = Button{
+                    Key: "content",
+                    FlexGrow: 1,
+                    MinWidth: 0,
+                    PaddingLeft: 10,
+                    PaddingRight: 10,
+                    BackgroundColor: Color.Transparent,
+                    Focusable: column.Sortable && snapshot.OnSort != nil && !snapshot.Disabled,
+                    OnClick: () -> Sort(id),
+                    Accessibility: Accessibility{
                         Role: AccessibilityRole.ColumnHeader,
                         Name: label,
                         Description: snapshot.SortColumnId == id ? snapshot.SortDirection.ToString(): "Unsorted"
@@ -572,19 +572,19 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 check.Disabled = row.Disabled || snapshot.Disabled || snapshot.OnSelectionChange == nil
                 check.OnClick = () -> Select(id, true, false, false)
                 check.Accessibility = Accessibility{Hidden: true}
-                controls.Children.Add(Container(){.Key: "selection", .Width: 36, .AlignItems: AlignItems.Center, check})
+                controls.Children.Add(Container{Key: "selection", Width: 36, AlignItems: AlignItems.Center, check})
             }
             if details {
-                let expand = Button(){
-                    .Width: 26,
-                    .Height: 26,
-                    .Padding: 4,
-                    .BackgroundColor: Color.Transparent,
-                    .Focusable: false,
-                    .TabStop: false,
-                    .Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
-                    .OnClick: () -> Expand(id, !isExpanded, false),
-                    .Accessibility: Accessibility{Hidden: true},
+                let expand = Button{
+                    Width: 26,
+                    Height: 26,
+                    Padding: 4,
+                    BackgroundColor: Color.Transparent,
+                    Focusable: false,
+                    TabStop: false,
+                    Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
+                    OnClick: () -> Expand(id, !isExpanded, false),
+                    Accessibility: Accessibility{Hidden: true},
                     MaterialIcons.Create(isExpanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
                 }
                 let slot = Container{Key: "expansion", Width: 30, AlignItems: AlignItems.Center}
@@ -608,18 +608,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 content = create(snapshot, row, column, content)
             }
             cells.Children.Add(
-                Container(){
-                    .Key: "column:" + column.Id!!,
-                    .Width: widths[index],
-                    .FlexShrink: 0,
-                    .MinWidth: 0,
-                    .PaddingLeft: 10,
-                    .PaddingRight: 10,
-                    .JustifyContent: JustifyContent.Center,
-                    .Overflow: Overflow.Hidden,
-                    .OnFocus: (e FocusEvent) -> e.StopPropagation(),
-                    .OnKeyDown: (e KeyEvent) -> e.StopPropagation(),
-                    .Accessibility: Accessibility{
+                Container{
+                    Key: "column:" + column.Id!!,
+                    Width: widths[index],
+                    FlexShrink: 0,
+                    MinWidth: 0,
+                    PaddingLeft: 10,
+                    PaddingRight: 10,
+                    JustifyContent: JustifyContent.Center,
+                    Overflow: Overflow.Hidden,
+                    OnFocus: (e FocusEvent) -> e.StopPropagation(),
+                    OnKeyDown: (e KeyEvent) -> e.StopPropagation(),
+                    Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
                         Name: column.Label ?? column.Id!!,
                         Value: text
@@ -689,14 +689,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 row.Detail ?? Container{}
             }
             root.Children.Add(
-                Container(){
-                    .Key: "detail",
-                    .Width: tableWidth,
-                    .Padding: 12,
-                    .BackgroundColor: "#20232c",
-                    .OnFocus: (e FocusEvent) -> e.StopPropagation(),
-                    .OnKeyDown: (e KeyEvent) -> e.StopPropagation(),
-                    .Accessibility: Accessibility{
+                Container{
+                    Key: "detail",
+                    Width: tableWidth,
+                    Padding: 12,
+                    BackgroundColor: "#20232c",
+                    OnFocus: (e FocusEvent) -> e.StopPropagation(),
+                    OnKeyDown: (e KeyEvent) -> e.StopPropagation(),
+                    Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
                         Name: "Details for " + (row.Label ?? id)
                     },

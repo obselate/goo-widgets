@@ -6,9 +6,9 @@ import Goo.Widgets.Inputs
 
 internal class TextAreaExample : Cell {
     private var notes string = "A controlled multiline editor.\nSelect text, copy it, or add a new line."
-    public override func Build() Blob -> Container(){
-        .Width: 560,
-        .Gap: 20,
+    public override func Build() Blob -> Container{
+        Width: 560,
+        Gap: 20,
         Cell.Mount[TextAreaInput, TextArea](
             "notes",
             TextAreaInput{

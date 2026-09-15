@@ -5,21 +5,21 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Graphs
 
 internal open class GraphNodeCardExample : Cell {
-    public override func Build() Blob -> Container(){
-        .Gap: 12.0,
+    public override func Build() Blob -> Container{
+        Gap: 12.0,
         Text{
             Content: "Graph node cards support normal, selected, and caller-owned content states.",
             FontSize: 11.0,
             Color: "#a1a1aa",
         },
-        Container(){
-            .Width: 740.0,
-            .Height: 260.0,
-            .Position: PositionType.Relative,
-            .BackgroundColor: "#09090b",
-            .BorderWidth: 1.0,
-            .BorderColor: "#27272a",
-            .BorderRadius: 8.0,
+        Container{
+            Width: 740.0,
+            Height: 260.0,
+            Position: PositionType.Relative,
+            BackgroundColor: "#09090b",
+            BorderWidth: 1.0,
+            BorderColor: "#27272a",
+            BorderRadius: 8.0,
             GraphNodeCard{
                 Node: GraphNode{Id: "normal", Label: "Normal node", Position: Point{X: 140.0, Y: 96.0},},
             }.Build(),
@@ -32,9 +32,9 @@ internal open class GraphNodeCardExample : Cell {
                     Id: "custom",
                     Label: "Custom node",
                     Position: Point{X: 600.0, Y: 96.0},
-                    Content: Container(){
-                        .Gap: 3.0,
-                        .AlignItems: AlignItems.Center,
+                    Content: Container{
+                        Gap: 3.0,
+                        AlignItems: AlignItems.Center,
                         Text{Content: "Custom content", FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
                         Text{Content: "caller supplied", FontSize: 10.0, Color: "#d4d4d8"},
                     },

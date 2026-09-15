@@ -143,36 +143,36 @@ public data struct ToggleSwitch {
         } else {
             resolved.OffTrackColor!!
         }
-        return Button(){
-            .Width: resolved.Width,
-            .Height: resolved.Height,
-            .PaddingLeft: resolved.Padding,
-            .PaddingRight: resolved.Padding,
-            .PaddingTop: resolved.Padding,
-            .PaddingBottom: resolved.Padding,
-            .BorderWidth: resolved.BorderWidth!!,
-            .BorderRadius: resolved.BorderRadius!!,
-            .BorderColor: resolved.BorderColor!!,
-            .BackgroundColor: trackColor,
-            .Opacity: resolved.Opacity!!,
-            .Transform: resolved.Transform!!,
-            .Cursor: Cursor.Pointer,
-            .Focusable: true,
-            .Disabled: resolved.Disabled,
-            .OnClick: resolved.OnClick,
-            .TransitionMs: resolved.TransitionMs!!,
-            .TransitionEasing: resolved.TransitionEasing!!,
-            .Active: Style{Transform: resolved.ActiveTransform!!},
-            .Focus: if resolved.ShowFocusHighlight {
+        return Button{
+            Width: resolved.Width,
+            Height: resolved.Height,
+            PaddingLeft: resolved.Padding,
+            PaddingRight: resolved.Padding,
+            PaddingTop: resolved.Padding,
+            PaddingBottom: resolved.Padding,
+            BorderWidth: resolved.BorderWidth!!,
+            BorderRadius: resolved.BorderRadius!!,
+            BorderColor: resolved.BorderColor!!,
+            BackgroundColor: trackColor,
+            Opacity: resolved.Opacity!!,
+            Transform: resolved.Transform!!,
+            Cursor: Cursor.Pointer,
+            Focusable: true,
+            Disabled: resolved.Disabled,
+            OnClick: resolved.OnClick,
+            TransitionMs: resolved.TransitionMs!!,
+            TransitionEasing: resolved.TransitionEasing!!,
+            Active: Style{Transform: resolved.ActiveTransform!!},
+            Focus: if resolved.ShowFocusHighlight {
                 Style{BorderColor: resolved.FocusBorderColor!!}
             } else {
                 Style{}
             },
-            .DisabledStyle: Style{BackgroundColor: resolved.DisabledTrackColor!!},
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.FlexStart,
-            .Accessibility: Accessibility{
+            DisabledStyle: Style{BackgroundColor: resolved.DisabledTrackColor!!},
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.FlexStart,
+            Accessibility: Accessibility{
                 Role: AccessibilityRole.Switch,
                 Name: resolved.AccessibilityName!!,
                 Checked: if resolved.Checked {

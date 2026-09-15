@@ -7,9 +7,9 @@ import Goo.Widgets.Layout
 internal class SplitPaneExample : Cell {
     private var horizontal float64 = .35
     private var vertical float64 = .5
-    public override func Build() Blob -> Container(){
-        .Width: 600,
-        .Gap: 16,
+    public override func Build() Blob -> Container{
+        Width: 600,
+        Gap: 16,
         Text{Key: "hint", Content: "Drag a divider, or focus it and use the arrow keys.", Color: "#a1a1aa"},
         Cell.Mount[SplitPaneInput, SplitPane](
             "horizontal",
@@ -22,18 +22,18 @@ internal class SplitPaneExample : Cell {
                 Height: 180,
                 MinimumFirst: 110,
                 MinimumSecond: 160,
-                First: Container(){
-                    .Width: Length.Percent(100),
-                    .Height: Length.Percent(100),
-                    .Padding: 20,
-                    .BackgroundColor: "#17313d",
+                First: Container{
+                    Width: Length.Percent(100),
+                    Height: Length.Percent(100),
+                    Padding: 20,
+                    BackgroundColor: "#17313d",
                     Text{Content: "Navigation", Color: "#a5e5eb"}
                 },
-                Second: Container(){
-                    .Width: Length.Percent(100),
-                    .Height: Length.Percent(100),
-                    .Padding: 20,
-                    .BackgroundColor: "#24243c",
+                Second: Container{
+                    Width: Length.Percent(100),
+                    Height: Length.Percent(100),
+                    Padding: 20,
+                    BackgroundColor: "#24243c",
                     Text{Content: "Workspace", Color: "#d4c9fa"}
                 },
             }
@@ -50,18 +50,18 @@ internal class SplitPaneExample : Cell {
                 MinimumFirst: 60,
                 MinimumSecond: 50,
                 Orientation: SplitOrientation.Vertical,
-                First: Container(){
-                    .Width: Length.Percent(100),
-                    .Height: Length.Percent(100),
-                    .Padding: 16,
-                    .BackgroundColor: "#24243c",
+                First: Container{
+                    Width: Length.Percent(100),
+                    Height: Length.Percent(100),
+                    Padding: 16,
+                    BackgroundColor: "#24243c",
                     Text{Content: "Preview", Color: "#d4c9fa"}
                 },
-                Second: Container(){
-                    .Width: Length.Percent(100),
-                    .Height: Length.Percent(100),
-                    .Padding: 16,
-                    .BackgroundColor: "#17313d",
+                Second: Container{
+                    Width: Length.Percent(100),
+                    Height: Length.Percent(100),
+                    Padding: 16,
+                    BackgroundColor: "#17313d",
                     Text{Content: "Details", Color: "#a5e5eb"}
                 },
             }

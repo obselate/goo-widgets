@@ -134,18 +134,18 @@ public data struct Stepper {
                 } else if index == current {
                     fillColor = resolved.CurrentColor!!
                 }
-                pill = Container(){
-                    .Width: Length.Percent(100.0),
-                    .Height: resolved.Height,
-                    .PaddingLeft: resolved.PaddingHorizontal!!,
-                    .PaddingRight: resolved.PaddingHorizontal!!,
-                    .BorderRadius: resolved.BorderRadius!!,
-                    .BackgroundColor: fillColor,
-                    .TransitionMs: resolved.TransitionMs!!,
-                    .TransitionEasing: resolved.TransitionEasing!!,
-                    .FlexGrow: 1.0,
-                    .AlignItems: AlignItems.Center,
-                    .JustifyContent: JustifyContent.Center,
+                pill = Container{
+                    Width: Length.Percent(100.0),
+                    Height: resolved.Height,
+                    PaddingLeft: resolved.PaddingHorizontal!!,
+                    PaddingRight: resolved.PaddingHorizontal!!,
+                    BorderRadius: resolved.BorderRadius!!,
+                    BackgroundColor: fillColor,
+                    TransitionMs: resolved.TransitionMs!!,
+                    TransitionEasing: resolved.TransitionEasing!!,
+                    FlexGrow: 1.0,
+                    AlignItems: AlignItems.Center,
+                    JustifyContent: JustifyContent.Center,
                     text!!,
                 }
             }
@@ -188,7 +188,7 @@ public data struct Stepper {
             Accessibility: semantics,
         }
         for i in 0 ... count {
-            root.Children.Add(Container(){.Key: "${i}", .FlexGrow: 1.0, pills[i]})
+            root.Children.Add(Container{Key: "${i}", FlexGrow: 1.0, pills[i]})
         }
         return root
     }

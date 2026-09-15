@@ -164,21 +164,21 @@ public data struct AsyncImage {
         } else {
             semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true}
         }
-        return Container(){
-            .Width: resolved.Width,
-            .Height: resolved.Height,
-            .BorderRadius: resolved.BorderRadius!!,
-            .BorderWidth: resolved.BorderWidth!!,
-            .BorderColor: resolved.BorderColor!!,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .Opacity: resolved.Opacity!!,
-            .Transform: resolved.Transform!!,
-            .TransitionMs: resolved.TransitionMs!!,
-            .TransitionEasing: resolved.TransitionEasing!!,
-            .Overflow: Overflow.Hidden,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Accessibility: semantics,
+        return Container{
+            Width: resolved.Width,
+            Height: resolved.Height,
+            BorderRadius: resolved.BorderRadius!!,
+            BorderWidth: resolved.BorderWidth!!,
+            BorderColor: resolved.BorderColor!!,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Opacity: resolved.Opacity!!,
+            Transform: resolved.Transform!!,
+            TransitionMs: resolved.TransitionMs!!,
+            TransitionEasing: resolved.TransitionEasing!!,
+            Overflow: Overflow.Hidden,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Accessibility: semantics,
             child
         }
     }

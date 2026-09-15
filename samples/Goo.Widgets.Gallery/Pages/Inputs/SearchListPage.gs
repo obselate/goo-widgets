@@ -10,8 +10,8 @@ internal open class SearchListExample : Cell {
     private var selected string = "alpha"
 
     /// Builds the controlled search-list example.
-    public override func Build() Blob -> Container(){
-        .Gap: 12,
+    public override func Build() Blob -> Container{
+        Gap: 12,
         SearchList{
             Items: []SelectionItem{
                 SelectionItem{Id: "alpha", Label: "Alpha", Detail: "Project"},

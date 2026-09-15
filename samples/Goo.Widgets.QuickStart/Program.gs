@@ -4,7 +4,7 @@ import Goo
 import Goo.Widgets.Actions
 import Goo.Widgets.Colors
 
-open class ColorPickerHost : Cell {
+class ColorPickerHost : Cell {
     private let initialColor int32 = 0x4F8FEA
     private var liveColor int32 = 0x4F8FEA
     private var committedColor int32 = 0x4F8FEA
@@ -12,13 +12,13 @@ open class ColorPickerHost : Cell {
     override func Build() Blob {
         let reset = ActionButton{Label: "Reset", OnClick: () -> ResetColor()}.Build()
         reset.Key = "reset"
-        return Container(){
-            .Width: Length.Percent(100.0),
-            .Height: Length.Percent(100.0),
-            .Padding: 28.0,
-            .Gap: 14.0,
-            .FlexDirection: FlexDirection.Column,
-            .BackgroundColor: Color.Parse("#18181b"),
+        return Container{
+            Width: Length.Percent(100.0),
+            Height: Length.Percent(100.0),
+            Padding: 28.0,
+            Gap: 14.0,
+            FlexDirection: FlexDirection.Column,
+            BackgroundColor: Color.Parse("#18181b"),
             Cell.Mount[ColorPickerInput, ColorPicker](
                 "color-picker",
                 ColorPickerInput{
@@ -30,8 +30,8 @@ open class ColorPickerHost : Cell {
                 }
             ),
             Text{
+                Content: "Committed #${ColorMath.Hex(committedColor)}",
                 Key: "committed-value",
-                Content: "Committed #" + ColorMath.Hex(committedColor),
                 Color: "#a1a1aa",
                 FontSize: 13.0,
             },
@@ -53,12 +53,10 @@ open class ColorPickerHost : Cell {
     private func ResetColor() {
         liveColor = initialColor
         committedColor = initialColor
-        Rebuild()
     }
 }
 
 func Main() {
     Window.ConfigureApplication("Color picker usage", "1.0.0", "com.example.colorpicker-usage")
-    let window = Window{Title: "Color picker usage", Width: 420, Height: 560, Root: ColorPickerHost{}}
-    window.Run()
+    Window{Title: "Color picker usage", Width: 420, Height: 560, Root: ColorPickerHost{}}.Run()
 }

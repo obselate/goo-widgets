@@ -19,9 +19,9 @@ internal class TimeAxisExample : Cell {
 
     public override func Build() Blob {
         let start = DateTimeOffset(2026, 9, 14, 8, 0, 0, TimeSpan.Zero)
-        return Container(){
-            .Width: 660,
-            .Gap: 18,
+        return Container{
+            Width: 660,
+            Gap: 18,
             Text{Key: "heading", Content: "Team schedule", FontSize: 22, Color: "#fafafa"},
             Cell.Mount[TimeAxisInput, TimeAxis](
                 "timeline",

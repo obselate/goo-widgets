@@ -116,17 +116,17 @@ public data struct ProgressBar {
             }
         }
 
-        return Container(){
-            .Width: resolved.Width,
-            .Height: resolved.Height,
-            .BorderRadius: resolved.BorderRadius,
-            .BorderWidth: resolved.BorderWidth,
-            .BorderColor: resolved.BorderColor!!,
-            .BackgroundColor: resolved.TrackColor!!,
-            .Opacity: resolved.Opacity!!,
-            .Transform: resolved.Transform!!,
-            .Overflow: Overflow.Hidden,
-            .Accessibility: semantics,
+        return Container{
+            Width: resolved.Width,
+            Height: resolved.Height,
+            BorderRadius: resolved.BorderRadius,
+            BorderWidth: resolved.BorderWidth,
+            BorderColor: resolved.BorderColor!!,
+            BackgroundColor: resolved.TrackColor!!,
+            Opacity: resolved.Opacity!!,
+            Transform: resolved.Transform!!,
+            Overflow: Overflow.Hidden,
+            Accessibility: semantics,
             fill!!,
         }
     }

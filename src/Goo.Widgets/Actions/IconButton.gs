@@ -70,38 +70,38 @@ public data struct IconButton {
         if let createRoot = createRoot {
             return createRoot(resolved, icon)
         }
-        return Button(){
-            .BasedOn: resolved.RootStyle,
-            .Width: resolved.Width,
-            .Height: resolved.Height,
-            .Padding: resolved.Padding!!,
-            .BorderRadius: resolved.BorderRadius!!,
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
-            .Cursor: Cursor.Pointer,
-            .Disabled: resolved.Disabled,
-            .Opacity: if resolved.Disabled {
+        return Button{
+            BasedOn: resolved.RootStyle,
+            Width: resolved.Width,
+            Height: resolved.Height,
+            Padding: resolved.Padding!!,
+            BorderRadius: resolved.BorderRadius!!,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Cursor: Cursor.Pointer,
+            Disabled: resolved.Disabled,
+            Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {
                 1.0
             },
-            .BackgroundColor: if resolved.Active {
+            BackgroundColor: if resolved.Active {
                 resolved.ActiveBackgroundColor!!
             } else {
                 resolved.BackgroundColor!!
             },
-            .Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            .Focus: if resolved.ShowFocusHighlight {
+            Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+            Focus: if resolved.ShowFocusHighlight {
                 Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0}
             } else {
                 Style{}
             },
-            .Accessibility: Accessibility{
+            Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: resolved.AccessibilityName!!,
                 Selected: resolved.Active,
             },
-            .OnClick: resolved.OnClick,
+            OnClick: resolved.OnClick,
             icon,
         }
     }

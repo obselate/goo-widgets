@@ -127,36 +127,36 @@ public data struct ActionButton {
             return createRoot(resolved, text)
         }
 
-        return Button(){
-            .Height: resolved.Height,
-            .MinWidth: resolved.MinWidth,
-            .PaddingLeft: resolved.PaddingHorizontal,
-            .PaddingRight: resolved.PaddingHorizontal,
-            .BorderWidth: resolved.BorderWidth!!,
-            .BorderRadius: resolved.BorderRadius!!,
-            .BorderColor: resolved.BorderColor!!,
-            .BackgroundColor: resolved.BackgroundColor!!,
-            .Color: resolved.TextColor!!,
-            .Opacity: resolved.Opacity!!,
-            .Transform: resolved.Transform!!,
-            .Cursor: Cursor.Pointer,
-            .Focusable: true,
-            .Disabled: resolved.Disabled,
-            .OnClick: resolved.OnClick,
-            .TransitionMs: resolved.TransitionMs!!,
-            .TransitionEasing: resolved.TransitionEasing!!,
-            .Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            .Active: Style{BackgroundColor: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
-            .Focus: if resolved.ShowFocusHighlight {
+        return Button{
+            Height: resolved.Height,
+            MinWidth: resolved.MinWidth,
+            PaddingLeft: resolved.PaddingHorizontal,
+            PaddingRight: resolved.PaddingHorizontal,
+            BorderWidth: resolved.BorderWidth!!,
+            BorderRadius: resolved.BorderRadius!!,
+            BorderColor: resolved.BorderColor!!,
+            BackgroundColor: resolved.BackgroundColor!!,
+            Color: resolved.TextColor!!,
+            Opacity: resolved.Opacity!!,
+            Transform: resolved.Transform!!,
+            Cursor: Cursor.Pointer,
+            Focusable: true,
+            Disabled: resolved.Disabled,
+            OnClick: resolved.OnClick,
+            TransitionMs: resolved.TransitionMs!!,
+            TransitionEasing: resolved.TransitionEasing!!,
+            Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+            Active: Style{BackgroundColor: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
+            Focus: if resolved.ShowFocusHighlight {
                 Style{BorderColor: resolved.FocusBorderColor!!}
             } else {
                 Style{}
             },
-            .DisabledStyle: Style{
+            DisabledStyle: Style{
                 BackgroundColor: resolved.DisabledBackgroundColor!!,
                 Color: resolved.DisabledTextColor!!,
             },
-            .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!,},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!,},
             text,
         }
     }

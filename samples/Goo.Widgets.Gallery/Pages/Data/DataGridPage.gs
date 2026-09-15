@@ -73,9 +73,9 @@ internal class DataGridExample : Cell {
         Color: "#a5b4fc"
     }
 
-    public override func Build() Blob -> Container(){
-        .Width: 700,
-        .Gap: 14,
+    public override func Build() Blob -> Container{
+        Width: 700,
+        Gap: 14,
         Text{
             Key: "hint",
             Content: "Shared columns · controlled sorting · multiple selection · measured details",

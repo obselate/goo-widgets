@@ -84,7 +84,7 @@ internal class DataGridHost : Cell {
         if !Headers.ContainsKey(column.Id!!) {
             Headers.Add(column.Id!!, ElementHandle())
         }
-        return Container(){.Handle: Headers[column.Id!!], .Width: Length.Percent(100), .MinWidth: 0, content}
+        return Container{Handle: Headers[column.Id!!], Width: Length.Percent(100), MinWidth: 0, content}
     }
 
     private func CaptureCell(input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) Blob {
@@ -92,7 +92,7 @@ internal class DataGridHost : Cell {
         if !Cells.ContainsKey(key) {
             Cells.Add(key, ElementHandle())
         }
-        return Container(){.Handle: Cells[key], .Width: Length.Percent(100), .MinWidth: 0, content}
+        return Container{Handle: Cells[key], Width: Length.Percent(100), MinWidth: 0, content}
     }
 
     private func CaptureCheck(input DataGridInput, row DataGridRow, prepared Button) Button {
@@ -182,12 +182,12 @@ internal class DataGridHost : Cell {
         }
         let state = DataGridColumn{Id: "state", Label: "State", Flex: 1, Minimum: 110, Maximum: 220, Sortable: true}
         let owner = DataGridColumn{Id: "owner", Label: "Owner", Flex: 2, Minimum: 140, Maximum: 500}
-        return Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 20,
-            .Gap: 14,
-            .BackgroundColor: "#111318",
+        return Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 20,
+            Gap: 14,
+            BackgroundColor: "#111318",
             Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: "#fafafa"},
             Text{
                 Key: "hint",

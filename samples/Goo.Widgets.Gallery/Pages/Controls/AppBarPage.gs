@@ -10,35 +10,35 @@ class AppBarPage : GalleryPage {
 
     public override func Build() Blob {
         let minimalTitleBar = AppBar{Title: "Dashboard Overview"}
-        let leadingNav = Container(){
-            .Width: 28.0,
-            .Height: 28.0,
-            .BorderRadius: 6.0,
-            .BackgroundColor: "#27272a",
-            .AlignItems: AlignItems.Center,
-            .JustifyContent: JustifyContent.Center,
+        let leadingNav = Container{
+            Width: 28.0,
+            Height: 28.0,
+            BorderRadius: 6.0,
+            BackgroundColor: "#27272a",
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
             MaterialIcons.Create("menu", 20.0, Color.Parse("#d4d4d8")),
         }
-        let trailingActions = Container(){
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .Gap: 8.0,
-            Container(){
-                .PaddingLeft: 10.0,
-                .PaddingRight: 10.0,
-                .PaddingTop: 4.0,
-                .PaddingBottom: 4.0,
-                .BorderRadius: 6.0,
-                .BackgroundColor: "#fafafa",
+        let trailingActions = Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: 8.0,
+            Container{
+                PaddingLeft: 10.0,
+                PaddingRight: 10.0,
+                PaddingTop: 4.0,
+                PaddingBottom: 4.0,
+                BorderRadius: 6.0,
+                BackgroundColor: "#fafafa",
                 Text{Content: "Share", FontSize: 12.0, FontWeight: 600, Color: "#09090b"},
             },
-            Container(){
-                .Width: 28.0,
-                .Height: 28.0,
-                .BorderRadius: 14.0,
-                .BackgroundColor: "#3f3f46",
-                .AlignItems: AlignItems.Center,
-                .JustifyContent: JustifyContent.Center,
+            Container{
+                Width: 28.0,
+                Height: 28.0,
+                BorderRadius: 14.0,
+                BackgroundColor: "#3f3f46",
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
                 Text{Content: "JD", FontSize: 11.0, FontWeight: 700, Color: "#fafafa"},
             },
         }
@@ -60,22 +60,22 @@ class AppBarPage : GalleryPage {
             BorderWidth: 0.0,
             BoxShadow: BoxShadow{Color: Color.Parse("#000000"), OffsetX: 0.0, OffsetY: 0.0, Blur: 0.0, Spread: 0.0},
         }
-        let badgeSlot = Container(){
-            .PaddingLeft: 8.0,
-            .PaddingRight: 8.0,
-            .PaddingTop: 2.0,
-            .PaddingBottom: 2.0,
-            .BorderRadius: 4.0,
-            .BackgroundColor: "#27272a",
+        let badgeSlot = Container{
+            PaddingLeft: 8.0,
+            PaddingRight: 8.0,
+            PaddingTop: 2.0,
+            PaddingBottom: 2.0,
+            BorderRadius: 4.0,
+            BackgroundColor: "#27272a",
             Text{Content: "PROD", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
         }
-        let actionSlot = Container(){
-            .PaddingLeft: 12.0,
-            .PaddingRight: 12.0,
-            .PaddingTop: 6.0,
-            .PaddingBottom: 6.0,
-            .BorderRadius: 6.0,
-            .BackgroundColor: "#7f1d1d",
+        let actionSlot = Container{
+            PaddingLeft: 12.0,
+            PaddingRight: 12.0,
+            PaddingTop: 6.0,
+            PaddingBottom: 6.0,
+            BorderRadius: 6.0,
+            BackgroundColor: "#7f1d1d",
             Text{Content: "Deploy", FontSize: 12.0, FontWeight: 700, Color: "#fafafa"},
         }
         let distinctCustomBar = AppBar{
@@ -97,35 +97,35 @@ class AppBarPage : GalleryPage {
             Trailing: actionSlot,
         }
 
-        return Container(){
-            .Width: 700.0,
-            .FlexDirection: FlexDirection.Column,
-            .Gap: 10.0,
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+        return Container{
+            Width: 700.0,
+            FlexDirection: FlexDirection.Column,
+            Gap: 10.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "MINIMAL TITLE", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 minimalTitleBar.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "TITLE + SUBTITLE WITH SLOTS", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
                 slotsBar.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{Content: "COMPACT CUSTOM (NO BORDER / SHADOW)", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
                 compactCustomBar.Build(),
             },
-            Container(){
-                .Width: Length.Percent(100.0),
-                .FlexDirection: FlexDirection.Column,
-                .Gap: 4.0,
+            Container{
+                Width: Length.Percent(100.0),
+                FlexDirection: FlexDirection.Column,
+                Gap: 4.0,
                 Text{
                     Content: "DISTINCT CUSTOM PALETTE & TYPOGRAPHY",
                     FontSize: 10.0,

@@ -9,9 +9,9 @@ internal open class SliderExample : Cell {
     private var vertical float64 = 0.65
     private var status string = "Ready"
 
-    public override func Build() Blob -> Container(){
-        .Width: 520.0,
-        .Gap: 20.0,
+    public override func Build() Blob -> Container{
+        Width: 520.0,
+        Gap: 20.0,
         Cell.Mount[SliderInput, Slider](
             "horizontal-slider",
             SliderInput{
@@ -33,12 +33,12 @@ internal open class SliderExample : Cell {
                 },
             }
         ),
-        Container(){
-            .Key: "vertical-row",
-            .Height: 180.0,
-            .FlexDirection: FlexDirection.Row,
-            .AlignItems: AlignItems.Center,
-            .Gap: 18.0,
+        Container{
+            Key: "vertical-row",
+            Height: 180.0,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: 18.0,
             Cell.Mount[SliderInput, Slider](
                 "vertical-slider",
                 SliderInput{

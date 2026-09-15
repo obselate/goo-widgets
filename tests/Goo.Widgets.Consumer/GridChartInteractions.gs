@@ -105,14 +105,14 @@ func GridChartContracts() {
 internal class GridCounter : Cell {
     internal var Count int32
     internal let ButtonHandle ElementHandle = ElementHandle()
-    public override func Build() Blob -> Button(){
-        .Handle: ButtonHandle,
-        .Height: 32,
-        .BackgroundColor: "#25636a",
-        .Color: "#e0ffff",
-        .Focusable: true,
-        .Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained counter"},
-        .OnClick: () -> {
+    public override func Build() Blob -> Button{
+        Handle: ButtonHandle,
+        Height: 32,
+        BackgroundColor: "#25636a",
+        Color: "#e0ffff",
+        Focusable: true,
+        Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained counter"},
+        OnClick: () -> {
             Count++
         },
         Text{Content: "Count " + Count.ToString()}
@@ -230,10 +230,10 @@ internal class GridChartHost : Cell {
                     Id: "fixed",
                     Column: 2,
                     RowSpan: 2,
-                    Content: Container(){
-                        .Handle: Fixed,
-                        .BackgroundColor: "#34334d",
-                        .Padding: 5,
+                    Content: Container{
+                        Handle: Fixed,
+                        BackgroundColor: "#34334d",
+                        Padding: 5,
                         Text{Content: "Fixed\n64px", FontSize: 12, Color: "#cabef1"}
                     }
                 },
@@ -290,13 +290,13 @@ internal class GridChartHost : Cell {
             }
         }.Build()
         bar.Key = "bar"
-        return Container(){
-            .Width: Length.Percent(100),
-            .Height: Length.Percent(100),
-            .Padding: 22,
-            .Gap: 20,
-            .BackgroundColor: "#111318",
-            .OverflowY: Overflow.Scroll,
+        return Container{
+            Width: Length.Percent(100),
+            Height: Length.Percent(100),
+            Padding: 22,
+            Gap: 20,
+            BackgroundColor: "#111318",
+            OverflowY: Overflow.Scroll,
             Text{Key: "title", Content: "Measured Grid and quantitative charts", Color: "#fafafa", FontSize: 22},
             grid,
             donut,
