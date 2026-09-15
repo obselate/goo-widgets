@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets</RootNamespace>
     <AssemblyName>Goo.Widgets</AssemblyName>
-    <Version>0.2.2</Version>
+    <Version>0.2.3</Version>
     <PackageId>Goo.Widgets</PackageId>
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>

@@ -11,11 +11,11 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.2.2` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
+Goo Widgets `0.2.3` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
 Use `Gsharp.NET.Sdk/0.4.591` and install the package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.2
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.3
 ```
 
 Goo supplies the upstream G# compiler and formatter needed for native child
