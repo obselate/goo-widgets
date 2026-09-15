@@ -1,0 +1,39 @@
+<Project Sdk="Gsharp.NET.Sdk/0.4.59">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Goo.Widgets.Markdown</RootNamespace>
+    <AssemblyName>Goo.Widgets.Markdown</AssemblyName>
+    <Version>0.1.2-preview.1</Version>
+    <PackageId>Goo.Widgets.Markdown</PackageId>
+    <Authors>obselate</Authors>
+    <Description>Selectable Markdown content for Goo, with optional host-owned link and image activation.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/obselate/goo-widgets</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DebugType>embedded</DebugType>
+    <IncludeSymbols>false</IncludeSymbols>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeMarkdownDocumentation</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Goo.Widgets/Goo.Widgets.gsproj" />
+    <PackageReference Include="Markdig" Version="0.38.0" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <Target Name="PopulateMarkdownDocumentation" AfterTargets="CoreCompile" Condition="'$(DocumentationFile)' != ''">
+    <ItemGroup>
+      <DocFileItem Include="$(DocumentationFile)" />
+      <FinalDocFile Include="$(OutDir)$([System.IO.Path]::GetFileName('$(DocumentationFile)'))" />
+    </ItemGroup>
+  </Target>
+  <Target Name="IncludeMarkdownDocumentation">
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(TargetDir)Goo.Widgets.Markdown.xml">
+        <TargetPath>Goo.Widgets.Markdown.xml</TargetPath>
+        <FinalOutputPath>$(TargetDir)Goo.Widgets.Markdown.xml</FinalOutputPath>
+      </BuildOutputInPackage>
+    </ItemGroup>
+  </Target>
+</Project>

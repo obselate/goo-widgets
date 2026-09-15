@@ -124,6 +124,18 @@ full-window, unclipped `OverlayHost` used by ComboBox. Calendar, day, input, but
 popup, and root factories preserve required behavior after customization. Hosts
 own time zones, storage formats, recurrence, and scheduling policy.
 
+## Optional Markdown
+
+`Goo.Widgets.Markdown` adds `Cell.Mount[MarkdownViewInput, MarkdownView]` for headings,
+paragraphs, emphasis, links, inline/fenced code, lists, quotes, rules, pipe tables,
+and GFM alerts. It depends on Markdig 0.38.0; the base widget package stays parser-free.
+Each text block owns a selectable read-only editor with measured intrinsic height;
+selection and copying operate within that block. Links use `OnLink`, and images
+remain selectable alternative text unless `ResolveImage` supplies a Blob.
+Block/inline/editor factories customize presentation, and `OnHeadings` supplies
+handles for table-of-contents navigation. See the [package guide](src/Goo.Widgets.Markdown/README.md)
+for lifecycle, scrolling, and customization details.
+
 ## Material icons
 
 The library includes all 4,128 Material Symbols Outlined icons for the standard

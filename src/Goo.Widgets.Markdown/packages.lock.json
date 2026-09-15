@@ -2,9 +2,14 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
-      "Goo": {
+      "Markdig": {
         "type": "Direct",
-        "requested": "[0.5.4-preview.1, )",
+        "requested": "[0.38.0, )",
+        "resolved": "0.38.0",
+        "contentHash": "zKy3JFjQvr1wbuMtbfcZVjNNCIqHxSCjGMq/CBcyNsY/MPsxqcS3o8M7CZ2kcMGGIw5LI2ZZd8rFUaFeV6SvrQ=="
+      },
+      "Goo": {
+        "type": "Transitive",
         "resolved": "0.5.4-preview.1",
         "contentHash": "RYzZI6iUBr+TcMC0a37RiWjUjUtl362PGdvWgOnz82zwIedjA8z5g7UIdKPiXHbb7b/4CLfTQOyLq2s/OC/IrQ==",
         "dependencies": {
@@ -14,8 +19,7 @@
         }
       },
       "Goo.Svg": {
-        "type": "Direct",
-        "requested": "[0.5.4-preview.1, )",
+        "type": "Transitive",
         "resolved": "0.5.4-preview.1",
         "contentHash": "RN0Ple3alOSPa2xy1GwChlzLAcv6c1YNlNxWwFD7UqGuKH24Oke9fp9MIYHeYacOCwTUnsSaRnkBgtI3Bp79MQ==",
         "dependencies": {
@@ -44,6 +48,13 @@
         "type": "Transitive",
         "resolved": "0.3.18",
         "contentHash": "HjVMQk+TfHDhRdavpgYS8ulyENYPSRTaViEttoPsHPUHXHk32eEAcv3YSPhTAjxd6h+6CCA+oBJWagDvOfSEZw=="
+      },
+      "goo.widgets": {
+        "type": "Project",
+        "dependencies": {
+          "Goo": "[0.5.4-preview.1, )",
+          "Goo.Svg": "[0.5.4-preview.1, )"
+        }
       }
     }
   }

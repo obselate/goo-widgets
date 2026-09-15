@@ -7,7 +7,8 @@ dotnet restore Goo.Widgets.slnx --locked-mode
 dotnet build Goo.Widgets.slnx -c Release --no-restore --nologo
 python3 scripts/verify-screenshots.py
 dotnet pack src/Goo.Widgets/Goo.Widgets.gsproj -c Release --no-build --no-restore -o artifacts/packages
-python3 scripts/verify-package.py
+dotnet pack src/Goo.Widgets.Markdown/Goo.Widgets.Markdown.gsproj -c Release --no-build --no-restore -o artifacts/packages
+python3 scripts/verify-package.py --markdown
 dotnet restore tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj --locked-mode
 dotnet run --project tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj -c Release --no-restore
 

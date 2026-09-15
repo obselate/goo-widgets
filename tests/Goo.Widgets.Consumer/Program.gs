@@ -145,6 +145,8 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_MARKDOWN") == "1" { MarkdownInteractions()
+    return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_CALENDAR") == "1" { CalendarInteractions()
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_COMBOBOX") == "1" { ComboBoxInteractions()
@@ -168,6 +170,7 @@ func Main() {
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_DISCLOSURE") == "1" { DisclosureInteractions()
     return }
   CalendarContracts()
+  MarkdownContracts()
   ComboBoxContracts()
   OverlayContracts()
   PackageComposition()

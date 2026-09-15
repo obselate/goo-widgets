@@ -13,6 +13,7 @@ import Goo.Widgets.Gallery.Pages.Media
 import Goo.Widgets.Gallery.Pages.Graphs
 import Goo.Widgets.Gallery.Pages.Charts
 import Goo.Widgets.Gallery.Pages.Data
+import Goo.Widgets.Gallery.Pages.Content
 
 open class GalleryPage {
   open func Title() string;
@@ -178,6 +179,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
 
 func CreateRegistry() GalleryRegistry ->
 GalleryRegistry([]GalleryCategory{
+  GalleryCategory("Content", []GalleryPage{MarkdownViewPage{}}),
   GalleryCategory("Actions", []GalleryPage{
     ActionButtonPage{},
     IconButtonPage{},

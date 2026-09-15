@@ -7,8 +7,12 @@
   <ItemGroup>
     <PackageReference Include="Goo" Version="0.5.4-preview.1" />
     <PackageReference Include="Goo.Svg" Version="0.5.4-preview.1" />
+    <PackageReference Include="Markdig" Version="0.38.0" />
     <Reference Include="Goo.Widgets">
       <HintPath>../../artifacts/package/lib/net10.0/Goo.Widgets.dll</HintPath>
+    </Reference>
+    <Reference Include="Goo.Widgets.Markdown">
+      <HintPath>../../artifacts/markdown-package/lib/net10.0/Goo.Widgets.Markdown.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>

@@ -15,6 +15,11 @@ widgets = sorted({
     for path in library.rglob("*.gs")
     if build_pattern.search(path.read_text(encoding="utf-8"))
 })
+markdown_library = root / "src" / "Goo.Widgets.Markdown"
+widgets += sorted(path.stem for path in markdown_library.glob("*.gs")
+                  if build_pattern.search(path.read_text(encoding="utf-8"))
+                  and re.search(rf"public\s+(?:open\s+)?class\s+{re.escape(path.stem)}\b",
+                                path.read_text(encoding="utf-8")))
 errors: list[str] = []
 
 if not widgets:
