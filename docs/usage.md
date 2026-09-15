@@ -1,17 +1,12 @@
 # Using Goo Widgets
 
-These examples target the current preview checkout. Run
-`python3 scripts/setup-native-authoring.py --goo-source ../goo-gsharp` first.
-Direct child initializers require the pinned upstream compiler and Goo preview API.
-
-The checkout uses Goo Widgets `0.1.2-preview.2`, Goo/Goo.Svg `0.5.4-preview.2`,
-.NET 10, and the upstream compiler built by the setup script. These packages are
-local review artifacts. See the [README](../README.md#install) for the published
-package and its older API.
+These examples use Goo Widgets `0.2.1`, Goo/Goo.Svg `0.5.4`, .NET 10, and
+`Gsharp.NET.Sdk/0.4.591`. Goo automatically supplies the upstream compiler needed
+for native child composition. Follow the [installation instructions](../README.md#install).
 
 ## Basic widgets
 
-Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Insert that result directly into a `Container(){ ... }` initializer.
+Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Insert that result alongside the parent container's properties and other children.
 
 The [complete example](../samples/Goo.Widgets.QuickStart/Program.gs) uses an action button to reset the selected color:
 
@@ -21,7 +16,9 @@ import Goo.Widgets.Actions
 ActionButton{Label: "Reset", OnClick: () -> ResetColor(),}.Build()
 ```
 
-`ResetColor` belongs to the host cell. It updates application state and calls `Rebuild()` to refresh the display. Widget callbacks are the connection to your application's commands and data.
+`ResetColor` belongs to the host Cell. It only changes application state: Goo
+automatically rebuilds the Cell after its input callback. Callbacks from a
+separately mounted child that change parent state must call the parent's `Rebuild()`.
 
 ## Color picker integration
 
@@ -50,10 +47,10 @@ Cell.Mount[ColorPickerInput, ColorPicker](
 | `Mode` | Select `ColorMode.Hsl`, `ColorMode.Hsv`, or `ColorMode.Oklch`. The input and callback values remain sRGB. |
 | `OnValueChanged` | Update the host's current color and live preview during interaction. |
 | `OnValueCommitted` | Apply or save the final selection after a completed interaction. |
-| `OnModeChanged` (current checkout) | Adopt a mode button choice when the host owns `Mode`. |
+| `OnModeChanged` | Adopt a mode button choice when the host owns `Mode`. |
 | Mount key | Keep the same key across rebuilds so the picker retains its internal interaction state. |
 
-In the current checkout, set `Compact: true` to show only the wheel and tone
+Set `Compact: true` to show only the wheel and tone
 slider. The default is the full composition with the mode selector and preview.
 Leave `Mode` unset when the picker should switch models locally through its
 built-in buttons. If the host owns the model, supply `Mode` and update that value
@@ -84,16 +81,16 @@ Convert the packed value when building Goo visuals:
 ```gsharp
 Container{Width: 260.0, Height: 96.0, BackgroundColor: ColorMath.GooColor(liveColor),}
 
-Text{Content: "#" + ColorMath.Hex(liveColor),}
+Text("#${ColorMath.Hex(liveColor)}")
 ```
 
-Changing `liveColor` from elsewhere and rebuilding the host also updates the picker. The sample's Reset button demonstrates this. The picker manages its wheel image and disposes it when Goo unmounts the cell. The source QuickStart uses the published input properties. Its full mode-selector and preview composition requires the current checkout.
+Changing `liveColor` from elsewhere and rebuilding the host also updates the picker. The sample's Reset button demonstrates this. The picker manages its wheel image and disposes it when Goo unmounts the cell.
 
 When the mounted picker has siblings, give those siblings keys as well. The complete example keys the Reset button and committed-color readout.
 
-## Current checkout ergonomics
+## Labels and color controls
 
-The current checkout lets a checkbox own its visible label and its full hit target:
+A checkbox can own its visible label and its full hit target:
 
 ```gsharp
 Checkbox{
@@ -116,7 +113,7 @@ Cell.Mount[SliderInput, Slider](
     SliderInput{
         Label: "Opacity",
         ShowValue: true,
-        FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
+        FormatValue: (value float64) -> "${Math.Round(value * 100)}%",
         Value: opacity,
         Minimum: 0.0,
         Maximum: 1.0,
@@ -124,7 +121,7 @@ Cell.Mount[SliderInput, Slider](
 )
 ```
 
-`GraphNodeCard.Center` is optional in the current checkout. It defaults to the
+`GraphNodeCard.Center` is optional. It defaults to the
 node's `Position`; supply `Center: Point{ X: 300.0, Y: 120.0 }` for an explicit
 screen-space card center.
 
@@ -139,17 +136,15 @@ dotnet run --project samples/Goo.Widgets.QuickStart -c Release
 In a Wayland session, set `SDL_VIDEODRIVER=wayland` if needed to select the native display driver.
 
 The [project](../samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj) uses
-source project references and the compiler configured in `Directory.Build.props`.
-Copying this source into a separate application also requires that compiler,
-`Gsharp.NET.Sdk/0.4.591`, and the matching local preview packages. Use the published
-package's collection-member syntax with its supported Goo version.
+source project references. The same application source works with the NuGet
+installation above.
 
 ## Controlled split panes, tabs, and multiline fields
 
 Mount `SplitPaneInput/SplitPane`, `TabBarInput/TabBar`, and `TextAreaInput/TextArea`
 with stable `Cell.Mount` keys. Update the supplied value in the host callback and
 call the host's `Rebuild()`; each mounted control retains its own interaction
-state. These APIs require the unreleased Goo 0.5.4 preview core.
+state.
 
 `SplitPane` accepts first/second content, horizontal or vertical orientation, and
 a controlled ratio or pixel value. Minima are in logical pixels. When their sum
@@ -177,9 +172,7 @@ copy; disabled mode rejects input. `Wrap`, `MinimumRows`, `MinimumHeight`, `Heig
 label, validation, font, editor/root styles, and factories support field composition.
 NoWrap enables horizontal scrolling, and both modes allow vertical scrolling.
 
-Build the local core dependencies with `scripts/setup-native-authoring.py`, then
-run `scripts/verify.sh`. Publishing these widgets requires publishing their core
-dependency first. Native checks are opt-in:
+Run `bash scripts/verify.sh` before the optional native checks:
 
 ```sh
 GOO_WIDGETS_COMPOSITES=1 /usr/bin/python3 scripts/with-isolated-wayland.py -- \

@@ -29,10 +29,6 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           global-json-file: global.json
-      - name: Build pinned upstream G# authoring tools
-        run: |
-          python3 scripts/bootstrap_gsharp.py artifacts/gsharp
-          mkdir -p artifacts/feed
       - name: Read package version
         id: version
         run: |
@@ -91,11 +87,13 @@ jobs:
         env:
           NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
         run: |
-          dotnet nuget push "artifacts/packages/Goo.Widgets.$WIDGETS_VERSION.nupkg" \
-            --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
-            --no-symbols \
-            --skip-duplicate
+          for package in Goo.Widgets Goo.Widgets.Markdown; do
+            dotnet nuget push "artifacts/packages/$package.$WIDGETS_VERSION.nupkg" \
+              --api-key "$NUGET_API_KEY" \
+              --source https://api.nuget.org/v3/index.json \
+              --no-symbols \
+              --skip-duplicate
+          done
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -107,6 +105,7 @@ jobs:
           if ! gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
             gh release create "$GITHUB_REF_NAME" \
               "artifacts/packages/Goo.Widgets.$WIDGETS_VERSION.nupkg" \
+              "artifacts/packages/Goo.Widgets.Markdown.$WIDGETS_VERSION.nupkg" \
               artifacts/packages/SHA256SUMS \
               "${flags[@]}" \
               --verify-tag \

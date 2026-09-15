@@ -4,8 +4,8 @@
     "net10.0": {
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.5.4-preview.2",
-        "contentHash": "0sk0kwGXATwqv+Um+JNlgT82bmyhQX59fxA30vfP4tb5QaI3i8UdeSjMRc9lSpcoLotDF81FTVVxH44fmPwqdA==",
+        "resolved": "0.5.4",
+        "contentHash": "u5GQB0OoQaN5xRTDjcD7KgVPxpkUp7x0GCEeLgZQC9jA5idJe2LXCT4Fytb+uZ9LADF+lSAZoM0JkXOSosljIw==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",
@@ -14,10 +14,10 @@
       },
       "Goo.Svg": {
         "type": "Transitive",
-        "resolved": "0.5.4-preview.2",
-        "contentHash": "uB9QDGepT2w+7u+yjApKhKq2whZPd6iTMWfzwGVhn1AwnqILE0M3qN0Zpa+AC0JMulqMnmTDZyEG2M8K70+G8g==",
+        "resolved": "0.5.4",
+        "contentHash": "qG00/I1gpJWKjyhFLErDJn9KpDocfppeWUkjR8DSvWIPGHw9FvwY6zDsNk/h73IMGrxxsUvyxsyYU3+5UmI8+A==",
         "dependencies": {
-          "Goo": "0.5.4-preview.2"
+          "Goo": "0.5.4"
         }
       },
       "Hexa.NET.SDL3": {
@@ -51,14 +51,14 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.5.4-preview.2, )",
-          "Goo.Svg": "[0.5.4-preview.2, )"
+          "Goo": "[0.5.4, )",
+          "Goo.Svg": "[0.5.4, )"
         }
       },
       "goo.widgets.markdown": {
         "type": "Project",
         "dependencies": {
-          "Goo.Widgets": "[0.1.2-preview.2, )",
+          "Goo.Widgets": "[0.2.1, )",
           "Markdig": "[0.38.0, )"
         }
       }

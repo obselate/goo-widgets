@@ -1,12 +1,29 @@
 # Changelog
 
-## Unreleased
+## 0.2.1 - 2026-09-15
 
+- Require Goo and Goo.Svg 0.5.4, which supply the updated upstream G# compiler
+  automatically. Remove the temporary local compiler/feed setup.
+- Use dot-free native G# mixed initializers, direct child composition, spreads, and
+  upstream formatting throughout widgets and examples. Follow Goo's refactored
+  ownership boundaries for input, overlays, platform services, and rendering.
+- Add Calendar and DatePicker with localized input, keyboard navigation,
+  constrained dates, and host-controlled selection.
+- Add searchable ComboBox with optional controlled query/open state, virtual
+  options, keyboard navigation, and anchored placement.
+- Add managed dialog, popover, and menu focus, dismissal, restoration, and
+  nested modal isolation. Keep native window ownership in Goo.
+- Add optional Goo.Widgets.Markdown with selectable blocks, tables, alerts,
+  heading handles, and host-owned link/image handling; keep the base package
+  free of parser dependencies.
+- Add controlled Disclosure with retained collapsed content, refresh SearchList
+  from replacement inputs, and route WindowChrome actions through host policy.
 - Restore searchable ComboBox height after clearing queries; round Disclosure
   focus outlines to their clipped headers; repair controlled SplitPane gallery callbacks.
 - Bubble decorative title double-clicks through WindowChrome while excluding
   embedded controls, and reserve space for MediaTransport volume slider endpoints.
-- Keep DataGrid checkboxes under the pointer when focus enters a scrolled grid.
+- Keep DataGrid checkboxes under the pointer when focus enters a scrolled grid
+  and when toggling consecutive rows through the last row.
 - Add opt-in TreeView row expansion and preferred Menu root/submenu directions,
   with native regressions using the actual gallery pages.
 

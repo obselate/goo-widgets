@@ -11,29 +11,29 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.1.1` targets .NET 10 and depends on Goo and Goo.Svg `0.5.2`.
-Install the package from NuGet.org:
+Goo Widgets `0.2.1` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
+Use `Gsharp.NET.Sdk/0.4.591` and install the package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.1
 ```
 
-The published package is `0.1.1`. The current checkout also contains unreleased
-ergonomic APIs described below. They are not available from the published package.
-The review build is `0.1.2-preview.2` and requires the matching Goo/Goo.Svg
-`0.5.4-preview.2` packages built from the core checkout; it has not been published.
+Goo supplies the upstream G# compiler and formatter needed for native child
+composition automatically. No compiler bootstrap or local Goo checkout is needed.
 
 ```gsharp
 import Goo
 import Goo.Widgets.Actions
 import Goo.Widgets.Feedback
 
-let save = ActionButton{Label: "Save", OnClick: () -> Save(),}.Build()
-
-let progress = ProgressBar{Value: 0.6}.Build()
+let content = Container{
+    Gap: 12,
+    ActionButton{Label: "Save", OnClick: () -> Save(),}.Build(),
+    ProgressBar{Value: 0.6}.Build(),
+}
 ```
 
-Place the returned `Blob` directly inside a `Container(){ ... }` or `Button(){ ... }` initializer in the current checkout.
+Place the returned `Blob` among a `Container` or `Button`'s children, as above.
 
 | Import | Widgets and supporting types |
 | --- | --- |
@@ -134,7 +134,7 @@ Each text block owns a selectable read-only editor with measured intrinsic heigh
 selection and copying operate within that block. Links use `OnLink`, and images
 remain selectable alternative text unless `ResolveImage` supplies a Blob.
 Block/inline/editor factories customize presentation, and `OnHeadings` supplies
-handles for table-of-contents navigation. See the [package guide](src/Goo.Widgets.Markdown/README.md)
+handles for table-of-contents navigation. See the [package guide](https://github.com/obselate/goo-widgets/blob/main/src/Goo.Widgets.Markdown/README.md)
 for lifecycle, scrolling, and customization details.
 
 ## Material icons
@@ -169,10 +169,10 @@ Widgets expose data, callbacks, appearance properties, and factories for their G
 primitives. Use G# `with` to derive widget values. Each `Build()` creates a fresh
 tree. No global theme registration or initialization is required.
 
-- Build value widgets inside the host cell's `Build`. Mount stateful widgets such
-  as Slider, ColorPicker, MediaTransport, and GraphCanvas with
-  `Cell.Mount[Input, Widget]` and stable keys. Update host state in callbacks and
-  call the host's `Rebuild()`.
+- Build value widgets inside the host Cell's `Build`. Input callbacks automatically
+  rebuild that Cell. Mount stateful widgets such as Slider, ColorPicker,
+  MediaTransport, and GraphCanvas with `Cell.Mount[Input, Widget]` and stable keys.
+  When a mounted widget's callback changes parent state, call the parent's `Rebuild()`.
 - Goo siblings must be all keyed or all unkeyed. Give siblings keys when composing
   mounted cells. Replacement factories must preserve required keys, handlers,
   handles, accessibility semantics, and layout properties.
@@ -204,9 +204,7 @@ tree. No global theme registration or initialization is required.
 - Media and upload widgets emit callbacks. The host owns playback, file access,
   and other services.
 
-## Current checkout ergonomics
-
-These additions are in the current checkout and are not part of published `0.1.1`:
+## Labels and color controls
 
 - `ColorPickerInput.Compact` keeps only the wheel and tone slider. The default
   full composition also includes the mode selector and preview. Leave `Mode`
@@ -233,7 +231,7 @@ Cell.Mount[SliderInput, Slider](
     SliderInput{
         Label: "Opacity",
         ShowValue: true,
-        FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
+        FormatValue: (value float64) -> "${Math.Round(value * 100)}%",
         Value: opacity,
         Minimum: 0.0,
         Maximum: 1.0,
@@ -243,29 +241,17 @@ Cell.Mount[SliderInput, Slider](
 
 ## Build and run
 
-The current checkout uses the upstream G# compiler and formatter at
-`947be9cb5f4467947ecb95dba06b461f9984d659`. Setup builds those tools, builds Goo
-and Goo.Svg preview packages from the supplied checkout. Linux needs the current
-patched SDL payload at `../goo-gsharp/artifacts/native-authoring/libSDL3.so`, or
-an explicit `--linux-sdl PATH`. Build it with the core
-`.github/scripts/build-sdl-linux-x64.sh` in its supported Linux build environment.
-Other native payloads come from published Goo 0.5.3. The compiler and feed stay under ignored `artifacts/`. Setup refreshes only the
-matching Goo/Goo.Svg preview version in the local NuGet cache; run
-`dotnet restore Goo.Widgets.slnx --force-evaluate` and
-`dotnet restore tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj --force-evaluate`
-after changing the core source. Hosted CI restores published dependencies; publish
-the matching Goo/Goo.Svg packages and refresh the lock files against them before
-opening the Widgets release PR.
+Install .NET 10 and meet [Goo's platform requirements](https://github.com/obselate/goo#platforms).
+NuGet supplies the native libraries and G# authoring tools.
 
 ```sh
-python3 scripts/setup-native-authoring.py --goo-source ../goo-gsharp
 bash scripts/verify.sh
 dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build
 ```
 
 Verification restores locked dependencies, builds the library and gallery,
-checks screenshot coverage, packs the library, and runs consumer checks against
-the packaged assembly. `artifacts/`, `bin/`, and `obj/` are generated and ignored.
+checks screenshot coverage, packs both libraries, and runs consumer checks against
+the packaged assemblies. `artifacts/`, `bin/`, and `obj/` are generated and ignored.
 
 For a source lint review with the standalone `gslint` tool:
 
@@ -297,8 +283,8 @@ After `scripts/verify.sh`, run the gallery interaction regressions in an isolate
 Wayland session. Set `GOO_CLI` to the matching Goo CLI executable or DLL:
 
 ```sh
-GOO_CLI=../goo-gsharp/tools/Goo.DevTools.Cli/bin/Release/net10.0/Goo.DevTools.Cli.dll \
-  python3 scripts/with-isolated-wayland.py -- python3 scripts/verify-gallery-feedback.py
+dotnet tool install --global Goo.DevTools --version 0.5.4
+python3 scripts/with-isolated-wayland.py -- python3 scripts/verify-gallery-feedback.py
 ```
 
 ## Add or change a widget

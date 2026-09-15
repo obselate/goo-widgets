@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets</RootNamespace>
     <AssemblyName>Goo.Widgets</AssemblyName>
-    <Version>0.1.2-preview.2</Version>
+    <Version>0.2.1</Version>
     <PackageId>Goo.Widgets</PackageId>
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>
@@ -20,8 +20,8 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo" Version="0.5.4-preview.2" />
-    <PackageReference Include="Goo.Svg" Version="0.5.4-preview.2" />
+    <PackageReference Include="Goo" Version="0.5.4" />
+    <PackageReference Include="Goo.Svg" Version="0.5.4" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" />

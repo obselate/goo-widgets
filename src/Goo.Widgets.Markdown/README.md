@@ -4,7 +4,12 @@ An optional `MarkdownView` for Goo. This package depends on
 [Markdig 0.38.0](https://github.com/xoofx/markdig/tree/0.38.0) and Goo.Widgets;
 the base Goo.Widgets package has no Markdown parser dependency.
 
+```sh
+dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.2.1
+```
+
 ```gsharp
+import Goo
 import Goo.Widgets.Markdown
 
 Cell.Mount[MarkdownViewInput, MarkdownView](
@@ -41,6 +46,3 @@ changes. IDs are lower-case slugs with duplicate suffixes. Handles become mounte
 after reconciliation; call `ScrollIntoView()` from a table-of-contents action.
 Headings expose heading semantics, and inline links expose keyboard-focusable link
 semantics when `OnLink` is supplied.
-
-The current review build requires unpublished Goo/Goo.Svg 0.5.4-preview.2 and
-Goo.Widgets 0.1.2-preview.2. Publish those dependencies before this package.

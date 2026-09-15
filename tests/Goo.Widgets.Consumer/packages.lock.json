@@ -4,9 +4,9 @@
     "net10.0": {
       "Goo": {
         "type": "Direct",
-        "requested": "[0.5.4-preview.2, )",
-        "resolved": "0.5.4-preview.2",
-        "contentHash": "0sk0kwGXATwqv+Um+JNlgT82bmyhQX59fxA30vfP4tb5QaI3i8UdeSjMRc9lSpcoLotDF81FTVVxH44fmPwqdA==",
+        "requested": "[0.5.4, )",
+        "resolved": "0.5.4",
+        "contentHash": "u5GQB0OoQaN5xRTDjcD7KgVPxpkUp7x0GCEeLgZQC9jA5idJe2LXCT4Fytb+uZ9LADF+lSAZoM0JkXOSosljIw==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",
@@ -15,11 +15,11 @@
       },
       "Goo.Svg": {
         "type": "Direct",
-        "requested": "[0.5.4-preview.2, )",
-        "resolved": "0.5.4-preview.2",
-        "contentHash": "uB9QDGepT2w+7u+yjApKhKq2whZPd6iTMWfzwGVhn1AwnqILE0M3qN0Zpa+AC0JMulqMnmTDZyEG2M8K70+G8g==",
+        "requested": "[0.5.4, )",
+        "resolved": "0.5.4",
+        "contentHash": "qG00/I1gpJWKjyhFLErDJn9KpDocfppeWUkjR8DSvWIPGHw9FvwY6zDsNk/h73IMGrxxsUvyxsyYU3+5UmI8+A==",
         "dependencies": {
-          "Goo": "0.5.4-preview.2"
+          "Goo": "0.5.4"
         }
       },
       "Markdig": {
