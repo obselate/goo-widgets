@@ -220,7 +220,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
   }
 
   private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
-    content.Height = Math.Max(1.0, bounds.Height - 2.0)
     let prepared = Container{BackgroundColor: "#18181b", BorderColor: "#52525b", BorderWidth: 1.0, BorderRadius: 6.0}
     return if let create = current.CreatePopup { create(current, prepared) } else { prepared }
   }

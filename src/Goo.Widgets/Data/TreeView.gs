@@ -52,6 +52,9 @@ public data struct TreeViewInput {
   var SelectedId string?
   /// Requests single row selection.
   var OnSelect Action[string]?
+  /// Row click, Enter, and accessibility activation also request branch expansion. Defaults to false.
+  /// Checkbox clicks and Space retain the host's check policy.
+  var ExpandOnActivate bool
   /// Requests a check change without applying any descendant or ancestor cascade. Mixed requests True.
   var OnCheckChange Action[string, AccessibilityChecked]?
   /// Describes a host policy allowing multiple checked nodes; row selection remains single.
@@ -218,6 +221,14 @@ public open class TreeView : Cell[TreeViewInput] {
     Activate(id)
     input.OnSelect?.Invoke(id)
   }
+  private func ActivateRow(id string) {
+    if Index(id) < 0 { return }
+    let row = rows[Index(id)]
+    Select(id)
+    if input.ExpandOnActivate && (row.Node.Children ?? []TreeNode {}).Length > 0 {
+      input.OnExpandedChange?.Invoke(id, !row.Expanded)
+    }
+  }
   private func Expand(id string, expanded bool) {
     if Index(id) < 0 { return }
     Activate(id)
@@ -280,7 +291,7 @@ public open class TreeView : Cell[TreeViewInput] {
     root.Disabled = row.Disabled
     root.Focusable = false
     root.TabStop = false
-    root.OnClick = () -> Select(id)
+    root.OnClick = () -> ActivateRow(id)
     root.OnFocus = (e FocusEvent) -> { activeId = id }
     let actions = List[AccessibilityAction]()
     if !row.Disabled {
@@ -307,6 +318,10 @@ public open class TreeView : Cell[TreeViewInput] {
     if request.Action == Goo.AccessibilityAction.Select && input.OnSelect != nil { Select(id)
       return true }
     if request.Action == Goo.AccessibilityAction.Activate {
+      if input.ExpandOnActivate && (row.Node.Children ?? []TreeNode {}).Length > 0 {
+        ActivateRow(id)
+        return true
+      }
       if row.Node.CheckState != AccessibilityChecked.Unspecified && input.OnCheckChange != nil { Check(id)
         return true }
       if input.OnSelect != nil { Select(id)
@@ -348,7 +363,7 @@ public open class TreeView : Cell[TreeViewInput] {
           }
         }
       }
-    } else if e.Key == Key.Enter { Select(row.Node.Id!!) }
+    } else if e.Key == Key.Enter { ActivateRow(row.Node.Id!!) }
     else if e.Key == Key.Space {
       if row.Node.CheckState != AccessibilityChecked.Unspecified { Check(row.Node.Id!!) }
       else { Select(row.Node.Id!!) }

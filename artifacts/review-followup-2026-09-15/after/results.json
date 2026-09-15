@@ -1,0 +1,42 @@
+[
+  {
+    "page": "Combo box",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/combo-box.log"
+  },
+  {
+    "page": "Split pane",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/split-pane.log"
+  },
+  {
+    "page": "Window chrome",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/window-chrome.log"
+  },
+  {
+    "page": "Disclosure",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/disclosure.log"
+  },
+  {
+    "page": "Media transport",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/media-transport.log"
+  },
+  {
+    "page": "Data grid",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/data-grid.log"
+  },
+  {
+    "page": "Tree view",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/tree-view.log"
+  },
+  {
+    "page": "Menu",
+    "exit_code": 0,
+    "log": "/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/after/menu.log"
+  }
+]

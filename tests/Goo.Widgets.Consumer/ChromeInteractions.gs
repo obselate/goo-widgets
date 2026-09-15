@@ -15,10 +15,13 @@ func ChromeContractControl(input WindowChrome, command WindowChromeAction, conte
   Focusable: true, Disabled: false, Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "wrong"},
   Children: {Text{Content: "wrong"}},
 }
-func ChromeContractRoot(input WindowChrome, children []Blob) Container -> Container {Children: children}
+func ChromeContractRoot(input WindowChrome, children []Blob) Container -> Container {
+  OnPointerDown: (e PointerEvent) -> {}, Children: children,
+}
 func WindowChromeContracts() {
   let row = (WindowChrome{CreateRoot: ChromeContractRoot, CreateControl: ChromeContractControl}.Build() as Container)!!
   Require(!row.Focusable && row.Children.Count == 4, "Chrome changed the factory child order or became a focusable drag region")
+  Require(row.OnPointerDown != nil, "Stateless chrome discarded the root factory's pointer handler")
   for child in row.Children {
     if child is Button {
       Require(child.Disabled && !child.Focusable && child.OnClick == nil && child.Accessibility?.Role == AccessibilityRole.Button,

@@ -1,5 +1,6 @@
 package Goo.Widgets.Layout
 
+import System
 import Goo
 import Goo.Widgets.Icons
 
@@ -85,12 +86,16 @@ public data struct Disclosure {
     let onChange = resolved.OnExpandedChange
     let next = !resolved.Expanded
     let action Action? = if resolved.Disabled { nil } else { () -> { onChange?.Invoke(next) } }
+    let headerRadius = Math.Max(0.0, resolved.BorderRadius!! -resolved.BorderWidth!!)
     var header = Button{
       Key: "header", MinHeight: resolved.HeaderHeight!!, FlexShrink: 0,
       Padding: resolved.HeaderPadding!!, Gap: resolved.Gap!!,
       FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
       JustifyContent: JustifyContent.FlexStart, BackgroundColor: Color.Transparent,
       Color: resolved.TextColor!!, BorderWidth: 0, BorderRadius: 0,
+      BorderTopLeftRadius: headerRadius, BorderTopRightRadius: headerRadius,
+      BorderBottomLeftRadius: resolved.Expanded ? 0.0 : headerRadius,
+      BorderBottomRightRadius: resolved.Expanded ? 0.0 : headerRadius,
       Hover: Style{BackgroundColor: resolved.HoverColor!!},
       Focus: if resolved.ShowFocusHighlight {
         Style{OutlineColor: resolved.TextColor!!, OutlineWidth: 1, OutlineOffset: -1}

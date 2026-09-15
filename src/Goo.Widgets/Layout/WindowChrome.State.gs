@@ -67,7 +67,8 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
   }
 
   private func BlankPointer(event PointerEvent) {
-    if !current.EnableDoubleClick || event.Button != PointerButton.Primary || event.ClickCount != 2 { return }
+    if !current.EnableDoubleClick || event.IsFromInteractiveChild
+      || event.Button != PointerButton.Primary || event.ClickCount != 2 { return }
     event.PreventDefault()
     event.StopPropagation()
     Toggle()

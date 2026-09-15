@@ -163,6 +163,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 Text{ Content: "Volume", FontSize: 12.0, Color: resolved.TextColor!! },
                 Container{
                   Width: 120.0,
+                  PaddingLeft: 10.0,
+                  PaddingRight: 10.0,
                   Children: {
                     Cell.Mount[SliderInput, Slider]("media-volume", SliderInput{
                       Value: resolved.Volume,

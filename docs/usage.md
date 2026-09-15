@@ -302,6 +302,10 @@ content, optional check state, and children. A disabled node also disables its
 descendants. Cycles and shared/duplicate node identities are rejected. Expansion
 uses `ExpandedIds` and `OnExpandedChange`; single row selection uses `SelectedId`
 and `OnSelect`. Host callbacks should update their input and rebuild the host.
+Set `ExpandOnActivate: true` to make a branch's row click, Enter, and accessible
+Activate request both selection and expansion/collapse. The host still updates
+`ExpandedIds`. Expander buttons toggle once; checkbox clicks and Space retain the
+host's check policy. This is enabled in both gallery examples and defaults to false.
 Replace node/expansion arrays when their contents change; typed Cell inputs are
 immutable snapshots and do not observe in-place collection edits.
 
@@ -374,3 +378,20 @@ push following rows naturally. Ordinary row cells use fixed `RowHeight`. Replace
 changed arrays and maps before rebuilding; typed inputs do not observe in-place
 mutations. Use `GOO_WIDGETS_DATA_GRID=1` with the isolated native runner for sorting,
 selection, resizing/cancel, expanded details, horizontal scrolling, and 1,500 rows.
+
+
+## Gallery feedback regression checks
+
+Build with `scripts/verify.sh`, then run the actual gallery pages in isolated
+native processes. `GOO_CLI` may name a Goo executable or its built CLI DLL:
+
+```sh
+GOO_CLI=/path/to/goo /usr/bin/python3 scripts/with-isolated-wayland.py -- \
+  python3 scripts/verify-gallery-feedback.py
+```
+
+The runner writes screenshots, per-page logs, and `results.json` to
+`artifacts/gallery-feedback`. Use `--output` to change that directory; optional
+page names select cases, such as `'Data grid' 'Tree view'`. These checks compile
+the gallery's actual cells into the package consumer and separate native presses
+from releases with rendered frames, so focus-induced layout changes are exercised.

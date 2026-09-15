@@ -1,0 +1,14 @@
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-scrolled-before-check.png
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-scrolled-after-check.png
+grid-scrolled fjord selected=True before-y=523.7000122070312 after-y=523.7000122070312
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-partial-check.png
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-initial.png
+grid-check borealis selected=True before-y=408.70001220703125 after-y=408.70001220703125
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-check-borealis.png
+grid-check cirrus selected=True before-y=444.70001220703125 after-y=444.70001220703125
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-check-cirrus.png
+grid-check ember selected=True before-y=516.7000122070312 after-y=516.7000122070312
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-check-ember.png
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-sorted.png
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/extended-final/gallery-grid-filter-clear-expanded.png
+PASS gallery feedback: Data grid

@@ -70,7 +70,11 @@ reports Escape, OutsideClick, or AnchorRemoved; update Open and rebuild the host
 Tab stays in the popup and closing restores eligible prior focus. Factories
 customize the panel/root while placement, handles, input, and content stay wired.
 
-`Menu` takes `MenuInput` with an Anchor or WindowPoint for a context menu. Items
+`Menu` takes `MenuInput` with an Anchor or WindowPoint for a context menu.
+`Placement` selects the preferred root position (default BottomStart);
+`SubmenuPlacement` accepts LeftStart or RightStart (default RightStart). Popover
+still flips/clamps at viewport edges. Left opens and Right closes when the preferred
+submenu side is left; the default uses Right to open and Left to close. Items
 have globally unique IDs, labels/custom content, disabled/separator state, optional
 children, and an optional per-item action overriding the shared OnActivate(id).
 Up/Down/Home/End navigate; Right/Left open and close submenus; Enter/Space activate;
@@ -195,7 +199,8 @@ tree. No global theme registration or initialization is required.
   routes blank titlebar double-clicks through the resolved maximize/restore action;
   supply `Host` for native drag regions in undecorated windows, including when
   callbacks override its actions. False leaves the operating system's default
-  behavior in place. `EnableContextMenu`
+  behavior in place. Decorative title content participates in double-click handling;
+  embedded clickable/focusable controls keep their own behavior. `EnableContextMenu`
   enables right-click, Menu, and Shift+F10 commands with focus restoration. Callback-only
   chrome needs a full-window `OverlayHost` for menus. `CreateMenu` customizes presentation;
   actions, placement, open state, and dismissal remain wired by the widget.

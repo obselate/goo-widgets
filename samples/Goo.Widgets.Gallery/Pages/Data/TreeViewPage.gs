@@ -29,7 +29,7 @@ internal class TreeViewExample : Cell {
   public override func Build() Blob -> Container {Width: 660, FlexDirection: FlexDirection.Row, Gap: 24, Children: {
     Container{Width: 300, Gap: 12, Children: {
       Text{Key: "label", Content: "Single selection", FontSize: 18, Color: "#fafafa"},
-      Cell.Mount[TreeViewInput, TreeView]("simple", TreeViewInput{Height: 245, SelectedId: selected, ExpandedIds: expanded, OnExpandedChange: Expand, OnSelect: Select,
+      Cell.Mount[TreeViewInput, TreeView]("simple", TreeViewInput{Height: 245, ExpandOnActivate: true, SelectedId: selected, ExpandedIds: expanded, OnExpandedChange: Expand, OnSelect: Select,
         Nodes: []TreeNode{TreeNode{Id: "docs", Label: "Documents", Children: []TreeNode{
           TreeNode{Id: "guide", Label: "Getting started"}, TreeNode{Id: "notes", Label: "Field notes"},
           TreeNode{Id: "private", Label: "Private archive", Disabled: true},
@@ -38,7 +38,7 @@ internal class TreeViewExample : Cell {
     }},
     Container{Width: 330, Gap: 12, Children: {
       Text{Key: "label", Content: "Host-owned check policy", FontSize: 18, Color: "#fafafa"},
-      Cell.Mount[TreeViewInput, TreeView]("checks", TreeViewInput{Height: 245, ExpandedIds: expanded, OnExpandedChange: Expand, MultiSelectable: true,
+      Cell.Mount[TreeViewInput, TreeView]("checks", TreeViewInput{Height: 245, ExpandOnActivate: true, ExpandedIds: expanded, OnExpandedChange: Expand, MultiSelectable: true,
         OnCheckChange: Check,
         Nodes: []TreeNode{TreeNode{Id: "groups", Label: "All hosts", CheckState: GroupState(), Children: []TreeNode{
           TreeNode{Id: "workstations", Label: "Workstations", CheckState: workstations ? AccessibilityChecked.True : AccessibilityChecked.False},

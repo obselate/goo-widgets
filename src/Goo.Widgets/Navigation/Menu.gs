@@ -28,6 +28,10 @@ public data struct MenuInput {
   /// Nil resolves to true; false keeps the menu open after leaf activation.
   var DismissOnActivate bool?
   var Viewport ElementRect?
+  /// Preferred root placement; defaults to BottomStart. The viewport may flip or clamp it.
+  var Placement PopoverPlacement
+  /// Preferred submenu side; LeftStart or RightStart. Nil resolves to RightStart.
+  var SubmenuPlacement PopoverPlacement?
   var Width float64
   var MaxHeight float64
   var ZIndex int32
@@ -49,6 +53,8 @@ public open class Menu : Cell[MenuInput] {
 
   protected override func Build(input MenuInput) Blob {
     current = input
+    if input.SubmenuPlacement != nil && input.SubmenuPlacement != PopoverPlacement.LeftStart
+      && input.SubmenuPlacement != PopoverPlacement.RightStart{ throw ArgumentOutOfRangeException("Menu submenu placement") }
     Validate(input.Items ?? []MenuItem{})
     if !input.Open {
       path.Clear()
@@ -129,7 +135,7 @@ public open class Menu : Cell[MenuInput] {
       row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
       row.Children.Clear()
       row.Children.Add(Container{Key: "content", FlexGrow: 1.0, MinWidth: 0.0, Children: {content}})
-      if hasChildren { row.Children.Add(Text{Key: "arrow", Content: "›", FontSize: 18, Color: "#a1a1aa"}) }
+      if hasChildren { row.Children.Add(Text{Key: "arrow", Content: OpensLeft() ? "‹" : "›", FontSize: 18, Color: "#a1a1aa"}) }
       rows.Children.Add(row)
     }
     var overlays []Blob = []Blob{}
@@ -147,7 +153,7 @@ public open class Menu : Cell[MenuInput] {
       Open: current.Open, Content: rows, Overlays: overlays,
       Role: AccessibilityRole.Menu, AccessibilityName: name,
       Width: current.Width, MaxHeight: current.MaxHeight, ZIndex: current.ZIndex,
-      Placement: depth == 0 ? PopoverPlacement.BottomStart : PopoverPlacement.RightStart,
+      Placement: depth == 0 ? current.Placement : current.SubmenuPlacement ?? PopoverPlacement.RightStart,
       Padding: 4.0, DismissOnOutsideClick: depth == 0,
       OnDismiss: (reason PopoverDismissReason) -> CloseLevel(depth),
       CreatePanel: Panel, CreateRoot: Root,
@@ -240,6 +246,8 @@ public open class Menu : Cell[MenuInput] {
     Rebuild()
   }
 
+  private func OpensLeft() bool -> current.SubmenuPlacement == PopoverPlacement.LeftStart
+
   private func KeyDown(source []MenuItem, depth int32, id string, event KeyEvent) {
     if event.Key == Key.Up || event.Key == Key.Down {
       event.PreventDefault()
@@ -249,11 +257,11 @@ public open class Menu : Cell[MenuInput] {
       event.PreventDefault()
       event.StopPropagation()
       Focus(depth, First(source, event.Key == Key.End))
-    } else if event.Key == Key.Right {
+    } else if event.Key == (OpensLeft() ? Key.Left : Key.Right) {
       event.PreventDefault()
       event.StopPropagation()
       OpenChild(depth, id)
-    } else if event.Key == Key.Left && depth > 0 {
+    } else if event.Key == (OpensLeft() ? Key.Right : Key.Left) && depth > 0 {
       event.PreventDefault()
       event.StopPropagation()
       CloseLevel(depth)

@@ -145,6 +145,8 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_GALLERY_FEEDBACK") == "1" { GalleryFeedbackInteractions()
+    return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_CHROME") == "1" { ChromeInteractions()
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_MARKDOWN") == "1" { MarkdownInteractions()

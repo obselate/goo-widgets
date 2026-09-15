@@ -102,6 +102,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
   private var activeId string?
   private var anchorId string?
   private var hasFocus bool
+  private var pointerFocus bool
   private var clickModifiers KeyModifiers
   private var pointer int64 = -1L
   private var resizeId string?
@@ -121,6 +122,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
   }
 
   protected override func Build(value DataGridInput) Blob {
+    pointerFocus = false
     let defaultHeight Length = 300
     input = value with{Width = value.Width ?? Length.Percent(100), Height = value.Height ?? defaultHeight,
       RowHeight = value.RowHeight ?? 36.0, HeaderHeight = value.HeaderHeight ?? 38.0, FilterHeight = value.FilterHeight ?? 38.0,
@@ -194,7 +196,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     root.Focusable = !input.Disabled
     root.OnKeyDown = KeyDown
     root.OnFocus = (e FocusEvent) -> { hasFocus = true
-      Reveal() }
+      if !pointerFocus { Reveal() } }
     root.OnBlur = (e FocusEvent) -> { hasFocus = false }
     var active ElementHandle?
     if let id = activeId { active = Handle(rowHandles, id) }
@@ -321,13 +323,13 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         check.Focusable = false
         check.TabStop = false
         check.Disabled = row.Disabled || snapshot.Disabled || snapshot.OnSelectionChange == nil
-        check.OnClick = () -> Select(id, true, false)
+        check.OnClick = () -> Select(id, true, false, false)
         check.Accessibility = Accessibility{Hidden: true}
         controls.Children.Add(Container{Key: "selection", Width: 36, AlignItems: AlignItems.Center, Children: {check}})
       }
       if details {
         let expand = Button{Width: 26, Height: 26, Padding: 4, BackgroundColor: Color.Transparent, Focusable: false, TabStop: false,
-          Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil, OnClick: () -> Expand(id, !isExpanded),
+          Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil, OnClick: () -> Expand(id, !isExpanded, false),
           Accessibility: Accessibility{Hidden: true}, Children: {MaterialIcons.Create(isExpanded ? "expand_more" : "chevron_right", 16, snapshot.TextColor)}}
         let slot = Container{Key: "expansion", Width: 30, AlignItems: AlignItems.Center}
         if row.HasDetail || row.Detail != nil { slot.Children.Add(expand) }
@@ -358,8 +360,13 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     root.Focusable = false
     root.TabStop = false
     root.Disabled = row.Disabled || snapshot.Disabled
-    root.OnPointerDown = (e PointerEvent) -> { clickModifiers = e.Modifiers }
-    root.OnClick = () -> Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift)
+    root.OnPointerDown = (e PointerEvent) -> { clickModifiers = e.Modifiers
+      if e.Button == PointerButton.Primary {
+        activeId = id
+        // Default focus runs after this callback; keep the hit row under the pointer.
+        pointerFocus = true
+      } }
+    root.OnClick = () -> Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
     let actions = List[AccessibilityAction]()
     if !row.Disabled && !snapshot.Disabled {
       actions.Add(AccessibilityAction.Focus)
@@ -383,18 +390,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     return root
   }
 
-  private func Activate(id string) { if Index(id) < 0 || input.Disabled { return }
+  private func Activate(id string, reveal bool = true) { if Index(id) < 0 || input.Disabled { return }
     activeId = id
     rootHandle.Focus()
-    Reveal() }
+    if reveal { Reveal() } }
   private func Reveal() {
     if activeId == nil || Index(activeId) < 0 { return }
     let handle = Handle(rowHandles, activeId!!)
     if handle.IsMounted { handle.ScrollIntoView() } else { viewport.ScrollToItem(activeId!!) }
   }
-  private func Select(id string, toggle bool, extend bool) {
+  private func Select(id string, toggle bool, extend bool, reveal bool = true) {
     if Index(id) < 0 || input.Disabled { return }
-    Activate(id)
+    Activate(id, reveal)
     if input.Selection == DataGridSelection.None || input.OnSelectionChange == nil { return }
     let next = List[string]()
     if input.Selection == DataGridSelection.Single { if !toggle || !selected.Contains(id) { next.Add(id) } }
@@ -410,8 +417,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     if !extend { anchorId = id }
     input.OnSelectionChange!! (next.ToArray())
   }
-  private func Expand(id string, state bool) { if Index(id) < 0 || input.Disabled || !(rows[Index(id)].HasDetail || rows[Index(id)].Detail != nil) { return }
-    Activate(id)
+  private func Expand(id string, state bool, reveal bool = true) { if Index(id) < 0 || input.Disabled || !(rows[Index(id)].HasDetail || rows[Index(id)].Detail != nil) { return }
+    Activate(id, reveal)
     input.OnExpandedChange?.Invoke(id, state) }
   private func Sort(id string) {
     let index = ColumnIndex(id)

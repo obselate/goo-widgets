@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Restore searchable ComboBox height after clearing queries; round Disclosure
+  focus outlines to their clipped headers; repair controlled SplitPane gallery callbacks.
+- Bubble decorative title double-clicks through WindowChrome while excluding
+  embedded controls, and reserve space for MediaTransport volume slider endpoints.
+- Keep DataGrid checkboxes under the pointer when focus enters a scrolled grid.
+- Add opt-in TreeView row expansion and preferred Menu root/submenu directions,
+  with native regressions using the actual gallery pages.
+
 - Add controlled DataGrid columns, captured resizing, sorting, row selection,
   filter/cell factories, and measured virtual detail rows with native gallery proof.
 

@@ -111,7 +111,7 @@ public data struct WindowChrome {
     let maximized = resolved.IsMaximized!!
     let children = List[Blob]()
     if let leading = resolved.LeadingContent { children.Add(Container{ Children: { leading } }) }
-    children.Add(Container{ FlexGrow: 1.0, Height: Length.Percent(100), OnPointerDown: blankPointer })
+    children.Add(Container{ FlexGrow: 1.0, Height: Length.Percent(100) })
     if let trailing = resolved.TrailingContent { children.Add(Container{ Children: { trailing } }) }
     if resolved.ShowMinimize!! {
       children.Add(BuildControl(resolved, WindowChromeAction.Minimize, resolved.OnMinimize, createContent, createControl))
@@ -140,6 +140,7 @@ public data struct WindowChrome {
     for child in ordered { root.Children.Add(child) }
     root.Focusable = false
     root.OnClick = nil
+    if let handler = blankPointer { root.OnPointerDown = handler }
     return Window.DragRegion(root)
   }
 

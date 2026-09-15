@@ -1,0 +1,11 @@
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/grid-focus-visible-repro/gallery-grid-scrolled-before-check.png
+/home/xaz/Projects/Goo Widgets/artifacts/review-followup-2026-09-15/grid-focus-visible-repro/gallery-grid-scrolled-after-check.png
+grid-scrolled fjord selected=False before-y=523.7000122070312 after-y=552.7000122070312
+FAIL gallery feedback: Data grid: System.InvalidOperationException: Focusing a scrolled grid moved the checkbox under the pointer or selected a different row
+   at Goo.Widgets.Consumer.<Program>.Require(Boolean condition, String message) in /home/xaz/Projects/Goo Widgets/tests/Goo.Widgets.Consumer/Program.gs:line 18
+   at Goo.Widgets.Consumer.<Program>.FeedbackGrid(Window window, SearchListSemantics adapter) in /home/xaz/Projects/Goo Widgets/tests/Goo.Widgets.Consumer/GalleryFeedbackInteractions.gs:line 123
+   at Goo.Widgets.Consumer.<Program>.GalleryFeedbackInteractions() in /home/xaz/Projects/Goo Widgets/tests/Goo.Widgets.Consumer/GalleryFeedbackInteractions.gs:line 212
+Unhandled exception. System.InvalidOperationException: Data grid: Focusing a scrolled grid moved the checkbox under the pointer or selected a different row
+   at Goo.Widgets.Consumer.<Program>.Require(Boolean condition, String message) in /home/xaz/Projects/Goo Widgets/tests/Goo.Widgets.Consumer/Program.gs:line 18
+   at Goo.Widgets.Consumer.<Program>.GalleryFeedbackInteractions() in /home/xaz/Projects/Goo Widgets/tests/Goo.Widgets.Consumer/GalleryFeedbackInteractions.gs:line 225
+   at Goo.Widgets.Consumer.<Program>.Main() in /home/xaz/Projects/Goo Widgets/tests/Goo.Widgets.Consumer/Program.gs:line 148

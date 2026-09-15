@@ -5,6 +5,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../../samples/Goo.Widgets.Gallery/Gallery.gs" Link="Gallery/Gallery.gs" />
+    <Compile Include="../../samples/Goo.Widgets.Gallery/Pages/**/*.gs" Link="Gallery/Pages/%(RecursiveDir)%(Filename)%(Extension)" />
     <PackageReference Include="Goo" Version="0.5.4-preview.1" />
     <PackageReference Include="Goo.Svg" Version="0.5.4-preview.1" />
     <PackageReference Include="Markdig" Version="0.38.0" />
