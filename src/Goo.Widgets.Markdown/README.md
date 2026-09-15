@@ -7,10 +7,10 @@ the base Goo.Widgets package has no Markdown parser dependency.
 ```gsharp
 import Goo.Widgets.Markdown
 
-Cell.Mount[MarkdownViewInput, MarkdownView]("article", MarkdownViewInput{
-  Text: "# Release notes\n\nRead the **changes** and [guide](app:guide).",
-  OnLink: OpenLink,
-})
+Cell.Mount[MarkdownViewInput, MarkdownView](
+    "article",
+    MarkdownViewInput{Text: "# Release notes\n\nRead the **changes** and [guide](app:guide).", OnLink: OpenLink,}
+)
 ```
 
 The parser supports CommonMark blocks plus pipe tables, strikethrough, autolinks,
@@ -42,5 +42,5 @@ after reconciliation; call `ScrollIntoView()` from a table-of-contents action.
 Headings expose heading semantics, and inline links expose keyboard-focusable link
 semantics when `OnLink` is supplied.
 
-The current review build requires unpublished Goo/Goo.Svg 0.5.4-preview.1 and
-Goo.Widgets 0.1.2-preview.1. Publish those dependencies before this package.
+The current review build requires unpublished Goo/Goo.Svg 0.5.4-preview.2 and
+Goo.Widgets 0.1.2-preview.2. Publish those dependencies before this package.

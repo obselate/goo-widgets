@@ -20,23 +20,20 @@ dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
 
 The published package is `0.1.1`. The current checkout also contains unreleased
 ergonomic APIs described below. They are not available from the published package.
-The review build is `0.1.2-preview.1` and requires the matching Goo/Goo.Svg
-`0.5.4-preview.1` packages built from the core checkout; it has not been published.
+The review build is `0.1.2-preview.2` and requires the matching Goo/Goo.Svg
+`0.5.4-preview.2` packages built from the core checkout; it has not been published.
 
 ```gsharp
 import Goo
 import Goo.Widgets.Actions
 import Goo.Widgets.Feedback
 
-let save = ActionButton{
-  Label: "Save",
-  OnClick: () -> Save(),
-}.Build()
+let save = ActionButton{Label: "Save", OnClick: () -> Save(),}.Build()
 
 let progress = ProgressBar{Value: 0.6}.Build()
 ```
 
-Place the returned `Blob` in a Goo `Children` collection.
+Place the returned `Blob` directly inside a `Container(){ ... }` or `Button(){ ... }` initializer in the current checkout.
 
 | Import | Widgets and supporting types |
 | --- | --- |
@@ -153,9 +150,9 @@ import Goo.Widgets.Actions
 import Goo.Widgets.Icons
 
 let add = IconButton{
-  AccessibilityName: "Add item",
-  Icon: MaterialIcons.Create("add", size: 24.0, color: Color.Parse("#fafafa")),
-  OnClick: () -> AddItem(),
+    AccessibilityName: "Add item",
+    Icon: MaterialIcons.Create("add", size: 24.0, color: Color.Parse("#fafafa")),
+    OnClick: () -> AddItem(),
 }.Build()
 ```
 
@@ -224,24 +221,44 @@ These additions are in the current checkout and are not part of published `0.1.1
 
 ```gsharp
 Checkbox{
-  Label: "Include inherited settings",
-  State: state,
-  OnChange: (next AccessibilityChecked) -> { state = next },
+    Label: "Include inherited settings",
+    State: state,
+    OnChange: (next AccessibilityChecked) -> {
+        state = next
+    },
 }.Build()
 
-Cell.Mount[SliderInput, Slider]("opacity", SliderInput{
-  Label: "Opacity",
-  ShowValue: true,
-  FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
-  Value: opacity,
-  Minimum: 0.0,
-  Maximum: 1.0,
-})
+Cell.Mount[SliderInput, Slider](
+    "opacity",
+    SliderInput{
+        Label: "Opacity",
+        ShowValue: true,
+        FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
+        Value: opacity,
+        Minimum: 0.0,
+        Maximum: 1.0,
+    }
+)
 ```
 
 ## Build and run
 
+The current checkout uses the upstream G# compiler and formatter at
+`947be9cb5f4467947ecb95dba06b461f9984d659`. Setup builds those tools, builds Goo
+and Goo.Svg preview packages from the supplied checkout. Linux needs the current
+patched SDL payload at `../goo-gsharp/artifacts/native-authoring/libSDL3.so`, or
+an explicit `--linux-sdl PATH`. Build it with the core
+`.github/scripts/build-sdl-linux-x64.sh` in its supported Linux build environment.
+Other native payloads come from published Goo 0.5.3. The compiler and feed stay under ignored `artifacts/`. Setup refreshes only the
+matching Goo/Goo.Svg preview version in the local NuGet cache; run
+`dotnet restore Goo.Widgets.slnx --force-evaluate` and
+`dotnet restore tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj --force-evaluate`
+after changing the core source. Hosted CI restores published dependencies; publish
+the matching Goo/Goo.Svg packages and refresh the lock files against them before
+opening the Widgets release PR.
+
 ```sh
+python3 scripts/setup-native-authoring.py --goo-source ../goo-gsharp
 bash scripts/verify.sh
 dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build
 ```
@@ -253,12 +270,14 @@ the packaged assembly. `artifacts/`, `bin/`, and `obj/` are generated and ignore
 For a source lint review with the standalone `gslint` tool:
 
 ```sh
-gslint --strict --severity GL0005=info src/Goo.Widgets
+gslint --strict --severity GL0005=info src
 ```
 
-GL0005 remains visible as a manual review advisory. Widget props use assertions
-after resolving defaults or assigning factory results. All other lint rules run
-at strict severity.
+The repository disables GL0005 for deliberate assertions after resolving widget
+defaults or assigning factory results. The command above shows those sites as
+manual review information. The compiler rejects redundant assertions with GS0536. Public documentation checks cover the library. Samples and test fixtures exclude
+GL0006. Other lint rules run at strict severity. Formatting uses the upstream
+four-space, 120-column ADR-0179 engine.
 
 The gallery needs a graphical session and Goo's Vulkan runtime prerequisites.
 In a Wayland session, set `SDL_VIDEODRIVER=wayland` for native checks and screenshots.
@@ -273,6 +292,14 @@ dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --veri
 Native checks cover pointer capture, keyboard focus, disabled input, resizing,
 color picker disposal and remounting, and clean exit. Linux x64 is the verified
 runtime target. CI does not run graphical checks.
+
+After `scripts/verify.sh`, run the gallery interaction regressions in an isolated
+Wayland session. Set `GOO_CLI` to the matching Goo CLI executable or DLL:
+
+```sh
+GOO_CLI=../goo-gsharp/tools/Goo.DevTools.Cli/bin/Release/net10.0/Goo.DevTools.Cli.dll \
+  python3 scripts/with-isolated-wayland.py -- python3 scripts/verify-gallery-feedback.py
+```
 
 ## Add or change a widget
 

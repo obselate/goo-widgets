@@ -1,4 +1,4 @@
-<Project Sdk="Gsharp.NET.Sdk/0.4.59">
+<Project Sdk="Gsharp.NET.Sdk/0.4.591">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -7,8 +7,8 @@
   <ItemGroup>
     <Compile Include="../../samples/Goo.Widgets.Gallery/Gallery.gs" Link="Gallery/Gallery.gs" />
     <Compile Include="../../samples/Goo.Widgets.Gallery/Pages/**/*.gs" Link="Gallery/Pages/%(RecursiveDir)%(Filename)%(Extension)" />
-    <PackageReference Include="Goo" Version="0.5.4-preview.1" />
-    <PackageReference Include="Goo.Svg" Version="0.5.4-preview.1" />
+    <PackageReference Include="Goo" Version="0.5.4-preview.2" />
+    <PackageReference Include="Goo.Svg" Version="0.5.4-preview.2" />
     <PackageReference Include="Markdig" Version="0.38.0" />
     <Reference Include="Goo.Widgets">
       <HintPath>../../artifacts/package/lib/net10.0/Goo.Widgets.dll</HintPath>

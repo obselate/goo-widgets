@@ -1,30 +1,24 @@
 # Using Goo Widgets
 
-Add the package to an existing Goo application:
+These examples target the current preview checkout. Run
+`python3 scripts/setup-native-authoring.py --goo-source ../goo-gsharp` first.
+Direct child initializers require the pinned upstream compiler and Goo preview API.
 
-```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.1.1
-```
-
-Goo Widgets brings in Goo and Goo.Svg 0.5.2. The examples target .NET 10 and use Gsharp.NET.Sdk 0.4.59.
-
-The package examples below use published `0.1.1`. The current checkout also has
-unreleased ergonomics described in the [README](../README.md). Those APIs are not
-available from the published package.
+The checkout uses Goo Widgets `0.1.2-preview.2`, Goo/Goo.Svg `0.5.4-preview.2`,
+.NET 10, and the upstream compiler built by the setup script. These packages are
+local review artifacts. See the [README](../README.md#install) for the published
+package and its older API.
 
 ## Basic widgets
 
-Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Insert that result into your container's `Children` collection.
+Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Insert that result directly into a `Container(){ ... }` initializer.
 
 The [complete example](../samples/Goo.Widgets.QuickStart/Program.gs) uses an action button to reset the selected color:
 
 ```gsharp
 import Goo.Widgets.Actions
 
-ActionButton{
-  Label: "Reset",
-  OnClick: () -> ResetColor(),
-}.Build()
+ActionButton{Label: "Reset", OnClick: () -> ResetColor(),}.Build()
 ```
 
 `ResetColor` belongs to the host cell. It updates application state and calls `Rebuild()` to refresh the display. Widget callbacks are the connection to your application's commands and data.
@@ -37,14 +31,17 @@ Keep the selected color in your application's host cell. Mount `ColorPicker` ins
 import Goo
 import Goo.Widgets.Colors
 
-Cell.Mount[ColorPickerInput, ColorPicker]("color-picker", ColorPickerInput{
-  Value: liveColor,
-  Mode: ColorMode.Oklch,
-  WheelSize: 260.0,
-  AccessibilityName: "Theme color",
-  OnValueChanged: (value int32) -> SetLiveColor(value),
-  OnValueCommitted: (value int32) -> CommitColor(value),
-})
+Cell.Mount[ColorPickerInput, ColorPicker](
+    "color-picker",
+    ColorPickerInput{
+        Value: liveColor,
+        Mode: ColorMode.Oklch,
+        WheelSize: 260.0,
+        AccessibilityName: "Theme color",
+        OnValueChanged: (value int32) -> SetLiveColor(value),
+        OnValueCommitted: (value int32) -> CommitColor(value),
+    }
+)
 ```
 
 | Part | Application responsibility |
@@ -69,14 +66,14 @@ private var liveColor int32 = 0x4F8FEA
 private var committedColor int32 = 0x4F8FEA
 
 private func SetLiveColor(value int32) {
-  liveColor = value
-  Rebuild()
+    liveColor = value
+    Rebuild()
 }
 
 private func CommitColor(value int32) {
-  liveColor = value
-  committedColor = value
-  Rebuild()
+    liveColor = value
+    committedColor = value
+    Rebuild()
 }
 ```
 
@@ -85,15 +82,9 @@ The sample keeps `committedColor` in memory. In your application, `CommitColor` 
 Convert the packed value when building Goo visuals:
 
 ```gsharp
-Container{
-  Width: 260.0,
-  Height: 96.0,
-  BackgroundColor: ColorMath.GooColor(liveColor),
-}
+Container{Width: 260.0, Height: 96.0, BackgroundColor: ColorMath.GooColor(liveColor),}
 
-Text{
-  Content: "#" + ColorMath.Hex(liveColor),
-}
+Text{Content: "#" + ColorMath.Hex(liveColor),}
 ```
 
 Changing `liveColor` from elsewhere and rebuilding the host also updates the picker. The sample's Reset button demonstrates this. The picker manages its wheel image and disposes it when Goo unmounts the cell. The source QuickStart uses the published input properties. Its full mode-selector and preview composition requires the current checkout.
@@ -106,10 +97,12 @@ The current checkout lets a checkbox own its visible label and its full hit targ
 
 ```gsharp
 Checkbox{
-  Label: "Include inherited settings",
-  State: state,
-  AllowMixed: true,
-  OnChange: (next AccessibilityChecked) -> { state = next },
+    Label: "Include inherited settings",
+    State: state,
+    AllowMixed: true,
+    OnChange: (next AccessibilityChecked) -> {
+        state = next
+    },
 }.Build()
 ```
 
@@ -118,14 +111,17 @@ Checkbox{
 range text and the visible value:
 
 ```gsharp
-Cell.Mount[SliderInput, Slider]("opacity", SliderInput{
-  Label: "Opacity",
-  ShowValue: true,
-  FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
-  Value: opacity,
-  Minimum: 0.0,
-  Maximum: 1.0,
-})
+Cell.Mount[SliderInput, Slider](
+    "opacity",
+    SliderInput{
+        Label: "Opacity",
+        ShowValue: true,
+        FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
+        Value: opacity,
+        Minimum: 0.0,
+        Maximum: 1.0,
+    }
+)
 ```
 
 `GraphNodeCard.Center` is optional in the current checkout. It defaults to the
@@ -142,20 +138,11 @@ dotnet run --project samples/Goo.Widgets.QuickStart -c Release
 
 In a Wayland session, set `SDL_VIDEODRIVER=wayland` if needed to select the native display driver.
 
-The [project](../samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj) uses a source project reference so it builds with this checkout. To use the same [Program.gs](../samples/Goo.Widgets.QuickStart/Program.gs) in a separate application, reference the published package instead:
-
-```xml
-<Project Sdk="Gsharp.NET.Sdk/0.4.59">
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Goo.Widgets" Version="0.1.1" />
-    <Watch Include="**/*.gs" Exclude="bin/**;obj/**" />
-  </ItemGroup>
-</Project>
-```
+The [project](../samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj) uses
+source project references and the compiler configured in `Directory.Build.props`.
+Copying this source into a separate application also requires that compiler,
+`Gsharp.NET.Sdk/0.4.591`, and the matching local preview packages. Use the published
+package's collection-member syntax with its supported Goo version.
 
 ## Controlled split panes, tabs, and multiline fields
 
@@ -190,12 +177,9 @@ copy; disabled mode rejects input. `Wrap`, `MinimumRows`, `MinimumHeight`, `Heig
 label, validation, font, editor/root styles, and factories support field composition.
 NoWrap enables horizontal scrolling, and both modes allow vertical scrolling.
 
-The preview core packages are local review artifacts, separate from published
-Goo 0.5.3. Pack Goo, Goo.Svg, and Goo.Accessibility with
-`-p:GooReleaseVersion=0.5.4-preview.1` and the native payload paths required by the
-core packaging targets. Use an isolated NuGet cache and restore from that package
-output directory before running `scripts/verify.sh`. Publishing these widgets
-requires publishing their core dependency first. Native checks are opt-in:
+Build the local core dependencies with `scripts/setup-native-authoring.py`, then
+run `scripts/verify.sh`. Publishing these widgets requires publishing their core
+dependency first. Native checks are opt-in:
 
 ```sh
 GOO_WIDGETS_COMPOSITES=1 /usr/bin/python3 scripts/with-isolated-wayland.py -- \
@@ -226,15 +210,20 @@ Slots fill their track rectangles; their children retain normal Goo alignment.
 
 ```gsharp
 Grid{
-  Columns: []GridTrack{GridTrack.Auto(70.0, 140.0), GridTrack.Fraction()},
-  Rows: []GridTrack{GridTrack.Auto(), GridTrack.Auto()},
-  ColumnGap: 12, RowGap: 8,
-  Items: []GridItem{
-    GridItem{Id: "name-label", Content: Text("Name")},
-    GridItem{Id: "name", Column: 1, Content: Text("Field notes")},
-    GridItem{Id: "description", Row: 1, ColumnSpan: 2,
-      Content: Text("A paragraph that wraps when this grid becomes narrower.")},
-  },
+    Columns: []GridTrack{GridTrack.Auto(70.0, 140.0), GridTrack.Fraction()},
+    Rows: []GridTrack{GridTrack.Auto(), GridTrack.Auto()},
+    ColumnGap: 12,
+    RowGap: 8,
+    Items: []GridItem{
+        GridItem{Id: "name-label", Content: Text("Name")},
+        GridItem{Id: "name", Column: 1, Content: Text("Field notes")},
+        GridItem{
+            Id: "description",
+            Row: 1,
+            ColumnSpan: 2,
+            Content: Text("A paragraph that wraps when this grid becomes narrower.")
+        },
+    },
 }.Build()
 ```
 

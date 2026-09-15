@@ -1,5 +1,6 @@
 <Project>
   <PropertyGroup>
+    <GsharpCompilerFullPath Condition="'$(GsharpCompilerFullPath)' == ''">$(MSBuildThisFileDirectory)artifacts/gsharp/compiler/gsc.dll</GsharpCompilerFullPath>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Deterministic>true</Deterministic>

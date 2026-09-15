@@ -29,6 +29,10 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           global-json-file: global.json
+      - name: Build pinned upstream G# authoring tools
+        run: |
+          python3 scripts/bootstrap_gsharp.py artifacts/gsharp
+          mkdir -p artifacts/feed
       - name: Read package version
         id: version
         run: |

@@ -10,3 +10,4 @@ artifacts/
 *.suo
 *.nupkg
 *.snupkg
+**/__pycache__/
