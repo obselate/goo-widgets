@@ -1,4 +1,4 @@
-package Goo.Widgets
+package Goo.Widgets.Actions
 
 import Goo
 import System

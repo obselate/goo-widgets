@@ -1,7 +1,7 @@
 package Goo.Widgets.ThemeSample
 
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Inputs
 import Goo.Widgets.Theme
 import System
 import System.IO

@@ -1,8 +1,9 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Icons
+import Goo.Widgets.Inputs
 
 class UploadTilePage : GalleryPage {
     public override func Title() string -> "UploadTile"

@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Inputs
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Inputs
 
 internal class DatePickerExample : Cell {
     private let overlay ElementHandle = ElementHandle()

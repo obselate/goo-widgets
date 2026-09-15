@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
-import Goo.Widgets
+import Goo.Widgets.Data
+import Goo.Widgets.Inputs
 import System.Diagnostics
 
 func SearchListBenchmarks() {

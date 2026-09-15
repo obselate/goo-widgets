@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Inputs
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Inputs
 
 internal open class SliderExample : Cell {
     private var horizontal float64 = 35.0

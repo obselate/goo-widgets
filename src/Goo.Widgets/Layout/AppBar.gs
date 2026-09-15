@@ -1,4 +1,4 @@
-package Goo.Widgets
+package Goo.Widgets.Layout
 
 import Goo
 

@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets.Markdown</RootNamespace>
     <AssemblyName>Goo.Widgets.Markdown</AssemblyName>
-    <Version>0.3.0</Version>
+    <Version>0.2.2</Version>
     <PackageId>Goo.Widgets.Markdown</PackageId>
     <Authors>obselate</Authors>
     <Description>Selectable Markdown content for Goo, with optional host-owned link and image activation.</Description>

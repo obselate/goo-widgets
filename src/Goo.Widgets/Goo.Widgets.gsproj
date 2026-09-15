@@ -3,11 +3,11 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets</RootNamespace>
     <AssemblyName>Goo.Widgets</AssemblyName>
-    <Version>0.3.0</Version>
+    <Version>0.2.2</Version>
     <PackageId>Goo.Widgets</PackageId>
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>
-    <Description>Composable, customizable widgets for Goo desktop applications.</Description>
+    <Description>Composable, customizable widgets for Goo desktop applications, grouped by category.</Description>
     <PackageLicenseExpression>MIT AND Apache-2.0</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/obselate/goo-widgets</RepositoryUrl>

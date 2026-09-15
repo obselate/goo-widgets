@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Layout
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Layout
 
 internal class PopoverExample : Cell {
     private let anchor ElementHandle = ElementHandle()

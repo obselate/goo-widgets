@@ -1,7 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Data
 import Hexa.NET.SDL3
 import System
 import System.Collections.Generic

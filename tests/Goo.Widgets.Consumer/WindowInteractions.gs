@@ -1,7 +1,11 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Actions
+import Goo.Widgets.Colors
+import Goo.Widgets.Graphs
+import Goo.Widgets.Icons
+import Goo.Widgets.Inputs
 import Hexa.NET.SDL3
 import System
 import System.Runtime.InteropServices

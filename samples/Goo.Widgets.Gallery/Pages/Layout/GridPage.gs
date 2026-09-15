@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Layout
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Layout
 
 internal class GridExample : Cell {
     private var narrow bool

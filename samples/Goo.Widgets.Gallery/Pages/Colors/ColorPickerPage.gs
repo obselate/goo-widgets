@@ -1,7 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Colors
 
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Colors
 import Goo.Widgets.Gallery
 
 internal open class ColorPickerExample : Cell {

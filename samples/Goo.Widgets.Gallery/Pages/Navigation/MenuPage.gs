@@ -1,8 +1,9 @@
 package Goo.Widgets.Gallery.Pages.Navigation
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Layout
+import Goo.Widgets.Navigation
 
 internal class MenuExample : Cell {
     private let trigger ElementHandle = ElementHandle()

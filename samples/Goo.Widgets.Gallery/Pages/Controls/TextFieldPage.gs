@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
-import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Inputs
 
 class TextFieldPage : GalleryPage {
     public override func Title() string -> "TextField"

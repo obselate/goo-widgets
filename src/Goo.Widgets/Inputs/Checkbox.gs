@@ -1,6 +1,7 @@
-package Goo.Widgets
+package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
 public data struct Checkbox {

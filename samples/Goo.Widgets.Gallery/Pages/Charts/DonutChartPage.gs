@@ -1,7 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Charts
 
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Charts
 import Goo.Widgets.Gallery
 
 internal class DonutChartPage : GalleryPage {

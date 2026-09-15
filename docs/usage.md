@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-These examples use the upcoming Goo Widgets `0.3.0`, Goo/Goo.Svg `0.5.4`, .NET 10, and
+These examples use Goo Widgets `0.2.2`, Goo/Goo.Svg `0.5.4`, .NET 10, and
 `Gsharp.NET.Sdk/0.4.591`. Goo automatically supplies the upstream compiler needed
 for native child composition. Follow the [installation instructions](../README.md#install).
 
@@ -11,7 +11,7 @@ Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob
 The [complete example](../samples/Goo.Widgets.QuickStart/Program.gs) uses an action button to reset the selected color:
 
 ```gsharp
-import Goo.Widgets
+import Goo.Widgets.Actions
 
 ActionButton{Label: "Reset", OnClick: () -> ResetColor(),}.Build()
 ```
@@ -26,7 +26,7 @@ Keep the selected color in your application's host cell. Mount `ColorPicker` ins
 
 ```gsharp
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Colors
 
 Cell.Mount[ColorPickerInput, ColorPicker](
     "color-picker",

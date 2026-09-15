@@ -1,16 +1,18 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets
+import Goo.Widgets.Colors
+import Goo.Widgets.Graphs
+import Goo.Widgets.Inputs
 import System
 
 internal class ColorPickerProbe : ColorPicker {
-    internal func Render(input ColorPickerInput) Blob -> base.Build(input)
+    internal func Render(input Goo.Widgets.Colors.ColorPickerInput) Blob -> base.Build(input)
 }
 
 func ColorPickerErgonomics() {
     let fullPicker = ColorPickerProbe{}
-    let full = (fullPicker.Render(ColorPickerInput{Value: 0x336699}) as Container)!!
+    let full = (fullPicker.Render(Goo.Widgets.Colors.ColorPickerInput{Value: 0x336699}) as Container)!!
     Require(full.Children.Count == 4, "ColorPicker did not build its full default composition.")
     let defaultModes = (full.Children[0] as Container)!!
     Require(
@@ -20,7 +22,9 @@ func ColorPickerErgonomics() {
     fullPicker.Dispose()
 
     let compactPicker = ColorPickerProbe{}
-    let compact = (compactPicker.Render(ColorPickerInput{Value: 0x336699, Compact: true}) as Container)!!
+    let compact = (
+        compactPicker.Render(Goo.Widgets.Colors.ColorPickerInput{Value: 0x336699, Compact: true}) as Container
+    )!!
     Require(compact.Children.Count == 2, "Compact ColorPicker did not omit its selector and preview.")
     compactPicker.Dispose()
 
@@ -28,7 +32,10 @@ func ColorPickerErgonomics() {
     var disabledChanges int32 = 0
     let disabled = (
         disabledPicker.Render(
-            ColorPickerInput{
+            Goo
+                .Widgets
+                .Colors
+                .ColorPickerInput{
                 Value: 0x336699,
                 Mode: ColorMode.Hsv,
                 Disabled: true,
@@ -53,13 +60,16 @@ func ColorPickerErgonomics() {
     var rootRgb int32 = -1
     var rootMode = ColorMode.Oklch
     var customWheel Blob? = nil
-    let customInput = ColorPickerInput{
+    let customInput = Goo
+        .Widgets
+        .Colors
+        .ColorPickerInput{
         Value: 0x808080,
         Mode: ColorMode.Hsv,
         OnValueChanged: (rgb int32) -> {
             changedRgb = rgb
         },
-        CreateRoot: (resolved ColorPickerInput, wheel Blob, slider Blob) -> {
+        CreateRoot: (resolved Goo.Widgets.Colors.ColorPickerInput, wheel Blob, slider Blob) -> {
             rootRgb = resolved.Value
             rootMode = resolved.Mode!!
             customWheel = wheel
