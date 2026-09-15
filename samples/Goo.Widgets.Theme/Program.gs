@@ -1,4 +1,4 @@
-package Goo.Widgets.InkBoneSample
+package Goo.Widgets.ThemeSample
 
 import Goo
 import Goo.Widgets.Inputs
@@ -17,9 +17,9 @@ class ThemeSample : Cell {
     override func Build() Blob {
         let theme = (
             if light {
-                InkBone.Bone
+                GooTheme.Bone
             } else {
-                InkBone.Ink
+                GooTheme.Ink
             }
         ) with{
             ControlHeight = if compact {
@@ -64,7 +64,7 @@ class ThemeSample : Cell {
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
                     Gap: theme.Spacing * 2.0,
-                    Text{Content: "Ink / Bone", FontFamily: theme.HeadingFontFamily, FontSize: 24.0, FlexGrow: 1.0},
+                    Text{Content: "Goo theme", FontFamily: theme.HeadingFontFamily, FontSize: 24.0, FlexGrow: 1.0},
                     (
                         theme.Button with{
                             Label = "Ink",
@@ -178,7 +178,7 @@ class ThemeSample : Cell {
                     Text{Content: "Invalid value", Color: theme.DangerColor, FontSize: 14.0},
                 },
                 Text{
-                    Content: "${theme.ControlHeight}px controls · 2px radius · 1px borders",
+                    Content: "${theme.ControlHeight}px controls · ${theme.ControlRadius}px corners · ${theme.PanelRadius}px panels",
                     FontFamily: theme.MonoFontFamily,
                     FontSize: 13.0,
                     Color: theme.FaintTextColor,
@@ -192,7 +192,7 @@ class ThemeSample : Cell {
         FlexBasis: 0.0,
         MinWidth: 0.0,
         Gap: 6.0,
-        Container{Height: 28.0, BackgroundColor: color, BorderRadius: 1.0},
+        Container{Height: 28.0, BackgroundColor: color, BorderRadius: 12.0},
         Text{Content: name, FontSize: 13.0},
     }
 
@@ -210,6 +210,6 @@ func Main() {
     using let semibold = FontSource("Vend Sans", 600, false, font, 0u, []FontVariation{FontVariation("wght", 600.0F)})
     medium.Register()
     semibold.Register()
-    Window.ConfigureApplication("Ink / Bone", "1.0.0", "com.example.goo-ink-bone")
-    Window{Title: "Goo Widgets · Ink / Bone", Width: 720, Height: 700, Root: ThemeSample{}}.Run()
+    Window.ConfigureApplication("Goo theme", "1.0.0", "com.example.goo-theme")
+    Window{Title: "Goo Widgets · Goo theme", Width: 720, Height: 700, Root: ThemeSample{}}.Run()
 }

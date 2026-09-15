@@ -5,8 +5,8 @@ import Goo.Widgets.Actions
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 
-/// Ink and Bone palettes with ordinary G# widget presets. Copy with `with` to customize.
-public data struct InkBone {
+/// Goo's rounded widget presets in Ink and Bone palettes. Copy with `with` to customize.
+public data struct GooTheme {
     /// Window background.
     var CanvasColor Color
     /// Panels and popovers.
@@ -72,8 +72,8 @@ public data struct InkBone {
 
     shared {
         /// Dark Ink palette. Each access returns an independent value.
-        public prop Ink InkBone {
-            get -> InkBone{
+        public prop Ink GooTheme {
+            get -> GooTheme{
                 CanvasColor: "#090b10",
                 PanelColor: "#11141b",
                 FieldColor: "#090b10",
@@ -100,8 +100,8 @@ public data struct InkBone {
                 FontSize: 16.0,
                 FontWeight: 500,
                 ControlHeight: 32.0,
-                ControlRadius: 2.0,
-                PanelRadius: 4.0,
+                ControlRadius: 12.0,
+                PanelRadius: 20.0,
                 BorderWidth: 1.0,
                 Spacing: 4.0,
                 TransitionMs: 0.0,
@@ -109,7 +109,7 @@ public data struct InkBone {
         }
 
         /// Light Bone palette, including darker semantic text colors for light surfaces.
-        public prop Bone InkBone {
+        public prop Bone GooTheme {
             get -> Ink with{
                 CanvasColor = "#eceded",
                 PanelColor = "#f5f6f7",
@@ -150,7 +150,7 @@ public data struct InkBone {
         }
     }
 
-    /// Neutral action with square geometry and no pressed scaling or focus highlight.
+    /// Rounded neutral action with no pressed scaling or focus highlight.
     public prop Button ActionButton {
         get -> ActionButton{
             BackgroundColor: PanelColor,
@@ -162,7 +162,7 @@ public data struct InkBone {
             DisabledTextColor: FaintTextColor,
             Height: ControlHeight,
             MinWidth: 64.0,
-            PaddingHorizontal: 11.0,
+            PaddingHorizontal: 14.0,
             FontFamily: FontFamily,
             FontSize: FontSize,
             FontWeight: 600,
@@ -223,14 +223,14 @@ public data struct InkBone {
         }
     }
 
-    /// Small square checkbox with blue selection and an Ink mark.
+    /// Rounded checkbox with blue selection and an Ink mark.
     public prop Checkbox Checkbox {
         get -> Checkbox{
             LabelColor: TextColor,
             LabelFontSize: FontSize,
             LabelFontWeight: FontWeight,
             LabelGap: 9.0,
-            Size: 16.0,
+            Size: 18.0,
             MarkSize: 12.0,
             BackgroundColor: FieldColor,
             BorderColor: InputBorderColor,
@@ -238,12 +238,12 @@ public data struct InkBone {
             CheckedBorderColor: AccentColor,
             MarkColor: OnAccentColor,
             BorderWidth: BorderWidth,
-            BorderRadius: 1.0,
+            BorderRadius: ControlRadius / 2.0,
             TransitionMs: TransitionMs,
         }
     }
 
-    /// Thin slider track with a mostly square Bone thumb. Mount with a stable Cell key.
+    /// Rounded slider track with a circular Bone thumb. Mount with a stable Cell key.
     public prop Slider SliderInput {
         get -> SliderInput{
             LabelColor: TextColor,
@@ -251,12 +251,12 @@ public data struct InkBone {
             LabelFontSize: FontSize,
             ValueFontSize: FontSize - 2.0,
             Height: 22.0,
-            TrackThickness: 4.0,
-            TrackRadius: 0.0,
+            TrackThickness: 6.0,
+            TrackRadius: 3.0,
             TrackColor: BorderColor,
             FillColor: AccentColor,
-            ThumbSize: 14.0,
-            ThumbRadius: 1.0,
+            ThumbSize: 18.0,
+            ThumbRadius: 9.0,
             ThumbBorderWidth: BorderWidth,
             ThumbColor: "#eceded",
             ThumbBorderColor: OnAccentColor,
@@ -276,7 +276,7 @@ public data struct InkBone {
             FontSize: FontSize - 2.0,
             FontWeight: FontWeight,
             BorderWidth: BorderWidth,
-            BorderRadius: 0.0,
+            BorderRadius: ControlRadius,
             TransitionMs: TransitionMs,
         }
     }

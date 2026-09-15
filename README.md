@@ -163,17 +163,17 @@ Default checkbox marks, media controls, window controls, and gallery icons all u
 these SVGs. Text and avatar initials use the application font.
 The shape is decorative. Give its button an accessible name.
 
-## Ink / Bone theme
+## Goo theme
 
-`Goo.Widgets.Themes.InkBone` provides the Goo palette, typography, spacing, and
-widget presets. Select `InkBone.Ink` or `InkBone.Bone`, then customize ordinary G#
+`Goo.Widgets.Themes.GooTheme` provides the Goo palette, typography, spacing, and
+widget presets. Select `GooTheme.Ink` or `GooTheme.Bone`, then customize ordinary G#
 values with `with`:
 
 ```gsharp
 import Goo
 import Goo.Widgets.Themes
 
-let theme = InkBone.Ink with{ControlHeight = 28.0}
+let theme = GooTheme.Ink with{ControlHeight = 28.0}
 
 Container{
     BasedOn: theme.CanvasStyle,
@@ -185,7 +185,8 @@ Container{
 
 Presets include `Button`, `PrimaryButton`, `GhostButton`, `DangerButton`,
 `TextField`, `Checkbox`, `Slider`, and `Banner`, plus `CanvasStyle` and
-`PanelStyle`. They use small radii, no focus highlights, and no motion by default.
+`PanelStyle`. Controls have 12 px corners, panels have 20 px corners, and slider
+thumbs are round. Focus highlights and motion are off by default.
 Body text is 16 px at weight 500, with weight 600 button labels.
 Set `TransitionMs` to enable color transitions. Fonts resolve through Goo.
 Supply Vend Sans, Space Grotesk, and JetBrains Mono through `FontSource` when
@@ -197,10 +198,10 @@ Keep the selected palette in application state. Rebuild to apply a different
 palette, preserving mounted widget keys and controlled values. Existing widgets
 use the theme only when you supply its presets or values.
 
-Run the [complete sample](samples/Goo.Widgets.InkBone/Program.gs):
+Run the [complete sample](samples/Goo.Widgets.Theme/Program.gs):
 
 ```sh
-dotnet run --project samples/Goo.Widgets.InkBone/Goo.Widgets.InkBone.gsproj
+dotnet run --project samples/Goo.Widgets.Theme/Goo.Widgets.Theme.gsproj
 ```
 
 ## Compose and customize
