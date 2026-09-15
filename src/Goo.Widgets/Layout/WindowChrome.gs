@@ -34,6 +34,7 @@ public data struct WindowChrome {
   /// Whether to show the close control. Nil resolves to true.
   var ShowClose bool?
   /// Handles a blank titlebar double-click with the resolved maximize/restore action.
+  /// Supply Host to intercept native drag-region clicks in an undecorated window.
   /// False leaves the operating system's default titlebar behavior in place.
   var EnableDoubleClick bool
   /// Enables the standard window command menu on right-click, Menu, and Shift+F10.
@@ -62,7 +63,7 @@ public data struct WindowChrome {
   var CreateControlContent Func[WindowChrome, WindowChromeAction, Blob]?
   /// Creates a standard control from resolved props, command, content, and action.
   var CreateControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
-  /// Creates the final non-drag-region container from resolved props and ordered children.
+  /// Creates the final container; required children and drag/input wiring are reapplied.
   var CreateRoot Func[WindowChrome, []Blob, Container]?
 
   /// Builds a fresh tree, retaining host-state and menu behavior when needed.

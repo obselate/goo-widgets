@@ -193,7 +193,9 @@ tree. No global theme registration or initialization is required.
   selection, and viewport state. Cards keep their screen size as positions zoom.
 - WindowChrome needs a Window or callbacks for window actions. `EnableDoubleClick`
   routes blank titlebar double-clicks through the resolved maximize/restore action;
-  false leaves the operating system's default behavior in place. `EnableContextMenu`
+  supply `Host` for native drag regions in undecorated windows, including when
+  callbacks override its actions. False leaves the operating system's default
+  behavior in place. `EnableContextMenu`
   enables right-click, Menu, and Shift+F10 commands with focus restoration. Callback-only
   chrome needs a full-window `OverlayHost` for menus. `CreateMenu` customizes presentation;
   actions, placement, open state, and dismissal remain wired by the widget.
