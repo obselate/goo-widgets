@@ -145,6 +145,8 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+  if Environment.GetEnvironmentVariable("GOO_WIDGETS_TREE") == "1" { TreeViewInteractions()
+    return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_TIME_AXIS") == "1" { TimeAxisInteractions()
     return }
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_GRID_CHARTS") == "1" { GridChartInteractions()
@@ -164,6 +166,7 @@ func Main() {
   TabBarContracts()
   GridChartContracts()
   TimeAxisContracts()
+  TreeViewContracts()
   SliderInteractions()
   WidgetErgonomics()
   if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" { WindowInteractions() }

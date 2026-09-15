@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add controlled TreeView expansion, single row selection and host-owned tri-state
+  checks, with active-descendant keyboard/accessibility focus and optional virtualization.
+
 - Add measured Grid tracks and spans, DonutChart and StackedBar quantitative charts,
   and a mounted TimeAxis with collision lanes, overflow, and initial viewport placement.
   Include package contracts, native input/resize checks, and gallery captures.

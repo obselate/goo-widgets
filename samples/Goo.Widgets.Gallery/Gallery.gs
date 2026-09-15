@@ -221,6 +221,7 @@ GalleryRegistry([]GalleryCategory{
   GalleryCategory("Data", []GalleryPage{
     ChipPage{},
     TimeAxisPage{},
+    TreeViewPage{},
   }),
   GalleryCategory("Navigation", []GalleryPage{
     NavigationRailPage{},

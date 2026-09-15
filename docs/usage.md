@@ -293,3 +293,39 @@ semantics. See the gallery for host-selected event colors and overflow details.
 
 Native checks for these widgets use `GOO_WIDGETS_GRID_CHARTS=1` or
 `GOO_WIDGETS_TIME_AXIS=1` with the isolated runner shown above.
+
+## Controlled TreeView
+
+Mount `TreeViewInput/TreeView` with unique `TreeNode.Id` values throughout the
+hierarchy, including collapsed descendants. Each node supplies a label or custom
+content, optional check state, and children. A disabled node also disables its
+descendants. Cycles and shared/duplicate node identities are rejected. Expansion
+uses `ExpandedIds` and `OnExpandedChange`; single row selection uses `SelectedId`
+and `OnSelect`. Host callbacks should update their input and rebuild the host.
+Replace node/expansion arrays when their contents change; typed Cell inputs are
+immutable snapshots and do not observe in-place collection edits.
+
+The tree composes `Checkbox` for False, True, and Mixed states. Unspecified omits
+the check. `OnCheckChange` requests True from False/Mixed and False from True; it
+does not change any parent or child. `MultiSelectable` describes a host check
+policy allowing multiple nodes. The gallery shows a host implementing its own
+cascade and parent-state calculation.
+
+Keyboard focus stays on the tree root, while its `ActiveDescendant` relationship
+identifies the current TreeItem. Up/Down/Home/End move that logical focus and skip
+disabled rows. Left collapses a branch or reaches its parent; Right expands a
+branch or enters its first enabled child. Enter requests selection; Space requests
+a check when present, otherwise selection. Collapsing an active descendant moves
+logical focus to its nearest visible ancestor. The default tree is one Tab stop.
+Tree/TreeItem semantics include level, selected, checked, expanded, disabled, and
+the root's multi-selection policy. Accessible Focus, Select, Activate, Expand, and
+Collapse actions use the same controlled callbacks as native input.
+
+Visible rows are flattened iteratively and virtualized by default. Fixed
+`RowHeight` and `Indent` control geometry. `Virtualize: false` realizes every row
+in a full-height provider inside an outer scroll viewport; changing the mode keeps
+the retained row structure and logical focus. Custom content follows ordinary Goo
+layout and can provide its own interaction. Content, expander, checkbox, row, and
+root factories customize prepared blobs; required slots and tree wiring are
+reapplied. Use `GOO_WIDGETS_TREE=1` with the native runner to exercise both modes,
+keyboard and accessibility input, and the 1,500-child case.

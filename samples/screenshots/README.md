@@ -53,6 +53,7 @@ Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetNa
 | --- | --- |
 | [Chip](../Goo.Widgets.Gallery/Pages/Controls/ChipPage.gs) | [![Chip in the Goo Widgets gallery](Chip.png)](Chip.png) |
 | [TimeAxis](../Goo.Widgets.Gallery/Pages/Data/TimeAxisPage.gs) | [![TimeAxis in the Goo Widgets gallery](TimeAxis.png)](TimeAxis.png) |
+| [TreeView](../Goo.Widgets.Gallery/Pages/Data/TreeViewPage.gs) | [![TreeView in the Goo Widgets gallery](TreeView.png)](TreeView.png) |
 
 ## Feedback
 
