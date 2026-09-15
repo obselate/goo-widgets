@@ -1,7 +1,7 @@
 # Goo Widgets
 
 Reusable G# widgets for [Goo](https://github.com/obselate/goo) desktop applications.
-Import the categories you need, supply your data and callbacks, and compose the
+Import `Goo.Widgets`, supply your data and callbacks, and compose the
 widgets into your Goo UI.
 
 Browse the [gallery screenshots](https://github.com/obselate/goo-widgets/blob/main/samples/screenshots/README.md) or run the
@@ -11,11 +11,12 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.2.2` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
-Use `Gsharp.NET.Sdk/0.4.591` and install the package from NuGet.org:
+Goo Widgets `0.3.0` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
+Version `0.3.0` is unreleased. Build this checkout to use the API shown below.
+Use `Gsharp.NET.Sdk/0.4.591`. After publication, install the package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.2
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.3.0
 ```
 
 Goo supplies the upstream G# compiler and formatter needed for native child
@@ -23,8 +24,7 @@ composition automatically. No compiler bootstrap or local Goo checkout is needed
 
 ```gsharp
 import Goo
-import Goo.Widgets.Actions
-import Goo.Widgets.Feedback
+import Goo.Widgets
 
 let content = Container{
     Gap: 12,
@@ -35,19 +35,23 @@ let content = Container{
 
 Place the returned `Blob` among a `Container` or `Button`'s children, as above.
 
-| Import | Widgets and supporting types |
+All base widgets and supporting types use `Goo.Widgets`. The categories below
+organize source files. Markdown is available through the optional
+`Goo.Widgets.Markdown` package and namespace.
+
+| Category | Widgets and supporting types |
 | --- | --- |
-| `Goo.Widgets.Actions` | ActionButton, IconButton |
-| `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, ComboBox, ComboBoxOption, Calendar, DatePicker, Stepper, UploadTile |
-| `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
-| `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
-| `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
-| `Goo.Widgets.Data` | Chip, SelectionItem, DataGrid, DataGridColumn, DataGridRow, TimeAxis, TimeAxisEvent, TreeView, TreeNode |
-| `Goo.Widgets.Navigation` | NavigationRail, NavigationItem, TabBar, Menu, MenuItem |
-| `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
-| `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
-| `Goo.Widgets.Charts` | DonutChart, StackedBar, ChartSeries, ChartSegment |
-| `Goo.Widgets.Icons` | MaterialIcons |
+| Actions | ActionButton, IconButton |
+| Inputs | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, ComboBox, ComboBoxOption, Calendar, DatePicker, Stepper, UploadTile |
+| Feedback | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
+| Layout | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
+| Media | AsyncImage, Avatar, MediaCard, MediaTransport |
+| Data | Chip, SelectionItem, DataGrid, DataGridColumn, DataGridRow, TimeAxis, TimeAxisEvent, TreeView, TreeNode |
+| Navigation | NavigationRail, NavigationItem, TabBar, Menu, MenuItem |
+| Colors | ColorPicker, ColorMath, color models |
+| Graphs | GraphCanvas, GraphNodeCard, graph models |
+| Charts | DonutChart, StackedBar, ChartSeries, ChartSegment |
+| Icons | MaterialIcons |
 
 ## Dialogs, popovers, and menus
 
@@ -146,8 +150,7 @@ See the [asset provenance and license](https://github.com/obselate/goo-widgets/b
 
 ```gsharp
 import Goo
-import Goo.Widgets.Actions
-import Goo.Widgets.Icons
+import Goo.Widgets
 
 let add = IconButton{
     AccessibilityName: "Add item",
@@ -330,6 +333,8 @@ python3 scripts/with-isolated-wayland.py -- python3 scripts/verify-gallery-feedb
 ## Add or change a widget
 
 Keep widget code and its supporting types under `src/Goo.Widgets/<category>`.
+Use `package Goo.Widgets` regardless of the category folder. The optional
+Markdown module uses `package Goo.Widgets.Markdown`.
 Every widget must have a registered `<WidgetName>Page.gs` gallery example and a
 real gallery screenshot at `samples/screenshots/<WidgetName>.png`. Helpers and
 data types do not need separate screenshots.

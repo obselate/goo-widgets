@@ -1,7 +1,6 @@
-package Goo.Widgets.Layout
+package Goo.Widgets
 
 import Goo
-import Goo.Widgets.Icons
 import System
 
 /// A controlled collapsible section. Collapsed content remains mounted but is hidden from layout and input.

@@ -1,7 +1,6 @@
-package Goo.Widgets.Navigation
+package Goo.Widgets
 
 import Goo
-import Goo.Widgets.Layout
 import System
 import System.Collections.Generic
 

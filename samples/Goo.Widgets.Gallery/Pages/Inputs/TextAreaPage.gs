@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Inputs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Inputs
 
 internal class TextAreaExample : Cell {
     private var notes string = "A controlled multiline editor.\nSelect text, copy it, or add a new line."

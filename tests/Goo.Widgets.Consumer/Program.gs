@@ -1,13 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets.Actions
-import Goo.Widgets.Data
-import Goo.Widgets.Feedback
-import Goo.Widgets.Icons
-import Goo.Widgets.Inputs
-import Goo.Widgets.Layout
-import Goo.Widgets.Media
+import Goo.Widgets
 import System
 
 internal class SliderProbe : Slider {

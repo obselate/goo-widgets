@@ -1,7 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Feedback
 
 import Goo
-import Goo.Widgets.Feedback
+import Goo.Widgets
 import Goo.Widgets.Gallery
 
 internal class ProgressSummaryPage : GalleryPage {

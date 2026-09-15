@@ -1,8 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets.Layout
-import Goo.Widgets.Navigation
+import Goo.Widgets
 import Hexa.NET.SDL3
 import Microsoft.Win32.SafeHandles
 import System

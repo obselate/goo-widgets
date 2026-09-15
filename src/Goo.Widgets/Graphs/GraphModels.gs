@@ -1,4 +1,4 @@
-package Goo.Widgets.Graphs
+package Goo.Widgets
 
 import Goo
 

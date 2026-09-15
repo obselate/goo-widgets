@@ -1,9 +1,6 @@
 package Goo.Widgets
 
 import Goo
-import Goo.Widgets.Actions
-import Goo.Widgets.Feedback
-import Goo.Widgets.Inputs
 
 /// Goo's rounded widget presets in Ink and Bone palettes. Copy with `with` to customize.
 public data struct Theme {

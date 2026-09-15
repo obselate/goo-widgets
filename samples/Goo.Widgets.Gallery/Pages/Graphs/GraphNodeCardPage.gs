@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Graphs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Graphs
 
 internal open class GraphNodeCardExample : Cell {
     public override func Build() Blob -> Container{

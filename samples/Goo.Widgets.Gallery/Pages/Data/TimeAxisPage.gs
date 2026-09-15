@@ -1,7 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Data
 
 import Goo
-import Goo.Widgets.Data
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import System
 

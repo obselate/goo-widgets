@@ -1,7 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
-import Goo.Widgets.Actions
+import Goo.Widgets
 import Goo.Widgets.Gallery
 
 class ActionButtonPage : GalleryPage {

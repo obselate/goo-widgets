@@ -1,4 +1,4 @@
-package Goo.Widgets.Inputs
+package Goo.Widgets
 
 import Goo
 import System

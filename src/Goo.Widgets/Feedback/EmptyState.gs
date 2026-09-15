@@ -1,4 +1,4 @@
-package Goo.Widgets.Feedback
+package Goo.Widgets
 
 import Goo
 

@@ -1,4 +1,4 @@
-package Goo.Widgets.Navigation
+package Goo.Widgets
 
 import Goo
 import System

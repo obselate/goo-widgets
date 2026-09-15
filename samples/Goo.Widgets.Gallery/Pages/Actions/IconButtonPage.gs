@@ -1,9 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Actions
 
 import Goo
-import Goo.Widgets.Actions
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Icons
 
 internal open class IconButtonExample : Cell {
     private var active bool

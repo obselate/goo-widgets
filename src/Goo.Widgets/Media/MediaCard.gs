@@ -1,4 +1,4 @@
-package Goo.Widgets.Media
+package Goo.Widgets
 
 import Goo
 import System

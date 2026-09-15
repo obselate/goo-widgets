@@ -1,8 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets.Colors
-import Goo.Widgets.Inputs
+import Goo.Widgets
 import Hexa.NET.SDL3
 
 internal open class NativePickerProbe : Cell[ColorPickerInput], IDisposable {

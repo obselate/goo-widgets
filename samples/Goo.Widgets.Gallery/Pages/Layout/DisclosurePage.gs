@@ -1,9 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Layout
 
 import Goo
-import Goo.Widgets.Actions
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Layout
 
 internal class DisclosureCounter : Cell {
     private var count int32

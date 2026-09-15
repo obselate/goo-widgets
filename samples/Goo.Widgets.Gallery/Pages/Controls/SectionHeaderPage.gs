@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Layout
 
 class SectionHeaderPage : GalleryPage {
     public override func Title() string -> "SectionHeader"

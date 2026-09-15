@@ -1,4 +1,4 @@
-package Goo.Widgets.Data
+package Goo.Widgets
 
 import System
 

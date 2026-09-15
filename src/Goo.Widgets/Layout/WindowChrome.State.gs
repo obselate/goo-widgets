@@ -1,7 +1,6 @@
-package Goo.Widgets.Layout
+package Goo.Widgets
 
 import Goo
-import Goo.Widgets.Navigation
 import System
 
 internal open class WindowChromeState : Cell[WindowChrome], IDisposable {

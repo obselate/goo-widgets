@@ -1,19 +1,19 @@
 package Goo.Widgets.Gallery
 
 import Goo
-import Goo.Widgets.Actions
+import Goo.Widgets
 import Goo.Widgets.Gallery.Pages.Actions
+import Goo.Widgets.Gallery.Pages.Charts
 import Goo.Widgets.Gallery.Pages.Colors
+import Goo.Widgets.Gallery.Pages.Content
 import Goo.Widgets.Gallery.Pages.Controls
+import Goo.Widgets.Gallery.Pages.Data
 import Goo.Widgets.Gallery.Pages.Feedback
+import Goo.Widgets.Gallery.Pages.Graphs
 import Goo.Widgets.Gallery.Pages.Inputs
 import Goo.Widgets.Gallery.Pages.Layout
-import Goo.Widgets.Gallery.Pages.Navigation
 import Goo.Widgets.Gallery.Pages.Media
-import Goo.Widgets.Gallery.Pages.Graphs
-import Goo.Widgets.Gallery.Pages.Charts
-import Goo.Widgets.Gallery.Pages.Data
-import Goo.Widgets.Gallery.Pages.Content
+import Goo.Widgets.Gallery.Pages.Navigation
 
 open class GalleryPage {
     open func Title() string;

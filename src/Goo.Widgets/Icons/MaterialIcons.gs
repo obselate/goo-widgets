@@ -1,4 +1,4 @@
-package Goo.Widgets.Icons
+package Goo.Widgets
 
 import Goo
 import Goo.Svg

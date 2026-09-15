@@ -1,10 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Navigation
 
 import Goo
-import Goo.Widgets.Actions
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Icons
-import Goo.Widgets.Navigation
 
 internal open class NavigationRailExample : Cell {
     private var expanded bool = true

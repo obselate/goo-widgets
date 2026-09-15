@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Inputs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Inputs
 
 internal class CalendarExample : Cell {
     private var selected DateOnly = DateOnly(2026, 9, 14)

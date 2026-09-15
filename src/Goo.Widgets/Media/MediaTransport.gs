@@ -1,8 +1,6 @@
-package Goo.Widgets.Media
+package Goo.Widgets
 
 import Goo
-import Goo.Widgets.Icons
-import Goo.Widgets.Inputs
 import System
 
 /// Identifies a media transport action slot.

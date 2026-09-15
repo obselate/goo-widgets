@@ -1,8 +1,7 @@
 package Goo.Widgets.QuickStart
 
 import Goo
-import Goo.Widgets.Actions
-import Goo.Widgets.Colors
+import Goo.Widgets
 
 class ColorPickerHost : Cell {
     private let initialColor int32 = 0x4F8FEA

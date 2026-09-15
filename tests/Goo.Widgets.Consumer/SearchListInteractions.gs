@@ -1,8 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets.Data
-import Goo.Widgets.Inputs
+import Goo.Widgets
 import System.Collections.Generic
 
 internal class SearchListSemantics : AccessibilityAdapter {

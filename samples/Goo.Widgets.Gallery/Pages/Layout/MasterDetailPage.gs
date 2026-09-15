@@ -1,9 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Layout
 
 import Goo
-import Goo.Widgets.Actions
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Layout
 
 internal open class MasterDetailExample : Cell {
     private var selected bool

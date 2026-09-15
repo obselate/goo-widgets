@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Navigation
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Navigation
 
 internal class TabBarExample : Cell {
     private var selected string = "overview"

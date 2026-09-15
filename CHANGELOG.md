@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Prepare `0.3.0`: move all base widgets and supporting types into `Goo.Widgets`.
+  Replace category imports such as `Goo.Widgets.Inputs` with `Goo.Widgets` and
+  remove the category segment from fully qualified type names. Keep category
+  folders and the optional `Goo.Widgets.Markdown` package and namespace.
 - Add `Ink` and `Bone` palettes through `import Goo.Widgets.Theme`, with rounded
   widget presets and a sample that preserves input state when switching palettes.
   Use 16 px medium text and semibold buttons, with bundled Vend Sans weights in

@@ -1,7 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
-import Goo.Widgets.Layout
+import Goo.Widgets
 import Hexa.NET.SDL3
 
 internal class DisclosureChild : Cell, IDisposable {

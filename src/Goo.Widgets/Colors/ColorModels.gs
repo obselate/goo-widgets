@@ -1,4 +1,4 @@
-package Goo.Widgets.Colors
+package Goo.Widgets
 
 import System
 

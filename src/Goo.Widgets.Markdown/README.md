@@ -4,8 +4,11 @@ An optional `MarkdownView` for Goo. This package depends on
 [Markdig 1.3.2](https://github.com/xoofx/markdig/tree/1.3.2) and Goo.Widgets;
 the base Goo.Widgets package has no Markdown parser dependency.
 
+Version `0.3.0` is unreleased. Build this checkout to use the API shown below.
+After publication, install it from NuGet.org:
+
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.2.2
+dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.3.0
 ```
 
 ```gsharp

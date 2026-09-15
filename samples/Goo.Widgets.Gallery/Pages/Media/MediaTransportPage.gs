@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Media
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Media
 
 internal open class MediaTransportExample : Cell {
     private var position float64 = 74.0

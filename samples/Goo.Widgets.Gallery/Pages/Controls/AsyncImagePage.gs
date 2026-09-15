@@ -1,8 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
-import Goo.Widgets.Media
 
 class AsyncImagePage : GalleryPage {
     public override func Title() string -> "AsyncImage"

@@ -1,7 +1,6 @@
-package Goo.Widgets.Inputs
+package Goo.Widgets
 
 import Goo
-import Goo.Widgets.Data
 import System
 import System.Collections.Generic
 
