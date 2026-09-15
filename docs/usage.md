@@ -329,3 +329,48 @@ layout and can provide its own interaction. Content, expander, checkbox, row, an
 root factories customize prepared blobs; required slots and tree wiring are
 reapplied. Use `GOO_WIDGETS_TREE=1` with the native runner to exercise both modes,
 keyboard and accessibility input, and the 1,500-child case.
+
+## Controlled DataGrid
+
+Mount `DataGridInput/DataGrid` with unique row and column IDs. Rows contain an
+optional dictionary of display values; `CreateCell` can instead look up an
+application object by row ID. The application supplies the row order, filters,
+grouping, and business actions. Header/filter content and cell, checkbox, detail,
+row, and root factories provide composition without duplicating column sizing.
+Factories may customize appearance; the grid reapplies required slots, identity,
+input, and semantics. Use `with` on the data input for ordinary variants.
+
+A column has a fixed `Width` or a positive `Flex` weight, with `Minimum`/`Maximum`
+bounds. Flex columns share the remaining viewport width above their minimums;
+minimum widths may overflow horizontally. Controlled `ColumnWidths` override
+individual columns in pixels. `OnColumnWidthChange` requests a finite clamped
+width and `OnColumnWidthCommit` reports pointer-up or keyboard completion. The
+host must update its width map and rebuild. Cancellation stops capture without a
+commit; earlier live change requests remain applied. Resizers support Left/Right,
+Home/End, and accessible value changes. Headers, filters, and virtual cells share
+one width array inside one horizontal scroll viewport.
+
+`SortColumnId`/`SortDirection` and `OnSort` cycle None → Ascending → Descending →
+None. The host performs the sort. `Selection` supports None, Single (at most one
+selected ID), and Multiple. `SelectedIds`/`OnSelectionChange` are controlled.
+Click replaces selection, Ctrl/⌘ toggles, and Shift selects a range in the supplied
+row order, skipping disabled rows. Ctrl/⌘+Shift adds the range. Toggle operations
+preserve selected IDs absent from a filtered row set. `ShowSelection` composes a
+leading checkbox using the same callbacks. There is no imposed select-all policy.
+
+The grid keeps keyboard focus on its root and exposes its active row through
+`ActiveDescendant`. Up/Down/Home/End move through enabled rows; Shift extends
+selection, Enter replaces it, and Space toggles it. Left/Right request detail
+collapse/expansion. Headers, resize handles, and custom interactive content retain
+their own focus and keyboard behavior. Grid/Row/ColumnHeader/GridCell semantics
+include selection, expansion, disabled state, sort descriptions, and composed
+accessibility actions. The current Goo metadata has no row/column index or sort
+enum fields; those are not fabricated by the widget.
+
+`ExpandedIds` and `OnExpandedChange` control details. Supply a row's `Detail`, or
+set `HasDetail` and provide `CreateDetail` for lazy composition. `VirtualRows`
+measures expanded content at the shared table width, so detail text can wrap and
+push following rows naturally. Ordinary row cells use fixed `RowHeight`. Replace
+changed arrays and maps before rebuilding; typed inputs do not observe in-place
+mutations. Use `GOO_WIDGETS_DATA_GRID=1` with the isolated native runner for sorting,
+selection, resizing/cancel, expanded details, horizontal scrolling, and 1,500 rows.

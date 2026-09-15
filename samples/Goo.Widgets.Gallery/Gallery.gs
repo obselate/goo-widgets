@@ -222,6 +222,7 @@ GalleryRegistry([]GalleryCategory{
     ChipPage{},
     TimeAxisPage{},
     TreeViewPage{},
+    DataGridPage{},
   }),
   GalleryCategory("Navigation", []GalleryPage{
     NavigationRailPage{},

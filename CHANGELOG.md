@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add controlled DataGrid columns, captured resizing, sorting, row selection,
+  filter/cell factories, and measured virtual detail rows with native gallery proof.
+
 - Add controlled TreeView expansion, single row selection and host-owned tri-state
   checks, with active-descendant keyboard/accessibility focus and optional virtualization.
 
