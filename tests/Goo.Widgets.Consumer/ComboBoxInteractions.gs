@@ -174,6 +174,13 @@ func ComboBoxInteractions() {
     SelectorType(window, id, "Option 0042")
     PumpFrames(window, 14)
     Require(SelectorCountRole(semantics.Tree?.Root, AccessibilityRole.ListItem) == 1 && ComboActive(semantics, "Option 0042"), "Controlled search failed to update active options")
+    host.Query = "Option 0043"
+    host.Rebuild()
+    PumpFrames(window, 9)
+    Require(FindSemantics(semantics.Tree?.Root, "Search options")!!.Value == "Option 0043" && ComboActive(semantics, "Option 0043"), "External query failed to replace the focused search buffer")
+    host.Query = "Option 0042"
+    host.Rebuild()
+    PumpFrames(window, 9)
     SendKey(id, SDLScancode.Return)
     PumpFrames(window, 12)
     Require(host.Selected == "item-42" && !host.IsOpen && host.Commits == 2, "Search selection failed")

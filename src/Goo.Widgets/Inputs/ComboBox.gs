@@ -165,6 +165,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
       entry.Key = "search"
       entry.Handle = searchHandle
       entry.Value = query
+      entry.Controlled = true
       entry.Placeholder = current.SearchPlaceholder ?? "Search options"
       entry.Focusable = true
       entry.OnChange = QueryChanged

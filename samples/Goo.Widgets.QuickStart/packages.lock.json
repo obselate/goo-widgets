@@ -5,7 +5,7 @@
       "Goo": {
         "type": "Transitive",
         "resolved": "0.5.4-preview.1",
-        "contentHash": "jrE1ygvHf1H3kFM+iUb+KSB+7opaP9SkVdAM5JGOmN76Gc9JhNPl3vmdvwbUDR1IC3hVdpKlRt27/B43MPvCmw==",
+        "contentHash": "oNx9Mj9KVghXhRwH9EhVut3A7+Jh/MgDqezm8z5As2iu3oy7cgZLSf8KDaanwl0tP8VVMQMUJjft/NIg9kUCQw==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",

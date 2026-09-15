@@ -189,7 +189,7 @@ GalleryRegistry([]GalleryCategory{
     ToggleSwitchPage{},
     StepperPage{},
     UploadTilePage{},
-    SearchListPage{}, ComboBoxPage{},
+    SearchListPage{}, ComboBoxPage{}, CalendarPage{}, DatePickerPage{},
     SliderPage{},
   }),
   GalleryCategory("Feedback", []GalleryPage{

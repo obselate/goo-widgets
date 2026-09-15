@@ -41,7 +41,7 @@ Place the returned `Blob` in a Goo `Children` collection.
 | Import | Widgets and supporting types |
 | --- | --- |
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
-| `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, ComboBox, ComboBoxOption, Stepper, UploadTile |
+| `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, ComboBox, ComboBoxOption, Calendar, DatePicker, Stepper, UploadTile |
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
 | `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
@@ -101,6 +101,28 @@ and closing restores trigger focus. `Open` and `Query` can be controlled with th
 callbacks; leaving them nil uses widget-owned state. Update controlled values and
 rebuild the owning Cell in callbacks. Trigger, search, row, popup, and root factories
 customize appearance while identity, input, and accessibility wiring remain applied.
+
+## Calendar and DatePicker
+
+Mount `Cell.Mount[CalendarInput, Calendar]` with a `DateOnly? Value` and `OnChange`.
+The Gregorian calendar uses the supplied `Culture`, `FirstDayOfWeek`, and optional
+`Today`. Minimum/Maximum and IsDateDisabled constrain both pointer and keyboard
+selection. Arrows move by day/week, Home/End visit week boundaries, Page Up/Down
+change month, and Shift+Page Up/Down change year with leap-day clamping. Enter
+selects the active date. `Month`/`OnMonthChange` optionally control the visible month.
+Day and navigation factories customize appearance while keeping date calculations,
+roving focus, and accessibility wiring.
+
+`Cell.Mount[DatePickerInput, DatePicker]` adds a text draft and anchored calendar.
+Enter or blur submits the draft; Escape restores the committed date. Empty input
+commits nil by default; `AllowEmpty: false` rejects it. Invalid input retains the
+draft and committed value, exposes an accessible error, and invokes `OnInvalid`.
+`Format` and `Parse` override localized display and parsing; a nil parse result
+rejects nonempty input. Host value and formatter changes update the focused field.
+Alt+Down or F4 opens the calendar; dismissal restores focus. Supply the same
+full-window, unclipped `OverlayHost` used by ComboBox. Calendar, day, input, button,
+popup, and root factories preserve required behavior after customization. Hosts
+own time zones, storage formats, recurrence, and scheduling policy.
 
 ## Material icons
 
