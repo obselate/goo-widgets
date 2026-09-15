@@ -55,6 +55,8 @@ public data struct InkBone {
     var MonoFontFamily string
     /// UI text size in logical pixels.
     var FontSize float64
+    /// General text weight.
+    var FontWeight int32
     /// Control height in logical pixels. Use 28 for compact controls.
     var ControlHeight float64
     /// Control corner radius in logical pixels.
@@ -95,7 +97,8 @@ public data struct InkBone {
                 FontFamily: "Vend Sans",
                 HeadingFontFamily: "Space Grotesk",
                 MonoFontFamily: "JetBrains Mono",
-                FontSize: 14.0,
+                FontSize: 16.0,
+                FontWeight: 500,
                 ControlHeight: 32.0,
                 ControlRadius: 2.0,
                 PanelRadius: 4.0,
@@ -128,7 +131,13 @@ public data struct InkBone {
 
     /// Fresh root declarations. Place BasedOn before application overrides.
     public prop CanvasStyle Style {
-        get -> Style{BackgroundColor: CanvasColor, Color: TextColor, FontFamily: FontFamily, FontSize: FontSize}
+        get -> Style{
+            BackgroundColor: CanvasColor,
+            Color: TextColor,
+            FontFamily: FontFamily,
+            FontSize: FontSize,
+            FontWeight: FontWeight
+        }
     }
 
     /// Fresh panel declarations.
@@ -156,7 +165,7 @@ public data struct InkBone {
             PaddingHorizontal: 11.0,
             FontFamily: FontFamily,
             FontSize: FontSize,
-            FontWeight: 400,
+            FontWeight: 600,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
             TransitionMs: TransitionMs,
@@ -172,7 +181,6 @@ public data struct InkBone {
             TextColor = OnAccentColor,
             HoverBackgroundColor = AccentHoverColor,
             ActiveBackgroundColor = AccentPressedColor,
-            FontWeight = 500,
         }
     }
 
@@ -189,7 +197,6 @@ public data struct InkBone {
             TextColor = OnAccentColor,
             HoverBackgroundColor = DangerHoverColor,
             ActiveBackgroundColor = DangerFillColor,
-            FontWeight = 500,
         }
     }
 
@@ -208,7 +215,7 @@ public data struct InkBone {
             FontFamily: FontFamily,
             FontSize: FontSize,
             LabelFontSize: FontSize,
-            LabelFontWeight: 400,
+            LabelFontWeight: FontWeight,
             LabelTextTransform: TextTransform.None,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
@@ -221,7 +228,7 @@ public data struct InkBone {
         get -> Checkbox{
             LabelColor: TextColor,
             LabelFontSize: FontSize,
-            LabelFontWeight: 400,
+            LabelFontWeight: FontWeight,
             LabelGap: 9.0,
             Size: 16.0,
             MarkSize: 12.0,
@@ -241,6 +248,8 @@ public data struct InkBone {
         get -> SliderInput{
             LabelColor: TextColor,
             ValueColor: MutedTextColor,
+            LabelFontSize: FontSize,
+            ValueFontSize: FontSize - 2.0,
             Height: 22.0,
             TrackThickness: 4.0,
             TrackRadius: 0.0,
@@ -264,8 +273,8 @@ public data struct InkBone {
             PaddingHorizontal: 10.0,
             PaddingVertical: 8.0,
             FontFamily: FontFamily,
-            FontSize: 12.0,
-            FontWeight: 400,
+            FontSize: FontSize - 2.0,
+            FontWeight: FontWeight,
             BorderWidth: BorderWidth,
             BorderRadius: 0.0,
             TransitionMs: TransitionMs,

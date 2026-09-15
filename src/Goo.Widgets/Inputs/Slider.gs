@@ -32,6 +32,10 @@ public data struct SliderInput {
     var LabelColor Color?
     /// Displayed value color. Nil resolves to #a1a1aa.
     var ValueColor Color?
+    /// Visible label font size. Zero resolves to 12.0.
+    var LabelFontSize float64
+    /// Displayed value font size. Zero resolves to 12.0.
+    var ValueFontSize float64
     /// Formats the accessible range value and optional visible value.
     var FormatValue Func[float64, string]?
     /// Receives pointer and keyboard preview values.
@@ -301,12 +305,23 @@ public open class Slider : Cell[SliderInput] {
         }
         if let label = resolved.Label {
             header.Children.Add(
-                Text{Key: "slider-label", Content: label, FontSize: 12.0, Color: resolved.LabelColor!!, FlexGrow: 1.0,}
+                Text{
+                    Key: "slider-label",
+                    Content: label,
+                    FontSize: resolved.LabelFontSize,
+                    Color: resolved.LabelColor!!,
+                    FlexGrow: 1.0,
+                }
             )
         }
         if resolved.ShowValue {
             header.Children.Add(
-                Text{Key: "slider-value", Content: formattedValue, FontSize: 12.0, Color: resolved.ValueColor!!,}
+                Text{
+                    Key: "slider-value",
+                    Content: formattedValue,
+                    FontSize: resolved.ValueFontSize,
+                    Color: resolved.ValueColor!!,
+                }
             )
         }
         content.Key ??= "slider-control"
@@ -380,6 +395,16 @@ public open class Slider : Cell[SliderInput] {
                 input.Height
             },
             TrackThickness = trackThickness,
+            LabelFontSize = if input.LabelFontSize == 0.0 {
+                12.0
+            } else {
+                input.LabelFontSize
+            },
+            ValueFontSize = if input.ValueFontSize == 0.0 {
+                12.0
+            } else {
+                input.ValueFontSize
+            },
             ThumbSize = thumbSize,
             ThumbRadius = input.ThumbRadius ?? thumbSize / 2.0,
             ThumbBorderWidth = input.ThumbBorderWidth ?? 2.0,

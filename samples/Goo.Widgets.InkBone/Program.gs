@@ -3,6 +3,8 @@ package Goo.Widgets.InkBoneSample
 import Goo
 import Goo.Widgets.Inputs
 import Goo.Widgets.Themes
+import System
+import System.IO
 
 class ThemeSample : Cell {
     private var light bool
@@ -94,7 +96,7 @@ class ThemeSample : Cell {
                     BasedOn: theme.PanelStyle,
                     Padding: theme.Spacing * 4.0,
                     Gap: theme.Spacing * 4.0,
-                    Text{Content: "Inputs and selection", FontWeight: 500},
+                    Text{Content: "Inputs and selection", FontWeight: 600},
                     field,
                     check,
                     (
@@ -132,7 +134,7 @@ class ThemeSample : Cell {
                 },
                 Container{
                     Gap: theme.Spacing * 3.0,
-                    Text{Content: "Actions", FontWeight: 500},
+                    Text{Content: "Actions", FontWeight: 600},
                     Container{
                         FlexDirection: FlexDirection.Row,
                         FlexWrap: FlexWrap.Wrap,
@@ -170,15 +172,15 @@ class ThemeSample : Cell {
                     FlexDirection: FlexDirection.Row,
                     FlexWrap: FlexWrap.Wrap,
                     Gap: theme.Spacing * 4.0,
-                    Text{Content: "Information", Color: theme.InfoColor, FontSize: 12.0},
-                    Text{Content: "Changes saved", Color: theme.SuccessColor, FontSize: 12.0},
-                    Text{Content: "Unsaved changes", Color: theme.WarningColor, FontSize: 12.0},
-                    Text{Content: "Invalid value", Color: theme.DangerColor, FontSize: 12.0},
+                    Text{Content: "Information", Color: theme.InfoColor, FontSize: 14.0},
+                    Text{Content: "Changes saved", Color: theme.SuccessColor, FontSize: 14.0},
+                    Text{Content: "Unsaved changes", Color: theme.WarningColor, FontSize: 14.0},
+                    Text{Content: "Invalid value", Color: theme.DangerColor, FontSize: 14.0},
                 },
                 Text{
                     Content: "${theme.ControlHeight}px controls · 2px radius · 1px borders",
                     FontFamily: theme.MonoFontFamily,
-                    FontSize: 11.0,
+                    FontSize: 13.0,
                     Color: theme.FaintTextColor,
                 },
             },
@@ -191,7 +193,7 @@ class ThemeSample : Cell {
         MinWidth: 0.0,
         Gap: 6.0,
         Container{Height: 28.0, BackgroundColor: color, BorderRadius: 1.0},
-        Text{Content: name, FontSize: 11.0},
+        Text{Content: name, FontSize: 13.0},
     }
 
     private func Reset() {
@@ -203,6 +205,11 @@ class ThemeSample : Cell {
 }
 
 func Main() {
+    let font = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fonts", "VendSans.ttf"))
+    using let medium = FontSource("Vend Sans", 500, false, font, 0u, []FontVariation{FontVariation("wght", 500.0F)})
+    using let semibold = FontSource("Vend Sans", 600, false, font, 0u, []FontVariation{FontVariation("wght", 600.0F)})
+    medium.Register()
+    semibold.Register()
     Window.ConfigureApplication("Ink / Bone", "1.0.0", "com.example.goo-ink-bone")
     Window{Title: "Goo Widgets · Ink / Bone", Width: 720, Height: 700, Root: ThemeSample{}}.Run()
 }

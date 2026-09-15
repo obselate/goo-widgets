@@ -8,5 +8,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/Goo.Widgets/Goo.Widgets.gsproj" />
     <Watch Include="**/*.gs" Exclude="bin/**;obj/**" />
+    <None Update="Fonts/*" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

@@ -186,9 +186,12 @@ Container{
 Presets include `Button`, `PrimaryButton`, `GhostButton`, `DangerButton`,
 `TextField`, `Checkbox`, `Slider`, and `Banner`, plus `CanvasStyle` and
 `PanelStyle`. They use small radii, no focus highlights, and no motion by default.
+Body text is 16 px at weight 500, with weight 600 button labels.
 Set `TransitionMs` to enable color transitions. Fonts resolve through Goo.
 Supply Vend Sans, Space Grotesk, and JetBrains Mono through `FontSource` when
 they are not installed, or override the theme's font families.
+The sample bundles Vend Sans and registers its Medium and Semibold variation
+weights explicitly, so it does not depend on an installed font's default face.
 
 Keep the selected palette in application state. Rebuild to apply a different
 palette, preserving mounted widget keys and controlled values. Existing widgets

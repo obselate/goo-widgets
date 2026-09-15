@@ -3,9 +3,10 @@
 ## Unreleased
 
 - Add Ink/Bone palettes and widget presets using ordinary G# values, with a
-  runnable sample that preserves input state when switching palettes.
+  runnable sample that preserves input state when switching palettes. Use 16 px
+  medium text and semibold buttons, with bundled Vend Sans weights in the sample.
 - Add text field label casing and weight options, and slider thumb radius and
-  border width options for theme composition.
+  border width and label size options for theme composition.
 
 ## 0.2.2 - 2026-09-15
 
