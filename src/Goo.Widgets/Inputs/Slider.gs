@@ -48,6 +48,10 @@ public data struct SliderInput {
     var TrackThickness float64
     /// Thumb diameter. Zero resolves to 20.0.
     var ThumbSize float64
+    /// Thumb corner radius. Nil resolves to half the thumb size.
+    var ThumbRadius float64?
+    /// Thumb border width. Nil resolves to 2.0 and preserves explicit zero.
+    var ThumbBorderWidth float64?
     /// Track corner radius. Nil resolves to half the track thickness.
     var TrackRadius float64?
     /// Unfilled track color. Nil resolves to #3f3f46.
@@ -185,8 +189,8 @@ public open class Slider : Cell[SliderInput] {
             },
             Width: resolved.ThumbSize,
             Height: resolved.ThumbSize,
-            BorderRadius: resolved.ThumbSize / 2.0,
-            BorderWidth: 2.0,
+            BorderRadius: resolved.ThumbRadius!!,
+            BorderWidth: resolved.ThumbBorderWidth!!,
             BorderColor: resolved.ThumbBorderColor!!,
             BackgroundColor: resolved.ThumbColor!!,
             HitTestSelf: false,
@@ -377,6 +381,8 @@ public open class Slider : Cell[SliderInput] {
             },
             TrackThickness = trackThickness,
             ThumbSize = thumbSize,
+            ThumbRadius = input.ThumbRadius ?? thumbSize / 2.0,
+            ThumbBorderWidth = input.ThumbBorderWidth ?? 2.0,
             TrackRadius = input.TrackRadius ?? trackThickness / 2.0,
             TrackColor = input.TrackColor ?? Color.Parse("#3f3f46"),
             FillColor = input.FillColor ?? Color.Parse("#fafafa"),

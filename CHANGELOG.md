@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Add Ink/Bone palettes and widget presets using ordinary G# values, with a
+  runnable sample that preserves input state when switching palettes.
+- Add text field label casing and weight options, and slider thumb radius and
+  border width options for theme composition.
+
 ## 0.2.2 - 2026-09-15
 
 - Update the optional Markdown package to Markdig 1.3.2.

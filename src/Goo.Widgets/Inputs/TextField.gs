@@ -52,6 +52,10 @@ public data struct TextField {
     var FontSize float64
     /// Label text size. Zero resolves to 11.0.
     var LabelFontSize float64
+    /// Label font weight. Zero resolves to 600.
+    var LabelFontWeight int32
+    /// Label text transform. Nil resolves to Uppercase.
+    var LabelTextTransform TextTransform?
     /// Issue text size. Zero resolves to 12.0.
     var IssueFontSize float64
     /// Entry border width. Nil resolves to 1.0.
@@ -128,6 +132,12 @@ public data struct TextField {
             } else {
                 IssueFontSize
             },
+            LabelFontWeight = if LabelFontWeight == 0 {
+                600
+            } else {
+                LabelFontWeight
+            },
+            LabelTextTransform = LabelTextTransform ?? TextTransform.Uppercase,
             BorderWidth = BorderWidth ?? 1.0,
             BorderRadius = BorderRadius ?? 6.0,
             FocusRingWidth = FocusRingWidth ?? 2.0,
@@ -144,8 +154,8 @@ public data struct TextField {
                 Content: resolved.Label!!,
                 Color: resolved.MutedTextColor!!,
                 FontSize: resolved.LabelFontSize,
-                FontWeight: 600,
-                TextTransform: TextTransform.Uppercase
+                FontWeight: resolved.LabelFontWeight,
+                TextTransform: resolved.LabelTextTransform!!
             }
             if resolved.FontFamily != nil {
                 label.FontFamily = resolved.FontFamily!!

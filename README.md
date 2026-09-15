@@ -163,6 +163,43 @@ Default checkbox marks, media controls, window controls, and gallery icons all u
 these SVGs. Text and avatar initials use the application font.
 The shape is decorative. Give its button an accessible name.
 
+## Ink / Bone theme
+
+`Goo.Widgets.Themes.InkBone` provides the Goo palette, typography, spacing, and
+widget presets. Select `InkBone.Ink` or `InkBone.Bone`, then customize ordinary G#
+values with `with`:
+
+```gsharp
+import Goo
+import Goo.Widgets.Themes
+
+let theme = InkBone.Ink with{ControlHeight = 28.0}
+
+Container{
+    BasedOn: theme.CanvasStyle,
+    Padding: theme.Spacing * 6.0,
+    (theme.PrimaryButton with{Label = "Save", OnClick = () -> Save()}).Build(),
+    (theme.Checkbox with{Label = "Live preview"}).Build(),
+}
+```
+
+Presets include `Button`, `PrimaryButton`, `GhostButton`, `DangerButton`,
+`TextField`, `Checkbox`, `Slider`, and `Banner`, plus `CanvasStyle` and
+`PanelStyle`. They use small radii, no focus highlights, and no motion by default.
+Set `TransitionMs` to enable color transitions. Fonts resolve through Goo.
+Supply Vend Sans, Space Grotesk, and JetBrains Mono through `FontSource` when
+they are not installed, or override the theme's font families.
+
+Keep the selected palette in application state. Rebuild to apply a different
+palette, preserving mounted widget keys and controlled values. Existing widgets
+use the theme only when you supply its presets or values.
+
+Run the [complete sample](samples/Goo.Widgets.InkBone/Program.gs):
+
+```sh
+dotnet run --project samples/Goo.Widgets.InkBone/Goo.Widgets.InkBone.gsproj
+```
+
 ## Compose and customize
 
 Widgets expose data, callbacks, appearance properties, and factories for their Goo
