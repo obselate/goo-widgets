@@ -37,8 +37,28 @@ int main(int argc, char **argv) {
     }
     if (!pointer || !keyboard) return 5;
     puts("ready"); fflush(stdout);
-    while (poll(&input, 1, -1) >= 0) {
+    struct pollfd events[2] = {{ei_get_fd(context), POLLIN, 0}, {0, POLLIN, 0}};
+    while (poll(events, 2, -1) >= 0) {
         if (dispatch(context)) break;
+        if (events[1].revents & POLLIN) {
+            char command[128];
+            if (!fgets(command, sizeof(command), stdin)) break;
+            double x, y;
+            unsigned code, pressed;
+            if (sscanf(command, "move %lf %lf", &x, &y) == 2) {
+                ei_device_pointer_motion_absolute(pointer, x, y);
+                ei_device_frame(pointer, ei_now(context));
+            } else if (sscanf(command, "button %u %u", &code, &pressed) == 2 && (code == 272 || code == 273) && pressed <= 1) {
+                ei_device_button_button(pointer, code, pressed != 0);
+                ei_device_frame(pointer, ei_now(context));
+            } else {
+                puts("invalid"); fflush(stdout);
+                continue;
+            }
+            ei_dispatch(context);
+            puts("ok"); fflush(stdout);
+        }
+        if (events[1].revents & POLLHUP) break;
     }
     ei_device_unref(pointer);
     ei_device_unref(keyboard);

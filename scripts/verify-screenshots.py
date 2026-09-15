@@ -10,16 +10,22 @@ screenshots = root / "samples" / "screenshots"
 registry_path = gallery / "Gallery.gs"
 build_pattern = re.compile(r"\bfunc\s+Build\s*\(")
 png_signature = b"\x89PNG\r\n\x1a\n"
+
+
+def is_widget(path: Path) -> bool:
+    source = path.read_text(encoding="utf-8")
+    declaration = rf"\bpublic\s+(?:(?:open|data|partial|sealed)\s+)*(?:class|struct)\s+{re.escape(path.stem)}\b"
+    return bool(build_pattern.search(source) and re.search(declaration, source))
+
+
 widgets = sorted({
     path.stem
     for path in library.rglob("*.gs")
-    if build_pattern.search(path.read_text(encoding="utf-8"))
+    if is_widget(path)
 })
 markdown_library = root / "src" / "Goo.Widgets.Markdown"
 widgets += sorted(path.stem for path in markdown_library.glob("*.gs")
-                  if build_pattern.search(path.read_text(encoding="utf-8"))
-                  and re.search(rf"public\s+(?:open\s+)?class\s+{re.escape(path.stem)}\b",
-                                path.read_text(encoding="utf-8")))
+                  if is_widget(path))
 errors: list[str] = []
 
 if not widgets:

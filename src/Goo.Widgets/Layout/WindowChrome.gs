@@ -4,6 +4,7 @@ import System
 import System.Collections.Generic
 import Goo
 import Goo.Widgets.Icons
+import Goo.Widgets.Navigation
 
 /// Identifies a standard window chrome command.
 public enum WindowChromeAction { Minimize; Maximize; Restore; Close }
@@ -32,6 +33,15 @@ public data struct WindowChrome {
   var ShowMaximize bool?
   /// Whether to show the close control. Nil resolves to true.
   var ShowClose bool?
+  /// Handles a blank titlebar double-click with the resolved maximize/restore action.
+  /// False leaves the operating system's default titlebar behavior in place.
+  var EnableDoubleClick bool
+  /// Enables the standard window command menu on right-click, Menu, and Shift+F10.
+  var EnableContextMenu bool
+  /// Full-window overlay bounds for callback-only chrome; Host provides its own bounds.
+  var OverlayHost ElementHandle?
+  /// Customizes menu presentation. Open state, actions, anchor, and dismissal are rewired.
+  var CreateMenu Func[WindowChrome, MenuInput, MenuInput]?
   /// Chrome height. Zero resolves to 32.0.
   var Height float64
   /// Width of each control. Zero resolves to 46.0.
@@ -55,14 +65,18 @@ public data struct WindowChrome {
   /// Creates the final non-drag-region container from resolved props and ordered children.
   var CreateRoot Func[WindowChrome, []Blob, Container]?
 
-  /// Builds a fresh Goo window chrome tree.
+  /// Builds a fresh tree, retaining host-state and menu behavior when needed.
   public func Build() Blob {
-    let createContent = CreateControlContent
-    let createControl = CreateControl
-    let createRoot = CreateRoot
+    if Host != nil || EnableDoubleClick || EnableContextMenu {
+      return Cell.Mount[WindowChrome, WindowChromeState](nil, this)
+    }
+    return Resolve().BuildResolved()
+  }
+
+  internal func Resolve() WindowChrome {
     let host = Host
     let maximized = IsMaximized ?? (host?.State == WindowState.Maximized || host?.State == WindowState.Fullscreen)
-    let resolved = this with{
+    var resolved = this with{
       IsMaximized = maximized,
       ShowMinimize = ShowMinimize ?? true,
       ShowMaximize = ShowMaximize ?? true,
@@ -74,39 +88,42 @@ public data struct WindowChrome {
       ControlColor = ControlColor ?? Color.Parse("#a1a1aa"),
       HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
       CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? Color.Parse("#a62e3a"),
-      CreateControlContent = nil,
-      CreateControl = nil,
-      CreateRoot = nil,
     }
-    var minimize = resolved.OnMinimize
-    var maximize = resolved.OnMaximize
-    var restore = resolved.OnRestore
-    var close = resolved.OnClose
+    if !Double.IsFinite(resolved.Height) || resolved.Height <= 0.0
+      || !Double.IsFinite(resolved.ControlWidth) || resolved.ControlWidth <= 0.0 {
+        throw ArgumentOutOfRangeException("WindowChrome dimensions")
+      }
     if let host = host {
-      minimize ??= () -> { host.State = WindowState.Minimized }
-      maximize ??= () -> { host.State = WindowState.Maximized }
-      restore ??= () -> { host.State = WindowState.Normal }
-      close ??= () -> host.RequestClose()
+      resolved.OnMinimize ??= () -> { host.State = WindowState.Minimized }
+      if host.Resizable { resolved.OnMaximize ??= () -> { host.State = WindowState.Maximized } }
+      resolved.OnRestore ??= () -> { host.State = WindowState.Normal }
+      resolved.OnClose ??= () -> host.RequestClose()
     }
+    return resolved
+  }
+
+  internal func BuildResolved(blankPointer Action[PointerEvent]? = nil) Container {
+    let createContent = CreateControlContent
+    let createControl = CreateControl
+    let createRoot = CreateRoot
+    let resolved = this with{CreateControlContent = nil, CreateControl = nil, CreateRoot = nil, CreateMenu = nil}
+    let maximized = resolved.IsMaximized!!
     let children = List[Blob]()
     if let leading = resolved.LeadingContent { children.Add(Container{ Children: { leading } }) }
-    children.Add(Container{ FlexGrow: 1.0 })
+    children.Add(Container{ FlexGrow: 1.0, Height: Length.Percent(100), OnPointerDown: blankPointer })
     if let trailing = resolved.TrailingContent { children.Add(Container{ Children: { trailing } }) }
     if resolved.ShowMinimize!! {
-      children.Add(BuildControl(resolved, WindowChromeAction.Minimize, minimize, createContent, createControl))
+      children.Add(BuildControl(resolved, WindowChromeAction.Minimize, resolved.OnMinimize, createContent, createControl))
     }
     if resolved.ShowMaximize!! {
       let command = if maximized { WindowChromeAction.Restore } else { WindowChromeAction.Maximize }
-      children.Add(BuildControl(resolved, command, if maximized { restore } else { maximize }, createContent, createControl))
+      children.Add(BuildControl(resolved, command, if maximized { resolved.OnRestore } else { resolved.OnMaximize }, createContent, createControl))
     }
     if resolved.ShowClose!! {
-      children.Add(BuildControl(resolved, WindowChromeAction.Close, close, createContent, createControl))
+      children.Add(BuildControl(resolved, WindowChromeAction.Close, resolved.OnClose, createContent, createControl))
     }
     let ordered = children.ToArray()
-    if let createRoot = createRoot {
-      return Window.DragRegion(createRoot(resolved, ordered))
-    }
-    return Window.DragRegion(Container{
+    let prepared = Container{
       BasedOn: resolved.RootStyle,
       Height: resolved.Height,
       FlexShrink: 0.0,
@@ -115,8 +132,14 @@ public data struct WindowChrome {
       BackgroundColor: resolved.BackgroundColor!!,
       BorderBottomWidth: 1.0,
       BorderBottomColor: resolved.BorderColor!!,
-      Children: ordered,
-    })
+      Children: children,
+    }
+    let root = if let create = createRoot { create(resolved, ordered) } else { prepared }
+    root.Children.Clear()
+    for child in ordered { root.Children.Add(child) }
+    root.Focusable = false
+    root.OnClick = nil
+    return Window.DragRegion(root)
   }
 
   private func BuildControl(resolved WindowChrome, command WindowChromeAction, action Action?,
@@ -127,24 +150,25 @@ public data struct WindowChrome {
       } else {
         MaterialIcons.Create(IconName(command), 18.0, resolved.ControlColor)
       }
-      if let createControl = createControl {
-        return createControl(resolved, command, content, action)
-      }
-      return Button{
+      let prepared = Button{
         Width: resolved.ControlWidth,
         Height: resolved.Height,
         Padding: 0.0,
         AlignItems: AlignItems.Center,
         JustifyContent: JustifyContent.Center,
         Cursor: Cursor.Pointer,
-        Disabled: action == nil,
         Hover: Style{
           BackgroundColor: if command == WindowChromeAction.Close { resolved.CloseHoverBackgroundColor!! } else { resolved.HoverBackgroundColor!! },
         },
-        Accessibility: Accessibility{ Role: AccessibilityRole.Button, Name: Name(command) },
-        OnClick: action,
-        Children: { content },
       }
+      let control = if let create = createControl { create(resolved, command, content, action) } else { prepared }
+      control.Disabled = action == nil
+      control.Focusable = action != nil
+      control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: Name(command)}
+      control.OnClick = action
+      control.Children.Clear()
+      control.Children.Add(content)
+      return control
     }
 
   private func Name(command WindowChromeAction) string -> switch command {

@@ -191,8 +191,14 @@ tree. No global theme registration or initialization is required.
   layers within that parent. Content and confirmation work remain host-owned.
 - GraphCanvas uses supplied node positions. The host owns layout calculation,
   selection, and viewport state. Cards keep their screen size as positions zoom.
-- WindowChrome needs a Window or callbacks for window actions. Media and upload
-  widgets emit callbacks. The host owns playback, file access, and other services.
+- WindowChrome needs a Window or callbacks for window actions. `EnableDoubleClick`
+  routes blank titlebar double-clicks through the resolved maximize/restore action;
+  false leaves the operating system's default behavior in place. `EnableContextMenu`
+  enables right-click, Menu, and Shift+F10 commands with focus restoration. Callback-only
+  chrome needs a full-window `OverlayHost` for menus. `CreateMenu` customizes presentation;
+  actions, placement, open state, and dismissal remain wired by the widget.
+- Media and upload widgets emit callbacks. The host owns playback, file access,
+  and other services.
 
 ## Current checkout ergonomics
 

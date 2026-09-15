@@ -27,7 +27,11 @@ if "--session" in sys.argv:
     try:
         assert seat.stdout.readline().strip() == "ready", "Isolated input seat failed"
         with Path(os.environ["GOO_WIDGET_COMMAND_LOG"]).open("w") as output:
-            result = subprocess.run(json.loads(os.environ["GOO_WIDGET_COMMAND"]), cwd=ROOT, stdout=output, stderr=subprocess.STDOUT).returncode
+            command_env = dict(os.environ)
+            input_fds = (seat.stdin.fileno(), seat.stdout.fileno())
+            command_env.update(GOO_WIDGET_INPUT_COMMAND_FD=str(input_fds[0]), GOO_WIDGET_INPUT_ACK_FD=str(input_fds[1]))
+            result = subprocess.run(json.loads(os.environ["GOO_WIDGET_COMMAND"]), cwd=ROOT, env=command_env,
+                                    pass_fds=input_fds, stdout=output, stderr=subprocess.STDOUT).returncode
         Path(os.environ["GOO_WIDGET_RESULT"]).write_text(str(result))
     finally:
         seat.terminate()
