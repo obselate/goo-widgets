@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4 - 2026-09-18
+
+- Rename the breaking `ActionButton.Label` property to `ActionButton.Content`
+  so button text follows Goo's content naming convention. The content also
+  supplies the default accessible name.
+
 ## 0.2.3 - 2026-09-15
 
 - Add `Ink` and `Bone` palettes through `import Goo.Widgets.Theme`, with rounded
