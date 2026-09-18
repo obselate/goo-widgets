@@ -4,7 +4,7 @@ import Goo
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
 public data struct ActionButton {
-    /// Button content. Nil resolves to an empty string.
+    /// Visible button text and the default accessible name. Nil resolves to an empty string.
     var Content string?
     /// Accessible name. Nil resolves to the resolved content.
     var AccessibilityName string?

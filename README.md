@@ -246,6 +246,8 @@ tree. No global theme registration or initialization is required.
 
 ## Labels and color controls
 
+- `ActionButton.Content` is the visible button text and supplies its default
+  accessible name. `Label` remains the visible label API for value controls.
 - `ColorPickerInput.Compact` keeps only the wheel and tone slider. The default
   full composition also includes the mode selector and preview. Leave `Mode`
   unset for picker-local mode switching, or supply `Mode` and update it from

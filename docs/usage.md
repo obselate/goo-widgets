@@ -16,6 +16,10 @@ import Goo.Widgets.Actions
 ActionButton{Content: "Reset", OnClick: () -> ResetColor(),}.Build()
 ```
 
+`ActionButton.Content` is the visible button text and supplies the default
+accessible name. Set `AccessibilityName` only when assistive technology should
+announce different text.
+
 `ResetColor` belongs to the host Cell. It only changes application state: Goo
 automatically rebuilds the Cell after its input callback. Callbacks from a
 separately mounted child that change parent state must call the parent's `Rebuild()`.
