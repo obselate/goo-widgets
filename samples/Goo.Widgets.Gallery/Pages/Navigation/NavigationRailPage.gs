@@ -31,7 +31,7 @@ internal open class NavigationRailExample : Cell {
             Gap: 12.0,
             Text{Content: "Selected: " + selected, Color: "#fafafa"},
             ActionButton{
-                Label: if expanded {
+                Content: if expanded {
                     "Collapse"
                 } else {
                     "Expand"

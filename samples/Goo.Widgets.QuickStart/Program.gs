@@ -10,7 +10,7 @@ class ColorPickerHost : Cell {
     private var committedColor int32 = 0x4F8FEA
 
     override func Build() Blob {
-        let reset = ActionButton{Label: "Reset", OnClick: () -> ResetColor()}.Build()
+        let reset = ActionButton{Content: "Reset", OnClick: () -> ResetColor()}.Build()
         reset.Key = "reset"
         return Container{
             Width: Length.Percent(100.0),

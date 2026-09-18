@@ -4,9 +4,9 @@ import Goo
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
 public data struct ActionButton {
-    /// Button label. Nil resolves to an empty string.
-    var Label string?
-    /// Accessible name. Nil resolves to the resolved label.
+    /// Button content. Nil resolves to an empty string.
+    var Content string?
+    /// Accessible name. Nil resolves to the resolved content.
     var AccessibilityName string?
     /// Action invoked by Goo button activation.
     var OnClick Action?
@@ -65,11 +65,11 @@ public data struct ActionButton {
     public func Build() Blob {
         let createText = CreateText
         let createRoot = CreateRoot
-        let label = Label ?? ""
+        let content = Content ?? ""
         let background = BackgroundColor ?? Color.Parse("#fafafa")
         let resolved = this with{
-            Label = label,
-            AccessibilityName = AccessibilityName ?? label,
+            Content = content,
+            AccessibilityName = AccessibilityName ?? content,
             BackgroundColor = background,
             TextColor = TextColor ?? Color.Parse("#09090b"),
             BorderColor = BorderColor ?? background,
@@ -117,7 +117,7 @@ public data struct ActionButton {
         let text = if let createText = createText {
             createText(resolved)
         } else {
-            let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight,}
+            let value = Text{Content: resolved.Content!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight,}
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
             }

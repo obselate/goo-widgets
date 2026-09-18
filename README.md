@@ -28,7 +28,7 @@ import Goo.Widgets.Feedback
 
 let content = Container{
     Gap: 12,
-    ActionButton{Label: "Save", OnClick: () -> Save(),}.Build(),
+    ActionButton{Content: "Save", OnClick: () -> Save(),}.Build(),
     ProgressBar{Value: 0.6}.Build(),
 }
 ```
@@ -177,7 +177,7 @@ let theme = Ink with{ControlHeight = 28.0}
 Container{
     BasedOn: theme.CanvasStyle,
     Padding: theme.Spacing * 6.0,
-    (theme.PrimaryButton with{Label = "Save", OnClick = () -> Save()}).Build(),
+    (theme.PrimaryButton with{Content = "Save", OnClick = () -> Save()}).Build(),
     (theme.Checkbox with{Label = "Live preview"}).Build(),
 }
 ```

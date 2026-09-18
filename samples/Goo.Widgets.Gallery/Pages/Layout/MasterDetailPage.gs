@@ -18,13 +18,13 @@ internal open class MasterDetailExample : Cell {
             FlexDirection: FlexDirection.Row,
             Gap: 8.0,
             ActionButton{
-                Label: "Toggle layout",
+                Content: "Toggle layout",
                 OnClick: () -> {
                     narrow = !narrow
                 }
             }.Build(),
             ActionButton{
-                Label: "Select item",
+                Content: "Select item",
                 OnClick: () -> {
                     selected = true
                 }

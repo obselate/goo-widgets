@@ -137,7 +137,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.SpaceBetween,
             ActionButton{
-                Label: "Back",
+                Content: "Back",
                 BackgroundColor: Color.Parse("#27272a"),
                 TextColor: Color.Parse("#fafafa"),
                 BorderColor: Color.Parse("#3f3f46"),
@@ -148,7 +148,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
                 OnClick: () -> Back(),
             }.Build(),
             ActionButton{
-                Label: "Forward",
+                Content: "Forward",
                 BorderRadius: 8.0,
                 ShowFocusHighlight: true,
                 OnClick: () -> Forward(),

@@ -24,23 +24,23 @@ func PackageComposition() {
     var activations int32 = 0
     var radius float64 = -1.0
     let original = ActionButton{
-        Label: "Original",
+        Content: "Original",
         OnClick: () -> {
             activations++
         }
     }
     let derived = original with{
-        Label = "Save",
+        Content = "Save",
         BorderRadius = 0.0,
         TransitionMs = 0.0,
         CreateText = (resolved ActionButton) -> {
             radius = resolved.BorderRadius ?? -1.0
-            return Text{Content: resolved.Label ?? "", FontWeight: 700}
+            return Text{Content: resolved.Content ?? "", FontWeight: 700}
         },
     }
     let first = (derived.Build() as Button)!!
     let second = (derived.Build() as Button)!!
-    Require(original.Label == "Original", "Copy-update mutated the original widget.")
+    Require(original.Content == "Original", "Copy-update mutated the original widget.")
     Require(first != second, "Build reused a mutable root.")
     Require(first.Children[0] != second.Children[0], "Build reused a mutable default child.")
     Require(radius == 0.0 && first.TransitionMs == 0.0, "Explicit zero customization was lost.")

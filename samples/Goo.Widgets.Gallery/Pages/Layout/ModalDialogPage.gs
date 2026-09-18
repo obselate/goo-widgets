@@ -17,7 +17,7 @@ internal open class ModalDialogExample : Cell {
         Gap: 12.0,
         Color: "#fafafa",
         ActionButton{
-            Label: "Open dialog",
+            Content: "Open dialog",
             OnClick: () -> {
                 dialogOpen = true
             }

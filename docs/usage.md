@@ -13,7 +13,7 @@ The [complete example](../samples/Goo.Widgets.QuickStart/Program.gs) uses an act
 ```gsharp
 import Goo.Widgets.Actions
 
-ActionButton{Label: "Reset", OnClick: () -> ResetColor(),}.Build()
+ActionButton{Content: "Reset", OnClick: () -> ResetColor(),}.Build()
 ```
 
 `ResetColor` belongs to the host Cell. It only changes application state: Goo

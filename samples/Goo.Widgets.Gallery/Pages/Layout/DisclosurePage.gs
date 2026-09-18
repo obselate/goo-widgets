@@ -8,7 +8,7 @@ import Goo.Widgets.Layout
 internal class DisclosureCounter : Cell {
     private var count int32
     public override func Build() Blob -> ActionButton{
-        Label: "Retained counter: " + count.ToString(),
+        Content: "Retained counter: " + count.ToString(),
         OnClick: () -> {
             count++
         },

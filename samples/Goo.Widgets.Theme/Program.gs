@@ -67,7 +67,7 @@ class ThemeSample : Cell {
                     Text{Content: "Goo theme", FontFamily: theme.HeadingFontFamily, FontSize: 24.0, FlexGrow: 1.0},
                     (
                         theme.Button with{
-                            Label = "Ink",
+                            Content = "Ink",
                             OnClick = () -> {
                                 light = false
                             }
@@ -75,7 +75,7 @@ class ThemeSample : Cell {
                     ).Build(),
                     (
                         theme.Button with{
-                            Label = "Bone",
+                            Content = "Bone",
                             OnClick = () -> {
                                 light = true
                             }
@@ -141,7 +141,7 @@ class ThemeSample : Cell {
                         Gap: theme.Spacing * 2.0,
                         (
                             theme.PrimaryButton with{
-                                Label = "Apply",
+                                Content = "Apply",
                                 OnClick = () -> {
                                     status = "Applied $title at $opacity%"
                                 }
@@ -149,22 +149,22 @@ class ThemeSample : Cell {
                         ).Build(),
                         (
                             theme.Button with{
-                                Label = "Duplicate",
+                                Content = "Duplicate",
                                 OnClick = () -> {
                                     status = "Duplicated $title"
                                 }
                             }
                         ).Build(),
-                        (theme.GhostButton with{Label = "Reset", OnClick = Reset}).Build(),
+                        (theme.GhostButton with{Content = "Reset", OnClick = Reset}).Build(),
                         (
                             theme.DangerButton with{
-                                Label = "Remove",
+                                Content = "Remove",
                                 OnClick = () -> {
                                     status = "Removed $title"
                                 }
                             }
                         ).Build(),
-                        (theme.Button with{Label = "Unavailable", Disabled = true}).Build(),
+                        (theme.Button with{Content = "Unavailable", Disabled = true}).Build(),
                     },
                     (theme.Banner with{Content = status, BorderColor = theme.SuccessColor}).Build(),
                 },
