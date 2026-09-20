@@ -11,7 +11,7 @@
       "Goo": {
         "type": "Transitive",
         "resolved": "0.6.3",
-        "contentHash": "E7pcXGIXNd8+D3FvJApnmTTfIRmPeVP7GFEB33CxOkCm8S+bGnbN+rdPdYZSFMeDTIz1jMwwLujOE3mDR/F18Q==",
+        "contentHash": "3j3IbULWNKBCQ5uRGdChxlDWQA6I1VL3fcCqrVOwZxkLYo2gOIhA39UfQ3yjUxeYfUTPyVN6WeHbLHODiA9iLA==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",
@@ -21,7 +21,7 @@
       "Goo.Svg": {
         "type": "Transitive",
         "resolved": "0.6.3",
-        "contentHash": "xUMI67YfI8NEpje5MeZa2X6cXsJj1HSZeeEa8Won7UxSeUUiDoEQkQ81Z1ai6Os6o68ktN9gdStQuJm7JOoUnA==",
+        "contentHash": "2FN2W+Vx31hiriBpHRrJuexYjA3g4QlE9aD0vmEsoQVtIzVmJkF1opc3oEXpktu5Wu6OYywKXpyyhiYytkz1Vg==",
         "dependencies": {
           "Goo": "0.6.3"
         }
