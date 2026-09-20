@@ -20,7 +20,7 @@ public enum PopoverDismissReason {
     AnchorRemoved
 }
 
-/// Controlled popup state. Mount under a full-window overlay parent with visible overflow.
+/// Controlled popup state. Presentation uses the Window's automatic Portal overlay.
 public data struct PopoverInput {
     var Open bool
     /// Supply exactly one anchor or window point when open.
@@ -93,10 +93,9 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             anchorWasMounted = false
             anchorDismissed = false
             panelHeight = 0.0
-            return Container{
-                HitTestSelf: false,
-                Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true}
-            }
+            return Present(
+                Container{HitTestSelf: false, Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true}}
+            )
         }
         if (input.Anchor == nil) == (input.WindowPoint == nil) {
             throw ArgumentException("An open popover requires exactly one Anchor or WindowPoint")
@@ -172,7 +171,17 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         for overlay in current.Overlays ?? []Blob{} {
             root.Children.Add(overlay)
         }
-        return root
+        return Present(root)
+    }
+
+    private func Present(content Blob) Portal -> Portal{
+        Position: PositionType.Absolute,
+        Left: 0.0,
+        Right: 0.0,
+        Top: 0.0,
+        Bottom: 0.0,
+        ZIndex: current.ZIndex + (activeScope?.Order ?? 0),
+        content,
     }
 
     private func Resolve(input PopoverInput) PopoverInput {

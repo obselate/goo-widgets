@@ -3,8 +3,8 @@ package Goo.Widgets.Layout
 import Goo
 import System
 
-/// Mounts ModalDialog with focus containment, modal input isolation, and nested focus restoration.
-/// Place hosts under the same full-window overlay parent so their opening order also orders painting.
+/// Presents ModalDialog in the Window overlay with focus containment, modal input isolation,
+/// and nested focus restoration.
 public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
     private let rootHandle ElementHandle = ElementHandle()
     private var activeScope FocusScope?
@@ -30,10 +30,20 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         current = input
         if !input.Open {
             CloseScope()
-            return input.Build()
+            return Present(input.Build())
         }
         let visual = input with{CreateRoot = CreateMountedRoot}
-        return visual.Build()
+        return Present(visual.Build())
+    }
+
+    private func Present(content Blob) Portal -> Portal{
+        Position: PositionType.Absolute,
+        Left: 0.0,
+        Right: 0.0,
+        Top: 0.0,
+        Bottom: 0.0,
+        ZIndex: (current.ZIndex == 0 ? 20: current.ZIndex) + (activeScope?.Order ?? 0),
+        content,
     }
 
     private func CreateMountedRoot(resolved ModalDialog, backdrop Button, panel Container) Container {
