@@ -57,20 +57,28 @@ public data struct PopoverInput {
 public open class Popover : Cell[PopoverInput], IDisposable {
     private let rootHandle ElementHandle = ElementHandle()
     private let panelHandle ElementHandle = ElementHandle()
+    private let measurementRootHandle ElementHandle = ElementHandle()
     private var anchor ElementHandle?
     private var activeScope FocusScope?
     private var current PopoverInput
     private var rootBox ElementRect
     private var anchorBox ElementRect
     private var panelHeight float64
+    private var layoutWidth float64
+    private var layoutMaxHeight float64
+    private var measuredWidth float64
+    private var measuredMaxHeight float64
+    private var hasPanelMeasurement bool
     private var anchorWasMounted bool
     private var anchorDismissed bool
+    private var presented bool
     private var rootKeyHandler Action[KeyEvent]?
     private var disposed bool
 
     public init() {
         rootHandle.MetricsChanged += RootMetrics
         panelHandle.MetricsChanged += PanelMetrics
+        measurementRootHandle.MetricsChanged += MeasurementRootMetrics
     }
 
     /// Releases geometry subscriptions and the mounted focus scope.
@@ -81,21 +89,26 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         disposed = true
         rootHandle.MetricsChanged -= RootMetrics
         panelHandle.MetricsChanged -= PanelMetrics
+        measurementRootHandle.MetricsChanged -= MeasurementRootMetrics
         BindAnchor(nil)
         CloseScope()
     }
 
     protected override func Build(input PopoverInput) Blob {
+        let previous = current
         current = Resolve(input)
         BindAnchor(input.Open ? input.Anchor: nil)
         if !input.Open {
-            CloseScope()
             anchorWasMounted = false
             anchorDismissed = false
-            panelHeight = 0.0
+            anchorBox = ElementRect{}
+            ResetPresentation()
             return Present(
                 Container{HitTestSelf: false, Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true}}
             )
+        }
+        if !previous.Open {
+            ResetPresentation()
         }
         if (input.Anchor == nil) == (input.WindowPoint == nil) {
             throw ArgumentException("An open popover requires exactly one Anchor or WindowPoint")
@@ -109,7 +122,18 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
         let width = Math.Min(current.Width, Math.Max(1.0, viewport.Width - 2.0 * margin))
-        let heightLimit = Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
+        let heightLimit = if current.Viewport == nil && rootBox.Height <= 0.0 {
+            current.MaxHeight
+        } else {
+            Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
+        }
+        if !presented && rootBox.Width > 0.0 && rootBox.Height > 0.0
+        && (current.WindowPoint != nil || anchorWasMounted)
+        && MeasurementValid(width, heightLimit) {
+            presented = true
+        }
+        layoutWidth = width
+        layoutMaxHeight = heightLimit
         let height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
         let origin = Place(viewport, width, height)
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
@@ -157,7 +181,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0,}
         }
         rootKeyHandler = root.OnKeyDown
-        root.Handle = rootHandle
+        root.Handle = presented ? rootHandle: measurementRootHandle
+        root.Visibility = presented ? Visibility.Visible: Visibility.Hidden
         root.Focusable = true
         root.HitTestSelf = false
         root.TabStop = false
@@ -217,6 +242,14 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             throw ArgumentOutOfRangeException("Placement")
         }
         return result
+    }
+
+    private func MeasurementValid(width float64, maxHeight float64) bool {
+        if !hasPanelMeasurement || Math.Abs(measuredWidth - width) > 0.01 {
+            return false
+        }
+        return maxHeight <= measuredMaxHeight
+        || panelHeight < measuredMaxHeight - 0.01
     }
 
     private func Place(viewport ElementRect, width float64, height float64) Point {
@@ -316,14 +349,41 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
     }
 
+    private func MeasurementRootMetrics(metrics ElementMetrics) {
+        if disposed || !current.Open || !metrics.IsMounted {
+            return
+        }
+        if metrics.BorderBox != rootBox {
+            rootBox = metrics.BorderBox
+            Rebuild()
+        }
+    }
+
     private func PanelMetrics(metrics ElementMetrics) {
         if disposed || !current.Open || !metrics.IsMounted {
             return
         }
-        if Math.Abs(metrics.BorderBox.Height - panelHeight) > 0.01 {
-            panelHeight = metrics.BorderBox.Height
+        let heightChanged = Math.Abs(metrics.BorderBox.Height - panelHeight) > 0.01
+        let measurementChanged = !hasPanelMeasurement
+        || Math.Abs(measuredWidth - layoutWidth) > 0.01
+        || Math.Abs(measuredMaxHeight - layoutMaxHeight) > 0.01
+        panelHeight = metrics.BorderBox.Height
+        measuredWidth = layoutWidth
+        measuredMaxHeight = layoutMaxHeight
+        hasPanelMeasurement = true
+        if heightChanged || measurementChanged {
             Rebuild()
         }
+    }
+
+    private func ResetPresentation() {
+        CloseScope()
+        presented = false
+        rootBox = ElementRect{}
+        panelHeight = 0.0
+        measuredWidth = 0.0
+        measuredMaxHeight = 0.0
+        hasPanelMeasurement = false
     }
 
     private func HandleKey(event KeyEvent) {

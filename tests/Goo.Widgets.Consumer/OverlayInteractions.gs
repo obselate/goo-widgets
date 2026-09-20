@@ -464,14 +464,31 @@ func OverlayInteractions() {
         PumpFrames(window, 8)
         Require(OverlayFocus(semantics, "Background action"), "Dialog unmount failed to restore focus")
         host.DialogOpen = false
-        CompositeClick(window, host.Anchor)
-        PumpFrames(window, 18)
+        host.Anchor.Focus()
+        host.PopupOpen = true
+        host.Rebuild()
+        window.Pump(0.016)
+        Require(
+            !host.PopupAction.Focus(),
+            "Popover accepted input at its provisional root measurement"
+        )
+        window.Pump(0.016)
+        Require(
+            !host.PopupAction.Focus(),
+            "Popover accepted input at its provisional wrapped-content measurement"
+        )
+        window.Pump(0.016)
         let panel = host.PopupPanel!!.Handle!!.BorderBox
         let anchor = host.Anchor.BorderBox
         Require(
             panel.Y + panel.Height <= anchor.Y + .5 && panel.X >= 8.0 && panel.X + panel.Width <= 852.5,
-            "Popover did not flip/clamp to its measured viewport"
+            "Popover's first visible frame did not use its measured viewport"
         )
+        Require(
+            FindSemantics(semantics.Tree?.Root, "Popup action") != nil,
+            "Popover's measured first frame was not presented"
+        )
+        PumpFrames(window, 4)
         Require(OverlayFocus(semantics, "Popup action"), "Popover did not enter its content")
         CaptureIssueProof(window, "popover-flipped")
         host.AnchorX = 100.0
