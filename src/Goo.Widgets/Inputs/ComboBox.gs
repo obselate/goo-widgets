@@ -21,7 +21,7 @@ public data struct ComboBoxInput {
     var Disabled bool
     var Placeholder string?
     var AccessibilityName string?
-    /// A mounted, unclipped overlay region in the same window. Required when open.
+    /// Optional mounted collision viewport. Presentation uses the Window's Portal overlay.
     var OverlayHost ElementHandle?
     /// Nil lets the widget own opening; otherwise update Open in OnOpenChange.
     var Open bool?
@@ -35,7 +35,7 @@ public data struct ComboBoxInput {
     var Width float64
     var PopupHeight float64
     var RowHeight float64
-    /// Layer of the component while open. Its ancestors must permit visible overflow.
+    /// Layer of the popup while open.
     var ZIndex int32
     var CreateTrigger Func[ComboBoxInput, Button, Button]?
     var CreateSearch Func[ComboBoxInput, TextEntry, TextEntry]?
@@ -54,7 +54,6 @@ internal data struct ComboBoxRow {
 /// An anchored selector with virtual options and commit/cancel keyboard navigation.
 public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var current ComboBoxInput
-    private let rootHandle ElementHandle = ElementHandle()
     private let trigger ElementHandle = ElementHandle()
     private let listHandle ElementHandle = ElementHandle()
     private let searchHandle ElementHandle = ElementHandle()
@@ -62,7 +61,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private var overlay ElementHandle?
     private var overlayBox ElementRect
-    private var rootBox ElementRect
     private var rows List[ComboBoxRow] = List[ComboBoxRow]()
     private var activeId string = ""
     private var ownedOpen bool
@@ -72,17 +70,15 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var disposed bool
 
     public init() {
-        rootHandle.MetricsChanged += RootMetrics
         viewport.MetricsChanged += ListMetrics
     }
 
-    /// Releases geometry subscriptions; the composed popup owns its focus scope.
+    /// Releases geometry subscriptions. The composed popup owns its focus scope.
     public func Dispose() {
         if disposed {
             return
         }
         disposed = true
-        rootHandle.MetricsChanged -= RootMetrics
         viewport.MetricsChanged -= ListMetrics
         BindOverlay(nil)
     }
@@ -103,10 +99,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         let requestedOpen = !input.Disabled && (input.Open ?? ownedOpen)
         BindOverlay(input.OverlayHost)
-        if requestedOpen && overlay == nil {
-            throw InvalidOperationException("An open ComboBox requires an OverlayHost")
-        }
-        let isOpen = requestedOpen && (overlay?.IsMounted ?? false)
+        let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         let query = input.Query ?? ownedQuery
         let ids = HashSet[string](StringComparer.Ordinal)
         var selected ComboBoxOption?
@@ -191,8 +184,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if let create = current.CreateRoot {
             root = create(current, root)
         }
-        root.Handle = rootHandle
-        root.ZIndex = isOpen ? current.ZIndex: 0
         root.Children.Clear()
         root.Children.Add(button)
         let popupHeight = Math.Min(
@@ -209,10 +200,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             AccessibilityName: current.AccessibilityName,
             InitialFocus: current.Searchable ? searchHandle: listHandle,
             OnDismiss: Dismiss,
-            CreateRoot: PopupRoot,
-            CreatePanel: PopupPanel
+            CreatePanel: PopupPanel,
+            ZIndex: current.ZIndex,
         }
-        if isOpen {
+        if isOpen && overlay != nil {
             popup.Viewport = overlayBox
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
@@ -349,14 +340,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         } else {
             prepared
         }
-    }
-
-    private func PopupRoot(input PopoverInput, backdrop Container, panel Container) Container -> Container{
-        Position: PositionType.Absolute,
-        Left: overlayBox.X - rootBox.X,
-        Top: overlayBox.Y - rootBox.Y,
-        Width: overlayBox.Width,
-        Height: overlayBox.Height,
     }
 
     private func Handle(id string) ElementHandle {
@@ -497,16 +480,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         if overlayBox != metrics.BorderBox {
             overlayBox = metrics.BorderBox
-            Rebuild()
-        }
-    }
-
-    private func RootMetrics(metrics ElementMetrics) {
-        if disposed || !metrics.IsMounted {
-            return
-        }
-        if rootBox != metrics.BorderBox {
-            rootBox = metrics.BorderBox
             Rebuild()
         }
     }

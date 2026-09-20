@@ -44,7 +44,7 @@ public data struct WindowChrome {
     var EnableDoubleClick bool
     /// Enables the standard window command menu on right-click, Menu, and Shift+F10.
     var EnableContextMenu bool
-    /// Full-window overlay bounds for callback-only chrome; Host provides its own bounds.
+    /// Optional mounted collision viewport for the context menu.
     var OverlayHost ElementHandle?
     /// Customizes menu presentation. Open state, actions, anchor, and dismissal are rewired.
     var CreateMenu Func[WindowChrome, MenuInput, MenuInput]?

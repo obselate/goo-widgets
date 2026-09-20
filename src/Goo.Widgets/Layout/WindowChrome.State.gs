@@ -7,7 +7,6 @@ import System
 internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
     private var current WindowChrome
     private var source WindowChrome
-    private var menuRootFactory Func[MenuInput, Container, Container]?
     private var host Window?
     private var overlay ElementHandle?
     private let rootHandle ElementHandle = ElementHandle()
@@ -75,8 +74,8 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
                 MaxHeight: 240.0,
                 AccessibilityName: "Window commands"
             }
-            if menuOpen {
-                prepared.Viewport = Viewport()
+            if menuOpen && (overlay?.IsMounted ?? false) {
+                prepared.Viewport = overlayBox
             }
             if menuPoint == nil {
                 prepared.Anchor = rootHandle
@@ -93,9 +92,6 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             menu.Viewport = prepared.Viewport
             menu.OnDismiss = Dismiss
             menu.DismissOnActivate = true
-            root.ZIndex = menuOpen ? (menu.ZIndex == 0 ? 20: menu.ZIndex): 0
-            menuRootFactory = menu.CreateRoot
-            menu.CreateRoot = MenuRoot
             root.Children.Add(Cell.Mount[MenuInput, Menu]("menu", menu))
         }
         return root
@@ -150,10 +146,6 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
     }
 
     private func Open(point Point?) {
-        let viewport = Viewport()
-        if viewport.Width <= 0.0 || viewport.Height <= 0.0 {
-            throw InvalidOperationException("WindowChrome command menus require a mounted OverlayHost or native Host")
-        }
         menuPoint = point
         menuOpen = true
         Rebuild()
@@ -165,50 +157,23 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         Rebuild()
     }
 
-    private func Viewport() ElementRect -> host != nil
-    ? ElementRect{Width: float64(host!!.Width), Height: float64(host!!.Height)}: overlayBox
-
-    private func MenuRoot(input MenuInput, prepared Container) Container {
-        let root = if let create = menuRootFactory {
-            create(input, prepared)
-        } else {
-            prepared
-        }
-        let viewport = Viewport()
-        root.Left = viewport.X - rootBox.X
-        root.Top = viewport.Y - rootBox.Y
-        root.Right = Length{}
-        root.Bottom = Length{}
-        root.Width = viewport.Width
-        root.Height = viewport.Height
-        return root
-    }
-
     private func BindHost(next Window?) {
         if host == next {
             return
         }
         if let previous = host {
             previous.StateChanged -= StateChanged
-            previous.MetricsChanged -= WindowMetricsChanged
             previous.TitlebarDoubleClicked -= NativeDoubleClick
         }
         host = next
         if let window = next {
             window.StateChanged += StateChanged
-            window.MetricsChanged += WindowMetricsChanged
             window.TitlebarDoubleClicked += NativeDoubleClick
         }
     }
 
     private func StateChanged(state WindowState) {
         if !disposed {
-            Rebuild()
-        }
-    }
-
-    private func WindowMetricsChanged(metrics WindowMetrics) {
-        if !disposed && menuOpen {
             Rebuild()
         }
     }
@@ -251,9 +216,6 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         }
         if rootBox != metrics.BorderBox {
             rootBox = metrics.BorderBox
-            if menuOpen {
-                Rebuild()
-            }
         }
     }
 

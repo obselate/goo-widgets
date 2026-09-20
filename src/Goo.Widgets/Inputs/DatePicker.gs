@@ -27,6 +27,7 @@ public data struct DatePickerInput {
     var InvalidMessage string?
     var Placeholder string?
     var AccessibilityName string?
+    /// Optional mounted collision viewport. Presentation uses the Window's Portal overlay.
     var OverlayHost ElementHandle?
     var Open bool?
     var OnOpenChange Action[bool]?
@@ -43,14 +44,12 @@ public data struct DatePickerInput {
 /// Composes an editable date field, Calendar, and the shared anchored Popover lifecycle.
 public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var current DatePickerInput
-    private let rootHandle ElementHandle = ElementHandle()
     private let entryHandle ElementHandle = ElementHandle()
     private let fieldHandle ElementHandle = ElementHandle()
     private let calendarHandle ElementHandle = ElementHandle()
     private let issueHandle ElementHandle = ElementHandle()
     private var overlay ElementHandle?
     private var overlayBox ElementRect
-    private var rootBox ElementRect
     private var draft string = ""
     private var lastValue DateOnly?
     private var initialized bool
@@ -59,17 +58,12 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var ownedOpen bool
     private var disposed bool
 
-    public init() {
-        rootHandle.MetricsChanged += RootMetrics
-    }
-
-    /// Releases field and overlay geometry subscriptions.
+    /// Releases the optional collision-viewport subscription.
     public func Dispose() {
         if disposed {
             return
         }
         disposed = true
-        rootHandle.MetricsChanged -= RootMetrics
         BindOverlay(nil)
     }
 
@@ -105,10 +99,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         lastValue = input.Value
         BindOverlay(input.OverlayHost)
         let requestedOpen = !input.Disabled && (input.Open ?? ownedOpen)
-        if requestedOpen && overlay == nil {
-            throw InvalidOperationException("An open DatePicker requires an OverlayHost")
-        }
-        let isOpen = requestedOpen && (overlay?.IsMounted ?? false)
+        let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         var entry = TextEntry{
             Height: 38.0,
             MinWidth: 0.0,
@@ -180,8 +171,6 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         if let create = current.CreateRoot {
             root = create(current, root)
         }
-        root.Handle = rootHandle
-        root.ZIndex = isOpen ? current.ZIndex: 0
         root.Children.Clear()
         root.Children.Add(field)
         if invalid {
@@ -229,10 +218,10 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             AccessibilityName: current.AccessibilityName!!+ " popup",
             InitialFocus: calendarHandle,
             OnDismiss: Dismiss,
-            CreateRoot: PopupRoot,
-            CreatePanel: PopupPanel
+            CreatePanel: PopupPanel,
+            ZIndex: current.ZIndex,
         }
-        if isOpen {
+        if isOpen && overlay != nil {
             popup.Viewport = overlayBox
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
@@ -360,14 +349,6 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
     }
 
-    private func PopupRoot(input PopoverInput, backdrop Container, panel Container) Container -> Container{
-        Position: PositionType.Absolute,
-        Left: overlayBox.X - rootBox.X,
-        Top: overlayBox.Y - rootBox.Y,
-        Width: overlayBox.Width,
-        Height: overlayBox.Height,
-    }
-
     private func BindOverlay(next ElementHandle?) {
         if overlay == next {
             return
@@ -394,16 +375,6 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
         if overlayBox != metrics.BorderBox {
             overlayBox = metrics.BorderBox
-            Rebuild()
-        }
-    }
-
-    private func RootMetrics(metrics ElementMetrics) {
-        if disposed || !metrics.IsMounted {
-            return
-        }
-        if rootBox != metrics.BorderBox {
-            rootBox = metrics.BorderBox
             Rebuild()
         }
     }
