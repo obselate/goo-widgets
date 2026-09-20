@@ -5,7 +5,6 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
 
 internal class DatePickerExample : Cell {
-    private let overlay ElementHandle = ElementHandle()
     private var date DateOnly? = DateOnly(2026, 9, 14)
     private var isoDate DateOnly? = DateOnly(2026, 9, 22)
     private var isOpen bool = true
@@ -47,7 +46,6 @@ internal class DatePickerExample : Cell {
 
     public override func Build() Blob {
         var local = DatePickerInput{
-            OverlayHost: overlay,
             Width: 290.0,
             Open: isOpen,
             OnOpenChange: Open,
@@ -63,7 +61,6 @@ internal class DatePickerExample : Cell {
             local.Value = date!!
         }
         var iso = DatePickerInput{
-            OverlayHost: overlay,
             Width: 290.0,
             OnChange: SelectIso,
             Format: Format,
@@ -76,7 +73,6 @@ internal class DatePickerExample : Cell {
             iso.Value = isoDate!!
         }
         return Container{
-            Handle: overlay,
             Width: 720.0,
             Height: 440.0,
             Gap: 14.0,

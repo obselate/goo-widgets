@@ -32,7 +32,7 @@ public data struct PopoverInput {
     var OnDismiss Action[PopoverDismissReason]?
     /// False allows pointer input outside this panel to reach an underlying menu level. Defaults to true.
     var DismissOnOutsideClick bool?
-    /// Optional collision bounds in window logical coordinates; defaults to the overlay bounds.
+    /// Optional collision bounds in window logical coordinates; defaults to the Window bounds.
     var Viewport ElementRect?
     var Placement PopoverPlacement
     /// Width defaults to 280 and maximum height to 360. Both shrink to the available viewport.

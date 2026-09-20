@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.5 - 2026-09-19
+
+- Present Popover, Menu, managed ModalDialog, ComboBox, DatePicker, and
+  WindowChrome menus through Goo's per-Window Portal overlay. Source clipping,
+  transforms, and layout no longer constrain managed overlays.
+- Make ComboBox, DatePicker, and WindowChrome `OverlayHost` optional collision
+  viewports instead of presentation hosts.
+- Hold a newly opened Popover hidden until its viewport and wrapped panel have
+  been measured, preventing a provisional-position first frame.
+- Require Goo and Goo.Svg 0.6.3.
+
 ## 0.2.4 - 2026-09-18
 
 - Rename the breaking `ActionButton.Label` property to `ActionButton.Content`

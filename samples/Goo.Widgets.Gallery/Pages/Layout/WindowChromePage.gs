@@ -8,14 +8,12 @@ internal open class WindowChromeExample : Cell {
     private var maximized bool
     private var clicks int32
     private var status string = "Double-click the blank titlebar, or right-click for window commands."
-    private let overlay ElementHandle = ElementHandle()
 
     public override func Build() Blob {
         let chrome = WindowChrome{
             IsMaximized: maximized,
             EnableDoubleClick: true,
             EnableContextMenu: true,
-            OverlayHost: overlay,
             LeadingContent: Text{Content: "Example window", MarginLeft: 12.0, FontSize: 12.0, Color: "#fafafa"},
             TrailingContent: Button{
                 Height: 24.0,
@@ -49,7 +47,6 @@ internal open class WindowChromeExample : Cell {
         }.Build()
         chrome.Key = "chrome"
         return Container{
-            Handle: overlay,
             Width: 640.0,
             Height: 260.0,
             BorderWidth: 1.0,

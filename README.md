@@ -11,11 +11,11 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.2.4` targets .NET 10 and depends on Goo and Goo.Svg `0.5.4`.
+Goo Widgets `0.2.5` targets .NET 10 and depends on Goo and Goo.Svg `0.6.3`.
 Use `Gsharp.NET.Sdk/0.4.591` and install the package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.4
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.5
 ```
 
 Goo supplies the upstream G# compiler and formatter needed for native child
@@ -61,8 +61,9 @@ buttons keep their action callbacks and confirmation-disabled state.
 
 `Popover` takes `PopoverInput` with controlled Open, arbitrary Content, and exactly
 one Anchor handle or WindowPoint. It uses measured bounds, flips to the opposite
-side when it fits better, and clamps to Viewport (window coordinates), or its
-parent overlay bounds by default. It tracks anchor movement and resize. OnDismiss
+side when it fits better, and clamps to Viewport (window coordinates), or the
+Window bounds by default. Its first visible frame waits for the panel measurement,
+so wrapped content is already aligned. It tracks anchor movement and resize. OnDismiss
 reports Escape, OutsideClick, or AnchorRemoved; update Open and rebuild the host.
 Tab stays in the popup and closing restores eligible prior focus. Factories
 customize the panel/root while placement, handles, input, and content stay wired.
@@ -80,11 +81,12 @@ defaults to true. CreateItem, CreateSeparator, CreatePanel, and CreateRoot retai
 navigation, identity, and accessibility wiring. Hosts can use Menu or Shift+F10
 key events to open the same menu from a keyboard trigger (see the gallery).
 
-Mount these overlays under a full-window, unclipped parent. They do not create a
-portal or a native window. Their opening order only sorts siblings within an
-existing parent. Keep their controlled Open state in sync when hiding an overlay
-host externally; closing and reopening starts a fresh focus lifecycle. Native
-secondary-window ownership remains Goo's Window.Owner/Modal API.
+Popover, Menu, and ModalDialogHost present through Goo's automatic per-Window
+Portal overlay. They stay logically owned where declared while escaping source
+layout, clipping, transforms, and stacking. Multiple overlays share the native
+Window and use ZIndex plus opening order. Keep controlled Open state in sync when
+hiding an owning subtree. Closing and reopening starts a fresh focus lifecycle.
+Native secondary-window ownership remains Goo's Window.Owner/Modal API.
 
 ## ComboBox
 
@@ -94,10 +96,10 @@ Selection changes only on activation or Enter; Escape cancels. Up/Down/Home/End
 move the active option, skip disabled options, and reveal offscreen virtual rows.
 `Searchable` adds a search field. Empty results keep the popup open without committing.
 
-Pass the handle of a full-window, unclipped container as `OverlayHost`, and keep
-the selector's ancestor overflow visible. The popup paints in that region without
-changing the selector's layout size. The host is a geometry reference, not a portal;
-ancestor clipping and stacking still apply. Opening restores the selected option,
+The popup uses the Window Portal overlay and does not change selector layout.
+`OverlayHost` is optional. When supplied, its mounted border box is the collision
+viewport, while presentation still uses the Window overlay. Omitting it uses the
+Window bounds. Opening restores the selected option,
 and closing restores trigger focus. `Open` and `Query` can be controlled with their
 callbacks; leaving them nil uses widget-owned state. Update controlled values and
 rebuild the owning Cell in callbacks. Trigger, search, row, popup, and root factories
@@ -120,9 +122,10 @@ commits nil by default; `AllowEmpty: false` rejects it. Invalid input retains th
 draft and committed value, exposes an accessible error, and invokes `OnInvalid`.
 `Format` and `Parse` override localized display and parsing; a nil parse result
 rejects nonempty input. Host value and formatter changes update the focused field.
-Alt+Down or F4 opens the calendar; dismissal restores focus. Supply the same
-full-window, unclipped `OverlayHost` used by ComboBox. Calendar, day, input, button,
-popup, and root factories preserve required behavior after customization. Hosts
+Alt+Down or F4 opens the calendar; dismissal restores focus. The popup uses the
+Window Portal overlay. Optional `OverlayHost` constrains collision handling to a
+mounted border box without becoming the presentation parent. Calendar, day, input,
+button, popup, and root factories preserve required behavior after customization. Hosts
 own time zones, storage formats, recurrence, and scheduling policy.
 
 ## Optional Markdown
@@ -226,10 +229,9 @@ tree. No global theme registration or initialization is required.
   accessibility presence, and mounted child state survives collapse/reopen. Removing
   the disclosure unmounts and disposes its children normally. Factories receive resolved
   props; retain the supplied keys, callbacks, and hidden-body contract.
-- ModalDialog builds the visual overlay. Mount `Cell.Mount[ModalDialog, ModalDialogHost]`
-  for focus entry, containment, restoration, and nested modal isolation. Put sibling
-  overlay hosts under the same full-window parent; opening order determines their
-  layers within that parent. Content and confirmation work remain host-owned.
+- ModalDialog builds an in-parent visual. Mount `Cell.Mount[ModalDialog, ModalDialogHost]`
+  for Window Portal presentation, focus entry, containment, restoration, and nested
+  modal isolation. Content and confirmation work remain host-owned.
 - GraphCanvas uses supplied node positions. The host owns layout calculation,
   selection, and viewport state. Cards keep their screen size as positions zoom.
 - WindowChrome needs a Window or callbacks for window actions. `EnableDoubleClick`
@@ -238,9 +240,10 @@ tree. No global theme registration or initialization is required.
   callbacks override its actions. False leaves the operating system's default
   behavior in place. Decorative title content participates in double-click handling;
   embedded clickable/focusable controls keep their own behavior. `EnableContextMenu`
-  enables right-click, Menu, and Shift+F10 commands with focus restoration. Callback-only
-  chrome needs a full-window `OverlayHost` for menus. `CreateMenu` customizes presentation;
-  actions, placement, open state, and dismissal remain wired by the widget.
+  enables right-click, Menu, and Shift+F10 commands with focus restoration. Menus use
+  the Window Portal overlay. Optional `OverlayHost` supplies custom collision bounds.
+  `CreateMenu` customizes presentation; actions, placement, open state, and dismissal
+  remain wired by the widget.
 - Media and upload widgets emit callbacks. The host owns playback, file access,
   and other services.
 
@@ -325,7 +328,7 @@ After `scripts/verify.sh`, run the gallery interaction regressions in an isolate
 Wayland session. Set `GOO_CLI` to the matching Goo CLI executable or DLL:
 
 ```sh
-dotnet tool install --global Goo.DevTools --version 0.5.4
+dotnet tool install --global Goo.DevTools --version 0.6.3
 python3 scripts/with-isolated-wayland.py -- python3 scripts/verify-gallery-feedback.py
 ```
 

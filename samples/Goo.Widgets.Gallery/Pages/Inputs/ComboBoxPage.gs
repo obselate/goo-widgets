@@ -5,7 +5,6 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
 
 internal class ComboBoxExample : Cell {
-    private let overlay ElementHandle = ElementHandle()
     private var environment string = "prod"
     private var region string = "region-347"
     private var fixedOpen bool
@@ -49,7 +48,6 @@ internal class ComboBoxExample : Cell {
     }
 
     public override func Build() Blob -> Container{
-        Handle: overlay,
         Width: 720.0,
         Height: 430.0,
         Gap: 12.0,
@@ -73,7 +71,6 @@ internal class ComboBoxExample : Cell {
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "environment",
                     ComboBoxInput{
-                        OverlayHost: overlay,
                         Width: 290.0,
                         SelectedId: environment,
                         OnSelect: Environment,
@@ -97,7 +94,6 @@ internal class ComboBoxExample : Cell {
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "disabled",
                     ComboBoxInput{
-                        OverlayHost: overlay,
                         Width: 290.0,
                         Disabled: true,
                         Placeholder: "Managed by your administrator",
@@ -113,7 +109,6 @@ internal class ComboBoxExample : Cell {
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "region",
                     ComboBoxInput{
-                        OverlayHost: overlay,
                         Width: 350.0,
                         PopupHeight: 260.0,
                         Items: regions,
