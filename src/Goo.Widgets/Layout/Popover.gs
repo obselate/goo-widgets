@@ -65,9 +65,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private var anchorBox ElementRect
     private var panelHeight float64
     private var layoutWidth float64
-    private var layoutMaxHeight float64
     private var measuredWidth float64
-    private var measuredMaxHeight float64
     private var hasPanelMeasurement bool
     private var anchorWasMounted bool
     private var anchorDismissed bool
@@ -122,18 +120,13 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
         let width = Math.Min(current.Width, Math.Max(1.0, viewport.Width - 2.0 * margin))
-        let heightLimit = if current.Viewport == nil && rootBox.Height <= 0.0 {
-            current.MaxHeight
-        } else {
-            Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
-        }
+        let heightLimit = Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
         if !presented && rootBox.Width > 0.0 && rootBox.Height > 0.0
         && (current.WindowPoint != nil || anchorWasMounted)
-        && MeasurementValid(width, heightLimit) {
+        && MeasurementValid(width) {
             presented = true
         }
         layoutWidth = width
-        layoutMaxHeight = heightLimit
         let height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
         let origin = Place(viewport, width, height)
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
@@ -155,7 +148,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         panel.Left = origin.X - rootBox.X
         panel.Top = origin.Y - rootBox.Y
         panel.Width = width
-        panel.MaxHeight = heightLimit
+        panel.MaxHeight = presented ? heightLimit: current.MaxHeight
         panel.MinHeight = 0.0
         panel.FlexShrink = 0.0
         panel.OverflowY = Overflow.Scroll
@@ -244,13 +237,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         return result
     }
 
-    private func MeasurementValid(width float64, maxHeight float64) bool {
-        if !hasPanelMeasurement || Math.Abs(measuredWidth - width) > 0.01 {
-            return false
-        }
-        return maxHeight <= measuredMaxHeight
-        || panelHeight < measuredMaxHeight - 0.01
-    }
+    private func MeasurementValid(width float64) bool ->
+    hasPanelMeasurement && Math.Abs(measuredWidth - width) <= 0.01
 
     private func Place(viewport ElementRect, width float64, height float64) Point {
         let margin = current.ViewportMargin!!
@@ -366,10 +354,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let heightChanged = Math.Abs(metrics.BorderBox.Height - panelHeight) > 0.01
         let measurementChanged = !hasPanelMeasurement
         || Math.Abs(measuredWidth - layoutWidth) > 0.01
-        || Math.Abs(measuredMaxHeight - layoutMaxHeight) > 0.01
         panelHeight = metrics.BorderBox.Height
         measuredWidth = layoutWidth
-        measuredMaxHeight = layoutMaxHeight
         hasPanelMeasurement = true
         if heightChanged || measurementChanged {
             Rebuild()
@@ -382,7 +368,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         rootBox = ElementRect{}
         panelHeight = 0.0
         measuredWidth = 0.0
-        measuredMaxHeight = 0.0
         hasPanelMeasurement = false
     }
 
