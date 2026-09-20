@@ -38,7 +38,7 @@ func ComboBoxContracts() {
 }
 
 internal class ComboBoxHost : Cell {
-    internal let Overlay ElementHandle = ElementHandle()
+    internal let Source ElementHandle = ElementHandle()
     internal let Before ElementHandle = ElementHandle()
     internal var Trigger Button?
     internal var Search TextEntry?
@@ -115,7 +115,6 @@ internal class ComboBoxHost : Cell {
 
     public override func Build() Blob {
         let root = Container{
-            Handle: Overlay,
             Width: Length.Percent(100),
             Height: Length.Percent(100),
             Padding: 24.0,
@@ -142,28 +141,37 @@ internal class ComboBoxHost : Cell {
         }
         if Show {
             root.Children.Add(
-                Cell.Mount[ComboBoxInput, ComboBox](
-                    "combo",
-                    ComboBoxInput{
-                        OverlayHost: Overlay,
-                        Width: 320.0,
-                        PopupHeight: 250.0,
-                        SelectedId: Selected,
-                        OnSelect: Select,
-                        Items: Options(),
-                        Open: IsOpen,
-                        OnOpenChange: Open,
-                        Query: Query,
-                        OnQueryChange: QueryChanged,
-                        Searchable: Searchable,
-                        Disabled: Disabled,
-                        AccessibilityName: "Target selector",
-                        CreateTrigger: CaptureTrigger,
-                        CreateRow: CaptureRow,
-                        CreateSearch: CaptureSearch,
-                        CreatePopup: CapturePanel,
-                    }
-                )
+                Container{
+                    Key: "source",
+                    Handle: Source,
+                    Width: 360.0,
+                    Height: 52.0,
+                    Overflow: Overflow.Hidden,
+                    BorderWidth: 4.0,
+                    BorderColor: "#7c3aed",
+                    Transform: PanelTransform{TranslateX: 12.0, TranslateY: 6.0},
+                    Cell.Mount[ComboBoxInput, ComboBox](
+                        "combo",
+                        ComboBoxInput{
+                            Width: 320.0,
+                            PopupHeight: 250.0,
+                            SelectedId: Selected,
+                            OnSelect: Select,
+                            Items: Options(),
+                            Open: IsOpen,
+                            OnOpenChange: Open,
+                            Query: Query,
+                            OnQueryChange: QueryChanged,
+                            Searchable: Searchable,
+                            Disabled: Disabled,
+                            AccessibilityName: "Target selector",
+                            CreateTrigger: CaptureTrigger,
+                            CreateRow: CaptureRow,
+                            CreateSearch: CaptureSearch,
+                            CreatePopup: CapturePanel,
+                        }
+                    )
+                }
             )
         }
         return root
@@ -249,6 +257,11 @@ func ComboBoxInteractions() {
         CompositeClick(window, host.Trigger!!.Handle!!)
         PumpFrames(window, 14)
         Require(host.IsOpen && ComboActive(semantics, "Beta"), "ComboBox failed to reveal its selected option")
+        Require(
+            host.Panel!!.Handle!!.BorderBox.Y + host.Panel!!.Handle!!.BorderBox.Height
+            > host.Source.BorderBox.Y + host.Source.BorderBox.Height,
+            "ComboBox popup remained clipped to its transformed source ancestor"
+        )
         Require(FindSemantics(semantics.Tree?.Root, "Beta")!!.Selected == true, "Selected option semantics missing")
         SendKey(id, SDLScancode.Up)
         PumpFrames(window, 7)

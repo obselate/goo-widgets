@@ -79,6 +79,7 @@ internal class OverlayHost : Cell {
     internal var PopupOpen bool
     internal var MenuOpen bool
     internal var PointPopup bool
+    internal var ExplicitViewport bool
     internal var ShowAnchor bool = true
     internal var ShowDialogs bool = true
     internal var EmptyDialog bool
@@ -349,6 +350,9 @@ internal class OverlayHost : Cell {
         } else {
             popup.Anchor = Anchor
         }
+        if ExplicitViewport {
+            popup.Viewport = ElementRect{X: 20.0, Y: 30.0, Width: 360.0, Height: 480.0}
+        }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
         root.Children.Add(
             Cell.Mount[MenuInput, Menu](
@@ -504,14 +508,16 @@ func OverlayInteractions() {
             "Popover Escape/restore failed"
         )
         host.PointPopup = true
+        host.ExplicitViewport = true
         host.PopupOpen = true
         host.Rebuild()
         window.Width = 440
         PumpFrames(window, 18)
         let narrow = host.PopupPanel!!.Handle!!.BorderBox
         Require(
-            narrow.X >= 7.5 && narrow.X + narrow.Width <= 432.5 && narrow.Y + narrow.Height <= 552.5,
-            "Point popup escaped resized bounds"
+            narrow.X >= 27.5 && narrow.X + narrow.Width <= 372.5
+            && narrow.Y >= 37.5 && narrow.Y + narrow.Height <= 502.5,
+            "Point popup escaped its explicit viewport"
         )
         CaptureIssueProof(window, "popover-point-narrow")
         MouseButton(id, 12.0F, 12.0F, true)
@@ -523,6 +529,7 @@ func OverlayInteractions() {
         )
         window.Width = 860
         host.PointPopup = false
+        host.ExplicitViewport = false
         host.PopupOpen = true
         host.Rebuild()
         PumpFrames(window, 12)

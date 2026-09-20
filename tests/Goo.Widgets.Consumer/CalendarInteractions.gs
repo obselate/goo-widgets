@@ -55,7 +55,7 @@ func CalendarContracts() {
 }
 
 internal class CalendarHost : Cell {
-    internal let Overlay ElementHandle = ElementHandle()
+    internal let PickerSource ElementHandle = ElementHandle()
     internal let CalendarHandle ElementHandle = ElementHandle()
     internal let OpenButton ElementHandle = ElementHandle()
     internal let Before ElementHandle = ElementHandle()
@@ -176,7 +176,6 @@ internal class CalendarHost : Cell {
             calendar.Maximum = DateOnly(2024, 2, 29)
         }
         var picker = DatePickerInput{
-            OverlayHost: Overlay,
             OnChange: Changed,
             OnInvalid: Invalid,
             Width: 300.0,
@@ -210,10 +209,21 @@ internal class CalendarHost : Cell {
             Cell.Mount[CalendarInput, Calendar]("calendar", calendar)
         }
         if Show {
-            row.Children.Add(Cell.Mount[DatePickerInput, DatePicker]("picker", picker))
+            row.Children.Add(
+                Container{
+                    Key: "picker-source",
+                    Handle: PickerSource,
+                    Width: 320.0,
+                    Height: 52.0,
+                    Overflow: Overflow.Hidden,
+                    BorderWidth: 4.0,
+                    BorderColor: "#0d9488",
+                    Transform: PanelTransform{TranslateX: 10.0, TranslateY: 5.0},
+                    Cell.Mount[DatePickerInput, DatePicker]("picker", picker)
+                }
+            )
         }
         return Container{
-            Handle: Overlay,
             Width: Length.Percent(100),
             Height: Length.Percent(100),
             Padding: 24.0,
@@ -367,6 +377,11 @@ func CalendarInteractions() {
         Require(
             host.IsOpen && CalendarFocused(semantics, DateOnly(2026, 9, 14), "en-US"),
             "DatePicker popup failed initial date focus"
+        )
+        Require(
+            host.Popup!!.Handle!!.BorderBox.Y + host.Popup!!.Handle!!.BorderBox.Height
+            > host.PickerSource.BorderBox.Y + host.PickerSource.BorderBox.Height,
+            "DatePicker popup remained clipped to its transformed source ancestor"
         )
         SendKey(id, SDLScancode.Right)
         PumpFrames(window, 7)
