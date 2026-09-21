@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import System
@@ -493,6 +494,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     },
                     content
                 }
+                WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && snapshot.OnColumnWidthChange != nil {
                     let handle = Container{

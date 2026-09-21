@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
@@ -69,6 +70,7 @@ func OverlayContracts() {
 }
 
 internal class OverlayHost : Cell {
+    private var platformInput PlatformInput?
     internal let Before ElementHandle = ElementHandle()
     internal let Anchor ElementHandle = ElementHandle()
     internal let Edit ElementHandle = ElementHandle()
@@ -207,6 +209,10 @@ internal class OverlayHost : Cell {
         return prepared
     }
 
+    internal func AttachWindow(window Window) {
+        platformInput = window.PlatformInput
+    }
+
     public override func Build() Blob {
         let root = Container{
             Width: Length.Percent(100),
@@ -294,6 +300,7 @@ internal class OverlayHost : Cell {
                     "outer",
                     ModalDialog{
                         Open: DialogOpen,
+                        KeyBindings: WidgetKeyBindings.Editing(platformInput),
                         Header: Text{Content: "Review change", FontSize: 21.0, FontWeight: 700},
                         Content: content,
                         AccessibilityName: "Review change",
@@ -312,6 +319,7 @@ internal class OverlayHost : Cell {
                     "top",
                     ModalDialog{
                         Open: TopOpen,
+                        KeyBindings: WidgetKeyBindings.Editing(platformInput),
                         Header: Text{Content: "Nested confirmation", FontSize: 21.0, FontWeight: 700},
                         Width: 370.0,
                         Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
@@ -400,14 +408,17 @@ func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantic
 func OverlayInteractions() {
     OverlayContracts()
     let host = OverlayHost()
+    let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Overlay verification",
         Width: 860,
         Height: 560,
-        Root: host,
+        Root: root,
         AccessibilityAdapter: semantics
     }
+    BindApplicationInput(root, window)
+    host.AttachWindow(window)
     window.Open()
     try {
         PumpFrames(window, 12)
@@ -472,15 +483,9 @@ func OverlayInteractions() {
         host.PopupOpen = true
         host.Rebuild()
         window.Pump(0.016)
-        Require(
-            !host.PopupAction.Focus(),
-            "Popover accepted input at its provisional root measurement"
-        )
+        Require(!host.PopupAction.Focus(), "Popover accepted input at its provisional root measurement")
         window.Pump(0.016)
-        Require(
-            !host.PopupAction.Focus(),
-            "Popover accepted input at its provisional wrapped-content measurement"
-        )
+        Require(!host.PopupAction.Focus(), "Popover accepted input at its provisional wrapped-content measurement")
         window.Pump(0.016)
         let panel = host.PopupPanel!!.Handle!!.BorderBox
         let anchor = host.Anchor.BorderBox

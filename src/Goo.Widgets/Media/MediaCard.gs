@@ -1,6 +1,7 @@
 package Goo.Widgets.Media
 
 import Goo
+import Goo.Widgets
 import System
 
 /// A generic actionable card with supplied thumbnail content and text metadata.
@@ -134,9 +135,11 @@ public data struct MediaCard {
             }
         }
         if let createRoot = createRoot {
-            return createRoot(resolved, thumbnail, content)
+            let button = createRoot(resolved, thumbnail, content)
+            WidgetKeyBindings.BindActivation(button)
+            return button
         }
-        return Button{
+        let button = Button{
             BasedOn: resolved.RootStyle,
             Width: resolved.Width,
             Height: resolved.ThumbnailHeight + resolved.ContentHeight,
@@ -155,6 +158,8 @@ public data struct MediaCard {
             thumbnail,
             content,
         }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 
     private func SupportingText(input MediaCard, content string) Blob -> Text{

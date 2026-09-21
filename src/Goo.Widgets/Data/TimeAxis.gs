@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 import System.Globalization
@@ -286,6 +287,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             Place(blob, placement.X, 30.0 + float64(placement.Lane) * (height + gap), placement.Width, height)
             blob.Focusable = input.OnSelect != nil
             blob.OnClick = input.OnSelect == nil ? nil: () -> input.OnSelect?.Invoke(item.Id!!)
+            WidgetKeyBindings.BindActivation(blob)
             blob.Accessibility = Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: EventName(item),
@@ -316,6 +318,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             Place(blob, left, 30.0 + float64(ends.Count) * (height + gap), right - left, height)
             blob.Focusable = input.OnOverflow != nil
             blob.OnClick = input.OnOverflow == nil ? nil: () -> input.OnOverflow?.Invoke(hidden)
+            WidgetKeyBindings.BindActivation(blob)
             let names = List[string]()
             for item in hidden {
                 names.Add(EventName(item))

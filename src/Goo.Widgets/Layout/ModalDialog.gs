@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// A composable in-parent modal overlay with host-owned close, cancel, and confirm actions.
 public data struct ModalDialog {
@@ -44,6 +45,8 @@ public data struct ModalDialog {
     var BorderColor Color?
     /// Backdrop color. Nil resolves to translucent black.
     var BackdropColor Color?
+    /// Explicit bindings applied at the modal focus-scope root.
+    var KeyBindings([]KeyBinding)?
     /// Dialog border width. Nil resolves to 1 and preserves explicit zero.
     var BorderWidth float64?
     /// Dialog corner radius. Nil resolves to 8 and preserves explicit zero.
@@ -153,7 +156,9 @@ public data struct ModalDialog {
         }
 
         cancel.OnClick = resolved.OnCancel
+        WidgetKeyBindings.BindActivation(cancel)
         confirm.OnClick = resolved.OnConfirm
+        WidgetKeyBindings.BindActivation(confirm)
         confirm.Disabled = resolved.ConfirmDisabled
 
         let actions = Container{
@@ -205,20 +210,25 @@ public data struct ModalDialog {
         }
         dialog.Children.Add(actions)
 
-        if let createRoot = createRoot {
-            return createRoot(resolved, backdrop, dialog)
+        let root = if let createRoot = createRoot {
+            createRoot(resolved, backdrop, dialog)
+        } else {
+            Container{
+                Position: PositionType.Absolute,
+                Left: 0.0,
+                Right: 0.0,
+                Top: 0.0,
+                Bottom: 0.0,
+                ZIndex: resolved.ZIndex,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                backdrop,
+                dialog,
+            }
         }
-        return Container{
-            Position: PositionType.Absolute,
-            Left: 0.0,
-            Right: 0.0,
-            Top: 0.0,
-            Bottom: 0.0,
-            ZIndex: resolved.ZIndex,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            backdrop,
-            dialog,
+        if resolved.KeyBindings != nil {
+            root.KeyBindings = resolved.KeyBindings
         }
+        return root
     }
 }

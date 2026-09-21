@@ -1,6 +1,7 @@
 package Goo.Widgets.ThemeSample
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Inputs
 import Goo.Widgets.Theme
 import System
@@ -13,6 +14,12 @@ class ThemeSample : Cell {
     private var title string = "goo studio"
     private var opacity float64 = 75.0
     private var status string = "Changes saved"
+    private var platformInput PlatformInput?
+
+    internal func AttachWindow(window Window) {
+        platformInput = window.PlatformInput
+        Rebuild()
+    }
 
     override func Build() Blob {
         let theme = (
@@ -52,6 +59,7 @@ class ThemeSample : Cell {
             }
         ).Build()
         return Container{
+            KeyBindings: WidgetKeyBindings.Editing(platformInput),
             BasedOn: theme.CanvasStyle,
             Width: Length.Percent(100.0),
             Height: Length.Percent(100.0),
@@ -211,5 +219,8 @@ func Main() {
     medium.Register()
     semibold.Register()
     Window.ConfigureApplication("Goo theme", "1.0.0", "com.example.goo-theme")
-    Window{Title: "Goo Widgets · Goo theme", Width: 720, Height: 700, Root: ThemeSample{}}.Run()
+    let root = ThemeSample{}
+    let window = Window{Title: "Goo Widgets · Goo theme", Width: 720, Height: 700, Root: root}
+    root.AttachWindow(window)
+    window.Run()
 }

@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Charts
 import Goo.Widgets.Layout
 import Hexa.NET.SDL3
@@ -105,17 +106,22 @@ func GridChartContracts() {
 internal class GridCounter : Cell {
     internal var Count int32
     internal let ButtonHandle ElementHandle = ElementHandle()
-    public override func Build() Blob -> Button{
-        Handle: ButtonHandle,
-        Height: 32,
-        BackgroundColor: "#25636a",
-        Color: "#e0ffff",
-        Focusable: true,
-        Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained counter"},
-        OnClick: () -> {
+    public override func Build() Blob {
+        let activate = () -> {
             Count++
-        },
-        Text{Content: "Count " + Count.ToString()}
+        }
+        let button = Button{
+            Handle: ButtonHandle,
+            Height: 32,
+            BackgroundColor: "#25636a",
+            Color: "#e0ffff",
+            Focusable: true,
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained counter"},
+            OnClick: activate,
+            Text{Content: "Count " + Count.ToString()}
+        }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 }
 

@@ -1,6 +1,7 @@
 package Goo.Widgets.Feedback
 
 import Goo
+import Goo.Widgets
 
 /// A horizontal context bar with caller content, an integrated dismiss button, and customizable factories.
 public data struct DismissibleContextBar {
@@ -212,6 +213,7 @@ public data struct DismissibleContextBar {
                 label,
             }
         }
+        WidgetKeyBindings.BindActivation(button!!)
         if let createRoot = createRoot {
             return createRoot(resolved, Content, button!!)
         }

@@ -284,14 +284,16 @@ func PickerDraft(window Window, id uint32, host CalendarHost, value string) {
 func CalendarInteractions() {
     CalendarContracts()
     let host = CalendarHost()
+    let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Calendar verification",
         Width: 850,
         Height: 620,
-        Root: host,
+        Root: root,
         AccessibilityAdapter: semantics
     }
+    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 15)

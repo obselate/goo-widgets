@@ -151,7 +151,14 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         divider.OnPointerMove = Move
         divider.OnPointerUp = End
         divider.OnPointerCancel = Cancel
-        divider.OnKeyDown = KeyDown
+        divider.KeyBindings = []KeyBinding{
+            KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
+            KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
+            KeyBinding{Key: Key.Left, Repeat: true, Action: () -> KeyAction(Key.Left)},
+            KeyBinding{Key: Key.Right, Repeat: true, Action: () -> KeyAction(Key.Right)},
+            KeyBinding{Key: Key.Up, Repeat: true, Action: () -> KeyAction(Key.Up)},
+            KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
+        }
         divider.Accessibility = Accessibility{
             Role: AccessibilityRole.Slider,
             Name: input.AccessibilityName!!,
@@ -261,20 +268,19 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         }
     }
 
-    private func KeyDown(e KeyEvent) {
+    private func KeyAction(key Key) {
         if input.Disabled {
             return
         }
         let horizontal = input.Orientation == SplitOrientation.Horizontal
-        let decrease = e.Key == (horizontal ? Key.Left: Key.Up)
-        let increase = e.Key == (horizontal ? Key.Right: Key.Down)
-        if !decrease && !increase && e.Key != Key.Home && e.Key != Key.End {
+        let decrease = key == (horizontal ? Key.Left: Key.Up)
+        let increase = key == (horizontal ? Key.Right: Key.Down)
+        if !decrease && !increase && key != Key.Home && key != Key.End {
             return
         }
-        e.PreventDefault()
         let step = input.Step!!* (input.Unit == SplitUnit.Ratio ? available: 1.0)
         let current = input.Value * (input.Unit == SplitUnit.Ratio ? available: 1.0)
-        Request(e.Key == Key.Home ? 0.0: e.Key == Key.End ? available: current + (decrease ? -step: step))
+        Request(key == Key.Home ? 0.0: key == Key.End ? available: current + (decrease ? -step: step))
         input.OnCommit?.Invoke(lastRequest)
     }
 

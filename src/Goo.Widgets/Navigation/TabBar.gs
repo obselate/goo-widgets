@@ -1,6 +1,7 @@
 package Goo.Widgets.Navigation
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -106,6 +107,7 @@ public open class TabBar : Cell[TabBarInput] {
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
+            WidgetKeyBindings.BindActivation(button)
             button.OnFocus = (e FocusEvent) -> {
                 focusedId = id
                 hasFocus = true

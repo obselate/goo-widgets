@@ -1,6 +1,7 @@
 package Goo.Widgets.Colors
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Inputs
 import System
 import System.Globalization
@@ -261,7 +262,14 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> EndPointer(e),
-            OnKeyDown: (e KeyEvent) -> KeyDown(e),
+            KeyBindings: []KeyBinding{
+                KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
+                KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
+                KeyBinding{Key: Key.Left, Repeat: true, Action: () -> KeyAction(Key.Left)},
+                KeyBinding{Key: Key.Right, Repeat: true, Action: () -> KeyAction(Key.Right)},
+                KeyBinding{Key: Key.Up, Repeat: true, Action: () -> KeyAction(Key.Up)},
+                KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
+            },
             Image{
                 Key: "color-wheel-image",
                 Source: wheelSource,
@@ -296,33 +304,37 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         BuildModeButton(ColorMode.Oklch, "OKLCH"),
     }
 
-    private func BuildModeButton(mode ColorMode, label string) Blob -> Button{
-        Key: "color-mode-" + label,
-        Height: 34.0,
-        FlexGrow: 1.0,
-        PaddingLeft: 8.0,
-        PaddingRight: 8.0,
-        BorderRadius: 7.0,
-        BackgroundColor: if currentMode == mode {
-            "#3f3f46"
-        } else {
-            "#27272a"
-        },
-        Hover: Style{BackgroundColor: "#52525b"},
-        Cursor: if resolved.Disabled {
-            Cursor.Default
-        } else {
-            Cursor.Pointer
-        },
-        Disabled: resolved.Disabled,
-        Focusable: !resolved.Disabled,
-        Accessibility: Accessibility{
-            Role: AccessibilityRole.Button,
-            Name: "Use " + label + " color model",
-            Selected: currentMode == mode,
-        },
-        OnClick: () -> SelectMode(mode),
-        Text{Key: "color-mode-label-" + label, Content: label, FontSize: 12.0, Color: "#fafafa"},
+    private func BuildModeButton(mode ColorMode, label string) Blob {
+        let button = Button{
+            Key: "color-mode-" + label,
+            Height: 34.0,
+            FlexGrow: 1.0,
+            PaddingLeft: 8.0,
+            PaddingRight: 8.0,
+            BorderRadius: 7.0,
+            BackgroundColor: if currentMode == mode {
+                "#3f3f46"
+            } else {
+                "#27272a"
+            },
+            Hover: Style{BackgroundColor: "#52525b"},
+            Cursor: if resolved.Disabled {
+                Cursor.Default
+            } else {
+                Cursor.Pointer
+            },
+            Disabled: resolved.Disabled,
+            Focusable: !resolved.Disabled,
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.Button,
+                Name: "Use " + label + " color model",
+                Selected: currentMode == mode,
+            },
+            OnClick: () -> SelectMode(mode),
+            Text{Key: "color-mode-label-" + label, Content: label, FontSize: 12.0, Color: "#fafafa"},
+        }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 
     private func BuildPreview() Blob -> Container{
@@ -455,30 +467,25 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         UpdateColor(true)
     }
 
-    private func KeyDown(e KeyEvent) {
+    private func KeyAction(key Key) {
         if resolved.Disabled {
             return
         }
-        var handled = true
-        if e.Key == Key.Left {
+        if key == Key.Left {
             hue = WrapHue(hue - 1.0)
-        } else if e.Key == Key.Right {
+        } else if key == Key.Right {
             hue = WrapHue(hue + 1.0)
-        } else if e.Key == Key.Up {
+        } else if key == Key.Up {
             radius = Math.Clamp(radius + 0.01, 0.0, 1.0)
-        } else if e.Key == Key.Down {
+        } else if key == Key.Down {
             radius = Math.Clamp(radius - 0.01, 0.0, 1.0)
-        } else if e.Key == Key.Home {
+        } else if key == Key.Home {
             radius = 0.0
-        } else if e.Key == Key.End {
+        } else if key == Key.End {
             radius = 1.0
         } else {
-            handled = false
-        }
-        if !handled {
             return
         }
-        e.PreventDefault()
         UpdateColor(true)
     }
 

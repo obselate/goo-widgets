@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 import System
 
@@ -152,6 +153,7 @@ public data struct Disclosure {
         if let create = createHeader {
             header = create(resolved, header)
         }
+        WidgetKeyBindings.BindActivation(header)
         var body = Container{
             Key: "content",
             Padding: resolved.ContentPadding!!,

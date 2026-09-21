@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import System
@@ -146,6 +147,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         button.Disabled = current.Disabled
         button.Focusable = !current.Disabled
         button.OnClick = () -> SetOpen(!isOpen)
+        WidgetKeyBindings.BindActivation(button)
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.Button,
             Name: current.AccessibilityName!!+ " calendar",

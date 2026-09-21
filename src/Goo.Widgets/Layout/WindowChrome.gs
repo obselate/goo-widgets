@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Navigation
 import System
@@ -233,6 +234,7 @@ public data struct WindowChrome {
         control.Focusable = action != nil
         control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: Name(command)}
         control.OnClick = action
+        WidgetKeyBindings.BindActivation(control)
         control.Children.Clear()
         control.Children.Add(content)
         return control

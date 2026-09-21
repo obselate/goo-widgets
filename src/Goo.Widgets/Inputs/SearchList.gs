@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import System
 import System.Collections.Generic
@@ -229,10 +230,12 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             Text{Content: item.Label ?? "", Color: options.Foreground, FlexGrow: 1, MinWidth: 0},
             Text{Content: item.Detail ?? "", Color: options.Muted, FontSize: 12},
         }
+        var result Blob = row
         if let customize = options.Customize {
-            return customize(item, row)
+            result = customize(item, row)
         }
-        return row
+        WidgetKeyBindings.BindActivation(result)
+        return result
     }
 }
 

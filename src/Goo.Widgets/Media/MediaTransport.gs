@@ -1,6 +1,7 @@
 package Goo.Widgets.Media
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import System
@@ -292,54 +293,57 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 }
             )
         }
-        if let createAction = input.CreateAction {
-            return createAction(input, slot, content, action, disabled)
+        let button = if let createAction = input.CreateAction {
+            createAction(input, slot, content, action, disabled)
+        } else {
+            Button{
+                BasedOn: if primary {
+                    input.PrimaryActionStyle
+                } else {
+                    input.ActionStyle
+                },
+                Width: if primary {
+                    input.PrimaryActionSize
+                } else {
+                    input.ActionSize
+                },
+                Height: if primary {
+                    input.PrimaryActionSize
+                } else {
+                    input.ActionSize
+                },
+                Padding: 0.0,
+                BorderRadius: if primary {
+                    input.PrimaryActionSize / 2.0
+                } else {
+                    input.ActionSize / 2.0
+                },
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                BackgroundColor: if primary {
+                    input.PrimaryActionBackgroundColor!!
+                } else {
+                    input.ActionBackgroundColor!!
+                },
+                Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
+                Cursor: Cursor.Pointer,
+                Disabled: disabled,
+                Opacity: if disabled {
+                    0.4
+                } else {
+                    1.0
+                },
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: ActionName(slot)},
+                OnClick: if disabled {
+                    nil
+                } else {
+                    action
+                },
+                content,
+            }
         }
-        return Button{
-            BasedOn: if primary {
-                input.PrimaryActionStyle
-            } else {
-                input.ActionStyle
-            },
-            Width: if primary {
-                input.PrimaryActionSize
-            } else {
-                input.ActionSize
-            },
-            Height: if primary {
-                input.PrimaryActionSize
-            } else {
-                input.ActionSize
-            },
-            Padding: 0.0,
-            BorderRadius: if primary {
-                input.PrimaryActionSize / 2.0
-            } else {
-                input.ActionSize / 2.0
-            },
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            BackgroundColor: if primary {
-                input.PrimaryActionBackgroundColor!!
-            } else {
-                input.ActionBackgroundColor!!
-            },
-            Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
-            Cursor: Cursor.Pointer,
-            Disabled: disabled,
-            Opacity: if disabled {
-                0.4
-            } else {
-                1.0
-            },
-            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: ActionName(slot)},
-            OnClick: if disabled {
-                nil
-            } else {
-                action
-            },
-            content,
-        }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 
     private func TimeText(value float64, color Color) Blob -> Text{

@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Actions
 import Goo.Widgets.Data
 import Goo.Widgets.Feedback
@@ -18,6 +19,55 @@ func Require(condition bool, message string) {
     if !condition {
         throw InvalidOperationException(message)
     }
+}
+
+func InvokeKeyBinding(blob Blob, key Key) bool {
+    for binding in blob.KeyBindings ?? []KeyBinding{} {
+        if binding.Key == key && NoModifiers(binding.Modifiers) {
+            binding.Action?.Invoke()
+            return true
+        }
+    }
+    return false
+}
+
+func HasKeyBinding(blob Blob, key Key, release bool = false) bool {
+    for binding in blob.KeyBindings ?? []KeyBinding{} {
+        if binding.Key == key && NoModifiers(binding.Modifiers) {
+            return binding.Action != nil && (!release || binding.OnRelease != nil)
+        }
+    }
+    return false
+}
+
+func NoModifiers(modifiers KeyModifiers) bool ->
+!modifiers.Alt && !modifiers.Shift && !modifiers.Ctrl && !modifiers.Super
+
+internal class ApplicationHost : Cell {
+    private let content Cell
+    private var input PlatformInput?
+
+    public init(content Cell) {
+        this.content = content
+    }
+
+    internal func AttachWindow(window Window) {
+        input = window.PlatformInput
+        Rebuild()
+    }
+
+    public override func Build() Blob -> Container{
+        KeyBindings: WidgetKeyBindings.Editing(input),
+        Width: Length.Percent(100),
+        Height: Length.Percent(100),
+        Cell.Mount[Cell](() -> content, "application-host"),
+    }
+}
+
+func ApplicationRoot(content Cell) ApplicationHost -> ApplicationHost(content)
+
+func BindApplicationInput(root ApplicationHost, window Window) {
+    root.AttachWindow(window)
 }
 
 func PackageComposition() {
@@ -47,6 +97,22 @@ func PackageComposition() {
     Require(first.Accessibility?.Name == "Save", "Semantic button name was lost across the package boundary.")
     first.OnClick?.Invoke()
     Require(activations == 1, "Packaged button lost its callback.")
+    Require(
+        first.Handle != nil && HasKeyBinding(first, Key.Enter) && HasKeyBinding(first, Key.Space, true),
+        "Packaged button did not expose handle-based Enter and Space activation."
+    )
+    Require(WidgetKeyBindings.Editing(nil).Length == 0, "Nil platform input produced application bindings.")
+    var customBinding bool
+    let customButton = Button{
+        OnClick: () -> { },
+        KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, Action: () -> customBinding = true},},
+    }
+    WidgetKeyBindings.BindActivation(customButton)
+    Require(
+        InvokeKeyBinding(customButton, Key.H) && customBinding
+        && HasKeyBinding(customButton, Key.Enter) && HasKeyBinding(customButton, Key.Space, true),
+        "Activation policy replaced a custom primitive binding."
+    )
 
     var enabled bool = false
     let toggle = ToggleSwitch{
@@ -306,9 +372,9 @@ func SliderInteractions() {
         },
     }
     let root = slider.Render(input)
-    root.OnKeyDown?.Invoke(KeyEvent{Key: Key.End})
+    Require(InvokeKeyBinding(root, Key.End), "Slider did not expose an End binding.")
     Require(changed == 1.0 && committed == 1.0, "End did not reach a range endpoint between steps.")
-    root.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
+    Require(InvokeKeyBinding(root, Key.Home), "Slider did not expose a Home binding.")
     Require(changed == 0.0 && committed == 0.0, "Home did not return to the exact minimum.")
     let invalidAccepted = root.Accessibility!!.OnAction!!(AccessibilityActionRequest.SetValue("NaN"))
     Require(!invalidAccepted && committed == 0.0, "Accessible NaN changed a slider value.")
@@ -316,6 +382,6 @@ func SliderInteractions() {
     Require(accepted && Math.Abs(committed - 0.6) < 0.000001, "Accessible value change was not committed.")
 
     let disabled = slider.Render(input with{Disabled = true})
-    disabled.OnKeyDown?.Invoke(KeyEvent{Key: Key.End})
+    Require(InvokeKeyBinding(disabled, Key.End), "Disabled slider did not retain its explicit key policy.")
     Require(Math.Abs(committed - 0.6) < 0.000001, "A disabled slider handled a key.")
 }

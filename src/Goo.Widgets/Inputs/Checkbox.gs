@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
@@ -122,7 +123,9 @@ public data struct Checkbox {
         }
 
         if let createRoot = createRoot {
-            return createRoot(resolved, content)
+            let button = createRoot(resolved, content)
+            WidgetKeyBindings.BindActivation(button)
+            return button
         }
         var onClick Action? = nil
         if !resolved.Disabled {
@@ -162,7 +165,7 @@ public data struct Checkbox {
             if let content = content {
                 markBox.Children.Add(content)
             }
-            return Button{
+            let root = Button{
                 Width: Length.Auto,
                 Height: resolved.Size,
                 Padding: 0.0,
@@ -203,6 +206,8 @@ public data struct Checkbox {
                     FontWeight: resolved.LabelFontWeight,
                 },
             }
+            WidgetKeyBindings.BindActivation(root)
+            return root
         }
         let root = Button{
             Width: resolved.Size,
@@ -245,6 +250,7 @@ public data struct Checkbox {
         if let content = content {
             root.Children.Add(content)
         }
+        WidgetKeyBindings.BindActivation(root)
         return root
     }
 }

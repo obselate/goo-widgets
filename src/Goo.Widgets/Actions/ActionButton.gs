@@ -1,6 +1,7 @@
 package Goo.Widgets.Actions
 
 import Goo
+import Goo.Widgets
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
 public data struct ActionButton {
@@ -124,10 +125,12 @@ public data struct ActionButton {
             value
         }
         if let createRoot = createRoot {
-            return createRoot(resolved, text)
+            let button = createRoot(resolved, text)
+            WidgetKeyBindings.BindActivation(button)
+            return button
         }
 
-        return Button{
+        let root = Button{
             Height: resolved.Height,
             MinWidth: resolved.MinWidth,
             PaddingLeft: resolved.PaddingHorizontal,
@@ -159,5 +162,7 @@ public data struct ActionButton {
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!,},
             text,
         }
+        WidgetKeyBindings.BindActivation(root)
+        return root
     }
 }

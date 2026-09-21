@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Require Goo and Goo.Svg 0.6.4.
+- Add handle-based Enter activation and held Space press/release bindings to interactive widget buttons.
+- Add `WidgetKeyBindings.Editing` for application-owned text editing, focus
+  traversal, clipboard, cancellation, and key-repeat policy.
+- Add `ModalDialog.KeyBindings` for application policy inside modal focus scopes
+  and preserve multiline Enter behavior in the shared editing policy.
+- Move Slider and SplitPane keyboard adjustment to explicit repeatable bindings.
+
 ## 0.2.5 - 2026-09-19
 
 - Present Popover, Menu, managed ModalDialog, ComboBox, DatePicker, and

@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Actions
 import Goo.Widgets.Gallery.Pages.Actions
 import Goo.Widgets.Gallery.Pages.Colors
@@ -16,6 +17,7 @@ import Goo.Widgets.Gallery.Pages.Data
 import Goo.Widgets.Gallery.Pages.Content
 
 open class GalleryPage {
+    internal var PlatformInput PlatformInput?
     open func Title() string;
 
     open func Build() Blob;
@@ -78,6 +80,12 @@ class GalleryRegistry(Groups[]GalleryCategory) {
 
 class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     private var currentIndex int32 = InitialIndex
+    private var platformInput PlatformInput?
+
+    internal func AttachWindow(window Window) {
+        platformInput = window.PlatformInput
+        Rebuild()
+    }
 
     internal func Show(index int32) {
         currentIndex = index
@@ -92,6 +100,12 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
         currentIndex = (currentIndex + delta + count) % count
     }
 
+    private func BuildCurrentPage() Blob {
+        let page = Registry.CurrentPage(currentIndex)
+        page.PlatformInput = platformInput
+        return page.Build()
+    }
+
     private func Back() {
         Navigate(-1)
     }
@@ -102,6 +116,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
 
     public override func Build() Blob ->
     Container{
+        KeyBindings: WidgetKeyBindings.Editing(platformInput),
         Width: Length.Percent(100),
         Height: Length.Percent(100),
         Padding: 32,
@@ -130,7 +145,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
             BackgroundColor: "#18181b",
             TransitionMs: 150.0,
             TransitionEasing: Easing.EaseOut,
-            Registry.CurrentPage(currentIndex).Build(),
+            BuildCurrentPage(),
         },
         Container{
             FlexDirection: FlexDirection.Row,

@@ -1,6 +1,7 @@
 package Goo.Widgets.Navigation
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Layout
 import System
 import System.Collections.Generic
@@ -164,6 +165,7 @@ public open class Menu : Cell[MenuInput] {
                 Expanded: hasChildren ? path.Count > depth && path[depth] == id: nil,
             }
             row.OnClick = () -> Activate(depth, id)
+            WidgetKeyBindings.BindActivation(row)
             row.OnFocus = (event FocusEvent) -> {
                 event.StopPropagation()
                 active[depth] = id

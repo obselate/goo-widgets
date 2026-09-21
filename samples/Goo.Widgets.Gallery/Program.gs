@@ -8,6 +8,7 @@ import System.Threading
 func VerifyGallery(registry GalleryRegistry) {
     let gallery = Gallery(registry, 0)
     let window = Window{Title: "Goo Widgets gallery verification", Width: 1100, Height: 800, Root: gallery}
+    gallery.AttachWindow(window)
     window.Open()
     try {
         for index in 0 ... registry.Count() {
@@ -145,6 +146,7 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
     }
     let gallery = Gallery(registry, first)
     let window = Window{Title: "Goo Widgets gallery screenshots", Width: 1100, Height: 800, Root: gallery}
+    gallery.AttachWindow(window)
     window.Open()
     try {
         using let diagnostics = DevTools.Attach(window)
@@ -261,5 +263,8 @@ func Main(args[]string) {
         initialIndex = registry.IndexOf(title)
     }
     Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
-    Window{Title: "Goo Widgets Gallery", Width: 1100, Height: 800, Root: Gallery(registry, initialIndex),}.Run()
+    let gallery = Gallery(registry, initialIndex)
+    let window = Window{Title: "Goo Widgets Gallery", Width: 1100, Height: 800, Root: gallery}
+    gallery.AttachWindow(window)
+    window.Run()
 }

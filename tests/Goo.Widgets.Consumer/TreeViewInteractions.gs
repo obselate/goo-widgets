@@ -207,14 +207,16 @@ func TreeActive(adapter SearchListSemantics, name string) bool {
 func TreeViewInteractions() {
     TreeViewContracts()
     let host = TreeHost()
+    let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TreeView verification",
         Width: 620,
         Height: 480,
-        Root: host,
+        Root: root,
         AccessibilityAdapter: semantics
     }
+    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 20)

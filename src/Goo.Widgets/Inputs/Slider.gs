@@ -279,7 +279,14 @@ public open class Slider : Cell[SliderInput] {
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> EndPointer(e),
-            OnKeyDown: (e KeyEvent) -> KeyDown(e),
+            KeyBindings: []KeyBinding{
+                KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
+                KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
+                KeyBinding{Key: Key.Left, Repeat: true, Action: () -> KeyAction(Key.Left)},
+                KeyBinding{Key: Key.Right, Repeat: true, Action: () -> KeyAction(Key.Right)},
+                KeyBinding{Key: Key.Up, Repeat: true, Action: () -> KeyAction(Key.Up)},
+                KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
+            },
             track,
             fill,
             thumb,
@@ -491,27 +498,20 @@ public open class Slider : Cell[SliderInput] {
         Commit()
     }
 
-    private func KeyDown(e KeyEvent) {
+    private func KeyAction(key Key) {
         if resolved.Disabled {
             return
         }
         var next = current
-        var handled = true
-        if e.Key == Key.Home {
+        if key == Key.Home {
             next = resolved.Minimum!!
-        } else if e.Key == Key.End {
+        } else if key == Key.End {
             next = resolved.Maximum!!
-        } else if e.Key == Key.Right || e.Key == Key.Up {
+        } else if key == Key.Right || key == Key.Up {
             next += resolved.Step!!
-        } else if e.Key == Key.Left || e.Key == Key.Down {
-            next -= resolved.Step!!
         } else {
-            handled = false
+            next -= resolved.Step!!
         }
-        if !handled {
-            return
-        }
-        e.PreventDefault()
         Preview(next)
         Commit()
     }

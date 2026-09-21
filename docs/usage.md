@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-These examples use Goo Widgets `0.2.5`, Goo/Goo.Svg `0.6.3`, .NET 10, and
+These examples use Goo Widgets `0.2.5`, Goo/Goo.Svg `0.6.4`, .NET 10, and
 `Gsharp.NET.Sdk/0.4.591`. Goo automatically supplies the upstream compiler needed
 for native child composition. Follow the [installation instructions](../README.md#install).
 
@@ -23,6 +23,53 @@ announce different text.
 `ResetColor` belongs to the host Cell. It only changes application state: Goo
 automatically rebuilds the Cell after its input callback. Callbacks from a
 separately mounted child that change parent state must call the parent's `Rebuild()`.
+
+## Application input bindings
+
+Goo 0.6.4 makes primitive keyboard policy explicit. Widget buttons and composite
+controls provide their own activation and navigation bindings. Attach the shared
+editing policy to the application root after creating its `Window`:
+
+```gsharp
+import Goo.Widgets
+
+class App : Cell {
+    private var input PlatformInput?
+
+    internal func AttachWindow(window Window) {
+        input = window.PlatformInput
+    }
+
+    override func Build() Blob -> Container{
+        KeyBindings: WidgetKeyBindings.Editing(input),
+        // application content
+    }
+}
+
+let root = App{}
+let window = Window{Root: root}
+root.AttachWindow(window)
+window.Run()
+```
+
+The policy supplies focused text commands, Tab and Shift+Tab focus traversal,
+clipboard shortcuts, Escape cancellation, and repeatable movement and deletion.
+Applications can replace it with their own `KeyBinding` set.
+Use `WidgetKeyBindings.BindActivation(blob)` for custom interactive primitives.
+It preserves existing bindings, uses `ElementHandle` press/activation for `Button`,
+and adds release activation for other clickable primitives.
+
+Key bindings stop at Goo focus-scope boundaries. Supply the same editing policy
+through `ModalDialog.KeyBindings` so text commands and focus traversal remain
+available inside managed dialogs:
+
+```gsharp
+ModalDialog{
+    Open: dialogOpen,
+    KeyBindings: WidgetKeyBindings.Editing(input),
+    Content: TextEntry{Value: value},
+}
+```
 
 ## Color picker integration
 

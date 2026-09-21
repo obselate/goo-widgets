@@ -1,6 +1,7 @@
 package Goo.Widgets.Markdown
 
 import Goo
+import Goo.Widgets
 import System
 
 internal data struct MarkdownLeafInput {
@@ -176,6 +177,7 @@ internal class MarkdownTextView : Cell, IDisposable {
             if options.OnLink == nil {
                 button.OnClick = nil
             }
+            WidgetKeyBindings.BindActivation(button)
             if width > 0.0 {
                 button.MaxWidth = width
             }

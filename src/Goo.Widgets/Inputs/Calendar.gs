@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 import System.Globalization
@@ -312,6 +313,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         button.Disabled = !CanMonth(delta)
         button.Focusable = !button.Disabled
         button.OnClick = () -> MoveMonth(delta)
+        WidgetKeyBindings.BindActivation(button)
         button.OnFocus = (event FocusEvent) -> event.StopPropagation()
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.Button,
@@ -346,6 +348,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         button.Focusable = !day.Disabled
         button.TabStop = day.Active && !day.Disabled
         button.OnClick = () -> Select(date)
+        WidgetKeyBindings.BindActivation(button)
         button.OnFocus = (event FocusEvent) -> {
             event.StopPropagation()
             active = date

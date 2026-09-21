@@ -1,6 +1,7 @@
 package Goo.Widgets.Actions
 
 import Goo
+import Goo.Widgets
 import System
 
 /// An accessible icon-only button that accepts any Goo blob as its icon.
@@ -68,9 +69,11 @@ public data struct IconButton {
         }
         let icon = resolved.Icon ?? Container{Width: 0.0, Height: 0.0, Accessibility: Accessibility{Hidden: true}}
         if let createRoot = createRoot {
-            return createRoot(resolved, icon)
+            let button = createRoot(resolved, icon)
+            WidgetKeyBindings.BindActivation(button)
+            return button
         }
-        return Button{
+        let button = Button{
             BasedOn: resolved.RootStyle,
             Width: resolved.Width,
             Height: resolved.Height,
@@ -104,5 +107,7 @@ public data struct IconButton {
             OnClick: resolved.OnClick,
             icon,
         }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 }

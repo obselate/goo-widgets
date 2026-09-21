@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 
 /// A selectable tag/filter chip with leading element support and customizable primitive factories.
 public data struct Chip {
@@ -140,7 +141,9 @@ public data struct Chip {
             value
         }
         if let createRoot = createRoot {
-            return createRoot(resolved, originalLeading, text)
+            let button = createRoot(resolved, originalLeading, text)
+            WidgetKeyBindings.BindActivation(button)
+            return button
         }
 
         let currentBg = if resolved.Selected {
@@ -214,6 +217,7 @@ public data struct Chip {
         } else {
             root.Children.Add(text)
         }
+        WidgetKeyBindings.BindActivation(root)
         return root
     }
 }

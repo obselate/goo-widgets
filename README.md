@@ -11,7 +11,7 @@ includes a complete color picker application and basic widget examples.
 
 ## Install
 
-Goo Widgets `0.2.5` targets .NET 10 and depends on Goo and Goo.Svg `0.6.3`.
+Goo Widgets `0.2.5` targets .NET 10 and depends on Goo and Goo.Svg `0.6.4`.
 Use `Gsharp.NET.Sdk/0.4.591` and install the package from NuGet.org:
 
 ```sh
@@ -221,7 +221,10 @@ tree. No global theme registration or initialization is required.
   handles, accessibility semantics, and layout properties.
 - Return fresh mutable content from factories when building multiple instances.
 - Visible focus highlights are off by default. Set `ShowFocusHighlight: true` on
-  widgets that expose it. Keyboard input and accessibility semantics stay enabled.
+  widgets that expose it. Widget buttons and composite controls install their own
+  bindings. Apply `WidgetKeyBindings.Editing(window.PlatformInput)` to the
+  application root for text editing, focus traversal, clipboard, cancellation,
+  and key-repeat policy.
 - SearchList filters supplied in-memory items and needs unique stable IDs and a
   logical viewport width and height. The host owns remote search and storage.
 - Disclosure owns no expanded state. Build it with `Expanded` and `OnExpandedChange`.
@@ -286,7 +289,7 @@ Cell.Mount[SliderInput, Slider](
 
 ## Build and run
 
-Install .NET 10 and meet [Goo's platform requirements](https://github.com/obselate/goo#platforms).
+Install .NET 10 SDK 10.0.401 and meet [Goo's platform requirements](https://github.com/obselate/goo#platforms).
 NuGet supplies the native libraries and G# authoring tools.
 
 ```sh
@@ -328,7 +331,7 @@ After `scripts/verify.sh`, run the gallery interaction regressions in an isolate
 Wayland session. Set `GOO_CLI` to the matching Goo CLI executable or DLL:
 
 ```sh
-dotnet tool install --global Goo.DevTools --version 0.6.3
+dotnet tool install --global Goo.DevTools --version 0.6.4
 python3 scripts/with-isolated-wayland.py -- python3 scripts/verify-gallery-feedback.py
 ```
 

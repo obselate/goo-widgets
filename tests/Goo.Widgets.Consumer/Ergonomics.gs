@@ -77,7 +77,7 @@ func ColorPickerErgonomics() {
         },
     }
     customPicker.Render(customInput)
-    customWheel!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.End})
+    Require(InvokeKeyBinding(customWheel!!, Key.End), "Custom ColorPicker wheel had no End binding.")
     Require(changedRgb >= 0, "Custom ColorPicker wheel did not update its local color.")
     customPicker.Render(customInput)
     Require(
@@ -130,7 +130,7 @@ func SliderErgonomics() {
         "Slider did not build its labeled formatted value header."
     )
     let interactive = (before.Children[1] as Container)!!
-    interactive.OnKeyDown?.Invoke(KeyEvent{Key: Key.End})
+    Require(InvokeKeyBinding(interactive, Key.End), "Decorated Slider had no End binding.")
     Require(changed == 1.0, "Decorated Slider did not preserve its interactive root.")
     let after = (slider.Render(input) as Container)!!
     let afterHeader = (after.Children[0] as Container)!!

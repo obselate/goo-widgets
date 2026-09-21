@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Layout
 import System
 import System.Collections.Generic
@@ -166,6 +167,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         button.Disabled = current.Disabled
         button.Focusable = !current.Disabled
         button.OnClick = () -> SetOpen(!isOpen)
+        WidgetKeyBindings.BindActivation(button)
         button.OnKeyDown = TriggerKey
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.ComboBox,

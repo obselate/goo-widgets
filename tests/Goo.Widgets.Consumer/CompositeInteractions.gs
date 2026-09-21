@@ -234,14 +234,16 @@ func CompositeClick(window Window, handle ElementHandle) {
 func CompositeInteractions() {
     TextAreaOwnership()
     let host = CompositeHost()
+    let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Goo Widgets composite verification",
         Width: 700,
         Height: 610,
-        Root: host,
+        Root: root,
         AccessibilityAdapter: semantics
     }
+    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 20)

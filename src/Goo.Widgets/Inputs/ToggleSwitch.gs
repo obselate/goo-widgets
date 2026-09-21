@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 
 /// A controlled switch composed from a Goo button track and thumb.
 /// Factories receive resolved props and may replace the final Goo primitives.
@@ -134,7 +135,9 @@ public data struct ToggleSwitch {
             }
         }
         if let createRoot = createRoot {
-            return createRoot(resolved, thumb)
+            let button = createRoot(resolved, thumb)
+            WidgetKeyBindings.BindActivation(button)
+            return button
         }
         let trackColor = if resolved.Disabled {
             resolved.DisabledTrackColor!!
@@ -143,7 +146,7 @@ public data struct ToggleSwitch {
         } else {
             resolved.OffTrackColor!!
         }
-        return Button{
+        let button = Button{
             Width: resolved.Width,
             Height: resolved.Height,
             PaddingLeft: resolved.Padding,
@@ -183,5 +186,7 @@ public data struct ToggleSwitch {
             },
             thumb,
         }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 }

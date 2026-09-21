@@ -176,14 +176,16 @@ func MarkdownLongCaption() string -> "complete release guide with all of the det
 func MarkdownInteractions() {
     MarkdownContracts()
     let host = MarkdownHost()
+    let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Markdown verification",
         Width: 820,
         Height: 860,
-        Root: host,
+        Root: root,
         AccessibilityAdapter: semantics
     }
+    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 25)

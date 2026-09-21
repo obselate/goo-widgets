@@ -1,6 +1,7 @@
 package Goo.Widgets.QuickStart
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Actions
 import Goo.Widgets.Colors
 
@@ -8,11 +9,18 @@ class ColorPickerHost : Cell {
     private let initialColor int32 = 0x4F8FEA
     private var liveColor int32 = 0x4F8FEA
     private var committedColor int32 = 0x4F8FEA
+    private var platformInput PlatformInput?
+
+    internal func AttachWindow(window Window) {
+        platformInput = window.PlatformInput
+        Rebuild()
+    }
 
     override func Build() Blob {
         let reset = ActionButton{Content: "Reset", OnClick: () -> ResetColor()}.Build()
         reset.Key = "reset"
         return Container{
+            KeyBindings: WidgetKeyBindings.Editing(platformInput),
             Width: Length.Percent(100.0),
             Height: Length.Percent(100.0),
             Padding: 28.0,
@@ -58,5 +66,8 @@ class ColorPickerHost : Cell {
 
 func Main() {
     Window.ConfigureApplication("Color picker usage", "1.0.0", "com.example.colorpicker-usage")
-    Window{Title: "Color picker usage", Width: 420, Height: 560, Root: ColorPickerHost{}}.Run()
+    let root = ColorPickerHost{}
+    let window = Window{Title: "Color picker usage", Width: 420, Height: 560, Root: root}
+    root.AttachWindow(window)
+    window.Run()
 }

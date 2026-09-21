@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// A responsive master-detail composition controlled by selection and narrow-layout state.
 public data struct MasterDetail {
@@ -122,6 +123,7 @@ public data struct MasterDetail {
                         Text{Content: resolved.BackLabel!!},
                     }
                 }
+                WidgetKeyBindings.BindActivation(back)
                 pane.Children.Add(back)
             }
             if let detail = Detail {

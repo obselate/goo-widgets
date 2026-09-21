@@ -1,6 +1,7 @@
 package Goo.Widgets.Navigation
 
 import Goo
+import Goo.Widgets
 
 /// A controlled vertical navigation rail that can show compact or expanded items.
 public data struct NavigationRail {
@@ -115,7 +116,9 @@ public data struct NavigationRail {
             let label = source.Label ?? id
             let item = source with{Id = id, Label = label, AccessibilityName = source.AccessibilityName ?? label,}
             if let createItem = createItem {
-                buttons[index] = createItem(resolved, item)
+                let button = createItem(resolved, item)
+                WidgetKeyBindings.BindActivation(button)
+                buttons[index] = button
             } else {
                 let selected = id == resolved.SelectedId
                 var onClick Action? = nil
@@ -180,6 +183,7 @@ public data struct NavigationRail {
                     }
                     button.Children.Add(text)
                 }
+                WidgetKeyBindings.BindActivation(button)
                 buttons[index] = button
             }
         }

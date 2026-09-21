@@ -1,6 +1,7 @@
 package Goo.Widgets.Charts
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 import System.Globalization
@@ -70,14 +71,9 @@ internal class ChartParts {
             blob.Key = id
             blob.Focusable = activate != nil
             blob.OnClick = activate == nil ? nil: () -> activate?.Invoke(id)
+            WidgetKeyBindings.BindActivation(blob)
             blob.OnPointerEnter = hover == nil ? nil: (e PointerEvent) -> hover?.Invoke(id)
             blob.OnPointerLeave = hover == nil ? nil: (e PointerEvent) -> hover?.Invoke(nil)
-            blob.OnKeyDown = activate == nil ? nil: (e KeyEvent) -> {
-                if e.Key == Key.Enter || e.Key == Key.Space {
-                    e.PreventDefault()
-                    activate?.Invoke(id)
-                }
-            }
             blob.Accessibility = Accessibility{
                 Role: activate == nil ? AccessibilityRole.Image: AccessibilityRole.Button,
                 Name: segment.Summary!!
