@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+## 0.2.6 - 2026-09-27
 
-- Require Goo and Goo.Svg 0.6.4.
+- Require Goo and Goo.Svg 0.6.6 in both packages.
+- Use Goo's `Percent` and grouped `Edges` layout APIs throughout widgets,
+  Markdown, examples, and packaged consumer checks.
 - Add handle-based Enter activation and held Space press/release bindings to interactive widget buttons.
 - Add `WidgetKeyBindings.Editing` for application-owned text editing, focus
   traversal, clipboard, cancellation, and key-repeat policy.
