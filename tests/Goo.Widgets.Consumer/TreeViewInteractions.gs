@@ -153,14 +153,24 @@ internal class TreeHost : Cell {
     }
 
     public override func Build() Blob {
+        let light = Environment.GetEnvironmentVariable("GOO_WIDGETS_LIGHT") == "1"
         var configuration = TreeViewInput{
             Nodes: Nodes(),
             ExpandedIds: Expanded,
             SelectedId: Selected,
             Virtualize: Virtualize,
-            Height: 245,
+            Height: Virtualize ? 245: 110,
             MultiSelectable: true,
             AccessibilityName: "Files",
+            BackgroundColor: light ? Color.Parse("#f8fafc"): Color.Parse("#18181b"),
+            TextColor: light ? Color.Parse("#0f172a"): Color.Parse("#e4e4e7"),
+            SelectedColor: light ? Color.Parse("#dbeafe"): Color.Parse("#34334c"),
+            ScrollbarY: Scrollbar{
+                Thickness: 10.0,
+                HideDelayMs: 10000.0,
+                Track: Container{BackgroundColor: light ? Color.Parse("#cbd5e1"): Color.Parse("#273042")},
+                Thumb: Container{BackgroundColor: light ? Color.Parse("#1e3a8a"): Color.Parse("#fbbf24")}
+            },
             OnExpandedChange: Expand,
             OnCheckChange: ChangeCheck,
             CreateRow: Row,
@@ -310,6 +320,10 @@ func TreeViewInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         CaptureIssueProof(window, "tree-nonvirtual")
+        let groupY = host.Rows["group"].Handle!!.BorderBox.Y
+        FeedbackWheel(window, host.Rows["group"].Handle!!.BorderBox, -1.0F)
+        Require(host.Rows["group"].Handle!!.BorderBox.Y < groupY, "Nonvirtual tree did not scroll by wheel")
+        CaptureIssueProof(window, "tree-nonvirtual-scrollbar")
         host.Large = true
         host.Virtualize = true
         host.Expanded = []string{"mass"}
@@ -326,6 +340,8 @@ func TreeViewInteractions() {
         }
         Require(mounted < 30, "Tree mounted all 1500 children instead of virtualizing")
         CaptureIssueProof(window, "tree-virtual-end")
+        FeedbackWheel(window, host.Root!!.Handle!!.BorderBox, 1.0F)
+        CaptureIssueProof(window, "tree-virtual-scrollbar")
         SendKey(id, SDLScancode.Tab)
         PumpFrames(window, 6)
         Require(

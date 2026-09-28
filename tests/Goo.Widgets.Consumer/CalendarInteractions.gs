@@ -77,6 +77,8 @@ internal class CalendarHost : Cell {
     internal var Show bool = true
     internal var Entry TextEntry?
     internal var Popup Container?
+    private func Light() bool -> Environment.GetEnvironmentVariable("GOO_WIDGETS_LIGHT") == "1"
+
     private func Weekend(value DateOnly) bool -> value.DayOfWeek == DayOfWeek.Saturday ||
         value.DayOfWeek == DayOfWeek.Sunday
 
@@ -107,7 +109,18 @@ internal class CalendarHost : Cell {
     }
 
     private func Day(input CalendarInput, day CalendarDay, prepared Button) Button {
+        if Light() && day.Selected {
+            prepared.BackgroundColor = "#bfdbfe"
+        }
         Days[day.Date.DayNumber] = prepared
+        return prepared
+    }
+
+    private func CalendarRoot(input CalendarInput, prepared Container) Container {
+        if Light() {
+            prepared.BackgroundColor = "#f8fafc"
+            prepared.Color = "#0f172a"
+        }
         return prepared
     }
 
@@ -117,6 +130,10 @@ internal class CalendarHost : Cell {
     }
 
     private func Nav(input CalendarInput, delta int32, prepared Button) Button {
+        if Light() {
+            prepared.BackgroundColor = "#e2e8f0"
+            prepared.Color = "#0f172a"
+        }
         Navigation[delta] = prepared
         return prepared
     }
@@ -159,6 +176,7 @@ internal class CalendarHost : Cell {
     }
 
     public override func Build() Blob {
+        let textColor = Light() ? "#1e3a8a": "#fbbf24"
         var calendar = CalendarInput{
             Value: Selected,
             OnChange: Select,
@@ -166,8 +184,11 @@ internal class CalendarHost : Cell {
             Handle: CalendarHandle,
             FirstDayOfWeek: Sunday ? DayOfWeek.Sunday: DayOfWeek.Monday,
             Culture: System.Globalization.CultureInfo.GetCultureInfo("fr-FR"),
+            MonthTextStyle: Style{Color: textColor, FontSize: 19.0},
+            DayTextStyle: Style{Color: textColor},
             CreateDay: Day,
             CreateNavigation: Nav,
+            CreateRoot: CalendarRoot,
             OnMonthChange: Month,
             IsDateDisabled: Weekend
         }

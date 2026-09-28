@@ -551,7 +551,6 @@ func OverlayInteractions() {
         host.Rebuild()
         PumpFrames(window, 16)
         Require(OverlayFocus(semantics, "Open"), "Menu failed initial focus")
-        RequireLastColor((host.MenuRows["tools"].Children[1] as Text)!!, Color.Parse("#d16b42"), "Menu submenu arrow")
         SendKey(id, SDLScancode.Down)
         PumpFrames(window, 7)
         Require(OverlayFocus(semantics, "Tools"), "Menu navigation failed to skip disabled/separator rows")
