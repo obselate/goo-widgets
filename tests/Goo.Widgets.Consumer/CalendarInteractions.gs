@@ -217,15 +217,15 @@ internal class CalendarHost : Cell {
                     Height: 52.0,
                     Overflow: Overflow.Hidden,
                     BorderWidth: 4.0,
-                    BorderColor: "#0d9488",
+                    BorderColor: Color.Parse("#0d9488"),
                     Transform: PanelTransform{TranslateX: 10.0, TranslateY: 5.0},
                     Cell.Mount[DatePickerInput, DatePicker]("picker", picker)
                 }
             )
         }
         return Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 24.0,
             Gap: 18.0,
             BackgroundColor: "#111318",

@@ -142,7 +142,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         pointerFocus = false
         let defaultHeight Length = 300
         input = value with{
-            Width = value.Width ?? Length.Percent(100),
+            Width = value.Width ?? Percent(100),
             Height = value.Height ?? defaultHeight,
             RowHeight = value.RowHeight ?? 36.0,
             HeaderHeight = value.HeaderHeight ?? 38.0,
@@ -236,7 +236,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         body.FlexGrow = 1
         body.FlexBasis = 0
         body.MinHeight = 0
-        let canvas = Container{Width: tableWidth, Height: Length.Percent(100), FlexShrink: 0, MinHeight: 0}
+        let canvas = Container{Width: tableWidth, Height: Percent(100), FlexShrink: 0, MinHeight: 0}
         canvas.Children.Add(BuildHeader(snapshot, false))
         var filters = input.CreateFilter != nil
         for column in columns {
@@ -482,8 +482,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Key: "content",
                     FlexGrow: 1,
                     MinWidth: 0,
-                    PaddingLeft: 10,
-                    PaddingRight: 10,
+                    Padding: Edges{Right: 10, Left: 10},
                     BackgroundColor: Color.Transparent,
                     Focusable: column.Sortable && snapshot.OnSort != nil && !snapshot.Disabled,
                     OnClick: () -> Sort(id),
@@ -615,8 +614,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Width: widths[index],
                     FlexShrink: 0,
                     MinWidth: 0,
-                    PaddingLeft: 10,
-                    PaddingRight: 10,
+                    Padding: Edges{Right: 10, Left: 10},
                     JustifyContent: JustifyContent.Center,
                     Overflow: Overflow.Hidden,
                     OnFocus: (e FocusEvent) -> e.StopPropagation(),

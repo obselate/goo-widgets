@@ -127,8 +127,8 @@ internal class MarkdownHost : Cell {
 
     public override func Build() Blob {
         let root = Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 20.0,
             Gap: 12.0,
             BackgroundColor: "#111318",

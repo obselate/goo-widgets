@@ -89,7 +89,7 @@ public data struct ProgressBar {
             fill = createFill(resolved)
         } else {
             fill = Container{
-                Width: Length.Percent(resolved.Value * 100.0),
+                Width: Percent(resolved.Value * 100.0),
                 Height: resolved.Height,
                 BorderRadius: resolved.BorderRadius,
                 BackgroundColor: resolved.FillColor!!,

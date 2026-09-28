@@ -172,8 +172,8 @@ internal class TreeHost : Cell {
             configuration.OnSelect = Select
         }
         return Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 24,
             Gap: 18,
             BackgroundColor: "#111318",

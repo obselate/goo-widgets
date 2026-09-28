@@ -96,8 +96,8 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         input = value with{
             Step = step,
             HandleSize = size,
-            Width = value.Width ?? Length.Percent(100),
-            Height = value.Height ?? Length.Percent(100),
+            Width = value.Width ?? Percent(100),
+            Height = value.Height ?? Percent(100),
             AccessibilityName = value.AccessibilityName ?? "Resize panes"
         }
         if input.Disabled {

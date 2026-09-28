@@ -99,7 +99,7 @@ internal class DataGridExample : Cell {
                             Value: query,
                             Placeholder: "Filter hosts",
                             OnChange: Filter,
-                            Width: Length.Percent(100),
+                            Width: Percent(100),
                             Height: 30,
                             Padding: 5,
                             Color: "#fafafa",

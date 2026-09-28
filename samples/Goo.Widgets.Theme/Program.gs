@@ -61,8 +61,8 @@ class ThemeSample : Cell {
         return Container{
             KeyBindings: WidgetKeyBindings.Editing(platformInput),
             BasedOn: theme.CanvasStyle,
-            Width: Length.Percent(100.0),
-            Height: Length.Percent(100.0),
+            Width: Percent(100.0),
+            Height: Percent(100.0),
             OverflowY: Overflow.Scroll,
             Container{
                 Padding: theme.Spacing * 6.0,
@@ -121,7 +121,7 @@ class ThemeSample : Cell {
                         }
                     ).Build(),
                     Container{
-                        Width: Length.Percent(100.0),
+                        Width: Percent(100.0),
                         Cell.Mount[SliderInput, Slider](
                             "opacity",
                             theme.Slider with{

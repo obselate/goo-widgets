@@ -47,7 +47,7 @@ public data struct ProgressSummary {
         let resolved = this with{
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             Gap = Gap ?? 8.0,
             HeaderGap = HeaderGap ?? 8.0,
             LabelColor = LabelColor ?? Color.Parse("#fafafa"),
@@ -81,7 +81,7 @@ public data struct ProgressSummary {
             labelText.FontFamily = resolved.FontFamily!!
         }
         let header = Container{
-            Width: Length.Percent(100.0),
+            Width: Percent(100.0),
             Gap: resolved.HeaderGap!!,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

@@ -4,9 +4,9 @@
     "net10.0": {
       "Goo": {
         "type": "Direct",
-        "requested": "[0.6.4, )",
-        "resolved": "0.6.4",
-        "contentHash": "0ky8R1DqLX2K+oGeij2NFJuLaJGOwHubgToiwCc9QRYdtzD8Oc33cgSipFgwRB7ODHcc+nsLy0sU31+N9NVCAQ==",
+        "requested": "[0.6.6, )",
+        "resolved": "0.6.6",
+        "contentHash": "nAsIpRovBHs9+ckfKmx4+Dzl0oXoCCgd4IfQ/BQVkCQmmpGcSoVKfU2QqlWPsIwrpJa84/yqt9rtMrcCqH+fFA==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",
@@ -15,11 +15,11 @@
       },
       "Goo.Svg": {
         "type": "Direct",
-        "requested": "[0.6.4, )",
-        "resolved": "0.6.4",
-        "contentHash": "jay8Vbed/SZ+eCc+q7hMJh2nb8LAr6j6i/0sgPA5Jdwe+BvxhhnMS8oljr5qTxa8uEEcGtH+Gd+ebyvnoMxUJA==",
+        "requested": "[0.6.6, )",
+        "resolved": "0.6.6",
+        "contentHash": "+c0afn+pDKT6OsqXKS2HSXPJWMWgHyIoq/Wlvhi6fNneeBIUywg30+rDsxSSWVQbL1m/2ToB4CLMPMRx73JXAw==",
         "dependencies": {
-          "Goo": "0.6.4"
+          "Goo": "0.6.6"
         }
       },
       "Markdig": {

@@ -70,7 +70,7 @@ public data struct Stepper {
         let resolved = this with{
             Labels = rawLabels,
             CurrentIndex = current,
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             Height = if Height == 0.0 {
                 32.0
             } else {
@@ -135,10 +135,9 @@ public data struct Stepper {
                     fillColor = resolved.CurrentColor!!
                 }
                 pill = Container{
-                    Width: Length.Percent(100.0),
+                    Width: Percent(100.0),
                     Height: resolved.Height,
-                    PaddingLeft: resolved.PaddingHorizontal!!,
-                    PaddingRight: resolved.PaddingHorizontal!!,
+                    Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
                     BorderRadius: resolved.BorderRadius!!,
                     BackgroundColor: fillColor,
                     TransitionMs: resolved.TransitionMs!!,

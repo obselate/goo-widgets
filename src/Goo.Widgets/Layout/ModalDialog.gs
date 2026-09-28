@@ -86,7 +86,7 @@ public data struct ModalDialog {
             } else {
                 ZIndex
             },
-            MaxHeight = MaxHeight ?? Length.Percent(90.0),
+            MaxHeight = MaxHeight ?? Percent(90.0),
             Padding = Padding ?? 20.0,
             Gap = Gap ?? 16.0,
             BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
@@ -119,8 +119,7 @@ public data struct ModalDialog {
         } else {
             Button{
                 Height: 36.0,
-                PaddingLeft: 14.0,
-                PaddingRight: 14.0,
+                Padding: Edges{Right: 14.0, Left: 14.0},
                 BorderWidth: 1.0,
                 BorderRadius: 6.0,
                 BorderColor: resolved.BorderColor!!,
@@ -137,8 +136,7 @@ public data struct ModalDialog {
         } else {
             Button{
                 Height: 36.0,
-                PaddingLeft: 14.0,
-                PaddingRight: 14.0,
+                Padding: Edges{Right: 14.0, Left: 14.0},
                 BorderRadius: 6.0,
                 BackgroundColor: Color.Parse("#fafafa"),
                 Color: Color.Parse("#09090b"),
@@ -174,10 +172,7 @@ public data struct ModalDialog {
             Width: resolved.Width,
             MaxHeight: resolved.MaxHeight!!,
             MinHeight: 0.0,
-            PaddingLeft: resolved.Padding!!,
-            PaddingRight: resolved.Padding!!,
-            PaddingTop: resolved.Padding!!,
-            PaddingBottom: resolved.Padding!!,
+            Padding: resolved.Padding!!,
             Gap: resolved.Gap!!,
             BackgroundColor: resolved.BackgroundColor!!,
             BorderWidth: resolved.BorderWidth!!,

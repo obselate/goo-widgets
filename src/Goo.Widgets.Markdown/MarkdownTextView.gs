@@ -111,7 +111,7 @@ internal class MarkdownTextView : Cell, IDisposable {
             BackgroundColor = Color.Transparent,
             Padding = 0.0,
             MinWidth = 0.0,
-            Width = Length.Percent(100),
+            Width = Percent(100),
             TextWrap = model.Block.Kind == MarkdownBlockKind.Code ? TextWrap.NoWrap: TextWrap.Wrap,
             OverflowX = model.Block.Kind == MarkdownBlockKind.Code ? Overflow.Scroll: Overflow.Hidden,
             OverflowY = Overflow.Hidden,
@@ -135,7 +135,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         return Container{
             Handle: handle,
             Layout: MarkdownIntrinsicLayout(),
-            Width: Length.Percent(100),
+            Width: Percent(100),
             MinWidth: 0.0,
             FlexShrink: 0.0,
             editor
@@ -184,8 +184,7 @@ internal class MarkdownTextView : Cell, IDisposable {
             return button
         }
         if run.Kind == MarkdownInlineKind.Code {
-            root.PaddingLeft = 3.0
-            root.PaddingRight = 3.0
+            root.Padding = Edges{Left: 3.0, Right: 3.0}
             root.BackgroundColor = options.CodeBackground!!
             root.BorderRadius = 3.0
         } else {

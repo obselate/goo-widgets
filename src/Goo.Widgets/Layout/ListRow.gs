@@ -75,7 +75,7 @@ public data struct ListRow {
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
             SelectedBackgroundColor = SelectedBackgroundColor ?? Color.Parse("#27272a"),
             TextColor = TextColor ?? Color.Parse("#fafafa"),
@@ -193,10 +193,7 @@ public data struct ListRow {
         let root = Container{
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight,
-            PaddingLeft: resolved.PaddingHorizontal,
-            PaddingRight: resolved.PaddingHorizontal,
-            PaddingTop: resolved.PaddingVertical,
-            PaddingBottom: resolved.PaddingVertical,
+            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
             BorderRadius: resolved.BorderRadius!!,
             BackgroundColor: background,
             Opacity: resolved.Opacity!!,

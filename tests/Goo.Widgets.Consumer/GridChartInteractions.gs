@@ -297,8 +297,8 @@ internal class GridChartHost : Cell {
         }.Build()
         bar.Key = "bar"
         return Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 22,
             Gap: 20,
             BackgroundColor: "#111318",

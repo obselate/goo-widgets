@@ -58,7 +58,7 @@ internal class DisclosureHost : Cell {
         Width: props.Width!!,
         BorderRadius: 8,
         BorderWidth: 1,
-        BorderColor: "#28765c",
+        BorderColor: Color.Parse("#28765c"),
         BackgroundColor: "#102822",
         header,
         body,

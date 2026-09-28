@@ -121,7 +121,7 @@ public open class Menu : Cell[MenuInput] {
                 let separator = if let create = current.CreateSeparator {
                     create(current, item)
                 } else {
-                    Container{Height: 1.0, MarginTop: 4.0, MarginBottom: 4.0, BackgroundColor: "#3f3f46"}
+                    Container{Height: 1.0, Margin: Edges{Top: 4.0, Bottom: 4.0}, BackgroundColor: "#3f3f46"}
                 }
                 separator.Key = id
                 separator.Focusable = false
@@ -138,10 +138,7 @@ public open class Menu : Cell[MenuInput] {
             }
             let prepared = Button{
                 MinHeight: 32.0,
-                PaddingLeft: 10.0,
-                PaddingRight: 8.0,
-                PaddingTop: 6.0,
-                PaddingBottom: 6.0,
+                Padding: Edges(6.0, 8.0, 6.0, 10.0),
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: 14.0,
@@ -230,7 +227,7 @@ public open class Menu : Cell[MenuInput] {
         let prepared = Container{
             Padding: 4.0,
             BackgroundColor: "#18181b",
-            BorderColor: "#3f3f46",
+            BorderColor: Color.Parse("#3f3f46"),
             BorderWidth: 1.0,
             BorderRadius: 7.0
         }

@@ -35,7 +35,7 @@ public data struct StackedBar {
     /// Builds a fresh chart tree; normalization avoids overflow even for very large finite quantities.
     public func Build() Blob {
         let resolved = this with{
-            Width = Width ?? Length.Percent(100),
+            Width = Width ?? Percent(100),
             Height = Height ?? 16.0,
             BorderRadius = BorderRadius ?? 4.0,
             TrackColor = TrackColor ?? Color.Parse("#27272a"),
@@ -50,7 +50,7 @@ public data struct StackedBar {
         let segments = ChartParts.Resolve(Series ?? []ChartSeries{})
         let plot = Container{
             Key: "plot",
-            Width: Length.Percent(100),
+            Width: Percent(100),
             Height: resolved.Height!!,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
@@ -70,8 +70,8 @@ public data struct StackedBar {
             if let create = CreateSegment {
                 bar = create(resolved, segment, bar)
             }
-            bar.Width = Length.Percent(segment.Fraction * 100.0)
-            bar.Height = Length.Percent(100)
+            bar.Width = Percent(segment.Fraction * 100.0)
+            bar.Height = Percent(100)
             bar.MinWidth = 0
             bar.FlexShrink = 0
             ChartParts.Wire(bar, segment, OnActivate, OnHover)

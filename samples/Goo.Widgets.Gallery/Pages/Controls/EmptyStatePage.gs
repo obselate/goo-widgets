@@ -19,10 +19,7 @@ class EmptyStatePage : GalleryPage {
             MaterialIcons.Create("inventory_2", 24.0, Color.Parse("#d4d4d8")),
         }
         let emptyAct = Container{
-            PaddingLeft: 12.0,
-            PaddingRight: 12.0,
-            PaddingTop: 5.0,
-            PaddingBottom: 5.0,
+            Padding: Edges(5.0, 12.0),
             BorderRadius: 6.0,
             BackgroundColor: Color.Parse("#fafafa"),
             Text{Content: "Create project", FontSize: 11.0, FontWeight: 600, Color: "#09090b"},
@@ -53,10 +50,7 @@ class EmptyStatePage : GalleryPage {
             MaterialIcons.Create("search", 24.0, Color.Parse("#a1a1aa")),
         }
         let noResAct = Container{
-            PaddingLeft: 10.0,
-            PaddingRight: 10.0,
-            PaddingTop: 4.0,
-            PaddingBottom: 4.0,
+            Padding: Edges(4.0, 10.0),
             BorderRadius: 6.0,
             BackgroundColor: Color.Parse("#18181b"),
             BorderWidth: 1.0,
@@ -89,10 +83,7 @@ class EmptyStatePage : GalleryPage {
             MaterialIcons.Create("lock", 24.0, Color.Parse("#fca5a5")),
         }
         let permAct = Container{
-            PaddingLeft: 10.0,
-            PaddingRight: 10.0,
-            PaddingTop: 4.0,
-            PaddingBottom: 4.0,
+            Padding: Edges(4.0, 10.0),
             BorderRadius: 6.0,
             BackgroundColor: Color.Parse("#450a0a"),
             BorderWidth: 1.0,

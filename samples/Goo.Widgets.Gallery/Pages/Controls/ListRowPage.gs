@@ -19,10 +19,7 @@ class ListRowPage : GalleryPage {
             MaterialIcons.Create("inbox", 20.0, Color.Parse("#a1a1aa")),
         }
         let defaultTrailing = Container{
-            PaddingLeft: 8.0,
-            PaddingRight: 8.0,
-            PaddingTop: 3.0,
-            PaddingBottom: 3.0,
+            Padding: Edges(3.0, 8.0),
             BorderRadius: 10.0,
             BackgroundColor: Color.Parse("#27272a"),
             Text{Content: "12", FontSize: 11.0, FontWeight: 600, Color: "#d4d4d8"},
@@ -45,10 +42,7 @@ class ListRowPage : GalleryPage {
             MaterialIcons.Create("verified_user", 20.0),
         }
         let selectedTrailing = Container{
-            PaddingLeft: 8.0,
-            PaddingRight: 8.0,
-            PaddingTop: 3.0,
-            PaddingBottom: 3.0,
+            Padding: Edges(3.0, 8.0),
             BorderRadius: 10.0,
             BackgroundColor: Color.Parse("#52525b"),
             Text{Content: "Active", FontSize: 11.0, FontWeight: 600, Color: "#fafafa"},
@@ -72,10 +66,7 @@ class ListRowPage : GalleryPage {
             MaterialIcons.Create("keyboard", 20.0, Color.Parse("#a1a1aa")),
         }
         let compactTrailing = Container{
-            PaddingLeft: 6.0,
-            PaddingRight: 6.0,
-            PaddingTop: 2.0,
-            PaddingBottom: 2.0,
+            Padding: Edges(2.0, 6.0),
             BorderRadius: 4.0,
             BackgroundColor: Color.Parse("#18181b"),
             BorderWidth: 1.0,
@@ -101,10 +92,7 @@ class ListRowPage : GalleryPage {
             MaterialIcons.Create("code", 20.0, Color.Parse("#bbf7d0")),
         }
         let customTrailing = Container{
-            PaddingLeft: 8.0,
-            PaddingRight: 8.0,
-            PaddingTop: 3.0,
-            PaddingBottom: 3.0,
+            Padding: Edges(3.0, 8.0),
             BorderRadius: 10.0,
             BackgroundColor: Color.Parse("#14532d"),
             Text{Content: "PRO", FontSize: 11.0, FontWeight: 700, Color: "#bbf7d0"},
@@ -133,28 +121,28 @@ class ListRowPage : GalleryPage {
             FlexDirection: FlexDirection.Column,
             Gap: 10.0,
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 3.0,
                 Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 defaultRow.Build(),
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 3.0,
                 Text{Content: "SELECTED", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
                 selectedRow.Build(),
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 3.0,
                 Text{Content: "TITLE ONLY", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 compactRow.Build(),
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 3.0,
                 Text{Content: "CUSTOM", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},

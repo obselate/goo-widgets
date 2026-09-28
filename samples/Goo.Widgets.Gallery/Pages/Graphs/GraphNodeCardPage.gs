@@ -18,7 +18,7 @@ internal open class GraphNodeCardExample : Cell {
             Position: PositionType.Relative,
             BackgroundColor: "#09090b",
             BorderWidth: 1.0,
-            BorderColor: "#27272a",
+            BorderColor: Color.Parse("#27272a"),
             BorderRadius: 8.0,
             GraphNodeCard{
                 Node: GraphNode{Id: "normal", Label: "Normal node", Position: Point{X: 140.0, Y: 96.0},},
@@ -40,7 +40,7 @@ internal open class GraphNodeCardExample : Cell {
                     },
                 },
                 BackgroundColor: "#172554",
-                BorderColor: "#60a5fa",
+                BorderColor: Color.Parse("#60a5fa"),
             }.Build(),
         },
     }

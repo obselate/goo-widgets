@@ -86,14 +86,11 @@ public data struct UploadTile {
             createBody(resolved, bodySlot)
         } else {
             let body = Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexGrow: 1.0,
                 JustifyContent: JustifyContent.Center,
                 AlignItems: AlignItems.Center,
-                PaddingLeft: resolved.Padding!!,
-                PaddingRight: resolved.Padding!!,
-                PaddingTop: resolved.Padding!!,
-                PaddingBottom: resolved.Padding!!,
+                Padding: resolved.Padding!!,
             }
             if let bodySlot = bodySlot {
                 body.Children.Add(bodySlot)
@@ -107,12 +104,9 @@ public data struct UploadTile {
                 statusContainer = createStatus(resolved, statusSlot)
             } else {
                 statusContainer = Container{
-                    Width: Length.Percent(100.0),
+                    Width: Percent(100.0),
                     BackgroundColor: resolved.StatusBackgroundColor!!,
-                    PaddingLeft: resolved.StatusPaddingHorizontal!!,
-                    PaddingRight: resolved.StatusPaddingHorizontal!!,
-                    PaddingTop: resolved.StatusPaddingVertical!!,
-                    PaddingBottom: resolved.StatusPaddingVertical!!,
+                    Padding: Edges(resolved.StatusPaddingVertical!!, resolved.StatusPaddingHorizontal!!),
                 }
                 statusContainer.Children.Add(statusSlot)
             }
@@ -148,12 +142,12 @@ public data struct UploadTile {
             },
         }
 
-        let wrapBody = Container{Key: "body", Width: Length.Percent(100.0), FlexGrow: 1.0}
+        let wrapBody = Container{Key: "body", Width: Percent(100.0), FlexGrow: 1.0}
         wrapBody.Children.Add(bodyContainer)
         root.Children.Add(wrapBody)
 
         if let statusContainer = statusContainer {
-            let wrapStatus = Container{Key: "status", Width: Length.Percent(100.0)}
+            let wrapStatus = Container{Key: "status", Width: Percent(100.0)}
             wrapStatus.Children.Add(statusContainer)
             root.Children.Add(wrapStatus)
         }

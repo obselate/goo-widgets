@@ -15,7 +15,7 @@ public data struct Drawer {
     var AccessibilityName string?
     /// Drawer width in logical pixels. Zero or default resolves to 320.0.
     var Width float64
-    /// Drawer height. Nil resolves to Length.Percent(100.0).
+    /// Drawer height. Nil resolves to Percent(100.0).
     var Height Length?
     /// Background color of the drawer panel. Nil resolves to #18181b.
     var BackgroundColor Color?
@@ -55,9 +55,9 @@ public data struct Drawer {
             BoxShadow{Color: Color.Parse("#000000"), OffsetX: 8.0, OffsetY: 0.0, Blur: 24.0, Spread: 0.0}
         }
         let defaultClosedTransform = if FromRight {
-            PanelTransform{TranslateX: Length.Percent(100.0), Scale: 0.98}
+            PanelTransform{TranslateX: Percent(100.0), Scale: 0.98}
         } else {
-            PanelTransform{TranslateX: Length.Percent(-100.0), Scale: 0.98}
+            PanelTransform{TranslateX: Percent(-100.0), Scale: 0.98}
         }
 
         let resolved = this with{
@@ -67,7 +67,7 @@ public data struct Drawer {
             } else {
                 Width
             },
-            Height = Height ?? Length.Percent(100.0),
+            Height = Height ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
             BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
             PaddingHorizontal = if PaddingHorizontal == 0.0 {
@@ -112,10 +112,7 @@ public data struct Drawer {
             Top: 0.0,
             Width: resolved.Width,
             Height: resolved.Height!!,
-            PaddingLeft: resolved.PaddingHorizontal,
-            PaddingRight: resolved.PaddingHorizontal,
-            PaddingTop: resolved.PaddingVertical,
-            PaddingBottom: resolved.PaddingVertical,
+            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
             BackgroundColor: resolved.BackgroundColor!!,
             BorderColor: resolved.BorderColor!!,
             BorderWidth: resolved.BorderWidth!!,

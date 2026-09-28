@@ -355,8 +355,8 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
                 } else {
                     0.7
                 },
-                TransformOriginX: Length.Percent(0.0),
-                TransformOriginY: Length.Percent(50.0),
+                TransformOriginX: Percent(0.0),
+                TransformOriginY: Percent(50.0),
                 Transform: PanelTransform{Rotate: Math.Atan2(dy, dx) * 180.0 / Math.PI},
                 HitTestSelf: false,
             }

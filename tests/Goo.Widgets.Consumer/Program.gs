@@ -58,8 +58,8 @@ internal class ApplicationHost : Cell {
 
     public override func Build() Blob -> Container{
         KeyBindings: WidgetKeyBindings.Editing(input),
-        Width: Length.Percent(100),
-        Height: Length.Percent(100),
+        Width: Percent(100),
+        Height: Percent(100),
         Cell.Mount[Cell](() -> content, "application-host"),
     }
 }

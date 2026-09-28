@@ -49,7 +49,7 @@ class TextFieldPage : GalleryPage {
             FlexDirection: FlexDirection.Column,
             Gap: 18.0,
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.FlexStart,
                 JustifyContent: JustifyContent.Center,
@@ -70,7 +70,7 @@ class TextFieldPage : GalleryPage {
                 },
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.FlexStart,
                 JustifyContent: JustifyContent.Center,

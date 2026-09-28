@@ -144,8 +144,8 @@ internal class CompositeHost : Cell {
         let root = Container{
             Padding: 24,
             Gap: 18,
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             BackgroundColor: "#09090b",
             Color: "#fafafa",
             Text{Key: "heading", Content: "Composite widgets", FontSize: 24},
@@ -182,15 +182,15 @@ internal class CompositeHost : Cell {
                     CreateHandle: CaptureDivider,
                     CreateRoot: CaptureSplit,
                     First: Container{
-                        Width: Length.Percent(100),
-                        Height: Length.Percent(100),
+                        Width: Percent(100),
+                        Height: Percent(100),
                         Padding: 16,
                         BackgroundColor: "#152a36",
                         Text{Content: "First pane"}
                     },
                     Second: Container{
-                        Width: Length.Percent(100),
-                        Height: Length.Percent(100),
+                        Width: Percent(100),
+                        Height: Percent(100),
                         Padding: 16,
                         BackgroundColor: "#202236",
                         Text{Content: "Second pane"}
@@ -207,7 +207,7 @@ internal class CompositeHost : Cell {
                         OnChange: TextChanged,
                         Label: "Notes",
                         Placeholder: "Write a note",
-                        Width: Length.Percent(100),
+                        Width: Percent(100),
                         MinimumRows: 4,
                         ReadOnly: ReadOnly,
                         Disabled: Disabled,

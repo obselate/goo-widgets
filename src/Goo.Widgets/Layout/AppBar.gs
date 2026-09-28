@@ -16,7 +16,7 @@ public data struct AppBar {
     var AccessibilityName string?
     /// Accessible heading level for the title Text. Zero or default resolves to 1.
     var HeadingLevel int32
-    /// Bar width. Nil resolves to Length.Percent(100.0).
+    /// Bar width. Nil resolves to Percent(100.0).
     var Width Length?
     /// Bar height. Zero resolves to 56.0.
     var Height float64
@@ -74,7 +74,7 @@ public data struct AppBar {
             } else {
                 HeadingLevel
             },
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             Height = if Height == 0.0 {
                 56.0
             } else {
@@ -173,12 +173,11 @@ public data struct AppBar {
         let root = Container{
             Width: resolved.Width!!,
             Height: resolved.Height,
-            PaddingLeft: resolved.PaddingHorizontal!!,
-            PaddingRight: resolved.PaddingHorizontal!!,
+            Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
             BackgroundColor: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,
-            BorderBottomColor: resolved.BorderColor!!,
-            BorderBottomWidth: resolved.BorderWidth!!,
+            BorderColor: Edges[Color]{Bottom: resolved.BorderColor!!},
+            BorderWidth: Edges{Bottom: resolved.BorderWidth!!},
             BoxShadow: resolved.BoxShadow!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,

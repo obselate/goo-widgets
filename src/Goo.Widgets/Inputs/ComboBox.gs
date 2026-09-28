@@ -149,13 +149,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         var button = Button{
             Height: 38.0,
-            PaddingLeft: 12.0,
-            PaddingRight: 10.0,
+            Padding: Edges{Right: 10.0, Left: 12.0},
             Gap: 12.0,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BackgroundColor: "#27272a",
-            BorderColor: "#52525b",
+            BorderColor: Color.Parse("#52525b"),
             BorderWidth: 1.0,
             BorderRadius: 6.0
         }
@@ -223,8 +222,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             var entry = TextEntry{
                 Height: 38.0,
                 FlexShrink: 0.0,
-                PaddingLeft: 10.0,
-                PaddingRight: 10.0,
+                Padding: Edges{Right: 10.0, Left: 10.0},
                 BackgroundColor: "#202024",
                 Color: "#fafafa"
             }
@@ -283,8 +281,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let item = row.Item
         let id = item.Id!!
         var result = Container{
-            PaddingLeft: 10.0,
-            PaddingRight: 10.0,
+            Padding: Edges{Right: 10.0, Left: 10.0},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BackgroundColor: row.Active ? Color.Parse("#34334c"): Color.Transparent,
@@ -333,7 +330,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
             BackgroundColor: "#18181b",
-            BorderColor: "#52525b",
+            BorderColor: Color.Parse("#52525b"),
             BorderWidth: 1.0,
             BorderRadius: 6.0
         }

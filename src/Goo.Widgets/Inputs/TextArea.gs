@@ -120,7 +120,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         }
         var editor = TextEditor(editorController, value.Layers ?? []TextPresentationLayer{}){
             BasedOn = value.EditorStyle,
-            Width = Length.Percent(100),
+            Width = Percent(100),
             Height = value.Height ?? defaultHeight,
             MinHeight = minimum,
             Padding = 12,

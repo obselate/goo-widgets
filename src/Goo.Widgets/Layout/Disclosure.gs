@@ -65,7 +65,7 @@ public data struct Disclosure {
         let resolved = this with{
             Label = Label ?? "",
             AccessibilityName = AccessibilityName ?? (Label ?? ""),
-            Width = Width ?? Length.Percent(100),
+            Width = Width ?? Percent(100),
             HeaderHeight = HeaderHeight ?? 44.0,
             HeaderPadding = HeaderPadding ?? 12.0,
             ContentPadding = ContentPadding ?? 16.0,

@@ -34,10 +34,10 @@ class BannerPage : GalleryPage {
             FlexDirection: FlexDirection.Column,
             AlignItems: AlignItems.Center,
             Gap: 10,
-            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, calmStatus.Build(),},
-            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, loudStatus.Build(),},
-            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, alertBanner.Build(),},
-            Container{Width: Length.Percent(100), FlexDirection: FlexDirection.Column, customPalette.Build(),},
+            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, calmStatus.Build(),},
+            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, loudStatus.Build(),},
+            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, alertBanner.Build(),},
+            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, customPalette.Build(),},
         }
     }
 }

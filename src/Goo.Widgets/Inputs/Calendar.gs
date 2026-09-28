@@ -331,7 +331,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             BorderRadius: 4.0,
             BackgroundColor: day.Selected ? Color.Parse("#4f46e5"): Color.Transparent,
             BorderWidth: day.Today ? 1.0: 0.0,
-            BorderColor: "#818cf8",
+            BorderColor: Color.Parse("#818cf8"),
             Focus: Style{OutlineWidth: 1.0, OutlineColor: "#c7d2fe", OutlineOffset: -2.0},
             Opacity: day.Disabled ? .35: 1.0
         }

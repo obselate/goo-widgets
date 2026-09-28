@@ -153,8 +153,7 @@ public data struct Badge {
         return Container{
             Height: resolved.Height,
             MinWidth: resolved.MinWidth,
-            PaddingLeft: resolved.PaddingHorizontal,
-            PaddingRight: resolved.PaddingHorizontal,
+            Padding: Edges{Right: resolved.PaddingHorizontal, Left: resolved.PaddingHorizontal},
             BorderRadius: resolved.BorderRadius,
             BorderWidth: resolved.BorderWidth,
             BorderColor: resolved.BorderColor!!,

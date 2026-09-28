@@ -82,7 +82,7 @@ public data struct Grid {
         let resolved = this with{
             Columns = columns.Length == 0 ? []GridTrack{GridTrack.Auto()}: columns,
             Rows = rows.Length == 0 ? []GridTrack{GridTrack.Auto()}: rows,
-            Width = Width ?? Length.Percent(100),
+            Width = Width ?? Percent(100),
             Height = Height ?? Length.Auto,
         }
         let policy = GridPolicy(resolved)

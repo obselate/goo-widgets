@@ -14,10 +14,15 @@ internal open class WindowChromeExample : Cell {
             IsMaximized: maximized,
             EnableDoubleClick: true,
             EnableContextMenu: true,
-            LeadingContent: Text{Content: "Example window", MarginLeft: 12.0, FontSize: 12.0, Color: "#fafafa"},
+            LeadingContent: Text{
+                Content: "Example window",
+                Margin: Edges{Left: 12.0},
+                FontSize: 12.0,
+                Color: "#fafafa"
+            },
             TrailingContent: Button{
                 Height: 24.0,
-                MarginRight: 8.0,
+                Margin: Edges{Right: 8.0},
                 BackgroundColor: "#373044",
                 OnClick: () -> {
                     clicks++
@@ -50,7 +55,7 @@ internal open class WindowChromeExample : Cell {
             Width: 640.0,
             Height: 260.0,
             BorderWidth: 1.0,
-            BorderColor: "#3f3f46",
+            BorderColor: Color.Parse("#3f3f46"),
             BackgroundColor: "#09090b",
             chrome,
             Container{

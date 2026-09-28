@@ -17,7 +17,7 @@ internal class TextAreaExample : Cell {
                 OnChange: (value string) -> {
                     notes = value
                 },
-                Width: Length.Percent(100),
+                Width: Percent(100),
                 MinimumRows: 4,
                 ShowFocusHighlight: true
             }
@@ -27,7 +27,7 @@ internal class TextAreaExample : Cell {
             TextAreaInput{
                 Label: "Read-only output",
                 Value: "Selection and copy remain available.\nThe document stays under the controller's ownership.",
-                Width: Length.Percent(100),
+                Width: Percent(100),
                 ReadOnly: true,
                 MinimumRows: 2,
                 Wrap: TextWrap.NoWrap
@@ -41,7 +41,7 @@ internal class TextAreaExample : Cell {
                 Placeholder: "Add context",
                 Invalid: true,
                 IssueText: "An explanation is required.",
-                Width: Length.Percent(100),
+                Width: Percent(100),
                 MinimumRows: 2
             }
         )

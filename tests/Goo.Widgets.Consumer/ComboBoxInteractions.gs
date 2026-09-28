@@ -115,8 +115,8 @@ internal class ComboBoxHost : Cell {
 
     public override func Build() Blob {
         let root = Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 24.0,
             Gap: 16.0,
             BackgroundColor: "#111318",
@@ -148,7 +148,7 @@ internal class ComboBoxHost : Cell {
                     Height: 52.0,
                     Overflow: Overflow.Hidden,
                     BorderWidth: 4.0,
-                    BorderColor: "#7c3aed",
+                    BorderColor: Color.Parse("#7c3aed"),
                     Transform: PanelTransform{TranslateX: 12.0, TranslateY: 6.0},
                     Cell.Mount[ComboBoxInput, ComboBox](
                         "combo",

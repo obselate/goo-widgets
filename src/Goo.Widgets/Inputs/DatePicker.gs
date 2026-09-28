@@ -104,8 +104,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var entry = TextEntry{
             Height: 38.0,
             MinWidth: 0.0,
-            PaddingLeft: 10.0,
-            PaddingRight: 6.0,
+            Padding: Edges{Right: 6.0, Left: 10.0},
             FlexGrow: 1.0,
             FlexBasis: 0.0,
             BackgroundColor: Color.Transparent,
@@ -206,7 +205,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Today = current.Today,
             FirstDayOfWeek = current.FirstDayOfWeek,
             Handle = calendarHandle,
-            Width = Length.Percent(100),
+            Width = Percent(100),
             OnEscape = Escape,
             AccessibilityName = current.AccessibilityName!!+ " calendar"
         }
@@ -340,7 +339,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
             BackgroundColor: "#18181b",
-            BorderColor: "#52525b",
+            BorderColor: Color.Parse("#52525b"),
             BorderWidth: 1.0,
             BorderRadius: 7.0
         }

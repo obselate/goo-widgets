@@ -46,7 +46,7 @@ public open class TabBar : Cell[TabBarInput] {
         input = value with{
             Items = items,
             AccessibilityName = value.AccessibilityName ?? "Tabs",
-            Width = value.Width ?? Length.Percent(100),
+            Width = value.Width ?? Percent(100),
             ItemHeight = value.ItemHeight ?? 40.0
         }
         if !Double.IsFinite(input.ItemHeight!!) || input.ItemHeight!!< 0.0 {
@@ -89,8 +89,7 @@ public open class TabBar : Cell[TabBarInput] {
                 Opacity: item.Disabled ? .45: 1.0,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
                 MinHeight: input.ItemHeight!!,
-                PaddingLeft: 16,
-                PaddingRight: 16,
+                Padding: Edges{Right: 16, Left: 16},
                 FlexShrink: 0,
                 Color: active ? "#fafafa": "#a1a1aa",
                 BackgroundColor: active ? "#3f3f46": "#18181b",

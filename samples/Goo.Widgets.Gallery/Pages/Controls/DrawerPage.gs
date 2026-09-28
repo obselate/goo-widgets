@@ -57,7 +57,7 @@ class DrawerPage : GalleryPage {
             TransitionEasing: Easing.EaseInOut,
             BoxShadow: BoxShadow{Color: Color.Parse("#000000"), OffsetX: -4.0, OffsetY: 0.0, Blur: 16.0, Spread: 0.0},
             OpenTransform: PanelTransform{Scale: 1.0},
-            ClosedTransform: PanelTransform{TranslateX: Length.Percent(100.0), Scale: 0.9},
+            ClosedTransform: PanelTransform{TranslateX: Percent(100.0), Scale: 0.9},
             Content: customContent,
             AccessibilityName: "Custom styled drawer",
         }
@@ -118,7 +118,7 @@ class DrawerPage : GalleryPage {
             FlexDirection: FlexDirection.Column,
             Gap: 16.0,
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Row,
                 JustifyContent: JustifyContent.SpaceBetween,
                 Container{
@@ -135,7 +135,7 @@ class DrawerPage : GalleryPage {
                 },
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Row,
                 JustifyContent: JustifyContent.SpaceBetween,
                 Container{

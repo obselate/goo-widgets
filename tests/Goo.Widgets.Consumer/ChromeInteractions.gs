@@ -138,8 +138,8 @@ internal class ChromeHost : Cell {
     public override func Build() Blob {
         let root = Container{
             Handle: Overlay,
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             BackgroundColor: "#101216",
             Color: "#e4e4e7"
         }
@@ -158,7 +158,7 @@ internal class ChromeHost : Cell {
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
                     Gap: 20.0,
-                    PaddingLeft: 12.0,
+                    Padding: Edges{Left: 12.0},
                     Text{Content: "Window chrome", FontSize: 14.0},
                     Button{
                         Handle: Embedded,

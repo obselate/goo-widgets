@@ -67,7 +67,7 @@ public data struct SectionHeader {
             } else {
                 HeadingLevel
             },
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             LabelColor = LabelColor ?? Color.Parse("#d4d4d8"),
             MetaColor = MetaColor ?? Color.Parse("#71717a"),
             RuleColor = RuleColor ?? Color.Parse("#3f3f46"),

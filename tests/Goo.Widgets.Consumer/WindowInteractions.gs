@@ -101,8 +101,8 @@ internal class InteractiveHost : Cell {
             )
         }
         let root = Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 32,
             Gap: 20,
             BackgroundColor: "#18181b",

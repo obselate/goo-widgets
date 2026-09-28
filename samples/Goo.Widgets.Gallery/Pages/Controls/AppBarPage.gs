@@ -24,10 +24,7 @@ class AppBarPage : GalleryPage {
             AlignItems: AlignItems.Center,
             Gap: 8.0,
             Container{
-                PaddingLeft: 10.0,
-                PaddingRight: 10.0,
-                PaddingTop: 4.0,
-                PaddingBottom: 4.0,
+                Padding: Edges(4.0, 10.0),
                 BorderRadius: 6.0,
                 BackgroundColor: "#fafafa",
                 Text{Content: "Share", FontSize: 12.0, FontWeight: 600, Color: "#09090b"},
@@ -61,19 +58,13 @@ class AppBarPage : GalleryPage {
             BoxShadow: BoxShadow{Color: Color.Parse("#000000"), OffsetX: 0.0, OffsetY: 0.0, Blur: 0.0, Spread: 0.0},
         }
         let badgeSlot = Container{
-            PaddingLeft: 8.0,
-            PaddingRight: 8.0,
-            PaddingTop: 2.0,
-            PaddingBottom: 2.0,
+            Padding: Edges(2.0, 8.0),
             BorderRadius: 4.0,
             BackgroundColor: "#27272a",
             Text{Content: "PROD", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
         }
         let actionSlot = Container{
-            PaddingLeft: 12.0,
-            PaddingRight: 12.0,
-            PaddingTop: 6.0,
-            PaddingBottom: 6.0,
+            Padding: Edges(6.0, 12.0),
             BorderRadius: 6.0,
             BackgroundColor: "#7f1d1d",
             Text{Content: "Deploy", FontSize: 12.0, FontWeight: 700, Color: "#fafafa"},
@@ -102,28 +93,28 @@ class AppBarPage : GalleryPage {
             FlexDirection: FlexDirection.Column,
             Gap: 10.0,
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
                 Text{Content: "MINIMAL TITLE", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
                 minimalTitleBar.Build(),
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
                 Text{Content: "TITLE + SUBTITLE WITH SLOTS", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
                 slotsBar.Build(),
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
                 Text{Content: "COMPACT CUSTOM (NO BORDER / SHADOW)", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
                 compactCustomBar.Build(),
             },
             Container{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
                 Text{

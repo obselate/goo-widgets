@@ -21,8 +21,8 @@ class ColorPickerHost : Cell {
         reset.Key = "reset"
         return Container{
             KeyBindings: WidgetKeyBindings.Editing(platformInput),
-            Width: Length.Percent(100.0),
-            Height: Length.Percent(100.0),
+            Width: Percent(100.0),
+            Height: Percent(100.0),
             Padding: 28.0,
             Gap: 14.0,
             FlexDirection: FlexDirection.Column,

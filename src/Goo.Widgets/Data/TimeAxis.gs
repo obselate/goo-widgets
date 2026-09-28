@@ -152,7 +152,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             MinimumEventWidth = value.MinimumEventWidth ?? 6.0,
             MarkerLabel = value.MarkerLabel ?? "Now",
             MarkerColor = value.MarkerColor ?? Color.Parse("#fb7185"),
-            Width = value.Width ?? Length.Percent(100),
+            Width = value.Width ?? Percent(100),
             AccessibilityName = value.AccessibilityName ?? "Timeline"
         }
         let duration = input.End - input.Start
@@ -264,15 +264,14 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             let item = placement.Event
             let selected = item.Id == input.SelectedId
             var blob = Button{
-                PaddingLeft: 8,
-                PaddingRight: 8,
+                Padding: Edges{Right: 8, Left: 8},
                 BackgroundColor: selected ? Color.Parse("#4f46a5"): Color.Parse("#313b50"),
                 BorderRadius: 4,
                 BorderWidth: selected ? 2.0: 0.0,
-                BorderColor: "#a5b4fc",
+                BorderColor: Color.Parse("#a5b4fc"),
                 Color: "#e4e4e7",
                 Hover: Style{Opacity: .85},
-                Focus: Style{BorderWidth: 2, BorderColor: "#e0e7ff"},
+                Focus: Style{BorderWidth: 2, BorderColor: Color.Parse("#e0e7ff")},
                 Overflow: Overflow.Hidden,
                 JustifyContent: JustifyContent.Center,
                 Text{Content: item.Label!!, FontSize: 12, TextWrap: TextWrap.NoWrap}
@@ -303,8 +302,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 right = Math.Min(canvasWidth, Math.Max(right, X(item.End)))
             }
             var blob = Button{
-                PaddingLeft: 6,
-                PaddingRight: 6,
+                Padding: Edges{Right: 6, Left: 6},
                 BackgroundColor: "#292936",
                 Color: "#c4b5fd",
                 BorderRadius: 4,

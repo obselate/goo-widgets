@@ -17,7 +17,7 @@ public data struct DismissibleContextBar {
     var OnDismiss Action?
     /// Whether the context bar dismiss button rejects input.
     var Disabled bool
-    /// Width of the context bar container. Nil resolves to Length.Percent(100.0).
+    /// Width of the context bar container. Nil resolves to Percent(100.0).
     var Width Length?
     /// Background color of the context bar container. Nil resolves to #18181b.
     var BackgroundColor Color?
@@ -95,7 +95,7 @@ public data struct DismissibleContextBar {
             AccessibilityName = AccessibilityName ?? "Context",
             DismissText = dismissText,
             DismissAccessibilityName = DismissAccessibilityName ?? dismissText,
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
             TextColor = TextColor ?? Color.Parse("#fafafa"),
             BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
@@ -181,8 +181,7 @@ public data struct DismissibleContextBar {
             button = Button{
                 Height: resolved.DismissHeight,
                 MinWidth: resolved.DismissMinWidth,
-                PaddingLeft: resolved.DismissPaddingHorizontal,
-                PaddingRight: resolved.DismissPaddingHorizontal,
+                Padding: Edges{Right: resolved.DismissPaddingHorizontal, Left: resolved.DismissPaddingHorizontal},
                 BorderWidth: resolved.DismissBorderWidth!!,
                 BorderColor: resolved.DismissBorderColor!!,
                 BorderRadius: resolved.DismissBorderRadius!!,
@@ -221,10 +220,7 @@ public data struct DismissibleContextBar {
             FlexDirection: FlexDirection.Row,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight,
-            PaddingLeft: resolved.PaddingHorizontal,
-            PaddingRight: resolved.PaddingHorizontal,
-            PaddingTop: resolved.PaddingVertical,
-            PaddingBottom: resolved.PaddingVertical,
+            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
             Gap: resolved.Gap!!,
             BackgroundColor: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,

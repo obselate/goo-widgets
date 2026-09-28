@@ -128,14 +128,14 @@ public open class Slider : Cell[SliderInput] {
                 0.0
             },
             Width: if horizontal {
-                Length.Percent(100.0)
+                Percent(100.0)
             } else {
                 resolved.TrackThickness
             },
             Height: if horizontal {
                 resolved.TrackThickness
             } else {
-                Length.Percent(100.0)
+                Percent(100.0)
             },
             BorderRadius: resolved.TrackRadius!!,
             BackgroundColor: resolved.TrackColor!!,
@@ -152,17 +152,17 @@ public open class Slider : Cell[SliderInput] {
             Top: if horizontal {
                 (resolved.Height - resolved.TrackThickness) / 2.0
             } else {
-                Length.Percent((1.0 - fraction) * 100.0)
+                Percent((1.0 - fraction) * 100.0)
             },
             Width: if horizontal {
-                Length.Percent(fraction * 100.0)
+                Percent(fraction * 100.0)
             } else {
                 resolved.TrackThickness
             },
             Height: if horizontal {
                 resolved.TrackThickness
             } else {
-                Length.Percent(fraction * 100.0)
+                Percent(fraction * 100.0)
             },
             BorderRadius: resolved.TrackRadius!!,
             BackgroundColor: resolved.FillColor!!,
@@ -172,24 +172,18 @@ public open class Slider : Cell[SliderInput] {
             BasedOn: resolved.ThumbStyle,
             Position: PositionType.Absolute,
             Left: if horizontal {
-                Length.Percent(fraction * 100.0)
+                Percent(fraction * 100.0)
             } else {
                 0.0
             },
             Top: if horizontal {
                 (resolved.Height - resolved.ThumbSize) / 2.0
             } else {
-                Length.Percent((1.0 - fraction) * 100.0)
+                Percent((1.0 - fraction) * 100.0)
             },
-            MarginLeft: if horizontal {
-                -resolved.ThumbSize / 2.0
-            } else {
-                0.0
-            },
-            MarginTop: if horizontal {
-                0.0
-            } else {
-                -resolved.ThumbSize / 2.0
+            Margin: Edges{
+                Top: horizontal ? 0.0: -resolved.ThumbSize / 2.0,
+                Left: horizontal ? -resolved.ThumbSize / 2.0: 0.0
             },
             Width: resolved.ThumbSize,
             Height: resolved.ThumbSize,
@@ -246,7 +240,7 @@ public open class Slider : Cell[SliderInput] {
             Handle: handle,
             Width: if horizontal {
                 if hasHeader {
-                    Length.Percent(100.0)
+                    Percent(100.0)
                 } else {
                     resolved.Width!!
                 }
@@ -391,7 +385,7 @@ public open class Slider : Cell[SliderInput] {
             AccessibilityName = input.AccessibilityName ?? input.Label ?? "Slider",
             LabelColor = input.LabelColor ?? Color.Parse("#fafafa"),
             ValueColor = input.ValueColor ?? Color.Parse("#a1a1aa"),
-            Width = input.Width ?? Length.Percent(100.0),
+            Width = input.Width ?? Percent(100.0),
             Height = if input.Height == 0.0 {
                 if input.Orientation == SliderOrientation.Horizontal {
                     28.0

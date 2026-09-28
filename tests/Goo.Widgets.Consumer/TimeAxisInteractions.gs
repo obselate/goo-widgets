@@ -123,8 +123,8 @@ internal class TimeAxisHost : Cell {
 
     public override func Build() Blob {
         let root = Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 24,
             Gap: 20,
             BackgroundColor: "#111318",

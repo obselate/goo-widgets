@@ -133,8 +133,7 @@ public data struct ActionButton {
         let root = Button{
             Height: resolved.Height,
             MinWidth: resolved.MinWidth,
-            PaddingLeft: resolved.PaddingHorizontal,
-            PaddingRight: resolved.PaddingHorizontal,
+            Padding: Edges{Right: resolved.PaddingHorizontal, Left: resolved.PaddingHorizontal},
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderColor: resolved.BorderColor!!,

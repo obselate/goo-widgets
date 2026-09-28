@@ -82,7 +82,7 @@ public data struct EmptyState {
             } else {
                 HeadingLevel
             },
-            Width = Width ?? Length.Percent(100.0),
+            Width = Width ?? Percent(100.0),
             MinHeight = MinHeight ?? 240.0,
             BackgroundColor = BackgroundColor ?? Color.Parse("#00000000"),
             BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
@@ -178,10 +178,7 @@ public data struct EmptyState {
         let root = Container{
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
-            PaddingLeft: resolved.PaddingHorizontal!!,
-            PaddingRight: resolved.PaddingHorizontal!!,
-            PaddingTop: resolved.PaddingVertical!!,
-            PaddingBottom: resolved.PaddingVertical!!,
+            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             BackgroundColor: resolved.BackgroundColor!!,
             BorderColor: resolved.BorderColor!!,
             BorderWidth: resolved.BorderWidth!!,

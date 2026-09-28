@@ -77,7 +77,7 @@ public data struct NavigationRail {
             } else {
                 ExpandedWidth
             },
-            Height = Height ?? Length.Percent(100.0),
+            Height = Height ?? Percent(100.0),
             ItemHeight = if ItemHeight == 0.0 {
                 44.0
             } else {
@@ -129,10 +129,9 @@ public data struct NavigationRail {
                 }
                 let button = Button{
                     Key: id,
-                    Width: Length.Percent(100.0),
+                    Width: Percent(100.0),
                     Height: resolved.ItemHeight,
-                    PaddingLeft: resolved.ItemPaddingHorizontal!!,
-                    PaddingRight: resolved.ItemPaddingHorizontal!!,
+                    Padding: Edges{Right: resolved.ItemPaddingHorizontal!!, Left: resolved.ItemPaddingHorizontal!!},
                     Gap: resolved.ItemGap!!,
                     BorderRadius: resolved.ItemBorderRadius!!,
                     BackgroundColor: if selected {

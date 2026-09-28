@@ -174,8 +174,7 @@ public data struct Chip {
 
         let root = Button{
             Height: resolved.Height,
-            PaddingLeft: resolved.PaddingHorizontal,
-            PaddingRight: resolved.PaddingHorizontal,
+            Padding: Edges{Right: resolved.PaddingHorizontal, Left: resolved.PaddingHorizontal},
             Gap: resolved.Gap,
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,

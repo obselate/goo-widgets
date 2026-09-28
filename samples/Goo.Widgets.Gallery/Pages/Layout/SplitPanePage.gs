@@ -23,15 +23,15 @@ internal class SplitPaneExample : Cell {
                 MinimumFirst: 110,
                 MinimumSecond: 160,
                 First: Container{
-                    Width: Length.Percent(100),
-                    Height: Length.Percent(100),
+                    Width: Percent(100),
+                    Height: Percent(100),
                     Padding: 20,
                     BackgroundColor: "#17313d",
                     Text{Content: "Navigation", Color: "#a5e5eb"}
                 },
                 Second: Container{
-                    Width: Length.Percent(100),
-                    Height: Length.Percent(100),
+                    Width: Percent(100),
+                    Height: Percent(100),
                     Padding: 20,
                     BackgroundColor: "#24243c",
                     Text{Content: "Workspace", Color: "#d4c9fa"}
@@ -51,15 +51,15 @@ internal class SplitPaneExample : Cell {
                 MinimumSecond: 50,
                 Orientation: SplitOrientation.Vertical,
                 First: Container{
-                    Width: Length.Percent(100),
-                    Height: Length.Percent(100),
+                    Width: Percent(100),
+                    Height: Percent(100),
                     Padding: 16,
                     BackgroundColor: "#24243c",
                     Text{Content: "Preview", Color: "#d4c9fa"}
                 },
                 Second: Container{
-                    Width: Length.Percent(100),
-                    Height: Length.Percent(100),
+                    Width: Percent(100),
+                    Height: Percent(100),
                     Padding: 16,
                     BackgroundColor: "#17313d",
                     Text{Content: "Details", Color: "#a5e5eb"}

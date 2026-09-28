@@ -55,8 +55,8 @@ internal class ErgonomicHost : Cell {
         checkbox.Children[1].Handle = ElementHandle{}
         CheckboxRoot = checkbox
         return Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 24.0,
             Gap: 16.0,
             BackgroundColor: "#18181b",
@@ -67,7 +67,7 @@ internal class ErgonomicHost : Cell {
                     Label: "Opacity",
                     ShowValue: true,
                     Value: Value,
-                    Width: Length.Percent(50),
+                    Width: Percent(50),
                     FormatValue: (value float64) -> (value * 100.0).ToString("0") + "%",
                     OnValueChanged: (value float64) -> {
                         Value = value

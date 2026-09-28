@@ -68,11 +68,11 @@ public data struct MasterDetail {
         if !resolved.Narrow || !resolved.Selected {
             let pane = Container{
                 Width: if resolved.Narrow {
-                    Length.Percent(100.0)
+                    Percent(100.0)
                 } else {
                     resolved.MasterWidth
                 },
-                Height: Length.Percent(100.0),
+                Height: Percent(100.0),
                 MinWidth: 0.0,
                 MinHeight: 0.0,
                 FlexShrink: 0.0,
@@ -92,11 +92,11 @@ public data struct MasterDetail {
         if !resolved.Narrow || resolved.Selected {
             let pane = Container{
                 Width: if resolved.Narrow {
-                    Length.Percent(100.0)
+                    Percent(100.0)
                 } else {
                     Length.Auto
                 },
-                Height: Length.Percent(100.0),
+                Height: Percent(100.0),
                 MinWidth: 0.0,
                 MinHeight: 0.0,
                 FlexGrow: 1.0,
@@ -113,8 +113,7 @@ public data struct MasterDetail {
                 } else {
                     Button{
                         Height: resolved.BackHeight,
-                        PaddingLeft: 12.0,
-                        PaddingRight: 12.0,
+                        Padding: Edges{Right: 12.0, Left: 12.0},
                         BackgroundColor: Color.Transparent,
                         Cursor: Cursor.Pointer,
                         Focusable: true,
@@ -136,8 +135,8 @@ public data struct MasterDetail {
             return createRoot(resolved, masterPane, detailPane)
         }
         let root = Container{
-            Width: Length.Percent(100.0),
-            Height: Length.Percent(100.0),
+            Width: Percent(100.0),
+            Height: Percent(100.0),
             MinWidth: 0.0,
             MinHeight: 0.0,
             Gap: resolved.Gap!!,

@@ -111,8 +111,7 @@ public data struct SearchList {
             Key: "search",
             Height: 40,
             FlexShrink: 0,
-            PaddingLeft: 10,
-            PaddingRight: 10,
+            Padding: Edges{Right: 10, Left: 10},
             BackgroundColor: background,
             Color: foreground,
             Focusable: true,
@@ -194,10 +193,9 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
         let onSelect = options.OnSelect
         let row = Button{
             Height: options.RowHeight,
-            Width: Length.Percent(100),
+            Width: Percent(100),
             FlexShrink: 0,
-            PaddingLeft: 10,
-            PaddingRight: 10,
+            Padding: Edges{Right: 10, Left: 10},
             Gap: 10,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

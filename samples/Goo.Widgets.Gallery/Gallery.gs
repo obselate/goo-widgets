@@ -117,8 +117,8 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     public override func Build() Blob ->
     Container{
         KeyBindings: WidgetKeyBindings.Editing(platformInput),
-        Width: Length.Percent(100),
-        Height: Length.Percent(100),
+        Width: Percent(100),
+        Height: Percent(100),
         Padding: 32,
         Gap: 24,
         BackgroundColor: "#09090b",
@@ -141,7 +141,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
             Padding: 32,
             BorderRadius: 14,
             BorderWidth: 1,
-            BorderColor: "#27272a",
+            BorderColor: Color.Parse("#27272a"),
             BackgroundColor: "#18181b",
             TransitionMs: 150.0,
             TransitionEasing: Easing.EaseOut,

@@ -131,7 +131,7 @@ public data struct ToggleSwitch {
                 BorderRadius: resolved.ThumbRadius!!,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
-                MarginLeft: marginLeft,
+                Margin: Edges{Left: marginLeft},
             }
         }
         if let createRoot = createRoot {
@@ -149,10 +149,7 @@ public data struct ToggleSwitch {
         let button = Button{
             Width: resolved.Width,
             Height: resolved.Height,
-            PaddingLeft: resolved.Padding,
-            PaddingRight: resolved.Padding,
-            PaddingTop: resolved.Padding,
-            PaddingBottom: resolved.Padding,
+            Padding: resolved.Padding,
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderColor: resolved.BorderColor!!,

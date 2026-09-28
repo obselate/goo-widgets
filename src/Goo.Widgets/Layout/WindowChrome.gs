@@ -135,7 +135,7 @@ public data struct WindowChrome {
         if let leading = resolved.LeadingContent {
             children.Add(Container(){leading})
         }
-        children.Add(Container{FlexGrow: 1.0, Height: Length.Percent(100)})
+        children.Add(Container{FlexGrow: 1.0, Height: Percent(100)})
         if let trailing = resolved.TrailingContent {
             children.Add(Container(){trailing})
         }
@@ -177,8 +177,8 @@ public data struct WindowChrome {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BackgroundColor: resolved.BackgroundColor!!,
-            BorderBottomWidth: 1.0,
-            BorderBottomColor: resolved.BorderColor!!,
+            BorderWidth: Edges{Bottom: 1.0},
+            BorderColor: Edges[Color]{Bottom: resolved.BorderColor!!},
             Children: children,
         }
         let root = if let create = createRoot {

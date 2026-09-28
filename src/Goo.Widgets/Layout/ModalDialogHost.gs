@@ -37,8 +37,8 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
     }
 
     private func Present(content Blob) Portal -> Portal{
-        Width: Length.Percent(100),
-        Height: Length.Percent(100),
+        Width: Percent(100),
+        Height: Percent(100),
         ZIndex: (current.ZIndex == 0 ? 20: current.ZIndex) + (activeScope?.Order ?? 0),
         content,
     }

@@ -115,7 +115,7 @@ public open class TreeView : Cell[TreeViewInput] {
         let defaultHeight Length = 280
         input = value with{
             Virtualize = value.Virtualize ?? true,
-            Width = value.Width ?? Length.Percent(100),
+            Width = value.Width ?? Percent(100),
             Height = value.Height ?? defaultHeight,
             RowHeight = value.RowHeight ?? 34.0,
             Indent = value.Indent ?? 20.0,
@@ -198,7 +198,7 @@ public open class TreeView : Cell[TreeViewInput] {
         content.Key = "rows"
         content.Handle = viewport
         let fullHeight Length = float64(rows.Count) * input.RowHeight!!
-        content.Height = input.Virtualize!!? Length.Percent(100): fullHeight
+        content.Height = input.Virtualize!!? Percent(100): fullHeight
         content.FlexShrink = 0
         content.MinWidth = 0
         content.MinHeight = 0
@@ -426,8 +426,7 @@ public open class TreeView : Cell[TreeViewInput] {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: 6,
-            PaddingLeft: 6.0 + float64(row.Depth) * snapshot.Indent!!,
-            PaddingRight: 8,
+            Padding: Edges{Right: 8, Left: 6.0 + float64(row.Depth) * snapshot.Indent!!},
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
             OutlineWidth: row.Active && hasFocus ? 1.0: 0.0,
@@ -443,7 +442,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Handle = Handle(id)
         root.FlexDirection = FlexDirection.Row
         root.AlignItems = AlignItems.Center
-        root.PaddingLeft = 6.0 + float64(row.Depth) * snapshot.Indent!!
+        root.Padding = Edges{Left: 6.0 + float64(row.Depth) * snapshot.Indent!!}
         root.MinWidth = 0
         root.Height = snapshot.RowHeight!!
         root.FlexShrink = 0

@@ -89,7 +89,7 @@ internal class ComboBoxExample : Cell {
                     Content: "Account policy",
                     FontSize: 13.0,
                     Color: "#a1a1aa",
-                    MarginTop: 18.0
+                    Margin: Edges{Top: 18.0}
                 },
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "disabled",

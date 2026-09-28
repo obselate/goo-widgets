@@ -169,8 +169,8 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
 
 class Spotlight(Page GalleryPage) : Cell {
     public override func Build() Blob -> Container{
-        Width: Length.Percent(100.0),
-        Height: Length.Percent(100.0),
+        Width: Percent(100.0),
+        Height: Percent(100.0),
         Padding: 24.0,
         Gap: 20.0,
         BackgroundColor: "#09090b",

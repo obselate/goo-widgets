@@ -63,7 +63,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             children.Add(Block(model, 400.0, TextAlign.Left))
         }
         var root = Column(current.BlockGap)
-        root.Width = input.Width ?? Length.Percent(100)
+        root.Width = input.Width ?? Percent(100)
         if let create = input.CreateRoot {
             root = create(current, root)
         }
@@ -119,16 +119,16 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 box.Children.Add(Block(child, weight, alignment))
             }
             if info.Kind == MarkdownBlockKind.Quote || info.Kind == MarkdownBlockKind.Alert {
-                box.PaddingLeft = 12.0
-                box.BorderLeftWidth = 3.0
-                box.BorderLeftColor = current.MutedColor!!
+                box.Padding = Edges{Left: 12.0}
+                box.BorderWidth = Edges{Left: 3.0}
+                box.BorderColor = Edges[Color]{Left: current.MutedColor!!}
             }
             if info.Kind == MarkdownBlockKind.Alert {
                 let kind = info.AlertKind ?? "NOTE"
                 let accent = kind == "WARNING" || kind == "CAUTION" ? Color.Parse(
                     "#fbbf24"
                 ): kind == "TIP" ? Color.Parse("#86efac"): current.LinkColor!!
-                box.BorderLeftColor = accent
+                box.BorderColor = Edges[Color]{Left: accent}
                 box.Padding = 12.0
                 box.BackgroundColor = current.CodeBackground!!
                 box.Children.Insert(
@@ -220,7 +220,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             columns = Math.Max(columns, row.Children.Length)
         }
         let table = Column()
-        table.Width = Length.Percent(100)
+        table.Width = Percent(100)
         table.MinWidth = current.MinimumTableColumnWidth * float64(columns)
         table.Accessibility = Accessibility{Role: AccessibilityRole.Grid, Name: "Table"}
         for row in model.Children {
@@ -235,8 +235,8 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 let box = Container{
                     Key: column.ToString(),
                     Padding: 8.0,
-                    BorderBottomWidth: 1.0,
-                    BorderBottomColor: current.MutedColor!!,
+                    BorderWidth: Edges{Bottom: 1.0},
+                    BorderColor: Edges[Color]{Bottom: current.MutedColor!!},
                     MinWidth: current.MinimumTableColumnWidth,
                     FlexGrow: 1.0,
                     FlexBasis: 0.0,

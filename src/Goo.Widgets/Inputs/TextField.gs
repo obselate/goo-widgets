@@ -171,10 +171,9 @@ public data struct TextField {
             entry = createEntry(resolved)
         } else {
             entry = TextEntry{
-                Width: Length.Percent(100.0),
+                Width: Percent(100.0),
                 Height: resolved.EntryHeight,
-                PaddingLeft: resolved.PaddingHorizontal,
-                PaddingRight: resolved.PaddingHorizontal,
+                Padding: Edges{Right: resolved.PaddingHorizontal, Left: resolved.PaddingHorizontal},
                 BackgroundColor: resolved.BackgroundColor!!,
                 Color: resolved.TextColor!!,
                 BorderColor: if resolved.Invalid {

@@ -10,8 +10,8 @@ class AsyncImagePage : GalleryPage {
     public override func Build() Blob {
         let createImage Func[AsyncImage, Image] = (resolved) -> {
             return Image{
-                Width: Length.Percent(100.0),
-                Height: Length.Percent(100.0),
+                Width: Percent(100.0),
+                Height: Percent(100.0),
                 BackgroundColor: Color.Parse("#3f3f46"),
                 BorderRadius: resolved.BorderRadius!!,
                 BorderWidth: 1.0,
@@ -20,8 +20,8 @@ class AsyncImagePage : GalleryPage {
         }
         let customPlaceholder Func[AsyncImage, Blob] = (resolved) -> {
             return Container{
-                Width: Length.Percent(100.0),
-                Height: Length.Percent(100.0),
+                Width: Percent(100.0),
+                Height: Percent(100.0),
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
                 BackgroundColor: Color.Parse("#27272a"),
@@ -46,7 +46,7 @@ class AsyncImagePage : GalleryPage {
         }
 
         return Container{
-            Width: Length.Percent(100.0),
+            Width: Percent(100.0),
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,

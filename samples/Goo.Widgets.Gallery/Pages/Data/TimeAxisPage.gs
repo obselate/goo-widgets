@@ -12,7 +12,7 @@ internal class TimeAxisExample : Cell {
         prepared.BackgroundColor = placement.Event.Id == "release" ? Color.Parse("#275d56"): Color.Parse("#393151")
         if placement.Event.Id == selected {
             prepared.BorderWidth = 2
-            prepared.BorderColor = "#d1fae5"
+            prepared.BorderColor = Color.Parse("#d1fae5")
         }
         return prepared
     }

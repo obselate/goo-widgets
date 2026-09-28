@@ -79,7 +79,7 @@ internal class ManagedDialogExample : Cell {
                     },
                     TextEntry{
                         Value: "Production update",
-                        Width: Length.Percent(100.0),
+                        Width: Percent(100.0),
                         Height: 36.0,
                         Padding: 8.0,
                         BackgroundColor: "#09090b",

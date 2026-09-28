@@ -89,8 +89,8 @@ public data struct Avatar {
                     Path: resolved.ImagePath ?? "",
                     Source: resolved.ImageSource,
                     Fit: resolved.Fit!!,
-                    Width: Length.Percent(100.0),
-                    Height: Length.Percent(100.0),
+                    Width: Percent(100.0),
+                    Height: Percent(100.0),
                 }
             }
         } else if let createFallback = createFallback {

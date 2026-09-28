@@ -191,7 +191,7 @@ internal class OverlayHost : Cell {
             Padding: 14.0,
             BackgroundColor: "#1e2130",
             BorderWidth: 1.0,
-            BorderColor: "#6366f1",
+            BorderColor: Color.Parse("#6366f1"),
             BorderRadius: 9.0
         }
         PopupPanel = result
@@ -215,8 +215,8 @@ internal class OverlayHost : Cell {
 
     public override func Build() Blob {
         let root = Container{
-            Width: Length.Percent(100),
-            Height: Length.Percent(100),
+            Width: Percent(100),
+            Height: Percent(100),
             BackgroundColor: "#111318",
             Padding: 24.0,
             Gap: 16.0,
@@ -276,7 +276,7 @@ internal class OverlayHost : Cell {
                     TextEntry{
                         Handle: Edit,
                         Value: "Release notes",
-                        Width: Length.Percent(100),
+                        Width: Percent(100),
                         Height: 38.0,
                         Padding: 8.0,
                         BackgroundColor: "#09090b",

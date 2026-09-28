@@ -180,8 +180,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     Text{Content: "Volume", FontSize: 12.0, Color: resolved.TextColor!!},
                     Container{
                         Width: 120.0,
-                        PaddingLeft: 10.0,
-                        PaddingRight: 10.0,
+                        Padding: Edges{Right: 10.0, Left: 10.0},
                         Cell.Mount[SliderInput, Slider](
                             "media-volume",
                             SliderInput{
@@ -249,7 +248,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             CanNext = !input.Disabled && (input.CanNext ?? input.OnNext != nil) && input.OnNext != nil,
             CanSeek = canSeek,
             CanSetVolume = canSetVolume,
-            Width = input.Width ?? Length.Percent(100.0),
+            Width = input.Width ?? Percent(100.0),
             Padding = input.Padding ?? 16.0,
             Gap = input.Gap ?? 12.0,
             ActionGap = input.ActionGap ?? 8.0,
