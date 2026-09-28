@@ -6,7 +6,7 @@
         "type": "Direct",
         "requested": "[0.6.6, )",
         "resolved": "0.6.6",
-        "contentHash": "nAsIpRovBHs9+ckfKmx4+Dzl0oXoCCgd4IfQ/BQVkCQmmpGcSoVKfU2QqlWPsIwrpJa84/yqt9rtMrcCqH+fFA==",
+        "contentHash": "y2MS5KPrOo2kLZLDHRJObVpl4J15Ywp4FNIXmjPcaToR8Y+IZVKVhO7/CeBpELCBzUKzj3W5v8BaH0GflnZnaw==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",
@@ -17,7 +17,7 @@
         "type": "Direct",
         "requested": "[0.6.6, )",
         "resolved": "0.6.6",
-        "contentHash": "+c0afn+pDKT6OsqXKS2HSXPJWMWgHyIoq/Wlvhi6fNneeBIUywg30+rDsxSSWVQbL1m/2ToB4CLMPMRx73JXAw==",
+        "contentHash": "N1XXzC41/vb6AFsLr+gD3RZdXHIm/ion0ugR0ZgYieP98JvHf1cJxHrdl1EsxIGTs4E4obV42T0dZpp8lkjJhQ==",
         "dependencies": {
           "Goo": "0.6.6"
         }
