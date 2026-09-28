@@ -2,6 +2,11 @@
 
 NuGet publication uses `.github/workflows/ci.yml` and the GitHub environment `release`.
 
+Widgets and Markdown stay below 1.0.0. Use patch increments for fixes and small
+additions. Reserve minor increments for substantial feature batches.
+Every merged change must be pushed, pass upstream CI,
+and receive a new release tag.
+
 ## Trusted Publishing setup
 
 On NuGet.org, create a trusted publishing policy for the `obselate` owner:
