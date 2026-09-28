@@ -321,8 +321,8 @@ func TreeViewInteractions() {
         PumpFrames(window, 8)
         CaptureIssueProof(window, "tree-nonvirtual")
         let groupY = host.Rows["group"].Handle!!.BorderBox.Y
-        FeedbackWheel(window, host.Rows["group"].Handle!!.BorderBox, -1.0F)
-        Require(host.Rows["group"].Handle!!.BorderBox.Y < groupY, "Nonvirtual tree did not scroll by wheel")
+        FeedbackWheel(window, host.Rows["locked"].Handle!!.BorderBox, -1.0F)
+        Require(host.Rows["group"].Handle!!.BorderBox.Y < groupY, "Disabled row blocked its scrollable ancestor")
         CaptureIssueProof(window, "tree-nonvirtual-scrollbar")
         host.Large = true
         host.Virtualize = true
