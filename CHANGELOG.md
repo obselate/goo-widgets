@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.7 - 2026-09-28
+
+- Add Calendar month and day text style hooks, Menu submenu arrow styling, and
+  TreeView vertical scrollbar styling in virtual and nonvirtual modes.
+- Let tall Calendar days increase the month header height without clipping.
+
 ## 0.2.6 - 2026-09-27
 
 - Require Goo and Goo.Svg 0.6.6 in both packages.

@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-These examples use Goo Widgets `0.2.6`, Goo/Goo.Svg `0.6.6`, .NET 10, and
+These examples use Goo Widgets `0.2.7`, Goo/Goo.Svg `0.6.6`, .NET 10, and
 `Gsharp.NET.Sdk/0.4.591`. Goo automatically supplies the upstream compiler needed
 for native child composition. Follow the [installation instructions](../README.md#install).
 
@@ -235,7 +235,8 @@ children, and an optional per-item action overriding the shared OnActivate(id).
 Up/Down/Home/End navigate; Right/Left open and close submenus; Enter/Space activate;
 Escape closes the active level. Pointer hover also opens submenus. DismissOnActivate
 defaults to true. CreateItem, CreateSeparator, CreatePanel, and CreateRoot retain
-navigation, identity, and accessibility wiring. Hosts can use Menu or Shift+F10
+navigation, identity, and accessibility wiring. `SubmenuArrowStyle` styles the
+direction indicator after its default text declarations. Hosts can use Menu or Shift+F10
 key events to open the same menu from a keyboard trigger (see the gallery).
 
 Popover, Menu, and ModalDialogHost present through Goo's automatic per-Window
@@ -271,7 +272,8 @@ selection. Arrows move by day/week, Home/End visit week boundaries, Page Up/Down
 change month, and Shift+Page Up/Down change year with leap-day clamping. Enter
 selects the active date. `Month`/`OnMonthChange` optionally control the visible month.
 Day and navigation factories customize appearance while keeping date calculations,
-roving focus, and accessibility wiring.
+roving focus, and accessibility wiring. `MonthTextStyle` and `DayTextStyle` override
+the default month heading and day number text declarations.
 
 `Cell.Mount[DatePickerInput, DatePicker]` adds a text draft and anchored calendar.
 Enter or blur submits the draft; Escape restores the committed date. Empty input
@@ -578,7 +580,8 @@ Collapse actions use the same controlled callbacks as native input.
 Visible rows are flattened iteratively and virtualized by default. Fixed
 `RowHeight` and `Indent` control geometry. `Virtualize: false` realizes every row
 in a full-height provider inside an outer scroll viewport; changing the mode keeps
-the retained row structure and logical focus. Custom content follows ordinary Goo
+the retained row structure and logical focus. `ScrollbarY` styles the active vertical
+scroller in either mode. Custom content follows ordinary Goo
 layout and can provide its own interaction. Content, expander, checkbox, row, and
 root factories customize prepared blobs; required slots and tree wiring are
 reapplied. Use `GOO_WIDGETS_TREE=1` with the native runner to exercise both modes,
