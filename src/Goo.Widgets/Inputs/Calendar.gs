@@ -33,6 +33,10 @@ public data struct CalendarInput {
     var FirstDayOfWeek DayOfWeek?
     var Width Length?
     var DayHeight float64
+    /// Optional base style for the month heading text.
+    var MonthTextStyle Style?
+    /// Optional base style for each day number, applied after the default text styling.
+    var DayTextStyle Style?
     var AccessibilityName string?
     var PreviousMonthLabel string?
     var NextMonthLabel string?
@@ -129,7 +133,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         let title = month.ToString("MMMM yyyy", culture)
         let heading = Container{
             Key: "heading",
-            Height: 32.0,
+            Height: Math.Max(32.0, current.DayHeight),
             FlexShrink: 0.0,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -142,6 +146,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 TextAlign: TextAlign.Center,
                 FontWeight: 600,
                 Color: "#fafafa",
+                BasedOn: current.MonthTextStyle,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Heading,
                     Name: title,
@@ -371,7 +376,8 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Text{
                 Content: date.Day.ToString(current.Culture!!),
                 FontSize: 13.0,
-                Color: day.Selected || day.CurrentMonth ? Color.Parse("#fafafa"): Color.Parse("#71717a")
+                Color: day.Selected || day.CurrentMonth ? Color.Parse("#fafafa"): Color.Parse("#71717a"),
+                BasedOn: current.DayTextStyle
             }
         )
         return button

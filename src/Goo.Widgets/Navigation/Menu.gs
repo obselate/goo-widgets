@@ -37,6 +37,8 @@ public data struct MenuInput {
     var MaxHeight float64
     var ZIndex int32
     var AccessibilityName string?
+    /// Optional base style for the submenu direction indicator.
+    var SubmenuArrowStyle Style?
     var CreateItem Func[MenuInput, MenuItem, Button, Button]?
     var CreateSeparator Func[MenuInput, MenuItem, Blob]?
     var CreatePanel Func[MenuInput, Container, Container]?
@@ -173,7 +175,15 @@ public open class Menu : Cell[MenuInput] {
             row.Children.Clear()
             row.Children.Add(Container{Key: "content", FlexGrow: 1.0, MinWidth: 0.0, content})
             if hasChildren {
-                row.Children.Add(Text{Key: "arrow", Content: OpensLeft() ? "‹": "›", FontSize: 18, Color: "#a1a1aa"})
+                row.Children.Add(
+                    Text{
+                        Key: "arrow",
+                        Content: OpensLeft() ? "‹": "›",
+                        FontSize: 18,
+                        Color: "#a1a1aa",
+                        BasedOn: current.SubmenuArrowStyle
+                    }
+                )
             }
             rows.Children.Add(row)
         }

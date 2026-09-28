@@ -370,6 +370,7 @@ internal class OverlayHost : Cell {
                     WindowPoint: Point{X: 630.0, Y: 180.0},
                     Width: 220.0,
                     AccessibilityName: "Actions",
+                    SubmenuArrowStyle: Style{Color: "#d16b42"},
                     Items: []MenuItem{
                         MenuItem{Id: "open", Label: "Open"},
                         MenuItem{Id: "disabled", Label: "Unavailable action", Disabled: true},
@@ -550,6 +551,7 @@ func OverlayInteractions() {
         host.Rebuild()
         PumpFrames(window, 16)
         Require(OverlayFocus(semantics, "Open"), "Menu failed initial focus")
+        RequireLastColor((host.MenuRows["tools"].Children[1] as Text)!!, Color.Parse("#d16b42"), "Menu submenu arrow")
         SendKey(id, SDLScancode.Down)
         PumpFrames(window, 7)
         Require(OverlayFocus(semantics, "Tools"), "Menu navigation failed to skip disabled/separator rows")

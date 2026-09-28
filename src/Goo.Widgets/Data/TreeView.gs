@@ -67,6 +67,8 @@ public data struct TreeViewInput {
     var Width Length?
     /// Viewport height. Nil resolves to 280.
     var Height Length?
+    /// Optional vertical scrollbar appearance for the active scroller.
+    var ScrollbarY Scrollbar?
     /// Fixed visual row height. Nil resolves to 34.
     var RowHeight float64?
     /// Indentation per depth level. Nil resolves to 20.
@@ -204,6 +206,7 @@ public open class TreeView : Cell[TreeViewInput] {
         content.MinHeight = 0
         content.OverflowX = Overflow.Hidden
         content.OverflowY = input.Virtualize!!? Overflow.Scroll: Overflow.Hidden
+        content.ScrollbarY = input.ScrollbarY
         // A full-height provider realizes every row without replacing its retained subtree when the mode changes.
         let scroll = Container{
             FlexGrow: 1,
@@ -212,6 +215,7 @@ public open class TreeView : Cell[TreeViewInput] {
             MinHeight: 0,
             OverflowX: Overflow.Hidden,
             OverflowY: input.Virtualize!!? Overflow.Hidden: Overflow.Scroll,
+            ScrollbarY: input.ScrollbarY,
             content
         }
         var root = Container{

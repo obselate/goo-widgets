@@ -346,6 +346,7 @@ func Main() {
     GridChartContracts()
     TimeAxisContracts()
     TreeViewContracts()
+    ThemeHookContracts()
     DataGridContracts()
     SliderInteractions()
     WidgetErgonomics()
