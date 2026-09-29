@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.10 - 2026-09-29
+
+- Add opt-in DataGrid column fitting to the measured viewport, with atomic
+  width changes for pointer, keyboard, and accessibility resizing.
+- Add repeatable vertical, page, and document navigation to application-root
+  text editing bindings.
+
 ## 0.2.9 - 2026-09-29
 
 - Reuse DataGrid row indices and detail metadata while the host retains the same
