@@ -607,6 +607,17 @@ commit; earlier live change requests remain applied. Resizers support Left/Right
 Home/End, and accessible value changes. Headers, filters, and virtual cells share
 one width array inside one horizontal scroll viewport.
 
+Set `FitColumnsToViewport` to fit the columns to the measured grid width minus
+the reserved vertical scrollbar. Fixed column widths are preferences. Flex
+columns remain flexible even when `ColumnWidths` contains an override. The grid
+shrinks flex columns, then fixed columns, down to their minimums when space is
+short. If the minimums cannot fit, horizontal scrolling remains available.
+Only boundaries between columns have resize handles in this mode. Pointer,
+keyboard, and accessibility resizing transfer width into or out of columns to
+the right within their bounds. `OnFittedColumnWidthsChange` receives one map
+containing every resolved column width; replace the controlled map and rebuild.
+`OnFittedColumnWidthsCommit` receives that map when resizing completes.
+
 `SortColumnId`/`SortDirection` and `OnSort` cycle None → Ascending → Descending →
 None. The host performs the sort. `Selection` supports None, Single (at most one
 selected ID), and Multiple. `SelectedIds`/`OnSelectionChange` are controlled.

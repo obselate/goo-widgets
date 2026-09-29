@@ -175,6 +175,9 @@ internal class DataGridHost : Cell {
     internal var Single bool
     internal var Disabled bool
     internal var SwapColumns bool
+    internal var Fit bool
+    internal var Compact bool
+    internal var Tiny bool
     internal let FilterHandle ElementHandle = ElementHandle()
 
     private func CaptureRoot(input DataGridInput, prepared Container) Container {
@@ -227,6 +230,15 @@ internal class DataGridHost : Cell {
         Commits++
     }
 
+    private func FittedWidths(values IReadOnlyDictionary[string, float64]) {
+        Widths = Dictionary[string, float64](values)
+        Rebuild()
+    }
+
+    private func FittedCommit(values IReadOnlyDictionary[string, float64]) {
+        Commits++
+    }
+
     private func Sort(id string, direction DataGridSort) {
         SortCalls++
         SortId = id
@@ -272,9 +284,9 @@ internal class DataGridHost : Cell {
         let name = DataGridColumn{
             Id: "name",
             Label: "Name",
-            Width: 170,
+            Width: Fit ? nil: 170,
             Minimum: 100,
-            Maximum: 300,
+            Maximum: Fit ? 1000000: 300,
             Sortable: true,
             Filter: TextEntry{
                 Handle: FilterHandle,
@@ -287,8 +299,23 @@ internal class DataGridHost : Cell {
                 BackgroundColor: "#09090b"
             }
         }
-        let state = DataGridColumn{Id: "state", Label: "State", Flex: 1, Minimum: 110, Maximum: 220, Sortable: true}
-        let owner = DataGridColumn{Id: "owner", Label: "Owner", Flex: 2, Minimum: 140, Maximum: 500}
+        let state = DataGridColumn{
+            Id: "state",
+            Label: "State",
+            Width: Fit ? 160: nil,
+            Flex: 1,
+            Minimum: 110,
+            Maximum: 220,
+            Sortable: true
+        }
+        let owner = DataGridColumn{
+            Id: "owner",
+            Label: "Owner",
+            Width: Fit ? 160: nil,
+            Flex: 2,
+            Minimum: 140,
+            Maximum: 500
+        }
         return Container{
             Width: Percent(100),
             Height: Percent(100),
@@ -307,10 +334,15 @@ internal class DataGridHost : Cell {
                     Columns: SwapColumns ? []DataGridColumn{owner, state, name}: []DataGridColumn{name, state, owner},
                     Rows: Rows(),
                     Height: 300,
+                    Width: Fit ? (Tiny ? 350: Compact ? 440: 650): nil,
                     Disabled: Disabled,
                     ColumnWidths: Widths,
                     OnColumnWidthChange: Width,
                     OnColumnWidthCommit: Commit,
+                    FitColumnsToViewport: Fit,
+                    OnFittedColumnWidthsChange: FittedWidths,
+                    OnFittedColumnWidthsCommit: FittedCommit,
+                    ScrollbarY: Fit ? Scrollbar{Thickness: 6, Inset: 8, ReserveSpace: true}: nil,
                     SortColumnId: SortId,
                     SortDirection: SortDirection,
                     OnSort: Sort,
@@ -355,6 +387,12 @@ func GridAligned(host DataGridHost, id string) {
         Math.Abs(header.X - cell.X) < .1 && Math.Abs(header.Width - cell.Width) < .1,
         "Grid header/body columns diverged: " + id
     )
+}
+
+func GridColumnWidths(semantics SearchListSemantics)[]float64 -> []float64{
+    FindSemantics(semantics.Tree!!.Root, "Name")!!.Bounds.Width,
+    FindSemantics(semantics.Tree!!.Root, "State")!!.Bounds.Width,
+    FindSemantics(semantics.Tree!!.Root, "Owner")!!.Bounds.Width
 }
 
 func GridModifiedClick(window Window, handle ElementHandle, modifiers SDLKeymod) {
@@ -543,12 +581,88 @@ func DataGridInteractions() {
             !window.PerformAccessibilityAction(last.Id, AccessibilityActionRequest(AccessibilityAction.Select)),
             "Disabled grid accepted accessible selection"
         )
+        host.Disabled = false
+        host.Large = false
+        host.SwapColumns = false
+        host.Fit = true
+        host.Widths = Dictionary[string, float64]()
+        host.Rebuild()
+        PumpFrames(window, 12)
+        let fittedWidth = host.Root!!.Handle!!.ContentBox.Width - 14.0
+        let normalWidths = GridColumnWidths(semantics)
+        let nameWidth = normalWidths[0]
+        let stateWidth = normalWidths[1]
+        let ownerWidth = normalWidths[2]
+        Require(
+            Math.Abs(nameWidth + stateWidth + ownerWidth + 66.0 - fittedWidth) < 1.0 &&
+                GridElement(host.Root!!, "Resize Owner") == nil,
+            "Fitted grid did not use the measured viewport or exposed the final edge"
+        )
+        let fittedResize = GridElement(host.Root!!, "Resize Name")!!.Handle!!
+        let fittedBox = fittedResize.BorderBox
+        let fittedX = float32(fittedBox.X + fittedBox.Width / 2.0)
+        let fittedY = float32(fittedBox.Y + 15.0)
+        MouseMove(id, fittedX, fittedY)
+        MouseButton(id, fittedX, fittedY, true)
+        MouseMove(id, fittedX + 40.0F, fittedY)
+        PumpFrames(window, 8)
+        MouseButton(id, fittedX + 40.0F, fittedY, false)
+        PumpFrames(window, 8)
+        Require(
+            Math.Abs(host.Widths["name"] - nameWidth - 40.0) < 1.0 && Math.Abs(
+                host.Widths["state"] - stateWidth + 40.0
+            ) < 1.0 &&
+                Math.Abs(host.Widths["owner"] - ownerWidth) < 1.0,
+            "Fitted grid pointer resize did not transfer width atomically"
+        )
+        GridElement(host.Root!!, "Resize Name")!!.Handle!!.Focus()
+        SendKey(id, SDLScancode.Left)
+        PumpFrames(window, 8)
+        Require(Math.Abs(host.Widths["name"] - nameWidth - 32.0) < 1.0, "Fitted grid keyboard resize failed")
+        let resizeSemantic = FindSemantics(semantics.Tree!!.Root, "Resize Name")!!
+        Require(
+            window.PerformAccessibilityAction(
+                resizeSemantic.Id,
+                AccessibilityActionRequest(AccessibilityAction.Increment)
+            ),
+            "Fitted grid accessibility resize was rejected"
+        )
+        PumpFrames(window, 8)
+        Require(Math.Abs(host.Widths["name"] - nameWidth - 40.0) < 1.0, "Fitted grid accessibility resize failed")
+        host.Compact = true
+        host.Rebuild()
+        PumpFrames(window, 12)
+        let compactWidth = host.Root!!.Handle!!.ContentBox.Width - 14.0
+        let compactWidths = GridColumnWidths(semantics)
+        let compactName = compactWidths[0]
+        let compactState = compactWidths[1]
+        let compactOwner = compactWidths[2]
+        Require(
+            Math.Abs(compactName + compactState + compactOwner + 66.0 - compactWidth) < 1.0 &&
+                compactName < host.Widths["name"] &&
+                compactState < host.Widths["state"],
+            "Fitted grid compact resize did not fit flexible and fixed preferences"
+        )
+        host.Tiny = true
+        host.Rebuild()
+        PumpFrames(window, 8)
+        let tinyWidths = GridColumnWidths(semantics)
+        let tinyTotal = tinyWidths[0] + tinyWidths[1] + tinyWidths[2] + 66.0
+        Require(
+            tinyTotal > host.Root!!.Handle!!
+                .ContentBox
+                .Width - 14.0 &&
+                tinyWidths[0] >= 100.0 &&
+                tinyWidths[1] >= 110.0 &&
+                tinyWidths[2] >= 140.0,
+            "Fitted grid failed to preserve minimum widths when viewport was too narrow"
+        )
     } finally {
         SDL.SetModState(uint16(0))
         window.RequestClose()
         PumpFrames(window, 5)
     }
     Console.WriteLine(
-        "PASS: DataGrid shared columns, controlled sort/selection, range/disabled input, captured resize/cancel/keyboard, measured detail, horizontal overflow and 1500-row virtualization"
+        "PASS: DataGrid shared columns, controlled sort/selection, range/disabled input, captured and fitted resize, measured detail, horizontal overflow and 1500-row virtualization"
     )
 }

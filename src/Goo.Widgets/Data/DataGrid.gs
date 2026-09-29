@@ -34,7 +34,7 @@ public data struct DataGridColumn {
     var Minimum float64?
     var Maximum float64?
     var Sortable bool
-    /// Nil resolves to true; resizing also requires OnColumnWidthChange.
+    /// Nil resolves to true; resizing requires the callback for the selected sizing mode.
     var Resizable bool?
     /// Arbitrary header and filter content. Filtering stays in the application.
     var Header Blob?
@@ -56,11 +56,16 @@ public data struct DataGridRow {
 public data struct DataGridInput {
     var Columns[]?DataGridColumn
     var Rows[]?DataGridRow
-    /// Controlled pixel overrides, including flex columns; absent IDs use the column definition.
+    /// Controlled pixel preferences; fit mode keeps definition-flex columns flexible.
     var ColumnWidths IReadOnlyDictionary[string, float64]?
     var OnColumnWidthChange Action[string, float64]?
     /// Pointer-up or keyboard commit; cancellation keeps prior change requests but does not commit.
     var OnColumnWidthCommit Action[string, float64]?
+    /// Fits columns to the measured root content width, excluding a reserved vertical scrollbar.
+    var FitColumnsToViewport bool
+    /// Receives all resolved widths atomically. Columns without a definition width remain flexible.
+    var OnFittedColumnWidthsChange Action[IReadOnlyDictionary[string, float64]]?
+    var OnFittedColumnWidthsCommit Action[IReadOnlyDictionary[string, float64]]?
     var SortColumnId string?
     var SortDirection DataGridSort
     var OnSort Action[string, DataGridSort]?
@@ -138,6 +143,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var origin float64
     private var originWidth float64
     private var lastWidth float64
+    private var resizeWidths[]float64 = []float64{}
+    private var lastFittedWidths Dictionary[string, float64]?
     private var disposed bool
 
     public init() {
@@ -236,7 +243,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         expanded = HashSet[string](input.ExpandedIds ?? []string{}, StringComparer.Ordinal)
         Prune(resizeHandles, columnIds)
-        if input.Disabled || input.OnColumnWidthChange == nil || ColumnIndex(resizeId) < 0
+        if input.Disabled || !CanResize(ColumnIndex(resizeId))
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
             pointer = -1L
             resizeId = nil
@@ -467,6 +474,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     private func ResolveWidths(verticalGutter float64) {
         widths = [columns.Length]float64
+        if input.FitColumnsToViewport {
+            ResolveFittedWidths(verticalGutter)
+            return
+        }
         let flexible = [columns.Length]bool
         tableWidth = leading
         var maxWeight float64 = 1.0
@@ -515,6 +526,82 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if !Double.IsFinite(tableWidth) || tableWidth > 1000000000.0 {
             throw ArgumentOutOfRangeException("Grid total width")
         }
+    }
+
+    private func ResolveFittedWidths(verticalGutter float64) {
+        let flexible = [columns.Length]bool
+        var total float64
+        for index in 0 ... columns.Length {
+            let column = columns[index]
+            var requested = column.Width
+            if let overrides = input.ColumnWidths {
+                if overrides.TryGetValue(column.Id!!, out var width) {
+                    requested = width
+                }
+            }
+            flexible[index] = column.Width == nil
+            widths[index] = Clamp(index, requested ?? (column.Minimum ?? 60.0))
+            total += widths[index]
+        }
+        let target = Math.Max(0.0, available - verticalGutter - leading)
+        var remaining = target - total
+        if remaining > 0.0 {
+            remaining = DistributeWidth(remaining, flexible, true, true)
+            remaining = DistributeWidth(remaining, flexible, false, true)
+        } else {
+            remaining = DistributeWidth(remaining, flexible, true, false)
+            remaining = DistributeWidth(remaining, flexible, false, false)
+        }
+        tableWidth = leading
+        for width in widths {
+            tableWidth += width
+        }
+        if !Double.IsFinite(tableWidth) || tableWidth > 1000000000.0 {
+            throw ArgumentOutOfRangeException("Grid total width")
+        }
+    }
+
+    private func DistributeWidth(delta float64, flexible[]bool, selected bool, grow bool) float64 {
+        var remaining = delta
+        for pass in 0 ... columns.Length {
+            var weight float64
+            for index in 0 ... columns.Length {
+                if flexible[index] != selected {
+                    continue
+                }
+                let capacity = if grow {
+                    (columns[index].Maximum ?? 1000000.0) - widths[index]
+                } else {
+                    widths[index] - (columns[index].Minimum ?? 60.0)
+                }
+                if capacity > .001 {
+                    weight += grow ? (selected ? (columns[index].Flex ?? 1.0): 1.0): capacity
+                }
+            }
+            if weight <= 0.0 || Math.Abs(remaining) <= .001 {
+                break
+            }
+            var consumed float64
+            for index in 0 ... columns.Length {
+                if flexible[index] != selected {
+                    continue
+                }
+                let capacity = if grow {
+                    (columns[index].Maximum ?? 1000000.0) - widths[index]
+                } else {
+                    widths[index] - (columns[index].Minimum ?? 60.0)
+                }
+                if capacity <= .001 {
+                    continue
+                }
+                let share = grow ? (selected ? (columns[index].Flex ?? 1.0): 1.0): capacity
+                let amount = Math.Min(capacity, Math.Abs(remaining) * share / weight)
+                widths[index] += grow ? amount: -amount
+                consumed += amount
+            }
+            remaining += grow ? -consumed: consumed
+        }
+        return remaining
     }
 
     private func BuildHeader(snapshot DataGridInput, filter bool) Blob {
@@ -595,7 +682,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
                 WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
-                if (column.Resizable ?? true) && snapshot.OnColumnWidthChange != nil {
+                if (column.Resizable ?? true) && CanResize(index) {
                     var handle = Container{
                         BackgroundColor: "#3f3f46",
                         Hover: Style{BackgroundColor: "#818cf8"},
@@ -623,8 +710,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         Name: "Resize " + label,
                         Orientation: AccessibilityOrientation.Horizontal,
                         Range: AccessibilityValue{
-                            Minimum: column.Minimum ?? 60.0,
-                            Maximum: column.Maximum ?? 1000000.0,
+                            Minimum: ResizeMinimum(index),
+                            Maximum: ResizeMaximum(index),
                             Now: widths[index]
                         },
                         Actions: []AccessibilityAction{
@@ -978,13 +1065,73 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
     }
 
-    private func RequestWidth(id string, width float64, commit bool) {
+    private func CanResize(index int32) bool -> index >= 0 &&
+        (
+        input.FitColumnsToViewport ?
+        index < columns.Length - 1 && input.OnFittedColumnWidthsChange != nil:
+        input.OnColumnWidthChange != nil
+    )
+
+    private func ResizeMinimum(index int32) float64 {
+        let minimum = columns[index].Minimum ?? 60.0
+        if !input.FitColumnsToViewport {
+            return minimum
+        }
+        var capacity float64
+        for next in index + 1 ... columns.Length {
+            capacity += (columns[next].Maximum ?? 1000000.0) - widths[next]
+        }
+        return Math.Max(minimum, widths[index] - capacity)
+    }
+
+    private func ResizeMaximum(index int32) float64 {
+        let maximum = columns[index].Maximum ?? 1000000.0
+        if !input.FitColumnsToViewport {
+            return maximum
+        }
+        var capacity float64
+        for next in index + 1 ... columns.Length {
+            capacity += widths[next] - (columns[next].Minimum ?? 60.0)
+        }
+        return Math.Min(maximum, widths[index] + capacity)
+    }
+
+    private func RequestWidth(id string, width float64, commit bool, source[]float64) {
         let index = ColumnIndex(id)
-        if index < 0 ||
-            input.Disabled ||
-            !(columns[index].Resizable ?? true) ||
-            input.OnColumnWidthChange == nil ||
-            !Double.IsFinite(width) {
+        if index < 0 || input.Disabled || !(columns[index].Resizable ?? true) || !CanResize(index) || !Double.IsFinite(
+            width
+        ) {
+            return
+        }
+        if input.FitColumnsToViewport {
+            let next = [columns.Length]float64
+            for column in 0 ... columns.Length {
+                next[column] = source[column]
+            }
+            let requested = Math.Clamp(width, ResizeMinimum(index), ResizeMaximum(index))
+            var delta = requested - source[index]
+            next[index] = requested
+            for column in index + 1 ... columns.Length {
+                if delta > 0.0 {
+                    let take = Math.Min(delta, next[column] - (columns[column].Minimum ?? 60.0))
+                    next[column] -= take
+                    delta -= take
+                } else if delta < 0.0 {
+                    let give = Math.Min(-delta, (columns[column].Maximum ?? 1000000.0) - next[column])
+                    next[column] += give
+                    delta += give
+                }
+            }
+            let resolved = Dictionary[string, float64](StringComparer.Ordinal)
+            for column in 0 ... columns.Length {
+                resolved.Add(columns[column].Id!!, next[column])
+            }
+            lastWidth = requested
+            lastFittedWidths = resolved
+            input.OnFittedColumnWidthsChange!!(resolved)
+            if commit {
+                input.OnFittedColumnWidthsCommit?.Invoke(resolved)
+            }
             return
         }
         lastWidth = Clamp(index, width)
@@ -996,11 +1143,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     private func BeginResize(id string, e PointerEvent) {
         let index = ColumnIndex(id)
-        if index < 0 ||
-            input.Disabled ||
-            input.OnColumnWidthChange == nil ||
-            pointer != -1L ||
-            e.Button != PointerButton.Primary {
+        if index < 0 || input.Disabled || !CanResize(index) || pointer != -1L || e.Button != PointerButton.Primary {
             return
         }
         pointer = e.PointerId
@@ -1008,6 +1151,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         origin = e.WindowPosition.X
         originWidth = widths[index]
         lastWidth = originWidth
+        resizeWidths = [columns.Length]float64
+        for column in 0 ... columns.Length {
+            resizeWidths[column] = widths[column]
+        }
+        lastFittedWidths = nil
         e.Capture()
         e.PreventDefault()
         e.StopPropagation()
@@ -1016,7 +1164,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     private func MoveResize(e PointerEvent) {
         if pointer == e.PointerId && resizeId != nil {
-            RequestWidth(resizeId!!, originWidth + e.WindowPosition.X - origin, false)
+            RequestWidth(resizeId!!, originWidth + e.WindowPosition.X - origin, false, resizeWidths)
         }
     }
 
@@ -1029,9 +1177,16 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         e.StopPropagation()
         pointer = -1L
         if resizeId != nil {
-            input.OnColumnWidthCommit?.Invoke(resizeId!!, lastWidth)
+            if input.FitColumnsToViewport {
+                if let resolved = lastFittedWidths {
+                    input.OnFittedColumnWidthsCommit?.Invoke(resolved)
+                }
+            } else {
+                input.OnColumnWidthCommit?.Invoke(resizeId!!, lastWidth)
+            }
         }
         resizeId = nil
+        lastFittedWidths = nil
     }
 
     private func CancelResize(e PointerEvent) {
@@ -1039,6 +1194,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             e.ReleaseCapture()
             pointer = -1L
             resizeId = nil
+            lastFittedWidths = nil
         }
     }
 
@@ -1054,17 +1210,16 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         e.StopPropagation()
         RequestWidth(
             id,
-            e.Key == Key.Home ? (columns[index].Minimum ?? 60.0): e.Key == Key.End ? (
-                columns[index].Maximum ?? 1000000.0
-            ): widths[index] +
+            e.Key == Key.Home ? ResizeMinimum(index): e.Key == Key.End ? (ResizeMaximum(index)): widths[index] +
                 (e.Key == Key.Left ? -8.0: 8.0),
-            true
+            true,
+            widths
         )
     }
 
     private func ResizeAction(id string, request AccessibilityActionRequest) bool {
         let index = ColumnIndex(id)
-        if index < 0 || input.Disabled || input.OnColumnWidthChange == nil {
+        if index < 0 || input.Disabled || !CanResize(index) {
             return false
         }
         var width = widths[index]
@@ -1080,7 +1235,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         } else {
             return false
         }
-        RequestWidth(id, width, true)
+        RequestWidth(id, width, true, widths)
         return true
     }
 }
