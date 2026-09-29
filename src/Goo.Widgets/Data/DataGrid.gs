@@ -92,6 +92,7 @@ public data struct DataGridInput {
     var ScrollbarY Scrollbar?
     var ScrollbarVisibilityY ScrollbarVisibility?
     var ResizeHandleStyle Style?
+    var CreateResizeHandle Func[DataGridInput, DataGridColumn, Container, Container]?
     var HeaderStyle Style?
     var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
@@ -575,40 +576,43 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && snapshot.OnColumnWidthChange != nil {
-                    let handle = Container{
-                        Key: "resize",
-                        Handle: Handle(resizeHandles, id),
-                        Position: PositionType.Absolute,
-                        Right: 0,
-                        Top: 0,
-                        Bottom: 0,
-                        Width: 7,
+                    var handle = Container{
                         BackgroundColor: "#3f3f46",
                         Hover: Style{BackgroundColor: "#818cf8"},
-                        BasedOn: snapshot.ResizeHandleStyle,
-                        Cursor: Cursor.ResizeHorizontal,
-                        Focusable: !snapshot.Disabled,
-                        OnPointerDown: (e PointerEvent) -> BeginResize(id, e),
-                        OnPointerMove: MoveResize,
-                        OnPointerUp: EndResize,
-                        OnPointerCancel: CancelResize,
-                        OnKeyDown: (e KeyEvent) -> ResizeKey(id, e),
-                        Accessibility: Accessibility{
-                            Role: AccessibilityRole.Slider,
-                            Name: "Resize " + label,
-                            Orientation: AccessibilityOrientation.Horizontal,
-                            Range: AccessibilityValue{
-                                Minimum: column.Minimum ?? 60.0,
-                                Maximum: column.Maximum ?? 1000000.0,
-                                Now: widths[index]
-                            },
-                            Actions: []AccessibilityAction{
-                                AccessibilityAction.SetValue,
-                                AccessibilityAction.Increment,
-                                AccessibilityAction.Decrement
-                            },
-                            OnAction: (request AccessibilityActionRequest) -> ResizeAction(id, request)
-                        }
+                        BasedOn: snapshot.ResizeHandleStyle
+                    }
+                    if let create = snapshot.CreateResizeHandle {
+                        handle = create(snapshot, column, handle)
+                    }
+                    handle.Key = "resize"
+                    handle.Handle = Handle(resizeHandles, id)
+                    handle.Position = PositionType.Absolute
+                    handle.Right = 0
+                    handle.Top = 0
+                    handle.Bottom = 0
+                    handle.Width = 7
+                    handle.Cursor = Cursor.ResizeHorizontal
+                    handle.Focusable = !snapshot.Disabled
+                    handle.OnPointerDown = (e PointerEvent) -> BeginResize(id, e)
+                    handle.OnPointerMove = MoveResize
+                    handle.OnPointerUp = EndResize
+                    handle.OnPointerCancel = CancelResize
+                    handle.OnKeyDown = (e KeyEvent) -> ResizeKey(id, e)
+                    handle.Accessibility = Accessibility{
+                        Role: AccessibilityRole.Slider,
+                        Name: "Resize " + label,
+                        Orientation: AccessibilityOrientation.Horizontal,
+                        Range: AccessibilityValue{
+                            Minimum: column.Minimum ?? 60.0,
+                            Maximum: column.Maximum ?? 1000000.0,
+                            Now: widths[index]
+                        },
+                        Actions: []AccessibilityAction{
+                            AccessibilityAction.SetValue,
+                            AccessibilityAction.Increment,
+                            AccessibilityAction.Decrement
+                        },
+                        OnAction: (request AccessibilityActionRequest) -> ResizeAction(id, request)
                     }
                     slot.Children.Add(handle)
                 }
