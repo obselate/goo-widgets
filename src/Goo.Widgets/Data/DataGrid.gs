@@ -550,7 +550,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 MinWidth: 0,
                 Position: PositionType.Relative,
                 Overflow: Overflow.Hidden,
-                OnFocus: (e FocusEvent) -> e.StopPropagation(),
                 OnKeyDown: StopGridKeys
             }
             if filter {
@@ -698,7 +697,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Padding: Edges{Right: 10, Left: 10},
                     JustifyContent: JustifyContent.Center,
                     Overflow: Overflow.Hidden,
-                    OnFocus: (e FocusEvent) -> e.StopPropagation(),
                     OnKeyDown: StopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
@@ -775,7 +773,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Width: tableWidth,
                     Padding: 12,
                     BackgroundColor: "#20232c",
-                    OnFocus: (e FocusEvent) -> e.StopPropagation(),
                     OnKeyDown: StopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,

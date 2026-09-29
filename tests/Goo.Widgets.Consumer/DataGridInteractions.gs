@@ -89,6 +89,7 @@ func DataGridContracts() {
     let sort = (slot.Children[0] as Button)!!
     let resize = (slot.Children[1] as Container)!!
     resize.OnKeyDown?.Invoke(KeyEvent{Key: Key.Right})
+    Require(slot.OnFocus == nil, "Grid header blocked ancestor focus tracking")
     Require(custom.Handle == rootHandle && hostKeys == 1 && gridKeys == 1 && hostText == "x" && gridText == "x", "Grid replaced host input")
     Require(HasKeyBinding(custom, Key.F2) && body.Handle == viewport && body.Children[0] == empty, "Grid lost host bindings or empty viewport")
     Require(HasKeyBinding(sort, Key.Enter) && HasKeyBinding(sort, Key.Space, true) && resized > 0.0, "Grid disabled focused header controls")
