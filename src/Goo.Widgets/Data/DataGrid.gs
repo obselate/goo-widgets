@@ -81,6 +81,19 @@ public data struct DataGridInput {
     var BackgroundColor Color?
     var TextColor Color?
     var SelectedColor Color?
+    var RootHandle ElementHandle?
+    var ViewportHandle ElementHandle?
+    var OnKeyDown ((KeyEvent) -> void)?
+    var OnTextInput Action[string]?
+    /// Nil preserves built-in keyboard navigation and activation.
+    var UseDefaultKeyboard bool?
+    var ScrollbarX Scrollbar?
+    var ScrollbarVisibilityX ScrollbarVisibility?
+    var ScrollbarY Scrollbar?
+    var ScrollbarVisibilityY ScrollbarVisibility?
+    var ResizeHandleStyle Style?
+    var HeaderStyle Style?
+    var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
     var CreateCell Func[DataGridInput, DataGridRow, DataGridColumn, Blob, Blob]?
     /// Replaces content inside the sortable header button.
@@ -95,8 +108,10 @@ public data struct DataGridInput {
 
 /// Shared column sizing, captured resizing, controlled sorting/selection, and measured virtual detail rows.
 public open class DataGrid : Cell[DataGridInput], IDisposable {
-    private let rootHandle ElementHandle = ElementHandle()
-    private let viewport ElementHandle = ElementHandle()
+    private let defaultRootHandle ElementHandle = ElementHandle()
+    private let defaultViewport ElementHandle = ElementHandle()
+    private var rootHandle ElementHandle
+    private var viewport ElementHandle
     private let rowHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private let resizeHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](
         StringComparer.Ordinal
@@ -124,6 +139,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var disposed bool
 
     public init() {
+        rootHandle = defaultRootHandle
+        viewport = defaultViewport
         rootHandle.MetricsChanged += Metrics
     }
 
@@ -140,6 +157,13 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     protected override func Build(value DataGridInput) Blob {
         pointerFocus = false
+        let nextRootHandle = value.RootHandle ?? defaultRootHandle
+        if nextRootHandle != rootHandle {
+            rootHandle.MetricsChanged -= Metrics
+            rootHandle = nextRootHandle
+            rootHandle.MetricsChanged += Metrics
+        }
+        viewport = value.ViewportHandle ?? defaultViewport
         let defaultHeight Length = 300
         input = value with{
             Width = value.Width ?? Percent(100),
@@ -195,7 +219,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             }
             details = details || row.HasDetail || row.Detail != nil
         }
-        selected = HashSet[string](input.SelectedIds ?? []string{}, StringComparer.Ordinal)
+        let nextSelected = HashSet[string](input.SelectedIds ?? []string{}, StringComparer.Ordinal)
+        let selectionChanged = !selected.SetEquals(nextSelected)
+        selected = nextSelected
         if input.Selection == DataGridSelection.Single && selected.Count > 1 {
             throw ArgumentException("Single selection accepts at most one selected ID")
         }
@@ -206,6 +232,15 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
             pointer = -1L
             resizeId = nil
+        }
+        if selectionChanged && input.Selection == DataGridSelection.Single && selected.Count == 1 {
+            for row in rows {
+                if !row.Disabled && selected.Contains(row.Id!!) {
+                    activeId = row.Id
+                    break
+                }
+            }
+            Reveal()
         }
         if Index(activeId) < 0 {
             activeId = nil
@@ -222,21 +257,38 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? 36.0: 0.0) + (details ? 30.0: 0.0)
         available = rootHandle.ContentBox.Width
-        ResolveWidths()
+        let verticalGutter = if let scrollbar = input.ScrollbarY {
+            if scrollbar.ReserveSpace && input.ScrollbarVisibilityY != ScrollbarVisibility.Hidden {
+                scrollbar.Thickness + scrollbar.Inset
+            } else {
+                0.0
+            }
+        } else {
+            0.0
+        }
+        ResolveWidths(verticalGutter)
         let snapshot = input
-        let body = VirtualRows(
-            rows,
-            input.RowHeight!!,
-            (row DataGridRow) -> row.Id!!,
-            (row DataGridRow) -> BuildRow(snapshot, row, details)
-        )
+        var body Blob = if rows.Length == 0 && input.EmptyContent != nil {
+            Container{OverflowY: Overflow.Scroll, input.EmptyContent!!}
+        } else {
+            VirtualRows(
+                rows,
+                input.RowHeight!!,
+                (row DataGridRow) -> row.Id!!,
+                (row DataGridRow) -> BuildRow(snapshot, row, details)
+            )
+        }
         body.Key = "body"
         body.Handle = viewport
-        body.Width = tableWidth
+        body.ScrollbarY = input.ScrollbarY
+        if let visibility = input.ScrollbarVisibilityY {
+            body.ScrollbarVisibilityY = visibility
+        }
+        body.Width = tableWidth + verticalGutter
         body.FlexGrow = 1
         body.FlexBasis = 0
         body.MinHeight = 0
-        let canvas = Container{Width: tableWidth, Height: Percent(100), FlexShrink: 0, MinHeight: 0}
+        let canvas = Container{Width: tableWidth + verticalGutter, Height: Percent(100), FlexShrink: 0, MinHeight: 0}
         canvas.Children.Add(BuildHeader(snapshot, false))
         var filters = input.CreateFilter != nil
         for column in columns {
@@ -255,6 +307,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             OverflowY: Overflow.Hidden,
             canvas
         }
+        scroll.ScrollbarX = input.ScrollbarX
+        if let visibility = input.ScrollbarVisibilityX {
+            scroll.ScrollbarVisibilityX = visibility
+        }
         var root = Container{
             Handle: rootHandle,
             Width: input.Width!!,
@@ -267,19 +323,42 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if let create = input.CreateRoot {
             root = create(input, root)
         }
+        if value.RootHandle == nil && root.Handle != nil && root.Handle != rootHandle {
+            rootHandle.MetricsChanged -= Metrics
+            rootHandle = root.Handle!!
+            rootHandle.MetricsChanged += Metrics
+        }
+        let hostKeys = root.OnKeyDown
+        let hostText = root.OnTextInput
+        let hostFocus = root.OnFocus
+        let hostBlur = root.OnBlur
         root.Handle = rootHandle
         root.FlexDirection = FlexDirection.Column
         root.Disabled = input.Disabled
         root.Focusable = !input.Disabled
-        root.OnKeyDown = KeyDown
+        root.OnKeyDown = (e KeyEvent) -> {
+            if input.UseDefaultKeyboard ?? true {
+                KeyDown(e)
+            }
+            hostKeys?.Invoke(e)
+            input.OnKeyDown?.Invoke(e)
+        }
+        if hostText != nil || input.OnTextInput != nil {
+            root.OnTextInput = (value string) -> {
+                hostText?.Invoke(value)
+                input.OnTextInput?.Invoke(value)
+            }
+        }
         root.OnFocus = (e FocusEvent) -> {
             hasFocus = true
             if !pointerFocus {
                 Reveal()
             }
+            hostFocus?.Invoke(e)
         }
         root.OnBlur = (e FocusEvent) -> {
             hasFocus = false
+            hostBlur?.Invoke(e)
         }
         var active ElementHandle?
         if let id = activeId {
@@ -365,7 +444,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         columns[index].Maximum ?? 1000000.0
     )
 
-    private func ResolveWidths() {
+    private func ResolveWidths(verticalGutter float64) {
         widths = [columns.Length]float64
         let flexible = [columns.Length]bool
         tableWidth = leading
@@ -383,7 +462,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             tableWidth += widths[index]
             maxWeight = Math.Max(maxWeight, column.Flex ?? 1.0)
         }
-        var remaining = Math.Max(0.0, available - tableWidth)
+        var remaining = Math.Max(0.0, available - verticalGutter - tableWidth)
         for pass in 0 ... columns.Length {
             var weight float64
             for index in 0 ... columns.Length {
@@ -425,6 +504,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
             BackgroundColor: "#222228",
+            BasedOn: snapshot.HeaderStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Row}
         }
         if leading > 0.0 {
@@ -471,7 +551,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 Position: PositionType.Relative,
                 Overflow: Overflow.Hidden,
                 OnFocus: (e FocusEvent) -> e.StopPropagation(),
-                OnKeyDown: (e KeyEvent) -> e.StopPropagation()
+                OnKeyDown: StopGridKeys
             }
             if filter {
                 slot.Padding = 4
@@ -506,6 +586,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         Width: 7,
                         BackgroundColor: "#3f3f46",
                         Hover: Style{BackgroundColor: "#818cf8"},
+                        BasedOn: snapshot.ResizeHandleStyle,
                         Cursor: Cursor.ResizeHorizontal,
                         Focusable: !snapshot.Disabled,
                         OnPointerDown: (e PointerEvent) -> BeginResize(id, e),
@@ -618,7 +699,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     JustifyContent: JustifyContent.Center,
                     Overflow: Overflow.Hidden,
                     OnFocus: (e FocusEvent) -> e.StopPropagation(),
-                    OnKeyDown: (e KeyEvent) -> e.StopPropagation(),
+                    OnKeyDown: StopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
                         Name: column.Label ?? column.Id!!,
@@ -695,7 +776,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Padding: 12,
                     BackgroundColor: "#20232c",
                     OnFocus: (e FocusEvent) -> e.StopPropagation(),
-                    OnKeyDown: (e KeyEvent) -> e.StopPropagation(),
+                    OnKeyDown: StopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
                         Name: "Details for " + (row.Label ?? id)
@@ -822,6 +903,15 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             return true
         }
         return false
+    }
+
+    private func StopGridKeys(e KeyEvent) {
+        if (
+            e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Home || e.Key == Key.End ||
+            e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.Space || e.Key == Key.Enter
+        ) {
+            e.StopPropagation()
+        }
     }
 
     private func KeyDown(e KeyEvent) {
