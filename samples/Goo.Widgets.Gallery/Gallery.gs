@@ -18,6 +18,7 @@ import Goo.Widgets.Gallery.Pages.Content
 
 open class GalleryPage {
     internal var PlatformInput PlatformInput?
+    internal var OwningWindow Window?
     open func Title() string;
 
     open func Build() Blob;
@@ -81,9 +82,11 @@ class GalleryRegistry(Groups[]GalleryCategory) {
 class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     private var currentIndex int32 = InitialIndex
     private var platformInput PlatformInput?
+    private var owningWindow Window?
 
     internal func AttachWindow(window Window) {
         platformInput = window.PlatformInput
+        owningWindow = window
         Rebuild()
     }
 
@@ -103,6 +106,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     private func BuildCurrentPage() Blob {
         let page = Registry.CurrentPage(currentIndex)
         page.PlatformInput = platformInput
+        page.OwningWindow = owningWindow
         return page.Build()
     }
 
@@ -215,6 +219,7 @@ GalleryRegistry(
                 ModalDialogPage{},
                 ModalDialogHostPage{},
                 PopoverPage{},
+                TooltipPage{},
                 DisclosurePage{},
                 SplitPanePage{},
                 GridPage{},
