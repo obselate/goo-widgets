@@ -626,6 +626,14 @@ row order, skipping disabled rows. Ctrl/⌘+Shift adds the range. Toggle operati
 preserve selected IDs absent from a filtered row set. `ShowSelection` composes a
 leading checkbox using the same callbacks. There is no imposed select-all policy.
 
+For selection shared with another view, supply `ActiveRowId` and handle
+`OnActiveRowChange` to keep the active row in the host. Set `OnSelectionRequest`
+to receive the row ID, toggle flag, and extend flag from pointer, keyboard,
+checkbox, and accessibility actions. When this callback is set, the host owns
+the selected IDs and range anchor; update `SelectedIds` and rebuild after each
+request. `ActiveRowId: nil` keeps the grid's internal active row. Set
+`UseDefaultKeyboard: false` when the host handles grid navigation itself.
+
 The grid keeps keyboard focus on its root and exposes its active row through
 `ActiveDescendant`. Up/Down/Home/End move through enabled rows; Shift extends
 selection, Enter replaces it, and Space toggles it. Left/Right request detail

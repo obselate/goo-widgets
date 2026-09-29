@@ -165,6 +165,9 @@ internal class DataGridHost : Cell {
     internal let Checks Dictionary[string, Button] = Dictionary[string, Button]()
     internal var Widths Dictionary[string, float64] = Dictionary[string, float64]()
     internal var Selected[]string = []string{"alpha"}
+    internal var Active string?
+    internal var Anchor string?
+    internal var Controlled bool
     internal var Expanded[]string = []string{}
     internal var SortId string = ""
     internal var SortDirection DataGridSort
@@ -248,6 +251,73 @@ internal class DataGridHost : Cell {
 
     private func Selection(ids[]string) {
         Selected = ids
+        Rebuild()
+    }
+
+    private func ActiveChanged(id string) {
+        Active = id
+        Rebuild()
+    }
+
+    private func Navigate(e KeyEvent) {
+        if e.Key != Key.Down {
+            return
+        }
+        let rows = Rows()
+        for index in 0 ... rows.Length - 1 {
+            if rows[index].Id == Active {
+                for next in index + 1 ... rows.Length {
+                    if !rows[next].Disabled {
+                        Active = rows[next].Id
+                        Anchor = Active
+                        Rebuild()
+                        return
+                    }
+                }
+            }
+        }
+    }
+
+    private func SelectionRequest(id string, toggle bool, extend bool) {
+        let next = List[string]()
+        if extend && Anchor != nil {
+            if toggle {
+                for current in Selected {
+                    next.Add(current)
+                }
+            }
+            let rows = Rows()
+            var start int32 = -1
+            var end int32 = -1
+            for index in 0 ... rows.Length {
+                if rows[index].Id == Anchor {
+                    start = index
+                }
+                if rows[index].Id == id {
+                    end = index
+                }
+            }
+            if start >= 0 && end >= 0 {
+                for index in Math.Min(start, end) ... Math.Max(start, end) + 1 {
+                    if !rows[index].Disabled && !next.Contains(rows[index].Id!!) {
+                        next.Add(rows[index].Id!!)
+                    }
+                }
+            }
+        } else {
+            if toggle {
+                for current in Selected {
+                    if current != id {
+                        next.Add(current)
+                    }
+                }
+            }
+            if !toggle || Array.IndexOf(Selected, id) < 0 {
+                next.Add(id)
+            }
+            Anchor = id
+        }
+        Selected = next.ToArray()
         Rebuild()
     }
 
@@ -349,6 +419,11 @@ internal class DataGridHost : Cell {
                     Selection: Single ? DataGridSelection.Single: DataGridSelection.Multiple,
                     SelectedIds: Selected,
                     OnSelectionChange: Selection,
+                    ActiveRowId: Controlled ? Active: nil,
+                    OnActiveRowChange: Controlled ? ActiveChanged: nil,
+                    OnSelectionRequest: Controlled ? SelectionRequest: nil,
+                    UseDefaultKeyboard: !Controlled,
+                    OnKeyDown: Controlled ? Navigate: nil,
                     ShowSelection: true,
                     ExpandedIds: Expanded,
                     OnExpandedChange: Expand,
@@ -456,6 +531,45 @@ func DataGridInteractions() {
         Require(host.Selected.Length == 3, "Disabled grid row changed selection")
         CompositeClick(window, host.Checks["alpha"].Handle!!)
         Require(host.Selected.Length == 4, "Leading selection control lost controlled toggle")
+        host.Controlled = true
+        host.Active = "beta"
+        host.Anchor = "beta"
+        host.Selected = []string{"alpha"}
+        host.Rebuild()
+        PumpFrames(window, 8)
+        host.Root!!.Handle!!.Focus()
+        SendKey(id, SDLScancode.Down)
+        PumpFrames(window, 8)
+        Require(
+            host.Active == "delta" &&
+                FindSemantics(semantics.Tree!!.Root, "Inventory grid")!!
+                .Relationships
+                .ActiveDescendant == FindSemantics(semantics.Tree!!.Root, "Host delta")!!.Id,
+            "Host keyboard focus did not control the active grid row"
+        )
+        GridModifiedClick(window, host.Cells["echo:name"], SDLKeymod.Shift)
+        Require(
+            host.Selected.Length == 2 && Array.IndexOf(host.Selected, "delta") >= 0 && Array.IndexOf(
+                host.Selected,
+                "echo"
+            ) >= 0 &&
+                host.Anchor == "delta",
+            "Host Shift-click did not use the keyboard range anchor"
+        )
+        GridModifiedClick(window, host.Cells["beta:name"], SDLKeymod.Ctrl | SDLKeymod.Shift)
+        Require(
+            host.Selected.Length == 3 && Array.IndexOf(host.Selected, "beta") >= 0 && Array.IndexOf(
+                host.Selected,
+                "locked"
+            ) < 0 &&
+                host.Active == "beta",
+            "Host Ctrl+Shift-click did not add the range or update active focus"
+        )
+        host.Controlled = false
+        host.Active = nil
+        host.Anchor = nil
+        host.Rebuild()
+        PumpFrames(window, 8)
         let alpha = FindSemantics(semantics.Tree!!.Root, "Host alpha")!!
         Require(
             window.PerformAccessibilityAction(alpha.Id, AccessibilityActionRequest(AccessibilityAction.Expand)),

@@ -72,6 +72,11 @@ public data struct DataGridInput {
     var Selection DataGridSelection
     var SelectedIds[]?string
     var OnSelectionChange Action[[]string]?
+    /// Nil keeps the grid's active row. A valid ID controls its focus outline and active descendant.
+    var ActiveRowId string?
+    var OnActiveRowChange Action[string]?
+    /// When set, the host owns selection and its range anchor. Arguments are ID, toggle, extend.
+    var OnSelectionRequest Action[string, bool, bool]?
     /// Adds a leading composed checkbox. The row's semantics expose selection once.
     var ShowSelection bool
     var ExpandedIds[]?string
@@ -165,7 +170,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     }
 
     protected override func Build(value DataGridInput) Blob {
-        pointerFocus = false
         let nextRootHandle = value.RootHandle ?? defaultRootHandle
         if nextRootHandle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
@@ -241,6 +245,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if input.Selection == DataGridSelection.Single && selected.Count > 1 {
             throw ArgumentException("Single selection accepts at most one selected ID")
         }
+        let controlledActiveChanged = input.ActiveRowId != nil &&
+            input.ActiveRowId != activeId &&
+            Index(input.ActiveRowId) >= 0
+        if controlledActiveChanged {
+            activeId = input.ActiveRowId
+        }
         expanded = HashSet[string](input.ExpandedIds ?? []string{}, StringComparer.Ordinal)
         Prune(resizeHandles, columnIds)
         if input.Disabled || !CanResize(ColumnIndex(resizeId))
@@ -248,7 +258,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             pointer = -1L
             resizeId = nil
         }
-        if selectionChanged && input.Selection == DataGridSelection.Single && selected.Count == 1 {
+        if input.ActiveRowId == nil &&
+            selectionChanged &&
+            input.Selection == DataGridSelection.Single &&
+            selected.Count == 1 {
             for row in rows {
                 if !row.Disabled && selected.Contains(row.Id!!) {
                     activeId = row.Id
@@ -269,6 +282,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if Index(anchorId) < 0 {
             anchorId = activeId
+        }
+        if controlledActiveChanged && hasFocus && !pointerFocus {
+            Reveal()
         }
         let details = hasDetails
         leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? 36.0: 0.0) + (details ? 30.0: 0.0)
@@ -353,6 +369,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Disabled = input.Disabled
         root.Focusable = !input.Disabled
         root.OnKeyDown = (e KeyEvent) -> {
+            pointerFocus = false
             if input.UseDefaultKeyboard ?? true {
                 KeyDown(e)
             }
@@ -370,10 +387,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             if !pointerFocus {
                 Reveal()
             }
+            pointerFocus = false
             hostFocus?.Invoke(e)
         }
         root.OnBlur = (e FocusEvent) -> {
             hasFocus = false
+            pointerFocus = false
             hostBlur?.Invoke(e)
         }
         var active ElementHandle?
@@ -761,7 +780,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
                 check.Focusable = false
                 check.TabStop = false
-                check.Disabled = row.Disabled || snapshot.Disabled || snapshot.OnSelectionChange == nil
+                check.Disabled = row.Disabled ||
+                    snapshot.Disabled ||
+                    (snapshot.OnSelectionRequest == nil && snapshot.OnSelectionChange == nil)
                 check.OnClick = () -> Select(id, true, false, false)
                 check.Accessibility = Accessibility{Hidden: true}
                 controls.Children.Add(Container{Key: "selection", Width: 36, AlignItems: AlignItems.Center, check})
@@ -841,9 +862,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.OnPointerDown = (e PointerEvent) -> {
             clickModifiers = e.Modifiers
             if e.Button == PointerButton.Primary {
-                activeId = id
-                // Default focus runs after this callback; keep the hit row under the pointer.
                 pointerFocus = true
+                if activeId != id {
+                    activeId = id
+                    input.OnActiveRowChange?.Invoke(id)
+                }
             }
         }
         root.OnClick = () -> Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
@@ -851,7 +874,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if !row.Disabled && !snapshot.Disabled {
             actions.Add(AccessibilityAction.Focus)
             actions.Add(AccessibilityAction.Activate)
-            if snapshot.Selection != DataGridSelection.None && snapshot.OnSelectionChange != nil {
+            if snapshot.Selection != DataGridSelection.None &&
+                (snapshot.OnSelectionRequest != nil || snapshot.OnSelectionChange != nil) {
                 actions.Add(AccessibilityAction.Select)
                 actions.Add(AccessibilityAction.Deselect)
             }
@@ -900,10 +924,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if Index(id) < 0 || input.Disabled {
             return
         }
+        let changed = activeId != id
         activeId = id
         rootHandle.Focus()
         if reveal {
             Reveal()
+        }
+        if changed {
+            input.OnActiveRowChange?.Invoke(id)
         }
     }
 
@@ -924,7 +952,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             return
         }
         Activate(id, reveal)
-        if input.Selection == DataGridSelection.None || input.OnSelectionChange == nil {
+        if input.Selection == DataGridSelection.None ||
+            (input.OnSelectionRequest == nil && input.OnSelectionChange == nil) {
+            return
+        }
+        if let request = input.OnSelectionRequest {
+            request(id, toggle, extend)
             return
         }
         let next = List[string]()
@@ -997,7 +1030,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if (request.Action == AccessibilityAction.Select || request.Action == AccessibilityAction.Deselect) &&
             input.Selection != DataGridSelection.None &&
-            input.OnSelectionChange != nil {
+            (input.OnSelectionRequest != nil || input.OnSelectionChange != nil) {
             let desired = request.Action == AccessibilityAction.Select
             if selected.Contains(id) != desired {
                 Select(id, input.Selection == DataGridSelection.Multiple || !desired, false)
