@@ -115,7 +115,14 @@ func ClickNativeButton(window Window, windowId uint32, target Blob) {
 
 func ErgonomicWindowInteractions() {
     let host = ErgonomicHost{}
-    let window = Window{Title: "Goo Widgets ergonomic input verification", Width: 600, Height: 600, Root: host}
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "Goo Widgets ergonomic input verification",
+        Width: 600,
+        Height: 600,
+        Root: host,
+        AccessibilityAdapter: semantics,
+    }
     window.Open()
     try {
         PumpFrames(window, 20)
@@ -192,8 +199,21 @@ func ErgonomicWindowInteractions() {
             NativeModeButton(0).Accessibility?.Selected == true,
             "Returning to full composition lost the color mode."
         )
+        Require(host.SliderRoot!!.Handle!!.Focus(), "Slider could not hold focus before a color wheel press.")
+        let wheel = NativePickerProbe.LastRoot!!.Children[1]
+        let wheelBox = wheel.Handle!!.BorderBox
+        let wheelX = float32(wheelBox.X + wheelBox.Width * 0.75)
+        let wheelY = float32(wheelBox.Y + wheelBox.Height * 0.5)
+        MouseButton(windowId, wheelX, wheelY, true)
+        PumpFrames(window, 3)
+        Require(
+            OverlayFocus(semantics, "Color picker color wheel"),
+            "Pressing the color wheel left keyboard focus on the previous control."
+        )
+        MouseButton(windowId, wheelX, wheelY, false)
+        PumpFrames(window, 3)
         Console.WriteLine(
-            "PASS: native label click, slider width/focus/value, color modes/preview, disabled input, compact/full transition."
+            "PASS: native label click, slider width/focus/value, color modes/preview, disabled input, compact/full transition, color wheel pointer focus."
         )
     } finally {
         window.RequestClose()

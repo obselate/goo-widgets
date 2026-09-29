@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.11 - 2026-09-29
+
+- Focus the ColorPicker wheel when its primary pointer press captures input, so
+  keyboard actions reach the wheel after a mouse selection.
+
 ## 0.2.10 - 2026-09-29
 
 - Add opt-in DataGrid column fitting to the measured viewport, with atomic

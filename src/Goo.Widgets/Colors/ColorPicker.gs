@@ -443,6 +443,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         pointerId = e.PointerId
         e.Capture()
         e.PreventDefault()
+        wheelHandle.Focus()
         CoordinatesFromPointer(e)
     }
 
