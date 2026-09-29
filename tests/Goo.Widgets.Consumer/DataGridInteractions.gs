@@ -26,6 +26,33 @@ func DataGridContracts() {
         rejected = true
     }
     Require(rejected, "Grid accepted duplicate row IDs")
+    using let cacheProbe = DataGridProbe()
+    let stableRows = []DataGridRow{DataGridRow{Id: "first"}, DataGridRow{Id: "second"}}
+    let first = (
+        cacheProbe.Render(
+            DataGridInput{Rows: stableRows, Selection: DataGridSelection.Single, SelectedIds: []string{"first"}}
+        ) as Container
+    )!!
+    let firstHandle = first.Accessibility!!.Relationships!!.ActiveDescendant
+    let invalidRows = []DataGridRow{DataGridRow{Id: "bad"}, DataGridRow{Id: "bad"}}
+    for attempt in 0 ... 2 {
+        rejected = false
+        try {
+            cacheProbe.Render(DataGridInput{Rows: invalidRows})
+        } catch (error ArgumentException) {
+            rejected = true
+        }
+        Require(rejected, "Grid cached invalid row IDs on attempt " + attempt.ToString())
+    }
+    let recovered = (
+        cacheProbe.Render(
+            DataGridInput{Rows: stableRows, Selection: DataGridSelection.Single, SelectedIds: []string{"second"}}
+        ) as Container
+    )!!
+    Require(
+        recovered.Accessibility!!.Relationships!!.ActiveDescendant != firstHandle,
+        "Grid failed to recover selection after invalid rows"
+    )
     rejected = false
     try {
         probe.Render(DataGridInput{Columns: []DataGridColumn{DataGridColumn{Id: "a", Width: Double.NaN}}})
@@ -60,36 +87,40 @@ func DataGridContracts() {
     var resized float64
     var resizeFactoryCalled bool
     let unrelatedHandle = ElementHandle()
-    let custom = (probe.Render(DataGridInput{
-        Columns: []DataGridColumn{DataGridColumn{Id: "name", Sortable: true}},
-        OnSort: (id string, direction DataGridSort) -> {},
-        OnColumnWidthChange: (id string, width float64) -> resized = width,
-        CreateResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
-            resizeFactoryCalled = true
-            return Container{
-                Key: "unrelated",
-                Handle: unrelatedHandle,
-                Hover: Style{BackgroundColor: "#18181b"},
-                Focus: Style{BackgroundColor: "#18181b"}
+    let custom = (
+        probe.Render(
+            DataGridInput{
+                Columns: []DataGridColumn{DataGridColumn{Id: "name", Sortable: true}},
+                OnSort: (id string, direction DataGridSort) -> { },
+                OnColumnWidthChange: (id string, width float64) -> resized = width,
+                CreateResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
+                    resizeFactoryCalled = true
+                    return Container{
+                        Key: "unrelated",
+                        Handle: unrelatedHandle,
+                        Hover: Style{BackgroundColor: "#18181b"},
+                        Focus: Style{BackgroundColor: "#18181b"}
+                    }
+                },
+                RootHandle: rootHandle,
+                ViewportHandle: viewport,
+                ScrollbarX: horizontal,
+                ScrollbarY: vertical,
+                ScrollbarVisibilityX: ScrollbarVisibility.Always,
+                ScrollbarVisibilityY: ScrollbarVisibility.Always,
+                EmptyContent: empty,
+                UseDefaultKeyboard: false,
+                OnKeyDown: (e KeyEvent) -> gridKeys++,
+                OnTextInput: (value string) -> gridText = value,
+                CreateRoot: (input DataGridInput, prepared Container) -> {
+                    prepared.OnKeyDown = (e KeyEvent) -> hostKeys++
+                    prepared.OnTextInput = (value string) -> hostText = value
+                    prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, Action: () -> { }}}
+                    return prepared
+                }
             }
-        },
-        RootHandle: rootHandle,
-        ViewportHandle: viewport,
-        ScrollbarX: horizontal,
-        ScrollbarY: vertical,
-        ScrollbarVisibilityX: ScrollbarVisibility.Always,
-        ScrollbarVisibilityY: ScrollbarVisibility.Always,
-        EmptyContent: empty,
-        UseDefaultKeyboard: false,
-        OnKeyDown: (e KeyEvent) -> gridKeys++,
-        OnTextInput: (value string) -> gridText = value,
-        CreateRoot: (input DataGridInput, prepared Container) -> {
-            prepared.OnKeyDown = (e KeyEvent) -> hostKeys++
-            prepared.OnTextInput = (value string) -> hostText = value
-            prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, Action: () -> {}}}
-            return prepared
-        }
-    }) as Container)!!
+        ) as Container
+    )!!
     custom.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space})
     custom.OnTextInput?.Invoke("x")
     let scroll = (custom.Children[0] as Container)!!
@@ -101,10 +132,29 @@ func DataGridContracts() {
     let resize = (slot.Children[1] as Container)!!
     resize.OnKeyDown?.Invoke(KeyEvent{Key: Key.Right})
     Require(slot.OnFocus == nil, "Grid header blocked ancestor focus tracking")
-    Require(custom.Handle == rootHandle && hostKeys == 1 && gridKeys == 1 && hostText == "x" && gridText == "x", "Grid replaced host input")
-    Require(HasKeyBinding(custom, Key.F2) && body.Handle == viewport && body.Children[0] == empty, "Grid lost host bindings or empty viewport")
-    Require(HasKeyBinding(sort, Key.Enter) && HasKeyBinding(sort, Key.Space, true) && resized > 0.0, "Grid disabled focused header controls")
-    Require(resizeFactoryCalled && resize.Key == "resize" && resize.Handle != unrelatedHandle && resize.OnPointerDown != nil && resize.OnKeyDown != nil && resize.Accessibility?.Role == AccessibilityRole.Slider, "Grid resize factory replaced required behavior")
+    Require(
+        custom.Handle == rootHandle && hostKeys == 1 && gridKeys == 1 && hostText == "x" && gridText == "x",
+        "Grid replaced host input"
+    )
+    Require(
+        HasKeyBinding(custom, Key.F2) && body.Handle == viewport && body.Children[0] == empty,
+        "Grid lost host bindings or empty viewport"
+    )
+    Require(
+        HasKeyBinding(sort, Key.Enter) && HasKeyBinding(sort, Key.Space, true) && resized > 0.0,
+        "Grid disabled focused header controls"
+    )
+    Require(
+        resizeFactoryCalled &&
+            resize.Key == "resize" &&
+            resize.Handle != unrelatedHandle &&
+            resize.OnPointerDown != nil &&
+            resize.OnKeyDown != nil &&
+            resize
+            .Accessibility
+            ?.Role == AccessibilityRole.Slider,
+        "Grid resize factory replaced required behavior"
+    )
 }
 
 internal class DataGridHost : Cell {

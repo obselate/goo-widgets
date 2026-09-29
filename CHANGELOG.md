@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.9 - 2026-09-29
+
+- Reuse DataGrid row indices and detail metadata while the host retains the same
+  immutable Rows array. This avoids rebuilding a full row dictionary and ID set
+  on selection changes in large grids.
+
 ## 0.2.8 - 2026-09-29
 
 - Require Goo and Goo.Svg 0.7.1.

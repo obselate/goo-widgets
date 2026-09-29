@@ -305,6 +305,10 @@ func Main() {
         DataGridInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID_CONTRACTS") == "1" {
+        DataGridContracts()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_TREE") == "1" {
         TreeViewInteractions()
         return

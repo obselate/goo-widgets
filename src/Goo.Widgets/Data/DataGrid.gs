@@ -83,7 +83,7 @@ public data struct DataGridInput {
     var SelectedColor Color?
     var RootHandle ElementHandle?
     var ViewportHandle ElementHandle?
-    var OnKeyDown ((KeyEvent) -> void)?
+    var OnKeyDown((KeyEvent) -> void)?
     var OnTextInput Action[string]?
     /// Nil preserves built-in keyboard navigation and activation.
     var UseDefaultKeyboard bool?
@@ -121,6 +121,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var columns[]DataGridColumn = []DataGridColumn{}
     private var rows[]DataGridRow = []DataGridRow{}
     private var indices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
+    private var hasDetails bool
     private var selected HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var expanded HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var widths[]float64 = []float64{}
@@ -187,7 +188,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             throw ArgumentOutOfRangeException("Grid selection/sort policy")
         }
         columns = input.Columns ?? []DataGridColumn{}
-        rows = input.Rows ?? []DataGridRow{}
+        let nextRows = input.Rows ?? []DataGridRow{}
+        let rowsChanged = !Object.ReferenceEquals(rows, nextRows)
         let columnIds = HashSet[string](StringComparer.Ordinal)
         for column in columns {
             if String.IsNullOrEmpty(column.Id) || !columnIds.Add(column.Id!!) {
@@ -211,14 +213,20 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 ValidateWidth(pair.Value)
             }
         }
-        indices = Dictionary[string, int32](StringComparer.Ordinal)
-        var details bool
-        for index in 0 ... rows.Length {
-            let row = rows[index]
-            if String.IsNullOrEmpty(row.Id) || !indices.TryAdd(row.Id!!, index) {
-                throw ArgumentException("Grid row IDs must be nonempty and unique")
+        if rowsChanged {
+            let nextIndices = Dictionary[string, int32](StringComparer.Ordinal)
+            var nextHasDetails bool
+            for index in 0 ... nextRows.Length {
+                let row = nextRows[index]
+                if String.IsNullOrEmpty(row.Id) || !nextIndices.TryAdd(row.Id!!, index) {
+                    throw ArgumentException("Grid row IDs must be nonempty and unique")
+                }
+                nextHasDetails = nextHasDetails || row.HasDetail || row.Detail != nil
             }
-            details = details || row.HasDetail || row.Detail != nil
+            rows = nextRows
+            indices = nextIndices
+            hasDetails = nextHasDetails
+            PruneRows()
         }
         let nextSelected = HashSet[string](input.SelectedIds ?? []string{}, StringComparer.Ordinal)
         let selectionChanged = !selected.SetEquals(nextSelected)
@@ -227,7 +235,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             throw ArgumentException("Single selection accepts at most one selected ID")
         }
         expanded = HashSet[string](input.ExpandedIds ?? []string{}, StringComparer.Ordinal)
-        Prune(rowHandles, HashSet[string](indices.Keys, StringComparer.Ordinal))
         Prune(resizeHandles, columnIds)
         if input.Disabled || input.OnColumnWidthChange == nil || ColumnIndex(resizeId) < 0
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
@@ -256,6 +263,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if Index(anchorId) < 0 {
             anchorId = activeId
         }
+        let details = hasDetails
         leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? 36.0: 0.0) + (details ? 30.0: 0.0)
         available = rootHandle.ContentBox.Width
         let verticalGutter = if let scrollbar = input.ScrollbarY {
@@ -392,6 +400,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         for id in removed {
             handles.Remove(id)
+        }
+    }
+
+    private func PruneRows() {
+        let removed = List[string]()
+        for id in rowHandles.Keys {
+            if !indices.ContainsKey(id) {
+                removed.Add(id)
+            }
+        }
+        for id in removed {
+            rowHandles.Remove(id)
         }
     }
 
@@ -908,8 +928,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     private func StopGridKeys(e KeyEvent) {
         if (
-            e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Home || e.Key == Key.End ||
-            e.Key == Key.Left || e.Key == Key.Right || e.Key == Key.Space || e.Key == Key.Enter
+            e.Key == Key.Down ||
+                e.Key == Key.Up ||
+                e.Key == Key.Home ||
+                e.Key == Key.End ||
+                e.Key == Key.Left ||
+                e.Key == Key.Right ||
+                e.Key == Key.Space ||
+                e.Key == Key.Enter
         ) {
             e.StopPropagation()
         }
