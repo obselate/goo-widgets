@@ -9,7 +9,7 @@ public data struct TooltipInput {
     var Window Window?
     /// Existing control to label without changing its input handlers.
     var Target Blob?
-    /// Passive custom label content. Supply this or Text.
+    /// Custom label content. It and its descendants must be passive so the overlay passes pointer input through.
     var Content Blob?
     /// Simple label used when Content is absent.
     var Text string?
@@ -25,7 +25,7 @@ public data struct TooltipInput {
     var RootStyle Style?
     /// Optional replacement style for the default label panel.
     var BubbleStyle Style?
-    /// Replaces the default panel while retaining passive overlay behavior.
+    /// Replaces the default panel. The returned panel and its descendants must be passive.
     var CreateBubble Func[TooltipInput, Blob, Container]?
 }
 
@@ -75,6 +75,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         let root = Container{
             BasedOn: current.RootStyle,
             Handle: anchor,
+            Position: PositionType.Relative,
             HitTestSelf: false,
             OnPointerEnter: (event PointerEvent) -> PointerEntered(),
             OnPointerLeave: (event PointerEvent) -> PointerLeft(),
@@ -83,6 +84,19 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             OnBlur: (event FocusEvent) -> FocusLeft(),
             OnKeyDown: KeyDown,
             input.Target!!,
+        }
+        if input.Target!!.Disabled {
+            root.Children.Add(Container{
+                Position: PositionType.Absolute,
+                Left: 0.0,
+                Right: 0.0,
+                Top: 0.0,
+                Bottom: 0.0,
+                HitTestSelf: true,
+                Focusable: false,
+                TabStop: false,
+                Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
+            })
         }
         if visible {
             let content = current.Content ?? Text{Content: current.Text!!, FontSize: 12.0, Color: "#E8EDF2"}
