@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.8 - 2026-09-29
+
+- Require Goo and Goo.Svg 0.7.1.
+- Add passive anchored tooltips, including hover help for disabled controls.
+- Expose DataGrid host input, focus, scroll, resize-handle, header, and empty-state
+  hooks for file browser integrations.
+
 ## 0.2.7 - 2026-09-28
 
 - Require Goo and Goo.Svg 0.6.7.
