@@ -40,6 +40,37 @@ func HasKeyBinding(blob Blob, key Key, release bool = false) bool {
     return false
 }
 
+func HasEditingNavigation(bindings[]KeyBinding, key Key, shift bool, primary bool) bool {
+    let mac = OperatingSystem.IsMacOS()
+    for binding in bindings {
+        let modifiers = binding.Modifiers
+        if binding.Key == key &&
+            binding.Repeat &&
+            binding.Action != nil &&
+            modifiers.Shift == shift &&
+            modifiers.Ctrl == (primary && !mac) &&
+            modifiers.Super == (primary && mac) &&
+            !modifiers.Alt {
+            return true
+        }
+    }
+    return false
+}
+
+func EditingNavigationContracts() {
+    let window = Window{}
+    let bindings = WidgetKeyBindings.Editing(window.PlatformInput)
+    for shift in[]bool{false, true} {
+        for key in[]Key{Key.Up, Key.Down, Key.PageUp, Key.PageDown} {
+            Require(HasEditingNavigation(bindings, key, shift, false), "Missing repeatable vertical editor binding")
+        }
+        for key in[]Key{Key.Home, Key.End} {
+            Require(HasEditingNavigation(bindings, key, shift, true), "Missing repeatable document editor binding")
+        }
+    }
+    Console.WriteLine("PASS: repeatable vertical and document editor navigation bindings")
+}
+
 func NoModifiers(modifiers KeyModifiers) bool ->
 !modifiers.Alt && !modifiers.Shift && !modifiers.Ctrl && !modifiers.Super
 
@@ -277,6 +308,10 @@ func MaterialIconRegressions() {
 }
 
 func Main() {
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_EDITING_BINDINGS") == "1" {
+        EditingNavigationContracts()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_GALLERY_FEEDBACK") == "1" {
         GalleryFeedbackInteractions()
         return
