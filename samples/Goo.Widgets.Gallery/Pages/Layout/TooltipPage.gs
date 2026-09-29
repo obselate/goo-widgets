@@ -19,6 +19,11 @@ internal class TooltipPage : GalleryPage {
             FontSize: 14,
             Color: "#a1a1aa",
         },
+        Text{
+            Content: "Escape dismisses a label. Move away and return to show it again.",
+            FontSize: 13,
+            Color: "#a1a1aa",
+        },
         Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -57,11 +62,6 @@ internal class TooltipPage : GalleryPage {
                     },
                 }
             ),
-        },
-        Text{
-            Content: "Escape dismisses a label. Move away and return to show it again.",
-            FontSize: 13,
-            Color: "#a1a1aa",
         },
     }
 }
