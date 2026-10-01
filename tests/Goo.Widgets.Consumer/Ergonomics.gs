@@ -1,6 +1,8 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
+import Goo.Widgets.Actions
 import Goo.Widgets.Colors
 import Goo.Widgets.Graphs
 import Goo.Widgets.Inputs
@@ -156,7 +158,67 @@ func GraphNodeCardErgonomics() {
     )
 }
 
+func ThemeErgonomics() {
+    for original in[]Theme{Theme.GooDark, Theme.GooLight, Theme.GitHubDark, Theme.Ink, Theme.Bone} {
+        var custom = original with{
+            AccentColor = Color.Rgb(30, 120, 90),
+            FontSize = 19.0,
+            ControlHeight = 28.0,
+            ControlRadius = 0.0,
+        }
+        var activations int32 = 0
+        let preset = custom.PrimaryButton
+        let button = (
+            (
+                preset with{
+                    Content = "Apply theme",
+                    OnClick = () -> activations++,
+                    CreateText = (resolved ActionButton) -> {
+                        Require(
+                            resolved.BackgroundColor == custom.AccentColor && resolved.BorderRadius == 0.0,
+                            "Customized theme did not reach the primary button factory."
+                        )
+                        Require(
+                            resolved.FontSize == custom.FontSize && resolved.Height == custom.ControlHeight,
+                            "Customized theme lost typography or compact control height."
+                        )
+                        return Text{Content: resolved.Content!!}
+                    },
+                }
+            ).Build() as Button
+        )!!
+        Require(
+            (button.Children[0] as Text)!!.Content == "Apply theme"
+            && button.Accessibility?.Name == "Apply theme",
+            "Themed button lost its typography or accessible label."
+        )
+        button.OnClick?.Invoke()
+        Require(activations == 1, "Themed button lost its consumer callback.")
+        custom.AccentColor = Color.Rgb(160, 70, 110)
+        custom.FontSize = 21.0
+        Require(
+            preset.BackgroundColor != custom.AccentColor && preset.FontSize == 19.0
+            && original.FontSize != custom.FontSize && original.AccentColor != custom.AccentColor,
+            "Customizing a theme changed an existing preset or the source theme."
+        )
+        let next = ((custom.PrimaryButton with{Content = "Next"}).Build() as Button)!!
+        Require(
+            custom.PrimaryButton.BackgroundColor == custom.AccentColor && next != button,
+            "A new themed button reused an earlier build or ignored updated values."
+        )
+        let style = custom.CanvasStyle
+        style.BackgroundColor = Color.Transparent
+        Require(custom.CanvasStyle != style, "Theme reused mutable canvas declarations.")
+    }
+    Require(
+        Theme.GitHubDark.FontSize == Theme.GooDark.FontSize,
+        "Customizing GitHub Dark changed the shared theme defaults."
+    )
+    Console.WriteLine("PASS: packaged theme presets, customization independence, and button composition")
+}
+
 func WidgetErgonomics() {
+    ThemeErgonomics()
     ColorPickerErgonomics()
     CheckboxErgonomics()
     SliderErgonomics()

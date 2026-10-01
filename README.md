@@ -52,7 +52,7 @@ Complete examples:
 
 - [Quick start](https://github.com/obselate/goo-widgets/tree/main/samples/Goo.Widgets.QuickStart)
 - [Widget gallery](https://github.com/obselate/goo-widgets/tree/main/samples/Goo.Widgets.Gallery)
-- [Ink and Bone themes](https://github.com/obselate/goo-widgets/tree/main/samples/Goo.Widgets.Theme)
+- [Goo Dark, Goo Light, and GitHub Dark themes](https://github.com/obselate/goo-widgets/tree/main/samples/Goo.Widgets.Theme)
 
 ## Build
 

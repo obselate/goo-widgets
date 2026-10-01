@@ -327,14 +327,16 @@ The shape is decorative. Give its button an accessible name.
 
 ## Goo theme
 
-Import `Goo.Widgets.Theme` to use the `Ink` and `Bone` palettes directly, including
-typography, spacing, and widget presets. Customize ordinary G# values with `with`:
+Import `Goo.Widgets.Theme` to use the `GooDark`, `GooLight`, and `GitHubDark` palettes
+directly, including typography, spacing, and widget presets. `Ink` and `Bone`
+remain available as the original names for Goo Dark and Goo Light. Customize
+ordinary G# values with `with`:
 
 ```gsharp
 import Goo
 import Goo.Widgets.Theme
 
-let theme = Ink with{ControlHeight = 28.0}
+let theme = GitHubDark with{ControlHeight = 28.0}
 
 Container{
     BasedOn: theme.CanvasStyle,

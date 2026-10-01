@@ -5,7 +5,7 @@ import Goo.Widgets.Actions
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 
-/// Goo's rounded widget presets in Ink and Bone palettes. Copy with `with` to customize.
+/// Rounded widget presets in Goo Light, Goo Dark, and GitHub Dark palettes. Copy with `with` to customize.
 public data struct Theme {
     /// Window background.
     var CanvasColor Color
@@ -71,6 +71,42 @@ public data struct Theme {
     var TransitionMs float64
 
     shared {
+        /// Goo Dark palette. Each access returns an independent value.
+        public prop GooDark Theme {
+            get -> Ink
+        }
+
+        /// Goo Light palette. Each access returns an independent value.
+        public prop GooLight Theme {
+            get -> Bone
+        }
+
+        /// GitHub Dark palette with Goo's typography and rounded controls.
+        public prop GitHubDark Theme {
+            get -> GooDark with{
+                CanvasColor = "#0d1117",
+                PanelColor = "#161b22",
+                FieldColor = "#0d1117",
+                HoverColor = "#21262d",
+                PressedColor = "#161b22",
+                BorderColor = Color.Parse("#21262d"),
+                InputBorderColor = "#89929b",
+                TextColor = "#ecf2f8",
+                MutedTextColor = "#c6cdd5",
+                FaintTextColor = "#89929b",
+                AccentColor = "#77bdfb",
+                OnAccentColor = "#0d1117",
+                AccentHoverColor = "#a2d2fb",
+                AccentPressedColor = "#77bdfb",
+                InfoColor = "#cea5fb",
+                SuccessColor = "#7ce38b",
+                WarningColor = "#faa356",
+                DangerColor = "#fa7970",
+                DangerFillColor = "#fa7970",
+                DangerHoverColor = "#fa7970",
+            }
+        }
+
         /// Dark Ink palette. Each access returns an independent value.
         public prop Ink Theme {
             get -> Theme{
@@ -173,7 +209,7 @@ public data struct Theme {
         }
     }
 
-    /// Blue primary action with Ink text.
+    /// Primary action with contrasting text.
     public prop PrimaryButton ActionButton {
         get -> Button with{
             BackgroundColor = AccentColor,
@@ -189,7 +225,7 @@ public data struct Theme {
         get -> Button with{BackgroundColor = Color.Transparent, BorderColor = Color.Transparent}
     }
 
-    /// Red-orange destructive action with Ink text.
+    /// Destructive action with contrasting text.
     public prop DangerButton ActionButton {
         get -> Button with{
             BackgroundColor = DangerFillColor,
@@ -223,7 +259,7 @@ public data struct Theme {
         }
     }
 
-    /// Rounded checkbox with blue selection and an Ink mark.
+    /// Rounded checkbox with the palette's accent fill and contrasting mark.
     public prop Checkbox Checkbox {
         get -> Checkbox{
             LabelColor: TextColor,
@@ -243,7 +279,7 @@ public data struct Theme {
         }
     }
 
-    /// Rounded slider track with a circular Bone thumb. Mount with a stable Cell key.
+    /// Rounded slider track with a circular light thumb. Mount with a stable Cell key.
     public prop Slider SliderInput {
         get -> SliderInput{
             LabelColor: TextColor,
