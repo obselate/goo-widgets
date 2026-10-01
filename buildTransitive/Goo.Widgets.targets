@@ -1,0 +1,23 @@
+<Project>
+  <Target Name="GooWidgetsSelectMaterialIcons" BeforeTargets="AssignTargetPaths" Condition="'@(GooMaterialIcon)' != ''">
+    <Error Condition="'$(OutputType)' != 'Exe' and '$(OutputType)' != 'WinExe'" Text="GooMaterialIcon items must be declared in an executable project." />
+    <ItemGroup>
+      <_GooMaterialIcon Include="@(GooMaterialIcon)" />
+      <_GooMaterialIcon Include="calendar_month;check;chevron_right;close;crop_square;expand_more;filter_none;pause;play_arrow;remove;skip_next;skip_previous" />
+    </ItemGroup>
+    <RemoveDuplicates Inputs="@(_GooMaterialIcon)">
+      <Output TaskParameter="Filtered" ItemName="_GooMaterialIconUnique" />
+    </RemoveDuplicates>
+    <ItemGroup>
+      <_GooMaterialIconMissing Include="@(_GooMaterialIconUnique)" Condition="!Exists('$(MSBuildThisFileDirectory)icons/%(Identity).svg')" />
+    </ItemGroup>
+    <Error Condition="'@(_GooMaterialIconMissing)' != ''" Text="Unknown Goo Material icon: @(_GooMaterialIconMissing)" />
+    <ItemGroup>
+      <EmbeddedResource Include="@(_GooMaterialIconUnique->'$(MSBuildThisFileDirectory)icons/%(Identity).svg')">
+        <LogicalName>Goo.Widgets.MaterialSymbols.%(Filename).svg</LogicalName>
+      </EmbeddedResource>
+      <EmbeddedResource Include="$(MSBuildThisFileDirectory)MaterialSymbols.Subset" LogicalName="Goo.Widgets.MaterialSymbols.Subset" />
+      <RuntimeHostConfigurationOption Include="Goo.Widgets.MaterialSymbols.Subset" Value="true" Trim="true" />
+    </ItemGroup>
+  </Target>
+</Project>

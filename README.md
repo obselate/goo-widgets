@@ -8,11 +8,11 @@ compose them with ordinary Goo content.
 
 ## Install
 
-Goo Widgets `0.2.12` targets .NET 10. Use `Gsharp.NET.Sdk/0.4.591` and install the
+Goo Widgets `0.2.13` targets .NET 10. Use `Gsharp.NET.Sdk/0.4.591` and install the
 package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.12
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.13
 ```
 
 ## Use
@@ -34,6 +34,20 @@ Value widgets return a Goo `Blob` from `Build()`. Stateful widgets use
 [usage guide](https://github.com/obselate/goo-widgets/blob/main/docs/usage.md)
 covers input policy, controlled state, overlays, customization, and complex widgets.
 
+To include only the Material Symbols your executable uses, list their names in
+its project file:
+
+```xml
+<ItemGroup>
+  <GooMaterialIcon Include="folder;search;refresh" />
+</ItemGroup>
+```
+
+Goo Widgets adds icons used by its own controls, rejects unknown names at build
+time, and embeds the selected SVGs in the executable. `MaterialIcons.Names()`
+lists the available subset. NativeAOT also removes the full catalog from the
+library. Without `GooMaterialIcon` items, all 4,128 icons remain available.
+
 Complete examples:
 
 - [Quick start](https://github.com/obselate/goo-widgets/tree/main/samples/Goo.Widgets.QuickStart)
@@ -49,7 +63,7 @@ bash scripts/verify.sh
 ```
 
 Verification builds the solution, checks gallery screenshot coverage, packs and
-validates both packages, and runs packaged consumer checks.
+validates both packages, and runs packaged full-catalog and subset consumer checks.
 
 ## Links
 

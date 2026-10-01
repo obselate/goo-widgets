@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.13 - 2026-10-01
+
+- Let executable projects select Material Symbols with `GooMaterialIcon` items.
+  The package includes icons used by widget defaults, checks selected names at
+  build time, and omits the full icon catalog from NativeAOT subset builds.
+
 ## 0.2.11 - 2026-09-29
 
 - Focus the ColorPicker wheel when its primary pointer press captures input, so

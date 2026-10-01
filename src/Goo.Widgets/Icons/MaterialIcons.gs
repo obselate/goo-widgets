@@ -12,13 +12,14 @@ public class MaterialIcons {
         private const Prefix string = "Goo.Widgets.MaterialSymbols."
         private const Suffix string = ".svg"
         private let assembly Assembly = typeof(MaterialIcons).Assembly
+        private let source Assembly = SourceAssembly()
         private let gate object = Object()
         private let assets Dictionary[string, VectorAsset] = Dictionary[string, VectorAsset](StringComparer.Ordinal)
 
         /// Returns the names of the embedded Material Symbols assets.
         public func Names()[]string {
             let names = List[string]()
-            for resource in assembly.GetManifestResourceNames() {
+            for resource in source.GetManifestResourceNames() {
                 if resource.StartsWith(Prefix, StringComparison.Ordinal)
                 && resource.EndsWith(Suffix, StringComparison.Ordinal) {
                     names.Add(resource.Substring(Prefix.Length, resource.Length - Prefix.Length - Suffix.Length))
@@ -58,7 +59,7 @@ public class MaterialIcons {
                     return existing
                 }
                 let resource = Prefix + name + Suffix
-                using let stream = assembly.GetManifestResourceStream(resource)
+                using let stream = source.GetManifestResourceStream(resource)
                 if stream == nil {
                     throw InvalidOperationException("Material icon resource not found: " + resource)
                 }
@@ -69,6 +70,17 @@ public class MaterialIcons {
                 assets[name] = asset
                 return asset
             }
+        }
+
+        private func SourceAssembly() Assembly {
+            let entry = Assembly.GetEntryAssembly()
+            if entry != nil {
+                using let marker = entry.GetManifestResourceStream(Prefix + "Subset")
+                if marker != nil {
+                    return entry
+                }
+            }
+            return assembly
         }
     }
 }

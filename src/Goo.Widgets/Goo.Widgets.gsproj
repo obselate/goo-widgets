@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets</RootNamespace>
     <AssemblyName>Goo.Widgets</AssemblyName>
-    <Version>0.2.12</Version>
+    <Version>0.2.13</Version>
     <PackageId>Goo.Widgets</PackageId>
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>
@@ -23,6 +23,10 @@
     <PackageReference Include="Goo" Version="0.7.1" />
     <PackageReference Include="Goo.Svg" Version="0.7.1" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
+    <None Include="../../buildTransitive/Goo.Widgets.targets" Pack="true" PackagePath="buildTransitive/Goo.Widgets.targets" />
+    <None Include="../../buildTransitive/MaterialSymbols.Subset" Pack="true" PackagePath="buildTransitive/MaterialSymbols.Subset" />
+    <None Include="../../assets/material-symbols/outlined/*.svg" Pack="true" PackagePath="buildTransitive/icons/%(Filename)%(Extension)" />
     <None Include="../../README.md" Pack="true" PackagePath="/" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" />
     <None Include="../../assets/material-symbols/LICENSE" Pack="true" PackagePath="licenses/material-symbols/" />
