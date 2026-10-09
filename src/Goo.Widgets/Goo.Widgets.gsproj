@@ -1,9 +1,9 @@
-<Project Sdk="Gsharp.NET.Sdk/0.4.591">
+<Project Sdk="Gsharp.NET.Sdk/0.4.1150">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets</RootNamespace>
     <AssemblyName>Goo.Widgets</AssemblyName>
-    <Version>0.2.13</Version>
+    <Version>0.2.14</Version>
     <PackageId>Goo.Widgets</PackageId>
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>
