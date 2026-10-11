@@ -129,7 +129,7 @@ public data struct SearchList {
             entry = customize(entry)
         }
 
-        let list = Virtual(
+        let list = VirtualItems(
             filtered,
             width - 2.0,
             rowHeight,
