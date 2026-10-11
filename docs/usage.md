@@ -33,7 +33,7 @@ separately mounted child that change parent state must call the parent's `Rebuil
 | `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
 | `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
-| `Goo.Widgets.Data` | Chip, SelectionItem, DataGrid, DataGridColumn, DataGridRow, TimeAxis, TimeAxisEvent, TreeView, TreeNode |
+| `Goo.Widgets.Data` | Chip, SelectionItem, DataGrid, DataGridColumn, DataGridRow, TimeAxis, TimeAxisEvent, TreeView, TreeNode, VirtualItems, VirtualRows |
 | `Goo.Widgets.Navigation` | NavigationRail, NavigationItem, TabBar, Menu, MenuItem |
 | `Goo.Widgets.Colors` | ColorPicker, ColorMath, color models |
 | `Goo.Widgets.Graphs` | GraphCanvas, GraphNodeCard, graph models |
@@ -547,6 +547,38 @@ semantics. See the gallery for host-selected event colors and overflow details.
 
 Native checks for these widgets use `GOO_WIDGETS_GRID_CHARTS=1` or
 `GOO_WIDGETS_TIME_AXIS=1` with the isolated runner shown above.
+
+## Virtual lists
+
+`VirtualItems` and `VirtualRows` are policies for the Goo `Virtual` element. Each
+takes the complete collection, a key selector, and an item builder, and mounts only
+the items near the viewport. Give the result a bounded size.
+
+| Function | Item size | Layout |
+| --- | --- | --- |
+| `VirtualItems(items, itemWidth, itemHeight, itemKey, itemBuilder)` | One fixed size | Follows `FlexDirection` and `FlexWrap`: a column, a row, or a wrapped grid |
+| `VirtualRows(items, estimatedItemHeight, itemKey, itemBuilder)` | Content width, measured height | A column. `RowGap` or `Gap` sets the spacing |
+
+```gsharp
+let log = VirtualRows(lines, 20.0, (line LogLine) -> line.Id, BuildLine)
+log.PinToBottom = true
+log.Height = 240
+```
+
+Keys must be stable, nonempty, and unique in the collection. Keep item values
+immutable and rebuild the owning Cell after a change. An item that equals its
+previous value is not built again. `VirtualRows` also needs the same builder
+delegate on each build to reuse rows.
+
+`VirtualRows` keeps the first visible row in place when rows above it change
+size or the width changes. A change that only removes rows from the start and adds
+rows at the end is applied in place: only the added rows are keyed and built.
+`PinToBottom` keeps the end in view until the reader scrolls away from it.
+`ElementHandle.ScrollToItem(key)` jumps to an item of either function.
+
+`VirtualRows` supports one million rows, mounts at most 4,096 rows, and keeps the
+row that contains keyboard focus mounted. Use `GOO_WIDGETS_VIRTUAL=1` with the
+native runner to exercise both functions.
 
 ## Controlled TreeView
 

@@ -4,8 +4,8 @@
     "net10.0": {
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.7.1",
-        "contentHash": "4e414SW6U3frAa8ixR/Ndkrgl9HB43jByjYvxXP/ermus4yRfPY89GXXZWj+K77/ilOe7ERUyeCxR/NnWzZkZQ==",
+        "resolved": "0.7.23",
+        "contentHash": "5pHljmxbtrvA5A36PnP+JhgHzO/hy7tVECTRAp43n5rxB6U9cnijmGnFi5y4uapp3tZ6nlUNc4SL909zA5oi0w==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "StbImageSharp": "2.30.16",
@@ -14,10 +14,10 @@
       },
       "Goo.Svg": {
         "type": "Transitive",
-        "resolved": "0.7.1",
-        "contentHash": "JtI6981zyJnJXt7yhco5ZKLrvYGQlvogxIZVDRYrY5D+ZzQuy+5dlsqMElf+x92gzuevEu3YaGvDLk27LIZ6OQ==",
+        "resolved": "0.7.23",
+        "contentHash": "0Qa4txguw42emaRgvGDGMEoJ8UJ8r0jPzMcIFmT5O3C4dxJrk2k1HXueEG2bfwWZm2QIoU1U1wjfjJgKk+nayQ==",
         "dependencies": {
-          "Goo": "0.7.1"
+          "Goo": "0.7.23"
         }
       },
       "Hexa.NET.SDL3": {
@@ -51,14 +51,14 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.7.1, )",
-          "Goo.Svg": "[0.7.1, )"
+          "Goo": "[0.7.23, )",
+          "Goo.Svg": "[0.7.23, )"
         }
       },
       "goo.widgets.markdown": {
         "type": "Project",
         "dependencies": {
-          "Goo.Widgets": "[0.2.8, )",
+          "Goo.Widgets": "[0.2.15, )",
           "Markdig": "[1.3.2, )"
         }
       }

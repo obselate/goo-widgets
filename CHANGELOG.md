@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.15 - 2026-10-10
+
+- Require Goo and Goo.Svg 0.7.23.
+- Add `VirtualItems` and `VirtualRows` to `Goo.Widgets.Data`. They replace the
+  `Virtual` and `VirtualRows` functions that Goo removed, and return a Goo
+  `Virtual` element.
+- `VirtualRows` applies a change that only removes rows from the start and adds
+  rows at the end in place. Set `PinToBottom` on the result to keep the end in view.
+
 ## 0.2.13 - 2026-10-01
 
 - Let executable projects select Material Symbols with `GooMaterialIcon` items.

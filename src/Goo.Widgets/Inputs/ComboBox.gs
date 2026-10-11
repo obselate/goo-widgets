@@ -2,6 +2,7 @@ package Goo.Widgets.Inputs
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Data
 import Goo.Widgets.Layout
 import System
 import System.Collections.Generic

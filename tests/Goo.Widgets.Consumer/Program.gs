@@ -368,6 +368,10 @@ func Main() {
         SearchListInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_VIRTUAL") == "1" {
+        VirtualInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_DISCLOSURE") == "1" {
         DisclosureInteractions()
         return
@@ -386,6 +390,7 @@ func Main() {
     TimeAxisContracts()
     TreeViewContracts()
     DataGridContracts()
+    VirtualContracts()
     SliderInteractions()
     WidgetErgonomics()
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" {
