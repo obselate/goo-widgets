@@ -8,6 +8,8 @@
   `Virtual` element.
 - `VirtualRows` applies a change that only removes rows from the start and adds
   rows at the end in place. Set `PinToBottom` on the result to keep the end in view.
+- `ComboBox` exposes each option as one list item, and its list reports the
+  option count.
 
 ## 0.2.13 - 2026-10-01
 

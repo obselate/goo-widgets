@@ -254,6 +254,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         virtualRows.MinHeight = 0.0
         virtualRows.OverflowY = Overflow.Scroll
         virtualRows.OverflowX = Overflow.Hidden
+        virtualRows.Accessibility = nil
         let list = Container{
             Key: "list",
             Handle: listHandle,
@@ -266,6 +267,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Accessibility: Accessibility{
                 Role: AccessibilityRole.List,
                 Name: current.AccessibilityName!!,
+                SizeOfSet: rows.Count,
                 Relationships: relationships
             }
         }
