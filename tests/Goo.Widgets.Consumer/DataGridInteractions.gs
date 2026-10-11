@@ -470,10 +470,36 @@ func GridColumnWidths(semantics SearchListSemantics)[]float64 -> []float64{
     FindSemantics(semantics.Tree!!.Root, "Owner")!!.Bounds.Width
 }
 
+func GridModifierKey(key SDLScancode, modifiers SDLKeymod, down bool) {
+    var event = SDLEvent{
+        Key: SDLKeyboardEvent{
+            Type: if down {
+                SDLEventType.KeyDown
+            } else {
+                SDLEventType.KeyUp
+            },
+            WindowID: OnlyNativeWindow(),
+            Scancode: key,
+            Mod: uint16(modifiers),
+            Down: if down {
+                uint8(1)
+            } else {
+                uint8(0)
+            }
+        }
+    }
+    Require(SDL.PushEvent(ref event), "SDL rejected a modifier key")
+}
+
 func GridModifiedClick(window Window, handle ElementHandle, modifiers SDLKeymod) {
-    SDL.SetModState(uint16(modifiers))
+    let key = if (modifiers & SDLKeymod.Ctrl) != SDLKeymod.None {
+        SDLScancode.Lctrl
+    } else {
+        SDLScancode.Lshift
+    }
+    GridModifierKey(key, modifiers, true)
     CompositeClick(window, handle)
-    SDL.SetModState(uint16(0))
+    GridModifierKey(key, SDLKeymod.None, false)
 }
 
 func DataGridInteractions() {
@@ -772,7 +798,6 @@ func DataGridInteractions() {
             "Fitted grid failed to preserve minimum widths when viewport was too narrow"
         )
     } finally {
-        SDL.SetModState(uint16(0))
         window.RequestClose()
         PumpFrames(window, 5)
     }
