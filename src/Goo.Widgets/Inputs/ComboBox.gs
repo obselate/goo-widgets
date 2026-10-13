@@ -36,6 +36,7 @@ public data struct ComboBoxInput {
     var EmptyText string?
     var Width float64
     var PopupHeight float64
+    var Placement PopoverPlacement
     var RowHeight float64
     /// Layer of the popup while open.
     var ZIndex int32
@@ -195,6 +196,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: trigger,
+            Placement: current.Placement,
             Content: BuildList(query, popupHeight),
             Width: current.Width,
             MaxHeight: popupHeight,

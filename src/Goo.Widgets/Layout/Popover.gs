@@ -120,14 +120,25 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
         let width = Math.Min(current.Width, Math.Max(1.0, viewport.Width - 2.0 * margin))
-        let heightLimit = Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
+        var heightLimit = Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
         if !presented && rootBox.Width > 0.0 && rootBox.Height > 0.0
         && (current.WindowPoint != nil || anchorWasMounted)
         && MeasurementValid(width) {
             presented = true
         }
         layoutWidth = width
-        let height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
+        var height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
+        if anchor != nil && (current.Placement == PopoverPlacement.BottomStart
+        || current.Placement == PopoverPlacement.BottomEnd
+        || current.Placement == PopoverPlacement.TopStart
+        || current.Placement == PopoverPlacement.TopEnd) {
+            let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
+            let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
+            let above = Math.Max(0.0, anchorBox.Y - current.Gap!! - top)
+            let below = Math.Max(0.0, bottom - anchorBox.Y - anchorBox.Height - current.Gap!!)
+            heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
+            height = Math.Min(height, heightLimit)
+        }
         let origin = Place(viewport, width, height)
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
         let content = current.Content ?? Container{HitTestSelf: false}

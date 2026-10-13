@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.16 - 2026-10-13
+
+- Let `ComboBoxInput.Placement` prefer upward opening, with downward fallback.
+- Limit anchored popups to the larger available side when neither side fits.
+
 ## 0.2.15 - 2026-10-10
 
 - Require Goo and Goo.Svg 0.7.23.
