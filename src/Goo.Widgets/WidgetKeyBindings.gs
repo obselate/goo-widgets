@@ -73,7 +73,6 @@ public class WidgetKeyBindings {
         }
 
         /// Adds explicit Enter and Space activation bindings to an interactive primitive.
-        /// Buttons use handle activation and held Space press state. Other primitives activate on release.
         /// Existing bindings take precedence over the appended activation policy.
         /// @param button The primitive whose current handle and click callback are used.
         public func BindActivation(button Blob) {
@@ -84,6 +83,7 @@ public class WidgetKeyBindings {
             var enter KeyBinding
             var space KeyBinding
             if button is Button {
+                let heldPress = button.Handle != nil
                 let handle = button.Handle ?? ElementHandle()
                 button.Handle = handle
                 enter = KeyBinding{
@@ -92,14 +92,18 @@ public class WidgetKeyBindings {
                         handle.Activate()
                     }
                 }
-                space = KeyBinding{
-                    Key: Key.Space,
-                    Action: () -> {
-                        handle.BeginPress()
-                    },
-                    OnRelease: () -> {
-                        handle.EndPress(true)
-                    },
+                space = if heldPress {
+                    KeyBinding{
+                        Key: Key.Space,
+                        Action: () -> {
+                            handle.BeginPress()
+                        },
+                        OnRelease: () -> {
+                            handle.EndPress(true)
+                        },
+                    }
+                } else {
+                    KeyBinding{Key: Key.Space, OnRelease: action}
                 }
             } else {
                 enter = KeyBinding{Key: Key.Enter, Action: action}

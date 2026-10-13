@@ -34,7 +34,7 @@ func InvokeKeyBinding(blob Blob, key Key) bool {
 func HasKeyBinding(blob Blob, key Key, release bool = false) bool {
     for binding in blob.KeyBindings ?? []KeyBinding{} {
         if binding.Key == key && NoModifiers(binding.Modifiers) {
-            return binding.Action != nil && (!release || binding.OnRelease != nil)
+            return (binding.Action != nil || binding.OnRelease != nil) && (!release || binding.OnRelease != nil)
         }
     }
     return false
