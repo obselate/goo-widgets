@@ -2,6 +2,7 @@ package Goo.Widgets.Consumer
 
 import Goo
 import Goo.Widgets.Inputs
+import Goo.Widgets.Layout
 import Hexa.NET.SDL3
 import System
 import System.Collections.Generic
@@ -52,6 +53,7 @@ internal class ComboBoxHost : Cell {
     internal var Disabled bool
     internal var Empty bool
     internal var Show bool = true
+    internal var Placement PopoverPlacement
     internal var Query string = ""
     internal var BackgroundClicks int32
     private func Open(value bool) {
@@ -155,6 +157,7 @@ internal class ComboBoxHost : Cell {
                         ComboBoxInput{
                             Width: 320.0,
                             PopupHeight: 250.0,
+                            Placement: Placement,
                             SelectedId: Selected,
                             OnSelect: Select,
                             Items: Options(),
@@ -258,6 +261,10 @@ func ComboBoxInteractions() {
         PumpFrames(window, 14)
         Require(host.IsOpen && ComboActive(semantics, "Beta"), "ComboBox failed to reveal its selected option")
         Require(
+            host.Panel!!.Handle!!.BorderBox.Y >= host.Trigger!!.Handle!!.BorderBox.Y + host.Trigger!!.Handle!!.BorderBox.Height,
+            "ComboBox near the top did not keep its default downward placement"
+        )
+        Require(
             host.Panel!!.Handle!!.BorderBox.Y + host.Panel!!.Handle!!.BorderBox.Height
             > host.Source.BorderBox.Y + host.Source.BorderBox.Height,
             "ComboBox popup remained clipped to its transformed source ancestor"
@@ -303,6 +310,7 @@ func ComboBoxInteractions() {
         host.Large = true
         host.Searchable = true
         host.Selected = "item-1201"
+        host.Placement = PopoverPlacement.TopStart
         host.Rebuild()
         PumpFrames(window, 9)
         CompositeClick(window, host.Trigger!!.Handle!!)
@@ -312,6 +320,17 @@ func ComboBoxInteractions() {
             "Long searchable list did not reveal its selected option"
         )
         Require(
+            host.Panel!!.Handle!!.BorderBox.Y >= host.Trigger!!.Handle!!.BorderBox.Y + host.Trigger!!.Handle!!.BorderBox.Height,
+            "ComboBox preferred upward placement did not fall back when only below fit"
+        )
+        window.Height = 320
+        PumpFrames(window, 14)
+        let upward = host.Panel!!.Handle!!.BorderBox
+        Require(
+            upward.Y >= 7.5 && upward.Y + upward.Height <= host.Trigger!!.Handle!!.BorderBox.Y && upward.Height < 250.0,
+            "ComboBox did not shrink upward when neither side fit"
+        )
+        Require(
             SelectorCountRole(semantics.Tree?.Root, AccessibilityRole.ListItem) < 30,
             "ComboBox realized its full long list"
         )
@@ -319,6 +338,22 @@ func ComboBoxInteractions() {
         SendKey(id, SDLScancode.End)
         PumpFrames(window, 12)
         Require(ComboActive(semantics, "Option 1499"), "ComboBox End failed across unmounted options")
+        window.Height = 520
+        PumpFrames(window, 14)
+        host.Placement = PopoverPlacement.BottomStart
+        host.Rebuild()
+        PumpFrames(window, 10)
+        Require(
+            host.Panel!!.Handle!!.BorderBox.Y >= host.Trigger!!.Handle!!.BorderBox.Y + host.Trigger!!.Handle!!.BorderBox.Height,
+            "ComboBox did not return below after its viewport grew"
+        )
+        window.Height = 320
+        PumpFrames(window, 14)
+        let flipped = host.Panel!!.Handle!!.BorderBox
+        Require(
+            flipped.Y >= 7.5 && flipped.Y + flipped.Height <= host.Trigger!!.Handle!!.BorderBox.Y,
+            "ComboBox default placement did not flip toward the larger available side"
+        )
         SelectorType(window, id, "Option 0042")
         PumpFrames(window, 14)
         Require(
@@ -375,6 +410,6 @@ func ComboBoxInteractions() {
         PumpFrames(window, 5)
     }
     Console.WriteLine(
-        "PASS: native ComboBox controlled/disabled/custom options, keyboard commit/cancel, focus restoration, long-list reveal, search, empty input, resize and unmount"
+        "PASS: native ComboBox placement, constrained scrolling, controlled/disabled/custom options, keyboard commit/cancel, focus restoration, long-list reveal, search, empty input, resize and unmount"
     )
 }

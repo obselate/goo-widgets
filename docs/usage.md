@@ -263,6 +263,10 @@ callbacks; leaving them nil uses widget-owned state. Update controlled values an
 rebuild the owning Cell in callbacks. Trigger, search, row, popup, and root factories
 customize appearance while identity, input, and accessibility wiring remain applied.
 
+`Placement` defaults to `PopoverPlacement.BottomStart`. Set `TopStart` to prefer
+opening above, with downward fallback. If neither side fits, the popup shrinks
+to the side with more room and scrolls.
+
 ## Calendar and DatePicker
 
 Mount `Cell.Mount[CalendarInput, Calendar]` with a `DateOnly? Value` and `OnChange`.
