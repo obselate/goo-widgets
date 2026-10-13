@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.17 - 2026-10-13
+
+- Activate stateless buttons, checkboxes and switches on Space release after a rebuild.
+
 ## 0.2.16 - 2026-10-13
 
 - Let `ComboBoxInput.Placement` prefer upward opening, with downward fallback.

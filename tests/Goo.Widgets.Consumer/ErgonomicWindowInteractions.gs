@@ -31,6 +31,8 @@ internal open class NativePickerProbe : Cell[ColorPickerInput], IDisposable {
 internal class ErgonomicHost : Cell {
     internal var Checked AccessibilityChecked
     internal var CheckboxRoot Button?
+    internal var Switched bool
+    internal var SwitchRoot Button?
     internal var SliderRoot Container?
     internal var Value float64 = 0.35
     internal var Rgb int32 = 0x4F8FEA
@@ -51,9 +53,19 @@ internal class ErgonomicHost : Cell {
             }.Build() as Button
         )!!
         checkbox.Key = "checkbox"
-        checkbox.Handle = ElementHandle{}
         checkbox.Children[1].Handle = ElementHandle{}
         CheckboxRoot = checkbox
+        let toggle = (
+            ToggleSwitch{
+                Checked: Switched,
+                Disabled: Disabled,
+                OnClick: () -> {
+                    Switched = !Switched
+                },
+            }.Build() as Button
+        )!!
+        toggle.Key = "switch"
+        SwitchRoot = toggle
         return Container{
             Width: Percent(100),
             Height: Percent(100),
@@ -61,6 +73,7 @@ internal class ErgonomicHost : Cell {
             Gap: 16.0,
             BackgroundColor: "#18181b",
             checkbox,
+            toggle,
             Cell.Mount[SliderInput, Slider](
                 "labeled-slider",
                 SliderInput{
@@ -133,6 +146,52 @@ func ErgonomicWindowInteractions() {
             host.CheckboxRoot!!.Accessibility?.Checked == AccessibilityChecked.True,
             "Checkbox label click did not rebuild its checked state."
         )
+        Require(host.CheckboxRoot!!.Handle!!.Focus(), "Checkbox could not receive keyboard focus.")
+        let checkboxBeforePress = host.CheckboxRoot
+        var down = SDLEvent{
+            Key: SDLKeyboardEvent{
+                Type: SDLEventType.KeyDown,
+                WindowID: windowId,
+                Scancode: SDLScancode.Space,
+                Down: uint8(1),
+            },
+        }
+        var up = SDLEvent{
+            Key: SDLKeyboardEvent{Type: SDLEventType.KeyUp, WindowID: windowId, Scancode: SDLScancode.Space,},
+        }
+        Require(SDL.PushEvent(ref down), "SDL rejected Space down.")
+        PumpFrames(window, 4)
+        Require(
+            host.Checked == AccessibilityChecked.True && host.CheckboxRoot != checkboxBeforePress,
+            "Space down did not rebuild the checkbox without toggling it."
+        )
+        Require(SDL.PushEvent(ref up), "SDL rejected Space up.")
+        PumpFrames(window, 4)
+        Require(
+            host.Checked == AccessibilityChecked.False
+            && host.CheckboxRoot!!.Accessibility?.Checked == AccessibilityChecked.False,
+            "Space release did not toggle the rebuilt checkbox."
+        )
+        SendKey(windowId, SDLScancode.Return)
+        PumpFrames(window, 4)
+        Require(host.Checked == AccessibilityChecked.True, "Enter did not toggle the checkbox.")
+        Require(host.SwitchRoot!!.Handle!!.Focus(), "Switch could not receive keyboard focus.")
+        let switchBeforePress = host.SwitchRoot
+        Require(SDL.PushEvent(ref down), "SDL rejected switch Space down.")
+        PumpFrames(window, 4)
+        Require(
+            !host.Switched && host.SwitchRoot != switchBeforePress,
+            "Space down did not rebuild the switch without toggling it."
+        )
+        Require(SDL.PushEvent(ref up), "SDL rejected switch Space up.")
+        PumpFrames(window, 4)
+        Require(
+            host.Switched && host.SwitchRoot!!.Accessibility?.Checked == AccessibilityChecked.True,
+            "Space release did not toggle the rebuilt switch."
+        )
+        SendKey(windowId, SDLScancode.Return)
+        PumpFrames(window, 4)
+        Require(!host.Switched, "Enter did not toggle the switch.")
         let slider = host.SliderRoot!!
         Require(
             Math.Abs(slider.Handle!!.BorderBox.Width - (float64(window.Width) - 48.0) * 0.5) < 1.0,
@@ -213,7 +272,7 @@ func ErgonomicWindowInteractions() {
         MouseButton(windowId, wheelX, wheelY, false)
         PumpFrames(window, 3)
         Console.WriteLine(
-            "PASS: native label click, slider width/focus/value, color modes/preview, disabled input, compact/full transition, color wheel pointer focus."
+            "PASS: native checkbox/switch Space across rebuild and Enter, label click, slider width/focus/value, color modes/preview, disabled input, compact/full transition, color wheel pointer focus."
         )
     } finally {
         window.RequestClose()
