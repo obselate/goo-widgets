@@ -325,11 +325,14 @@ func ComboBoxInteractions() {
         )
         window.Height = 320
         PumpFrames(window, 14)
-        let upward = host.Panel!!.Handle!!.BorderBox
-        Require(
-            upward.Y >= 7.5 && upward.Y + upward.Height <= host.Trigger!!.Handle!!.BorderBox.Y && upward.Height < 250.0,
-            "ComboBox did not shrink upward when neither side fit"
-        )
+        for frame in 0 ... 8 {
+            PumpFrames(window, 1)
+            let upward = host.Panel!!.Handle!!.BorderBox
+            Require(
+                upward.Y >= 7.5 && upward.Y + upward.Height <= host.Trigger!!.Handle!!.BorderBox.Y && upward.Height < 250.0,
+                "ComboBox did not keep its constrained upward bounds"
+            )
+        }
         Require(
             SelectorCountRole(semantics.Tree?.Root, AccessibilityRole.ListItem) < 30,
             "ComboBox realized its full long list"

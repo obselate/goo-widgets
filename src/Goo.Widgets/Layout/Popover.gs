@@ -136,11 +136,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
             let above = Math.Max(0.0, anchorBox.Y - current.Gap!! - top)
             let below = Math.Max(0.0, bottom - anchorBox.Y - anchorBox.Height - current.Gap!!)
-            let preferAbove = current.Placement == PopoverPlacement.TopStart || current.Placement == PopoverPlacement.TopEnd
-            if height > (preferAbove ? above: below) {
-                heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
-                height = Math.Min(height, heightLimit)
-            }
+            heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
+            height = Math.Min(height, heightLimit)
         }
         let origin = Place(viewport, width, height)
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
