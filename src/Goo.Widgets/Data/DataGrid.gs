@@ -97,6 +97,8 @@ public data struct DataGridInput {
     var BackgroundColor Color?
     var TextColor Color?
     var SelectedColor Color?
+    /// Keyboard focus outline color for the active row's cells.
+    var FocusColor Color?
     var RootHandle ElementHandle?
     var ViewportHandle ElementHandle?
     var OnKeyDown((KeyEvent) -> void)?
@@ -197,7 +199,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             AccessibilityName = value.AccessibilityName ?? "Data grid",
             BackgroundColor = value.BackgroundColor ?? Color.Parse("#18181b"),
             TextColor = value.TextColor ?? Color.Parse("#e4e4e7"),
-            SelectedColor = value.SelectedColor ?? Color.Parse("#34334c")
+            SelectedColor = value.SelectedColor ?? Color.Parse("#34334c"),
+            FocusColor = value.FocusColor ?? Color.Parse("#a5b4fc")
         }
         for height in[]float64{input.RowHeight!!, input.HeaderHeight!!, input.FilterHeight!!} {
             if !Double.IsFinite(height) || height <= 0.0 || height > 1000000.0 {
@@ -377,17 +380,32 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         let hostText = root.OnTextInput
         let hostFocus = root.OnFocus
         let hostBlur = root.OnBlur
+        let hostPointer = root.OnPointerDown
         root.Handle = rootHandle
         root.FlexDirection = FlexDirection.Column
         root.Disabled = input.Disabled
         root.Focusable = !input.Disabled
         root.OnKeyDown = (e KeyEvent) -> {
-            pointerFocus = false
+            if e.Key == Key.Tab ||
+                e.Key == Key.Left ||
+                e.Key == Key.Right ||
+                e.Key == Key.Up ||
+                e.Key == Key.Down ||
+                e.Key == Key.Home ||
+                e.Key == Key.End ||
+                e.Key == Key.PageUp ||
+                e.Key == Key.PageDown {
+                pointerFocus = false
+            }
             if input.UseDefaultKeyboard ?? true {
                 KeyDown(e)
             }
             hostKeys?.Invoke(e)
             input.OnKeyDown?.Invoke(e)
+        }
+        root.OnPointerDown = (e PointerEvent) -> {
+            pointerFocus = true
+            hostPointer?.Invoke(e)
         }
         if hostText != nil || input.OnTextInput != nil {
             root.OnTextInput = (value string) -> {
@@ -400,7 +418,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             if !pointerFocus {
                 Reveal()
             }
-            pointerFocus = false
             hostFocus?.Invoke(e)
         }
         root.OnBlur = (e FocusEvent) -> {
@@ -770,7 +787,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Width: tableWidth,
             Height: snapshot.RowHeight!!,
             FlexShrink: 0,
-            FlexDirection: FlexDirection.Row
+            FlexDirection: FlexDirection.Row,
+            OutlineWidth: activeId == id && hasFocus && !pointerFocus ? 2.0: 0.0,
+            OutlineColor: snapshot.FocusColor!!,
+            OutlineOffset: -2
         }
         if leading > 0.0 {
             let controls = Container{
@@ -859,10 +879,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
-            Opacity: row.Disabled ? .45: 1.0,
-            OutlineWidth: activeId == id && hasFocus ? 1.0: 0.0,
-            OutlineColor: "#a5b4fc",
-            OutlineOffset: -1
+            Opacity: row.Disabled ? .45: 1.0
         }
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
