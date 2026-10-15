@@ -11,7 +11,7 @@
       "Goo": {
         "type": "Transitive",
         "resolved": "0.7.34-entry-undo.1",
-        "contentHash": "DkdZigbjg8gAvyoBkYoqFsubv/zJXoZawCBCTVIfqxCvdu5NMS89Jqn6Iuuvg/JVcdlUB96WLbW57/fnl2BEDA==",
+        "contentHash": "kgcJM0vHEUBYYoWSgRPnB/sk675ibqycJmAmDRdhGgFv6JDMYDn9tP77P9lLcj7ZP/F2N1cE7zTkO7psfb/SMA==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Unicode.Bidi": "0.3.18"
