@@ -81,6 +81,12 @@ public data struct DataGridInput {
     var ShowSelection bool
     var ExpandedIds[]?string
     var OnExpandedChange Action[string, bool]?
+    /// Expansion control width. Nil resolves to 30; zero hides the control.
+    var ExpandColumnWidth float64?
+    /// Detail padding. Nil resolves to 12; explicit zero is preserved.
+    var DetailPadding float64?
+    /// Detail surface color. Nil resolves to #20232c.
+    var DetailBackground Color?
     var Disabled bool
     var Width Length?
     var Height Length?
@@ -184,6 +190,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             RowHeight = value.RowHeight ?? 36.0,
             HeaderHeight = value.HeaderHeight ?? 38.0,
             FilterHeight = value.FilterHeight ?? 38.0,
+            ExpandColumnWidth = value.ExpandColumnWidth ?? 30.0,
+            DetailPadding = value.DetailPadding ?? 12.0,
+            DetailBackground = value.DetailBackground ?? Color.Parse("#20232c"),
             AccessibilityName = value.AccessibilityName ?? "Data grid",
             BackgroundColor = value.BackgroundColor ?? Color.Parse("#18181b"),
             TextColor = value.TextColor ?? Color.Parse("#e4e4e7"),
@@ -194,6 +203,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 throw ArgumentOutOfRangeException("Grid row/header/filter height")
             }
         }
+        ValidateWidth(input.ExpandColumnWidth!!)
+        ValidateWidth(input.DetailPadding!!)
         if input.Selection < DataGridSelection.None || input.Selection > DataGridSelection.Multiple
         || input.SortDirection < DataGridSort.None || input.SortDirection > DataGridSort.Descending {
             throw ArgumentOutOfRangeException("Grid selection/sort policy")
@@ -286,8 +297,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if controlledActiveChanged && hasFocus && !pointerFocus {
             Reveal()
         }
-        let details = hasDetails
-        leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? 36.0: 0.0) + (details ? 30.0: 0.0)
+        let details = hasDetails && input.ExpandColumnWidth > 0.0
+        leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? 36.0: 0.0) +
+            (details ? input.ExpandColumnWidth!!: 0.0)
         available = rootHandle.ContentBox.Width
         let verticalGutter = if let scrollbar = input.ScrollbarY {
             if scrollbar.ReserveSpace && input.ScrollbarVisibilityY != ScrollbarVisibility.Hidden {
@@ -789,7 +801,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             }
             if details {
                 let expand = Button{
-                    Width: 26,
+                    Width: Math.Min(26.0, snapshot.ExpandColumnWidth!!),
                     Height: 26,
                     Padding: 4,
                     BackgroundColor: Color.Transparent,
@@ -800,7 +812,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Accessibility: Accessibility{Hidden: true},
                     MaterialIcons.Create(isExpanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
                 }
-                let slot = Container{Key: "expansion", Width: 30, AlignItems: AlignItems.Center}
+                let slot = Container{
+                    Key: "expansion",
+                    Width: snapshot.ExpandColumnWidth!!,
+                    AlignItems: AlignItems.Center
+                }
                 if row.HasDetail || row.Detail != nil {
                     slot.Children.Add(expand)
                 }
@@ -906,8 +922,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 Container{
                     Key: "detail",
                     Width: tableWidth,
-                    Padding: 12,
-                    BackgroundColor: "#20232c",
+                    Padding: snapshot.DetailPadding!!,
+                    BackgroundColor: snapshot.DetailBackground!!,
                     OnKeyDown: StopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
