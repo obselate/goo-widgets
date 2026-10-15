@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.18 - 2026-10-15
 
 - Keep prior virtual row heights as estimates while viewport width changes, and retain the end position while rows are measured.
 - Add `DataGridInput.ExpandColumnWidth`, `DetailPadding` and `DetailBackground`.
@@ -8,6 +8,8 @@
 - Limit DataGrid's active-row outline to keyboard navigation and the row's cells.
 - Add `DataGridInput.FocusColor` for the inset focus outline.
 - Center ComboBox's default 16-pixel expansion icon and expose `ComboBoxInput.CreateArrow`.
+- Bind Undo to Ctrl/Cmd+Z and Redo to Ctrl/Cmd+Shift+Z and Ctrl+Y in `WidgetKeyBindings.Editing`.
+- Require released Goo and Goo.Svg 0.7.34 for single-line entry undo and redo.
 
 ## 0.2.17 - 2026-10-13
 
