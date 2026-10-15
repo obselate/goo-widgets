@@ -5,6 +5,8 @@
 - Keep prior virtual row heights as estimates while viewport width changes, and retain the end position while rows are measured.
 - Add `DataGridInput.ExpandColumnWidth`, `DetailPadding` and `DetailBackground`.
 - Preserve row click handlers supplied by `DataGridInput.CreateRow`.
+- Limit DataGrid's active-row outline to keyboard navigation and the row's cells.
+- Add `DataGridInput.FocusColor` for the inset focus outline.
 
 ## 0.2.17 - 2026-10-13
 
