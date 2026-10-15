@@ -130,7 +130,10 @@ internal class VirtualRowsState[T] : VirtualState {
             }
         }
         var scroll = offset.Y
-        if viewport.Pinned {
+        let atEnd = measurements.Count > 0 &&
+            window.ContentH > window.ViewportH &&
+            offset.Y >= float64(window.ContentH - window.ViewportH) - 0.01
+        if viewport.Pinned || atEnd {
             scroll = Math.Max(0.0, float64(Window(data, 0.0, height, true).ContentH) - float64(height))
         } else if anchor != "" && data.Count > 0 {
             let nextIndex = if data.TryIndex(anchor, out var found) {
@@ -308,11 +311,13 @@ internal class VirtualRowsState[T] : VirtualState {
             let id = key(item)
             var row = VirtualRow[T]{Item: item, Key: id, Height: estimate}
             if let previous = old {
-                if previous.Width == width && previous.TryIndex(id, out var index) {
+                if previous.TryIndex(id, out var index) {
                     let retained = previous.Row(index)
-                    // Keep the last height as an estimate while changed content is remeasured.
                     row.Height = retained.Height
-                    row.Measured = retained.Measured && sameBuilder && equality.Equals(retained.Item, item)
+                    row.Measured = retained.Measured && previous.Width == width && sameBuilder && equality.Equals(
+                        retained.Item,
+                        item
+                    )
                 }
             }
             rows[i] = row

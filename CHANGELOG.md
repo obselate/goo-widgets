@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Keep prior virtual row heights as estimates while viewport width changes, and retain the end position while rows are measured.
+- Add `DataGridInput.ExpandColumnWidth`, `DetailPadding` and `DetailBackground`.
+- Preserve row click handlers supplied by `DataGridInput.CreateRow`.
+
 ## 0.2.17 - 2026-10-13
 
 - Activate stateless buttons, checkboxes and switches on Space release after a rebuild.
