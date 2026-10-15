@@ -3,6 +3,7 @@ package Goo.Widgets.Inputs
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Data
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import System
 import System.Collections.Generic
@@ -41,6 +42,8 @@ public data struct ComboBoxInput {
     /// Layer of the popup while open.
     var ZIndex int32
     var CreateTrigger Func[ComboBoxInput, Button, Button]?
+    /// Replaces the passive expansion indicator; the stable arrow key is reapplied.
+    var CreateArrow Func[ComboBoxInput, Blob, Blob]?
     var CreateSearch Func[ComboBoxInput, TextEntry, TextEntry]?
     var CreateRow Func[ComboBoxInput, ComboBoxOption, Container, Container]?
     var CreatePopup Func[ComboBoxInput, Container, Container]?
@@ -182,7 +185,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         button.Children.Add(
             Container{Key: "value", FlexGrow: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
-        button.Children.Add(Text{Key: "arrow", Content: "⌄", Color: "#a1a1aa"})
+        var arrow Blob = MaterialIcons.Create("expand_more", 16, Color.Parse("#a1a1aa"))
+        if let create = current.CreateArrow {
+            arrow = create(current, arrow)
+        }
+        arrow.Key = "arrow"
+        button.Children.Add(arrow)
         var root = Container{Width: current.Width, MinWidth: 0.0, Overflow: Overflow.Visible}
         if let create = current.CreateRoot {
             root = create(current, root)
