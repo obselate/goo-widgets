@@ -58,7 +58,9 @@ public class WidgetKeyBindings {
                 Add(result, input, Key.C, primary, TextCommandKind.Copy, false)
                 Add(result, input, Key.X, primary, TextCommandKind.Cut, false)
                 Add(result, input, Key.V, primary, TextCommandKind.Paste, false)
+                Add(result, input, Key.Z, primary, shift ? TextCommandKind.Redo: TextCommandKind.Undo, false)
             }
+            Add(result, input, Key.Y, KeyModifiers{Ctrl: true}, TextCommandKind.Redo, false)
             result.Add(
                 KeyBinding{
                     Key: Key.Escape,
