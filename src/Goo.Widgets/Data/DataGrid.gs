@@ -784,7 +784,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         let isExpanded = expanded.Contains(id) && (row.HasDetail || row.Detail != nil)
         let cells = Container{
             Key: "cells",
-            Width: tableWidth,
+            Width: Percent(100),
             Height: snapshot.RowHeight!!,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
