@@ -119,6 +119,7 @@ public data struct DataGridInput {
     var CreateSelection Func[DataGridInput, DataGridRow, Button, Button]?
     var CreateDetail Func[DataGridInput, DataGridRow, Blob]?
     /// Required slots, width, identity, and semantics are reapplied.
+    /// A returned OnClick handler runs after the grid's selection handler.
     var CreateRow Func[DataGridInput, DataGridRow, Container, Container]?
     var CreateRoot Func[DataGridInput, Container, Container]?
 }
@@ -885,7 +886,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             }
         }
-        root.OnClick = () -> Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+        let hostClick = root.OnClick
+        root.OnClick = () -> {
+            Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+            hostClick?.Invoke()
+        }
         let actions = List[AccessibilityAction]()
         if !row.Disabled && !snapshot.Disabled {
             actions.Add(AccessibilityAction.Focus)
