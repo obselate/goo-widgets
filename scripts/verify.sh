@@ -17,7 +17,7 @@ subset_packages="$(mktemp -d)"
 trap 'rm -rf -- "$subset_packages"' EXIT
 NUGET_PACKAGES="$subset_packages" dotnet restore tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.csproj \
   -p:GooWidgetsPackageVersion="$version" -p:NuGetLockFilePath="$subset_packages/subset.lock.json" \
-  -s artifacts/packages -s "$PWD/artifacts/goo-entry-undo" -s https://api.nuget.org/v3/index.json
+  -s artifacts/packages -s https://api.nuget.org/v3/index.json
 NUGET_PACKAGES="$subset_packages" dotnet run --project tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.csproj \
   -c Release --no-restore -p:GooWidgetsPackageVersion="$version" \
   -p:NuGetLockFilePath="$subset_packages/subset.lock.json"
