@@ -39,7 +39,7 @@ internal func virtualItemExtent(value float64, name string) float32 {
         throw ArgumentOutOfRangeException(name)
     }
     let extent = float32(value)
-    if Single.IsInfinity(extent) {
+    if Single.IsInfinity(extent) || extent <= 0.0F {
         throw ArgumentOutOfRangeException(name)
     }
     return extent
