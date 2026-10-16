@@ -56,7 +56,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private let wheelSource ColorWheelSource = ColorWheelSource(384)
     private var resolved ColorPickerInput
     private var currentRgb int32
-    private var lastExternal int32
     private var currentMode ColorMode
     private var lastExternalMode ColorMode?
     private var hue float64
@@ -79,7 +78,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         }
         if !initialized {
             currentRgb = input.Value
-            lastExternal = input.Value
             currentMode = input.Mode ?? ColorMode.Oklch
             lastExternalMode = input.Mode
             ReadCoordinates(currentRgb)
@@ -95,9 +93,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                     }
                 }
             }
-            if input.Value != lastExternal {
+            if input.Value != currentRgb {
                 currentRgb = input.Value
-                lastExternal = input.Value
                 coordinatesChanged = true
             }
             if coordinatesChanged {

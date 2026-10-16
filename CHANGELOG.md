@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Apply host values on every Slider, ColorPicker and GraphCanvas rebuild, including rejected edits.
+
 ## 0.2.19 - 2026-10-16
 
 - Close popovers on outside pointer clicks without restoring trigger focus. Escape still restores focus.

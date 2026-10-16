@@ -76,8 +76,6 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     private let handle ElementHandle = ElementHandle{}
     private var resolved GraphCanvasInput
     private var viewport GraphViewport
-    private var lastExternalViewport GraphViewport
-    private var initialized bool
     private var pointerMode GraphPointerMode
     private var pointerId int64 = -1L
     private var draggedNodeId string?
@@ -90,11 +88,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
 
     protected override func Build(input GraphCanvasInput) Blob {
         resolved = Resolve(input)
-        if !initialized || input.Viewport != lastExternalViewport {
-            viewport = resolved.Viewport
-            lastExternalViewport = input.Viewport
-            initialized = true
-        }
+        viewport = resolved.Viewport
         let root = Container{
             BasedOn: resolved.RootStyle,
             Key: "graph-canvas",
