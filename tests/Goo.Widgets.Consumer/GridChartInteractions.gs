@@ -378,6 +378,11 @@ func GraphActivationInteractions() {
         Require(host.Selected.Length == 1 && host.Selected[0] == "two", "Pointer node selection regressed")
         GridModifiedClick(window, host.Cards["one"].Handle!!, SDLKeymod.Ctrl)
         Require(host.Selected.Length == 2, "Keyboard activation wiring replaced additive pointer selection")
+        GridModifiedClick(window, host.Cards["one"].Handle!!, SDLKeymod.Ctrl)
+        Require(
+            host.Selected.Length == 1 && host.Selected[0] == "two",
+            "Ctrl-click deselection activated the deselected node again"
+        )
         let requests = host.Requests
         let disabled = FindSemantics(semantics.Tree!!.Root, "Disabled node")!!
         window.PerformAccessibilityAction(disabled.Id, AccessibilityActionRequest(AccessibilityAction.Activate))

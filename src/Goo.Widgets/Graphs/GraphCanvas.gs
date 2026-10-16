@@ -447,6 +447,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             return
         }
         if !EmitNodeSelection(node.Id, e.Modifiers) {
+            e.PreventDefault()
             e.StopPropagation()
             return
         }
