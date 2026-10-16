@@ -89,7 +89,7 @@ internal class MarkdownParser {
             let content = StringBuilder()
             let runs = List[MarkdownInline]()
             if leaf.Inline != nil {
-                Append(leaf.Inline!!, MarkdownInline{}, content, runs)
+                Append(leaf.Inline!!, MarkdownInline{}, content, runs, result)
             } else {
                 content.Append(leaf.Lines.ToString())
             }
@@ -131,7 +131,7 @@ internal class MarkdownParser {
         return id
     }
 
-    private func Append(item Inline, state MarkdownInline, text StringBuilder, runs List[MarkdownInline]) {
+    private func Append(item Inline, state MarkdownInline, text StringBuilder, runs List[MarkdownInline], model MarkdownModel?) {
         if item is LiteralInline literal {
             Add(literal.Content.ToString() ?? "", state, text, runs)
             return
@@ -167,7 +167,7 @@ internal class MarkdownParser {
                 Strikethrough = state.Strikethrough || emphasis.DelimiterChar == '~'
             }
             for child in emphasis {
-                Append(child, next, text, runs)
+                Append(child, next, text, runs, model)
             }
             return
         }
@@ -175,9 +175,17 @@ internal class MarkdownParser {
             let label = StringBuilder()
             let labelRuns = List[MarkdownInline]()
             for child in link {
-                Append(child, state, label, labelRuns)
+                Append(child, MarkdownInline{}, label, labelRuns, nil)
             }
             let caption = label.Length == 0 ? (link.IsImage ? "Image": link.Url ?? "Link"): label.ToString()
+            if !link.IsImage && model != nil {
+                labelRuns.RemoveAll((span MarkdownInline) ->
+                    !span.Bold && !span.Italic && !span.Strikethrough && span.Kind != MarkdownInlineKind.Code)
+                if labelRuns.Count > 0 {
+                    model.Captions ??= Dictionary[int32, IReadOnlyList[MarkdownInline]]()
+                    model.Captions!![text.Length] = labelRuns
+                }
+            }
             Add(
                 caption,
                 state with{
@@ -192,7 +200,7 @@ internal class MarkdownParser {
         }
         if item is ContainerInline container {
             for child in container {
-                Append(child, state, text, runs)
+                Append(child, state, text, runs, model)
             }
         }
     }

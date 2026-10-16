@@ -3,6 +3,7 @@ package Goo.Widgets.Markdown
 import Goo
 import Goo.Widgets
 import System
+import System.Collections.Generic
 
 internal data struct MarkdownLeafInput {
     var Model MarkdownModel?
@@ -142,12 +143,42 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
     }
 
+    private func CaptionRanges(spans IReadOnlyList[MarkdownInline])[]TextStyleRange {
+        let ranges = [spans.Count]TextStyleRange
+        for index in 0 ... spans.Count {
+            let span = spans[index]
+            let style = Style{}
+            if span.Bold {
+                style.FontWeight = 700.0
+            }
+            if span.Italic {
+                style.FontStyle = FontStyle.Italic
+            }
+            if span.Strikethrough {
+                style.TextDecoration = TextDecoration.Underline | TextDecoration.LineThrough
+            }
+            if span.Kind == MarkdownInlineKind.Code {
+                style.FontFamily = current.Options.CodeFontFamily!!
+            }
+            ranges[index] = TextStyleRange(TextRange(span.Start, span.Length), style)
+        }
+        return ranges
+    }
+
     private func Inline(run MarkdownInline, style Style) Blob? {
         if run.Kind == MarkdownInlineKind.Text {
             return nil
         }
         let options = current.Options
-        var content Blob = Text{BasedOn: style, Content: run.Text ?? "", TextWrap: TextWrap.Wrap, MinWidth: 0.0}
+        let text = Text{BasedOn: style, Content: run.Text ?? "", TextWrap: TextWrap.Wrap, MinWidth: 0.0}
+        if run.Kind == MarkdownInlineKind.Link {
+            if let captions = current.Model!!.Captions {
+                if captions.TryGetValue(run.Start, out var spans) {
+                    text.StyleRanges = CaptionRanges(spans)
+                }
+            }
+        }
+        var content Blob = text
         if run.Kind == MarkdownInlineKind.Image {
             guard let image = options.ResolveImage?.Invoke(run) else {
                 return nil

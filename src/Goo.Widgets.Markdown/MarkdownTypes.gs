@@ -92,6 +92,7 @@ internal class MarkdownModel {
     internal var Path string = ""
     internal var Block MarkdownBlock
     internal var Runs[]MarkdownInline = []MarkdownInline{}
+    internal var Captions Dictionary[int32, IReadOnlyList[MarkdownInline]]?
     internal var Children[]MarkdownModel = []MarkdownModel{}
     internal var Ordered bool
     internal var Start int32 = 1
