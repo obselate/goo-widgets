@@ -55,7 +55,7 @@ public data struct NavigationRailInput {
     var Opacity float64?
     /// Rail transform. Nil resolves to identity.
     var Transform PanelTransform?
-    /// Creates an item button from resolved rail and item values.
+    /// Creates an item button; required identity, focus, handlers, and semantics are reapplied.
     var CreateItem Func[NavigationRailInput, NavigationItem, Button]?
     /// Creates the rail root from resolved values and item buttons.
     var CreateRoot Func[NavigationRailInput, []Button, Container]?
@@ -63,10 +63,22 @@ public data struct NavigationRailInput {
     internal func Resolve() NavigationRailInput -> this with{
         Items = Items ?? []NavigationItem{},
         AccessibilityName = AccessibilityName ?? "Navigation",
-        CollapsedWidth = CollapsedWidth == 0.0 ? 64.0: CollapsedWidth,
-        ExpandedWidth = ExpandedWidth == 0.0 ? 220.0: ExpandedWidth,
+        CollapsedWidth = if CollapsedWidth == 0.0 {
+            64.0
+        } else {
+            CollapsedWidth
+        },
+        ExpandedWidth = if ExpandedWidth == 0.0 {
+            220.0
+        } else {
+            ExpandedWidth
+        },
         Height = Height ?? Percent(100.0),
-        ItemHeight = ItemHeight == 0.0 ? 44.0: ItemHeight,
+        ItemHeight = if ItemHeight == 0.0 {
+            44.0
+        } else {
+            ItemHeight
+        },
         Gap = Gap ?? 4.0,
         ItemPaddingHorizontal = ItemPaddingHorizontal ?? 10.0,
         ItemGap = ItemGap ?? 10.0,
@@ -77,8 +89,16 @@ public data struct NavigationRailInput {
         HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
         TextColor = TextColor ?? Color.Parse("#a1a1aa"),
         SelectedTextColor = SelectedTextColor ?? Color.Parse("#fafafa"),
-        FontSize = FontSize == 0.0 ? 13.0: FontSize,
-        FontWeight = FontWeight == 0 ? 600: FontWeight,
+        FontSize = if FontSize == 0.0 {
+            13.0
+        } else {
+            FontSize
+        },
+        FontWeight = if FontWeight == 0 {
+            600
+        } else {
+            FontWeight
+        },
         Opacity = Opacity ?? 1.0,
         Transform = Transform ?? PanelTransform{},
         CreateItem = nil,
