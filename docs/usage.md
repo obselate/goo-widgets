@@ -222,7 +222,8 @@ side when it fits better, and clamps to Viewport (window coordinates), or the
 Window bounds by default. Its first visible frame waits for the panel measurement,
 so wrapped content is already aligned. It tracks anchor movement and resize. OnDismiss
 reports Escape, OutsideClick, or AnchorRemoved; update Open and rebuild the host.
-Tab stays in the popup and closing restores eligible prior focus. Factories
+Tab stays in the popup. Closing restores eligible prior focus except on outside
+pointer clicks. Factories
 customize the panel/root while placement, handles, input, and content stay wired.
 
 `Menu` takes `MenuInput` with an Anchor or WindowPoint for a context menu.
