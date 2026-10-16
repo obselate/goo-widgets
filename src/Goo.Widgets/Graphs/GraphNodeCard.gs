@@ -1,6 +1,7 @@
 package Goo.Widgets.Graphs
 
 import Goo
+import Goo.Widgets
 import System
 
 /// Reusable graph node presentation with caller-owned content and pointer handlers.
@@ -33,6 +34,8 @@ public data struct GraphNodeCard {
     var ForegroundColor Color?
     /// Optional base style for the card root.
     var RootStyle Style?
+    /// Receives keyboard and accessibility activation requests.
+    var OnActivate Action?
     /// Receives pointer presses on the card.
     var OnPointerDown Action[PointerEvent]?
     /// Receives pointer movement captured by the card.
@@ -90,7 +93,7 @@ public data struct GraphNodeCard {
             TextWrap: TextWrap.NoWrap,
             TextTrimming: TextTrimming.Ellipsis,
         }
-        return Container{
+        let card = Container{
             BasedOn: RootStyle,
             Key: "graph-node-" + Node.Id,
             Position: PositionType.Absolute,
@@ -116,11 +119,14 @@ public data struct GraphNodeCard {
             Focusable: true,
             Cursor: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
+            OnClick: OnActivate,
             OnPointerDown: OnPointerDown,
             OnPointerMove: OnPointerMove,
             OnPointerUp: OnPointerUp,
             OnPointerCancel: OnPointerCancel,
             content,
         }
+        WidgetKeyBindings.BindActivation(card)
+        return card
     }
 }
