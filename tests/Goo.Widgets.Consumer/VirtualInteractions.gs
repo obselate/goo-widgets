@@ -24,6 +24,10 @@ internal class VirtualProbeSemantics : AccessibilityAdapter {
     }
 }
 
+internal class VirtualMountFailure : Cell {
+    public override func Build() Blob -> throw InvalidOperationException("Virtual row mount failed")
+}
+
 internal class VirtualProbeHost : Cell {
     internal let Items List[VirtualProbeItem] = List[VirtualProbeItem]()
     internal let Builds List[int32] = List[int32]()
@@ -31,6 +35,7 @@ internal class VirtualProbeHost : Cell {
     internal let Handle ElementHandle = ElementHandle{}
     internal var KeyCalls int32
     internal var Pin bool
+    internal var Failure int32
     private let kind VirtualProbeKind
     private let key Func[VirtualProbeItem, string]
     private let build Func[VirtualProbeItem, Blob]
@@ -64,6 +69,14 @@ internal class VirtualProbeHost : Cell {
 
     private func BuildItem(item VirtualProbeItem) Blob {
         Builds.Add(item.Id)
+        if item.Id == 2 {
+            if Failure == 1 {
+                throw InvalidOperationException("Virtual row build failed")
+            }
+            if Failure == 2 {
+                return Cell.Mount[VirtualMountFailure]()
+            }
+        }
         let width float64 = if kind == VirtualProbeKind.Grid {
             17.0
         } else {
@@ -126,29 +139,72 @@ func FindVirtualList(node AccessibilityNode?) AccessibilityNode? {
 func VirtualContracts() {
     let items = List[int32]()
     var rejected int32
-    try {
-        VirtualItems(items, 0.0, 20.0, (item int32) -> item.ToString(), (item int32) -> Container{})
-    } catch (error ArgumentOutOfRangeException) {
-        if error.ParamName == "itemWidth" {
-            rejected++
+    for extent in []float64{1e-100, 0.0, Double.NaN, Double.MaxValue, Double.PositiveInfinity, Double.NegativeInfinity} {
+        try {
+            VirtualItems(items, extent, 20.0, (item int32) -> item.ToString(), (item int32) -> Container{})
+        } catch (error ArgumentOutOfRangeException) {
+            if error.ParamName == "itemWidth" {
+                rejected++
+            }
+        }
+        try {
+            VirtualItems(items, 20.0, extent, (item int32) -> item.ToString(), (item int32) -> Container{})
+        } catch (error ArgumentOutOfRangeException) {
+            if error.ParamName == "itemHeight" {
+                rejected++
+            }
+        }
+        try {
+            VirtualRows(items, extent, (item int32) -> item.ToString(), (item int32) -> Container{})
+        } catch (error ArgumentOutOfRangeException) {
+            if error.ParamName == "estimatedItemHeight" {
+                rejected++
+            }
         }
     }
-    try {
-        VirtualItems(items, 20.0, Double.NaN, (item int32) -> item.ToString(), (item int32) -> Container{})
-    } catch (error ArgumentOutOfRangeException) {
-        if error.ParamName == "itemHeight" {
-            rejected++
-        }
-    }
-    try {
-        VirtualRows(items, Double.MaxValue, (item int32) -> item.ToString(), (item int32) -> Container{})
-    } catch (error ArgumentOutOfRangeException) {
-        if error.ParamName == "estimatedItemHeight" {
-            rejected++
-        }
-    }
-    Require(rejected == 3, "Virtual lists accepted an item extent that is not finite and positive.")
+    Require(rejected == 18, "Virtual lists accepted an item extent that is not finite and positive in float32.")
+    let tiny = float64(Single.Epsilon)
+    VirtualItems(items, tiny, tiny, (item int32) -> item.ToString(), (item int32) -> Container{})
+    VirtualRows(items, tiny, (item int32) -> item.ToString(), (item int32) -> Container{})
     Console.WriteLine("PASS: virtual list item extent validation")
+}
+
+func VirtualRollbackInteractions() {
+    for failure in []int32{1, 2} {
+        let host = VirtualProbeHost(VirtualProbeKind.Rows, 2)
+        RunVirtual(
+            "VirtualRows rollback ${failure}",
+            host,
+            (window Window, semantics VirtualProbeSemantics) -> {
+                host.Items.RemoveAt(0)
+                host.Items.Add(VirtualProbeItem{Id: 2})
+                host.Failure = failure
+                host.Rebuild()
+                var rejected = false
+                try {
+                    PumpFrames(window, 1)
+                } catch (error InvalidOperationException) {
+                    rejected = true
+                }
+                Require(rejected, "The virtual row failure was not raised.")
+                Require(
+                    host.Handle.ScrollToItem("row-0") && host.Handle.ScrollToItem("row-1")
+                    && !host.Handle.ScrollToItem("row-2"),
+                    "Canceled streaming changed committed row keys."
+                )
+                Require(host.Handles[0].IsMounted && host.Handles[1].IsMounted && !host.Handles[2].IsMounted, "Canceled streaming changed mounted children.")
+                host.Failure = 0
+                host.Rebuild()
+                PumpFrames(window, 2)
+                Require(
+                    !host.Handle.ScrollToItem("row-0") && host.Handle.ScrollToItem("row-1")
+                    && host.Handle.ScrollToItem("row-2"),
+                    "Streaming did not recover after cancellation."
+                )
+                Require(!host.Handles[0].IsMounted && host.Handles[1].IsMounted && host.Handles[2].IsMounted, "Streaming retry mounted incorrect children.")
+            }
+        )
+    }
 }
 
 func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualProbeSemantics]) {
@@ -172,6 +228,7 @@ func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualP
 }
 
 func VirtualInteractions() {
+    VirtualRollbackInteractions()
     let list = VirtualProbeHost(VirtualProbeKind.List, 1000)
     RunVirtual(
         "VirtualItems list",

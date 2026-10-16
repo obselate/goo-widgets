@@ -88,8 +88,6 @@ public data struct SliderInput {
 public open class Slider : Cell[SliderInput] {
     private let handle ElementHandle = ElementHandle{}
     private var current float64
-    private var lastExternal float64
-    private var initialized bool
     private var dragging bool
     private var pointerId int64 = -1L
     private var resolved SliderInput
@@ -101,13 +99,7 @@ public open class Slider : Cell[SliderInput] {
             dragging = false
             pointerId = -1L
         }
-        if !initialized || input.Value != lastExternal {
-            current = Quantize(input.Value)
-            lastExternal = input.Value
-            initialized = true
-        } else {
-            current = Quantize(current)
-        }
+        current = Quantize(input.Value)
         resolved.Value = current
         resolved.CreateRoot = nil
         let fraction = (current - resolved.Minimum!!) / (resolved.Maximum!!- resolved.Minimum!!)

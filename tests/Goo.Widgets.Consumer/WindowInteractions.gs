@@ -36,6 +36,9 @@ internal class GraphHost : Cell {
     internal var Selected[]string = []string{}
     internal var Card Container?
     internal var Moves int32
+    internal var Viewport GraphViewport = GraphViewport{Zoom: 1.0}
+    internal var RejectViewport bool
+    internal var ViewportRequests int32
 
     public override func Build() Blob -> Container{
         Padding: 32,
@@ -44,6 +47,14 @@ internal class GraphHost : Cell {
             GraphCanvasInput{
                 Nodes: []GraphNode{GraphNode{Id: "one", Label: "Drag me", Position: Position}},
                 SelectedNodeIds: Selected,
+                Viewport: Viewport,
+                OnViewportChanged: (next GraphViewport) -> {
+                    ViewportRequests++
+                    if !RejectViewport {
+                        Viewport = next
+                    }
+                    Rebuild()
+                },
                 Width: 500.0,
                 Height: 320.0,
                 CustomizeNode: (node GraphNode, card Container) -> {
@@ -81,12 +92,16 @@ internal class InteractiveHost : Cell {
     internal var ColorRoot Container?
     internal var ColorValue int32 = 0x4477AA
     internal var ShowPicker bool = true
+    internal var RejectEdits bool
+    internal var RenderedColor int32
     internal var RangeDisabled bool
     internal var ShowGraph bool
     internal var Graph GraphHost?
 
     private func Change(value float64) {
-        Value = value
+        if !RejectEdits {
+            Value = value
+        }
         Rebuild()
     }
 
@@ -116,7 +131,9 @@ internal class InteractiveHost : Cell {
                     Disabled: RangeDisabled,
                     OnValueChanged: (value float64) -> Change(value),
                     OnValueCommitted: (value float64) -> {
-                        Value = value
+                        if !RejectEdits {
+                            Value = value
+                        }
                         Commits++
                         Rebuild()
                     },
@@ -136,10 +153,13 @@ internal class InteractiveHost : Cell {
                         Mode: ColorMode.Hsv,
                         WheelSize: 220,
                         OnValueChanged: (value int32) -> {
-                            ColorValue = value
+                            if !RejectEdits {
+                                ColorValue = value
+                            }
                             Rebuild()
                         },
                         CreateRoot: (input ColorPickerInput, wheel Blob, tone Blob) -> {
+                            RenderedColor = input.Value
                             let container = Container{Gap: 12, Width: input.WheelSize, wheel, tone}
                             ColorRoot = container
                             return container
@@ -239,6 +259,34 @@ func IconButtonInteractions() {
     Require(!window.IsOpen, "Icon button test window did not close.")
 }
 
+func GraphViewportInteractions(window Window, graph GraphHost, windowId uint32) {
+    for reject in []bool{true, false} {
+        graph.RejectViewport = reject
+        let before = graph.Card!!.Handle!!.BorderBox
+        var wheelEvent = SDLEvent{
+            Wheel: SDLMouseWheelEvent{
+                Type: SDLEventType.MouseWheel,
+                WindowID: windowId,
+                Which: 1u,
+                MouseX: 100.0f,
+                MouseY: 100.0f,
+                Y: 1.0f,
+            }
+        }
+        Require(SDL.PushEvent(ref wheelEvent), "SDL rejected graph zoom.")
+        PumpFrames(window, 4)
+        let after = graph.Card!!.Handle!!.BorderBox
+        Require(graph.ViewportRequests > 0, "GraphCanvas did not request a viewport edit.")
+        Require(
+            reject ? after.X == before.X && after.Y == before.Y : after.X != before.X,
+            "GraphCanvas did not honor the host viewport."
+        )
+    }
+    graph.Viewport = GraphViewport{Zoom: 1.0}
+    graph.Rebuild()
+    PumpFrames(window, 3)
+}
+
 func WindowInteractions() {
     SearchListInteractions()
     DisclosureInteractions()
@@ -253,9 +301,20 @@ func WindowInteractions() {
         let slider = host.SliderRoot!!
         Require(slider.Handle!!.IsMounted && slider.Handle!!.BorderBox.Width > 0.0, "Packaged slider did not mount.")
         Require(slider.Handle!!.Focus(), "Packaged slider could not receive focus.")
+        host.RejectEdits = true
         SendKey(windowId, SDLScancode.End)
         PumpFrames(window, 6)
-        Require(host.Value == 1.0 && host.Commits == 1, "Native keyboard input did not reach the packaged slider.")
+        Require(host.Value == 0.2 && host.SliderRoot!!.Accessibility!!.Range!!.Now == 0.3, "Slider retained a rejected value.")
+        let rejectedColor = host.ColorValue
+        Require(host.ColorRoot!!.Children[0].Handle!!.Focus(), "Color wheel could not receive focus.")
+        SendKey(windowId, SDLScancode.End)
+        PumpFrames(window, 4)
+        Require(host.RenderedColor == rejectedColor, "ColorPicker retained a rejected value.")
+        host.RejectEdits = false
+        Require(host.SliderRoot!!.Handle!!.Focus(), "Slider could not regain focus.")
+        SendKey(windowId, SDLScancode.End)
+        PumpFrames(window, 6)
+        Require(host.Value == 1.0 && host.Commits == 2, "Native keyboard input did not reach the packaged slider.")
 
         let box = host.SliderRoot!!.Handle!!.BorderBox
         MouseButton(windowId, float32(box.X + box.Width * 0.25), float32(box.Y + box.Height / 2.0), true)
@@ -264,7 +323,7 @@ func WindowInteractions() {
         MouseButton(windowId, float32(box.X + box.Width * 1.2), float32(box.Y + box.Height / 2.0), false)
         PumpFrames(window, 3)
         Require(
-            host.Value == 1.0 && host.Commits == 2,
+            host.Value == 1.0 && host.Commits == 3,
             "Captured pointer drag did not clamp and commit at the endpoint. Value=" + host.Value.ToString() +
                 ", commits=" +
                 host
@@ -277,7 +336,7 @@ func WindowInteractions() {
         PumpFrames(window, 3)
         SendKey(windowId, SDLScancode.Home)
         PumpFrames(window, 3)
-        Require(host.Value == 1.0 && host.Commits == 2, "Disabled range accepted native input.")
+        Require(host.Value == 1.0 && host.Commits == 3, "Disabled range accepted native input.")
 
         let wheel = host.ColorRoot!!.Children[0]
         Require(wheel.Handle!!.Focus(), "Color wheel could not receive focus.")
@@ -306,6 +365,7 @@ func WindowInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         let graph = host.Graph!!
+        GraphViewportInteractions(window, graph, windowId)
         let card = graph.Card!!.Handle!!.BorderBox
         let startX = float32(card.X + card.Width / 2.0)
         let startY = float32(card.Y + card.Height / 2.0)
