@@ -309,6 +309,7 @@ func RailInteractions() {
         PumpFrames(window, 5)
         Require(host.Selected == "three" && host.Requests == 1, "Rail Enter did not activate the focused item")
         SendKey(id, SDLScancode.Home)
+        PumpFrames(window, 5)
         SendKey(id, SDLScancode.Space)
         PumpFrames(window, 5)
         Require(host.Selected == "one" && host.Requests == 2, "Rail Space did not activate the focused item")

@@ -156,19 +156,34 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             } else {
                 let selected = id == resolved.SelectedId
                 button = Button{
-                    Key: id,
                     Width: Percent(100.0),
                     Height: resolved.ItemHeight,
                     Padding: Edges{Right: resolved.ItemPaddingHorizontal!!, Left: resolved.ItemPaddingHorizontal!!},
                     Gap: resolved.ItemGap!!,
                     BorderRadius: resolved.ItemBorderRadius!!,
-                    BackgroundColor: selected ? resolved.SelectedBackgroundColor!!: resolved.ItemBackgroundColor!!,
-                    Color: selected ? resolved.SelectedTextColor!!: resolved.TextColor!!,
+                    BackgroundColor: if selected {
+                        resolved.SelectedBackgroundColor!!
+                    } else {
+                        resolved.ItemBackgroundColor!!
+                    },
+                    Color: if selected {
+                        resolved.SelectedTextColor!!
+                    } else {
+                        resolved.TextColor!!
+                    },
                     Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-                    Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
+                    Cursor: if item.Disabled {
+                        Cursor.Default
+                    } else {
+                        Cursor.Pointer
+                    },
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
-                    JustifyContent: resolved.Expanded ? JustifyContent.FlexStart: JustifyContent.Center,
+                    JustifyContent: if resolved.Expanded {
+                        JustifyContent.FlexStart
+                    } else {
+                        JustifyContent.Center
+                    },
                 }
                 if let content = item.Content {
                     button.Children.Add(content)
@@ -216,7 +231,11 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             return createRoot(resolved, buttons)
         }
         let root = Container{
-            Width: resolved.Expanded ? resolved.ExpandedWidth: resolved.CollapsedWidth,
+            Width: if resolved.Expanded {
+                resolved.ExpandedWidth
+            } else {
+                resolved.CollapsedWidth
+            },
             Height: resolved.Height!!,
             Gap: resolved.Gap!!,
             BackgroundColor: resolved.BackgroundColor!!,
