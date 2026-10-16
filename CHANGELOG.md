@@ -1,9 +1,5 @@
 # Changelog
 
-## Unreleased
-
-- Restore committed VirtualRows metadata when streaming realization or mounting fails.
-
 ## 0.2.19 - 2026-10-16
 
 - Close popovers on outside pointer clicks without restoring trigger focus. Escape still restores focus.
