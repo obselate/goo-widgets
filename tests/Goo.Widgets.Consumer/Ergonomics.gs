@@ -81,6 +81,7 @@ func ColorPickerErgonomics() {
     customPicker.Render(customInput)
     Require(InvokeKeyBinding(customWheel!!, Key.End), "Custom ColorPicker wheel had no End binding.")
     Require(changedRgb >= 0, "Custom ColorPicker wheel did not update its local color.")
+    customInput.Value = changedRgb
     customPicker.Render(customInput)
     Require(
         rootRgb == changedRgb && rootMode == ColorMode.Hsv,
@@ -134,7 +135,7 @@ func SliderErgonomics() {
     let interactive = (before.Children[1] as Container)!!
     Require(InvokeKeyBinding(interactive, Key.End), "Decorated Slider had no End binding.")
     Require(changed == 1.0, "Decorated Slider did not preserve its interactive root.")
-    let after = (slider.Render(input) as Container)!!
+    let after = (slider.Render(input with{Value = changed}) as Container)!!
     let afterHeader = (after.Children[0] as Container)!!
     Require((afterHeader.Children[1] as Text)!!.Content == "100%", "Slider did not update its visible formatted value.")
 }
