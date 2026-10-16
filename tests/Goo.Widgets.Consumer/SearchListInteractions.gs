@@ -24,11 +24,6 @@ internal class SearchListHost : Cell {
     internal var AlternateActivations int32
     internal var Query string = ""
     internal let EntryHandle ElementHandle = ElementHandle{}
-
-    private func ChangeQuery(value string) {
-        Query = value.ToLowerInvariant()
-        Rebuild()
-    }
     internal let Rows Dictionary[string, Button] = Dictionary[string, Button]()
     internal let Handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     private let items[]SelectionItem = []SelectionItem{
@@ -41,6 +36,11 @@ internal class SearchListHost : Cell {
     private let selectAlternate Action[string]
     private let row Func[SelectionItem, Button, Blob]
     private let customRow Func[SelectionItem, Button, Blob]
+
+    private func ChangeQuery(value string) {
+        Query = value.ToLowerInvariant()
+        Rebuild()
+    }
 
     internal init() {
         selectionCallback = Select
