@@ -139,28 +139,33 @@ func FindVirtualList(node AccessibilityNode?) AccessibilityNode? {
 func VirtualContracts() {
     let items = List[int32]()
     var rejected int32
-    try {
-        VirtualItems(items, 0.0, 20.0, (item int32) -> item.ToString(), (item int32) -> Container{})
-    } catch (error ArgumentOutOfRangeException) {
-        if error.ParamName == "itemWidth" {
-            rejected++
+    for extent in []float64{1e-100, 0.0, Double.NaN, Double.MaxValue, Double.PositiveInfinity, Double.NegativeInfinity} {
+        try {
+            VirtualItems(items, extent, 20.0, (item int32) -> item.ToString(), (item int32) -> Container{})
+        } catch (error ArgumentOutOfRangeException) {
+            if error.ParamName == "itemWidth" {
+                rejected++
+            }
+        }
+        try {
+            VirtualItems(items, 20.0, extent, (item int32) -> item.ToString(), (item int32) -> Container{})
+        } catch (error ArgumentOutOfRangeException) {
+            if error.ParamName == "itemHeight" {
+                rejected++
+            }
+        }
+        try {
+            VirtualRows(items, extent, (item int32) -> item.ToString(), (item int32) -> Container{})
+        } catch (error ArgumentOutOfRangeException) {
+            if error.ParamName == "estimatedItemHeight" {
+                rejected++
+            }
         }
     }
-    try {
-        VirtualItems(items, 20.0, Double.NaN, (item int32) -> item.ToString(), (item int32) -> Container{})
-    } catch (error ArgumentOutOfRangeException) {
-        if error.ParamName == "itemHeight" {
-            rejected++
-        }
-    }
-    try {
-        VirtualRows(items, Double.MaxValue, (item int32) -> item.ToString(), (item int32) -> Container{})
-    } catch (error ArgumentOutOfRangeException) {
-        if error.ParamName == "estimatedItemHeight" {
-            rejected++
-        }
-    }
-    Require(rejected == 3, "Virtual lists accepted an item extent that is not finite and positive.")
+    Require(rejected == 18, "Virtual lists accepted an item extent that is not finite and positive in float32.")
+    let tiny = float64(Single.Epsilon)
+    VirtualItems(items, tiny, tiny, (item int32) -> item.ToString(), (item int32) -> Container{})
+    VirtualRows(items, tiny, (item int32) -> item.ToString(), (item int32) -> Container{})
     Console.WriteLine("PASS: virtual list item extent validation")
 }
 

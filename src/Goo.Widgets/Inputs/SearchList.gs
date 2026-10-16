@@ -116,6 +116,7 @@ public data struct SearchList {
             Color: foreground,
             Focusable: true,
             Value: query,
+            Controlled: true,
             Placeholder: Placeholder ?? "Search",
             OnChange: OnQueryChange,
             Focus: if showFocusHighlight {

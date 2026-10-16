@@ -22,6 +22,8 @@ internal class SearchListHost : Cell {
     internal var Calls int32
     internal var Activations int32
     internal var AlternateActivations int32
+    internal var Query string = ""
+    internal let EntryHandle ElementHandle = ElementHandle{}
     internal let Rows Dictionary[string, Button] = Dictionary[string, Button]()
     internal let Handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     private let items[]SelectionItem = []SelectionItem{
@@ -34,6 +36,11 @@ internal class SearchListHost : Cell {
     private let selectAlternate Action[string]
     private let row Func[SelectionItem, Button, Blob]
     private let customRow Func[SelectionItem, Button, Blob]
+
+    private func ChangeQuery(value string) {
+        Query = value.ToLowerInvariant()
+        Rebuild()
+    }
 
     internal init() {
         selectionCallback = Select
@@ -78,6 +85,13 @@ internal class SearchListHost : Cell {
         Text{Content: "SearchList · controlled selection", FontSize: 22},
         SearchList{
             Items: items,
+            Query: Query,
+            OnQueryChange: ChangeQuery,
+            Placeholder: "Search items",
+            CustomizeEntry: (entry TextEntry) -> {
+                entry.Handle = EntryHandle
+                return entry
+            },
             SelectedId: Selected,
             Width: 400,
             Height: 240,
@@ -174,6 +188,16 @@ func SearchListInteractions() {
         ClickNativeButton(window, OnlyNativeWindow(), host.Rows["gamma"])
         Require(host.Selected == "alpha" && host.AlternateActivations == 1, "Disabled row accepted selection.")
         CaptureIssueProof(window, "SearchList-custom")
+        Require(host.EntryHandle.Focus(), "Search entry could not be focused.")
+        SelectorType(window, OnlyNativeWindow(), "BETA")
+        Require(host.Query == "beta", "Search query was not normalized by the host.")
+        Require(FindSemantics(semantics.Tree?.Root, "Search items")!!.Value == "beta", "Focused search ignored query normalization.")
+        Require(FindSemantics(semantics.Tree?.Root, "Alpha") == nil, "Search rows ignored the normalized query.")
+        host.Query = "alpha"
+        host.Rebuild()
+        PumpFrames(window, 4)
+        Require(FindSemantics(semantics.Tree?.Root, "Search items")!!.Value == "alpha", "Focused search ignored the host query reset.")
+        Require(FindSemantics(semantics.Tree?.Root, "Alpha") != nil && FindSemantics(semantics.Tree?.Root, "Beta") == nil, "Search rows ignored the host query reset.")
         Console.WriteLine(
             "PASS: SearchList retained selection, stable identity, unchanged row reuse, updated colors/height/callback/customization, disabled input."
         )
