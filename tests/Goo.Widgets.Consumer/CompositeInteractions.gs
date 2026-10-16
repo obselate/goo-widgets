@@ -231,8 +231,107 @@ func CompositeClick(window Window, handle ElementHandle) {
     PumpFrames(window, 8)
 }
 
+internal class RailHost : Cell {
+    internal var Selected string = "one"
+    internal var Requests int32
+    internal var DisableSelected bool
+    internal var Empty bool
+    internal var Buttons[]Button = []Button{}
+
+    public override func Build() Blob -> Cell.Mount[NavigationRailInput, NavigationRail]("rail", NavigationRailInput{
+        SelectedId: Selected,
+        Height: 250,
+        OnSelect: (id string) -> {
+            Selected = id
+            Requests++
+            Rebuild()
+        },
+        Items: Empty ? []NavigationItem{}: []NavigationItem{
+            NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected},
+            NavigationItem{Id: "locked", Label: "Rail locked", Disabled: true},
+            NavigationItem{Id: "three", Label: "Rail three"},
+        },
+        CreateRoot: (input NavigationRailInput, buttons[]Button) -> {
+            Buttons = buttons
+            let root = Container{Width: 220, Height: 250}
+            for button in buttons {
+                root.Children.Add(button)
+            }
+            return root
+        },
+    })
+}
+
+func RailInteractions() {
+    let host = RailHost()
+    let root = ApplicationRoot(host)
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "Rail keyboard verification",
+        Width: 250,
+        Height: 300,
+        Root: root,
+        AccessibilityAdapter: semantics
+    }
+    BindApplicationInput(root, window)
+    window.Open()
+    try {
+        PumpFrames(window, 20)
+        let id = OnlyNativeWindow()
+        Require(
+            host.Buttons[0].TabStop && !host.Buttons[1].TabStop && !host.Buttons[2].TabStop,
+            "Rail did not establish a single enabled tab stop"
+        )
+        SendKey(id, SDLScancode.Tab)
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree!!.Root, "Rail one")!!.Focused, "Tab did not enter the selected rail item")
+        SendKey(id, SDLScancode.Down)
+        PumpFrames(window, 5)
+        Require(
+            host.Selected == "one" && host.Requests == 0 &&
+                FindSemantics(semantics.Tree!!.Root, "Rail three")!!.Focused,
+            "Rail arrow navigation did not skip disabled items or changed controlled selection"
+        )
+        Require(!host.Buttons[0].TabStop && host.Buttons[2].TabStop, "Rail did not move its single tab stop")
+        SendKey(id, SDLScancode.Down)
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree!!.Root, "Rail one")!!.Focused, "Rail Down did not wrap")
+        SendKey(id, SDLScancode.Up)
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree!!.Root, "Rail three")!!.Focused, "Rail Up did not wrap")
+        SendKey(id, SDLScancode.Home)
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree!!.Root, "Rail one")!!.Focused, "Rail Home missed the first enabled item")
+        SendKey(id, SDLScancode.End)
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree!!.Root, "Rail three")!!.Focused, "Rail End missed the last enabled item")
+        SendKey(id, SDLScancode.Return)
+        PumpFrames(window, 5)
+        Require(host.Selected == "three" && host.Requests == 1, "Rail Enter did not activate the focused item")
+        SendKey(id, SDLScancode.Home)
+        SendKey(id, SDLScancode.Space)
+        PumpFrames(window, 5)
+        Require(host.Selected == "one" && host.Requests == 2, "Rail Space did not activate the focused item")
+        host.DisableSelected = true
+        host.Rebuild()
+        PumpFrames(window, 5)
+        Require(!host.Buttons[0].TabStop && host.Buttons[2].TabStop, "Rail retained a disabled selected tab stop")
+        host.Empty = true
+        host.Rebuild()
+        PumpFrames(window, 5)
+        Require(host.Buttons.Length == 0, "Rail retained removed items")
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+    Console.WriteLine(
+        "PASS: rail single Tab stop, disabled skipping, wrap, Home/End, Enter/Space and controlled selection"
+    )
+}
+
 func CompositeInteractions() {
     TextAreaOwnership()
+    RailInteractions()
     let host = CompositeHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

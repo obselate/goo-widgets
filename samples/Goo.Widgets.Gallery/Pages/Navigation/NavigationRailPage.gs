@@ -14,7 +14,7 @@ internal open class NavigationRailExample : Cell {
     public override func Build() Blob -> Container{
         Gap: 16.0,
         FlexDirection: FlexDirection.Row,
-        NavigationRail{
+        Cell.Mount[NavigationRailInput, NavigationRail]("rail", NavigationRailInput{
             Expanded: expanded,
             SelectedId: selected,
             AccessibilityName: "Example sections",
@@ -26,7 +26,7 @@ internal open class NavigationRailExample : Cell {
                 NavigationItem{Id: "jobs", Label: "Jobs", Content: MaterialIcons.Create("work")},
                 NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
             },
-        }.Build(),
+        }),
         Container{
             Gap: 12.0,
             Text{Content: "Selected: " + selected, Color: "#fafafa"},
