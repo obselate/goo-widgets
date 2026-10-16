@@ -533,6 +533,7 @@ func OverlayInteractions() {
             !host.PopupOpen && host.LastDismiss == PopoverDismissReason.OutsideClick && host.BackgroundClicks == 0,
             "Outside click failed to dismiss without activating background"
         )
+        Require(!OverlayFocus(semantics, "Open popup"), "Outside click restored focus to the popover trigger")
         window.Width = 860
         host.PointPopup = false
         host.ExplicitViewport = false
