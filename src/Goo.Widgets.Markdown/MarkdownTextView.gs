@@ -3,6 +3,7 @@ package Goo.Widgets.Markdown
 import Goo
 import Goo.Widgets
 import System
+import System.Collections.Generic
 
 internal data struct MarkdownLeafInput {
     var Model MarkdownModel?
@@ -142,13 +143,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
     }
 
-    private func CaptionRanges(run MarkdownInline)[]TextStyleRange {
-        guard let captions = current.Model!!.Captions else {
-            return []TextStyleRange{}
-        }
-        if !captions.TryGetValue(run.Start, out var spans) {
-            return []TextStyleRange{}
-        }
+    private func CaptionRanges(spans IReadOnlyList[MarkdownInline])[]TextStyleRange {
         let ranges = [spans.Count]TextStyleRange
         for index in 0 ... spans.Count {
             let span = spans[index]
@@ -175,13 +170,15 @@ internal class MarkdownTextView : Cell, IDisposable {
             return nil
         }
         let options = current.Options
-        var content Blob = Text{
-            BasedOn: style,
-            Content: run.Text ?? "",
-            TextWrap: TextWrap.Wrap,
-            MinWidth: 0.0,
-            StyleRanges: run.Kind == MarkdownInlineKind.Link ? CaptionRanges(run): []TextStyleRange{}
+        let text = Text{BasedOn: style, Content: run.Text ?? "", TextWrap: TextWrap.Wrap, MinWidth: 0.0}
+        if run.Kind == MarkdownInlineKind.Link {
+            if let captions = current.Model!!.Captions {
+                if captions.TryGetValue(run.Start, out var spans) {
+                    text.StyleRanges = CaptionRanges(spans)
+                }
+            }
         }
+        var content Blob = text
         if run.Kind == MarkdownInlineKind.Image {
             guard let image = options.ResolveImage?.Invoke(run) else {
                 return nil

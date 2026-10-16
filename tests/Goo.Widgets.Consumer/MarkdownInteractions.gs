@@ -175,18 +175,6 @@ internal class MarkdownHost : Cell {
 
 func MarkdownLongCaption() string -> "complete release guide with all of the details needed to review this deployment and its follow-up changes"
 
-func MarkdownCaptionContracts(caption Text) {
-    Require(
-        caption.Handle!!.IsMounted && caption.Content == "release guide code old" &&
-            caption.StyleRanges.Length == 7 &&
-            caption.StyleRanges[0].Range == TextRange(0, 7) &&
-            caption.StyleRanges[2].Range == TextRange(8, 5) &&
-            caption.StyleRanges[4].Range == TextRange(14, 4) &&
-            caption.StyleRanges[6].Range == TextRange(19, 3),
-        "Markdown link lost its nested caption styles"
-    )
-}
-
 func MarkdownInteractions() {
     MarkdownContracts()
     let host = MarkdownHost()
@@ -203,7 +191,16 @@ func MarkdownInteractions() {
     window.Open()
     try {
         PumpFrames(window, 25)
-        MarkdownCaptionContracts(host.LinkCaption!!)
+        let caption = host.LinkCaption!!
+        Require(
+            caption.Handle!!.IsMounted && caption.Content == "release guide code old" &&
+                caption.StyleRanges.Length == 4 &&
+                caption.StyleRanges[0].Range == TextRange(0, 7) &&
+                caption.StyleRanges[1].Range == TextRange(8, 5) &&
+                caption.StyleRanges[2].Range == TextRange(14, 4) &&
+                caption.StyleRanges[3].Range == TextRange(19, 3),
+            "Markdown link lost its nested caption styles"
+        )
         let id = OnlyNativeWindow()
         Require(
             host.Headings.Count == 4 && host.Headings[3].Id == "details-2" && host.Headings[0].Handle!!.IsMounted,
@@ -318,7 +315,8 @@ func MarkdownInteractions() {
         let nextText = longEditor.Controller.Document.GetText().IndexOf("Text wraps")
         var caret ElementRect
         Require(
-            longLink.Bounds.Width <= host.Viewport.ContentBox.Width + .2 && longLink.Bounds.Height > 30.0,
+            host.LinkCaption!!.StyleRanges.Length == 0 &&
+                longLink.Bounds.Width <= host.Viewport.ContentBox.Width + .2 && longLink.Bounds.Height > 30.0,
             "Markdown long link did not wrap to the measured paragraph width"
         )
         Require(

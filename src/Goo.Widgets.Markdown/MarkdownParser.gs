@@ -178,9 +178,13 @@ internal class MarkdownParser {
                 Append(child, MarkdownInline{}, label, labelRuns, nil)
             }
             let caption = label.Length == 0 ? (link.IsImage ? "Image": link.Url ?? "Link"): label.ToString()
-            if !link.IsImage && model != nil && labelRuns.Count > 0 {
-                model.Captions ??= Dictionary[int32, IReadOnlyList[MarkdownInline]]()
-                model.Captions!![text.Length] = labelRuns
+            if !link.IsImage && model != nil {
+                labelRuns.RemoveAll((span MarkdownInline) ->
+                    !span.Bold && !span.Italic && !span.Strikethrough && span.Kind != MarkdownInlineKind.Code)
+                if labelRuns.Count > 0 {
+                    model.Captions ??= Dictionary[int32, IReadOnlyList[MarkdownInline]]()
+                    model.Captions!![text.Length] = labelRuns
+                }
             }
             Add(
                 caption,
