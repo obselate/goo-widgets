@@ -257,7 +257,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            OnPointerCancel: (e PointerEvent) -> EndPointer(e),
+            OnPointerCancel: (e PointerEvent) -> EndPointer(e, false),
             KeyBindings: []KeyBinding{
                 KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
                 KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
@@ -453,14 +453,16 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         }
     }
 
-    private func EndPointer(e PointerEvent) {
+    private func EndPointer(e PointerEvent, commit bool = true) {
         if resolved.Disabled || !dragging || e.PointerId != pointerId {
             return
         }
         e.ReleaseCapture()
         dragging = false
         pointerId = -1L
-        UpdateColor(true)
+        if commit {
+            UpdateColor(true)
+        }
     }
 
     private func KeyAction(key Key) {
