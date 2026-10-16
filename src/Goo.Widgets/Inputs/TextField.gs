@@ -148,9 +148,13 @@ public data struct TextField {
             CreateEntry = nil,
             CreateRoot = nil,
         }
+        let labelHandle = ElementHandle()
+        let issueHandle = ElementHandle()
         var label Text? = nil
         if resolved.Label != nil {
             label = Text{
+                Key: "label",
+                Handle: labelHandle,
                 Content: resolved.Label!!,
                 Color: resolved.MutedTextColor!!,
                 FontSize: resolved.LabelFontSize,
@@ -188,8 +192,6 @@ public data struct TextField {
                 Placeholder: resolved.Placeholder!!,
                 OnChange: resolved.OnChange,
                 OnSubmit: resolved.OnSubmit,
-                Focusable: true,
-                Disabled: resolved.Disabled,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
                 Focus: if resolved.ShowFocusHighlight {
@@ -201,7 +203,6 @@ public data struct TextField {
                     BackgroundColor: resolved.DisabledBackgroundColor!!,
                     Color: resolved.DisabledTextColor!!
                 },
-                Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: resolved.AccessibilityName!!},
             }
             if resolved.FontFamily != nil {
                 entry.FontFamily = resolved.FontFamily!!
@@ -211,6 +212,8 @@ public data struct TextField {
         var issue Text? = nil
         if resolved.IssueText != nil {
             issue = Text{
+                Key: "issue",
+                Handle: issueHandle,
                 Content: resolved.IssueText!!,
                 Color: resolved.InvalidColor!!,
                 FontSize: resolved.IssueFontSize,
@@ -223,6 +226,19 @@ public data struct TextField {
             }
             if resolved.FontFamily != nil {
                 issue.FontFamily = resolved.FontFamily!!
+            }
+        }
+        entry!!.Key = "entry"
+        entry!!.Disabled = resolved.Disabled
+        entry!!.Focusable = !resolved.Disabled
+        entry!!.Accessibility = Accessibility{
+            Role: AccessibilityRole.TextInput,
+            Name: resolved.AccessibilityName!!,
+            Invalid: resolved.Invalid,
+            Relationships: AccessibilityRelationships{
+                LabelledBy: label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
+                DescribedBy: issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
+                ErrorMessage: resolved.Invalid && issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
             }
         }
         if let createRoot = createRoot {
