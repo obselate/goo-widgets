@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets.Colors
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
@@ -488,7 +489,68 @@ func CompositeInteractions() {
         PumpFrames(window, 5)
     }
     Require(!window.IsOpen, "Composite widget window failed to close")
+    PointerCommitCancellation()
     Console.WriteLine(
         "PASS: split drag/cancel/resize/keyboard, tab pointer/disabled/manual/automatic/overflow, TextArea controlled edits/selection/ownership/read-only"
     )
+}
+
+internal class PointerCommitHost : Cell {
+    internal var SliderRoot Container?
+    internal var Wheel Blob?
+    internal let Commits[]int32 = [2]int32
+    internal let Previews[]int32 = [2]int32
+
+    public override func Build() Blob -> Container{
+        Width: 300, Height: 300, Gap: 20,
+        Cell.Mount[SliderInput, Slider]("slider", SliderInput{
+            Value: 0.5, Width: 260, Height: 40,
+            OnValueChanged: (value float64) -> { Previews[0]++ },
+            OnValueCommitted: (value float64) -> { Commits[0]++ },
+            CreateRoot: (input SliderInput, root Container) -> {
+                SliderRoot = root
+                return root
+            }
+        }),
+        Cell.Mount[ColorPickerInput, ColorPicker]("picker", ColorPickerInput{
+            Value: 0x336699, Compact: true, WheelSize: 120,
+            OnValueChanged: (value int32) -> { Previews[1]++ },
+            OnValueCommitted: (value int32) -> { Commits[1]++ },
+            CreateRoot: (input ColorPickerInput, wheel Blob, tone Blob) -> {
+                Wheel = wheel
+                return Container(){wheel, tone}
+            }
+        })
+    }
+}
+
+func PointerCommitCancellation() {
+    let host = PointerCommitHost()
+    let window = Window{Title: "Pointer commit cancellation", Root: host, Width: 320, Height: 350}
+    window.Open()
+    try {
+        PumpFrames(window, 8)
+        let input = window.PlatformInput
+        let roots = []Blob{host.SliderRoot!!, host.Wheel!!}
+        for index in 0 ... roots.Length {
+            let box = roots[index].Handle!!.BorderBox
+            let x = float32(box.X + box.Width / 2.0)
+            let y = float32(box.Y + box.Height / 2.0)
+            input.PointerPress(7L, PointerDevice.Touch, x, y, PointerButton.Primary, KeyModifiers{}, 1.0F)
+            input.PointerMove(7L, PointerDevice.Touch, x + 10.0F, y, KeyModifiers{}, 1.0F)
+            input.PointerCancel(7L, PointerDevice.Touch)
+            PumpFrames(window, 3)
+            Require(host.Previews[index] > 0, "Cancelled drag emitted no preview")
+            Require(host.Commits[index] == 0, "Cancelled Slider or ColorPicker drag committed")
+            input.PointerPress(7L, PointerDevice.Touch, x, y, PointerButton.Primary, KeyModifiers{}, 1.0F)
+            input.PointerMove(7L, PointerDevice.Touch, x + 10.0F, y, KeyModifiers{}, 1.0F)
+            input.PointerRelease(7L, PointerDevice.Touch, x + 10.0F, y, PointerButton.Primary, KeyModifiers{}, 0.0F)
+            PumpFrames(window, 3)
+            Require(host.Commits[index] == 1, "Slider or ColorPicker did not commit the later drag exactly once")
+        }
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+    Console.WriteLine("PASS: mounted Slider and ColorPicker cancel without commit, then drag/up commits once")
 }

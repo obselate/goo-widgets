@@ -3,6 +3,7 @@ package Goo.Widgets.Consumer
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Charts
+import Goo.Widgets.Graphs
 import Goo.Widgets.Layout
 import Hexa.NET.SDL3
 import System
@@ -311,8 +312,92 @@ internal class GridChartHost : Cell {
     }
 }
 
+internal class GraphActivationHost : Cell {
+    internal var Selected[]string = []string{}
+    internal var Requests int32
+    internal let Cards Dictionary[string, Container] = Dictionary[string, Container]()
+
+    public override func Build() Blob -> Cell.Mount[GraphCanvasInput, GraphCanvas](
+        "graph",
+        GraphCanvasInput{
+            Width: 500,
+            Height: 250,
+            Nodes: []GraphNode{
+                GraphNode{Id: "one", Label: "First node", Position: Point{X: 100, Y: 100}},
+                GraphNode{Id: "two", Label: "Second node", Position: Point{X: 300, Y: 100}},
+                GraphNode{Id: "disabled", Label: "Disabled node", Position: Point{X: 100, Y: 200}},
+            },
+            SelectedNodeIds: Selected,
+            OnSelectionChanged: (ids[]string) -> {
+                Selected = ids
+                Requests++
+                Rebuild()
+            },
+            CustomizeNode: (node GraphNode, card Container) -> {
+                card.Handle = ElementHandle()
+                card.Disabled = node.Id == "disabled"
+                Cards[node.Id] = card
+                return card
+            },
+        }
+    )
+}
+
+func GraphActivationInteractions() {
+    let host = GraphActivationHost()
+    let root = ApplicationRoot(host)
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "Graph activation verification",
+        Width: 500,
+        Height: 250,
+        Root: root,
+        AccessibilityAdapter: semantics
+    }
+    BindApplicationInput(root, window)
+    window.Open()
+    try {
+        PumpFrames(window, 20)
+        let id = OnlyNativeWindow()
+        SendKey(id, SDLScancode.Tab)
+        SendKey(id, SDLScancode.Tab)
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree!!.Root, "First node")!!.Focused, "Tab did not focus the graph node")
+        SendKey(id, SDLScancode.Return)
+        PumpFrames(window, 5)
+        Require(host.Selected.Length == 1 && host.Selected[0] == "one", "Enter did not select the focused node")
+        SendKey(id, SDLScancode.Tab)
+        SendKey(id, SDLScancode.Space)
+        PumpFrames(window, 5)
+        Require(host.Selected.Length == 1 && host.Selected[0] == "two", "Space did not select the focused node")
+        let first = FindSemantics(semantics.Tree!!.Root, "First node")!!
+        window.PerformAccessibilityAction(first.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
+        PumpFrames(window, 5)
+        Require(host.Selected.Length == 1 && host.Selected[0] == "one", "Accessible activation did not select the node")
+        CompositeClick(window, host.Cards["two"].Handle!!)
+        Require(host.Selected.Length == 1 && host.Selected[0] == "two", "Pointer node selection regressed")
+        GridModifiedClick(window, host.Cards["one"].Handle!!, SDLKeymod.Ctrl)
+        Require(host.Selected.Length == 2, "Keyboard activation wiring replaced additive pointer selection")
+        GridModifiedClick(window, host.Cards["one"].Handle!!, SDLKeymod.Ctrl)
+        Require(
+            host.Selected.Length == 1 && host.Selected[0] == "two",
+            "Ctrl-click deselection activated the deselected node again"
+        )
+        let requests = host.Requests
+        let disabled = FindSemantics(semantics.Tree!!.Root, "Disabled node")!!
+        window.PerformAccessibilityAction(disabled.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
+        CompositeClick(window, host.Cards["disabled"].Handle!!)
+        Require(host.Requests == requests, "Disabled node accepted activation")
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+    Console.WriteLine("PASS: graph Tab/Enter/Space/accessibility activation, pointer selection and disabled activation")
+}
+
 func GridChartInteractions() {
     GridChartContracts()
+    GraphActivationInteractions()
     let host = GridChartHost()
     let semantics = SearchListSemantics()
     let window = Window{
