@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Keep focused SearchList entry text in sync with the host query.
+- Restore committed VirtualRows metadata when streaming realization or mounting fails.
+- Apply host values on every Slider, ColorPicker and GraphCanvas rebuild, including rejected edits.
+- Reject virtual item extents that underflow to zero in float32.
+- Preserve bold, italic, inline-code and strikethrough formatting inside a single Markdown link caption.
+
 ## 0.2.19 - 2026-10-16
 
 - Close popovers on outside pointer clicks without restoring trigger focus. Escape still restores focus.
