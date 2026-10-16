@@ -64,6 +64,7 @@ internal class MarkdownHost : Cell {
     internal var Changed bool
     internal var LongLink bool
     internal var LinkContent ElementHandle?
+    internal var LinkCaption Text?
     internal var Show bool = true
     internal var StylePasses int32
     internal var InlinePasses int32
@@ -93,6 +94,7 @@ internal class MarkdownHost : Cell {
         if run.Kind == MarkdownInlineKind.Link {
             prepared.Handle = ElementHandle()
             LinkContent = prepared.Handle
+            LinkCaption = prepared as Text
         }
         return prepared
     }
@@ -115,7 +117,7 @@ internal class MarkdownHost : Cell {
     + (Changed ? "Updated paragraph. ": "Select this paragraph. ")
     +
         "It contains **bold**, *italic*, ~~old~~, `inline code`, and the [" +
-        (LongLink ? MarkdownLongCaption(): "release guide")
+        (LongLink ? MarkdownLongCaption(): "**release** *guide* `code` ~~old~~")
     +
         "](app:guide). Text wraps naturally when the window gets narrower, and copying keeps the plain readable content.\n\n"
     + "> [!TIP]\n> This note is selectable and measured using real fonts.\n\n"
@@ -173,6 +175,18 @@ internal class MarkdownHost : Cell {
 
 func MarkdownLongCaption() string -> "complete release guide with all of the details needed to review this deployment and its follow-up changes"
 
+func MarkdownCaptionContracts(caption Text) {
+    Require(
+        caption.Handle!!.IsMounted && caption.Content == "release guide code old" &&
+            caption.StyleRanges.Length == 7 &&
+            caption.StyleRanges[0].Range == TextRange(0, 7) &&
+            caption.StyleRanges[2].Range == TextRange(8, 5) &&
+            caption.StyleRanges[4].Range == TextRange(14, 4) &&
+            caption.StyleRanges[6].Range == TextRange(19, 3),
+        "Markdown link lost its nested caption styles"
+    )
+}
+
 func MarkdownInteractions() {
     MarkdownContracts()
     let host = MarkdownHost()
@@ -189,6 +203,7 @@ func MarkdownInteractions() {
     window.Open()
     try {
         PumpFrames(window, 25)
+        MarkdownCaptionContracts(host.LinkCaption!!)
         let id = OnlyNativeWindow()
         Require(
             host.Headings.Count == 4 && host.Headings[3].Id == "details-2" && host.Headings[0].Handle!!.IsMounted,
@@ -229,7 +244,7 @@ func MarkdownInteractions() {
             && SelectorCountRole(semantics.Tree?.Root, AccessibilityRole.GridCell) == 4,
             "Markdown table added a phantom trailing column"
         )
-        let link = FindSemantics(semantics.Tree?.Root, "release guide")!!
+        let link = FindSemantics(semantics.Tree?.Root, "release guide code old")!!
         Require(
             window.PerformAccessibilityAction(link.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
             "Markdown link could not receive accessible focus"

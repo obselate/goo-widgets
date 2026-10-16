@@ -142,12 +142,46 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
     }
 
+    private func CaptionRanges(run MarkdownInline)[]TextStyleRange {
+        guard let captions = current.Model!!.Captions else {
+            return []TextStyleRange{}
+        }
+        if !captions.TryGetValue(run.Start, out var spans) {
+            return []TextStyleRange{}
+        }
+        let ranges = [spans.Count]TextStyleRange
+        for index in 0 ... spans.Count {
+            let span = spans[index]
+            let style = Style{}
+            if span.Bold {
+                style.FontWeight = 700.0
+            }
+            if span.Italic {
+                style.FontStyle = FontStyle.Italic
+            }
+            if span.Strikethrough {
+                style.TextDecoration = TextDecoration.Underline | TextDecoration.LineThrough
+            }
+            if span.Kind == MarkdownInlineKind.Code {
+                style.FontFamily = current.Options.CodeFontFamily!!
+            }
+            ranges[index] = TextStyleRange(TextRange(span.Start, span.Length), style)
+        }
+        return ranges
+    }
+
     private func Inline(run MarkdownInline, style Style) Blob? {
         if run.Kind == MarkdownInlineKind.Text {
             return nil
         }
         let options = current.Options
-        var content Blob = Text{BasedOn: style, Content: run.Text ?? "", TextWrap: TextWrap.Wrap, MinWidth: 0.0}
+        var content Blob = Text{
+            BasedOn: style,
+            Content: run.Text ?? "",
+            TextWrap: TextWrap.Wrap,
+            MinWidth: 0.0,
+            StyleRanges: run.Kind == MarkdownInlineKind.Link ? CaptionRanges(run): []TextStyleRange{}
+        }
         if run.Kind == MarkdownInlineKind.Image {
             guard let image = options.ResolveImage?.Invoke(run) else {
                 return nil
