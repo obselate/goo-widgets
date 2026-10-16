@@ -1,7 +1,7 @@
 # Using Goo Widgets
 
-These examples use Goo Widgets `0.2.7`, Goo/Goo.Svg `0.6.7`, .NET 10, and
-`Gsharp.NET.Sdk/0.4.591`. Goo automatically supplies the upstream compiler needed
+These examples use Goo Widgets `0.2.19`, Goo/Goo.Svg `0.7.35`, .NET 10, and
+`Gsharp.NET.Sdk/0.4.1150`. Goo automatically supplies the upstream compiler needed
 for native child composition. Follow the [installation instructions](../README.md#install).
 
 ## Basic widgets
