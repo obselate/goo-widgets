@@ -389,6 +389,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             Width: resolved.NodeWidth,
             Height: resolved.NodeHeight,
             RootStyle: resolved.NodeStyle,
+            OnActivate: () -> { EmitNodeSelection(node.Id, KeyModifiers{}) },
             OnPointerDown: (e PointerEvent) -> BeginNodePointer(node, e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> CancelPointer(e),
@@ -446,6 +447,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             return
         }
         if !EmitNodeSelection(node.Id, e.Modifiers) {
+            e.PreventDefault()
             e.StopPropagation()
             return
         }
