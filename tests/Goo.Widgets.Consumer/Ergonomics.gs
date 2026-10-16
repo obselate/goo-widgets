@@ -7,6 +7,7 @@ import Goo.Widgets.Colors
 import Goo.Widgets.Graphs
 import Goo.Widgets.Inputs
 import System
+import System.Reflection
 
 internal class ColorPickerProbe : ColorPicker {
     internal func Render(input Goo.Widgets.Colors.ColorPickerInput) Blob -> base.Build(input)
@@ -224,4 +225,53 @@ func WidgetErgonomics() {
     CheckboxErgonomics()
     SliderErgonomics()
     GraphNodeCardErgonomics()
+    TextFieldAccessibility()
+}
+
+internal class TextFieldSemanticHost : Cell {
+    internal var Custom bool
+
+    public override func Build() Blob -> TextField{
+        Label: "Name",
+        AccessibilityName: "Name entry",
+        Invalid: true,
+        IssueText: "Required",
+        CreateEntry: Custom ? (input TextField) -> TextEntry{}: nil
+    }.Build()
+}
+
+func TextFieldAccessibility() {
+    let host = TextFieldSemanticHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Root: host, Width: 300, Height: 200, AccessibilityAdapter: semantics}
+    let update = typeof(Window).GetMethod(
+        "UpdateTree", BindingFlags.Instance | BindingFlags.NonPublic, nil, Type.EmptyTypes, nil
+    )!!
+    try {
+        update.Invoke(window, nil)
+        let labelId = SelectorFindRole(semantics.Tree?.Root, AccessibilityRole.Text)!!.Id
+        let issueId = FindSemantics(semantics.Tree?.Root, "Required")!!.Id
+        for custom in []bool{false, true} {
+            host.Custom = custom
+            host.Rebuild()
+            update.Invoke(window, nil)
+            let entry = FindSemantics(semantics.Tree?.Root, "Name entry")!!
+            let relations = entry.Relationships
+            Require(entry.Invalid == true, "TextField did not expose invalid state")
+            Require(
+                relations.LabelledBy.Count == 1 && relations.LabelledBy[0] == labelId
+                && relations.DescribedBy.Count == 1 && relations.DescribedBy[0] == issueId
+                && relations.ErrorMessage.Count == 1 && relations.ErrorMessage[0] == issueId,
+                "TextField lost stable label or issue targets after rebuild or custom entry"
+            )
+            Require(
+                SelectorFindRole(semantics.Tree?.Root, AccessibilityRole.Text)!!.Id == labelId
+                && FindSemantics(semantics.Tree?.Root, "Required")!!.Id == issueId,
+                "TextField relationships target nodes outside the mounted snapshot"
+            )
+        }
+    } finally {
+        typeof(Window).GetMethod("Close", BindingFlags.Instance | BindingFlags.NonPublic)!!.Invoke(window, nil)
+    }
+    Console.WriteLine("PASS: mounted TextField invalid state and stable relationships with default and custom entries")
 }
