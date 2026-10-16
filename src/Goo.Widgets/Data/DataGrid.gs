@@ -1012,7 +1012,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             }
             for index in start ... end + 1 {
-                if !rows[index].Disabled && !next.Contains(rows[index].Id!!) {
+                if !rows[index].Disabled && (!toggle || !selected.Contains(rows[index].Id!!)) {
                     next.Add(rows[index].Id!!)
                 }
             }
