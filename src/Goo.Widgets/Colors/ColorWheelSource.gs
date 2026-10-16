@@ -6,6 +6,8 @@ import System
 /// A stable, versioned image provider for a circular color field.
 public sealed class ColorWheelSource : ImageSourceProvider, IDisposable {
     private let resolution int32
+    private let hues[]float64
+    private let radii[]float64
     private var source ImageSource?
     private var version uint64 = 1uL
     private var currentMode ColorMode
@@ -18,6 +20,17 @@ public sealed class ColorWheelSource : ImageSourceProvider, IDisposable {
             throw ArgumentOutOfRangeException("resolution")
         }
         this.resolution = resolution
+        hues = [resolution * resolution]float64
+        radii = [resolution * resolution]float64
+        for y in 0 ... resolution {
+            for x in 0 ... resolution {
+                let dx = 2.0 * (float64(x) + 0.5) / float64(resolution) - 1.0
+                let dy = 2.0 * (float64(y) + 0.5) / float64(resolution) - 1.0
+                let index = y * resolution + x
+                radii[index] = Math.Sqrt(dx * dx + dy * dy)
+                hues[index] = WrapHue(Math.Atan2(dy, dx) * 180.0 / Math.PI)
+            }
+        }
     }
 
     /// Gets the pixel width and height of generated frames.
@@ -48,24 +61,19 @@ public sealed class ColorWheelSource : ImageSourceProvider, IDisposable {
         if hasFrame && currentMode == mode && Math.Abs(currentTone - clampedTone) <= 0.000001 {
             return
         }
-        let pixels = [resolution * resolution * 4]uint8
-        for y in 0 ... resolution {
-            for x in 0 ... resolution {
-                let dx = 2.0 * (float64(x) + 0.5) / float64(resolution) - 1.0
-                let dy = 2.0 * (float64(y) + 0.5) / float64(resolution) - 1.0
-                let radius = Math.Sqrt(dx * dx + dy * dy)
-                let alpha = Math.Clamp((1.0 - radius) * float64(resolution) / 2.0 + 0.5, 0.0, 1.0)
-                if alpha == 0.0 {
-                    continue
-                }
-                let hue = WrapHue(Math.Atan2(dy, dx) * 180.0 / Math.PI)
-                let rgb = Sample(mode, hue, Math.Min(radius, 1.0), clampedTone)
-                let index = (y * resolution + x) * 4
-                pixels[index] = uint8(Math.Round(float64((rgb >> 16) & 255) * alpha))
-                pixels[index + 1] = uint8(Math.Round(float64((rgb >> 8) & 255) * alpha))
-                pixels[index + 2] = uint8(Math.Round(float64(rgb & 255) * alpha))
-                pixels[index + 3] = uint8(Math.Round(255.0 * alpha))
+        let pixels = [radii.Length * 4]uint8
+        for pixel in 0 ... radii.Length {
+            let radius = radii[pixel]
+            let alpha = Math.Clamp((1.0 - radius) * float64(resolution) / 2.0 + 0.5, 0.0, 1.0)
+            if alpha == 0.0 {
+                continue
             }
+            let rgb = Sample(mode, hues[pixel], Math.Min(radius, 1.0), clampedTone)
+            let index = pixel * 4
+            pixels[index] = uint8(Math.Round(float64((rgb >> 16) & 255) * alpha))
+            pixels[index + 1] = uint8(Math.Round(float64((rgb >> 8) & 255) * alpha))
+            pixels[index + 2] = uint8(Math.Round(float64(rgb & 255) * alpha))
+            pixels[index + 3] = uint8(Math.Round(255.0 * alpha))
         }
         let previous = source
         source = ImageSource(resolution, resolution, pixels)
