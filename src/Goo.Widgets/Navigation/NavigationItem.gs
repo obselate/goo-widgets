@@ -4,7 +4,7 @@ import Goo
 
 /// One selectable entry in a NavigationRail.
 public data struct NavigationItem {
-    /// Stable value passed to NavigationRail.OnSelect. Nil resolves to an empty string.
+    /// Stable value passed to OnSelect. Mounted rails and tab bars require a nonempty, unique ID.
     var Id string?
     /// Visible label. Nil resolves to the item ID.
     var Label string?
