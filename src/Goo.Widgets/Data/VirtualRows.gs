@@ -390,8 +390,8 @@ internal class VirtualRowsState[T] : VirtualState {
         data.DropFirst(dropped)
         for row in added {
             data.Append(row)
-            appendedRows++
         }
+        appendedRows += added.Length
         return data
     }
 
