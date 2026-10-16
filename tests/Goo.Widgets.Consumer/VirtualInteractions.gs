@@ -33,7 +33,7 @@ internal class VirtualProbeHost : Cell {
     internal var Pin bool
     private let kind VirtualProbeKind
     private let key Func[VirtualProbeItem, string]
-    private let build Func[VirtualProbeItem, Blob]
+    internal var build Func[VirtualProbeItem, Blob]
 
     internal init(kind VirtualProbeKind, count int32) {
         this.kind = kind
@@ -62,7 +62,7 @@ internal class VirtualProbeHost : Cell {
         return "row-${item.Id}"
     }
 
-    private func BuildItem(item VirtualProbeItem) Blob {
+    internal func BuildItem(item VirtualProbeItem) Blob {
         Builds.Add(item.Id)
         let width float64 = if kind == VirtualProbeKind.Grid {
             17.0
@@ -210,6 +210,23 @@ func VirtualInteractions() {
                 list.Handle.ScrollRange.Y == 19960.0 && FindVirtualList(semantics.Tree?.Root)!!.SizeOfSet == 1001,
                 "An added item did not grow the list."
             )
+            list.Builds.Clear()
+            list.build = (item VirtualProbeItem) -> {
+                let content = list.BuildItem(item)
+                content.Accessibility = Accessibility{Role: AccessibilityRole.Group, Name: "replacement ${item.Id}"}
+                return content
+            }
+            list.Rebuild()
+            PumpFrames(window, 2)
+            Require(list.Builds.Count == list.Mounted(), "A new builder did not refresh unchanged mounted items.")
+            Require(FindSemantics(semantics.Tree?.Root, "replacement 500") != nil, "Replacement item content was not mounted.")
+            list.Builds.Clear()
+            list.Rebuild()
+            PumpFrames(window, 2)
+            Require(list.Builds.Count == 0, "An unchanged replacement builder rebuilt items.")
+            Require(list.Handle.JumpTo(0.0, 10020.0), "The refreshed list rejected a scroll.")
+            PumpFrames(window, 2)
+            Require(list.Builds.Count == 1, "Scrolling did not reuse unchanged replacement items.")
         }
     )
 

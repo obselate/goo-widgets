@@ -99,13 +99,14 @@ internal class VirtualItemsState[T] : VirtualState {
             throw InvalidOperationException("VirtualItems source is unavailable")
         }
         let target = Window(viewport, input)
+        let sameBuilder = Pending == nil || Object.Equals(source?.Build, input.Build)
         for offset in 0 ... target.Count {
             let index = target.Start + offset
             let item = input.Items[index]
             let key = input.Key(item)
             var content Blob?
             var unchanged = false
-            if !String.IsNullOrEmpty(key) {
+            if sameBuilder && !String.IsNullOrEmpty(key) {
                 if current.TryGetValue(key, out var previous) {
                     unchanged = equality.Equals(previous, item)
                 }
