@@ -192,8 +192,6 @@ public data struct TextField {
                 Placeholder: resolved.Placeholder!!,
                 OnChange: resolved.OnChange,
                 OnSubmit: resolved.OnSubmit,
-                Focusable: true,
-                Disabled: resolved.Disabled,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
                 Focus: if resolved.ShowFocusHighlight {
