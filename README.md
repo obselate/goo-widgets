@@ -8,11 +8,11 @@ compose them with ordinary Goo content.
 
 ## Install
 
-Goo Widgets `0.2.18` targets .NET 10. Use `Gsharp.NET.Sdk/0.4.1150` and install the
+Goo Widgets `0.2.19` targets .NET 10. Use `Gsharp.NET.Sdk/0.4.1150` and install the
 package from NuGet.org:
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.18
+dotnet add YourApp.gsproj package Goo.Widgets --version 0.2.19
 ```
 
 ## Use

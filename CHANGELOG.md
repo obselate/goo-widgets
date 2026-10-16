@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.19 - 2026-10-16
+
+- Close popovers on outside pointer clicks without restoring trigger focus. Escape still restores focus.
+- Require Goo and Goo.Svg 0.7.35.
+
 ## 0.2.18 - 2026-10-15
 
 - Keep prior virtual row heights as estimates while viewport width changes, and retain the end position while rows are measured.

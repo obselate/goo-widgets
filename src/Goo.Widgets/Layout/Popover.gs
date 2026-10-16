@@ -53,7 +53,7 @@ public data struct PopoverInput {
     var CreateRoot Func[PopoverInput, Container, Container, Container]?
 }
 
-/// Anchors arbitrary content, flips/clamps placement, contains Tab, and restores prior focus on close.
+/// Anchors content, flips/clamps placement, contains Tab, and restores prior focus except on outside clicks.
 public open class Popover : Cell[PopoverInput], IDisposable {
     private let rootHandle ElementHandle = ElementHandle()
     private let panelHandle ElementHandle = ElementHandle()
@@ -395,11 +395,14 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     }
 
     private func Dismiss(reason PopoverDismissReason) {
+        if reason == PopoverDismissReason.OutsideClick {
+            CloseScope(false)
+        }
         current.OnDismiss?.Invoke(reason)
     }
 
-    private func CloseScope() {
-        activeScope?.Dispose()
+    private func CloseScope(restoreFocus bool = true) {
+        activeScope?.Dispose(restoreFocus)
         activeScope = nil
     }
 }
