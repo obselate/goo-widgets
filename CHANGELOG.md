@@ -7,6 +7,12 @@
 - Apply host values on every Slider, ColorPicker and GraphCanvas rebuild, including rejected edits.
 - Reject virtual item extents that underflow to zero in float32.
 - Preserve bold, italic, inline-code and strikethrough formatting inside a single Markdown link caption.
+- Graph node cards now select their node on Enter, Space and accessibility activation.
+- NavigationRail now uses mounted focus ownership, one enabled tab stop and Up/Down/Home/End navigation without changing host-owned selection.
+- Stop Slider and ColorPicker from committing cancelled pointer drags.
+- Expose TextField invalid state and mounted label, description and error relationships, including custom entries.
+- ColorWheelSource now caches resolution-dependent hue and radius instead of recomputing polar geometry on every tone frame.
+- Remove growing list membership searches from DataGrid range selection while preserving order and disabled-row filtering.
 
 ## 0.2.19 - 2026-10-16
 
