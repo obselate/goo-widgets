@@ -5,6 +5,7 @@ import Goo.Widgets.Data
 import System
 import System.Collections.Generic
 import System.Diagnostics
+import System.Reflection
 
 internal data struct VirtualProbeItem {
     var Id int32
@@ -24,6 +25,10 @@ internal class VirtualProbeSemantics : AccessibilityAdapter {
     }
 }
 
+internal class VirtualMountFailure : Cell {
+    public override func Build() Blob -> throw InvalidOperationException("Virtual row mount failed")
+}
+
 internal class VirtualProbeHost : Cell {
     internal let Items List[VirtualProbeItem] = List[VirtualProbeItem]()
     internal let Builds List[int32] = List[int32]()
@@ -31,6 +36,7 @@ internal class VirtualProbeHost : Cell {
     internal let Handle ElementHandle = ElementHandle{}
     internal var KeyCalls int32
     internal var Pin bool
+    internal var Failure int32
     private let kind VirtualProbeKind
     private let key Func[VirtualProbeItem, string]
     private let build Func[VirtualProbeItem, Blob]
@@ -64,6 +70,14 @@ internal class VirtualProbeHost : Cell {
 
     private func BuildItem(item VirtualProbeItem) Blob {
         Builds.Add(item.Id)
+        if item.Id == 2 {
+            if Failure == 1 {
+                throw InvalidOperationException("Virtual row build failed")
+            }
+            if Failure == 2 {
+                return Cell.Mount[VirtualMountFailure]()
+            }
+        }
         let width float64 = if kind == VirtualProbeKind.Grid {
             17.0
         } else {
@@ -149,6 +163,63 @@ func VirtualContracts() {
     }
     Require(rejected == 3, "Virtual lists accepted an item extent that is not finite and positive.")
     Console.WriteLine("PASS: virtual list item extent validation")
+    VirtualRollbackContracts()
+}
+
+func VirtualRollbackContracts() {
+    let flags = BindingFlags.Instance | BindingFlags.NonPublic
+    let update = typeof(Window).GetMethod("UpdateTree", flags, nil, Type.EmptyTypes, nil)!!
+    let close = typeof(Window).GetMethod("Close", flags)!!
+    for failure in []int32{1, 2} {
+        let host = VirtualProbeHost(VirtualProbeKind.Rows, 2)
+        let window = Window{Root: host, Width: 100, Height: 60}
+        try {
+            update.Invoke(window, nil)
+            let node = typeof(ElementHandle).GetField("node", flags)!!.GetValue(host.Handle)!!
+            let virtualization = typeof(Virtual).Assembly.GetType("Goo.Virtualization")!!
+            let retained = virtualization.GetMethod("State", BindingFlags.Static | BindingFlags.NonPublic)!!.Invoke(nil, []object{node})!!
+            let state = retained.GetType().GetField("current", flags)!!.GetValue(retained)!!
+            let field = state.GetType().GetField("metadata", flags)!!
+            let before = field.GetValue(state)!!
+            let row = before.GetType().GetMethod("Row", flags)!!
+            let prefix = before.GetType().GetMethod("Prefix", flags)!!
+            let key = row.Invoke(before, []object{0})!!.GetType().GetField("Key", flags)!!
+            let offset = prefix.Invoke(before, []object{1})
+            host.Items.RemoveAt(0)
+            host.Items.Add(VirtualProbeItem{Id: 2})
+            host.Failure = failure
+            host.Rebuild()
+            var rejected = false
+            try {
+                update.Invoke(window, nil)
+            } catch (error TargetInvocationException) {
+                rejected = error.InnerException is InvalidOperationException
+            }
+            Require(rejected, "The virtual row failure was not raised.")
+            let after = field.GetValue(state)!!
+            Require(
+                key.GetValue(row.Invoke(after, []object{0})!!)!!.ToString() == "row-0"
+                && key.GetValue(row.Invoke(after, []object{1})!!)!!.ToString() == "row-1"
+                && Object.Equals(prefix.Invoke(after, []object{1}), offset),
+                "Canceled streaming changed committed row keys or offsets."
+            )
+            Require(host.Handles[0].IsMounted && host.Handles[1].IsMounted && !host.Handles[2].IsMounted, "Canceled streaming changed mounted children.")
+            host.Failure = 0
+            host.Rebuild()
+            update.Invoke(window, nil)
+            let committed = field.GetValue(state)!!
+            Require(
+                key.GetValue(row.Invoke(committed, []object{0})!!)!!.ToString() == "row-1"
+                && key.GetValue(row.Invoke(committed, []object{1})!!)!!.ToString() == "row-2"
+                && Object.Equals(prefix.Invoke(committed, []object{1}), offset),
+                "Streaming did not recover after cancellation."
+            )
+            Require(!host.Handles[0].IsMounted && host.Handles[1].IsMounted && host.Handles[2].IsMounted, "Streaming retry mounted incorrect children.")
+        } finally {
+            close.Invoke(window, nil)
+        }
+    }
+    Console.WriteLine("PASS: streaming row rollback after builder and mount failures")
 }
 
 func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualProbeSemantics]) {

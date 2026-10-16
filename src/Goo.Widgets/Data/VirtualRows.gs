@@ -66,6 +66,8 @@ internal class VirtualRowsState[T] : VirtualState {
     private var current Dictionary[string, T] = Dictionary[string, T](StringComparer.Ordinal)
     private var next Dictionary[string, T] = Dictionary[string, T](StringComparer.Ordinal)
     private let measurements List[VirtualRowMeasurement] = List[VirtualRowMeasurement](128)
+    private let droppedRows List[VirtualRow[T]] = List[VirtualRow[T]]()
+    private var appendedRows int32
     private var metadata VirtualRowMetadata[T]?
     private var source VirtualRowsSource[T]?
     private var window VirtualRowsWindow
@@ -226,10 +228,19 @@ internal class VirtualRowsState[T] : VirtualState {
         let previous = current
         current = next
         next = previous
+        droppedRows.Clear()
+        appendedRows = 0
         Cancel()
     }
 
     public override func Cancel() {
+        if let data = metadata {
+            if droppedRows.Count > 0 || appendedRows > 0 {
+                metadata = data.Rollback(droppedRows, appendedRows)
+            }
+        }
+        droppedRows.Clear()
+        appendedRows = 0
         next.Clear()
         measurements.Clear()
         pendingMetadata = nil
@@ -373,9 +384,13 @@ internal class VirtualRowsState[T] : VirtualState {
             }
             added[i] = VirtualRow[T]{Item: item, Key: id, Height: input.Estimate}
         }
+        for i in 0 ... dropped {
+            droppedRows.Add(data.Row(i))
+        }
         data.DropFirst(dropped)
         for row in added {
             data.Append(row)
+            appendedRows++
         }
         return data
     }

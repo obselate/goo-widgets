@@ -146,6 +146,16 @@ internal class VirtualRowMetadata[T] {
         rows[slot] = row
     }
 
+    internal func Rollback(dropped IReadOnlyList[VirtualRow[T]], appended int32) VirtualRowMetadata[T] {
+        let retained = count - appended
+        let values = [dropped.Count + retained]VirtualRow[T]
+        for i in 0 ... dropped.Count {
+            values[i] = dropped[i]
+        }
+        Array.Copy(rows, head, values, dropped.Count, retained)
+        return VirtualRowMetadata[T](values, Width, Gap, Estimate)
+    }
+
     internal func DropFirst(rowCount int32) {
         let dropped = Math.Clamp(rowCount, 0, count)
         for i in 0 ... dropped {
