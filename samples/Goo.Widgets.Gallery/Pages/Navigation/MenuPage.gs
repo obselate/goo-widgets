@@ -82,7 +82,7 @@ internal class MenuExample : Cell {
                 Content: "Right-click for a context menu. Choose opening directions below; arrows follow the submenu side.",
                 FontSize: 14.0,
             },
-            Text{Key: "selected", Content: selected, FontSize: 13.0, Color: "#a5b4fc"},
+            Text{Key: "selected", Content: selected, FontSize: 13.0},
             Container{
                 Key: "directions",
                 FlexDirection: FlexDirection.Row,

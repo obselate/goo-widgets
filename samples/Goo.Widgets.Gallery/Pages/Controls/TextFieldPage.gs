@@ -36,6 +36,7 @@ class TextFieldPage : GalleryPage {
             Value = "Design team",
             AccessibilityName = "Workspace name",
             BackgroundColor = Color.Parse("#18181b"),
+            TextColor = Color.Parse("#fafafa"),
             BorderColor = Color.Parse("#52525b"),
             FocusColor = Color.Parse("#e4e4e7"),
             DisabledBackgroundColor = Color.Parse("#09090b"),

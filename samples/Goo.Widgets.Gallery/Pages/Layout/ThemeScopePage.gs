@@ -17,18 +17,27 @@ internal class ThemeScopePage : GalleryPage {
             ActionButton{Content: "Standard control"}.Build(),
             ThemeScope{
                 Density: Density.Compact,
-                Content: () -> Container{
-                    Gap: Theme.Read().ControlGap,
-                    TextField{Label: "Compact scope", Value: "28 px controls"}.Build(),
-                    ThemeScope{
-                        Value: Theme.Read() with{AccentColor = Color.Parse("#a43723")},
-                        Density: Density.Touch,
-                        Content: () -> Container{
-                            Gap: Theme.Read().ControlGap,
-                            (Theme.Read().PrimaryButton with{Content = "Nested accent and Touch density"}).Build(),
-                            TextField{Label: "Touch scope", Value: "44 px controls"}.Build(),
-                        },
-                    }.Build(),
+                Content: () -> {
+                    let compact = Theme.Read()
+                    return Container{
+                        Gap: compact.ControlGap,
+                        TextField{Label: "Compact scope", Value: "28 px controls"}.Build(),
+                        ThemeScope{
+                            Value: compact with{
+                                AccentColor = Color.Parse("#a43723"),
+                                OnAccentColor = Theme.Ink.TextColor
+                            },
+                            Density: Density.Touch,
+                            Content: () -> {
+                                let touch = Theme.Read()
+                                return Container{
+                                    Gap: touch.ControlGap,
+                                    (touch.PrimaryButton with{Content = "Nested accent and Touch density"}).Build(),
+                                    TextField{Label: "Touch scope", Value: "44 px controls"}.Build(),
+                                }
+                            },
+                        }.Build(),
+                    }
                 },
             }.Build(),
         }

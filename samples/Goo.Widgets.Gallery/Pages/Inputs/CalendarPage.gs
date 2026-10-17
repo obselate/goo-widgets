@@ -70,7 +70,6 @@ internal class CalendarExample : Cell {
         Text{
             Key: "selected",
             Content: "Selected: " + selected.ToString("yyyy-MM-dd") + " · " + french.ToString("yyyy-MM-dd"),
-            Color: "#a5b4fc",
             FontSize: 13.0
         }
     }

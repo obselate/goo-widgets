@@ -70,7 +70,6 @@ internal class DataGridExample : Cell {
             row.Id!!+
             "\nLast checked 2 minutes ago. Review inventory, ownership, and deployment history here.",
         FontSize: 13,
-        Color: "#a5b4fc"
     }
 
     public override func Build() Blob -> Container{
