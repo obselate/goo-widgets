@@ -22,7 +22,7 @@ internal class TimeAxisExample : Cell {
         return Container{
             Width: 660,
             Gap: 18,
-            Text{Key: "heading", Content: "Team schedule", FontSize: 22, Color: "#fafafa"},
+            Text{Key: "heading", Content: "Team schedule", FontSize: 22},
             Cell.Mount[TimeAxisInput, TimeAxis](
                 "timeline",
                 TimeAxisInput{
@@ -74,7 +74,6 @@ internal class TimeAxisExample : Cell {
                 Key: "state",
                 Content: overflow ? "Collapsed event: Diagnostics · 09:00–09:30": selected == nil ? "Select an event or inspect the overlapping entry.": "Selected: " +
                     selected,
-                Color: "#a1a1aa",
                 FontSize: 13
             }
         }

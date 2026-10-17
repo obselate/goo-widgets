@@ -10,9 +10,9 @@ class DrawerPage : GalleryPage {
     public override func Build() Blob {
         let leftNavContent = Container{
             Gap: 6.0,
-            Text{Content: "Navigation", FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
-            Text{Content: "Dashboard", FontSize: 11.0, Color: "#a1a1aa"},
-            Text{Content: "Analytics", FontSize: 11.0, Color: "#a1a1aa"},
+            Text{Content: "Navigation", FontSize: 13.0, FontWeight: 700},
+            Text{Content: "Dashboard", FontSize: 11.0},
+            Text{Content: "Analytics", FontSize: 11.0},
         }
         let openLeftDrawer = Drawer{
             Open: true,
@@ -23,8 +23,8 @@ class DrawerPage : GalleryPage {
 
         let rightDetailContent = Container{
             Gap: 6.0,
-            Text{Content: "Inspector", FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
-            Text{Content: "Node ∶ #root", FontSize: 11.0, Color: "#a1a1aa"},
+            Text{Content: "Inspector", FontSize: 13.0, FontWeight: 700},
+            Text{Content: "Node ∶ #root", FontSize: 11.0},
             Text{Content: "Status ∶ Mounted", FontSize: 11.0, Color: "#4ade80"},
         }
         let openRightDrawer = Drawer{
@@ -124,13 +124,13 @@ class DrawerPage : GalleryPage {
                 Container{
                     FlexDirection: FlexDirection.Column,
                     Gap: 4.0,
-                    Text{Content: "OPEN LEFT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
+                    Text{Content: "OPEN LEFT", FontSize: 10.0, FontWeight: 700},
                     viewport1,
                 },
                 Container{
                     FlexDirection: FlexDirection.Column,
                     Gap: 4.0,
-                    Text{Content: "OPEN RIGHT", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
+                    Text{Content: "OPEN RIGHT", FontSize: 10.0, FontWeight: 700},
                     viewport2,
                 },
             },
@@ -141,7 +141,7 @@ class DrawerPage : GalleryPage {
                 Container{
                     FlexDirection: FlexDirection.Column,
                     Gap: 4.0,
-                    Text{Content: "CLOSED OFF-CANVAS", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
+                    Text{Content: "CLOSED OFF-CANVAS", FontSize: 10.0, FontWeight: 700},
                     viewport3,
                 },
                 Container{

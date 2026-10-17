@@ -16,14 +16,8 @@ internal class PopoverExample : Cell {
         Width: 720.0,
         Height: 400.0,
         Gap: 14.0,
-        Color: "#fafafa",
         Text{Key: "title", Content: "Anchored details", FontSize: 22.0, FontWeight: 700},
-        Text{
-            Key: "hint",
-            Content: "The popup flips above an anchor near the bottom edge.",
-            FontSize: 14.0,
-            Color: "#a1a1aa"
-        },
+        Text{Key: "hint", Content: "The popup flips above an anchor near the bottom edge.", FontSize: 14.0,},
         Button{
             Key: "trigger",
             Handle: anchor,
@@ -52,10 +46,7 @@ internal class PopoverExample : Cell {
                 Content: Container{
                     Gap: 13.0,
                     Text{Content: "Release 24.9", FontSize: 20.0, FontWeight: 700},
-                    Text{
-                        Content: "Three services are ready to deploy. Review their health before continuing.",
-                        Color: "#a1a1aa"
-                    },
+                    Text{Content: "Three services are ready to deploy. Review their health before continuing.",},
                     Text{Content: "● All checks passed", Color: "#86efac", FontSize: 13.0},
                     Button{
                         Height: 34.0,

@@ -14,12 +14,7 @@ internal open class WindowChromeExample : Cell {
             IsMaximized: maximized,
             EnableDoubleClick: true,
             EnableContextMenu: true,
-            LeadingContent: Text{
-                Content: "Example window",
-                Margin: Edges{Left: 12.0},
-                FontSize: 12.0,
-                Color: "#fafafa"
-            },
+            LeadingContent: Text{Content: "Example window", Margin: Edges{Left: 12.0}, FontSize: 12.0,},
             TrailingContent: Button{
                 Height: 24.0,
                 Margin: Edges{Right: 8.0},

@@ -26,209 +26,211 @@ class ThemeSample : Cell {
     }
 
     override func Build() Blob -> ThemeScope{
-            Density: compact ? Density.Compact: Density.Standard,
-            Content: () -> {
-        let theme = Theme.Read()
-        let field = (
-            theme.TextField with{
-                Label = "Window title",
-                Value = title,
-                Width = 300.0,
-                OnChange = (value string) -> {
-                    title = value
-                },
-            }
-        ).Build()
-        let check = (
-            theme.Checkbox with{
-                Label = "Live preview",
-                State = if livePreview {
-                    AccessibilityChecked.True
-                } else {
-                    AccessibilityChecked.False
-                },
-                OnChange = (value AccessibilityChecked) -> {
-                    livePreview = value == AccessibilityChecked.True
-                },
-            }
-        ).Build()
-        return Container{
-            BasedOn: theme.CanvasStyle,
-            KeyBindings: WidgetKeyBindings.Editing(platformInput),
-            Width: Percent(100.0),
-            Height: Percent(100.0),
-            OverflowY: Overflow.Scroll,
-            Children: List[Blob]{
-                Container{
-                    Padding: theme.Spacing * 6.0,
-                    Gap: theme.Spacing * 6.0,
-                    FlexShrink: 0.0,
-                    Children: List[Blob]{
-                        Container{
-                            FlexDirection: FlexDirection.Row,
-                            AlignItems: AlignItems.Center,
-                            Gap: theme.Spacing * 2.0,
-                            Children: List[Blob]{
-                                Text{
-                                    Content: "Goo theme",
-                                    FontFamily: theme.HeadingFontFamily,
-                                    FontSize: 24.0,
-                                    FlexGrow: 1.0
-                                },
-                                (
-                                    theme.Button with{
-                                        Content = "Goo Dark",
-                                        OnClick = () -> {
-                                            Theme.Attach(window!!, GooDark)
-                                        }
-                                    }
-                                ).Build(),
-                                (
-                                    theme.Button with{
-                                        Content = "Goo Light",
-                                        OnClick = () -> {
-                                            Theme.Attach(window!!, GooLight)
-                                        }
-                                    }
-                                ).Build(),
-                                (
-                                    theme.Button with{
-                                        Content = "GitHub Dark",
-                                        OnClick = () -> {
-                                            Theme.Attach(window!!, GitHubDark)
-                                        }
-                                    }
-                                ).Build(),
-                                ActionButton{
-                                    Content: "System",
-                                    OnClick: () -> Theme.SetMode(window!!, ThemeMode.System),
-                                }.Build(),
-                            },
-                        },
-                        Container{
-                            FlexDirection: FlexDirection.Row,
-                            Gap: theme.Spacing * 2.0,
-                            Children: List[Blob]{
-                                Swatch("Canvas", theme.CanvasColor),
-                                Swatch("Text", theme.TextColor),
-                                Swatch("Accent", theme.AccentColor),
-                                Swatch("Warning", theme.WarningColor),
-                                Swatch("Success", theme.SuccessColor),
-                                Swatch("Danger", theme.DangerColor),
-                            },
-                        },
-                        Container{
-                            BasedOn: theme.PanelStyle,
-                            Padding: theme.Spacing * 4.0,
-                            Gap: theme.Spacing * 4.0,
-                            Children: List[Blob]{
-                                Text{Content: "Inputs and selection", FontWeight: 600},
-                                field,
-                                check,
-                                (
-                                    theme.Checkbox with{
-                                        Label = "Compact controls",
-                                        State = if compact {
-                                            AccessibilityChecked.True
-                                        } else {
-                                            AccessibilityChecked.False
-                                        },
-                                        OnChange = (value AccessibilityChecked) -> {
-                                            compact = value == AccessibilityChecked.True
-                                            Rebuild()
-                                        },
-                                    }
-                                ).Build(),
-                                Container{
-                                    Width: Percent(100.0),
-                                    Children: List[Blob]{
-                                        Cell.Mount[SliderInput, Slider](
-                                            "opacity",
-                                            theme.Slider with{
-                                                Label = "Opacity",
-                                                ShowValue = true,
-                                                Value = opacity,
-                                                Minimum = 0.0,
-                                                Maximum = 100.0,
-                                                Step = 1.0,
-                                                FormatValue = (value float64) -> "$value%",
-                                                OnValueChanged = (value float64) -> {
-                                                    opacity = value
-                                                    Rebuild()
-                                                },
+        Density: compact ? Density.Compact: Density.Standard,
+        Content: () -> {
+            let theme = Theme.Read()
+            let field = (
+                theme.TextField with{
+                    Label = "Window title",
+                    Value = title,
+                    Width = 300.0,
+                    OnChange = (value string) -> {
+                        title = value
+                    },
+                }
+            ).Build()
+            let check = (
+                theme.Checkbox with{
+                    Label = "Live preview",
+                    State = if livePreview {
+                        AccessibilityChecked.True
+                    } else {
+                        AccessibilityChecked.False
+                    },
+                    OnChange = (value AccessibilityChecked) -> {
+                        livePreview = value == AccessibilityChecked.True
+                    },
+                }
+            ).Build()
+            return Container{
+                BasedOn: theme.CanvasStyle,
+                KeyBindings: WidgetKeyBindings.Editing(platformInput),
+                Width: Percent(100.0),
+                Height: Percent(100.0),
+                OverflowY: Overflow.Scroll,
+                Children: List[Blob]{
+                    Container{
+                        Padding: theme.Spacing * 6.0,
+                        Gap: theme.Spacing * 6.0,
+                        FlexShrink: 0.0,
+                        Children: List[Blob]{
+                            Container{
+                                FlexDirection: FlexDirection.Row,
+                                AlignItems: AlignItems.Center,
+                                Gap: theme.Spacing * 2.0,
+                                Children: List[Blob]{
+                                    Text{
+                                        Content: "Goo theme",
+                                        FontFamily: theme.HeadingFontFamily,
+                                        FontSize: 24.0,
+                                        FlexGrow: 1.0
+                                    },
+                                    (
+                                        theme.Button with{
+                                            Content = "Goo Dark",
+                                            OnClick = () -> {
+                                                Theme.Attach(window!!, GooDark)
                                             }
-                                        ),
+                                        }
+                                    ).Build(),
+                                    (
+                                        theme.Button with{
+                                            Content = "Goo Light",
+                                            OnClick = () -> {
+                                                Theme.Attach(window!!, GooLight)
+                                            }
+                                        }
+                                    ).Build(),
+                                    (
+                                        theme.Button with{
+                                            Content = "GitHub Dark",
+                                            OnClick = () -> {
+                                                Theme.Attach(window!!, GitHubDark)
+                                            }
+                                        }
+                                    ).Build(),
+                                    ActionButton{
+                                        Content: "System",
+                                        OnClick: () -> Theme.SetMode(window!!, ThemeMode.System),
+                                    }.Build(),
+                                },
+                            },
+                            Container{
+                                FlexDirection: FlexDirection.Row,
+                                Gap: theme.Spacing * 2.0,
+                                Children: List[Blob]{
+                                    Swatch("Canvas", theme.CanvasColor),
+                                    Swatch("Text", theme.TextColor),
+                                    Swatch("Accent", theme.AccentColor),
+                                    Swatch("Warning", theme.WarningColor),
+                                    Swatch("Success", theme.SuccessColor),
+                                    Swatch("Danger", theme.DangerColor),
+                                },
+                            },
+                            Container{
+                                BasedOn: theme.PanelStyle,
+                                Padding: theme.Spacing * 4.0,
+                                Gap: theme.Spacing * 4.0,
+                                Children: List[Blob]{
+                                    Text{Content: "Inputs and selection", FontWeight: 600},
+                                    field,
+                                    check,
+                                    (
+                                        theme.Checkbox with{
+                                            Label = "Compact controls",
+                                            State = if compact {
+                                                AccessibilityChecked.True
+                                            } else {
+                                                AccessibilityChecked.False
+                                            },
+                                            OnChange = (value AccessibilityChecked) -> {
+                                                compact = value == AccessibilityChecked.True
+                                                Rebuild()
+                                            },
+                                        }
+                                    ).Build(),
+                                    Container{
+                                        Width: Percent(100.0),
+                                        Children: List[Blob]{
+                                            Cell.Mount[SliderInput, Slider](
+                                                "opacity",
+                                                theme.Slider with{
+                                                    Label = "Opacity",
+                                                    ShowValue = true,
+                                                    Value = opacity,
+                                                    Minimum = 0.0,
+                                                    Maximum = 100.0,
+                                                    Step = 1.0,
+                                                    FormatValue = (value float64) -> "$value%",
+                                                    OnValueChanged = (value float64) -> {
+                                                        opacity = value
+                                                        Rebuild()
+                                                    },
+                                                }
+                                            ),
+                                        },
                                     },
                                 },
                             },
-                        },
-                        Container{
-                            Gap: theme.Spacing * 3.0,
-                            Children: List[Blob]{
-                                Text{Content: "Actions", FontWeight: 600},
-                                Container{
-                                    FlexDirection: FlexDirection.Row,
-                                    FlexWrap: FlexWrap.Wrap,
-                                    Gap: theme.Spacing * 2.0,
-                                    Children: List[Blob]{
-                                        (
-                                            theme.PrimaryButton with{
-                                                Content = "Apply",
-                                                OnClick = () -> {
-                                                    status = "Applied $title at $opacity%"
+                            Container{
+                                Gap: theme.Spacing * 3.0,
+                                Children: List[Blob]{
+                                    Text{Content: "Actions", FontWeight: 600},
+                                    Container{
+                                        FlexDirection: FlexDirection.Row,
+                                        FlexWrap: FlexWrap.Wrap,
+                                        Gap: theme.Spacing * 2.0,
+                                        Children: List[Blob]{
+                                            (
+                                                theme.PrimaryButton with{
+                                                    Content = "Apply",
+                                                    OnClick = () -> {
+                                                        status = "Applied $title at $opacity%"
+                                                    }
                                                 }
-                                            }
-                                        ).Build(),
-                                        (
-                                            theme.Button with{
-                                                Content = "Duplicate",
-                                                OnClick = () -> {
-                                                    status = "Duplicated $title"
+                                            ).Build(),
+                                            (
+                                                theme.Button with{
+                                                    Content = "Duplicate",
+                                                    OnClick = () -> {
+                                                        status = "Duplicated $title"
+                                                    }
                                                 }
-                                            }
-                                        ).Build(),
-                                        (theme.GhostButton with{Content = "Reset", OnClick = Reset}).Build(),
-                                        (
-                                            theme.DangerButton with{
-                                                Content = "Remove",
-                                                OnClick = () -> {
-                                                    status = "Removed $title"
+                                            ).Build(),
+                                            (theme.GhostButton with{Content = "Reset", OnClick = Reset}).Build(),
+                                            (
+                                                theme.DangerButton with{
+                                                    Content = "Remove",
+                                                    OnClick = () -> {
+                                                        status = "Removed $title"
+                                                    }
                                                 }
-                                            }
-                                        ).Build(),
-                                        (theme.Button with{Content = "Unavailable", Disabled = true}).Build(),
+                                            ).Build(),
+                                            (theme.Button with{Content = "Unavailable", Disabled = true}).Build(),
+                                        },
                                     },
+                                    (theme.Banner with{Content = status, BorderColor = theme.SuccessColor}).Build(),
+                                    ThemeScope{
+                                        Value: theme with{AccentColor = theme.DangerColor},
+                                        Content: () -> (
+                                            Theme.Read().PrimaryButton with{Content = "Scoped accent"}
+                                        ).Build(),
+                                    }.Build(),
                                 },
-                                (theme.Banner with{Content = status, BorderColor = theme.SuccessColor}).Build(),
-                                ThemeScope{
-                                    Value: theme with{AccentColor = theme.DangerColor},
-                                    Content: () -> (Theme.Read().PrimaryButton with{Content = "Scoped accent"}).Build(),
-                                }.Build(),
                             },
-                        },
-                        Container{
-                            FlexDirection: FlexDirection.Row,
-                            FlexWrap: FlexWrap.Wrap,
-                            Gap: theme.Spacing * 4.0,
-                            Children: List[Blob]{
-                                Text{Content: "Information", Color: theme.InfoColor, FontSize: 14.0},
-                                Text{Content: "Changes saved", Color: theme.SuccessColor, FontSize: 14.0},
-                                Text{Content: "Unsaved changes", Color: theme.WarningColor, FontSize: 14.0},
-                                Text{Content: "Invalid value", Color: theme.DangerColor, FontSize: 14.0},
+                            Container{
+                                FlexDirection: FlexDirection.Row,
+                                FlexWrap: FlexWrap.Wrap,
+                                Gap: theme.Spacing * 4.0,
+                                Children: List[Blob]{
+                                    Text{Content: "Information", Color: theme.InfoColor, FontSize: 14.0},
+                                    Text{Content: "Changes saved", Color: theme.SuccessColor, FontSize: 14.0},
+                                    Text{Content: "Unsaved changes", Color: theme.WarningColor, FontSize: 14.0},
+                                    Text{Content: "Invalid value", Color: theme.DangerColor, FontSize: 14.0},
+                                },
                             },
-                        },
-                        Text{
-                            Content: "${theme.ControlHeight}px controls · ${theme.ControlRadius}px corners · ${theme.PanelRadius}px panels",
-                            FontFamily: theme.MonoFontFamily,
-                            FontSize: 13.0,
-                            Color: theme.FaintTextColor,
+                            Text{
+                                Content: "${theme.ControlHeight}px controls · ${theme.ControlRadius}px corners · ${theme.PanelRadius}px panels",
+                                FontFamily: theme.MonoFontFamily,
+                                FontSize: 13.0,
+                                Color: theme.FaintTextColor,
+                            },
                         },
                     },
                 },
-            },
-        }
-            },
-        }.Build()
+            }
+        },
+    }.Build()
 
     private func Swatch(name string, color Color) Blob -> Container{
         FlexGrow: 1.0,

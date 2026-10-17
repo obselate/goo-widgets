@@ -16,7 +16,7 @@ internal open class MediaCardExample : Cell {
             Card("Field recording", "Forest study", "12 min", "#14532d"),
             Card("Design review", "Workspace team", "Yesterday", "#312e81"),
         },
-        Text{Content: "Selected: " + selected, FontSize: 12.0, Color: "#a1a1aa"},
+        Text{Content: "Selected: " + selected, FontSize: 12.0},
     }
 
     private func Card(title string, subtitle string, detail string, color string) Blob -> MediaCard{

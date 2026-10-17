@@ -67,7 +67,6 @@ internal class MenuExample : Cell {
             Width: 720.0,
             Height: 420.0,
             Gap: 14.0,
-            Color: "#fafafa",
             OnPointerDown: (event PointerEvent) -> {
                 if event.Button == PointerButton.Secondary {
                     event.PreventDefault()
@@ -82,7 +81,6 @@ internal class MenuExample : Cell {
                 Key: "hint",
                 Content: "Right-click for a context menu. Choose opening directions below; arrows follow the submenu side.",
                 FontSize: 14.0,
-                Color: "#a1a1aa"
             },
             Text{Key: "selected", Content: selected, FontSize: 13.0, Color: "#a5b4fc"},
             Container{

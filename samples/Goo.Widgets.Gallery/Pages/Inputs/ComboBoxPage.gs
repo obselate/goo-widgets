@@ -51,12 +51,10 @@ internal class ComboBoxExample : Cell {
         Width: 720.0,
         Height: 430.0,
         Gap: 12.0,
-        Color: "#fafafa",
         Text{Key: "heading", Content: "Choose a deployment target", FontSize: 22.0, FontWeight: 700},
         Text{
             Key: "hint",
             Content: "Arrow keys preview an option. Enter commits; Escape keeps the previous value.",
-            Color: "#a1a1aa",
             FontSize: 14.0
         },
         Container{
@@ -67,7 +65,7 @@ internal class ComboBoxExample : Cell {
                 Key: "fixed",
                 Gap: 9.0,
                 Width: 290.0,
-                Text{Key: "label", Content: "Environment", FontSize: 13.0, Color: "#a1a1aa"},
+                Text{Key: "label", Content: "Environment", FontSize: 13.0},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "environment",
                     ComboBoxInput{
@@ -84,13 +82,7 @@ internal class ComboBoxExample : Cell {
                         },
                     }
                 ),
-                Text{
-                    Key: "disabled-label",
-                    Content: "Account policy",
-                    FontSize: 13.0,
-                    Color: "#a1a1aa",
-                    Margin: Edges{Top: 18.0}
-                },
+                Text{Key: "disabled-label", Content: "Account policy", FontSize: 13.0, Margin: Edges{Top: 18.0}},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "disabled",
                     ComboBoxInput{
@@ -105,7 +97,7 @@ internal class ComboBoxExample : Cell {
                 Key: "search",
                 Gap: 9.0,
                 Width: 350.0,
-                Text{Key: "label", Content: "Region · 500 virtual options", FontSize: 13.0, Color: "#a1a1aa"},
+                Text{Key: "label", Content: "Region · 500 virtual options", FontSize: 13.0},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "region",
                     ComboBoxInput{

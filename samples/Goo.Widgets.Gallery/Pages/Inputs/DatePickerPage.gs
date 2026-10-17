@@ -76,12 +76,10 @@ internal class DatePickerExample : Cell {
             Width: 720.0,
             Height: 440.0,
             Gap: 14.0,
-            Color: "#fafafa",
             Text{Key: "title", Content: "A date field and its calendar", FontSize: 22.0, FontWeight: 700},
             Text{
                 Key: "hint",
                 Content: "Type and press Enter to commit. Escape reverts. Empty input clears an optional date.",
-                Color: "#a1a1aa",
                 FontSize: 14.0
             },
             Container{
@@ -91,18 +89,17 @@ internal class DatePickerExample : Cell {
                 Container{
                     Key: "local",
                     Gap: 9.0,
-                    Text{Key: "label", Content: "Localized display · weekdays only", FontSize: 13.0, Color: "#a1a1aa"},
+                    Text{Key: "label", Content: "Localized display · weekdays only", FontSize: 13.0},
                     Cell.Mount[DatePickerInput, DatePicker]("date", local)
                 },
                 Container{
                     Key: "iso",
                     Gap: 9.0,
-                    Text{Key: "label", Content: "Custom formatter and parser", FontSize: 13.0, Color: "#a1a1aa"},
+                    Text{Key: "label", Content: "Custom formatter and parser", FontSize: 13.0},
                     Cell.Mount[DatePickerInput, DatePicker]("date", iso),
                     Text{
                         Key: "note",
                         Content: "The host receives DateOnly values.\nDisplay format stays independent of storage.",
-                        Color: "#a1a1aa",
                         FontSize: 13.0
                     }
                 }

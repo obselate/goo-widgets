@@ -42,28 +42,28 @@ class AvatarPage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 defaultAvatar.Build(),
-                Text{Content: "Default", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Default", FontSize: 12},
             },
             Container{
                 FlexDirection: FlexDirection.Column,
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 successAvatar.Build(),
-                Text{Content: "Success", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Success", FontSize: 12},
             },
             Container{
                 FlexDirection: FlexDirection.Column,
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 warningAvatar.Build(),
-                Text{Content: "Warning", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Warning", FontSize: 12},
             },
             Container{
                 FlexDirection: FlexDirection.Column,
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 squareAvatar.Build(),
-                Text{Content: "Square", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Square", FontSize: 12},
             },
         }
     }

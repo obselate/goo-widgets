@@ -36,8 +36,8 @@ internal open class MasterDetailExample : Cell {
             OnBack: () -> {
                 selected = false
             },
-            Master: Container{Padding: 16.0, Text{Content: "Master list", Color: "#fafafa"},},
-            Detail: Container{Padding: 16.0, Text{Content: "Selected item details", Color: "#fafafa"},},
+            Master: Container{Padding: 16.0, Text{Content: "Master list"},},
+            Detail: Container{Padding: 16.0, Text{Content: "Selected item details"},},
         }.Build(),
     }
 }

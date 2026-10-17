@@ -51,7 +51,7 @@ internal class TreeViewExample : Cell {
         Container{
             Width: 300,
             Gap: 12,
-            Text{Key: "label", Content: "Single selection", FontSize: 18, Color: "#fafafa"},
+            Text{Key: "label", Content: "Single selection", FontSize: 18},
             Cell.Mount[TreeViewInput, TreeView](
                 "simple",
                 TreeViewInput{
@@ -83,7 +83,7 @@ internal class TreeViewExample : Cell {
         Container{
             Width: 330,
             Gap: 12,
-            Text{Key: "label", Content: "Host-owned check policy", FontSize: 18, Color: "#fafafa"},
+            Text{Key: "label", Content: "Host-owned check policy", FontSize: 18},
             Cell.Mount[TreeViewInput, TreeView](
                 "checks",
                 TreeViewInput{

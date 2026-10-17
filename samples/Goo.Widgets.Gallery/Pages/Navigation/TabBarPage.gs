@@ -9,7 +9,7 @@ internal class TabBarExample : Cell {
     public override func Build() Blob -> Container{
         Width: 600,
         Gap: 20,
-        Text{Key: "hint", Content: "Arrow keys move and select. Disabled tabs are skipped.", Color: "#a1a1aa"},
+        Text{Key: "hint", Content: "Arrow keys move and select. Disabled tabs are skipped."},
         Cell.Mount[TabBarInput, TabBar](
             "tabs",
             TabBarInput{

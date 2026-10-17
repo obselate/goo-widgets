@@ -62,7 +62,7 @@ internal open class SliderExample : Cell {
                 }
             ),
         },
-        Text{Key: "slider-status", Content: status, FontSize: 12.0, Color: "#a1a1aa"},
+        Text{Key: "slider-status", Content: status, FontSize: 12.0},
     }
 }
 

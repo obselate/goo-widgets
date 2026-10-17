@@ -80,7 +80,6 @@ internal class DataGridExample : Cell {
             Key: "hint",
             Content: "Shared columns · controlled sorting · multiple selection · measured details",
             FontSize: 14,
-            Color: "#a1a1aa"
         },
         Cell.Mount[DataGridInput, DataGrid](
             "inventory",
@@ -126,7 +125,6 @@ internal class DataGridExample : Cell {
         Text{
             Key: "selection",
             Content: selected.Length.ToString() + " selected · use Ctrl/⌘ to toggle and Shift to extend",
-            Color: "#a1a1aa",
             FontSize: 13
         }
     }

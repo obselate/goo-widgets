@@ -10,7 +10,7 @@ internal class StackedBarPage : GalleryPage {
     override func Build() Blob -> Container{
         Width: 580,
         Gap: 30,
-        Text{Content: "Fleet availability", FontSize: 22, Color: "#fafafa"},
+        Text{Content: "Fleet availability", FontSize: 22},
         StackedBar{
             Height: 28,
             ShowLegend: true,
@@ -21,7 +21,7 @@ internal class StackedBarPage : GalleryPage {
                 ChartSeries{Id: "offline", Label: "Offline", Value: 5, Color: "#fbbf24"},
             }
         }.Build(),
-        Text{Content: "Empty totals retain the track", FontSize: 14, Color: "#a1a1aa"},
+        Text{Content: "Empty totals retain the track", FontSize: 14},
         StackedBar{
             Height: 16,
             ShowLegend: true,

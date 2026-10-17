@@ -122,52 +122,59 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     public override func Build() Blob {
         let theme = Theme.Read()
         return Container{
-        BasedOn: theme.CanvasStyle,
-        KeyBindings: WidgetKeyBindings.Editing(platformInput),
-        Width: Percent(100),
-        Height: Percent(100),
-        Padding: 32,
-        Gap: 24,
-        BackgroundColor: theme.CanvasColor,
-        FlexDirection: FlexDirection.Column,
-        Container{
-            FlexDirection: FlexDirection.Row,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.SpaceBetween,
-            Container{
-                Gap: 6,
-                Text{Content: "Goo Widgets Gallery", FontSize: theme.HeadingFontSize, FontWeight: theme.HeadingFontWeight, Color: theme.TextColor},
-                Text{Content: Registry.CurrentCategory(currentIndex), FontSize: theme.CaptionFontSize, Color: theme.MutedTextColor},
-            },
-            Text{Content: Registry.CurrentPage(currentIndex).Title(), FontSize: theme.FontSize, Color: theme.TextColor},
-        },
-        Container{
-            FlexGrow: 1,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
+            BasedOn: theme.CanvasStyle,
+            KeyBindings: WidgetKeyBindings.Editing(platformInput),
+            Width: Percent(100),
+            Height: Percent(100),
             Padding: 32,
-            BorderRadius: theme.PanelRadius,
-            BorderWidth: theme.BorderWidth,
-            BorderColor: theme.BorderColor,
-            BackgroundColor: theme.PanelColor,
-            TransitionMs: theme.TransitionMs,
-            TransitionEasing: Easing.EaseOut,
-            BuildCurrentPage(),
-        },
-        Container{
-            FlexDirection: FlexDirection.Row,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.SpaceBetween,
-            ActionButton{
-                Content: "Back",
-                OnClick: () -> Back(),
-            }.Build(),
-            ActionButton{
-                Content: "Forward",
-                OnClick: () -> Forward(),
-            }.Build(),
-        },
-    }
+            Gap: 24,
+            BackgroundColor: theme.CanvasColor,
+            FlexDirection: FlexDirection.Column,
+            Container{
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.SpaceBetween,
+                Container{
+                    Gap: 6,
+                    Text{
+                        Content: "Goo Widgets Gallery",
+                        FontSize: theme.HeadingFontSize,
+                        FontWeight: theme.HeadingFontWeight,
+                        Color: theme.TextColor
+                    },
+                    Text{
+                        Content: Registry.CurrentCategory(currentIndex),
+                        FontSize: theme.CaptionFontSize,
+                        Color: theme.MutedTextColor
+                    },
+                },
+                Text{
+                    Content: Registry.CurrentPage(currentIndex).Title(),
+                    FontSize: theme.FontSize,
+                    Color: theme.TextColor
+                },
+            },
+            Container{
+                FlexGrow: 1,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                Padding: 32,
+                BorderRadius: theme.PanelRadius,
+                BorderWidth: theme.BorderWidth,
+                BorderColor: theme.BorderColor,
+                BackgroundColor: theme.PanelColor,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                BuildCurrentPage(),
+            },
+            Container{
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.SpaceBetween,
+                ActionButton{Content: "Back", OnClick: () -> Back(),}.Build(),
+                ActionButton{Content: "Forward", OnClick: () -> Forward(),}.Build(),
+            },
+        }
     }
 }
 

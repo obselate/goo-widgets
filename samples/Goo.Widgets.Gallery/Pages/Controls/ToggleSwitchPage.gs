@@ -42,7 +42,7 @@ class ToggleSwitchPage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 offSwitch.Build(),
-                Text{Content: "Off", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Off", FontSize: 12},
             },
             Container{
                 Width: 100,
@@ -50,7 +50,7 @@ class ToggleSwitchPage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 onSwitch.Build(),
-                Text{Content: "On", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "On", FontSize: 12},
             },
             Container{
                 Width: 100,
@@ -58,7 +58,7 @@ class ToggleSwitchPage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 disabledOffSwitch.Build(),
-                Text{Content: "Disabled off", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Disabled off", FontSize: 12},
             },
             Container{
                 Width: 100,
@@ -66,7 +66,7 @@ class ToggleSwitchPage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 8,
                 disabledOnSwitch.Build(),
-                Text{Content: "Disabled on", FontSize: 12, Color: "#a1a1aa"},
+                Text{Content: "Disabled on", FontSize: 12},
             },
         }
     }

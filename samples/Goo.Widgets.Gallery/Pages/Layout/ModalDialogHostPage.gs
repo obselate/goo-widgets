@@ -60,9 +60,8 @@ internal class ManagedDialogExample : Cell {
         Width: 720.0,
         Height: 420.0,
         Gap: 16.0,
-        Color: "#fafafa",
         BuildOpenButton(),
-        Text{Key: "status", Content: result, Color: "#a1a1aa"},
+        Text{Key: "status", Content: result},
         Cell.Mount[ModalDialog, ModalDialogHost](
             "dialog",
             ModalDialog{
@@ -75,7 +74,6 @@ internal class ManagedDialogExample : Cell {
                     Gap: 16.0,
                     Text{
                         Content: "Tab stays inside this dialog. Closing returns focus to the control that opened it.",
-                        Color: "#a1a1aa"
                     },
                     TextEntry{
                         Value: "Production update",
@@ -103,7 +101,7 @@ internal class ManagedDialogExample : Cell {
                 Width: 390.0,
                 AccessibilityName: "Nested confirmation",
                 Header: Text{Content: "Nested confirmation", FontSize: 20.0, FontWeight: 700},
-                Content: Text{Content: "Escape returns to the underlying dialog.", Color: "#a1a1aa"},
+                Content: Text{Content: "Escape returns to the underlying dialog."},
                 OnClose: CloseNested,
                 OnCancel: CloseNested,
                 OnConfirm: CloseNested
