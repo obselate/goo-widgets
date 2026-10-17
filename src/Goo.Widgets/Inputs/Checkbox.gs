@@ -247,8 +247,16 @@ public data struct Checkbox {
             Height: resolved.Size,
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
-            BorderColor: if active { resolved.CheckedBorderColor!! } else { resolved.BorderColor!! },
-            BackgroundColor: if active { resolved.CheckedBackgroundColor!! } else { resolved.BackgroundColor!! },
+            BorderColor: if active {
+                resolved.CheckedBorderColor!!
+            } else {
+                resolved.BorderColor!!
+            },
+            BackgroundColor: if active {
+                resolved.CheckedBackgroundColor!!
+            } else {
+                resolved.BackgroundColor!!
+            },
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             HitTestSelf: false,

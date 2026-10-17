@@ -126,7 +126,8 @@ public open class Menu : Cell[MenuInput] {
                     create(current, item)
                 } else {
                     Container{
-                        Height: theme.BorderWidth, Margin: Edges{Top: theme.Spacing, Bottom: theme.Spacing},
+                        Height: theme.BorderWidth,
+                        Margin: Edges{Top: theme.Spacing, Bottom: theme.Spacing},
                         BackgroundColor: theme.BorderColor,
                     }
                 }
@@ -138,7 +139,8 @@ public open class Menu : Cell[MenuInput] {
             }
             let hasChildren = (item.Children ?? []MenuItem{}).Length > 0
             let label = item.Label ?? id
-            let content = item.Content ?? Text{
+            let content = item.Content ??
+            Text{
                 Content: label,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,

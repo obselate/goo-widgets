@@ -119,8 +119,10 @@ public data struct MasterDetail {
                         OnClick: resolved.OnBack,
                         Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.BackLabel!!,},
                         Text{
-                            Content: resolved.BackLabel!!, FontFamily: theme.FontFamily,
-                            FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+                            Content: resolved.BackLabel!!,
+                            FontFamily: theme.FontFamily,
+                            FontSize: theme.FontSize,
+                            FontWeight: theme.FontWeight,
                         },
                     }
                 }

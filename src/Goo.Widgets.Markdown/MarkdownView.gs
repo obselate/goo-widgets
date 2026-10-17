@@ -48,7 +48,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             MinimumTableColumnWidth = input.MinimumTableColumnWidth == 0.0 ? 100.0: input.MinimumTableColumnWidth
         }
         if !Double.IsFinite(current.FontSize) || current.FontSize <= 0.0 || !Double.IsFinite(current.BlockGap!!) ||
-            current.BlockGap!! < 0.0
+            current.BlockGap!!< 0.0
         || !Double.IsFinite(current.MinimumTableColumnWidth) || current.MinimumTableColumnWidth <= 0.0 {
             throw ArgumentOutOfRangeException("Markdown dimensions")
         }
@@ -117,7 +117,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         } else if info.Kind == MarkdownBlockKind.List {
             content = ListBlockView(model)
         } else {
-            let box = Column(current.BlockGap!! * .6)
+            let box = Column(current.BlockGap!!* .6)
             for child in model.Children {
                 box.Children.Add(Block(child, weight, alignment))
             }
@@ -129,7 +129,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             if info.Kind == MarkdownBlockKind.Alert {
                 let kind = info.AlertKind ?? "NOTE"
                 let accent = kind == "WARNING" || kind == "CAUTION" ? theme.WarningColor:
-                    kind == "TIP" ? theme.SuccessColor: current.LinkColor!!
+                kind == "TIP" ? theme.SuccessColor: current.LinkColor!!
                 box.BorderColor = Edges[Color]{Left: accent}
                 box.Padding = theme.ControlPadding
                 box.BackgroundColor = current.CodeBackground!!
@@ -266,8 +266,11 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             table.Children.Add(rowContent)
         }
         return Container{
-            MinWidth: 0.0, FlexShrink: 0.0, OverflowX: Overflow.Scroll,
-            ScrollbarX: theme.Scrollbar, table,
+            MinWidth: 0.0,
+            FlexShrink: 0.0,
+            OverflowX: Overflow.Scroll,
+            ScrollbarX: theme.Scrollbar,
+            table,
         }
     }
 }

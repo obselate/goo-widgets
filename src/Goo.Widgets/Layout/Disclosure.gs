@@ -94,9 +94,13 @@ public data struct Disclosure {
                 color: resolved.TextColor!!
             )
         }
-        let heading = resolved.Header ?? Text{
-            Content: resolved.Label!!, FontFamily: theme.FontFamily,
-            FontSize: theme.FontSize, FontWeight: theme.LabelFontWeight, Color: resolved.TextColor!!,
+        let heading = resolved.Header ??
+        Text{
+            Content: resolved.Label!!,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.LabelFontWeight,
+            Color: resolved.TextColor!!,
         }
         let onChange = resolved.OnExpandedChange
         let next = !resolved.Expanded

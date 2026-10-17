@@ -74,7 +74,14 @@ public data struct Badge {
             Height = height,
             MinWidth = minWidth,
             PaddingHorizontal = padding,
-            BorderRadius = BorderRadius ?? (if isDot { dotSize / 2.0 } else { height / 2.0 }),
+            BorderRadius = BorderRadius ??
+            (
+                if isDot {
+                    dotSize / 2.0
+                } else {
+                    height / 2.0
+                }
+            ),
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             FontSize = if FontSize == 0.0 {

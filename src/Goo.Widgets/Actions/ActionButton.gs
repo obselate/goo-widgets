@@ -98,7 +98,11 @@ public data struct ActionButton {
         let text = if let createText = createText {
             createText(resolved)
         } else {
-            let value = Text{Content: resolved.Content!!, FontSize: resolved.FontSize!!, FontWeight: resolved.FontWeight!!,}
+            let value = Text{
+                Content: resolved.Content!!,
+                FontSize: resolved.FontSize!!,
+                FontWeight: resolved.FontWeight!!,
+            }
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
             }

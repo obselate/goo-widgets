@@ -16,14 +16,30 @@ import System.Threading
 
 internal class ThemePreferenceHost : EmbeddedWindowHost {
     internal var Wakes int32
-    protected override func RequestFrame() { Wakes++ }
-    protected override func LoadVulkanLibrary() bool -> throw NotSupportedException("This layout host has no presentation surface.")
-    protected override func GetVulkanGetInstanceProcAddr() nint -> throw NotSupportedException("This layout host has no presentation surface.")
-    protected override func UnloadVulkanLibrary() { throw NotSupportedException("This layout host has no presentation surface.") }
-    protected override func GetVulkanInstanceExtensions() []string -> throw NotSupportedException("This layout host has no presentation surface.")
+    protected override func RequestFrame() {
+        Wakes++
+    }
+
+    protected override func LoadVulkanLibrary() bool -> throw NotSupportedException(
+        "This layout host has no presentation surface."
+    )
+
+    protected override func GetVulkanGetInstanceProcAddr() nint -> throw NotSupportedException(
+        "This layout host has no presentation surface."
+    )
+
+    protected override func UnloadVulkanLibrary() {
+        throw NotSupportedException("This layout host has no presentation surface.")
+    }
+
+    protected override func GetVulkanInstanceExtensions()[]string -> throw NotSupportedException(
+        "This layout host has no presentation surface."
+    )
+
     protected override func CreateVulkanSurface(instance nint, out surface uint64) bool {
         throw NotSupportedException("This layout host has no presentation surface.")
     }
+
     protected override func DestroyVulkanSurface(instance nint, surface uint64) {
         throw NotSupportedException("This layout host has no presentation surface.")
     }
@@ -41,9 +57,13 @@ internal class ThemeProbe : Cell {
         Snapshot = Theme.Read()
         if MeasureReads {
             var sum = 0.0
-            for index in 0 ... 10 { sum += Theme.Read().FontSize }
+            for index in 0 ... 10 {
+                sum += Theme.Read().FontSize
+            }
             let before = GC.GetAllocatedBytesForCurrentThread()
-            for index in 0 ... 10000 { sum += Theme.Read().FontSize }
+            for index in 0 ... 10000 {
+                sum += Theme.Read().FontSize
+            }
             ReadBytes = GC.GetAllocatedBytesForCurrentThread() - before
             Require(sum > 0.0, "Theme reads were not observed.")
         }
@@ -72,34 +92,49 @@ internal class ThemeScopeHost : Cell {
             Width: Percent(100),
             Cell.Mount[ThemeProbe]("outside", (probe ThemeProbe) -> Outside = probe),
             provider,
-            Portal{
-                Key: "portal",
-                Cell.Mount[ThemeProbe]("portal-content", (probe ThemeProbe) -> PortalProbe = probe),
-            },
-            Cell.Mount[ModalDialog, ModalDialogHost]("dialog", ModalDialog{
-                Open: true, Width: 280.0, AccessibilityName: "Appearance dialog",
-                Content: Cell.Mount[ThemeProbe]("dialog-content", (probe ThemeProbe) -> DialogProbe = probe),
-            }),
-            Cell.Mount[MenuInput, Menu]("menu", MenuInput{
-                Open: true, WindowPoint: Point{X: 8.0, Y: 8.0},
-                Items: []MenuItem{MenuItem{
-                    Id: "theme", Label: "Appearance menu",
-                    Content: Cell.Mount[ThemeProbe]("menu-content", (probe ThemeProbe) -> MenuProbe = probe),
-                }},
-            }),
-            Cell.Mount[TextAreaInput, TextArea]("editor", TextAreaInput{
-                Value: "Appearance editing", MinimumRows: 1,
-                CreateEditor: (input TextAreaInput, editor TextEditor) -> {
-                    Editor = editor
-                    return editor
-                },
-            }),
+            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", (probe ThemeProbe) -> PortalProbe = probe),},
+            Cell.Mount[ModalDialog, ModalDialogHost](
+                "dialog",
+                ModalDialog{
+                    Open: true,
+                    Width: 280.0,
+                    AccessibilityName: "Appearance dialog",
+                    Content: Cell.Mount[ThemeProbe]("dialog-content", (probe ThemeProbe) -> DialogProbe = probe),
+                }
+            ),
+            Cell.Mount[MenuInput, Menu](
+                "menu",
+                MenuInput{
+                    Open: true,
+                    WindowPoint: Point{X: 8.0, Y: 8.0},
+                    Items: []MenuItem{
+                        MenuItem{
+                            Id: "theme",
+                            Label: "Appearance menu",
+                            Content: Cell.Mount[ThemeProbe]("menu-content", (probe ThemeProbe) -> MenuProbe = probe),
+                        }
+                    },
+                }
+            ),
+            Cell.Mount[TextAreaInput, TextArea](
+                "editor",
+                TextAreaInput{
+                    Value: "Appearance editing",
+                    MinimumRows: 1,
+                    CreateEditor: (input TextAreaInput, editor TextEditor) -> {
+                        Editor = editor
+                        return editor
+                    },
+                }
+            ),
         }
     }
 }
 
 func ThemeFrames(host EmbeddedWindowHost) {
-    for frame in 0 ... 5 { host.RenderFrame(0.016) }
+    for frame in 0 ... 5 {
+        host.RenderFrame(0.016)
+    }
 }
 
 func ThemePolicyContracts() {
@@ -129,18 +164,26 @@ func ThemePolicyContracts() {
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
     ThemeFrames(first)
     ThemeFrames(second)
-    Require(outside.Builds == outsideBuilds + 1 && inside.Builds == insideBuilds && other.Builds == otherBuilds,
-        "Appearance invalidation escaped its effective provider or window.")
-    Require(outside.Snapshot.CanvasColor == Theme.Ink.CanvasColor
+    Require(
+        outside.Builds == outsideBuilds + 1 && inside.Builds == insideBuilds && other.Builds == otherBuilds,
+        "Appearance invalidation escaped its effective provider or window."
+    )
+    Require(
+        outside.Snapshot.CanvasColor == Theme.Ink.CanvasColor
         && window.Background == Theme.Ink.CanvasColor && window.Foreground == Theme.Ink.TextColor,
-        "System Dark did not publish the window pair and dependent snapshot together.")
-    Require(root.PortalProbe?.Snapshot.TextColor == Theme.Ink.TextColor
+        "System Dark did not publish the window pair and dependent snapshot together."
+    )
+    Require(
+        root.PortalProbe?.Snapshot.TextColor == Theme.Ink.TextColor
         && root.DialogProbe?.Snapshot.TextColor == Theme.Ink.TextColor
         && root.MenuProbe?.Snapshot.TextColor == Theme.Ink.TextColor,
-        "An open logical Portal, dialog or menu retained the old palette.")
-    Require(root.Editor?.CaretColor == Theme.Ink.TextColor
+        "An open logical Portal, dialog or menu retained the old palette."
+    )
+    Require(
+        root.Editor?.CaretColor == Theme.Ink.TextColor
         && root.Editor?.SelectionColor == Theme.Ink.AccentColor.WithAlpha(0.35),
-        "Editing colors did not change with System appearance.")
+        "Editing colors did not change with System appearance."
+    )
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
     ThemeFrames(first)
     Require(outside.Builds == outsideBuilds + 1, "Equal preferences rebuilt a theme reader.")
@@ -154,33 +197,43 @@ func ThemePolicyContracts() {
     other.Rebuild()
     ThemeFrames(first)
     ThemeFrames(second)
-    Require(outside.ReadBytes == 0L && other.ReadBytes == 0L,
-        "Warm window theme reads allocated or crossed window ownership.")
+    Require(
+        outside.ReadBytes == 0L && other.ReadBytes == 0L,
+        "Warm window theme reads allocated or crossed window ownership."
+    )
     let beforeMotion = outside.Builds
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, ReducedMotion: true})
     ThemeFrames(first)
-    Require(outside.Builds == beforeMotion + 1 && inside.Snapshot.Scrollbar.FadeMs == 0.0
+    Require(
+        outside.Builds == beforeMotion + 1 && inside.Snapshot.Scrollbar.FadeMs == 0.0
         && Theme.Read(window).Scrollbar.FadeMs == 0.0,
-        "Reduced motion did not invalidate a zero-duration theme or a fixed subtree scrollbar.")
+        "Reduced motion did not invalidate a zero-duration theme or a fixed subtree scrollbar."
+    )
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, ReducedMotion: false})
     ThemeFrames(first)
     Require(inside.Snapshot.Scrollbar.FadeMs == 250.0, "Scrollbar fade did not recover after reduced motion.")
     root.Value = Theme.Bone with{ControlHeight = 23.0, AccentColor = Theme.Bone.DangerColor, TransitionMs = 77.0}
     root.Rebuild()
     ThemeFrames(first)
-    Require(root.Inside == inside && inside.Snapshot.ControlHeight == 23.0,
-        "Scope update remounted its child or replaced an authored control height.")
+    Require(
+        root.Inside == inside && inside.Snapshot.ControlHeight == 23.0,
+        "Scope update remounted its child or replaced an authored control height."
+    )
     root.DensityOverride = Density.Touch
     root.Rebuild()
     ThemeFrames(first)
-    Require(root.Inside == inside && inside.Snapshot.ControlHeight == 44.0
+    Require(
+        root.Inside == inside && inside.Snapshot.ControlHeight == 44.0
         && inside.Snapshot.ControlPadding == 16.0 && inside.Snapshot.ControlGap == 8.0,
-        "Density was not an absolute retained scope transformation.")
+        "Density was not an absolute retained scope transformation."
+    )
     Theme.Attach(window, Theme.Default with{FontSize = 19.0, ControlHeight = 23.0, TransitionMs = 123.0})
     Theme.SetMode(window, ThemeMode.Dark)
     ThemeFrames(first)
-    Require(Theme.Read(window).FontSize == 19.0 && Theme.Read(window).ControlHeight == 23.0,
-        "SetMode replaced custom typography or metrics.")
+    Require(
+        Theme.Read(window).FontSize == 19.0 && Theme.Read(window).ControlHeight == 23.0,
+        "SetMode replaced custom typography or metrics."
+    )
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
     ThemeFrames(first)
     Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Locked Dark followed the system.")
@@ -189,19 +242,25 @@ func ThemePolicyContracts() {
     Require(Theme.Read(window).CanvasColor == Theme.Bone.CanvasColor, "System mode did not resume preference tracking.")
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Unknown, ReducedMotion: true})
     ThemeFrames(first)
-    Require(Theme.Read(window).CanvasColor == Theme.Bone.CanvasColor && Theme.Read(window).TransitionMs == 0.0
+    Require(
+        Theme.Read(window).CanvasColor == Theme.Bone.CanvasColor && Theme.Read(window).TransitionMs == 0.0
         && inside.Snapshot.TransitionMs == 0.0,
-        "Unknown appearance or reduced-motion policy was lost.")
+        "Unknown appearance or reduced-motion policy was lost."
+    )
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Unknown, ReducedMotion: false})
     ThemeFrames(first)
-    Require(Theme.Read(window).TransitionMs == 123.0 && inside.Snapshot.TransitionMs == 77.0,
-        "Reduced motion destroyed an authored window or subtree transition duration.")
+    Require(
+        Theme.Read(window).TransitionMs == 123.0 && inside.Snapshot.TransitionMs == 77.0,
+        "Reduced motion destroyed an authored window or subtree transition duration."
+    )
     Theme.Attach(window, Theme.Default with{CanvasColor = Theme.Bone.DangerColor})
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
     ThemeFrames(first)
     Require(window.Background == Theme.Bone.DangerColor, "A custom fixed palette followed the system.")
-    Console.WriteLine("PASS theme policy: two windows, later child rebuild, shadowing, live scope/density, equal preferences, fixed/custom modes, reduced motion; warm Read bytes scope/window/second="
-        + inside.ReadBytes.ToString() + "/" + outside.ReadBytes.ToString() + "/" + other.ReadBytes.ToString())
+    Console.WriteLine(
+        "PASS theme policy: two windows, later child rebuild, shadowing, live scope/density, equal preferences, fixed/custom modes, reduced motion; warm Read bytes scope/window/second="
+        + inside.ReadBytes.ToString() + "/" + outside.ReadBytes.ToString() + "/" + other.ReadBytes.ToString()
+    )
 }
 
 internal class ThemeVirtualRow : Cell {
@@ -211,9 +270,13 @@ internal class ThemeVirtualRow : Cell {
     public override func Build() Blob {
         Snapshot = Theme.Read()
         return Button{
-            Handle: Handle, Height: Snapshot.ControlHeight, Width: Percent(100), Focusable: true,
+            Handle: Handle,
+            Height: Snapshot.ControlHeight,
+            Width: Percent(100),
+            Focusable: true,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + Id.ToString()},
-            Color: Snapshot.TextColor, BackgroundColor: Snapshot.PanelColor,
+            Color: Snapshot.TextColor,
+            BackgroundColor: Snapshot.PanelColor,
             Text{Content: Id.ToString(), FontSize: Snapshot.FontSize},
         }
     }
@@ -229,7 +292,9 @@ internal class ThemeVirtualHost : Cell {
     private let builder Func[int32, Blob]
 
     internal init() {
-        for index in 0 ... 10000 { Items.Add(index) }
+        for index in 0 ... 10000 {
+            Items.Add(index)
+        }
         builder = BuildRow
     }
 
@@ -238,10 +303,13 @@ internal class ThemeVirtualHost : Cell {
         let theme = Theme.Read()
         return Container{
             Height: theme.ControlHeight,
-            Cell.Mount[ThemeVirtualRow]("counter", (row ThemeVirtualRow) -> {
-                row.Id = index
-                Rows[index] = row
-            }),
+            Cell.Mount[ThemeVirtualRow](
+                "counter",
+                (row ThemeVirtualRow) -> {
+                    row.Id = index
+                    Rows[index] = row
+                }
+            ),
         }
     }
 
@@ -255,13 +323,17 @@ internal class ThemeVirtualHost : Cell {
         view.Handle = Handle
         view.Width = 300.0
         view.Height = 180.0
-        return if UsePortal { Portal{Width: 300, Height: 180, view} } else { view }
+        return if UsePortal {
+            Portal{Width: 300, Height: 180, view}
+        } else {
+            view
+        }
     }
 }
 
 func ThemeVirtualContracts() {
-    for useItems in []bool{false, true} {
-        for portal in []bool{false, true} {
+    for useItems in[]bool{false, true} {
+        for portal in[]bool{false, true} {
             using let host = ThemePreferenceHost()
             host.Resize(360, 240, 360, 240)
             let root = ThemeVirtualHost(){UseItems = useItems, UsePortal = portal}
@@ -280,43 +352,64 @@ func ThemeVirtualContracts() {
             let before = root.Realizations
             Theme.SetMode(window, ThemeMode.Dark)
             ThemeFrames(host)
-            Require(root.Rows[30] == retained && retained.Snapshot.TextColor == Theme.Ink.TextColor,
-                "ContextVersion reused old virtual content or remounted a retained row.")
-            Require(Math.Abs(root.Handle.ScrollOffset.Y - anchor) < 0.1,
-                "A palette-only change moved the virtual scroll anchor.")
-            Require(root.Realizations > before && root.Realizations - before < 100,
-                "Theme refresh skipped visible rows or rebuilt all metadata rows.")
+            Require(
+                root.Rows[30] == retained && retained.Snapshot.TextColor == Theme.Ink.TextColor,
+                "ContextVersion reused old virtual content or remounted a retained row."
+            )
+            Require(
+                Math.Abs(root.Handle.ScrollOffset.Y - anchor) < 0.1,
+                "A palette-only change moved the virtual scroll anchor."
+            )
+            Require(
+                root.Realizations > before && root.Realizations - before < 100,
+                "Theme refresh skipped visible rows or rebuilt all metadata rows."
+            )
             let paletteCallbacks = root.Realizations - before
             let beforeDensity = root.Realizations
             Theme.Attach(window, Theme.Default.WithDensity(Density.Touch))
             ThemeFrames(host)
-            Require(root.Rows[30] == retained && retained.Handle.IsMounted
+            Require(
+                root.Rows[30] == retained && retained.Handle.IsMounted
                 && retained.Snapshot.ControlHeight == 44.0
                 && Math.Abs(retained.Handle.BorderBox.Y - rowY) < 0.1
                 && ThemeFocused(semantics.Tree?.Root)?.Name == "Row 30",
-                "Density changed the virtual anchor, focused row identity or retained theme.")
+                "Density changed the virtual anchor, focused row identity or retained theme."
+            )
             Require(root.Realizations - beforeDensity < 100, "Density rebuilt the whole virtual data set.")
             let densityCallbacks = root.Realizations - beforeDensity
             Require(root.Handle.ScrollToItem("200"), "New themed rows were not reachable.")
             ThemeFrames(host)
-            Require(root.Rows[200].Snapshot.TextColor == Theme.Bone.TextColor
+            Require(
+                root.Rows[200].Snapshot.TextColor == Theme.Bone.TextColor
                 && root.Rows[200].Snapshot.ControlHeight == 44.0,
-                "A newly realized row retained the old theme.")
-            Console.WriteLine("PASS virtual theme: items=" + useItems.ToString() + " portal=" + portal.ToString()
-                + " palette callbacks=" + paletteCallbacks.ToString() + " density callbacks=" + densityCallbacks.ToString()
-                + " total refresh/scroll callbacks=" + (root.Realizations - before).ToString())
+                "A newly realized row retained the old theme."
+            )
+            Console.WriteLine(
+                "PASS virtual theme: items=" + useItems.ToString() + " portal=" + portal.ToString()
+                + " palette callbacks=" + paletteCallbacks.ToString() +
+                    " density callbacks=" +
+                    densityCallbacks.ToString()
+                + " total refresh/scroll callbacks=" + (root.Realizations - before).ToString()
+            )
         }
     }
 }
 
 func ThemeCapture(window Window) WindowCapture {
     let deadline = Environment.TickCount64 + 20000
+    var previous = Environment.TickCount64
     var accepted = false
     while Environment.TickCount64 < deadline {
-        window.Pump(0.016)
-        if !accepted { accepted = window.RequestCapture() == WindowCaptureRequestStatus.Accepted }
+        if !accepted {
+            accepted = window.RequestCapture() == WindowCaptureRequestStatus.Accepted
+        }
+        let now = Environment.TickCount64
+        window.Pump(float64(now - previous) / 1000.0)
+        previous = now
         if accepted {
-            if let image = window.PollCapture() { return image }
+            if let image = window.PollCapture() {
+                return image
+            }
         }
         Thread.Sleep(1)
     }
@@ -326,8 +419,8 @@ func ThemeCapture(window Window) WindowCapture {
 func ThemePixel(image WindowCapture, x int32, y int32, color Color) bool {
     let at = y * int32(image.RowBytes) + x * 4
     return Math.Abs(int32(image.Pixels[at]) - int32(Math.Round(float64(color.R) * 255.0))) <= 2
-        && Math.Abs(int32(image.Pixels[at + 1]) - int32(Math.Round(float64(color.G) * 255.0))) <= 2
-        && Math.Abs(int32(image.Pixels[at + 2]) - int32(Math.Round(float64(color.B) * 255.0))) <= 2
+    && Math.Abs(int32(image.Pixels[at + 1]) - int32(Math.Round(float64(color.G) * 255.0))) <= 2
+    && Math.Abs(int32(image.Pixels[at + 2]) - int32(Math.Round(float64(color.B) * 255.0))) <= 2
 }
 
 internal class ThemeDensityHost : Cell {
@@ -347,8 +440,11 @@ internal class ThemeDensityHost : Cell {
             let icon = IconButton{
                 AccessibilityName: "No authored ring",
                 CreateRoot: (input IconButton, content Blob) -> Button{
-                    Width: input.Width!!, Height: input.Height!!, Padding: 0.0,
-                    BackgroundColor: Color.Transparent, Focus: Style{OutlineWidth: 0.0},
+                    Width: input.Width!!,
+                    Height: input.Height!!,
+                    Padding: 0.0,
+                    BackgroundColor: Color.Transparent,
+                    Focus: Style{OutlineWidth: 0.0},
                     content,
                 },
             }.Build()
@@ -357,11 +453,19 @@ internal class ThemeDensityHost : Cell {
             check.Handle = CheckHandle
             return Container{
                 KeyBindings: WidgetKeyBindings.Editing(Input),
-                Padding: 24.0, Gap: 16.0, BasedOn: theme.CanvasStyle,
-                button, icon, check,
+                Padding: 24.0,
+                Gap: 16.0,
+                BasedOn: theme.CanvasStyle,
+                button,
+                icon,
+                check,
                 ActionButton{
-                    Content: "Explicit geometry", Height: 23.0, MinWidth: 0.0, PaddingHorizontal: 0.0,
-                    BorderRadius: 0.0, FontFamily: "monospace",
+                    Content: "Explicit geometry",
+                    Height: 23.0,
+                    MinWidth: 0.0,
+                    PaddingHorizontal: 0.0,
+                    BorderRadius: 0.0,
+                    FontFamily: "monospace",
                     CreateText: (input ActionButton) -> {
                         Explicit = input
                         return Text{Content: input.Content!!}
@@ -379,19 +483,24 @@ func ThemeDensityContracts() {
     root.Input = window.PlatformInput
     try {
         window.Open()
-        for density in []Density{Density.Standard, Density.Compact, Density.Comfortable, Density.Touch} {
+        for density in[]Density{Density.Standard, Density.Compact, Density.Comfortable, Density.Touch} {
             root.DensityValue = density
             root.Rebuild()
             PumpFrames(window, 6)
             let expected = Theme.Default.WithDensity(density).ControlHeight
-            Require(Math.Abs(root.ButtonHandle.BorderBox.Height - expected) < 0.1
+            Require(
+                Math.Abs(root.ButtonHandle.BorderBox.Height - expected) < 0.1
                 && Math.Abs(root.IconHandle.BorderBox.Height - expected) < 0.1
                 && Math.Abs(root.CheckHandle.BorderBox.Height - expected) < 0.1,
-                "Density did not update the real control hit boxes.")
-            Require(root.Explicit.Height == 23.0 && root.Explicit.PaddingHorizontal == 0.0
+                "Density did not update the real control hit boxes."
+            )
+            Require(
+                root.Explicit.Height == 23.0 && root.Explicit.PaddingHorizontal == 0.0
                 && root.Explicit.BorderRadius == 0.0 && root.Explicit.FontFamily == "monospace",
-                "The theme replaced explicit zero geometry or font customization.")
+                "The theme replaced explicit zero geometry or font customization."
+            )
         }
+        Theme.Attach(window, Theme.Default with{TransitionMs = 1000.0})
         root.DensityValue = Density.Standard
         root.Rebuild()
         PumpFrames(window, 6)
@@ -401,21 +510,34 @@ func ThemeDensityContracts() {
         MouseButton(id, float32(bounds.X + bounds.Width / 2), float32(bounds.Y + bounds.Height / 2), false)
         PumpFrames(window, 4)
         let pointer = ThemeCapture(window)
-        Require(ThemePixel(pointer, int32(bounds.X) - 3, int32(bounds.Y + bounds.Height / 2), Theme.Read(window).CanvasColor),
-            "Pointer-only focus showed the keyboard ring.")
+        Require(
+            ThemePixel(
+                pointer,
+                int32(bounds.X) - 3,
+                int32(bounds.Y + bounds.Height / 2),
+                Theme.Read(window).CanvasColor
+            ),
+            "Pointer-only focus showed the keyboard ring."
+        )
         SendKey(id, SDLScancode.Tab)
         PumpFrames(window, 4)
         let authored = ThemeCapture(window)
         let icon = root.IconHandle.BorderBox
-        Require(ThemePixel(authored, int32(icon.X) - 3, int32(icon.Y + icon.Height / 2), Theme.Read(window).CanvasColor),
-            "An explicit zero ring width was overwritten.")
+        Require(
+            ThemePixel(authored, int32(icon.X) - 3, int32(icon.Y + icon.Height / 2), Theme.Read(window).CanvasColor),
+            "An explicit zero ring width was overwritten."
+        )
         SendKey(id, SDLScancode.Tab)
         PumpFrames(window, 4)
         let focused = ThemeCapture(window)
         let check = root.CheckHandle.BorderBox
-        Require(ThemePixel(focused, int32(check.X) - 3, int32(check.Y + check.Height / 2), Theme.Read(window).AccentColor),
-            "Real Tab traversal did not paint the default Accent ring.")
-        Console.WriteLine("PASS theme density, explicit zero/font overrides, pointer modality and captured keyboard focus")
+        Require(
+            ThemePixel(focused, int32(check.X) - 3, int32(check.Y + check.Height / 2), Theme.Read(window).AccentColor),
+            "Real Tab traversal did not paint the default Accent ring."
+        )
+        Console.WriteLine(
+            "PASS theme density, explicit zero/font overrides, pointer modality and captured keyboard focus"
+        )
     } finally {
         window.RequestClose()
         PumpFrames(window, 3)
@@ -423,10 +545,16 @@ func ThemeDensityContracts() {
 }
 
 func ThemeFocused(node AccessibilityNode?) AccessibilityNode? {
-    guard let node = node else { return nil }
-    if node.Focused { return node }
+    guard let node = node else {
+        return nil
+    }
+    if node.Focused {
+        return node
+    }
     for child in node.Children {
-        if let focused = ThemeFocused(child) { return focused }
+        if let focused = ThemeFocused(child) {
+            return focused
+        }
     }
     return nil
 }
@@ -439,7 +567,7 @@ func ThemeCatalogContracts() {
     gallery.AttachWindow(window)
     try {
         window.Open()
-        for mode in []ThemeMode{ThemeMode.Light, ThemeMode.Dark} {
+        for mode in[]ThemeMode{ThemeMode.Light, ThemeMode.Dark} {
             Theme.SetMode(window, mode)
             for index in 0 ... registry.Count() {
                 gallery.Show(index)
@@ -450,7 +578,10 @@ func ThemeCatalogContracts() {
                 CaptureIssueProof(window, "theme-" + mode.ToString() + "-" + index.ToString())
                 Console.WriteLine("CAPTURE theme catalog: " + mode.ToString() + " / " + title)
                 if title == "Managed dialog" {
-                    FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Open nested confirmation").Bounds)
+                    FeedbackClick(
+                        window,
+                        FeedbackNode(adapter, AccessibilityRole.Button, "Open nested confirmation").Bounds
+                    )
                     FeedbackNode(adapter, AccessibilityRole.Dialog, "Nested confirmation")
                     CaptureIssueProof(window, "theme-" + mode.ToString() + "-nested-dialog")
                     SendKey(OnlyNativeWindow(), SDLScancode.Escape)
@@ -467,12 +598,14 @@ func ThemeCatalogContracts() {
                     FeedbackMenu(window, adapter)
                 }
                 if title == "Managed dialog" || title == "Modal dialog" || title == "Popover"
-                    || title == "Date picker" || title == "Combo box" || title == "Menu" || title == "Tooltip" {
+                || title == "Date picker" || title == "Combo box" || title == "Menu" || title == "Tooltip" {
                     SendKey(OnlyNativeWindow(), SDLScancode.Escape)
                     PumpFrames(window, 12)
                     let closed = ThemeCapture(window)
-                    Require(ThemePixel(closed, 1, 1, Theme.Read(window).CanvasColor),
-                        "Closing an overlay left the wrong window palette.")
+                    Require(
+                        ThemePixel(closed, 1, 1, Theme.Read(window).CanvasColor),
+                        "Closing an overlay left the wrong window palette."
+                    )
                     CaptureIssueProof(window, "theme-" + mode.ToString() + "-" + index.ToString() + "-closed")
                 }
                 for step in 0 ... 6 {
@@ -482,9 +615,14 @@ func ThemeCatalogContracts() {
                     Require(focused != nil, "Gallery Tab traversal lost semantic focus: " + title)
                     let focusedImage = ThemeCapture(window)
                     Require(focusedImage.Width > 0u, "A focused widget did not capture.")
-                    CaptureIssueProof(window, "theme-" + mode.ToString() + "-" + index.ToString() + "-focus-" + step.ToString())
-                    Console.WriteLine("FOCUS theme " + mode.ToString() + " / " + title + ": "
-                        + focused!!.Role.ToString() + " / " + focused!!.Name)
+                    CaptureIssueProof(
+                        window,
+                        "theme-" + mode.ToString() + "-" + index.ToString() + "-focus-" + step.ToString()
+                    )
+                    Console.WriteLine(
+                        "FOCUS theme " + mode.ToString() + " / " + title + ": "
+                        + focused!!.Role.ToString() + " / " + focused!!.Name
+                    )
                 }
             }
         }
@@ -493,7 +631,6 @@ func ThemeCatalogContracts() {
         PumpFrames(window, 3)
     }
 }
-
 
 internal class ThemeCostProbe : Cell {
     internal var Themed bool
@@ -515,7 +652,7 @@ func ThemeCostContracts() {
     Theme.Attach(window)
     window.Attach(host)
     ThemeFrames(host)
-    for themed in []bool{false, true} {
+    for themed in[]bool{false, true} {
         root.Themed = themed
         root.Rebuild()
         ThemeFrames(host)
@@ -528,8 +665,10 @@ func ThemeCostContracts() {
         }
         let bytes = GC.GetAllocatedBytesForCurrentThread() - before
         Require(root.Builds - builds == 480, "The cost fixture did not execute every queued child rebuild.")
-        Console.WriteLine("THEME_COST queued builds=" + (root.Builds - builds).ToString()
-            + " managed bytes=" + bytes.ToString())
+        Console.WriteLine(
+            "THEME_COST queued builds=" + (root.Builds - builds).ToString()
+            + " managed bytes=" + bytes.ToString()
+        )
     }
 }
 
@@ -557,12 +696,203 @@ func ThemeAttachmentContracts() {
 
 func ThemeInteractions() {
     var rejected = false
-    try { Theme.Read() } catch (error InvalidOperationException) { rejected = true }
+    try {
+        Theme.Read()
+    } catch (error InvalidOperationException) {
+        rejected = true
+    }
     Require(rejected, "Theme.Read outside an owned build silently selected a global value.")
     ThemePolicyContracts()
     ThemeAttachmentContracts()
+    ThemeCostContracts()
     ThemeVirtualContracts()
     ThemeDensityContracts()
-    ThemeCostContracts()
+    ThemeScrollbarContracts()
     ThemeCatalogContracts()
+}
+
+internal class ThemeScrollbarHost : Cell {
+    internal let Items List[int32] = List[int32]()
+    internal let View ElementHandle = ElementHandle()
+    internal let Core ElementHandle = ElementHandle()
+    internal let FirstRow ElementHandle = ElementHandle()
+    internal let CustomTrack ElementHandle = ElementHandle()
+    internal let CustomThumb ElementHandle = ElementHandle()
+    internal var Mode int32
+    private let builder Func[int32, Blob]
+
+    internal init() {
+        for index in 0 ... 100 {
+            Items.Add(index)
+        }
+        builder = BuildRow
+    }
+
+    private func BuildRow(index int32) Blob {
+        let theme = Theme.Read()
+        return Container{
+            Handle: index == 0 ? FirstRow: nil,
+            Height: theme.ControlHeight,
+            Width: Percent(100),
+            BackgroundColor: theme.FieldColor,
+        }
+    }
+
+    public override func Build() Blob {
+        let theme = Theme.Read()
+        let view = VirtualRows(Items, theme.ControlHeight, (index int32) -> index.ToString(), builder)
+        view.Handle = View
+        view.Width = 200
+        view.Height = 160
+        view.BackgroundColor = theme.FieldColor
+        if Mode == 1 {
+            view.ScrollbarVisibilityY = ScrollbarVisibility.Always
+        }
+        if Mode == 2 {
+            view.ScrollbarVisibilityY = ScrollbarVisibility.Hidden
+        }
+        if Mode == 3 {
+            view.ScrollbarY = Scrollbar{}
+            view.ScrollbarVisibilityY = ScrollbarVisibility.Always
+        }
+        if Mode == 4 {
+            view.ScrollbarY = Scrollbar{
+                Thickness: 10,
+                HitThickness: 14,
+                Inset: 2,
+                MinThumbLength: 24,
+                ReserveSpace: false,
+                Track: Container{Handle: CustomTrack, BackgroundColor: Color.Transparent},
+                Thumb: Container{Handle: CustomThumb, BackgroundColor: Color.Rgb(180, 20, 160)},
+            }
+            view.ScrollbarVisibilityY = ScrollbarVisibility.Always
+        }
+        return Container{
+            Width: Percent(100),
+            Height: Percent(100),
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.FlexStart,
+            Padding: 16,
+            Gap: 24,
+            view,
+            Container{
+                Handle: Core,
+                Width: 200,
+                Height: 160,
+                OverflowY: Overflow.Scroll,
+                BackgroundColor: theme.FieldColor,
+                Container{Width: 200, Height: 3200, FlexShrink: 0},
+            },
+        }
+    }
+}
+
+func ThemeThumbPoint(view ElementHandle) Point {
+    let bounds = view.ContentBox
+    let maximum = view.ScrollRange.Y
+    let length = bounds.Height - 4.0
+    let thumb = Math.Max(24.0, length * bounds.Height / (bounds.Height + maximum))
+    return Point{
+        X: bounds.X + bounds.Width - 5.0,
+        Y: bounds.Y + 2.0 + (length - thumb) * view.ScrollOffset.Y / maximum + thumb / 2.0,
+    }
+}
+
+func ThemeScrollbarContracts() {
+    let root = ThemeScrollbarHost()
+    let window = Window{Root: root, Width: 480, Height: 240}
+    Theme.Attach(window, Theme.Default)
+    try {
+        window.Open()
+        PumpFrames(window, 8)
+        let theme = Theme.Read(window)
+        let descriptor = theme.Scrollbar
+        let other = theme.Scrollbar
+        Require(
+            descriptor != other && descriptor.Track != other.Track && descriptor.Thumb != other.Thumb
+            && descriptor.Thickness == 6.0 && descriptor.HitThickness == 12.0
+            && descriptor.Inset == 2.0 && descriptor.MinThumbLength == 24.0
+            && !descriptor.ReserveSpace && descriptor.HideDelayMs == 1000.0
+            && descriptor.FadeMs == (window.Preferences.ReducedMotion == true ? 0.0: 250.0),
+            "The themed scrollbar reused mutable parts or lost its overlay/hit geometry."
+        )
+        Require(
+            Math.Abs(root.FirstRow.BorderBox.Width - 200.0) < 0.1,
+            "The overlay scrollbar reserved row layout space."
+        )
+        let id = OnlyNativeWindow()
+        MouseMove(id, 5.0F, 5.0F)
+        Require(root.View.JumpTo(0, 300) && root.Core.JumpTo(0, 300), "The scrollbar fixture did not overflow.")
+        PumpFrames(window, 2)
+        let thumb = ThemeThumbPoint(root.View)
+        let image = ThemeCapture(window)
+        Require(
+            !ThemePixel(image, int32(thumb.X), int32(thumb.Y), theme.FieldColor),
+            "Scrolling the default helper did not paint its real thumb."
+        )
+        let bare = root.Core.ContentBox
+        Require(
+            ThemePixel(image, int32(bare.X + bare.Width - 5.0), int32(bare.Y + 24.0), theme.FieldColor),
+            "A core-only scroller acquired the Widgets scrollbar paint."
+        )
+        let before = root.View.ScrollOffset.Y
+        let hit = float32(root.View.ContentBox.X + root.View.ContentBox.Width - 10.0)
+        MouseButton(id, hit, float32(thumb.Y), true)
+        MouseMove(id, hit, float32(thumb.Y + 40.0))
+        MouseButton(id, hit, float32(thumb.Y + 40.0), false)
+        PumpFrames(window, 4)
+        Require(
+            root.View.ScrollOffset.Y > before + 100.0,
+            "Dragging outside the painted six-pixel thumb missed the twelve-pixel hit band."
+        )
+        CaptureIssueProof(window, "theme-scrollbar-drag")
+        MouseMove(id, 5.0F, 5.0F)
+        for mode in[]int32{1, 2, 3, 4} {
+            root.Mode = mode
+            root.Rebuild()
+            PumpFrames(window, 4)
+            let capture = ThemeCapture(window)
+            if mode == 4 {
+                CaptureIssueProof(window, "theme-scrollbar-custom")
+                let box = root.CustomThumb.BorderBox
+                Require(
+                    root.CustomTrack.IsMounted && root.CustomThumb.IsMounted && Math.Abs(box.Width - 10.0) < 0.1,
+                    "Custom parts lost geometry: width=" + box.Width.ToString()
+                    + " range=" + root.View.ScrollRange.Y.ToString()
+                )
+                Require(
+                    ThemePixel(
+                        capture,
+                        int32(box.X + box.Width / 2.0),
+                        int32(box.Y + box.Height / 2.0),
+                        Color.Rgb(180, 20, 160)
+                    ),
+                    "The custom scrollbar did not keep its authored paint."
+                )
+            } else {
+                let point = ThemeThumbPoint(root.View)
+                let painted = !ThemePixel(capture, int32(point.X), int32(point.Y), theme.FieldColor)
+                Require(painted == (mode == 1), "Scrollbar visibility precedence was lost: " + mode.ToString())
+            }
+        }
+        root.Items.Clear()
+        root.Items.Add(0)
+        root.Items.Add(1)
+        root.Mode = 0
+        root.Rebuild()
+        PumpFrames(window, 5)
+        let empty = ThemeCapture(window)
+        let bounds = root.View.ContentBox
+        Require(
+            root.View.ScrollRange.Y == 0.0
+            && ThemePixel(empty, int32(bounds.X + bounds.Width - 5.0), int32(bounds.Y + 24.0), theme.FieldColor),
+            "A nonoverflowing viewport retained scrollbar paint."
+        )
+        Console.WriteLine(
+            "PASS captured default scrollbar, expanded hit drag, overlay layout, Auto configuration, explicit Always/Hidden/blank/custom parts and unstyled core scroller"
+        )
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 3)
+    }
 }

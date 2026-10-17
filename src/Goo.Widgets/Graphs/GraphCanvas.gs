@@ -41,7 +41,7 @@ public data struct GraphCanvasInput {
     var SelectedEdgeColor Color?
     /// Edge width in logical pixels. Zero resolves to 2.0.
     var EdgeWidth float64
-    /// Marquee fill color. Nil resolves to translucent blue.
+    /// Marquee fill color. Nil uses the theme accent with 15% opacity.
     var MarqueeFillColor Color?
     /// Marquee border color. Nil uses the nearest theme.
     var MarqueeBorderColor Color?
@@ -392,7 +392,9 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             Width: resolved.NodeWidth,
             Height: resolved.NodeHeight,
             RootStyle: resolved.NodeStyle,
-            OnActivate: () -> { EmitNodeSelection(node.Id, KeyModifiers{}) },
+            OnActivate: () -> {
+                EmitNodeSelection(node.Id, KeyModifiers{})
+            },
             OnPointerDown: (e PointerEvent) -> BeginNodePointer(node, e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> CancelPointer(e),

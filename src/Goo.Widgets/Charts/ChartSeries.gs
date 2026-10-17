@@ -82,13 +82,18 @@ internal class ChartParts {
 
         internal func Legend(segments[]ChartSegment, label Func[ChartSegment, Text, Text]?, theme Theme) Container {
             let root = Container{
-                FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap,
-                Gap: theme.Spacing * 3.0, LineHeight: theme.LineHeight,
+                FlexDirection: FlexDirection.Row,
+                FlexWrap: FlexWrap.Wrap,
+                Gap: theme.Spacing * 3.0,
+                LineHeight: theme.LineHeight,
             }
             for segment in segments {
                 var text = Text{
-                    Content: segment.Summary!!, Color: theme.TextColor,
-                    FontFamily: theme.FontFamily, FontSize: theme.CaptionFontSize, FontWeight: theme.CaptionFontWeight,
+                    Content: segment.Summary!!,
+                    Color: theme.TextColor,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
                 }
                 if let create = label {
                     text = create(segment, text)

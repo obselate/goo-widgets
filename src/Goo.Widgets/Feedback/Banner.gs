@@ -56,8 +56,20 @@ public data struct Banner {
         let createRoot = CreateRoot
         let content = Content ?? ""
         let background = theme.PanelColor
-        let textColor = if Alert { theme.DangerColor } else if Loud { theme.WarningColor } else { theme.TextColor }
-        let border = if Alert { theme.DangerColor } else if Loud { theme.WarningColor } else { theme.BorderColor }
+        let textColor = if Alert {
+            theme.DangerColor
+        } else if Loud {
+            theme.WarningColor
+        } else {
+            theme.TextColor
+        }
+        let border = if Alert {
+            theme.DangerColor
+        } else if Loud {
+            theme.WarningColor
+        } else {
+            theme.BorderColor
+        }
         let resolved = this with{
             Content = content,
             AccessibilityName = AccessibilityName ?? content,

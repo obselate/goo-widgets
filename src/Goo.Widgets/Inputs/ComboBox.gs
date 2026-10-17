@@ -149,7 +149,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             rows[i] = rows[i]with{Active = rows[i].Item.Id == activeId}
         }
         let label = selected?.Label ?? selected?.Id ?? current.Placeholder!!
-        let valueContent = selected?.Content ?? Text{
+        let valueContent = selected?.Content ??
+        Text{
             Content: label,
             Color: selected == nil ? theme.MutedTextColor: theme.TextColor,
             FontFamily: theme.FontFamily,
@@ -197,7 +198,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         arrow.Key = "arrow"
         button.Children.Add(arrow)
-        var root = Container{Width: current.Width, MinWidth: 0.0, Overflow: Overflow.Visible, LineHeight: theme.LineHeight}
+        var root = Container{
+            Width: current.Width,
+            MinWidth: 0.0,
+            Overflow: Overflow.Visible,
+            LineHeight: theme.LineHeight
+        }
         if let create = current.CreateRoot {
             root = create(current, root)
         }
@@ -205,7 +211,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         root.Children.Add(button)
         let popupHeight = Math.Min(
             current.PopupHeight,
-            2.0 + (current.Searchable ? theme.ControlHeight: 0.0) + Math.Max(theme.ControlHeight, float64(rows.Count) * current.RowHeight)
+            2.0 + (current.Searchable ? theme.ControlHeight: 0.0) + Math.Max(
+                theme.ControlHeight,
+                float64(rows.Count) * current.RowHeight
+            )
         )
         var popup = PopoverInput{
             Open: isOpen,
@@ -294,10 +303,16 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             }
         }
         if rows.Count == 0 {
-            list.Children.Add(Text{
-                Content: current.EmptyText ?? "No matches", Padding: theme.ControlPadding, Color: theme.MutedTextColor,
-                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
-            })
+            list.Children.Add(
+                Text{
+                    Content: current.EmptyText ?? "No matches",
+                    Padding: theme.ControlPadding,
+                    Color: theme.MutedTextColor,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    FontWeight: theme.FontWeight,
+                }
+            )
         } else {
             list.Children.Add(virtualRows)
         }
@@ -350,9 +365,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         result.Children.Clear()
         result.Children.Add(
-            item.Content ?? Text{
-                Content: item.Label ?? id, Color: theme.TextColor, TextWrap: TextWrap.NoWrap,
-                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+            item.Content ??
+            Text{
+                Content: item.Label ?? id,
+                Color: theme.TextColor,
+                TextWrap: TextWrap.NoWrap,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
             }
         )
         return result

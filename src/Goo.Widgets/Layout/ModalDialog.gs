@@ -113,11 +113,14 @@ public data struct ModalDialog {
             Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
         }
 
-        let cancelContent = CancelContent ?? Text{
-            Content: cancelText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
-        }
-        let confirmContent = ConfirmContent ?? Text{
-            Content: confirmText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+        let cancelContent = CancelContent ??
+        Text{Content: cancelText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,}
+        let confirmContent = ConfirmContent ??
+        Text{
+            Content: confirmText,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
         }
         let cancel = if let createCancel = createCancel {
             createCancel(resolved, cancelContent)

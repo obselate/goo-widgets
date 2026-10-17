@@ -18,7 +18,7 @@ public data struct TooltipInput {
     var DelayMs float64?
     /// Preferred anchored position; Goo flips it at the viewport edge.
     var Placement PortalPlacement
-    /// Space around the label; nil uses 6 logical pixels.
+    /// Space around the label; nil uses the theme's gap.
     var Gap float64?
     /// Overlay order; zero uses 30.
     var ZIndex int32
@@ -89,22 +89,28 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             input.Target!!,
         }
         if input.Target!!.Disabled {
-            root.Children.Add(Container{
-                Position: PositionType.Absolute,
-                Left: 0.0,
-                Right: 0.0,
-                Top: 0.0,
-                Bottom: 0.0,
-                HitTestSelf: true,
-                Focusable: false,
-                TabStop: false,
-                Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
-            })
+            root.Children.Add(
+                Container{
+                    Position: PositionType.Absolute,
+                    Left: 0.0,
+                    Right: 0.0,
+                    Top: 0.0,
+                    Bottom: 0.0,
+                    HitTestSelf: true,
+                    Focusable: false,
+                    TabStop: false,
+                    Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
+                }
+            )
         }
         if visible {
-            let content = current.Content ?? Text{
-                Content: current.Text!!, FontFamily: theme.FontFamily,
-                FontSize: theme.CaptionFontSize, FontWeight: theme.CaptionFontWeight, Color: theme.TextColor,
+            let content = current.Content ??
+            Text{
+                Content: current.Text!!,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.CaptionFontSize,
+                FontWeight: theme.CaptionFontWeight,
+                Color: theme.TextColor,
             }
             let bubble = if let create = current.CreateBubble {
                 create(current, content)
@@ -123,13 +129,9 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             bubble.Focusable = false
             bubble.TabStop = false
             bubble.Accessibility = Accessibility{Role: AccessibilityRole.None, Hidden: true}
-            root.Children.Add(Portal{
-                Anchor: anchor,
-                Placement: current.Placement,
-                ZIndex: current.ZIndex,
-                Padding: gap,
-                bubble,
-            })
+            root.Children.Add(
+                Portal{Anchor: anchor, Placement: current.Placement, ZIndex: current.ZIndex, Padding: gap, bubble,}
+            )
         }
         return root
     }
@@ -144,7 +146,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             return
         }
         CancelPending()
-        if current.DelayMs!! == 0.0 {
+        if current.DelayMs!!== 0.0 {
             Show()
         } else {
             pending = current.Window!!.SetTimeout(() -> Show(), current.DelayMs!!)

@@ -25,7 +25,7 @@ public data struct TabBarInput {
     var AccessibilityName string?
     /// Root width. Nil resolves to 100%.
     var Width Length?
-    /// Minimum tab height. Nil resolves to 40.
+    /// Minimum tab height. Nil uses the theme's control height.
     var ItemHeight float64?
     /// Customizes item appearance; required identity, focus, handlers, and semantics are reapplied.
     var CreateItem Func[TabBarInput, NavigationItem, Button, Button]?
@@ -96,9 +96,13 @@ public open class TabBar : Cell[TabBarInput] {
                 BackgroundColor: active ? theme.AccentColor: theme.PanelColor,
                 Hover: Style{BackgroundColor: theme.HoverColor},
                 Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
-                item.Content ?? Text{
-                    Content: item.Label!!, TextWrap: TextWrap.NoWrap,
-                    FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.LabelFontWeight,
+                item.Content ??
+                Text{
+                    Content: item.Label!!,
+                    TextWrap: TextWrap.NoWrap,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    FontWeight: theme.LabelFontWeight,
                 },
             }
             if let create = input.CreateItem {
@@ -130,7 +134,10 @@ public open class TabBar : Cell[TabBarInput] {
         }
         var root = Container{
             LineHeight: theme.LineHeight,
-            Width: input.Width!!, MinWidth: 0, Gap: theme.Spacing / 2.0, BackgroundColor: theme.PanelColor,
+            Width: input.Width!!,
+            MinWidth: 0,
+            Gap: theme.Spacing / 2.0,
+            BackgroundColor: theme.PanelColor,
             ScrollbarX: theme.Scrollbar,
         }
         if let create = input.CreateRoot {

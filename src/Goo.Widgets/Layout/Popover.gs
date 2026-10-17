@@ -134,13 +134,16 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         layoutWidth = width
         var height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
-        if anchor != nil && (current.Placement == PopoverPlacement.BottomStart
-        || current.Placement == PopoverPlacement.BottomEnd
-        || current.Placement == PopoverPlacement.TopStart
-        || current.Placement == PopoverPlacement.TopEnd) {
+        if anchor != nil &&
+            (
+            current.Placement == PopoverPlacement.BottomStart
+            || current.Placement == PopoverPlacement.BottomEnd
+            || current.Placement == PopoverPlacement.TopStart
+            || current.Placement == PopoverPlacement.TopEnd
+        ) {
             let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
             let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
-            let above = Math.Max(0.0, anchorBox.Y - current.Gap!! - top)
+            let above = Math.Max(0.0, anchorBox.Y - current.Gap!!- top)
             let below = Math.Max(0.0, bottom - anchorBox.Y - anchorBox.Height - current.Gap!!)
             heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
             height = Math.Min(height, heightLimit)

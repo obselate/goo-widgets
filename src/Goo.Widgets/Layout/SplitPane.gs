@@ -45,7 +45,7 @@ public data struct SplitPaneInput {
     var Width Length?
     /// Root height. Nil resolves to 100%.
     var Height Length?
-    /// Divider size in logical pixels. Nil resolves to 6.
+    /// Divider size in logical pixels. Nil uses the theme spacing.
     var HandleSize float64?
     /// Accessible separator name. Nil resolves to Resize panes.
     var AccessibilityName string?

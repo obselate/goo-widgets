@@ -96,7 +96,8 @@ public data struct MediaCard {
             CreateContent = nil,
             CreateRoot = nil,
         }
-        let thumbnail = resolved.Thumbnail ?? Container{
+        let thumbnail = resolved.Thumbnail ??
+        Container{
             Width: resolved.Width,
             Height: resolved.ThumbnailHeight,
             FlexShrink: 0.0,

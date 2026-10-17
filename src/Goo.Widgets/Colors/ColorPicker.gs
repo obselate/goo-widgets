@@ -28,11 +28,11 @@ public data struct ColorPickerInput {
     var WheelSize float64
     /// Tone slider height. Zero resolves to 28.0.
     var ToneSliderHeight float64
-    /// Gap between the wheel and slider. Nil resolves to 12.0.
+    /// Gap between the wheel and slider. Nil uses the theme's gap.
     var Gap float64?
     /// Marker diameter. Zero resolves to 22.0.
     var MarkerSize float64
-    /// Marker border color. Nil resolves to white.
+    /// Marker border color. Nil uses the theme's text color.
     var MarkerBorderColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
@@ -324,9 +324,12 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             },
             OnClick: () -> SelectMode(mode),
             Text{
-                Key: "color-mode-label-" + label, Content: label,
-                FontFamily: theme.FontFamily, FontSize: theme.LabelFontSize,
-                FontWeight: theme.LabelFontWeight, Color: theme.TextColor,
+                Key: "color-mode-label-" + label,
+                Content: label,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.LabelFontSize,
+                FontWeight: theme.LabelFontWeight,
+                Color: theme.TextColor,
             },
         }
         WidgetKeyBindings.BindActivation(button)

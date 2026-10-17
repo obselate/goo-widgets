@@ -8,10 +8,19 @@ import System
 import System.Runtime.CompilerServices
 
 /// Selects the built-in window appearance policy.
-public enum ThemeMode { System; Light; Dark }
+public enum ThemeMode {
+    System;
+    Light;
+    Dark
+}
 
 /// Selects absolute control metrics for a subtree.
-public enum Density { Standard; Compact; Comfortable; Touch }
+public enum Density {
+    Standard;
+    Compact;
+    Comfortable;
+    Touch
+}
 
 /// Rounded widget presets in Goo Light, Goo Dark, and GitHub Dark palettes. Copy with `with` to customize.
 public data struct Theme {
@@ -439,7 +448,11 @@ public data struct Theme {
         return this with{
             ControlHeight = height,
             ControlPadding = padding,
-            ControlGap = if density == Density.Compact { 4.0 } else { 8.0 },
+            ControlGap = if density == Density.Compact {
+                4.0
+            } else {
+                8.0
+            },
         }
     }
 
@@ -450,7 +463,8 @@ public data struct Theme {
 
     /// Fresh overlay scrollbar with real pointer-controlled track and thumb parts.
     public prop Scrollbar Scrollbar {
-        get -> Goo.Scrollbar{
+        get -> Goo
+            .Scrollbar{
             Thickness: 6.0,
             HitThickness: 12.0,
             Inset: 2.0,

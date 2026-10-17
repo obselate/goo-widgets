@@ -401,10 +401,8 @@ internal class OverlayHost : Cell {
     }
 }
 
-func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(
-    adapter.Tree?.Root,
-    name
-)?.Focused ?? false
+func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(adapter.Tree?.Root, name)?.Focused ??
+false
 
 func OverlayInteractions() {
     RunContracts(OverlayContracts)

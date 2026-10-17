@@ -193,12 +193,23 @@ func MarkdownInteractions() {
         PumpFrames(window, 25)
         let caption = host.LinkCaption!!
         Require(
-            caption.Handle!!.IsMounted && caption.Content == "release guide code old" &&
-                caption.StyleRanges.Length == 4 &&
-                caption.StyleRanges[0].Range == TextRange(0, 7) &&
-                caption.StyleRanges[1].Range == TextRange(8, 5) &&
-                caption.StyleRanges[2].Range == TextRange(14, 4) &&
-                caption.StyleRanges[3].Range == TextRange(19, 3),
+            caption.Handle!!.IsMounted &&
+                caption.Content == "release guide code old" &&
+                caption
+                .StyleRanges
+                .Length == 4 &&
+                caption
+                .StyleRanges[0]
+                .Range == TextRange(0, 7) &&
+                caption
+                .StyleRanges[1]
+                .Range == TextRange(8, 5) &&
+                caption
+                .StyleRanges[2]
+                .Range == TextRange(14, 4) &&
+                caption
+                .StyleRanges[3]
+                .Range == TextRange(19, 3),
             "Markdown link lost its nested caption styles"
         )
         let id = OnlyNativeWindow()
@@ -315,8 +326,19 @@ func MarkdownInteractions() {
         let nextText = longEditor.Controller.Document.GetText().IndexOf("Text wraps")
         var caret ElementRect
         Require(
-            host.LinkCaption!!.StyleRanges.Length == 0 &&
-                longLink.Bounds.Width <= host.Viewport.ContentBox.Width + .2 && longLink.Bounds.Height > 30.0,
+            host.LinkCaption!!
+                .StyleRanges
+                .Length == 0 &&
+                longLink
+                .Bounds
+                .Width <= host
+                .Viewport
+                .ContentBox
+                .Width +
+                .2 &&
+                longLink
+                .Bounds
+                .Height > 30.0,
             "Markdown long link did not wrap to the measured paragraph width"
         )
         Require(

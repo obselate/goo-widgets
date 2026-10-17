@@ -336,6 +336,10 @@ func RunContracts(action Action) {
 }
 
 func Main() {
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_THEME_CATALOG") == "1" {
+        ThemeCatalogContracts()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_THEME") == "1" {
         ThemeInteractions()
         return
@@ -409,25 +413,27 @@ func Main() {
         DisclosureInteractions()
         return
     }
-    RunContracts(() -> {
-        CalendarContracts()
-        WindowChromeContracts()
-        MarkdownContracts()
-        ComboBoxContracts()
-        OverlayContracts()
-        PackageComposition()
-        NumericAndIdentityRegressions()
-        MaterialIconRegressions()
-        TextAreaOwnership()
-        TabBarContracts()
-        GridChartContracts()
-        TimeAxisContracts()
-        TreeViewContracts()
-        DataGridContracts()
-        VirtualContracts()
-        SliderInteractions()
-        WidgetErgonomics()
-    })
+    RunContracts(
+        () -> {
+            CalendarContracts()
+            WindowChromeContracts()
+            MarkdownContracts()
+            ComboBoxContracts()
+            OverlayContracts()
+            PackageComposition()
+            NumericAndIdentityRegressions()
+            MaterialIconRegressions()
+            TextAreaOwnership()
+            TabBarContracts()
+            GridChartContracts()
+            TimeAxisContracts()
+            TreeViewContracts()
+            DataGridContracts()
+            VirtualContracts()
+            SliderInteractions()
+            WidgetErgonomics()
+        }
+    )
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" {
         WindowInteractions()
     }

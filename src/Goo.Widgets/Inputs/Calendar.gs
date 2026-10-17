@@ -318,8 +318,12 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
 
     private func Navigation(delta int32) Button {
         var button = Button{
-            Width: theme.ControlHeight, Height: theme.ControlHeight, Padding: 0.0,
-            BackgroundColor: theme.PanelColor, BorderRadius: theme.ControlRadius, Focus: theme.FocusStyle,
+            Width: theme.ControlHeight,
+            Height: theme.ControlHeight,
+            Padding: 0.0,
+            BackgroundColor: theme.PanelColor,
+            BorderRadius: theme.ControlRadius,
+            Focus: theme.FocusStyle,
         }
         if let create = current.CreateNavigation {
             button = create(current, delta, button)
@@ -335,10 +339,15 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Name: delta < 0 ? current.PreviousMonthLabel!!: current.NextMonthLabel!!
         }
         button.Children.Clear()
-        button.Children.Add(Text{
-            Content: delta < 0 ? "‹": "›", FontFamily: theme.FontFamily,
-            FontSize: theme.HeadingFontSize, FontWeight: theme.HeadingFontWeight, Color: theme.TextColor,
-        })
+        button.Children.Add(
+            Text{
+                Content: delta < 0 ? "‹": "›",
+                FontFamily: theme.FontFamily,
+                FontSize: theme.HeadingFontSize,
+                FontWeight: theme.HeadingFontWeight,
+                Color: theme.TextColor,
+            }
+        )
         return button
     }
 
@@ -392,7 +401,13 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
-                Color: if day.Selected { theme.OnAccentColor } else if day.CurrentMonth { theme.TextColor } else { theme.FaintTextColor },
+                Color: if day.Selected {
+                    theme.OnAccentColor
+                } else if day.CurrentMonth {
+                    theme.TextColor
+                } else {
+                    theme.FaintTextColor
+                },
                 BasedOn: current.DayTextStyle
             }
         )

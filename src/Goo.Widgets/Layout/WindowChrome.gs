@@ -49,9 +49,9 @@ public data struct WindowChrome {
     var OverlayHost ElementHandle?
     /// Customizes menu presentation. Open state, actions, anchor, and dismissal are rewired.
     var CreateMenu Func[WindowChrome, MenuInput, MenuInput]?
-    /// Chrome height. Zero resolves to 32.0.
+    /// Chrome height. Zero uses the theme control height.
     var Height float64
-    /// Width of each control. Zero resolves to 46.0.
+    /// Width of each control. Zero uses the larger of 46 and the theme control height.
     var ControlWidth float64
     /// Chrome background. Nil uses the nearest theme.
     var BackgroundColor Color?
@@ -142,7 +142,14 @@ public data struct WindowChrome {
         }
         if resolved.ShowMinimize!! {
             children.Add(
-                BuildControl(theme, resolved, WindowChromeAction.Minimize, resolved.OnMinimize, createContent, createControl)
+                BuildControl(
+                    theme,
+                    resolved,
+                    WindowChromeAction.Minimize,
+                    resolved.OnMinimize,
+                    createContent,
+                    createControl
+                )
             )
         }
         if resolved.ShowMaximize!! {
@@ -228,7 +235,11 @@ public data struct WindowChrome {
                 } else {
                     resolved.HoverBackgroundColor!!
                 },
-                Color: if command == WindowChromeAction.Close { theme.OnAccentColor } else { resolved.ControlColor!! },
+                Color: if command == WindowChromeAction.Close {
+                    theme.OnAccentColor
+                } else {
+                    resolved.ControlColor!!
+                },
             },
         }
         let control = if let create = createControl {

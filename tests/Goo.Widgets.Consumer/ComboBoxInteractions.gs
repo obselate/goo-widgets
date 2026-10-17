@@ -261,7 +261,14 @@ func ComboBoxInteractions() {
         PumpFrames(window, 14)
         Require(host.IsOpen && ComboActive(semantics, "Beta"), "ComboBox failed to reveal its selected option")
         Require(
-            host.Panel!!.Handle!!.BorderBox.Y >= host.Trigger!!.Handle!!.BorderBox.Y + host.Trigger!!.Handle!!.BorderBox.Height,
+            host.Panel!!.Handle!!
+                .BorderBox
+                .Y >= host.Trigger!!.Handle!!
+                .BorderBox
+                .Y +
+                host.Trigger!!.Handle!!
+                .BorderBox
+                .Height,
             "ComboBox near the top did not keep its default downward placement"
         )
         Require(
@@ -320,7 +327,14 @@ func ComboBoxInteractions() {
             "Long searchable list did not reveal its selected option"
         )
         Require(
-            host.Panel!!.Handle!!.BorderBox.Y >= host.Trigger!!.Handle!!.BorderBox.Y + host.Trigger!!.Handle!!.BorderBox.Height,
+            host.Panel!!.Handle!!
+                .BorderBox
+                .Y >= host.Trigger!!.Handle!!
+                .BorderBox
+                .Y +
+                host.Trigger!!.Handle!!
+                .BorderBox
+                .Height,
             "ComboBox preferred upward placement did not fall back when only below fit"
         )
         window.Height = 320
@@ -329,7 +343,12 @@ func ComboBoxInteractions() {
             PumpFrames(window, 1)
             let upward = host.Panel!!.Handle!!.BorderBox
             Require(
-                upward.Y >= 7.5 && upward.Y + upward.Height <= host.Trigger!!.Handle!!.BorderBox.Y && upward.Height < 250.0,
+                upward.Y >= 7.5 &&
+                    upward.Y +
+                    upward.Height <= host.Trigger!!.Handle!!
+                    .BorderBox
+                    .Y &&
+                    upward.Height < 250.0,
                 "ComboBox did not keep its constrained upward bounds"
             )
         }
@@ -347,7 +366,14 @@ func ComboBoxInteractions() {
         host.Rebuild()
         PumpFrames(window, 10)
         Require(
-            host.Panel!!.Handle!!.BorderBox.Y >= host.Trigger!!.Handle!!.BorderBox.Y + host.Trigger!!.Handle!!.BorderBox.Height,
+            host.Panel!!.Handle!!
+                .BorderBox
+                .Y >= host.Trigger!!.Handle!!
+                .BorderBox
+                .Y +
+                host.Trigger!!.Handle!!
+                .BorderBox
+                .Height,
             "ComboBox did not return below after its viewport grew"
         )
         window.Height = 320

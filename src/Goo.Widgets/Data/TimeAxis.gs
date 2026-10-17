@@ -79,9 +79,9 @@ public data struct TimeAxisInput {
     var OnOverflow Action[[]TimeAxisEvent]?
     /// Maximum visible collision lanes. Nil resolves to four; must be from one to 1024.
     var MaximumLanes int32?
-    /// Event row height. Nil resolves to 30.
+    /// Event row height. Nil uses the theme's control height.
     var LaneHeight float64?
-    /// Gap between event rows. Nil resolves to 6.
+    /// Gap between event rows. Nil uses the theme's gap.
     var LaneGap float64?
     /// Minimum event visual width, included in collision handling. Nil resolves to 6.
     var MinimumEventWidth float64?
@@ -278,8 +278,11 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 Overflow: Overflow.Hidden,
                 JustifyContent: JustifyContent.Center,
                 Text{
-                    Content: item.Label!!, FontFamily: theme.FontFamily, FontSize: theme.CaptionFontSize,
-                    FontWeight: theme.CaptionFontWeight, TextWrap: TextWrap.NoWrap,
+                    Content: item.Label!!,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
+                    TextWrap: TextWrap.NoWrap,
                 }
             }
             if placement.Width < 40.0 {
@@ -315,8 +318,11 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 Focus: theme.FocusStyle,
                 Overflow: Overflow.Hidden,
                 Text{
-                    Content: "+" + hidden.Length.ToString() + " more", FontFamily: theme.FontFamily,
-                    FontSize: theme.CaptionFontSize, FontWeight: theme.CaptionFontWeight, TextWrap: TextWrap.NoWrap,
+                    Content: "+" + hidden.Length.ToString() + " more",
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
+                    TextWrap: TextWrap.NoWrap,
                 }
             }
             if let create = input.CreateOverflow {
@@ -371,6 +377,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         }
         let naturalHeight Length = canvasHeight + 8.0
         var root = Container{
+            LineHeight: theme.LineHeight,
             Handle: viewport,
             Focusable: true,
             Width: input.Width!!,

@@ -70,9 +70,9 @@ public data struct TreeViewInput {
     var Height Length?
     /// Optional vertical scrollbar appearance for the active scroller.
     var ScrollbarY Scrollbar?
-    /// Fixed visual row height. Nil resolves to 34.
+    /// Fixed visual row height. Nil uses the theme's control height.
     var RowHeight float64?
-    /// Indentation per depth level. Nil resolves to 20.
+    /// Indentation per depth level. Nil uses the theme spacing.
     var Indent float64?
     /// Accessible tree name. Nil resolves to Tree.
     var AccessibilityName string?
@@ -198,12 +198,14 @@ public open class TreeView : Cell[TreeViewInput] {
         let snapshot = input
         let key((TreeViewRow) -> string) = (row TreeViewRow) -> row.Node.Id!!
         let build((TreeViewRow) -> Blob) = (row TreeViewRow) -> BuildRow(snapshot, row)
-        let content Virtual = Virtual(VirtualRowsSource[TreeViewRow](
-            rows,
-            virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
-            key,
-            build
-        ))
+        let content Virtual = Virtual(
+            VirtualRowsSource[TreeViewRow](
+                rows,
+                virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
+                key,
+                build
+            )
+        )
         content.Key = "rows"
         content.Handle = viewport
         let fullHeight Length = float64(rows.Count) * input.RowHeight!!
@@ -213,7 +215,11 @@ public open class TreeView : Cell[TreeViewInput] {
         content.MinHeight = 0
         content.OverflowX = Overflow.Hidden
         content.OverflowY = input.Virtualize!!? Overflow.Scroll: Overflow.Hidden
-        content.ScrollbarY = if input.Virtualize!! { input.ScrollbarY } else { nil }
+        content.ScrollbarY = if input.Virtualize!! {
+            input.ScrollbarY
+        } else {
+            nil
+        }
         // A full-height provider realizes every row without replacing its retained subtree when the mode changes.
         let scroll = Container{
             FlexGrow: 1,
@@ -222,7 +228,11 @@ public open class TreeView : Cell[TreeViewInput] {
             MinHeight: 0,
             OverflowX: Overflow.Hidden,
             OverflowY: input.Virtualize!!? Overflow.Hidden: Overflow.Scroll,
-            ScrollbarY: if input.Virtualize!! { nil } else { input.ScrollbarY },
+            ScrollbarY: if input.Virtualize!! {
+                nil
+            } else {
+                input.ScrollbarY
+            },
             content
         }
         var root = Container{
@@ -404,7 +414,12 @@ public open class TreeView : Cell[TreeViewInput] {
             children.Add(expander)
         } else {
             children.Add(
-                Container{Key: "expander", Width: theme.ControlHeight, FlexShrink: 0, Accessibility: Accessibility{Hidden: true}}
+                Container{
+                    Key: "expander",
+                    Width: theme.ControlHeight,
+                    FlexShrink: 0,
+                    Accessibility: Accessibility{Hidden: true}
+                }
             )
         }
         if row.Node.CheckState != AccessibilityChecked.Unspecified {
@@ -426,9 +441,8 @@ public open class TreeView : Cell[TreeViewInput] {
             check.Accessibility = Accessibility{Hidden: true}
             children.Add(check)
         }
-        var label Blob = row
-            .Node
-            .Content ?? Text{
+        var label Blob = row.Node.Content ??
+        Text{
             Content: row.Node.Label ?? id,
             Color: snapshot.TextColor!!,
             TextWrap: TextWrap.NoWrap,
@@ -444,7 +458,10 @@ public open class TreeView : Cell[TreeViewInput] {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
-            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!},
+            Padding: Edges{
+                Right: theme.ControlPadding,
+                Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!
+            },
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
             OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,

@@ -96,7 +96,7 @@ public data struct ToggleSwitch {
         }
         let travel = Math.Max(
             0.0,
-            resolved.Width - 2.0 * (resolved.Padding!! + resolved.BorderWidth!!) - resolved.ThumbSize
+            resolved.Width - 2.0 * (resolved.Padding!!+ resolved.BorderWidth!!) - resolved.ThumbSize
         )
         let marginLeft = if resolved.Checked {
             travel

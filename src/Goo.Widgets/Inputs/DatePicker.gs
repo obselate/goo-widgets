@@ -147,8 +147,11 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             }
         }
         var button = Button{
-            Width: theme.ControlHeight, Height: theme.ControlHeight, Padding: theme.Spacing * 2.0,
-            BackgroundColor: Color.Transparent, Focus: theme.FocusStyle,
+            Width: theme.ControlHeight,
+            Height: theme.ControlHeight,
+            Padding: theme.Spacing * 2.0,
+            BackgroundColor: Color.Transparent,
+            Focus: theme.FocusStyle,
         }
         if let create = current.CreateButton {
             button = create(current, button)
@@ -180,8 +183,11 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             button
         }
         var root = Container{
-            Width: current.Width, MinWidth: 0.0, Gap: theme.ControlGap,
-            Overflow: Overflow.Visible, LineHeight: theme.LineHeight,
+            Width: current.Width,
+            MinWidth: 0.0,
+            Gap: theme.ControlGap,
+            Overflow: Overflow.Visible,
+            LineHeight: theme.LineHeight,
         }
         if let create = current.CreateRoot {
             root = create(current, root)

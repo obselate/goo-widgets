@@ -181,8 +181,11 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     JustifyContent: JustifyContent.FlexEnd,
                     Gap: theme.ControlGap,
                     Text{
-                        Content: "Volume", FontFamily: theme.FontFamily, FontSize: theme.CaptionFontSize,
-                        FontWeight: theme.CaptionFontWeight, Color: resolved.TextColor!!,
+                        Content: "Volume",
+                        FontFamily: theme.FontFamily,
+                        FontSize: theme.CaptionFontSize,
+                        FontWeight: theme.CaptionFontWeight,
+                        Color: resolved.TextColor!!,
                     },
                     Container{
                         Width: 120.0,

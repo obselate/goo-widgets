@@ -28,7 +28,7 @@ public data struct SearchList {
     var Width float64?
     /// Total height in pixels. Nil resolves to 240.
     var Height float64?
-    /// Virtual row height in pixels. Nil resolves to 40.
+    /// Virtual row height in pixels. Nil uses the theme's control height.
     var RowHeight float64?
     /// Surface color. Nil uses the nearest theme.
     var BackgroundColor Color?
@@ -165,10 +165,17 @@ public data struct SearchList {
             entry,
         }
         if filtered.Count == 0 {
-            root.Children.Add(Text{
-                Key: "empty", Content: EmptyText ?? "No matches", Color: muted, Padding: theme.ControlPadding,
-                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
-            })
+            root.Children.Add(
+                Text{
+                    Key: "empty",
+                    Content: EmptyText ?? "No matches",
+                    Color: muted,
+                    Padding: theme.ControlPadding,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    FontWeight: theme.FontWeight,
+                }
+            )
         } else {
             root.Children.Add(list)
         }
@@ -231,12 +238,20 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
                 }
             },
             Text{
-                Content: item.Label ?? "", Color: options.Foreground, FlexGrow: 1, MinWidth: 0,
-                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+                Content: item.Label ?? "",
+                Color: options.Foreground,
+                FlexGrow: 1,
+                MinWidth: 0,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
             },
             Text{
-                Content: item.Detail ?? "", Color: options.Muted,
-                FontFamily: theme.FontFamily, FontSize: theme.CaptionFontSize, FontWeight: theme.CaptionFontWeight,
+                Content: item.Detail ?? "",
+                Color: options.Muted,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.CaptionFontSize,
+                FontWeight: theme.CaptionFontWeight,
             },
         }
         var result Blob = row

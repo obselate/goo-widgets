@@ -81,9 +81,9 @@ public data struct DataGridInput {
     var ShowSelection bool
     var ExpandedIds[]?string
     var OnExpandedChange Action[string, bool]?
-    /// Expansion control width. Nil resolves to 30; zero hides the control.
+    /// Expansion control width. Nil uses the theme's control height; zero hides the control.
     var ExpandColumnWidth float64?
-    /// Detail padding. Nil resolves to 12; explicit zero is preserved.
+    /// Detail padding. Nil uses the theme's control padding; explicit zero is preserved.
     var DetailPadding float64?
     /// Detail surface color. Nil uses the nearest theme.
     var DetailBackground Color?
@@ -325,12 +325,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         } else {
             let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
             let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)
-            Virtual(VirtualRowsSource[DataGridRow](
-                rows,
-                virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
-                key,
-                build
-            ))
+            Virtual(
+                VirtualRowsSource[DataGridRow](
+                    rows,
+                    virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
+                    key,
+                    build
+                )
+            )
         }
         body.Key = "body"
         body.Handle = viewport
@@ -687,7 +689,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             let id = column.Id!!
             let label = column.Label ?? id
             var content Blob = filter ? (column.Filter ?? Container{}): (
-                column.Header ?? Text{
+                column.Header ??
+                Text{
                     Content: label +
                         (
                         snapshot.SortColumnId == id ? (
@@ -830,7 +833,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     (snapshot.OnSelectionRequest == nil && snapshot.OnSelectionChange == nil)
                 check.OnClick = () -> Select(id, true, false, false)
                 check.Accessibility = Accessibility{Hidden: true}
-                controls.Children.Add(Container{Key: "selection", Width: theme.ControlHeight, AlignItems: AlignItems.Center, check})
+                controls.Children.Add(
+                    Container{Key: "selection", Width: theme.ControlHeight, AlignItems: AlignItems.Center, check}
+                )
             }
             if details {
                 let expand = Button{
@@ -866,8 +871,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             }
             var content Blob = Text{
-                Content: text, Color: snapshot.TextColor!!, TextWrap: TextWrap.NoWrap,
-                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+                Content: text,
+                Color: snapshot.TextColor!!,
+                TextWrap: TextWrap.NoWrap,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
             }
             if let create = snapshot.CreateCell {
                 content = create(snapshot, row, column, content)

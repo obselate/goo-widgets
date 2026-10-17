@@ -16,11 +16,11 @@ public data struct GraphNodeCard {
     var Width float64
     /// Card height in logical pixels. Zero resolves to 64.0.
     var Height float64
-    /// Card padding. Nil resolves to 12.0.
+    /// Card padding. Nil uses the theme's control padding.
     var Padding float64?
-    /// Card corner radius. Nil resolves to 8.0.
+    /// Card corner radius. Nil uses the theme's panel radius.
     var BorderRadius float64?
-    /// Card border width. Nil resolves to 1.0.
+    /// Card border width. Nil uses the theme's border width.
     var BorderWidth float64?
     /// Unselected background color. Nil uses the nearest theme.
     var BackgroundColor Color?
@@ -30,7 +30,7 @@ public data struct GraphNodeCard {
     var BorderColor Color?
     /// Selected border color. Nil uses the nearest theme.
     var SelectedBorderColor Color?
-    /// Fallback label color. Nil uses the nearest theme.
+    /// Inherited content foreground. Nil uses the nearest theme. Explicit child colors win.
     var ForegroundColor Color?
     /// Optional base style for the card root.
     var RootStyle Style?
@@ -86,9 +86,11 @@ public data struct GraphNodeCard {
         if !Double.IsFinite(borderWidth) || borderWidth < 0.0 {
             throw ArgumentOutOfRangeException("BorderWidth")
         }
-        let content = Node.Content ?? Text{
+        let foreground = ForegroundColor ?? (Selected ? theme.OnAccentColor: theme.TextColor)
+        let content = Node.Content ??
+        Text{
             Content: Node.Label,
-            Color: ForegroundColor ?? (if Selected { theme.OnAccentColor } else { theme.TextColor }),
+            Color: foreground,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.LabelFontWeight,
@@ -97,6 +99,7 @@ public data struct GraphNodeCard {
         }
         let card = Container{
             LineHeight: theme.LineHeight,
+            Color: foreground,
             Key: "graph-node-" + Node.Id,
             Position: PositionType.Absolute,
             Left: center.X - width * 0.5,

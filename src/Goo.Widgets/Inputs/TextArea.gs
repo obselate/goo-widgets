@@ -188,7 +188,14 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         root.Children.Clear()
         if let label = input.Label {
             root.Children.Add(
-                Text{Key: "label", Handle: labelHandle, Content: label, Color: theme.MutedTextColor, FontSize: theme.LabelFontSize, FontWeight: theme.LabelFontWeight}
+                Text{
+                    Key: "label",
+                    Handle: labelHandle,
+                    Content: label,
+                    Color: theme.MutedTextColor,
+                    FontSize: theme.LabelFontSize,
+                    FontWeight: theme.LabelFontWeight
+                }
             )
         }
         root.Children.Add(editor)
