@@ -368,7 +368,13 @@ func ChromeInteractions() {
             "Menu key did not open maximized-state commands"
         )
         CaptureIssueProof(window, "chrome-maximized-menu")
-        CompositeClick(window, host.BodyButton)
+        let body = host.BodyButton.BorderBox
+        ChromeSeat("move " + int32(body.X + body.Width / 2.0).ToString()
+            + " " + int32(body.Y + body.Height / 2.0).ToString())
+        PumpFrames(window, 3)
+        ChromeSeat("button 272 1")
+        PumpFrames(window, 3)
+        ChromeSeat("button 272 0")
         PumpFrames(window, 12)
         Require(!host.MenuInput.Open, "Window menu outside-click dismissal failed")
         Require(!OverlayFocus(semantics, "Embedded control"), "Window menu outside-click restored trigger focus")
