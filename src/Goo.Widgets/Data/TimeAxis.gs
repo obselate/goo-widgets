@@ -89,7 +89,7 @@ public data struct TimeAxisInput {
     var CurrentTime DateTimeOffset?
     /// Marker label. Nil resolves to Now.
     var MarkerLabel string?
-    /// Marker fill. Nil resolves to #fb7185.
+    /// Marker fill. Nil uses the nearest theme.
     var MarkerColor Color?
     /// Center this instant once after mounting, unless InitialEventId is supplied.
     var InitialTime DateTimeOffset?
@@ -350,7 +350,9 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                         Position: PositionType.Absolute,
                         Left: 5,
                         Top: 16,
-                        FontSize: 10,
+                        FontFamily: theme.FontFamily,
+                        FontSize: theme.CaptionFontSize,
+                        FontWeight: theme.CaptionFontWeight,
                         Color: input.MarkerColor!!,
                         TextWrap: TextWrap.NoWrap
                     }

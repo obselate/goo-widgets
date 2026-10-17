@@ -2,6 +2,7 @@ package Goo.Widgets.ThemeSample
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Actions
 import Goo.Widgets.Inputs
 import Goo.Widgets.Theme
 import System
@@ -9,33 +10,25 @@ import System.Collections.Generic
 import System.IO
 
 class ThemeSample : Cell {
-    private var selectedTheme string = "goo-dark"
     private var compact bool
     private var livePreview bool = true
     private var title string = "goo studio"
     private var opacity float64 = 75.0
     private var status string = "Changes saved"
     private var platformInput PlatformInput?
+    private var window Window?
 
     internal func AttachWindow(window Window) {
+        this.window = window
+        Theme.Attach(window)
         platformInput = window.PlatformInput
         Rebuild()
     }
 
-    override func Build() Blob {
-        let theme = (
-            switch selectedTheme {
-                case "goo-light": GooLight
-                case "github-dark": GitHubDark
-                default: GooDark
-            }
-        ) with{
-            ControlHeight = if compact {
-                28.0
-            } else {
-                32.0
-            },
-        }
+    override func Build() Blob -> ThemeScope{
+            Density: compact ? Density.Compact: Density.Standard,
+            Content: () -> {
+        let theme = Theme.Read()
         let field = (
             theme.TextField with{
                 Label = "Window title",
@@ -86,7 +79,7 @@ class ThemeSample : Cell {
                                     theme.Button with{
                                         Content = "Goo Dark",
                                         OnClick = () -> {
-                                            selectedTheme = "goo-dark"
+                                            Theme.Attach(window!!, GooDark)
                                         }
                                     }
                                 ).Build(),
@@ -94,7 +87,7 @@ class ThemeSample : Cell {
                                     theme.Button with{
                                         Content = "Goo Light",
                                         OnClick = () -> {
-                                            selectedTheme = "goo-light"
+                                            Theme.Attach(window!!, GooLight)
                                         }
                                     }
                                 ).Build(),
@@ -102,10 +95,14 @@ class ThemeSample : Cell {
                                     theme.Button with{
                                         Content = "GitHub Dark",
                                         OnClick = () -> {
-                                            selectedTheme = "github-dark"
+                                            Theme.Attach(window!!, GitHubDark)
                                         }
                                     }
                                 ).Build(),
+                                ActionButton{
+                                    Content: "System",
+                                    OnClick: () -> Theme.SetMode(window!!, ThemeMode.System),
+                                }.Build(),
                             },
                         },
                         Container{
@@ -138,6 +135,7 @@ class ThemeSample : Cell {
                                         },
                                         OnChange = (value AccessibilityChecked) -> {
                                             compact = value == AccessibilityChecked.True
+                                            Rebuild()
                                         },
                                     }
                                 ).Build(),
@@ -202,6 +200,10 @@ class ThemeSample : Cell {
                                     },
                                 },
                                 (theme.Banner with{Content = status, BorderColor = theme.SuccessColor}).Build(),
+                                ThemeScope{
+                                    Value: theme with{AccentColor = theme.DangerColor},
+                                    Content: () -> (Theme.Read().PrimaryButton with{Content = "Scoped accent"}).Build(),
+                                }.Build(),
                             },
                         },
                         Container{
@@ -225,7 +227,8 @@ class ThemeSample : Cell {
                 },
             },
         }
-    }
+            },
+        }.Build()
 
     private func Swatch(name string, color Color) Blob -> Container{
         FlexGrow: 1.0,

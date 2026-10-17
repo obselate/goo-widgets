@@ -177,6 +177,7 @@ public data struct Stepper {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Gap: resolved.Gap!!,
             Opacity: resolved.Opacity!!,

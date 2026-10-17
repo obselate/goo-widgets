@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery
 
 import Goo
+import Goo.Widgets
 import System.Diagnostics
 import System.IO
 import System.Threading
@@ -222,6 +223,7 @@ func CaptureSpotlight(registry GalleryRegistry, directory string, requestedPage 
         Height: height,
         Root: Spotlight(page),
     }
+    Theme.Attach(window)
     window.Open()
     try {
         using let diagnostics = DevTools.Attach(window)

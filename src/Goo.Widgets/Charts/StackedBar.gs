@@ -14,7 +14,7 @@ public data struct StackedBar {
     var Height float64?
     /// Track and segment clipping radius. Nil resolves to 4.
     var BorderRadius float64?
-    /// Empty track fill. Nil resolves to #27272a.
+    /// Empty track fill. Nil uses the nearest theme.
     var TrackColor Color?
     /// Whether to include the default customizable legend.
     var ShowLegend bool

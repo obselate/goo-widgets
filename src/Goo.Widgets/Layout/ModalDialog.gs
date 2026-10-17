@@ -39,9 +39,9 @@ public data struct ModalDialog {
     var Padding float64?
     /// Dialog content gap. Nil resolves to 16 and preserves explicit zero.
     var Gap float64?
-    /// Dialog background. Nil resolves to #18181b.
+    /// Dialog background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Dialog border color. Nil resolves to #3f3f46.
+    /// Dialog border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Backdrop color. Nil resolves to translucent black.
     var BackdropColor Color?
@@ -176,6 +176,7 @@ public data struct ModalDialog {
             confirm,
         }
         let dialog = Container{
+            LineHeight: theme.LineHeight,
             Position: PositionType.Relative,
             Width: resolved.Width,
             MaxHeight: resolved.MaxHeight!!,

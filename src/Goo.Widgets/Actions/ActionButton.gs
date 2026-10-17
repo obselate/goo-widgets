@@ -37,9 +37,9 @@ public data struct ActionButton {
     var PaddingHorizontal float64?
     /// Text size.
     var FontSize float64?
-    /// Border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
-    /// Border radius. Nil resolves to 6.0; explicit zero is preserved.
+    /// Border radius. Nil uses the nearest theme radius; explicit zero is preserved.
     var BorderRadius float64?
     /// Transition duration. Nil uses theme motion.
     var TransitionMs float64?
@@ -111,6 +111,7 @@ public data struct ActionButton {
         }
 
         let root = Button{
+            LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
             MinWidth: resolved.MinWidth!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},

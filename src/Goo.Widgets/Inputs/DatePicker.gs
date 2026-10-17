@@ -179,7 +179,10 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             entry,
             button
         }
-        var root = Container{Width: current.Width, MinWidth: 0.0, Gap: theme.ControlGap, Overflow: Overflow.Visible}
+        var root = Container{
+            Width: current.Width, MinWidth: 0.0, Gap: theme.ControlGap,
+            Overflow: Overflow.Visible, LineHeight: theme.LineHeight,
+        }
         if let create = current.CreateRoot {
             root = create(current, root)
         }

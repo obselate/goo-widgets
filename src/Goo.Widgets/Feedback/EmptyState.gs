@@ -173,6 +173,7 @@ public data struct EmptyState {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
             Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),

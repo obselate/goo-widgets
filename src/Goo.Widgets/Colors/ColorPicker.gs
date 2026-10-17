@@ -34,7 +34,7 @@ public data struct ColorPickerInput {
     var MarkerSize float64
     /// Marker border color. Nil resolves to white.
     var MarkerBorderColor Color?
-    /// Focus outline color. Nil resolves to #a1a1aa.
+    /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
     /// Optional base style for the picker root.
     var RootStyle Style?
@@ -132,11 +132,12 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             return createRoot(resolved, wheel, slider)
         }
         let root = Container{
-            BasedOn: resolved.RootStyle,
+            LineHeight: theme.LineHeight,
             Key: "color-picker",
             Width: resolved.WheelSize,
             Gap: resolved.Gap!!,
             AlignItems: AlignItems.Stretch,
+            BasedOn: resolved.RootStyle,
         }
         if !resolved.Compact {
             root.Children.Add(BuildModeSelector())
@@ -195,7 +196,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             createMarker(resolved, currentRgb, hue, radius)
         } else {
             Container{
-                BasedOn: resolved.MarkerStyle,
                 Key: "color-marker",
                 Position: PositionType.Absolute,
                 Left: Percent(50.0 + x * 50.0),
@@ -207,6 +207,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 BorderWidth: 3.0,
                 BorderColor: resolved.MarkerBorderColor!!,
                 BackgroundColor: ColorMath.GooColor(currentRgb),
+                BasedOn: resolved.MarkerStyle,
                 HitTestSelf: false,
                 Accessibility: Accessibility{Hidden: true},
             }
@@ -231,7 +232,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             }
         }
         return Container{
-            BasedOn: resolved.WheelStyle,
             Key: "color-wheel",
             Handle: wheelHandle,
             Width: resolved.WheelSize,
@@ -247,7 +247,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 4.0},
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),

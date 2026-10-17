@@ -76,11 +76,11 @@ public data struct TreeViewInput {
     var Indent float64?
     /// Accessible tree name. Nil resolves to Tree.
     var AccessibilityName string?
-    /// Root fill. Nil resolves to #18181b.
+    /// Root fill. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Label color. Nil resolves to #e4e4e7.
+    /// Label color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Selected row fill. Nil resolves to #34334c.
+    /// Selected row fill. Nil uses the nearest theme.
     var SelectedColor Color?
     /// Customizes content in the standard row slots.
     var CreateContent Func[TreeViewInput, TreeViewRow, Blob, Blob]?
@@ -196,12 +196,14 @@ public open class TreeView : Cell[TreeViewInput] {
         }
 
         let snapshot = input
-        let content = VirtualRows(
+        let key((TreeViewRow) -> string) = (row TreeViewRow) -> row.Node.Id!!
+        let build((TreeViewRow) -> Blob) = (row TreeViewRow) -> BuildRow(snapshot, row)
+        let content Virtual = Virtual(VirtualRowsSource[TreeViewRow](
             rows,
-            input.RowHeight!!,
-            (row TreeViewRow) -> row.Node.Id!!,
-            (row TreeViewRow) -> BuildRow(snapshot, row)
-        )
+            virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
+            key,
+            build
+        ))
         content.Key = "rows"
         content.Handle = viewport
         let fullHeight Length = float64(rows.Count) * input.RowHeight!!
@@ -224,6 +226,7 @@ public open class TreeView : Cell[TreeViewInput] {
             content
         }
         var root = Container{
+            LineHeight: theme.LineHeight,
             Handle: rootHandle,
             Width: input.Width!!,
             Height: input.Height!!,
@@ -383,10 +386,10 @@ public open class TreeView : Cell[TreeViewInput] {
         let branch = (row.Node.Children ?? []TreeNode{}).Length > 0
         if branch {
             var expander = Button{
-                Width: 20,
-                Height: 22,
+                Width: theme.ControlHeight,
+                Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
                 BackgroundColor: Color.Transparent,
-                Padding: 2,
+                Padding: theme.Spacing / 2.0,
                 MaterialIcons.Create(row.Expanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
             }
             if let create = snapshot.CreateExpander {
@@ -401,7 +404,7 @@ public open class TreeView : Cell[TreeViewInput] {
             children.Add(expander)
         } else {
             children.Add(
-                Container{Key: "expander", Width: 20, FlexShrink: 0, Accessibility: Accessibility{Hidden: true}}
+                Container{Key: "expander", Width: theme.ControlHeight, FlexShrink: 0, Accessibility: Accessibility{Hidden: true}}
             )
         }
         if row.Node.CheckState != AccessibilityChecked.Unspecified {
@@ -409,7 +412,6 @@ public open class TreeView : Cell[TreeViewInput] {
                 Checkbox{
                     State: row.Node.CheckState,
                     Disabled: row.Disabled || snapshot.OnCheckChange == nil,
-                    Size: 18,
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button
             )!!
@@ -458,7 +460,6 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Handle = Handle(id)
         root.FlexDirection = FlexDirection.Row
         root.AlignItems = AlignItems.Center
-        root.Padding = Edges{Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!}
         root.MinWidth = 0
         root.Height = snapshot.RowHeight!!
         root.FlexShrink = 0

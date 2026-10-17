@@ -30,15 +30,15 @@ public data struct SearchList {
     var Height float64?
     /// Virtual row height in pixels. Nil resolves to 40.
     var RowHeight float64?
-    /// Surface color. Nil resolves to #18181b.
+    /// Surface color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Primary text color. Nil resolves to #fafafa.
+    /// Primary text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Secondary text color. Nil resolves to #a1a1aa.
+    /// Secondary text color. Nil uses the nearest theme.
     var MutedColor Color?
-    /// Selected row color. Nil resolves to #3f3f46.
+    /// Selected row color. Nil uses the nearest theme.
     var SelectedColor Color?
-    /// Focus outline color. Nil resolves to #a1a1aa.
+    /// Focus outline color. Nil uses the nearest theme.
     var FocusColor Color?
     /// Vertical scrollbar. Nil uses the theme overlay parts.
     var ScrollbarY Scrollbar?
@@ -151,6 +151,7 @@ public data struct SearchList {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: width,
             Height: height,
             MinHeight: 0,

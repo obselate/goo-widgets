@@ -26,23 +26,23 @@ public data struct MediaCard {
     var ThumbnailHeight float64
     /// Metadata area height. Zero resolves to 88.0.
     var ContentHeight float64
-    /// Metadata padding. Nil resolves to 12.0.
+    /// Metadata padding. Nil uses the nearest theme padding.
     var Padding float64?
-    /// Gap between metadata rows. Nil resolves to 4.0.
+    /// Gap between metadata rows. Nil uses the nearest theme spacing.
     var Gap float64?
-    /// Card corner radius. Nil resolves to 8.0.
+    /// Card corner radius. Nil uses the nearest theme radius.
     var BorderRadius float64?
-    /// Card background. Nil resolves to #18181b.
+    /// Card background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Card hover background. Nil resolves to #27272a.
+    /// Card hover background. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Primary text color. Nil resolves to #fafafa.
+    /// Primary text color. Nil uses the nearest theme.
     var TitleColor Color?
-    /// Secondary text color. Nil resolves to #a1a1aa.
+    /// Secondary text color. Nil uses the nearest theme.
     var SupportingColor Color?
-    /// Primary text size. Zero resolves to 16.0.
+    /// Primary text size. Zero uses the nearest theme heading font size.
     var TitleFontSize float64
-    /// Supporting text size. Zero resolves to 13.0.
+    /// Supporting text size. Zero uses the nearest theme caption font size.
     var SupportingFontSize float64
     /// Optional base style for the root button.
     var RootStyle Style?
@@ -142,7 +142,7 @@ public data struct MediaCard {
             return button
         }
         let button = Button{
-            BasedOn: resolved.RootStyle,
+            LineHeight: theme.LineHeight,
             Width: resolved.Width,
             Height: resolved.ThumbnailHeight + resolved.ContentHeight,
             Padding: 0.0,
@@ -156,6 +156,7 @@ public data struct MediaCard {
             OverflowY: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
             Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+            BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
             thumbnail,

@@ -53,15 +53,15 @@ public data struct WindowChrome {
     var Height float64
     /// Width of each control. Zero resolves to 46.0.
     var ControlWidth float64
-    /// Chrome background. Nil resolves to #18181b.
+    /// Chrome background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Chrome bottom border. Nil resolves to #27272a.
+    /// Chrome bottom border. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Control foreground. Nil resolves to #a1a1aa.
+    /// Control foreground. Nil uses the nearest theme.
     var ControlColor Color?
-    /// Control hover background. Nil resolves to #27272a.
+    /// Control hover background. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Close control hover background. Nil resolves to #a62e3a.
+    /// Close control hover background. Nil uses the nearest theme.
     var CloseHoverBackgroundColor Color?
     /// Optional base style for the drag region container.
     var RootStyle Style?
@@ -173,7 +173,6 @@ public data struct WindowChrome {
         }
         let ordered = children.ToArray()
         let prepared = Container{
-            BasedOn: resolved.RootStyle,
             Height: resolved.Height,
             FlexShrink: 0.0,
             FlexDirection: FlexDirection.Row,
@@ -181,6 +180,7 @@ public data struct WindowChrome {
             BackgroundColor: resolved.BackgroundColor!!,
             BorderWidth: Edges{Bottom: 1.0},
             BorderColor: Edges[Color]{Bottom: resolved.BorderColor!!},
+            BasedOn: resolved.RootStyle,
             Children: children,
         }
         let root = if let create = createRoot {

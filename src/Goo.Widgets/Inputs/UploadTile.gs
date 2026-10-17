@@ -17,13 +17,13 @@ public data struct UploadTile {
     var AccessibilityName string?
     /// Tile width and height in logical pixels. Nil resolves to 160.0.
     var Size float64?
-    /// Background color of the tile. Nil resolves to #18181b.
+    /// Background color of the tile. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Border color in normal state. Nil resolves to #3f3f46.
+    /// Border color in normal state. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Border color when Failed is true. Nil resolves to #ef4444.
+    /// Border color when Failed is true. Nil uses the nearest theme.
     var FailedBorderColor Color?
-    /// Background color of the bottom status strip. Nil resolves to #27272a.
+    /// Background color of the bottom status strip. Nil uses the nearest theme.
     var StatusBackgroundColor Color?
     /// Uniform padding inside the body container. Nil resolves to 12.0.
     var Padding float64?
@@ -37,7 +37,7 @@ public data struct UploadTile {
     var BorderRadius float64?
     /// Inset of the action overlay from the top and right edges. Nil resolves to 8.0.
     var ActionInset float64?
-    /// Transition duration in milliseconds. Nil resolves to 150.0.
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Easing function for tile transitions. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?

@@ -23,31 +23,31 @@ public data struct NavigationRailInput {
     var ExpandedWidth float64
     /// Height. Nil resolves to 100%.
     var Height Length?
-    /// Item height. Zero resolves to 44.
+    /// Item height. Zero uses the nearest theme control height.
     var ItemHeight float64
-    /// Gap between items. Nil resolves to 4 and preserves explicit zero.
+    /// Gap between items. Nil uses the nearest theme gap and preserves explicit zero.
     var Gap float64?
-    /// Horizontal item padding. Nil resolves to 10 and preserves explicit zero.
+    /// Horizontal item padding. Nil uses the nearest theme padding and preserves explicit zero.
     var ItemPaddingHorizontal float64?
-    /// Item content gap. Nil resolves to 10 and preserves explicit zero.
+    /// Item content gap. Nil uses the nearest theme gap and preserves explicit zero.
     var ItemGap float64?
-    /// Item corner radius. Nil resolves to 6 and preserves explicit zero.
+    /// Item corner radius. Nil uses the nearest theme radius and preserves explicit zero.
     var ItemBorderRadius float64?
-    /// Rail background. Nil resolves to #18181b.
+    /// Rail background. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Normal item background. Nil resolves to transparent.
     var ItemBackgroundColor Color?
-    /// Selected item background. Nil resolves to #27272a.
+    /// Selected item background. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Hover item background. Nil resolves to #27272a.
+    /// Hover item background. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Normal text color. Nil resolves to #a1a1aa.
+    /// Normal text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Selected text color. Nil resolves to #fafafa.
+    /// Selected text color. Nil uses the nearest theme.
     var SelectedTextColor Color?
-    /// Label font size. Zero resolves to 13.
+    /// Label font size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Label font weight. Zero resolves to 600.
+    /// Label font weight. Zero uses the nearest theme label font weight.
     var FontWeight int32
     /// Optional label font family.
     var FontFamily string?
@@ -234,6 +234,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             return createRoot(resolved, buttons)
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: if resolved.Expanded {
                 resolved.ExpandedWidth
             } else {

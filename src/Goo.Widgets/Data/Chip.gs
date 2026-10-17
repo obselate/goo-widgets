@@ -17,27 +17,27 @@ public data struct Chip {
     var AccessibilityName string?
     /// Action invoked when the chip button is activated.
     var OnClick Action?
-    /// Background color in normal unselected state. Nil resolves to #18181b.
+    /// Background color in normal unselected state. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Background color in selected state. Nil resolves to #fafafa.
+    /// Background color in selected state. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Text and icon color in normal unselected state. Nil resolves to #fafafa.
+    /// Text and icon color in normal unselected state. Nil uses the nearest theme.
     var TextColor Color?
-    /// Text and icon color in selected state. Nil resolves to #09090b.
+    /// Text and icon color in selected state. Nil uses the nearest theme.
     var SelectedTextColor Color?
-    /// Border color in normal unselected state. Nil resolves to #3f3f46.
+    /// Border color in normal unselected state. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Border color in selected state. Nil resolves to #fafafa.
+    /// Border color in selected state. Nil uses the nearest theme.
     var SelectedBorderColor Color?
-    /// Hover background color in normal unselected state. Nil resolves to #27272a.
+    /// Hover background color in normal unselected state. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Hover background color in selected state. Nil resolves to #e4e4e7.
+    /// Hover background color in selected state. Nil uses the nearest theme.
     var SelectedHoverBackgroundColor Color?
-    /// Active press background color in normal unselected state. Nil resolves to #3f3f46.
+    /// Active press background color in normal unselected state. Nil uses the nearest theme.
     var ActiveBackgroundColor Color?
-    /// Active press background color in selected state. Nil resolves to #d4d4d8.
+    /// Active press background color in selected state. Nil uses the nearest theme.
     var SelectedActiveBackgroundColor Color?
-    /// Focus outline border color. Nil resolves to #d4d4d8.
+    /// Focus outline border color. Nil uses the nearest theme.
     var FocusBorderColor Color?
     /// Fixed height. Nil uses the theme control height.
     var Height float64?
@@ -45,15 +45,15 @@ public data struct Chip {
     var PaddingHorizontal float64?
     /// Content gap. Explicit zero is preserved.
     var Gap float64?
-    /// Font size of the text label. Zero resolves to 12.0.
+    /// Font size of the text label. Zero uses the nearest theme caption font size.
     var FontSize float64
-    /// Font weight of the text label. Zero resolves to 600.
+    /// Font weight of the text label. Zero uses the nearest theme caption font weight.
     var FontWeight int32
-    /// Border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
-    /// Corner border radius. Nil resolves to 14.0; explicit zero is preserved.
+    /// Corner border radius. Nil uses the nearest theme radius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing function for state changes. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -161,6 +161,7 @@ public data struct Chip {
         }
 
         let root = Button{
+            LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
             Gap: resolved.Gap!!,

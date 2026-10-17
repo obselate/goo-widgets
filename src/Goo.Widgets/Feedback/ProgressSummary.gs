@@ -19,19 +19,19 @@ public data struct ProgressSummary {
     var AccessibilityName string?
     /// Root width. Nil resolves to 100%.
     var Width Length?
-    /// Gap between rows. Nil resolves to 8 and preserves explicit zero.
+    /// Gap between rows. Nil uses the nearest theme gap and preserves explicit zero.
     var Gap float64?
-    /// Header content gap. Nil resolves to 8 and preserves explicit zero.
+    /// Header content gap. Nil uses the nearest theme gap and preserves explicit zero.
     var HeaderGap float64?
-    /// Label color. Nil resolves to #fafafa.
+    /// Label color. Nil uses the nearest theme.
     var LabelColor Color?
-    /// Detail color. Nil resolves to #a1a1aa.
+    /// Detail color. Nil uses the nearest theme.
     var DetailColor Color?
-    /// Label font size. Zero resolves to 14.
+    /// Label font size. Zero uses the nearest theme font size.
     var LabelFontSize float64
-    /// Label font weight. Zero resolves to 600.
+    /// Label font weight. Zero uses the nearest theme label font weight.
     var LabelFontWeight int32
-    /// Detail font size. Zero resolves to 12.
+    /// Detail font size. Zero uses the nearest theme caption font size.
     var DetailFontSize float64
     /// Optional font family for default text.
     var FontFamily string?
@@ -114,6 +114,7 @@ public data struct ProgressSummary {
             return createRoot(resolved, header, progress)
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Gap: resolved.Gap!!,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: resolved.AccessibilityName!!,},

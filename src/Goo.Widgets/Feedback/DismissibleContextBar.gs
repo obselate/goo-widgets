@@ -19,27 +19,27 @@ public data struct DismissibleContextBar {
     var Disabled bool
     /// Width of the context bar container. Nil resolves to Percent(100.0).
     var Width Length?
-    /// Background color of the context bar container. Nil resolves to #18181b.
+    /// Background color of the context bar container. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Text color for the context bar. Nil resolves to #fafafa.
+    /// Text color for the context bar. Nil uses the nearest theme.
     var TextColor Color?
-    /// Border color of the context bar container. Nil resolves to #3f3f46.
+    /// Border color of the context bar container. Nil uses the nearest theme.
     var BorderColor Color?
     /// Background color of the dismiss button. Nil resolves to Color.Transparent.
     var DismissBackgroundColor Color?
-    /// Text color of the dismiss button. Nil resolves to #a1a1aa.
+    /// Text color of the dismiss button. Nil uses the nearest theme.
     var DismissTextColor Color?
     /// Border color of the dismiss button. Nil resolves to Color.Transparent.
     var DismissBorderColor Color?
-    /// Hover background color of the dismiss button. Nil resolves to #27272a.
+    /// Hover background color of the dismiss button. Nil uses the nearest theme.
     var DismissHoverBackgroundColor Color?
-    /// Active background color of the dismiss button. Nil resolves to #3f3f46.
+    /// Active background color of the dismiss button. Nil uses the nearest theme.
     var DismissActiveBackgroundColor Color?
-    /// Focus border color of the dismiss button. Nil resolves to #d4d4d8.
+    /// Focus border color of the dismiss button. Nil uses the nearest theme.
     var DismissFocusBorderColor Color?
     /// Disabled background color of the dismiss button. Nil resolves to Color.Transparent.
     var DismissDisabledBackgroundColor Color?
-    /// Disabled text color of the dismiss button. Nil resolves to #71717a.
+    /// Disabled text color of the dismiss button. Nil uses the nearest theme.
     var DismissDisabledTextColor Color?
     /// Minimum height of the context bar container. Nil resolves to theme.ControlHeight.
     var MinHeight float64?
@@ -61,7 +61,7 @@ public data struct DismissibleContextBar {
     var TransitionMs float64?
     /// Easing curve applied to transitions. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
-    /// Transform applied when the dismiss button is active/pressed. Nil resolves to PanelTransform{Scale: 0.98}.
+    /// Transform applied when the dismiss button is active/pressed. Nil resolves to identity transform.
     var DismissActiveTransform PanelTransform?
     /// Opacity of the context bar container. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
@@ -181,6 +181,7 @@ public data struct DismissibleContextBar {
             return createRoot(resolved, Content, button!!)
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             FlexDirection: FlexDirection.Row,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,

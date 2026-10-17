@@ -64,6 +64,7 @@ class App : Cell {
 
 let root = App{}
 let window = Window{Root: root}
+Theme.Attach(window)
 root.AttachWindow(window)
 window.Run()
 ```
@@ -343,7 +344,8 @@ but replaces all palette roles, including custom colors.
 corners and 8 px panel corners. Named Ink, Bone and GitHubDark presets retain
 their branded typography and metrics. `GooDark` and `GooLight` remain aliases.
 Motion defaults to zero. `TransitionMs` opts into motion unless reduced motion
-is active.
+is active. Window reduced-motion policy also applies inside fixed scopes, including
+scrollbar fades, and restores authored transition durations when disabled.
 
 Read `Theme.Read()` during an owned Cell build or virtual callback.
 `Theme.Read(window)` reads only the window snapshot on its owner thread.
@@ -368,6 +370,16 @@ and gap: Compact 28/8/4, Standard 32/12/8, Comfortable 40/16/8 and Touch 44/16/8
 Without Density, a scope preserves custom metrics such as a 23 px control.
 Explicit widget properties and final factory/style overrides take precedence.
 Replacing primitive factories own their focus and scrolling semantics.
+
+Theme ownership audit:
+
+| Sources | Deliberate boundary |
+|---|---|
+| `ColorMath`, `ColorModels`, `ColorWheelSource` | Color conversion and sampled image data remain unchanged. They do not read a UI palette. |
+| `SelectionItem`, `GraphModels`, `NavigationItem` | Data-only declarations remain unchanged. |
+| `Grid`, `ModalDialogHost` | Layout and logical ownership stay neutral. Caller content is not restyled. |
+| `WidgetKeyBindings`, `WindowChrome.State` | Input behavior stays unchanged. Chrome state forwards its retained theme to visual builders. |
+| `MarkdownParser`, `MarkdownTypes` | Parsing stays unchanged. The input's nullable `BlockGap` preserves authored zero. |
 
 Run the [complete sample](../samples/Goo.Widgets.Theme/Program.gs):
 

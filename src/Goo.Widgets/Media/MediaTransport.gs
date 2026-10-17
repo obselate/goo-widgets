@@ -70,21 +70,21 @@ public data struct MediaTransportInput {
     var ActionSize float64
     /// Play or pause button size. Zero resolves to 52.0.
     var PrimaryActionSize float64
-    /// Root background. Nil resolves to #18181b.
+    /// Root background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Supporting text color. Nil resolves to #a1a1aa.
+    /// Supporting text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Action background. Nil resolves to #27272a.
+    /// Action background. Nil uses the nearest theme.
     var ActionBackgroundColor Color?
-    /// Action hover background. Nil resolves to #3f3f46.
+    /// Action hover background. Nil uses the nearest theme.
     var ActionHoverBackgroundColor Color?
-    /// Primary action background. Nil resolves to #fafafa.
+    /// Primary action background. Nil uses the nearest theme.
     var PrimaryActionBackgroundColor Color?
-    /// Primary action text. Nil resolves to #09090b.
+    /// Primary action text. Nil uses the nearest theme.
     var PrimaryActionTextColor Color?
-    /// Slider track color. Nil resolves to #3f3f46.
+    /// Slider track color. Nil uses the nearest theme.
     var TrackColor Color?
-    /// Slider fill color. Nil resolves to #fafafa.
+    /// Slider fill color. Nil uses the nearest theme.
     var FillColor Color?
     /// Optional base style for the root.
     var RootStyle Style?
@@ -107,6 +107,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         let createRoot = input.CreateRoot
         let resolved = Resolve(input, theme)
         let previous = ActionButton(
+            theme,
             resolved,
             MediaTransportAction.Previous,
             resolved.OnPrevious,
@@ -117,18 +118,19 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         } else {
             MediaTransportAction.Play
         }
-        let playback = ActionButton(resolved, playbackAction, resolved.OnPlayPause, !resolved.CanPlayPause!!)
-        let next = ActionButton(resolved, MediaTransportAction.Next, resolved.OnNext, !resolved.CanNext!!)
+        let playback = ActionButton(theme, resolved, playbackAction, resolved.OnPlayPause, !resolved.CanPlayPause!!)
+        let next = ActionButton(theme, resolved, MediaTransportAction.Next, resolved.OnNext, !resolved.CanNext!!)
         let root = Container{
-            BasedOn: resolved.RootStyle,
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Padding: resolved.Padding!!,
             Gap: resolved.Gap!!,
             BackgroundColor: resolved.BackgroundColor!!,
+            BasedOn: resolved.RootStyle,
             Container{
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
-                Gap: 12.0,
+                Gap: theme.ControlGap,
                 TimeText(theme, resolved.Position, resolved.TextColor!!),
                 Container{
                     Width: 0.0,
@@ -177,11 +179,14 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
                     JustifyContent: JustifyContent.FlexEnd,
-                    Gap: 8.0,
-                    Text{Content: "Volume", FontSize: theme.CaptionFontSize, Color: resolved.TextColor!!},
+                    Gap: theme.ControlGap,
+                    Text{
+                        Content: "Volume", FontFamily: theme.FontFamily, FontSize: theme.CaptionFontSize,
+                        FontWeight: theme.CaptionFontWeight, Color: resolved.TextColor!!,
+                    },
                     Container{
                         Width: 120.0,
-                        Padding: Edges{Right: 10.0, Left: 10.0},
+                        Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                         Cell.Mount[SliderInput, Slider](
                             "media-volume",
                             SliderInput{
@@ -220,12 +225,12 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             throw ArgumentOutOfRangeException("Volume")
         }
         let actionSize = if input.ActionSize == 0.0 {
-            40.0
+            theme.ControlHeight
         } else {
             input.ActionSize
         }
         let primarySize = if input.PrimaryActionSize == 0.0 {
-            52.0
+            theme.ControlHeight + theme.Spacing * 2.0
         } else {
             input.PrimaryActionSize
         }
@@ -251,7 +256,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             CanSetVolume = canSetVolume,
             Width = input.Width ?? Percent(100.0),
             Padding = input.Padding ?? theme.PanelPadding,
-            Gap = input.Gap ?? theme.Spacing,
+            Gap = input.Gap ?? theme.ControlGap,
             ActionGap = input.ActionGap ?? theme.ControlGap,
             ActionSize = actionSize,
             PrimaryActionSize = primarySize,
@@ -268,6 +273,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
     }
 
     private func ActionButton(
+        theme Theme,
         input MediaTransportInput,
         slot MediaTransportAction,
         action Action?,
@@ -297,11 +303,6 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             createAction(input, slot, content, action, disabled)
         } else {
             Button{
-                BasedOn: if primary {
-                    input.PrimaryActionStyle
-                } else {
-                    input.ActionStyle
-                },
                 Width: if primary {
                     input.PrimaryActionSize
                 } else {
@@ -326,12 +327,18 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     input.ActionBackgroundColor!!
                 },
                 Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
+                Focus: theme.FocusStyle,
                 Cursor: Cursor.Pointer,
                 Disabled: disabled,
                 Opacity: if disabled {
                     0.4
                 } else {
                     1.0
+                },
+                BasedOn: if primary {
+                    input.PrimaryActionStyle
+                } else {
+                    input.ActionStyle
                 },
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: ActionName(slot)},
                 OnClick: if disabled {
@@ -348,6 +355,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
 
     private func TimeText(theme Theme, value float64, color Color) Blob -> Text{
         Content: FormatTime(value),
+        FontFamily: theme.FontFamily,
+        FontWeight: theme.CaptionFontWeight,
         FontSize: theme.CaptionFontSize,
         Color: color,
     }

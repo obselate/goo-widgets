@@ -75,6 +75,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         }
         current = input with{DelayMs = delay, Gap = gap, ZIndex = input.ZIndex == 0 ? 30: input.ZIndex}
         let root = Container{
+            LineHeight: theme.LineHeight,
             BasedOn: current.RootStyle,
             Handle: anchor,
             Position: PositionType.Relative,
@@ -109,13 +110,12 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
                 create(current, content)
             } else {
                 Container{
-                    BasedOn: current.BubbleStyle ?? Style{
-                        Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
-                        BackgroundColor: theme.PanelColor,
-                        BorderColor: theme.BorderColor,
-                        BorderWidth: theme.BorderWidth,
-                        BorderRadius: theme.PanelRadius,
-                    },
+                    Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
+                    BackgroundColor: theme.PanelColor,
+                    BorderColor: theme.BorderColor,
+                    BorderWidth: theme.BorderWidth,
+                    BorderRadius: theme.PanelRadius,
+                    BasedOn: current.BubbleStyle,
                     content,
                 }
             }

@@ -12,7 +12,7 @@ public data struct DonutChart {
     var Size float64?
     /// Ring thickness. Nil resolves to 24; must be greater than zero and no larger than half the diameter.
     var Thickness float64?
-    /// Empty track fill. Nil resolves to #27272a.
+    /// Empty track fill. Nil uses the nearest theme.
     var TrackColor Color?
     /// Arbitrary center content, clipped to the square inscribed inside the hole.
     var Center Blob?

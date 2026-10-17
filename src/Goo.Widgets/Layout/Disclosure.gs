@@ -31,13 +31,13 @@ public data struct Disclosure {
     var ContentPadding float64?
     /// Gap between indicator and header content. Nil resolves to 8.
     var Gap float64?
-    /// Surface color. Nil resolves to #18181b.
+    /// Surface color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Header hover color. Nil resolves to #27272a.
+    /// Header hover color. Nil uses the nearest theme.
     var HoverColor Color?
-    /// Header text and indicator color. Nil resolves to #fafafa.
+    /// Header text and indicator color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Section border color. Nil resolves to #3f3f46.
+    /// Section border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Border width. Nil resolves to 1 and preserves explicit zero.
     var BorderWidth float64?
@@ -173,6 +173,7 @@ public data struct Disclosure {
             return create(resolved, header, body)
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinWidth: 0,
             FlexShrink: 0,

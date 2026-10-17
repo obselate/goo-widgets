@@ -29,13 +29,13 @@ public data struct SliderInput {
     var Label string?
     /// Displays the current formatted value beside the label.
     var ShowValue bool
-    /// Label color. Nil resolves to #fafafa.
+    /// Label color. Nil uses the nearest theme.
     var LabelColor Color?
-    /// Displayed value color. Nil resolves to #a1a1aa.
+    /// Displayed value color. Nil uses the nearest theme.
     var ValueColor Color?
-    /// Visible label font size. Zero resolves to 12.0.
+    /// Visible label font size. Zero uses the nearest theme label font size.
     var LabelFontSize float64
-    /// Displayed value font size. Zero resolves to 12.0.
+    /// Displayed value font size. Zero uses the nearest theme caption font size.
     var ValueFontSize float64
     /// Formats the accessible range value and optional visible value.
     var FormatValue Func[float64, string]?
@@ -47,29 +47,29 @@ public data struct SliderInput {
     var Disabled bool
     /// Horizontal slider width. Nil resolves to 100 percent.
     var Width Length?
-    /// Slider height. Zero resolves to 28.0 horizontally or 160.0 vertically.
+    /// Slider height. Zero uses the nearest theme control height horizontally or 160.0 vertically.
     var Height float64
-    /// Track thickness. Zero resolves to 8.0.
+    /// Track thickness. Zero uses the nearest theme spacing.
     var TrackThickness float64
-    /// Thumb diameter. Zero resolves to 20.0.
+    /// Thumb diameter. Zero uses the nearest theme spacing.
     var ThumbSize float64
     /// Thumb corner radius. Nil resolves to half the thumb size.
     var ThumbRadius float64?
-    /// Thumb border width. Nil resolves to 2.0 and preserves explicit zero.
+    /// Thumb border width. Nil uses the nearest theme border width and preserves explicit zero.
     var ThumbBorderWidth float64?
     /// Track corner radius. Nil resolves to half the track thickness.
     var TrackRadius float64?
-    /// Unfilled track color. Nil resolves to #3f3f46.
+    /// Unfilled track color. Nil uses the nearest theme.
     var TrackColor Color?
-    /// Filled track color. Nil resolves to #fafafa.
+    /// Filled track color. Nil uses the nearest theme.
     var FillColor Color?
-    /// Thumb color. Nil resolves to #fafafa.
+    /// Thumb color. Nil uses the nearest theme.
     var ThumbColor Color?
-    /// Thumb border color. Nil resolves to #18181b.
+    /// Thumb border color. Nil uses the nearest theme.
     var ThumbBorderColor Color?
     /// Panel background color. Nil resolves to the theme panel color.
     var BackgroundColor Color?
-    /// Focus outline color. Nil resolves to #a1a1aa.
+    /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
     /// Disabled opacity. Nil resolves to 0.4.
     var DisabledOpacity float64?
@@ -109,7 +109,6 @@ public open class Slider : Cell[SliderInput] {
         let hasHeader = resolved.Label != nil || resolved.ShowValue
         let formattedValue = Format(current)
         let track = Container{
-            BasedOn: resolved.TrackStyle,
             Position: PositionType.Absolute,
             Left: if horizontal {
                 0.0
@@ -133,10 +132,10 @@ public open class Slider : Cell[SliderInput] {
             },
             BorderRadius: resolved.TrackRadius!!,
             BackgroundColor: resolved.TrackColor!!,
+            BasedOn: resolved.TrackStyle,
             HitTestSelf: false,
         }
         let fill = Container{
-            BasedOn: resolved.FillStyle,
             Position: PositionType.Absolute,
             Left: if horizontal {
                 0.0
@@ -160,10 +159,10 @@ public open class Slider : Cell[SliderInput] {
             },
             BorderRadius: resolved.TrackRadius!!,
             BackgroundColor: resolved.FillColor!!,
+            BasedOn: resolved.FillStyle,
             HitTestSelf: false,
         }
         let thumb = Container{
-            BasedOn: resolved.ThumbStyle,
             Position: PositionType.Absolute,
             Left: if horizontal {
                 Percent(fraction * 100.0)
@@ -185,6 +184,7 @@ public open class Slider : Cell[SliderInput] {
             BorderWidth: resolved.ThumbBorderWidth!!,
             BorderColor: resolved.ThumbBorderColor!!,
             BackgroundColor: resolved.ThumbColor!!,
+            BasedOn: resolved.ThumbStyle,
             HitTestSelf: false,
         }
         var accessibility Accessibility? = nil
@@ -230,7 +230,6 @@ public open class Slider : Cell[SliderInput] {
             }
         }
         let root = Container{
-            BasedOn: resolved.RootStyle,
             Handle: handle,
             BackgroundColor: resolved.BackgroundColor!!,
             Width: if horizontal {
@@ -259,6 +258,7 @@ public open class Slider : Cell[SliderInput] {
                 1.0
             },
             Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            BasedOn: resolved.RootStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
@@ -288,7 +288,7 @@ public open class Slider : Cell[SliderInput] {
             Key: "slider-header",
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            Gap: 12.0,
+            Gap: theme.ControlGap,
             Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {
@@ -301,6 +301,7 @@ public open class Slider : Cell[SliderInput] {
                     Key: "slider-label",
                     Content: label,
                     FontSize: resolved.LabelFontSize,
+                    FontWeight: theme.LabelFontWeight,
                     Color: resolved.LabelColor!!,
                     FlexGrow: 1.0,
                 }
@@ -312,12 +313,16 @@ public open class Slider : Cell[SliderInput] {
                     Key: "slider-value",
                     Content: formattedValue,
                     FontSize: resolved.ValueFontSize,
+                    FontWeight: theme.CaptionFontWeight,
                     Color: resolved.ValueColor!!,
                 }
             )
         }
         content.Key ??= "slider-control"
         return Container{
+            LineHeight: theme.LineHeight,
+            FontFamily: theme.FontFamily,
+            FontWeight: theme.FontWeight,
             Width: if horizontal {
                 resolved.Width!!
             } else {
@@ -328,7 +333,7 @@ public open class Slider : Cell[SliderInput] {
             } else {
                 AlignItems.Center
             },
-            Gap: 6.0,
+            Gap: theme.ControlGap,
             header,
             content,
         }

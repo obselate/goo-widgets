@@ -325,20 +325,21 @@ internal class ContractHost : Cell {
 }
 
 func RunContracts(action Action) {
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(320, 240, 320, 240)
     let host = ContractHost(action)
-    let window = Window{Title: "Widgets retained contracts", Width: 320, Height: 240, Root: host}
+    let window = Window{Root: host}
     Theme.Attach(window)
-    try {
-        window.Open()
-        PumpFrames(window, 2)
-        Require(host.Complete, "Retained contract build did not run.")
-    } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
-    }
+    window.Attach(embedded)
+    embedded.RenderFrame(0.016)
+    Require(host.Complete, "Retained contract build did not run.")
 }
 
 func Main() {
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_THEME") == "1" {
+        ThemeInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_EDITING_BINDINGS") == "1" {
         EditingNavigationContracts()
         TextFieldAccessibility()

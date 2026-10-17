@@ -18,9 +18,9 @@ public data struct Drawer {
     var Width float64
     /// Drawer height. Nil resolves to Percent(100.0).
     var Height Length?
-    /// Background color of the drawer panel. Nil resolves to #18181b.
+    /// Background color of the drawer panel. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Border color of the drawer panel. Nil resolves to #3f3f46.
+    /// Border color of the drawer panel. Nil uses the nearest theme.
     var BorderColor Color?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
@@ -34,7 +34,7 @@ public data struct Drawer {
     var OpenOpacity float64?
     /// Panel opacity when Open is false. Nil resolves to 0.0; explicit zero is preserved.
     var ClosedOpacity float64?
-    /// Transition duration in milliseconds. Nil resolves to 220.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?

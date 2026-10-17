@@ -22,6 +22,7 @@ internal class MarkdownTextView : Cell, IDisposable {
     private let handle ElementHandle = ElementHandle()
     private var width float64
     private var disposed bool
+    private var presentationTheme Theme
     public init() {
         handle.MetricsChanged += Metrics
     }
@@ -36,22 +37,22 @@ internal class MarkdownTextView : Cell, IDisposable {
         controller?.Dispose()
     }
 
-    internal func Configure(input MarkdownLeafInput) {
-        if controller != nil && current.Equals(input) {
+    internal func Configure(input MarkdownLeafInput, theme Theme) {
+        if controller != nil && current.Equals(input) && presentationTheme == theme {
             return
         }
         current = input
+        presentationTheme = theme
         if controller == nil {
             let document = TextDocument(input.Model!!.Block.Text ?? "")
             controller = TextEditorController(document)
             layer = TextPresentationLayer(document)
         }
-        UpdatePresentation()
+        UpdatePresentation(theme)
         Rebuild()
     }
 
-    private func UpdatePresentation() {
-        let theme = Theme.Read()
+    private func UpdatePresentation(theme Theme) {
         let input = current
         let model = input.Model!!
         let options = input.Options
@@ -103,6 +104,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         let model = input.Model!!
         let options = input.Options
         var editor = TextEditor(controller!!, []TextPresentationLayer{layer!!}){
+            LineHeight = theme.LineHeight,
             FontSize = input.Size,
             FontWeight = input.Weight,
             FontFamily = model.Block.Kind == MarkdownBlockKind.Code ? options.CodeFontFamily!!: options.FontFamily!!,
@@ -240,7 +242,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
         if Math.Abs(width - metrics.ContentBox.Width) > .1 {
             width = metrics.ContentBox.Width
-            UpdatePresentation()
+            UpdatePresentation(presentationTheme)
             Rebuild()
         }
     }

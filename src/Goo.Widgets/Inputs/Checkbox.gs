@@ -18,9 +18,9 @@ public data struct Checkbox {
     var Label string?
     /// Label text color. Nil resolves to the theme text color.
     var LabelColor Color?
-    /// Label font size. Zero resolves to 14.
+    /// Label font size. Zero uses the nearest theme font size.
     var LabelFontSize float64
-    /// Label font weight. Zero resolves to 500.
+    /// Label font weight. Zero uses the nearest theme font weight.
     var LabelFontWeight int32
     /// Gap between the checkbox mark and label. Nil resolves to the theme control gap.
     var LabelGap float64?
@@ -32,7 +32,7 @@ public data struct Checkbox {
     var CheckedContent Blob?
     /// Optional content shown when mixed.
     var MixedContent Blob?
-    /// Checkbox width and height. Zero resolves to 20.
+    /// Visible box width and height. Zero uses five theme spacing units.
     var Size float64
     /// Background while false. Nil resolves to the theme field color.
     var BackgroundColor Color?
@@ -50,7 +50,7 @@ public data struct Checkbox {
     var BorderWidth float64?
     /// Corner radius. Nil resolves to the theme control radius half and preserves explicit zero.
     var BorderRadius float64?
-    /// Mark icon size. Zero resolves to 14.
+    /// Mark icon size. Zero uses three and a half theme spacing units.
     var MarkSize float64
     /// Transition duration. Nil resolves to the theme transition duration and preserves explicit zero.
     var TransitionMs float64?
@@ -86,7 +86,7 @@ public data struct Checkbox {
             },
             LabelGap = LabelGap ?? theme.ControlGap,
             Size = if Size == 0.0 {
-                20.0
+                theme.Spacing * 5.0
             } else {
                 Size
             },
@@ -99,7 +99,7 @@ public data struct Checkbox {
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius / 2.0,
             MarkSize = if MarkSize == 0.0 {
-                14.0
+                theme.Spacing * 3.5
             } else {
                 MarkSize
             },
@@ -167,6 +167,7 @@ public data struct Checkbox {
                 markBox.Children.Add(content)
             }
             let root = Button{
+                LineHeight: theme.LineHeight,
                 Width: Length.Auto,
                 Height: Math.Max(resolved.Size, theme.ControlHeight),
                 Padding: 0.0,

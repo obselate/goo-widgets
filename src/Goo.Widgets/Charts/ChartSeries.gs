@@ -81,7 +81,10 @@ internal class ChartParts {
         }
 
         internal func Legend(segments[]ChartSegment, label Func[ChartSegment, Text, Text]?, theme Theme) Container {
-            let root = Container{FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap, Gap: theme.Spacing * 3.0}
+            let root = Container{
+                FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap,
+                Gap: theme.Spacing * 3.0, LineHeight: theme.LineHeight,
+            }
             for segment in segments {
                 var text = Text{
                     Content: segment.Summary!!, Color: theme.TextColor,
@@ -97,9 +100,9 @@ internal class ChartParts {
                         AlignItems: AlignItems.Center,
                         Gap: theme.ControlGap,
                         Container{
-                            Width: 9,
-                            Height: 9,
-                            BorderRadius: 3,
+                            Width: theme.Spacing * 2.0,
+                            Height: theme.Spacing * 2.0,
+                            BorderRadius: theme.ControlRadius / 2.0,
                             BackgroundColor: segment.Series.Color!!,
                             Accessibility: Accessibility{Hidden: true}
                         },

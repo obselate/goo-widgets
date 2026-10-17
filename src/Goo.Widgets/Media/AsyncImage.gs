@@ -20,23 +20,23 @@ public data struct AsyncImage {
     var PlaceholderText string?
     /// Failure text. Nil resolves to Image unavailable.
     var ErrorText string?
-    /// Root background color. Nil resolves to #18181b.
+    /// Root background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Loading text color. Nil resolves to #a1a1aa.
+    /// Loading text color. Nil uses the nearest theme.
     var PlaceholderTextColor Color?
-    /// Failure text color. Nil resolves to #fca5a5.
+    /// Failure text color. Nil uses the nearest theme.
     var ErrorTextColor Color?
-    /// Root border color. Nil resolves to #3f3f46.
+    /// Root border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Root width. Zero resolves to 160.0.
     var Width float64
     /// Root height. Zero resolves to 120.0.
     var Height float64
-    /// Border width. Nil resolves to 1.0; explicit zero survives.
+    /// Border width. Nil uses the nearest theme border width; explicit zero survives.
     var BorderWidth float64?
-    /// Border radius. Nil resolves to 8.0; explicit zero survives.
+    /// Border radius. Nil uses the nearest theme radius; explicit zero survives.
     var BorderRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero survives.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -48,9 +48,9 @@ public data struct AsyncImage {
     var Fit ImageFit?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Fallback text size. Zero resolves to 14.0.
+    /// Fallback text size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Fallback text weight. Zero resolves to 500.
+    /// Fallback text weight. Zero uses the nearest theme font weight.
     var FontWeight int32
     /// Creates the selected image from resolved props.
     var CreateImage Func[AsyncImage, Image]?
@@ -168,6 +168,7 @@ public data struct AsyncImage {
             semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true}
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width,
             Height: resolved.Height,
             BorderRadius: resolved.BorderRadius!!,

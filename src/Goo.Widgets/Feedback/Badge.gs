@@ -8,13 +8,13 @@ import Goo.Widgets
 public data struct Badge {
     /// Badge text. Nil selects dot mode; an empty string remains content mode.
     var Content string?
-    /// Background color. Nil resolves to #27272a.
+    /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Text color. Nil resolves to #fafafa.
+    /// Text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Border color. Nil resolves to #3f3f46.
+    /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Dot diameter. Zero resolves to 8.
+    /// Dot diameter. Zero uses the nearest theme spacing.
     var DotSize float64
     /// Content height. Nil uses caption size plus two spacing units.
     var Height float64?
@@ -26,15 +26,15 @@ public data struct Badge {
     var BorderWidth float64
     /// Radius. Nil uses half the active height. Explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
     /// Font family. Nil inherits Goo's font choice.
     var FontFamily string?
-    /// Font size. Zero resolves to 12.
+    /// Font size. Zero uses the nearest theme caption font size.
     var FontSize float64
-    /// Font weight. Zero resolves to 600.
+    /// Font weight. Zero uses the nearest theme caption font weight.
     var FontWeight int32
     /// Accessible name. Content is the content-mode fallback; a nameless dot is decorative.
     var AccessibilityName string?
@@ -134,6 +134,7 @@ public data struct Badge {
             }
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
             MinWidth: resolved.MinWidth!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},

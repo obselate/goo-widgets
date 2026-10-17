@@ -23,21 +23,21 @@ public data struct TextField {
     var OnChange Action[string]?
     /// Callback for submitted values.
     var OnSubmit Action[string]?
-    /// Entry background. Nil resolves to #09090b.
+    /// Entry background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Entry text color. Nil resolves to #fafafa.
+    /// Entry text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Label text color. Nil resolves to #a1a1aa.
+    /// Label text color. Nil uses the nearest theme.
     var MutedTextColor Color?
-    /// Entry border color. Nil resolves to #3f3f46.
+    /// Entry border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Focus color. Nil resolves to #d4d4d8.
+    /// Focus color. Nil uses the nearest theme.
     var FocusColor Color?
-    /// Invalid color. Nil resolves to #ef4444.
+    /// Invalid color. Nil uses the nearest theme.
     var InvalidColor Color?
-    /// Disabled entry background. Nil resolves to #18181b.
+    /// Disabled entry background. Nil uses the nearest theme.
     var DisabledBackgroundColor Color?
-    /// Disabled entry text color. Nil resolves to #71717a.
+    /// Disabled entry text color. Nil uses the nearest theme.
     var DisabledTextColor Color?
     /// Root width. Zero resolves to 280.0.
     var Width float64
@@ -47,23 +47,23 @@ public data struct TextField {
     var Gap float64?
     /// Entry horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Entry text size. Zero resolves to 14.0.
+    /// Entry text size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Label text size. Zero resolves to 11.0.
+    /// Label text size. Zero uses the nearest theme label font size.
     var LabelFontSize float64
-    /// Label font weight. Zero resolves to 600.
+    /// Label font weight. Zero uses the nearest theme label font weight.
     var LabelFontWeight int32
     /// Label transform. Nil uses sentence case.
     var LabelTextTransform TextTransform?
-    /// Issue text size. Zero resolves to 12.0.
+    /// Issue text size. Zero uses the nearest theme caption font size.
     var IssueFontSize float64
-    /// Entry border width. Nil resolves to 1.0.
+    /// Entry border width. Nil uses the nearest theme border width.
     var BorderWidth float64?
-    /// Entry border radius. Nil resolves to 6.0.
+    /// Entry border radius. Nil uses the nearest theme radius.
     var BorderRadius float64?
     /// Focus ring spread. Nil resolves to 2.0.
     var FocusRingWidth float64?
-    /// Entry transition duration. Nil resolves to 150.0.
+    /// Entry transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Entry transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -179,6 +179,7 @@ public data struct TextField {
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
                 FontSize: resolved.FontSize,
+                FontWeight: theme.FontWeight,
                 Value: resolved.Value!!,
                 Placeholder: resolved.Placeholder!!,
                 OnChange: resolved.OnChange,
@@ -204,7 +205,7 @@ public data struct TextField {
                 Content: resolved.IssueText!!,
                 Color: resolved.InvalidColor!!,
                 FontSize: resolved.IssueFontSize,
-                FontWeight: 500,
+                FontWeight: theme.CaptionFontWeight,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Alert,
                     Live: AccessibilityLive.Polite,
@@ -232,6 +233,7 @@ public data struct TextField {
             return createRoot(resolved, label, entry!!, issue)
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width,
             FlexDirection: FlexDirection.Column,
             Gap: resolved.Gap!!,

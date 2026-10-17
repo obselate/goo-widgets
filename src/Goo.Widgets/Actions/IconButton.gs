@@ -22,15 +22,15 @@ public data struct IconButton {
     var Height float64?
     /// Button padding. Nil resolves to 0.0.
     var Padding float64?
-    /// Button corner radius. Nil resolves to 8.0.
+    /// Button corner radius. Nil uses the nearest theme radius.
     var BorderRadius float64?
     /// Default button background. Nil resolves to transparent.
     var BackgroundColor Color?
-    /// Active button background. Nil resolves to #27272a.
+    /// Active button background. Nil uses the nearest theme.
     var ActiveBackgroundColor Color?
-    /// Hover button background. Nil resolves to #27272a.
+    /// Hover button background. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Focus outline color. Nil resolves to #a1a1aa.
+    /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
     /// Disabled opacity. Nil resolves to 0.4.
     var DisabledOpacity float64?
@@ -65,7 +65,6 @@ public data struct IconButton {
             return button
         }
         let button = Button{
-            BasedOn: resolved.RootStyle,
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             Padding: resolved.Padding!!,
@@ -86,6 +85,7 @@ public data struct IconButton {
             },
             Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
             Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: resolved.AccessibilityName!!,

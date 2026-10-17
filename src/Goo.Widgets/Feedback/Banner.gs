@@ -26,15 +26,15 @@ public data struct Banner {
     var PaddingHorizontal float64?
     /// Vertical padding. Explicit zero is preserved.
     var PaddingVertical float64?
-    /// Text font size. Zero resolves to 14.0.
+    /// Text font size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Text font weight. Zero resolves to 500.
+    /// Text font weight. Zero uses the nearest theme font weight.
     var FontWeight int32
-    /// Border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
-    /// Border radius. Nil resolves to 6.0; explicit zero is preserved.
+    /// Border radius. Nil uses the nearest theme radius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -114,6 +114,7 @@ public data struct Banner {
             live = AccessibilityLive.Assertive
         }
         return Container{
+            LineHeight: theme.LineHeight,
             FlexDirection: FlexDirection.Row,
             FlexWrap: FlexWrap.Wrap,
             FlexGrow: 1.0,

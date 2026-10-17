@@ -178,7 +178,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         let input = MarkdownLeafInput{Model: model, Options: current, Size: size, Weight: weight, Alignment: alignment}
         return Cell.Mount[MarkdownTextView](
             path + "@" + stamp.Revision.ToString(),
-            (cell MarkdownTextView) -> cell.Configure(input)
+            (cell MarkdownTextView) -> cell.Configure(input, theme)
         )
     }
 

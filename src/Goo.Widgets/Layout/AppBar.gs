@@ -19,31 +19,31 @@ public data struct AppBar {
     var HeadingLevel int32
     /// Bar width. Nil resolves to Percent(100.0).
     var Width Length?
-    /// Bar height. Nil uses fourteen spacing units.
+    /// Bar height. Nil uses the nearest theme spacing.
     var Height float64?
-    /// Bar background color. Nil resolves to #09090b.
+    /// Bar background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Inherited title and content text color. Nil resolves to #fafafa.
+    /// Inherited title and content text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Subtitle text color. Nil resolves to #a1a1aa.
+    /// Subtitle text color. Nil uses the nearest theme.
     var SubtitleColor Color?
-    /// Bottom border color. Nil resolves to #27272a.
+    /// Bottom border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Horizontal padding on left and right edges. Nil resolves to 16.0; explicit zero is preserved.
+    /// Horizontal padding on left and right edges. Nil uses the nearest theme padding; explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Spacing between slots and the title content stack. Nil resolves to 12.0; explicit zero is preserved.
+    /// Spacing between slots and the title content stack. Nil uses the nearest theme gap; explicit zero is preserved.
     var Gap float64?
-    /// Spacing between title and subtitle inside the content stack. Nil resolves to 2.0; explicit zero is preserved.
+    /// Spacing between title and subtitle inside the content stack. Nil uses the nearest theme spacing; explicit zero is preserved.
     var TitleGap float64?
-    /// Title text font size. Zero resolves to 16.0.
+    /// Title text font size. Zero uses the nearest theme heading font size.
     var TitleFontSize float64
-    /// Title text font weight. Zero resolves to 600.
+    /// Title text font weight. Zero uses the nearest theme heading font weight.
     var TitleFontWeight int32
-    /// Subtitle text font size. Zero resolves to 12.0.
+    /// Subtitle text font size. Zero uses the nearest theme caption font size.
     var SubtitleFontSize float64
-    /// Subtitle text font weight. Zero resolves to 400.
+    /// Subtitle text font weight. Zero uses the nearest theme caption font weight.
     var SubtitleFontWeight int32
-    /// Bottom border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Bottom border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
     /// Optional authored shadow. Nil leaves the bar unshadowed.
     var BoxShadow BoxShadow?
@@ -169,6 +169,7 @@ public data struct AppBar {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},

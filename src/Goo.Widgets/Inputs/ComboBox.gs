@@ -197,7 +197,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         arrow.Key = "arrow"
         button.Children.Add(arrow)
-        var root = Container{Width: current.Width, MinWidth: 0.0, Overflow: Overflow.Visible}
+        var root = Container{Width: current.Width, MinWidth: 0.0, Overflow: Overflow.Visible, LineHeight: theme.LineHeight}
         if let create = current.CreateRoot {
             root = create(current, root)
         }

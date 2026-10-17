@@ -244,6 +244,7 @@ public open class Menu : Cell[MenuInput] {
 
     private func Panel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
+            LineHeight: theme.LineHeight,
             Padding: theme.Spacing,
             BackgroundColor: theme.PanelColor,
             BorderColor: theme.BorderColor,

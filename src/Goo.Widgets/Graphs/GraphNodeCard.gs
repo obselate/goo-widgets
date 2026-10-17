@@ -22,15 +22,15 @@ public data struct GraphNodeCard {
     var BorderRadius float64?
     /// Card border width. Nil resolves to 1.0.
     var BorderWidth float64?
-    /// Unselected background color. Nil resolves to #18181b.
+    /// Unselected background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Selected background color. Nil resolves to #1d4ed8.
+    /// Selected background color. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Unselected border color. Nil resolves to #52525b.
+    /// Unselected border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Selected border color. Nil resolves to #93c5fd.
+    /// Selected border color. Nil uses the nearest theme.
     var SelectedBorderColor Color?
-    /// Fallback label color. Nil resolves to #fafafa.
+    /// Fallback label color. Nil uses the nearest theme.
     var ForegroundColor Color?
     /// Optional base style for the card root.
     var RootStyle Style?
@@ -96,7 +96,7 @@ public data struct GraphNodeCard {
             TextTrimming: TextTrimming.Ellipsis,
         }
         let card = Container{
-            BasedOn: RootStyle,
+            LineHeight: theme.LineHeight,
             Key: "graph-node-" + Node.Id,
             Position: PositionType.Absolute,
             Left: center.X - width * 0.5,
@@ -120,6 +120,7 @@ public data struct GraphNodeCard {
             JustifyContent: JustifyContent.Center,
             Focusable: true,
             Focus: theme.FocusStyle,
+            BasedOn: RootStyle,
             Cursor: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
             OnClick: OnActivate,

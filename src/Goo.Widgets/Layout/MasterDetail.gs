@@ -23,9 +23,9 @@ public data struct MasterDetail {
     var MasterWidth float64
     /// Gap between panes. Nil resolves to 12 and preserves explicit zero.
     var Gap float64?
-    /// Pane background. Nil resolves to #18181b.
+    /// Pane background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Pane border color. Nil resolves to #3f3f46.
+    /// Pane border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Pane border width. Nil resolves to 1 and preserves explicit zero.
     var BorderWidth float64?
@@ -137,6 +137,7 @@ public data struct MasterDetail {
             return createRoot(resolved, masterPane, detailPane)
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: Percent(100.0),
             Height: Percent(100.0),
             MinWidth: 0.0,

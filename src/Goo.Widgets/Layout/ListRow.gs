@@ -19,13 +19,13 @@ public data struct ListRow {
     var AccessibilityName string?
     /// Row width. Nil resolves to 100%.
     var Width Length?
-    /// Background color in normal state. Nil resolves to #18181b.
+    /// Background color in normal state. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Background color in selected state. Nil resolves to #27272a.
+    /// Background color in selected state. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Primary title text color. Nil resolves to #fafafa.
+    /// Primary title text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Secondary caption text color. Nil resolves to #a1a1aa.
+    /// Secondary caption text color. Nil uses the nearest theme.
     var CaptionColor Color?
     /// Authored selected-state shadow. Nil uses an accent border.
     var SelectedBoxShadow BoxShadow?
@@ -39,21 +39,21 @@ public data struct ListRow {
     var Gap float64?
     /// Text gap. Explicit zero is preserved.
     var ContentGap float64?
-    /// Border radius. Nil resolves to 8.0; explicit zero is preserved.
+    /// Border radius. Nil uses the nearest theme radius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
     /// Row opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Title font size. Zero resolves to 14.0.
+    /// Title font size. Zero uses the nearest theme font size.
     var TitleFontSize float64
-    /// Title font weight. Zero resolves to 600.
+    /// Title font weight. Zero uses the nearest theme label font weight.
     var TitleFontWeight int32
-    /// Caption font size. Zero resolves to 12.0.
+    /// Caption font size. Zero uses the nearest theme caption font size.
     var CaptionFontSize float64
-    /// Caption font weight. Zero resolves to 400.
+    /// Caption font weight. Zero uses the nearest theme caption font weight.
     var CaptionFontWeight int32
     /// Optional font family for title and caption.
     var FontFamily string?
@@ -173,6 +173,7 @@ public data struct ListRow {
             resolved.BackgroundColor!!
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
             Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),

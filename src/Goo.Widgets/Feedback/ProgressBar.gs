@@ -8,11 +8,11 @@ import Goo.Widgets
 public data struct ProgressBar {
     /// Normalized progress value. Clamped to 0..1 upon build.
     var Value float64
-    /// Track background color. Nil resolves to #27272a.
+    /// Track background color. Nil uses the nearest theme.
     var TrackColor Color?
-    /// Fill indicator color. Nil resolves to #fafafa.
+    /// Fill indicator color. Nil uses the nearest theme.
     var FillColor Color?
-    /// Border color. Nil resolves to #3f3f46.
+    /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Progress bar width. Zero resolves to 160.
     var Width float64
@@ -22,7 +22,7 @@ public data struct ProgressBar {
     var BorderWidth float64
     /// Radius. Nil uses half the resolved height. Explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?

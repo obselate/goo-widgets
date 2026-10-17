@@ -85,6 +85,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
     private var owningWindow Window?
 
     internal func AttachWindow(window Window) {
+        Theme.Attach(window)
         platformInput = window.PlatformInput
         owningWindow = window
         Rebuild()
@@ -118,14 +119,16 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
         Navigate(1)
     }
 
-    public override func Build() Blob ->
-    Container{
+    public override func Build() Blob {
+        let theme = Theme.Read()
+        return Container{
+        BasedOn: theme.CanvasStyle,
         KeyBindings: WidgetKeyBindings.Editing(platformInput),
         Width: Percent(100),
         Height: Percent(100),
         Padding: 32,
         Gap: 24,
-        BackgroundColor: "#09090b",
+        BackgroundColor: theme.CanvasColor,
         FlexDirection: FlexDirection.Column,
         Container{
             FlexDirection: FlexDirection.Row,
@@ -133,21 +136,21 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
             JustifyContent: JustifyContent.SpaceBetween,
             Container{
                 Gap: 6,
-                Text{Content: "Goo Widgets Gallery", FontSize: 26, FontWeight: 700, Color: "#fafafa",},
-                Text{Content: Registry.CurrentCategory(currentIndex), FontSize: 13, Color: "#a1a1aa",},
+                Text{Content: "Goo Widgets Gallery", FontSize: theme.HeadingFontSize, FontWeight: theme.HeadingFontWeight, Color: theme.TextColor},
+                Text{Content: Registry.CurrentCategory(currentIndex), FontSize: theme.CaptionFontSize, Color: theme.MutedTextColor},
             },
-            Text{Content: Registry.CurrentPage(currentIndex).Title(), FontSize: 16, Color: "#d4d4d8",},
+            Text{Content: Registry.CurrentPage(currentIndex).Title(), FontSize: theme.FontSize, Color: theme.TextColor},
         },
         Container{
             FlexGrow: 1,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Padding: 32,
-            BorderRadius: 14,
-            BorderWidth: 1,
-            BorderColor: Color.Parse("#27272a"),
-            BackgroundColor: "#18181b",
-            TransitionMs: 150.0,
+            BorderRadius: theme.PanelRadius,
+            BorderWidth: theme.BorderWidth,
+            BorderColor: theme.BorderColor,
+            BackgroundColor: theme.PanelColor,
+            TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             BuildCurrentPage(),
         },
@@ -157,20 +160,14 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
             JustifyContent: JustifyContent.SpaceBetween,
             ActionButton{
                 Content: "Back",
-                BackgroundColor: Color.Parse("#27272a"),
-                TextColor: Color.Parse("#fafafa"),
-                BorderColor: Color.Parse("#3f3f46"),
-                HoverBackgroundColor: Color.Parse("#3f3f46"),
-                ActiveBackgroundColor: Color.Parse("#18181b"),
-                BorderRadius: 8.0,
                 OnClick: () -> Back(),
             }.Build(),
             ActionButton{
                 Content: "Forward",
-                BorderRadius: 8.0,
                 OnClick: () -> Forward(),
             }.Build(),
         },
+    }
     }
 }
 
@@ -222,6 +219,7 @@ GalleryRegistry(
                 SplitPanePage{},
                 GridPage{},
                 WindowChromePage{},
+                ThemeScopePage{},
             }
         ),
         GalleryCategory("Media", []GalleryPage{AsyncImagePage{}, AvatarPage{}, MediaCardPage{}, MediaTransportPage{},}),

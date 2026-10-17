@@ -19,29 +19,29 @@ public data struct SectionHeader {
     var HeadingLevel int32
     /// Header width. Nil resolves to 100%.
     var Width Length?
-    /// Label text color. Nil resolves to #d4d4d8.
+    /// Label text color. Nil uses the nearest theme.
     var LabelColor Color?
-    /// Meta text color. Nil resolves to #71717a.
+    /// Meta text color. Nil uses the nearest theme.
     var MetaColor Color?
-    /// Horizontal rule color. Nil resolves to #3f3f46.
+    /// Horizontal rule color. Nil uses the nearest theme.
     var RuleColor Color?
-    /// Accent dot color. Nil resolves to #fafafa.
+    /// Accent dot color. Nil uses the nearest theme.
     var AccentColor Color?
-    /// Row layout gap between elements. Nil resolves to 10.0; explicit zero is preserved.
+    /// Row layout gap between elements. Nil uses the nearest theme gap; explicit zero is preserved.
     var Gap float64?
-    /// Accent dot diameter. Nil resolves to 6.0; explicit zero is preserved.
+    /// Accent dot diameter. Nil uses the nearest theme spacing; explicit zero is preserved.
     var AccentSize float64?
-    /// Horizontal rule height. Nil resolves to 1.0; explicit zero is preserved.
+    /// Horizontal rule height. Nil uses the nearest theme border width; explicit zero is preserved.
     var RuleHeight float64?
     /// Root opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Label font size. Zero resolves to 11.0.
+    /// Label font size. Zero uses the nearest theme label font size.
     var LabelFontSize float64
-    /// Label font weight. Zero resolves to 700.
+    /// Label font weight. Zero uses the nearest theme label font weight.
     var LabelFontWeight int32
-    /// Meta text font size. Zero resolves to 11.0.
+    /// Meta text font size. Zero uses the nearest theme caption font size.
     var MetaFontSize float64
-    /// Meta text font weight. Zero resolves to 500.
+    /// Meta text font weight. Zero uses the nearest theme caption font weight.
     var MetaFontWeight int32
     /// Optional font family applied to default label and meta text elements.
     var FontFamily string?
@@ -167,6 +167,7 @@ public data struct SectionHeader {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,

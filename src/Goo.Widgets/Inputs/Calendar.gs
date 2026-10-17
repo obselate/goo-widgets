@@ -204,7 +204,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             let row = Container{
                 Key: "week-" + (first + week * 7).ToString(),
                 FlexDirection: FlexDirection.Row,
-                Gap: 2.0,
+                Gap: theme.Spacing / 2.0,
                 Accessibility: Accessibility{Role: AccessibilityRole.Row}
             }
             for column in 0 ... 7 {
@@ -249,6 +249,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             handles.Remove(number)
         }
         var root = Container{
+            LineHeight: theme.LineHeight,
             Width: current.Width!!,
             MinWidth: 0.0,
             Padding: theme.ControlPadding,

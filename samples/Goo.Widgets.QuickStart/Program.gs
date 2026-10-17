@@ -12,21 +12,24 @@ class ColorPickerHost : Cell {
     private var platformInput PlatformInput?
 
     internal func AttachWindow(window Window) {
+        Theme.Attach(window)
         platformInput = window.PlatformInput
         Rebuild()
     }
 
     override func Build() Blob {
+        let theme = Theme.Read()
         let reset = ActionButton{Content: "Reset", OnClick: () -> ResetColor()}.Build()
         reset.Key = "reset"
         return Container{
+            BasedOn: theme.CanvasStyle,
             KeyBindings: WidgetKeyBindings.Editing(platformInput),
             Width: Percent(100.0),
             Height: Percent(100.0),
-            Padding: 28.0,
-            Gap: 14.0,
+            Padding: theme.PanelPadding,
+            Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Column,
-            BackgroundColor: Color.Parse("#18181b"),
+            BackgroundColor: theme.CanvasColor,
             Cell.Mount[ColorPickerInput, ColorPicker](
                 "color-picker",
                 ColorPickerInput{
@@ -40,8 +43,8 @@ class ColorPickerHost : Cell {
             Text{
                 Content: "Committed #${ColorMath.Hex(committedColor)}",
                 Key: "committed-value",
-                Color: "#a1a1aa",
-                FontSize: 13.0,
+                Color: theme.MutedTextColor,
+                FontSize: theme.CaptionFontSize,
             },
             reset,
         }

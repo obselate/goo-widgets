@@ -14,11 +14,11 @@ public data struct Avatar {
     var ImageSource ImageSourceProvider?
     /// Fallback text. Nil renders as an empty string.
     var FallbackText string?
-    /// Background color. Nil resolves to #27272a.
+    /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Fallback text color. Nil resolves to #fafafa.
+    /// Fallback text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Border color. Nil resolves to #3f3f46.
+    /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Avatar width and height. Zero resolves to 40.
     var Size float64
@@ -34,9 +34,9 @@ public data struct Avatar {
     var Opacity float64?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Fallback font size. Zero resolves to 16.
+    /// Fallback font size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Fallback font weight. Zero resolves to 600.
+    /// Fallback font weight. Zero uses the nearest theme font weight.
     var FontWeight int32
     /// Creates the final image from resolved props. Nil uses Avatar's composition.
     var CreateImage Func[Avatar, Image]?
@@ -119,6 +119,7 @@ public data struct Avatar {
             semantics = Accessibility{Role: AccessibilityRole.Image, Name: accessibilityName}
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Size,
             Height: resolved.Size,
             BorderRadius: resolved.BorderRadius!!,

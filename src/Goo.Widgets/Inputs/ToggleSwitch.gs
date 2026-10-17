@@ -30,21 +30,21 @@ public data struct ToggleSwitch {
     var BorderColor Color?
     /// Keyboard focus outline color. Nil uses theme accent.
     var FocusBorderColor Color?
-    /// Track width. Zero resolves to 44.0.
+    /// Track width. Zero uses eleven theme spacing units.
     var Width float64
-    /// Track height. Nil resolves to 24.0.
+    /// Visible track height. Nil uses six theme spacing units.
     var Height float64?
-    /// Track padding. Nil resolves to 2.0; explicit zero is preserved.
+    /// Track padding. Nil uses half the theme spacing; explicit zero is preserved.
     var Padding float64?
-    /// Thumb width and height. Zero resolves to 20.0.
+    /// Thumb width and height. Zero uses five theme spacing units.
     var ThumbSize float64
-    /// Border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Border width. Nil uses the theme border width; explicit zero is preserved.
     var BorderWidth float64?
-    /// Track corner radius. Nil resolves to 12.0; explicit zero is preserved.
+    /// Track corner radius. Nil uses half the track height; explicit zero is preserved.
     var BorderRadius float64?
-    /// Thumb corner radius. Nil resolves to 10.0; explicit zero is preserved.
+    /// Thumb corner radius. Nil uses half the thumb size; explicit zero is preserved.
     var ThumbRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -63,6 +63,8 @@ public data struct ToggleSwitch {
         let theme = Theme.Read()
         let createThumb = CreateThumb
         let createRoot = CreateRoot
+        let height = Height ?? theme.Spacing * 6.0
+        let thumbSize = ThumbSize == 0.0 ? theme.Spacing * 5.0: ThumbSize
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "",
             OffTrackColor = OffTrackColor ?? theme.PanelColor,
@@ -74,20 +76,16 @@ public data struct ToggleSwitch {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             FocusBorderColor = FocusBorderColor ?? theme.AccentColor,
             Width = if Width == 0.0 {
-                44.0
+                theme.Spacing * 11.0
             } else {
                 Width
             },
-            Height = Height ?? 24.0,
-            Padding = Padding ?? 2.0,
-            ThumbSize = if ThumbSize == 0.0 {
-                20.0
-            } else {
-                ThumbSize
-            },
+            Height = height,
+            Padding = Padding ?? theme.Spacing / 2.0,
+            ThumbSize = thumbSize,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? 12.0,
-            ThumbRadius = ThumbRadius ?? 10.0,
+            BorderRadius = BorderRadius ?? height / 2.0,
+            ThumbRadius = ThumbRadius ?? thumbSize / 2.0,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,

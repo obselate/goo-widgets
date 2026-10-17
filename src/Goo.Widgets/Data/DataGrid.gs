@@ -85,7 +85,7 @@ public data struct DataGridInput {
     var ExpandColumnWidth float64?
     /// Detail padding. Nil resolves to 12; explicit zero is preserved.
     var DetailPadding float64?
-    /// Detail surface color. Nil resolves to #20232c.
+    /// Detail surface color. Nil uses the nearest theme.
     var DetailBackground Color?
     var Disabled bool
     var Width Length?
@@ -306,7 +306,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Reveal()
         }
         let details = hasDetails && input.ExpandColumnWidth > 0.0
-        leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? 36.0: 0.0) +
+        leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? theme.ControlHeight: 0.0) +
             (details ? input.ExpandColumnWidth!!: 0.0)
         available = rootHandle.ContentBox.Width
         let verticalGutter = if let scrollbar = input.ScrollbarY {
@@ -323,16 +323,19 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         var body Blob = if rows.Length == 0 && input.EmptyContent != nil {
             Container{OverflowY: Overflow.Scroll, input.EmptyContent!!}
         } else {
-            VirtualRows(
+            let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
+            let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)
+            Virtual(VirtualRowsSource[DataGridRow](
                 rows,
-                input.RowHeight!!,
-                (row DataGridRow) -> row.Id!!,
-                (row DataGridRow) -> BuildRow(snapshot, row, details)
-            )
+                virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
+                key,
+                build
+            ))
         }
         body.Key = "body"
         body.Handle = viewport
         body.ScrollbarY = input.ScrollbarY
+        body.OverflowX = Overflow.Hidden
         if let visibility = input.ScrollbarVisibilityY {
             body.ScrollbarVisibilityY = visibility
         }
@@ -364,13 +367,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             scroll.ScrollbarVisibilityX = visibility
         }
         var root = Container{
+            LineHeight: theme.LineHeight,
             Handle: rootHandle,
             Width: input.Width!!,
             Height: input.Height!!,
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
-            BorderRadius: 5
+            BorderRadius: theme.PanelRadius
         }
         if let create = input.CreateRoot {
             root = create(input, root)
@@ -826,13 +830,13 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     (snapshot.OnSelectionRequest == nil && snapshot.OnSelectionChange == nil)
                 check.OnClick = () -> Select(id, true, false, false)
                 check.Accessibility = Accessibility{Hidden: true}
-                controls.Children.Add(Container{Key: "selection", Width: 36, AlignItems: AlignItems.Center, check})
+                controls.Children.Add(Container{Key: "selection", Width: theme.ControlHeight, AlignItems: AlignItems.Center, check})
             }
             if details {
                 let expand = Button{
-                    Width: Math.Min(26.0, snapshot.ExpandColumnWidth!!),
-                    Height: 26,
-                    Padding: 4,
+                    Width: Math.Min(theme.ControlHeight, snapshot.ExpandColumnWidth!!),
+                    Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
+                    Padding: theme.Spacing,
                     BackgroundColor: Color.Transparent,
                     Focusable: false,
                     TabStop: false,

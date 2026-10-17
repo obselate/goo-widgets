@@ -40,19 +40,19 @@ public data struct TextAreaInput {
     var MinimumRows int32
     /// Optional minimum editor height in logical pixels.
     var MinimumHeight float64?
-    /// Font size. Nil resolves to 14.
+    /// Font size. Nil uses the nearest theme font size.
     var FontSize float64?
     /// Optional font family.
     var FontFamily string?
     /// Accessible editor name. Nil falls back to label, then placeholder.
     var AccessibilityName string?
-    /// Editor background. Nil resolves to #09090b.
+    /// Editor background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Editor foreground. Nil resolves to #fafafa.
+    /// Editor foreground. Nil uses the nearest theme.
     var TextColor Color?
-    /// Invalid border and issue color. Nil resolves to #ef4444.
+    /// Invalid border and issue color. Nil uses the nearest theme.
     var InvalidColor Color?
-    /// Focus border color. Nil resolves to #d4d4d8.
+    /// Focus border color. Nil uses the nearest theme.
     var FocusColor Color?
     /// Base editor style, applied before the field's required layout and behavior.
     var EditorStyle Style?
@@ -124,13 +124,14 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Synchronize(next)
         }
         var editor = TextEditor(editorController, value.Layers ?? []TextPresentationLayer{}){
-            BasedOn = value.EditorStyle,
             Width = Percent(100),
             Height = value.Height ?? defaultHeight,
             MinHeight = minimum,
             Padding = theme.ControlPadding,
             FontSize = font,
+            FontWeight = theme.FontWeight,
             BackgroundColor = input.BackgroundColor!!,
+            FontFamily = input.FontFamily!!,
             Color = input.TextColor!!,
             CaretColor = input.TextColor!!,
             SelectionColor = theme.AccentColor.WithAlpha(0.35),
@@ -141,12 +142,11 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Focus = Style{OutlineWidth: 2.0, OutlineColor: input.FocusColor!!, OutlineOffset: -2.0},
             DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
             TransitionMs = theme.TransitionMs,
+            LineHeight = theme.LineHeight,
+            ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
+            ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
+            BasedOn = value.EditorStyle,
         }
-        if let family = input.FontFamily {
-            editor.FontFamily = family
-        }
-        editor.ScrollbarX = value.ScrollbarX ?? theme.Scrollbar
-        editor.ScrollbarY = value.ScrollbarY ?? theme.Scrollbar
         if let create = input.CreateEditor {
             editor = create(input, editor)
         }
@@ -173,19 +173,18 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             },
         }
         var root = Container{
-            BasedOn: input.RootStyle,
+            LineHeight: theme.LineHeight,
             Width: input.Width!!,
             MinWidth: 0,
             Gap: theme.ControlGap,
-            FlexDirection: FlexDirection.Column
+            FlexDirection: FlexDirection.Column,
+            FontFamily: input.FontFamily!!,
+            BasedOn: input.RootStyle,
         }
         if let create = input.CreateRoot {
             root = create(input, root)
         }
         root.FlexDirection = FlexDirection.Column
-        if let family = input.FontFamily {
-            root.FontFamily = family
-        }
         root.Children.Clear()
         if let label = input.Label {
             root.Children.Add(

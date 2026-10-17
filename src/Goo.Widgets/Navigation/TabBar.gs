@@ -129,6 +129,7 @@ public open class TabBar : Cell[TabBarInput] {
             buttons.Add(button)
         }
         var root = Container{
+            LineHeight: theme.LineHeight,
             Width: input.Width!!, MinWidth: 0, Gap: theme.Spacing / 2.0, BackgroundColor: theme.PanelColor,
             ScrollbarX: theme.Scrollbar,
         }

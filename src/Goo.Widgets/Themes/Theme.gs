@@ -77,6 +77,7 @@ public data struct Theme {
     var Spacing float64
     /// Color transition duration in milliseconds. Zero disables transitions.
     var TransitionMs float64
+    internal var ReducedMotion bool
     /// Body line height.
     var LineHeight float64 = 1.4
     /// Label size.
@@ -148,13 +149,10 @@ public data struct Theme {
         /// Reads the nearest retained theme during an owned build or virtual callback.
         public func Read() Theme {
             let window = Key.Window
-            Read(window)
-            let value = Key.Read()
-            return if window.Preferences.ReducedMotion == true {
-                value with{TransitionMs = 0.0}
-            } else {
-                value
+            if !attachments.TryGetValue(window, out var state) {
+                Attach(window)
             }
+            return Key.Read()
         }
 
         /// Reads the window snapshot, not a subtree override.
@@ -278,7 +276,8 @@ public data struct Theme {
             Color: TextColor,
             FontFamily: FontFamily,
             FontSize: FontSize,
-            FontWeight: FontWeight
+            FontWeight: FontWeight,
+            LineHeight: LineHeight,
         }
     }
 
@@ -303,11 +302,11 @@ public data struct Theme {
             DisabledBackgroundColor: PanelColor,
             DisabledTextColor: FaintTextColor,
             Height: ControlHeight,
-            MinWidth: 64.0,
+            MinWidth: ControlMinWidth,
             PaddingHorizontal: ControlPadding,
             FontFamily: FontFamily,
             FontSize: FontSize,
-            FontWeight: 600,
+            FontWeight: FontWeight,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
             TransitionMs: TransitionMs,
@@ -347,7 +346,7 @@ public data struct Theme {
         get -> TextField{
             BackgroundColor: FieldColor,
             TextColor: TextColor,
-            MutedTextColor: TextColor,
+            MutedTextColor: MutedTextColor,
             BorderColor: InputBorderColor,
             InvalidColor: DangerColor,
             DisabledBackgroundColor: PanelColor,
@@ -372,8 +371,8 @@ public data struct Theme {
             LabelFontSize: FontSize,
             LabelFontWeight: FontWeight,
             LabelGap: ControlGap,
-            Size: 18.0,
-            MarkSize: 12.0,
+            Size: Spacing * 5.0,
+            MarkSize: Spacing * 3.5,
             BackgroundColor: FieldColor,
             BorderColor: InputBorderColor,
             CheckedBackgroundColor: AccentColor,
@@ -390,15 +389,15 @@ public data struct Theme {
         get -> SliderInput{
             LabelColor: TextColor,
             ValueColor: MutedTextColor,
-            LabelFontSize: FontSize,
-            ValueFontSize: FontSize - 2.0,
+            LabelFontSize: LabelFontSize,
+            ValueFontSize: CaptionFontSize,
             Height: ControlHeight,
-            TrackThickness: 6.0,
-            TrackRadius: 3.0,
+            TrackThickness: Spacing * 2.0,
+            TrackRadius: Spacing,
             TrackColor: BorderColor,
             FillColor: AccentColor,
-            ThumbSize: 18.0,
-            ThumbRadius: 9.0,
+            ThumbSize: Spacing * 5.0,
+            ThumbRadius: Spacing * 2.5,
             ThumbBorderWidth: BorderWidth,
             ThumbColor: AccentColor,
             ThumbBorderColor: OnAccentColor,
@@ -415,7 +414,7 @@ public data struct Theme {
             PaddingHorizontal: ControlPadding,
             PaddingVertical: Spacing * 2.0,
             FontFamily: FontFamily,
-            FontSize: FontSize - 2.0,
+            FontSize: FontSize,
             FontWeight: FontWeight,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
@@ -457,7 +456,7 @@ public data struct Theme {
             Inset: 2.0,
             MinThumbLength: 24.0,
             HideDelayMs: 1000.0,
-            FadeMs: if Key.Window.Preferences.ReducedMotion == true { 0.0 } else { 250.0 },
+            FadeMs: ReducedMotion ? 0.0: 250.0,
             ReserveSpace: false,
             Track: Container{BackgroundColor: Color.Transparent},
             Thumb: Container{
@@ -481,7 +480,7 @@ internal sealed class ThemeAttachment {
     }
 
     internal func Apply(preferences PlatformPreferences) {
-        var value = Value
+        var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
         if !Fixed {
             let palette = if Mode == ThemeMode.Dark
             || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark) {
