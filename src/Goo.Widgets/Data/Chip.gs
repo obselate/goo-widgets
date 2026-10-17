@@ -39,8 +39,6 @@ public data struct Chip {
     var SelectedActiveBackgroundColor Color?
     /// Focus outline border color. Nil resolves to #d4d4d8.
     var FocusBorderColor Color?
-    /// Whether focused state uses the configured focus border color.
-    var ShowFocusHighlight bool
     /// Fixed height of the chip. Zero resolves to 28.0.
     var Height float64
     /// Left and right horizontal padding. Zero resolves to 10.0.
@@ -191,11 +189,7 @@ public data struct Chip {
             TransitionEasing: resolved.TransitionEasing!!,
             Hover: Style{BackgroundColor: currentHoverBg},
             Active: Style{BackgroundColor: currentActiveBg, Transform: resolved.ActiveTransform!!},
-            Focus: if resolved.ShowFocusHighlight {
-                Style{BorderColor: resolved.FocusBorderColor!!}
-            } else {
-                Style{}
-            },
+            Focus: Style{BorderColor: resolved.FocusBorderColor!!},
             DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

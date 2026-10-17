@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 import System
 import System.Globalization
 
@@ -82,14 +83,15 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
     }
 
     protected override func Build(value SplitPaneInput) Blob {
+        let theme = Theme.Read()
         if !Double.IsFinite(value.Value) || !Double.IsFinite(value.MinimumFirst) || !Double.IsFinite(
             value.MinimumSecond
         )
         || value.MinimumFirst < 0.0 || value.MinimumSecond < 0.0 {
             throw ArgumentOutOfRangeException("Value/minimum sizes")
         }
-        let step = value.Step ?? (value.Unit == SplitUnit.Ratio ? .02: 8.0)
-        let size = value.HandleSize ?? 6.0
+        let step = value.Step ?? (value.Unit == SplitUnit.Ratio ? .02: theme.Spacing * 2.0)
+        let size = value.HandleSize ?? theme.Spacing * 3.0
         if !Double.IsFinite(step) || step <= 0.0 || !Double.IsFinite(size) || size < 0.0 {
             throw ArgumentOutOfRangeException("Step/HandleSize")
         }
@@ -129,9 +131,9 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             second.Children.Add(content)
         }
         var divider = Container{
-            BackgroundColor: "#3f3f46",
-            Hover: Style{BackgroundColor: "#71717a"},
-            Focus: Style{BackgroundColor: "#a1a1aa"}
+            BackgroundColor: theme.BorderColor,
+            Hover: Style{BackgroundColor: theme.HoverColor},
+            Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
         }
         if let create = input.CreateHandle {
             divider = create(input, divider)

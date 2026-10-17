@@ -31,8 +31,8 @@ public data struct MasterDetail {
     var BorderWidth float64?
     /// Pane corner radius. Nil resolves to 6 and preserves explicit zero.
     var BorderRadius float64?
-    /// Back bar height. Zero resolves to 44.
-    var BackHeight float64
+    /// Back bar height. Nil uses the theme control height.
+    var BackHeight float64?
     /// Creates the narrow detail back button from resolved values.
     var CreateBack Func[MasterDetail, Button]?
     /// Creates the final root from resolved values and selected master/detail panes.
@@ -40,6 +40,7 @@ public data struct MasterDetail {
 
     /// Builds a fresh responsive master-detail tree.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createBack = CreateBack
         let createRoot = CreateRoot
         let resolved = this with{
@@ -50,16 +51,12 @@ public data struct MasterDetail {
             } else {
                 MasterWidth
             },
-            Gap = Gap ?? 12.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 6.0,
-            BackHeight = if BackHeight == 0.0 {
-                44.0
-            } else {
-                BackHeight
-            },
+            Gap = Gap ?? theme.ControlGap,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BackHeight = BackHeight ?? theme.ControlHeight,
             CreateBack = nil,
             CreateRoot = nil,
         }
@@ -112,14 +109,19 @@ public data struct MasterDetail {
                     createBack(resolved)
                 } else {
                     Button{
-                        Height: resolved.BackHeight,
-                        Padding: Edges{Right: 12.0, Left: 12.0},
+                        Height: resolved.BackHeight!!,
+                        Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                         BackgroundColor: Color.Transparent,
+                        Color: theme.TextColor,
+                        Focus: theme.FocusStyle,
                         Cursor: Cursor.Pointer,
                         Focusable: true,
                         OnClick: resolved.OnBack,
                         Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.BackLabel!!,},
-                        Text{Content: resolved.BackLabel!!},
+                        Text{
+                            Content: resolved.BackLabel!!, FontFamily: theme.FontFamily,
+                            FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+                        },
                     }
                 }
                 WidgetKeyBindings.BindActivation(back)

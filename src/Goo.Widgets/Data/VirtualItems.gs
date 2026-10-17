@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -31,7 +32,11 @@ public func VirtualItems[T](
     if itemBuilder == nil {
         throw ArgumentNullException("itemBuilder")
     }
-    return Virtual(VirtualItemsSource[T](items, width, height, itemKey, itemBuilder))
+    let theme = Theme.Read()
+    return Virtual(VirtualItemsSource[T](items, width, height, itemKey, itemBuilder)){
+        ScrollbarX = theme.Scrollbar,
+        ScrollbarY = theme.Scrollbar,
+    }
 }
 
 internal func virtualItemExtent(value float64, name string) float32 {
@@ -91,6 +96,8 @@ internal class VirtualItemsState[T] : VirtualState {
     private var window VirtualItemsWindow
     private var pendingWindow VirtualItemsWindow
     private var hasWindow bool
+    private var contextVersion int64 = -1
+    private var pendingContextVersion int64
     internal var Pending VirtualItemsSource[T]?
 
     public override func Realize(viewport VirtualViewport, output VirtualOutput) {
@@ -99,13 +106,14 @@ internal class VirtualItemsState[T] : VirtualState {
             throw InvalidOperationException("VirtualItems source is unavailable")
         }
         let target = Window(viewport, input)
+        pendingContextVersion = viewport.ContextVersion
         for offset in 0 ... target.Count {
             let index = target.Start + offset
             let item = input.Items[index]
             let key = input.Key(item)
             var content Blob?
             var unchanged = false
-            if !String.IsNullOrEmpty(key) {
+            if contextVersion == viewport.ContextVersion && !String.IsNullOrEmpty(key) {
                 if current.TryGetValue(key, out var previous) {
                     unchanged = equality.Equals(previous, item)
                 }
@@ -139,7 +147,7 @@ internal class VirtualItemsState[T] : VirtualState {
         guard let input = source else {
             return false
         }
-        return !hasWindow || !Same(window, Window(viewport, input))
+        return !hasWindow || contextVersion != viewport.ContextVersion || !Same(window, Window(viewport, input))
     }
 
     public override func OffsetOf(viewport VirtualViewport, key string) Point? {
@@ -165,6 +173,7 @@ internal class VirtualItemsState[T] : VirtualState {
         }
         Pending = nil
         window = pendingWindow
+        contextVersion = pendingContextVersion
         hasWindow = true
     }
 

@@ -34,8 +34,6 @@ public data struct ColorPickerInput {
     var MarkerSize float64
     /// Marker border color. Nil resolves to white.
     var MarkerBorderColor Color?
-    /// Enables the visible focus outline. Disabled by default.
-    var ShowFocusHighlight bool
     /// Focus outline color. Nil resolves to #a1a1aa.
     var FocusOutlineColor Color?
     /// Optional base style for the picker root.
@@ -125,7 +123,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 ThumbColor: ColorMath.GooColor(currentRgb),
                 ThumbBorderColor: resolved.MarkerBorderColor,
                 FocusOutlineColor: resolved.FocusOutlineColor,
-                ShowFocusHighlight: resolved.ShowFocusHighlight,
                 TrackStyle: Style{BackgroundGradient: ToneGradient()},
             }
         )
@@ -248,11 +245,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: if resolved.ShowFocusHighlight {
-                Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 4.0}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 4.0},
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),

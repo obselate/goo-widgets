@@ -103,8 +103,9 @@ public data struct MediaTransportInput {
 /// A compact media transport composed from action buttons and mounted sliders.
 public open class MediaTransport : Cell[MediaTransportInput] {
     protected override func Build(input MediaTransportInput) Blob {
+        let theme = Theme.Read()
         let createRoot = input.CreateRoot
-        let resolved = Resolve(input)
+        let resolved = Resolve(input, theme)
         let previous = ActionButton(
             resolved,
             MediaTransportAction.Previous,
@@ -128,7 +129,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: 12.0,
-                TimeText(resolved.Position, resolved.TextColor!!),
+                TimeText(theme, resolved.Position, resolved.TextColor!!),
                 Container{
                     Width: 0.0,
                     MinWidth: 80.0,
@@ -155,7 +156,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                         }
                     ),
                 },
-                TimeText(resolved.Duration, resolved.TextColor!!),
+                TimeText(theme, resolved.Duration, resolved.TextColor!!),
             },
             Container{
                 FlexDirection: FlexDirection.Row,
@@ -177,7 +178,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     AlignItems: AlignItems.Center,
                     JustifyContent: JustifyContent.FlexEnd,
                     Gap: 8.0,
-                    Text{Content: "Volume", FontSize: 12.0, Color: resolved.TextColor!!},
+                    Text{Content: "Volume", FontSize: theme.CaptionFontSize, Color: resolved.TextColor!!},
                     Container{
                         Width: 120.0,
                         Padding: Edges{Right: 10.0, Left: 10.0},
@@ -208,7 +209,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         return root
     }
 
-    private func Resolve(input MediaTransportInput) MediaTransportInput {
+    private func Resolve(input MediaTransportInput, theme Theme) MediaTransportInput {
         if !Double.IsFinite(input.Position) {
             throw ArgumentOutOfRangeException("Position")
         }
@@ -249,19 +250,19 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             CanSeek = canSeek,
             CanSetVolume = canSetVolume,
             Width = input.Width ?? Percent(100.0),
-            Padding = input.Padding ?? 16.0,
-            Gap = input.Gap ?? 12.0,
-            ActionGap = input.ActionGap ?? 8.0,
+            Padding = input.Padding ?? theme.PanelPadding,
+            Gap = input.Gap ?? theme.Spacing,
+            ActionGap = input.ActionGap ?? theme.ControlGap,
             ActionSize = actionSize,
             PrimaryActionSize = primarySize,
-            BackgroundColor = input.BackgroundColor ?? Color.Parse("#18181b"),
-            TextColor = input.TextColor ?? Color.Parse("#a1a1aa"),
-            ActionBackgroundColor = input.ActionBackgroundColor ?? Color.Parse("#27272a"),
-            ActionHoverBackgroundColor = input.ActionHoverBackgroundColor ?? Color.Parse("#3f3f46"),
-            PrimaryActionBackgroundColor = input.PrimaryActionBackgroundColor ?? Color.Parse("#fafafa"),
-            PrimaryActionTextColor = input.PrimaryActionTextColor ?? Color.Parse("#09090b"),
-            TrackColor = input.TrackColor ?? Color.Parse("#3f3f46"),
-            FillColor = input.FillColor ?? Color.Parse("#fafafa"),
+            BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
+            TextColor = input.TextColor ?? theme.MutedTextColor,
+            ActionBackgroundColor = input.ActionBackgroundColor ?? theme.HoverColor,
+            ActionHoverBackgroundColor = input.ActionHoverBackgroundColor ?? theme.BorderColor,
+            PrimaryActionBackgroundColor = input.PrimaryActionBackgroundColor ?? theme.AccentColor,
+            PrimaryActionTextColor = input.PrimaryActionTextColor ?? theme.OnAccentColor,
+            TrackColor = input.TrackColor ?? theme.BorderColor,
+            FillColor = input.FillColor ?? theme.AccentColor,
             CreateRoot = nil,
         }
     }
@@ -345,9 +346,9 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         return button
     }
 
-    private func TimeText(value float64, color Color) Blob -> Text{
+    private func TimeText(theme Theme, value float64, color Color) Blob -> Text{
         Content: FormatTime(value),
-        FontSize: 12.0,
+        FontSize: theme.CaptionFontSize,
         Color: color,
     }
 

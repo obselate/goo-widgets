@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import System
 import System.Globalization
 
@@ -66,6 +67,8 @@ public data struct SliderInput {
     var ThumbColor Color?
     /// Thumb border color. Nil resolves to #18181b.
     var ThumbBorderColor Color?
+    /// Panel background color. Nil resolves to the theme panel color.
+    var BackgroundColor Color?
     /// Enables the visible focus outline. Disabled by default.
     var ShowFocusHighlight bool
     /// Focus outline color. Nil resolves to #a1a1aa.
@@ -94,7 +97,8 @@ public open class Slider : Cell[SliderInput] {
 
     protected override func Build(input SliderInput) Blob {
         let createRoot = input.CreateRoot
-        resolved = Resolve(input)
+        let theme = Theme.Read()
+        resolved = Resolve(input, theme)
         if resolved.Disabled && dragging {
             dragging = false
             pointerId = -1L
@@ -230,6 +234,7 @@ public open class Slider : Cell[SliderInput] {
         let root = Container{
             BasedOn: resolved.RootStyle,
             Handle: handle,
+            BackgroundColor: resolved.BackgroundColor!!,
             Width: if horizontal {
                 if hasHeader {
                     Percent(100.0)
@@ -256,7 +261,7 @@ public open class Slider : Cell[SliderInput] {
                 1.0
             },
             Focus: if resolved.ShowFocusHighlight {
-                Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 3.0}
+                Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0}
             } else {
                 Style{}
             },
@@ -335,7 +340,7 @@ public open class Slider : Cell[SliderInput] {
         }
     }
 
-    private func Resolve(input SliderInput) SliderInput {
+    private func Resolve(input SliderInput, theme Theme) SliderInput {
         let minimum = input.Minimum ?? 0.0
         let maximum = input.Maximum ?? 1.0
         if !Double.IsFinite(minimum) {
@@ -375,12 +380,12 @@ public open class Slider : Cell[SliderInput] {
             Maximum = maximum,
             Step = step,
             AccessibilityName = input.AccessibilityName ?? input.Label ?? "Slider",
-            LabelColor = input.LabelColor ?? Color.Parse("#fafafa"),
-            ValueColor = input.ValueColor ?? Color.Parse("#a1a1aa"),
+            LabelColor = input.LabelColor ?? theme.TextColor,
+            ValueColor = input.ValueColor ?? theme.MutedTextColor,
             Width = input.Width ?? Percent(100.0),
             Height = if input.Height == 0.0 {
                 if input.Orientation == SliderOrientation.Horizontal {
-                    28.0
+                    theme.ControlHeight
                 } else {
                     160.0
                 }
@@ -402,11 +407,12 @@ public open class Slider : Cell[SliderInput] {
             ThumbRadius = input.ThumbRadius ?? thumbSize / 2.0,
             ThumbBorderWidth = input.ThumbBorderWidth ?? 2.0,
             TrackRadius = input.TrackRadius ?? trackThickness / 2.0,
-            TrackColor = input.TrackColor ?? Color.Parse("#3f3f46"),
-            FillColor = input.FillColor ?? Color.Parse("#fafafa"),
-            ThumbColor = input.ThumbColor ?? Color.Parse("#fafafa"),
-            ThumbBorderColor = input.ThumbBorderColor ?? Color.Parse("#18181b"),
-            FocusOutlineColor = input.FocusOutlineColor ?? Color.Parse("#a1a1aa"),
+            TrackColor = input.TrackColor ?? theme.BorderColor,
+            FillColor = input.FillColor ?? theme.AccentColor,
+            ThumbColor = input.ThumbColor ?? theme.AccentColor,
+            ThumbBorderColor = input.ThumbBorderColor ?? theme.OnAccentColor,
+            BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
+            FocusOutlineColor = input.FocusOutlineColor ?? theme.AccentColor,
             DisabledOpacity = input.DisabledOpacity ?? 0.4,
         }
     }

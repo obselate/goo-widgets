@@ -1,6 +1,7 @@
 package Goo.Widgets.Media
 
 import Goo
+import Goo.Widgets
 
 /// A fixed-size avatar that selects an image or fallback text child.
 /// Factories receive resolved props and may replace the selected final primitives.
@@ -46,6 +47,7 @@ public data struct Avatar {
 
     /// Builds a fresh Goo tree, resolving props before invoking selected primitive factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createImage = CreateImage
         let createFallback = CreateFallback
         let createRoot = CreateRoot
@@ -55,20 +57,21 @@ public data struct Avatar {
         } else {
             Size
         }
-        let background = BackgroundColor ?? Color.Parse("#27272a")
+        let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
             Size = size,
             BackgroundColor = background,
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
+            TextColor = TextColor ?? theme.TextColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
             BorderRadius = BorderRadius ?? (size / 2.0),
+            FontFamily = FontFamily ?? theme.FontFamily,
             FontSize = if FontSize == 0.0 {
-                16.0
+                theme.FontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                600
+                theme.FontWeight
             } else {
                 FontWeight
             },

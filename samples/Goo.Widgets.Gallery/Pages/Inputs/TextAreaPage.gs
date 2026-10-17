@@ -19,7 +19,6 @@ internal class TextAreaExample : Cell {
                 },
                 Width: Percent(100),
                 MinimumRows: 4,
-                ShowFocusHighlight: true
             }
         ),
         Cell.Mount[TextAreaInput, TextArea](

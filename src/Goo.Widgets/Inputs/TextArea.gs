@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import System
 
 /// Controlled multiline field values, presentation, and optional external editor ownership.
@@ -11,6 +12,10 @@ public data struct TextAreaInput {
     var Controller TextEditorController?
     /// Optional external presentation layers for the same document. Their ownership stays with the caller.
     var Layers[]?TextPresentationLayer
+    /// Optional horizontal scrollbar descriptor. Nil uses the theme scrollbar.
+    var ScrollbarX Scrollbar?
+    /// Optional vertical scrollbar descriptor. Nil uses the theme scrollbar.
+    var ScrollbarY Scrollbar?
     /// Receives user/document changes, excluding synchronization from Value.
     var OnChange Action[string]?
     /// Empty-document hint.
@@ -87,9 +92,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         if disposed {
             throw ObjectDisposedException("TextArea")
         }
+        let theme = Theme.Read()
         let rows = value.MinimumRows == 0 ? 3: value.MinimumRows
-        let font = value.FontSize ?? 14.0
-        let minimum = value.MinimumHeight ?? (float64(rows) * font * 1.4 + 24.0)
+        let font = value.FontSize ?? theme.FontSize
+        let minimum = value.MinimumHeight ?? (float64(rows) * font * theme.LineHeight + 24.0)
         if rows < 1 || !Double.IsFinite(font) || font <= 0.0 || !Double.IsFinite(minimum) || minimum < 0.0 {
             throw ArgumentOutOfRangeException("MinimumRows/FontSize/MinimumHeight")
         }
@@ -102,10 +108,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Width = value.Width ?? defaultWidth,
             Placeholder = value.Placeholder ?? "",
             AccessibilityName = value.AccessibilityName ?? value.Label ?? value.Placeholder ?? "",
-            BackgroundColor = value.BackgroundColor ?? Color.Parse("#09090b"),
-            TextColor = value.TextColor ?? Color.Parse("#fafafa"),
-            InvalidColor = value.InvalidColor ?? Color.Parse("#ef4444"),
-            FocusColor = value.FocusColor ?? Color.Parse("#d4d4d8")
+            BackgroundColor = value.BackgroundColor ?? theme.FieldColor,
+            TextColor = value.TextColor ?? theme.TextColor,
+            InvalidColor = value.InvalidColor ?? theme.DangerColor,
+            FocusColor = value.FocusColor ?? theme.AccentColor
         }
         if controller == nil {
             external = value.Controller
@@ -123,19 +129,25 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Width = Percent(100),
             Height = value.Height ?? defaultHeight,
             MinHeight = minimum,
-            Padding = 12,
+            Padding = theme.ControlPadding,
             FontSize = font,
             BackgroundColor = input.BackgroundColor!!,
             Color = input.TextColor!!,
+            CaretColor = input.TextColor!!,
+            SelectionColor = theme.AccentColor.WithAlpha(0.35),
+            Cursor = Cursor.Text,
             BorderWidth = 1,
-            BorderColor = value.Invalid ? input.InvalidColor!!: Color.Parse("#3f3f46"),
-            BorderRadius = 6,
-            Focus = value.ShowFocusHighlight ? Style{BorderColor: input.FocusColor!!}: Style{},
-            DisabledStyle = Style{BackgroundColor: "#18181b", Color: "#71717a"},
+            BorderColor = value.Invalid ? input.InvalidColor!!: theme.InputBorderColor,
+            BorderRadius = theme.ControlRadius,
+            Focus = value.ShowFocusHighlight ? Style{OutlineWidth: 2.0, OutlineColor: input.FocusColor!!, OutlineOffset: -2.0}: Style{},
+            DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
+            TransitionMs = theme.TransitionMs,
         }
         if let family = input.FontFamily {
             editor.FontFamily = family
         }
+        editor.ScrollbarX = value.ScrollbarX ?? theme.Scrollbar
+        editor.ScrollbarY = value.ScrollbarY ?? theme.Scrollbar
         if let create = input.CreateEditor {
             editor = create(input, editor)
         }
@@ -165,7 +177,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             BasedOn: input.RootStyle,
             Width: input.Width!!,
             MinWidth: 0,
-            Gap: 6,
+            Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Column
         }
         if let create = input.CreateRoot {
@@ -178,7 +190,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         root.Children.Clear()
         if let label = input.Label {
             root.Children.Add(
-                Text{Key: "label", Handle: labelHandle, Content: label, Color: "#a1a1aa", FontSize: 11, FontWeight: 600}
+                Text{Key: "label", Handle: labelHandle, Content: label, Color: theme.MutedTextColor, FontSize: theme.LabelFontSize, FontWeight: theme.LabelFontWeight}
             )
         }
         root.Children.Add(editor)
@@ -189,7 +201,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                     Handle: issueHandle,
                     Content: issue,
                     Color: input.InvalidColor!!,
-                    FontSize: 12,
+                    FontSize: theme.CaptionFontSize,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Alert,
                         Name: issue,

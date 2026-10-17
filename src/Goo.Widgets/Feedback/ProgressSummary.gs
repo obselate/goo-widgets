@@ -1,6 +1,7 @@
 package Goo.Widgets.Feedback
 
 import Goo
+import Goo.Widgets
 
 /// A labeled progress row that composes ProgressBar with optional detail and accessory slots.
 public data struct ProgressSummary {
@@ -41,6 +42,7 @@ public data struct ProgressSummary {
 
     /// Builds a fresh labeled progress tree.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createProgress = CreateProgress
         let createRoot = CreateRoot
         let label = Label ?? ""
@@ -48,22 +50,23 @@ public data struct ProgressSummary {
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
             Width = Width ?? Percent(100.0),
-            Gap = Gap ?? 8.0,
-            HeaderGap = HeaderGap ?? 8.0,
-            LabelColor = LabelColor ?? Color.Parse("#fafafa"),
-            DetailColor = DetailColor ?? Color.Parse("#a1a1aa"),
+            Gap = Gap ?? theme.ControlGap,
+            HeaderGap = HeaderGap ?? theme.ControlGap,
+            LabelColor = LabelColor ?? theme.TextColor,
+            DetailColor = DetailColor ?? theme.MutedTextColor,
+            FontFamily = FontFamily ?? theme.FontFamily,
             LabelFontSize = if LabelFontSize == 0.0 {
-                14.0
+                theme.FontSize
             } else {
                 LabelFontSize
             },
             LabelFontWeight = if LabelFontWeight == 0 {
-                600
+                theme.LabelFontWeight
             } else {
                 LabelFontWeight
             },
             DetailFontSize = if DetailFontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 DetailFontSize
             },

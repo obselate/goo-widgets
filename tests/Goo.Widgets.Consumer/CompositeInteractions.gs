@@ -213,7 +213,6 @@ internal class CompositeHost : Cell {
                         ReadOnly: ReadOnly,
                         Disabled: Disabled,
                         Wrap: NoWrap ? TextWrap.NoWrap: TextWrap.Wrap,
-                        ShowFocusHighlight: true,
                         CreateEditor: CaptureEditor,
                     }
                 )

@@ -1,6 +1,7 @@
 package Goo.Widgets.Media
 
 import Goo
+import Goo.Widgets
 
 /// A presentation-only image state control with loading and failure fallbacks.
 /// Factories receive resolved props and may replace the selected child or root.
@@ -62,20 +63,21 @@ public data struct AsyncImage {
 
     /// Builds a fresh Goo tree after resolving props and selecting one child.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createImage = CreateImage
         let createPlaceholder = CreatePlaceholder
         let createError = CreateError
         let createRoot = CreateRoot
         let placeholderText = PlaceholderText ?? "Loading"
         let errorText = ErrorText ?? "Image unavailable"
-        let background = BackgroundColor ?? Color.Parse("#18181b")
+        let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
             PlaceholderText = placeholderText,
             ErrorText = errorText,
             BackgroundColor = background,
-            PlaceholderTextColor = PlaceholderTextColor ?? Color.Parse("#a1a1aa"),
-            ErrorTextColor = ErrorTextColor ?? Color.Parse("#fca5a5"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
+            PlaceholderTextColor = PlaceholderTextColor ?? theme.MutedTextColor,
+            ErrorTextColor = ErrorTextColor ?? theme.DangerColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
             Width = if Width == 0.0 {
                 160.0
             } else {
@@ -86,19 +88,20 @@ public data struct AsyncImage {
             } else {
                 Height
             },
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 8.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Fit = Fit ?? ImageFit.Cover,
+            FontFamily = FontFamily ?? theme.FontFamily,
             FontSize = if FontSize == 0.0 {
-                14.0
+                theme.FontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                500
+                theme.FontWeight
             } else {
                 FontWeight
             },

@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 import System
 
 /// Passive hover and keyboard-focus label shown in the Window overlay.
@@ -50,6 +51,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
     }
 
     protected override func Build(input TooltipInput) Blob {
+        let theme = Theme.Read()
         if input.Window == nil || input.Target == nil {
             throw ArgumentException("Tooltip requires Window and Target")
         }
@@ -57,7 +59,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             throw ArgumentException("Tooltip requires Content or Text")
         }
         let delay = input.DelayMs ?? 500.0
-        let gap = input.Gap ?? 6.0
+        let gap = input.Gap ?? theme.ControlGap
         if !Double.IsFinite(delay) || delay < 0.0 || !Double.IsFinite(gap) || gap < 0.0 {
             throw ArgumentOutOfRangeException("input", "Tooltip delay and gap must be finite and nonnegative")
         }
@@ -99,17 +101,20 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             })
         }
         if visible {
-            let content = current.Content ?? Text{Content: current.Text!!, FontSize: 12.0, Color: "#E8EDF2"}
+            let content = current.Content ?? Text{
+                Content: current.Text!!, FontFamily: theme.FontFamily,
+                FontSize: theme.CaptionFontSize, FontWeight: theme.CaptionFontWeight, Color: theme.TextColor,
+            }
             let bubble = if let create = current.CreateBubble {
                 create(current, content)
             } else {
                 Container{
                     BasedOn: current.BubbleStyle ?? Style{
-                        Padding: Edges{Top: 6.0, Right: 9.0, Bottom: 6.0, Left: 9.0},
-                        BackgroundColor: "#202832",
-                        BorderColor: Color.Parse("#465260"),
-                        BorderWidth: 1.0,
-                        BorderRadius: 6.0,
+                        Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
+                        BackgroundColor: theme.PanelColor,
+                        BorderColor: theme.BorderColor,
+                        BorderWidth: theme.BorderWidth,
+                        BorderRadius: theme.PanelRadius,
                     },
                     content,
                 }

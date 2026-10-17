@@ -1,6 +1,7 @@
 package Goo.Widgets.Feedback
 
 import Goo
+import Goo.Widgets
 
 /// A semantic status banner with calm, loud, and alert visual tones.
 /// Factories receive fully resolved props and may replace the final Goo primitives.
@@ -13,18 +14,18 @@ public data struct Banner {
     var Loud bool
     /// Whether the banner uses the alert tone and assertive live semantics.
     var Alert bool
-    /// Background override. Nil selects calm #18181b, loud #422006, or alert #450a0a.
+    /// Background override. Nil uses the theme panel.
     var BackgroundColor Color?
-    /// Text override. Nil selects calm #fafafa, loud #fbbf24, or alert #fca5a5.
+    /// Text override. Nil selects the theme text, warning or danger role.
     var TextColor Color?
-    /// Border override. Nil selects calm #3f3f46, loud #854d0e, or alert #991b1b.
+    /// Border override. Nil selects the theme border, warning or danger role.
     var BorderColor Color?
-    /// Minimum banner height. Zero resolves to 44.0.
-    var MinHeight float64
-    /// Left and right padding. Zero resolves to 14.0.
-    var PaddingHorizontal float64
-    /// Top and bottom padding. Zero resolves to 10.0.
-    var PaddingVertical float64
+    /// Minimum height. Nil uses the theme control height.
+    var MinHeight float64?
+    /// Horizontal padding. Explicit zero is preserved.
+    var PaddingHorizontal float64?
+    /// Vertical padding. Explicit zero is preserved.
+    var PaddingVertical float64?
     /// Text font size. Zero resolves to 14.0.
     var FontSize float64
     /// Text font weight. Zero resolves to 500.
@@ -50,56 +51,36 @@ public data struct Banner {
 
     /// Builds a fresh Goo banner tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createText = CreateText
         let createRoot = CreateRoot
         let content = Content ?? ""
-        var background = Color.Parse("#18181b")
-        var textColor = Color.Parse("#fafafa")
-        var border = Color.Parse("#3f3f46")
-        if Loud {
-            background = Color.Parse("#422006")
-            textColor = Color.Parse("#fbbf24")
-            border = Color.Parse("#854d0e")
-        }
-        if Alert {
-            background = Color.Parse("#450a0a")
-            textColor = Color.Parse("#fca5a5")
-            border = Color.Parse("#991b1b")
-        }
+        let background = theme.PanelColor
+        let textColor = if Alert { theme.DangerColor } else if Loud { theme.WarningColor } else { theme.TextColor }
+        let border = if Alert { theme.DangerColor } else if Loud { theme.WarningColor } else { theme.BorderColor }
         let resolved = this with{
             Content = content,
             AccessibilityName = AccessibilityName ?? content,
             BackgroundColor = BackgroundColor ?? background,
             TextColor = TextColor ?? textColor,
             BorderColor = BorderColor ?? border,
-            MinHeight = if MinHeight == 0.0 {
-                44.0
-            } else {
-                MinHeight
-            },
-            PaddingHorizontal = if PaddingHorizontal == 0.0 {
-                14.0
-            } else {
-                PaddingHorizontal
-            },
-            PaddingVertical = if PaddingVertical == 0.0 {
-                10.0
-            } else {
-                PaddingVertical
-            },
+            MinHeight = MinHeight ?? theme.ControlHeight,
+            PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
+            PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
+            FontFamily = FontFamily ?? theme.FontFamily,
             FontSize = if FontSize == 0.0 {
-                14.0
+                theme.FontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                500
+                theme.FontWeight
             } else {
                 FontWeight
             },
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 6.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -136,8 +117,8 @@ public data struct Banner {
             FlexDirection: FlexDirection.Row,
             FlexWrap: FlexWrap.Wrap,
             FlexGrow: 1.0,
-            MinHeight: resolved.MinHeight,
-            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
+            MinHeight: resolved.MinHeight!!,
+            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             BackgroundColor: resolved.BackgroundColor!!,
             BorderColor: resolved.BorderColor!!,
             BorderWidth: resolved.BorderWidth!!,

@@ -16,13 +16,13 @@ public data struct Checkbox {
     var OnChange Action[AccessibilityChecked]?
     /// Optional text rendered beside the checkbox mark as one interactive row.
     var Label string?
-    /// Label text color. Nil resolves to #fafafa.
+    /// Label text color. Nil resolves to the theme text color.
     var LabelColor Color?
     /// Label font size. Zero resolves to 14.
     var LabelFontSize float64
     /// Label font weight. Zero resolves to 500.
     var LabelFontWeight int32
-    /// Gap between the checkbox mark and label. Nil resolves to 8.
+    /// Gap between the checkbox mark and label. Nil resolves to the theme control gap.
     var LabelGap float64?
     /// Accessible name. Nil resolves to Label or an empty string.
     var AccessibilityName string?
@@ -34,25 +34,25 @@ public data struct Checkbox {
     var MixedContent Blob?
     /// Checkbox width and height. Zero resolves to 20.
     var Size float64
-    /// Background while false. Nil resolves to #18181b.
+    /// Background while false. Nil resolves to the theme field color.
     var BackgroundColor Color?
-    /// Background while true or mixed. Nil resolves to #fafafa.
+    /// Background while true or mixed. Nil resolves to the theme accent color.
     var CheckedBackgroundColor Color?
-    /// Border while false. Nil resolves to #3f3f46.
+    /// Border while false. Nil resolves to the theme input border color.
     var BorderColor Color?
-    /// Border while true or mixed. Nil resolves to #fafafa.
+    /// Border while true or mixed. Nil resolves to the theme accent color.
     var CheckedBorderColor Color?
-    /// Mark color. Nil resolves to #09090b.
+    /// Mark color. Nil resolves to the theme accent foreground color.
     var MarkColor Color?
     /// Disabled opacity. Nil resolves to 0.5 and preserves explicit zero.
     var DisabledOpacity float64?
-    /// Border width. Nil resolves to 1 and preserves explicit zero.
+    /// Border width. Nil resolves to the theme border width and preserves explicit zero.
     var BorderWidth float64?
-    /// Corner radius. Nil resolves to 4 and preserves explicit zero.
+    /// Corner radius. Nil resolves to the theme control radius half and preserves explicit zero.
     var BorderRadius float64?
     /// Mark icon size. Zero resolves to 14.
     var MarkSize float64
-    /// Transition duration. Nil resolves to 150 and preserves explicit zero.
+    /// Transition duration. Nil resolves to the theme transition duration and preserves explicit zero.
     var TransitionMs float64?
     /// Transition easing. Nil resolves to EaseOut.
     var TransitionEasing Easing?
@@ -61,6 +61,7 @@ public data struct Checkbox {
 
     /// Builds a fresh Goo checkbox button or labeled interactive row.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createRoot = CreateRoot
         let onChange = OnChange
         let state = if State == AccessibilityChecked.Unspecified {
@@ -72,37 +73,37 @@ public data struct Checkbox {
         let resolved = this with{
             State = state,
             AccessibilityName = AccessibilityName ?? (Label ?? ""),
-            LabelColor = LabelColor ?? Color.Parse("#fafafa"),
+            LabelColor = LabelColor ?? theme.TextColor,
             LabelFontSize = if LabelFontSize == 0.0 {
-                14.0
+                theme.FontSize
             } else {
                 LabelFontSize
             },
             LabelFontWeight = if LabelFontWeight == 0 {
-                500
+                theme.FontWeight
             } else {
                 LabelFontWeight
             },
-            LabelGap = LabelGap ?? 8.0,
+            LabelGap = LabelGap ?? theme.ControlGap,
             Size = if Size == 0.0 {
                 20.0
             } else {
                 Size
             },
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            CheckedBackgroundColor = CheckedBackgroundColor ?? Color.Parse("#fafafa"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            CheckedBorderColor = CheckedBorderColor ?? Color.Parse("#fafafa"),
-            MarkColor = MarkColor ?? Color.Parse("#09090b"),
+            BackgroundColor = BackgroundColor ?? theme.FieldColor,
+            CheckedBackgroundColor = CheckedBackgroundColor ?? theme.AccentColor,
+            BorderColor = BorderColor ?? theme.InputBorderColor,
+            CheckedBorderColor = CheckedBorderColor ?? theme.AccentColor,
+            MarkColor = MarkColor ?? theme.OnAccentColor,
             DisabledOpacity = DisabledOpacity ?? 0.5,
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 4.0,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.ControlRadius / 2.0,
             MarkSize = if MarkSize == 0.0 {
                 14.0
             } else {
                 MarkSize
             },
-            TransitionMs = TransitionMs ?? 150.0,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             CreateRoot = nil,
         }
@@ -167,7 +168,7 @@ public data struct Checkbox {
             }
             let root = Button{
                 Width: Length.Auto,
-                Height: resolved.Size,
+                Height: Math.Max(resolved.Size, theme.ControlHeight),
                 Padding: 0.0,
                 Gap: resolved.LabelGap!!,
                 BorderWidth: 0.0,
@@ -184,6 +185,7 @@ public data struct Checkbox {
                     1.0
                 },
                 Focusable: true,
+                Focus: theme.FocusStyle,
                 Disabled: resolved.Disabled,
                 OnClick: onClick,
                 TransitionMs: resolved.TransitionMs!!,
@@ -202,6 +204,7 @@ public data struct Checkbox {
                 Text{
                     Content: label,
                     Color: resolved.LabelColor!!,
+                    FontFamily: theme.FontFamily,
                     FontSize: resolved.LabelFontSize,
                     FontWeight: resolved.LabelFontWeight,
                 },
@@ -210,20 +213,10 @@ public data struct Checkbox {
             return root
         }
         let root = Button{
-            Width: resolved.Size,
-            Height: resolved.Size,
-            BorderWidth: resolved.BorderWidth!!,
-            BorderRadius: resolved.BorderRadius!!,
-            BorderColor: if active {
-                resolved.CheckedBorderColor!!
-            } else {
-                resolved.BorderColor!!
-            },
-            BackgroundColor: if active {
-                resolved.CheckedBackgroundColor!!
-            } else {
-                resolved.BackgroundColor!!
-            },
+            Width: Math.Max(resolved.Size, theme.ControlHeight),
+            Height: Math.Max(resolved.Size, theme.ControlHeight),
+            BorderWidth: 0.0,
+            BackgroundColor: Color.Transparent,
             Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {
@@ -235,6 +228,7 @@ public data struct Checkbox {
                 Cursor.Pointer
             },
             Focusable: true,
+            Focus: theme.FocusStyle,
             Disabled: resolved.Disabled,
             OnClick: onClick,
             TransitionMs: resolved.TransitionMs!!,
@@ -247,9 +241,21 @@ public data struct Checkbox {
                 Checked: state,
             },
         }
-        if let content = content {
-            root.Children.Add(content)
+        let markBox = Container{
+            Width: resolved.Size,
+            Height: resolved.Size,
+            BorderWidth: resolved.BorderWidth!!,
+            BorderRadius: resolved.BorderRadius!!,
+            BorderColor: if active { resolved.CheckedBorderColor!! } else { resolved.BorderColor!! },
+            BackgroundColor: if active { resolved.CheckedBackgroundColor!! } else { resolved.BackgroundColor!! },
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            HitTestSelf: false,
         }
+        if let content = content {
+            markBox.Children.Add(content)
+        }
+        root.Children.Add(markBox)
         WidgetKeyBindings.BindActivation(root)
         return root
     }

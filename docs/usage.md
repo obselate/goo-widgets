@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-These examples use Goo Widgets `0.2.19`, Goo/Goo.Svg `0.7.35`, .NET 10, and
+These examples use Goo Widgets `0.2.19`, Goo `0.7.36`, .NET 10, and
 `Gsharp.NET.Sdk/0.4.1150`. Goo automatically supplies the upstream compiler needed
 for native child composition. Follow the [installation instructions](../README.md#install).
 
@@ -324,47 +324,50 @@ let add = IconButton{
 ```
 
 `MaterialIcons.Names()` returns the available names in ordinal order. `Create`
-returns a fresh Goo `Shape` with the requested size and color, defaulting to 24
-logical pixels and `#fafafa`. Icon geometry is loaded and cached on first use.
-Default checkbox marks, media controls, window controls, and gallery icons all use
-these SVGs. Text and avatar initials use the application font.
+returns a fresh Goo `Shape` with the requested size and color. Without a tint,
+it reads the nearest theme's text color during the owning Cell build.
+Icon geometry, not resolved paint, is cached. Default checkbox marks, media
+controls, window controls, and gallery icons use these SVGs.
 The shape is decorative. Give its button an accessible name.
 
 ## Goo theme
 
-Import `Goo.Widgets.Theme` to use the `GooDark`, `GooLight`, and `GitHubDark` palettes
-directly, including typography, spacing, and widget presets. `Ink` and `Bone`
-remain available as the original names for Goo Dark and Goo Light. Customize
-ordinary G# values with `with`:
+Call `Theme.Attach(window)` before `Open` to follow the system appearance.
+Light and Unknown select Bone colors. Dark selects Ink colors.
+`Theme.Attach(window, value)` selects a fixed snapshot, including `Theme.Default`.
+`Theme.SetMode(window, ThemeMode.Light)` or `Dark` locks the built-in palette.
+`System` resumes preference tracking. SetMode preserves typography and metrics
+but replaces all palette roles, including custom colors.
+
+`Theme.Default` uses system fonts, 14 px body text, 32 px controls, 6 px control
+corners and 8 px panel corners. Named Ink, Bone and GitHubDark presets retain
+their branded typography and metrics. `GooDark` and `GooLight` remain aliases.
+Motion defaults to zero. `TransitionMs` opts into motion unless reduced motion
+is active.
+
+Read `Theme.Read()` during an owned Cell build or virtual callback.
+`Theme.Read(window)` reads only the window snapshot on its owner thread.
+Neither API is a process-global current theme. A missing window attachment is
+initialized with System policy.
 
 ```gsharp
 import Goo
-import Goo.Widgets.Theme
+import Goo.Widgets
+import Goo.Widgets.Actions
 
-let theme = GitHubDark with{ControlHeight = 28.0}
-
-Container{
-    BasedOn: theme.CanvasStyle,
-    Padding: theme.Spacing * 6.0,
-    (theme.PrimaryButton with{Content = "Save", OnClick = () -> Save()}).Build(),
-    (theme.Checkbox with{Label = "Live preview"}).Build(),
-}
+ThemeScope{
+    Value: Theme.Read() with{AccentColor = Color.Parse("#245b91")},
+    Density: Density.Compact,
+    Content: () -> ActionButton{Content: "Save", OnClick: () -> Save()}.Build(),
+}.Build()
 ```
 
-Presets include `Button`, `PrimaryButton`, `GhostButton`, `DangerButton`,
-`TextField`, `Checkbox`, `Slider`, and `Banner`, plus `CanvasStyle` and
-`PanelStyle`. Controls have 12 px corners, panels have 20 px corners, and slider
-thumbs are round. Focus highlights and motion are off by default.
-Body text is 16 px at weight 500, with weight 600 button labels.
-Set `TransitionMs` to enable color transitions. Fonts resolve through Goo.
-Supply Vend Sans, Space Grotesk, and JetBrains Mono through `FontSource` when
-they are not installed, or override the theme's font families.
-The sample bundles Vend Sans and registers its Medium and Semibold variation
-weights explicitly, so it does not depend on an installed font's default face.
-
-Keep the selected palette in application state. Rebuild to apply a different
-palette, preserving mounted widget keys and controlled values. Existing widgets
-use the theme only when you supply its presets or values.
+Scope content must be constructed in its deferred callback. A scope does not
+change window clear colors. Density assigns absolute control height, padding
+and gap: Compact 28/8/4, Standard 32/12/8, Comfortable 40/16/8 and Touch 44/16/8.
+Without Density, a scope preserves custom metrics such as a 23 px control.
+Explicit widget properties and final factory/style overrides take precedence.
+Replacing primitive factories own their focus and scrolling semantics.
 
 Run the [complete sample](../samples/Goo.Widgets.Theme/Program.gs):
 
@@ -386,11 +389,10 @@ tree. No global theme registration or initialization is required.
   mounted cells. Replacement factories must preserve required keys, handlers,
   handles, accessibility semantics, and layout properties.
 - Return fresh mutable content from factories when building multiple instances.
-- Visible focus highlights are off by default. Set `ShowFocusHighlight: true` on
-  widgets that expose it. Widget buttons and composite controls install their own
-  bindings. Apply `WidgetKeyBindings.Editing(window.PlatformInput)` to the
-  application root for text editing, focus traversal, clipboard, cancellation,
-  and key-repeat policy.
+- Focus styling uses Goo's keyboard-visible focus modality. There is no
+  `ShowFocusHighlight` switch. Widget buttons and composite controls install
+  their own bindings. Apply `WidgetKeyBindings.Editing(window.PlatformInput)`
+  to the application root for editing, focus traversal, clipboard and key repeat.
 - SearchList filters supplied in-memory items and needs unique stable IDs and a
   logical viewport width and height. The host owns remote search and storage.
 - Disclosure owns no expanded state. Build it with `Expanded` and `OnExpandedChange`.

@@ -16,10 +16,10 @@ public data struct IconButton {
     var Disabled bool
     /// Whether the active visual state is selected.
     var Active bool
-    /// Button width. Zero resolves to 40.0.
-    var Width float64
-    /// Button height. Zero resolves to the resolved width.
-    var Height float64
+    /// Button width. Nil uses the theme control height.
+    var Width float64?
+    /// Button height. Nil uses the resolved width.
+    var Height float64?
     /// Button padding. Nil resolves to 0.0.
     var Padding float64?
     /// Button corner radius. Nil resolves to 8.0.
@@ -30,8 +30,6 @@ public data struct IconButton {
     var ActiveBackgroundColor Color?
     /// Hover button background. Nil resolves to #27272a.
     var HoverBackgroundColor Color?
-    /// Enables the visible focus outline. Disabled by default.
-    var ShowFocusHighlight bool
     /// Focus outline color. Nil resolves to #a1a1aa.
     var FocusOutlineColor Color?
     /// Disabled opacity. Nil resolves to 0.4.
@@ -43,27 +41,20 @@ public data struct IconButton {
 
     /// Builds a fresh Goo button tree.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createRoot = CreateRoot
-        let width = if Width == 0.0 {
-            40.0
-        } else {
-            Width
-        }
-        let height = if Height == 0.0 {
-            width
-        } else {
-            Height
-        }
+        let width = Width ?? theme.ControlHeight
+        let height = Height ?? width
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "Icon action",
             Width = width,
             Height = height,
             Padding = Padding ?? 0.0,
-            BorderRadius = BorderRadius ?? 8.0,
+            BorderRadius = BorderRadius ?? theme.ControlRadius,
             BackgroundColor = BackgroundColor ?? Color.Transparent,
-            ActiveBackgroundColor = ActiveBackgroundColor ?? Color.Parse("#27272a"),
-            HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
-            FocusOutlineColor = FocusOutlineColor ?? Color.Parse("#a1a1aa"),
+            ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
+            HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+            FocusOutlineColor = FocusOutlineColor ?? theme.AccentColor,
             DisabledOpacity = DisabledOpacity ?? 0.4,
             CreateRoot = nil,
         }
@@ -75,8 +66,8 @@ public data struct IconButton {
         }
         let button = Button{
             BasedOn: resolved.RootStyle,
-            Width: resolved.Width,
-            Height: resolved.Height,
+            Width: resolved.Width!!,
+            Height: resolved.Height!!,
             Padding: resolved.Padding!!,
             BorderRadius: resolved.BorderRadius!!,
             AlignItems: AlignItems.Center,
@@ -94,11 +85,7 @@ public data struct IconButton {
                 resolved.BackgroundColor!!
             },
             Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            Focus: if resolved.ShowFocusHighlight {
-                Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: resolved.AccessibilityName!!,

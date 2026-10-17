@@ -40,8 +40,6 @@ public data struct SearchList {
     var SelectedColor Color?
     /// Focus outline color. Nil resolves to #a1a1aa.
     var FocusColor Color?
-    /// Enables visible focus highlights. Disabled by default.
-    var ShowFocusHighlight bool
     /// Final entry customization. Preserve Value and OnChange for controlled editing.
     var CustomizeEntry Func[TextEntry, TextEntry]?
     /// Final row customization. Preserve the supplied action and disabled state.
@@ -67,7 +65,6 @@ public data struct SearchList {
         let muted = MutedColor ?? Color.Parse("#a1a1aa")
         let selection = SelectedColor ?? Color.Parse("#3f3f46")
         let focus = FocusColor ?? muted
-        let showFocusHighlight = ShowFocusHighlight
         let selectedId = SelectedId
         let onSelect = OnSelect
         let customizeRow = CustomizeRow
@@ -80,7 +77,6 @@ public data struct SearchList {
             Muted: muted,
             Selection: selection,
             Focus: focus,
-            ShowFocusHighlight: showFocusHighlight,
             OnSelect: onSelect,
             Customize: customizeRow,
         }
@@ -119,11 +115,7 @@ public data struct SearchList {
             Controlled: true,
             Placeholder: Placeholder ?? "Search",
             OnChange: OnQueryChange,
-            Focus: if showFocusHighlight {
-                Style{OutlineWidth: 1, OutlineColor: focus, OutlineOffset: -1}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 1, OutlineColor: focus, OutlineOffset: -1},
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? "Search"},
         }
         if let customize = CustomizeEntry {
@@ -215,11 +207,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
                 options.Background
             },
             Hover: Style{BackgroundColor: options.Selection},
-            Focus: if options.ShowFocusHighlight {
-                Style{OutlineWidth: 1, OutlineColor: options.Focus, OutlineOffset: -1}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 1, OutlineColor: options.Focus, OutlineOffset: -1},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: item.Label ?? "", Selected: Selected},
             OnClick: () -> {
                 if !item.Disabled {
@@ -246,7 +234,6 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     internal var Muted Color
     internal var Selection Color
     internal var Focus Color
-    internal var ShowFocusHighlight bool
     internal var OnSelect Action[string]?
     internal var Customize Func[SelectionItem, Button, Blob]?
 
@@ -254,7 +241,6 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     && RowHeight == other.RowHeight && sameColor(Background, other.Background)
     && sameColor(Foreground, other.Foreground) && sameColor(Muted, other.Muted)
     && sameColor(Selection, other.Selection) && sameColor(Focus, other.Focus)
-    && ShowFocusHighlight == other.ShowFocusHighlight
     && Object.Equals(OnSelect, other.OnSelect) && Object.Equals(Customize, other.Customize)
 
     private func sameColor(a Color, b Color) bool -> a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A

@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// An application header bar with slots, title/subtitle typography, bottom border, shadow, and custom factories.
 public data struct AppBar {
@@ -18,8 +19,8 @@ public data struct AppBar {
     var HeadingLevel int32
     /// Bar width. Nil resolves to Percent(100.0).
     var Width Length?
-    /// Bar height. Zero resolves to 56.0.
-    var Height float64
+    /// Bar height. Nil uses fourteen spacing units.
+    var Height float64?
     /// Bar background color. Nil resolves to #09090b.
     var BackgroundColor Color?
     /// Inherited title and content text color. Nil resolves to #fafafa.
@@ -44,7 +45,7 @@ public data struct AppBar {
     var SubtitleFontWeight int32
     /// Bottom border width. Nil resolves to 1.0; explicit zero is preserved.
     var BorderWidth float64?
-    /// Outer drop shadow. Nil resolves to #000000 offset (0, 2) blur 8.0 spread 0.0.
+    /// Optional authored shadow. Nil leaves the bar unshadowed.
     var BoxShadow BoxShadow?
     /// Bar opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
@@ -61,11 +62,11 @@ public data struct AppBar {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createTitle = CreateTitle
         let createSubtitle = CreateSubtitle
         let createRoot = CreateRoot
         let titleText = Title ?? ""
-        let defaultShadow = BoxShadow{Color: Color.Parse("#000000"), OffsetX: 0.0, OffsetY: 2.0, Blur: 8.0, Spread: 0.0}
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
@@ -75,40 +76,37 @@ public data struct AppBar {
                 HeadingLevel
             },
             Width = Width ?? Percent(100.0),
-            Height = if Height == 0.0 {
-                56.0
-            } else {
-                Height
-            },
-            BackgroundColor = BackgroundColor ?? Color.Parse("#09090b"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            SubtitleColor = SubtitleColor ?? Color.Parse("#a1a1aa"),
-            BorderColor = BorderColor ?? Color.Parse("#27272a"),
-            PaddingHorizontal = PaddingHorizontal ?? 16.0,
-            Gap = Gap ?? 12.0,
-            TitleGap = TitleGap ?? 2.0,
+            Height = Height ?? theme.Spacing * 14.0,
+            BackgroundColor = BackgroundColor ?? theme.CanvasColor,
+            TextColor = TextColor ?? theme.TextColor,
+            SubtitleColor = SubtitleColor ?? theme.MutedTextColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
+            Gap = Gap ?? theme.ControlGap,
+            TitleGap = TitleGap ?? theme.Spacing / 2.0,
+            FontFamily = FontFamily ?? theme.FontFamily,
             TitleFontSize = if TitleFontSize == 0.0 {
-                16.0
+                theme.HeadingFontSize
             } else {
                 TitleFontSize
             },
             TitleFontWeight = if TitleFontWeight == 0 {
-                600
+                theme.HeadingFontWeight
             } else {
                 TitleFontWeight
             },
             SubtitleFontSize = if SubtitleFontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 SubtitleFontSize
             },
             SubtitleFontWeight = if SubtitleFontWeight == 0 {
-                400
+                theme.CaptionFontWeight
             } else {
                 SubtitleFontWeight
             },
-            BorderWidth = BorderWidth ?? 1.0,
-            BoxShadow = BoxShadow ?? defaultShadow,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BoxShadow = BoxShadow ?? Goo.BoxShadow{},
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
             CreateTitle = nil,
@@ -172,7 +170,7 @@ public data struct AppBar {
 
         let root = Container{
             Width: resolved.Width!!,
-            Height: resolved.Height,
+            Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
             BackgroundColor: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,

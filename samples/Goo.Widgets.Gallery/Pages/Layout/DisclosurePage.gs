@@ -26,7 +26,6 @@ internal class DisclosureExample : Cell {
             OnExpandedChange: (value bool) -> {
                 expanded = value
             },
-            ShowFocusHighlight: true,
             Content: Container{
                 Gap: 12,
                 Text{

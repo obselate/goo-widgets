@@ -1,6 +1,7 @@
 package Goo.Widgets.Charts
 
 import Goo
+import Goo.Widgets
 import System
 
 /// A small vector donut chart with optional activation and legend composition.
@@ -34,10 +35,11 @@ public data struct DonutChart {
 
     /// Builds fresh vector slices, including a two-arc full circle and an empty track.
     public func Build() Blob {
+        let theme = Theme.Read()
         let resolved = this with{
             Size = Size ?? 160.0,
             Thickness = Thickness ?? 24.0,
-            TrackColor = TrackColor ?? Color.Parse("#27272a"),
+            TrackColor = TrackColor ?? theme.BorderColor,
             AccessibilityName = AccessibilityName ?? "Chart"
         }
         let size = resolved.Size!!
@@ -47,7 +49,7 @@ public data struct DonutChart {
             thickness > size / 2.0 {
             throw ArgumentOutOfRangeException("Donut size/thickness")
         }
-        let segments = ChartParts.Resolve(Series ?? []ChartSeries{})
+        let segments = ChartParts.Resolve(Series ?? []ChartSeries{}, theme)
         let plot = Container{Key: "plot", Width: size, Height: size, Position: PositionType.Relative, FlexShrink: 0}
         plot.Children.Add(
             Shape{
@@ -71,7 +73,7 @@ public data struct DonutChart {
             var shape = Shape{
                 Path: path,
                 BackgroundColor: segment.Series.Color!!,
-                Focus: Style{Opacity: .7},
+                Focus: theme.FocusStyle,
                 Cursor: OnActivate == nil ? Cursor.Default: Cursor.Pointer
             }
             if let create = CreateSlice {
@@ -107,7 +109,7 @@ public data struct DonutChart {
                 }
             )
         }
-        var root = Container{Gap: 14, AlignItems: AlignItems.Center}
+        var root = Container{Gap: theme.Spacing * 3.0, AlignItems: AlignItems.Center}
         if let create = CreateRoot {
             root = create(resolved, root)
         }
@@ -119,7 +121,7 @@ public data struct DonutChart {
         root.Children.Clear()
         root.Children.Add(plot)
         if ShowLegend {
-            var legend = ChartParts.Legend(segments, CreateLabel)
+            var legend = ChartParts.Legend(segments, CreateLabel, theme)
             if let create = CreateLegend {
                 legend = create(resolved, legend)
             }

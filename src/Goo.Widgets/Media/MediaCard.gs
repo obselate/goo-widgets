@@ -53,6 +53,7 @@ public data struct MediaCard {
 
     /// Builds a fresh Goo card tree.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createContent = CreateContent
         let createRoot = CreateRoot
         let title = Title ?? ""
@@ -75,20 +76,20 @@ public data struct MediaCard {
             } else {
                 ContentHeight
             },
-            Padding = Padding ?? 12.0,
-            Gap = Gap ?? 4.0,
-            BorderRadius = BorderRadius ?? 8.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
-            TitleColor = TitleColor ?? Color.Parse("#fafafa"),
-            SupportingColor = SupportingColor ?? Color.Parse("#a1a1aa"),
+            Padding = Padding ?? theme.PanelPadding,
+            Gap = Gap ?? theme.Spacing,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+            TitleColor = TitleColor ?? theme.TextColor,
+            SupportingColor = SupportingColor ?? theme.MutedTextColor,
             TitleFontSize = if TitleFontSize == 0.0 {
-                16.0
+                theme.HeadingFontSize
             } else {
                 TitleFontSize
             },
             SupportingFontSize = if SupportingFontSize == 0.0 {
-                13.0
+                theme.CaptionFontSize
             } else {
                 SupportingFontSize
             },
@@ -99,7 +100,7 @@ public data struct MediaCard {
             Width: resolved.Width,
             Height: resolved.ThumbnailHeight,
             FlexShrink: 0.0,
-            BackgroundColor: Color.Parse("#27272a"),
+            BackgroundColor: theme.FieldColor,
             Accessibility: Accessibility{Hidden: true},
         }
         let content = if let createContent = createContent {
@@ -109,18 +110,19 @@ public data struct MediaCard {
             children.Add(
                 Text{
                     Content: resolved.Title!!,
+                    FontFamily: theme.HeadingFontFamily,
                     FontSize: resolved.TitleFontSize,
-                    FontWeight: 600,
+                    FontWeight: theme.HeadingFontWeight,
                     Color: resolved.TitleColor!!,
                     TextWrap: TextWrap.NoWrap,
                     TextTrimming: TextTrimming.Ellipsis,
                 }
             )
             if let subtitle = resolved.Subtitle {
-                children.Add(SupportingText(resolved, subtitle))
+                children.Add(SupportingText(theme, resolved, subtitle))
             }
             if let detail = resolved.Detail {
-                children.Add(SupportingText(resolved, detail))
+                children.Add(SupportingText(theme, resolved, detail))
             }
             Container{
                 Width: resolved.Width,
@@ -145,6 +147,7 @@ public data struct MediaCard {
             Height: resolved.ThumbnailHeight + resolved.ContentHeight,
             Padding: 0.0,
             BorderRadius: resolved.BorderRadius!!,
+            Focus: theme.FocusStyle,
             Cursor: Cursor.Pointer,
             Disabled: resolved.Disabled,
             AlignItems: AlignItems.Stretch,
@@ -162,8 +165,10 @@ public data struct MediaCard {
         return button
     }
 
-    private func SupportingText(input MediaCard, content string) Blob -> Text{
+    private func SupportingText(theme Theme, input MediaCard, content string) Blob -> Text{
         Content: content,
+        FontFamily: theme.FontFamily,
+        FontWeight: theme.CaptionFontWeight,
         FontSize: input.SupportingFontSize,
         Color: input.SupportingColor!!,
         TextWrap: TextWrap.NoWrap,

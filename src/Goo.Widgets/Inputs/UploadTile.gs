@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 
 /// A square upload tile with body, status strip, action overlay, and custom container factories.
 public data struct UploadTile {
@@ -53,6 +54,7 @@ public data struct UploadTile {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let bodySlot = Body
         let statusSlot = Status
         let actionSlot = Action
@@ -63,17 +65,17 @@ public data struct UploadTile {
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "",
             Size = Size ?? 160.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            FailedBorderColor = FailedBorderColor ?? Color.Parse("#ef4444"),
-            StatusBackgroundColor = StatusBackgroundColor ?? Color.Parse("#27272a"),
-            Padding = Padding ?? 12.0,
-            StatusPaddingHorizontal = StatusPaddingHorizontal ?? 10.0,
-            StatusPaddingVertical = StatusPaddingVertical ?? 8.0,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            FailedBorderColor = FailedBorderColor ?? theme.DangerColor,
+            StatusBackgroundColor = StatusBackgroundColor ?? theme.PanelColor,
+            Padding = Padding ?? theme.PanelPadding,
+            StatusPaddingHorizontal = StatusPaddingHorizontal ?? theme.Spacing,
+            StatusPaddingVertical = StatusPaddingVertical ?? theme.Spacing,
             BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 10.0,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
             ActionInset = ActionInset ?? 8.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -132,6 +134,7 @@ public data struct UploadTile {
             BorderRadius: resolved.BorderRadius!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
+            Hover: Style{BackgroundColor: theme.HoverColor},
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             Overflow: Overflow.Hidden,

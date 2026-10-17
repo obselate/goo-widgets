@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// A semantic section header with accent dot, uppercase label, horizontal rule, and optional meta text.
 public data struct SectionHeader {
@@ -55,6 +56,7 @@ public data struct SectionHeader {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createLabel = CreateLabel
         let createMeta = CreateMeta
         let createRoot = CreateRoot
@@ -68,31 +70,32 @@ public data struct SectionHeader {
                 HeadingLevel
             },
             Width = Width ?? Percent(100.0),
-            LabelColor = LabelColor ?? Color.Parse("#d4d4d8"),
-            MetaColor = MetaColor ?? Color.Parse("#71717a"),
-            RuleColor = RuleColor ?? Color.Parse("#3f3f46"),
-            AccentColor = AccentColor ?? Color.Parse("#fafafa"),
-            Gap = Gap ?? 10.0,
-            AccentSize = AccentSize ?? 6.0,
-            RuleHeight = RuleHeight ?? 1.0,
+            LabelColor = LabelColor ?? theme.TextColor,
+            MetaColor = MetaColor ?? theme.FaintTextColor,
+            RuleColor = RuleColor ?? theme.BorderColor,
+            AccentColor = AccentColor ?? theme.AccentColor,
+            Gap = Gap ?? theme.ControlGap,
+            AccentSize = AccentSize ?? theme.Spacing * 1.5,
+            RuleHeight = RuleHeight ?? theme.BorderWidth,
+            FontFamily = FontFamily ?? theme.FontFamily,
             Opacity = Opacity ?? 1.0,
             LabelFontSize = if LabelFontSize == 0.0 {
-                11.0
+                theme.LabelFontSize
             } else {
                 LabelFontSize
             },
             LabelFontWeight = if LabelFontWeight == 0 {
-                700
+                theme.LabelFontWeight
             } else {
                 LabelFontWeight
             },
             MetaFontSize = if MetaFontSize == 0.0 {
-                11.0
+                theme.CaptionFontSize
             } else {
                 MetaFontSize
             },
             MetaFontWeight = if MetaFontWeight == 0 {
-                500
+                theme.CaptionFontWeight
             } else {
                 MetaFontWeight
             },

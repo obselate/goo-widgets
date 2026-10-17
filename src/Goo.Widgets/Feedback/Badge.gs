@@ -1,6 +1,7 @@
 package Goo.Widgets.Feedback
 
 import Goo
+import Goo.Widgets
 
 /// A placement-neutral status badge. Nil Content renders a dot; non-nil Content renders a pill.
 /// Factories receive resolved props and may replace the final Goo primitives.
@@ -15,16 +16,16 @@ public data struct Badge {
     var BorderColor Color?
     /// Dot diameter. Zero resolves to 8.
     var DotSize float64
-    /// Content-mode height. Zero resolves to 20.
-    var Height float64
-    /// Content-mode minimum width. Zero resolves to 20.
-    var MinWidth float64
-    /// Content-mode horizontal padding. Zero resolves to 6.
-    var PaddingHorizontal float64
+    /// Content height. Nil uses caption size plus two spacing units.
+    var Height float64?
+    /// Minimum width. Nil uses the resolved height.
+    var MinWidth float64?
+    /// Horizontal padding. Explicit zero is preserved.
+    var PaddingHorizontal float64?
     /// Border width. Zero leaves the border unpainted.
     var BorderWidth float64
-    /// Corner radius. Zero resolves to half the active mode height.
-    var BorderRadius float64
+    /// Radius. Nil uses half the active height. Explicit zero is preserved.
+    var BorderRadius float64?
     /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
@@ -48,59 +49,41 @@ public data struct Badge {
 
     /// Builds a fresh Goo tree, resolving props before invoking either primitive factory.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createText = CreateText
         let createRoot = CreateRoot
         let isDot = Content == nil
         let dotSize = if DotSize == 0.0 {
-            8.0
+            theme.Spacing * 2.0
         } else {
             DotSize
         }
-        let height = if Height == 0.0 {
-            20.0
-        } else {
-            Height
-        }
-        let minWidth = if MinWidth == 0.0 {
-            20.0
-        } else {
-            MinWidth
-        }
-        let padding = if PaddingHorizontal == 0.0 {
-            6.0
-        } else {
-            PaddingHorizontal
-        }
+        let height = Height ?? theme.CaptionFontSize + theme.Spacing * 2.0
+        let minWidth = MinWidth ?? height
+        let padding = PaddingHorizontal ?? theme.Spacing * 1.5
         var resolvedName string? = AccessibilityName
         if resolvedName == nil && !isDot {
             resolvedName = Content
         }
         let resolved = this with{
-            BackgroundColor = BackgroundColor ?? Color.Parse("#27272a"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            TextColor = TextColor ?? theme.TextColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            FontFamily = FontFamily ?? theme.FontFamily,
             DotSize = dotSize,
             Height = height,
             MinWidth = minWidth,
             PaddingHorizontal = padding,
-            BorderRadius = if BorderRadius == 0.0 {
-                if isDot {
-                    dotSize / 2.0
-                } else {
-                    height / 2.0
-                }
-            } else {
-                BorderRadius
-            },
-            TransitionMs = TransitionMs ?? 150.0,
+            BorderRadius = BorderRadius ?? (if isDot { dotSize / 2.0 } else { height / 2.0 }),
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             FontSize = if FontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                600
+                theme.CaptionFontWeight
             } else {
                 FontWeight
             },
@@ -139,7 +122,7 @@ public data struct Badge {
             return Container{
                 Width: resolved.DotSize,
                 Height: resolved.DotSize,
-                BorderRadius: resolved.BorderRadius,
+                BorderRadius: resolved.BorderRadius!!,
                 BorderWidth: resolved.BorderWidth,
                 BorderColor: resolved.BorderColor!!,
                 BackgroundColor: resolved.BackgroundColor!!,
@@ -151,10 +134,10 @@ public data struct Badge {
             }
         }
         return Container{
-            Height: resolved.Height,
-            MinWidth: resolved.MinWidth,
-            Padding: Edges{Right: resolved.PaddingHorizontal, Left: resolved.PaddingHorizontal},
-            BorderRadius: resolved.BorderRadius,
+            Height: resolved.Height!!,
+            MinWidth: resolved.MinWidth!!,
+            Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
+            BorderRadius: resolved.BorderRadius!!,
             BorderWidth: resolved.BorderWidth,
             BorderColor: resolved.BorderColor!!,
             BackgroundColor: resolved.BackgroundColor!!,

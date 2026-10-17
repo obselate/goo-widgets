@@ -163,13 +163,11 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
                 HoverBackgroundColor: Color.Parse("#3f3f46"),
                 ActiveBackgroundColor: Color.Parse("#18181b"),
                 BorderRadius: 8.0,
-                ShowFocusHighlight: true,
                 OnClick: () -> Back(),
             }.Build(),
             ActionButton{
                 Content: "Forward",
                 BorderRadius: 8.0,
-                ShowFocusHighlight: true,
                 OnClick: () -> Forward(),
             }.Build(),
         },

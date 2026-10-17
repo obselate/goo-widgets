@@ -14,29 +14,29 @@ public data struct Stepper {
     var AccessibilityValueText string?
     /// Total width of the stepper container. Nil resolves to 100%.
     var Width Length?
-    /// Height of each step pill container. Zero resolves to 32.0.
-    var Height float64
-    /// Spacing between step pills. Nil resolves to 8.0; explicit zero is preserved.
+    /// Height of each step pill container. Nil resolves to the theme control height.
+    var Height float64?
+    /// Spacing between step pills. Nil resolves to the theme control gap; explicit zero is preserved.
     var Gap float64?
-    /// Horizontal padding inside each step pill. Nil resolves to 12.0; explicit zero is preserved.
+    /// Horizontal padding inside each step pill. Nil resolves to the theme control padding; explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Corner border radius of each step pill. Nil resolves to 16.0; explicit zero is preserved.
+    /// Corner border radius of each step pill. Nil resolves to the theme control radius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Background color for completed steps. Nil resolves to #d4d4d8.
+    /// Background color for completed steps. Nil resolves to the theme accent color.
     var CompletedColor Color?
-    /// Background color for the current active step. Nil resolves to #fafafa.
+    /// Background color for the current active step. Nil resolves to the theme accent color.
     var CurrentColor Color?
-    /// Background color for upcoming incomplete steps. Nil resolves to #27272a.
+    /// Background color for upcoming incomplete steps. Nil resolves to the theme panel color.
     var UpcomingColor Color?
-    /// Text color for completed and current steps. Nil resolves to #09090b.
+    /// Text color for completed and current steps. Nil resolves to the theme accent foreground color.
     var ActiveTextColor Color?
-    /// Text color for upcoming incomplete steps. Nil resolves to #a1a1aa.
+    /// Text color for upcoming incomplete steps. Nil resolves to the theme muted text color.
     var UpcomingTextColor Color?
-    /// Font size for step label text. Zero resolves to 12.0.
+    /// Font size for step label text. Zero resolves to the theme caption font size.
     var FontSize float64
-    /// Font weight for step label text. Zero resolves to 600.
+    /// Font weight for step label text. Zero resolves to the theme caption font weight.
     var FontWeight int32
-    /// Background transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Background transition duration in milliseconds. Nil resolves to the theme transition duration; explicit zero is preserved.
     var TransitionMs float64?
     /// Background transition easing. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -53,6 +53,7 @@ public data struct Stepper {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createLabel = CreateLabel
         let createStep = CreateStep
         let createRoot = CreateRoot
@@ -71,30 +72,26 @@ public data struct Stepper {
             Labels = rawLabels,
             CurrentIndex = current,
             Width = Width ?? Percent(100.0),
-            Height = if Height == 0.0 {
-                32.0
-            } else {
-                Height
-            },
-            Gap = Gap ?? 8.0,
-            PaddingHorizontal = PaddingHorizontal ?? 12.0,
-            BorderRadius = BorderRadius ?? 16.0,
-            CompletedColor = CompletedColor ?? Color.Parse("#d4d4d8"),
-            CurrentColor = CurrentColor ?? Color.Parse("#fafafa"),
-            UpcomingColor = UpcomingColor ?? Color.Parse("#27272a"),
-            ActiveTextColor = ActiveTextColor ?? Color.Parse("#09090b"),
-            UpcomingTextColor = UpcomingTextColor ?? Color.Parse("#a1a1aa"),
+            Height = Height ?? theme.ControlHeight,
+            Gap = Gap ?? theme.ControlGap,
+            PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
+            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            CompletedColor = CompletedColor ?? theme.AccentColor,
+            CurrentColor = CurrentColor ?? theme.AccentColor,
+            UpcomingColor = UpcomingColor ?? theme.PanelColor,
+            ActiveTextColor = ActiveTextColor ?? theme.OnAccentColor,
+            UpcomingTextColor = UpcomingTextColor ?? theme.MutedTextColor,
             FontSize = if FontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                600
+                theme.CaptionFontWeight
             } else {
                 FontWeight
             },
-            TransitionMs = TransitionMs ?? 150.0,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -118,6 +115,7 @@ public data struct Stepper {
                 text = Text{
                     Content: labelText,
                     Color: textColor,
+                    FontFamily: theme.FontFamily,
                     FontSize: resolved.FontSize,
                     FontWeight: resolved.FontWeight,
                     Accessibility: Accessibility{Hidden: true},
@@ -136,7 +134,7 @@ public data struct Stepper {
                 }
                 pill = Container{
                     Width: Percent(100.0),
-                    Height: resolved.Height,
+                    Height: resolved.Height!!,
                     Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
                     BorderRadius: resolved.BorderRadius!!,
                     BackgroundColor: fillColor,

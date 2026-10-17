@@ -14,7 +14,7 @@ public data struct ChartSeries {
     var Label string?
     /// Finite, nonnegative quantity.
     var Value float64
-    /// Series fill. Nil resolves to #818cf8.
+    /// Series fill. Nil resolves to the theme accent.
     var Color Color?
 }
 
@@ -32,7 +32,7 @@ public data struct ChartSegment {
 
 internal class ChartParts {
     shared {
-        internal func Resolve(series[]ChartSeries)[]ChartSegment {
+        internal func Resolve(series[]ChartSeries, theme Theme)[]ChartSegment {
             let ids = HashSet[string](StringComparer.Ordinal)
             var scale = 0.0
             for item in series {
@@ -52,7 +52,7 @@ internal class ChartParts {
             }
             let result = [series.Length]ChartSegment
             for index in 0 ... series.Length {
-                let item = series[index]with{Color = series[index].Color ?? Color.Parse("#818cf8")}
+                let item = series[index]with{Color = series[index].Color ?? theme.AccentColor}
                 let fraction = total > 0.0 ? (item.Value / scale) / total: 0.0
                 result[index] = ChartSegment{
                     Series: item,
@@ -80,10 +80,13 @@ internal class ChartParts {
             }
         }
 
-        internal func Legend(segments[]ChartSegment, label Func[ChartSegment, Text, Text]?) Container {
-            let root = Container{FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap, Gap: 12}
+        internal func Legend(segments[]ChartSegment, label Func[ChartSegment, Text, Text]?, theme Theme) Container {
+            let root = Container{FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap, Gap: theme.Spacing * 3.0}
             for segment in segments {
-                var text = Text{Content: segment.Summary!!, Color: "#d4d4d8", FontSize: 12}
+                var text = Text{
+                    Content: segment.Summary!!, Color: theme.TextColor,
+                    FontFamily: theme.FontFamily, FontSize: theme.CaptionFontSize, FontWeight: theme.CaptionFontWeight,
+                }
                 if let create = label {
                     text = create(segment, text)
                 }
@@ -92,7 +95,7 @@ internal class ChartParts {
                         Key: segment.Series.Id!!,
                         FlexDirection: FlexDirection.Row,
                         AlignItems: AlignItems.Center,
-                        Gap: 6,
+                        Gap: theme.ControlGap,
                         Container{
                             Width: 9,
                             Height: 9,

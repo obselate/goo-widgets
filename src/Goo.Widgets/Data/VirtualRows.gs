@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -31,7 +32,11 @@ public func VirtualRows[T](
     if itemBuilder == nil {
         throw ArgumentNullException("itemBuilder")
     }
-    return Virtual(VirtualRowsSource[T](items, estimate, itemKey, itemBuilder)){OverflowX = Overflow.Hidden,}
+    let theme = Theme.Read()
+    return Virtual(VirtualRowsSource[T](items, estimate, itemKey, itemBuilder)){
+        OverflowX = Overflow.Hidden,
+        ScrollbarY = theme.Scrollbar,
+    }
 }
 
 internal class VirtualRowsSource[T] : VirtualSource {
@@ -73,6 +78,8 @@ internal class VirtualRowsState[T] : VirtualState {
     private var window VirtualRowsWindow
     private var pendingMetadata VirtualRowMetadata[T]?
     private var pendingWindow VirtualRowsWindow
+    private var contextVersion int64 = -1
+    private var pendingContextVersion int64
     internal var Pending VirtualRowsSource[T]?
 
     public override func Realize(viewport VirtualViewport, output VirtualOutput) {
@@ -96,6 +103,8 @@ internal class VirtualRowsState[T] : VirtualState {
         let gap = Gap(viewport)
         let sameBuilder = Pending == nil || Object.Equals(source?.Build, input.Build)
         let old = metadata
+        let sameContext = contextVersion == viewport.ContextVersion
+        pendingContextVersion = viewport.ContextVersion
         var anchor = ""
         var oldIndex = 0
         var before = 0.0
@@ -121,7 +130,7 @@ internal class VirtualRowsState[T] : VirtualState {
             data = Snapshot(items, input, width, gap, sameBuilder)
         }
         pendingMetadata = data
-        if Object.ReferenceEquals(old, data) && width > 0.0F {
+        if sameContext && Object.ReferenceEquals(old, data) && width > 0.0F {
             for i in 0 ... viewport.ChildCount {
                 if measurements.Count == 128 {
                     break
@@ -155,13 +164,13 @@ internal class VirtualRowsState[T] : VirtualState {
         }
         let focused = FocusedIndex(viewport, data)
         if focused >= 0 && focused < target.Start {
-            AddRow(focused, data, input, sameBuilder, output)
+            AddRow(focused, data, input, sameBuilder && sameContext, output)
         }
         for index in target.Start ... target.Start + target.Count {
-            AddRow(index, data, input, sameBuilder, output)
+            AddRow(index, data, input, sameBuilder && sameContext, output)
         }
         if focused >= target.Start + target.Count {
-            AddRow(focused, data, input, sameBuilder, output)
+            AddRow(focused, data, input, sameBuilder && sameContext, output)
         }
         output.ContentSize = LayoutSize{Width: float64(data.Width), Height: float64(target.ContentH)}
         output.ItemCount = data.Count
@@ -170,6 +179,9 @@ internal class VirtualRowsState[T] : VirtualState {
     }
 
     public override func NeedsRealize(viewport VirtualViewport) bool {
+        if contextVersion != viewport.ContextVersion {
+            return true
+        }
         guard let data = metadata else {
             return false
         }
@@ -225,6 +237,7 @@ internal class VirtualRowsState[T] : VirtualState {
             source = input
         }
         window = pendingWindow
+        contextVersion = pendingContextVersion
         let previous = current
         current = next
         next = previous
