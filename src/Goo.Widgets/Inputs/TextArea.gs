@@ -54,8 +54,6 @@ public data struct TextAreaInput {
     var InvalidColor Color?
     /// Focus border color. Nil resolves to #d4d4d8.
     var FocusColor Color?
-    /// Enables a visible focus border.
-    var ShowFocusHighlight bool
     /// Base editor style, applied before the field's required layout and behavior.
     var EditorStyle Style?
     /// Base root style.
@@ -95,7 +93,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         let theme = Theme.Read()
         let rows = value.MinimumRows == 0 ? 3: value.MinimumRows
         let font = value.FontSize ?? theme.FontSize
-        let minimum = value.MinimumHeight ?? (float64(rows) * font * theme.LineHeight + 24.0)
+        let minimum = value.MinimumHeight ?? (float64(rows) * font * theme.LineHeight + theme.ControlPadding * 2.0)
         if rows < 1 || !Double.IsFinite(font) || font <= 0.0 || !Double.IsFinite(minimum) || minimum < 0.0 {
             throw ArgumentOutOfRangeException("MinimumRows/FontSize/MinimumHeight")
         }
@@ -105,6 +103,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             MinimumRows = rows,
             MinimumHeight = minimum,
             FontSize = font,
+            FontFamily = value.FontFamily ?? theme.FontFamily,
             Width = value.Width ?? defaultWidth,
             Placeholder = value.Placeholder ?? "",
             AccessibilityName = value.AccessibilityName ?? value.Label ?? value.Placeholder ?? "",
@@ -136,10 +135,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             CaretColor = input.TextColor!!,
             SelectionColor = theme.AccentColor.WithAlpha(0.35),
             Cursor = Cursor.Text,
-            BorderWidth = 1,
+            BorderWidth = theme.BorderWidth,
             BorderColor = value.Invalid ? input.InvalidColor!!: theme.InputBorderColor,
             BorderRadius = theme.ControlRadius,
-            Focus = value.ShowFocusHighlight ? Style{OutlineWidth: 2.0, OutlineColor: input.FocusColor!!, OutlineOffset: -2.0}: Style{},
+            Focus = Style{OutlineWidth: 2.0, OutlineColor: input.FocusColor!!, OutlineOffset: -2.0},
             DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
             TransitionMs = theme.TransitionMs,
         }

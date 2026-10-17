@@ -69,8 +69,6 @@ public data struct SliderInput {
     var ThumbBorderColor Color?
     /// Panel background color. Nil resolves to the theme panel color.
     var BackgroundColor Color?
-    /// Enables the visible focus outline. Disabled by default.
-    var ShowFocusHighlight bool
     /// Focus outline color. Nil resolves to #a1a1aa.
     var FocusOutlineColor Color?
     /// Disabled opacity. Nil resolves to 0.4.
@@ -260,11 +258,7 @@ public open class Slider : Cell[SliderInput] {
             } else {
                 1.0
             },
-            Focus: if resolved.ShowFocusHighlight {
-                Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
@@ -360,12 +354,12 @@ public open class Slider : Cell[SliderInput] {
             throw ArgumentOutOfRangeException("Step")
         }
         let thumbSize = if input.ThumbSize == 0.0 {
-            20.0
+            theme.Spacing * 5.0
         } else {
             input.ThumbSize
         }
         let trackThickness = if input.TrackThickness == 0.0 {
-            8.0
+            theme.Spacing * 2.0
         } else {
             input.TrackThickness
         }
@@ -394,18 +388,18 @@ public open class Slider : Cell[SliderInput] {
             },
             TrackThickness = trackThickness,
             LabelFontSize = if input.LabelFontSize == 0.0 {
-                12.0
+                theme.LabelFontSize
             } else {
                 input.LabelFontSize
             },
             ValueFontSize = if input.ValueFontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 input.ValueFontSize
             },
             ThumbSize = thumbSize,
             ThumbRadius = input.ThumbRadius ?? thumbSize / 2.0,
-            ThumbBorderWidth = input.ThumbBorderWidth ?? 2.0,
+            ThumbBorderWidth = input.ThumbBorderWidth ?? theme.BorderWidth,
             TrackRadius = input.TrackRadius ?? trackThickness / 2.0,
             TrackColor = input.TrackColor ?? theme.BorderColor,
             FillColor = input.FillColor ?? theme.AccentColor,
