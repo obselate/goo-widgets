@@ -170,7 +170,7 @@ internal class TimeAxisHost : Cell {
 }
 
 func TimeAxisInteractions() {
-    TimeAxisContracts()
+    RunContracts(TimeAxisContracts)
     let host = TimeAxisHost()
     let semantics = SearchListSemantics()
     let window = Window{

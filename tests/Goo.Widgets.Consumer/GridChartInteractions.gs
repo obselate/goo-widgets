@@ -396,7 +396,7 @@ func GraphActivationInteractions() {
 }
 
 func GridChartInteractions() {
-    GridChartContracts()
+    RunContracts(GridChartContracts)
     GraphActivationInteractions()
     let host = GridChartHost()
     let semantics = SearchListSemantics()

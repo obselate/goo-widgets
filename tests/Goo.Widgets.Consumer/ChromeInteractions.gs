@@ -250,7 +250,7 @@ func ChromeNativeDoubleClick(window Window) {
 }
 
 func ChromeInteractions() {
-    WindowChromeContracts()
+    RunContracts(WindowChromeContracts)
     let host = ChromeHost()
     let semantics = SearchListSemantics()
     let window = Window{

@@ -30,15 +30,18 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         BindOverlay(nil)
     }
 
+    private var theme Theme
+
     protected override func Build(input WindowChrome) Blob {
+        theme = Theme.Read()
         source = input
-        current = input.Resolve()
+        current = input.Resolve(theme)
         BindHost(input.Host)
         BindOverlay(input.OverlayHost)
         if !current.EnableContextMenu {
             menuOpen = false
         }
-        let row = current.BuildResolved(BlankPointer)
+        let row = current.BuildResolved(theme, BlankPointer)
         row.Key = "bar"
         let root = Container{Handle: rootHandle, FlexShrink: 0.0, OnPointerDown: PointerDown, OnKeyDown: KeyDown, row}
         if current.EnableContextMenu {
@@ -108,7 +111,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
     }
 
     private func Toggle() {
-        let resolved = source.Resolve()
+        let resolved = source.Resolve(theme)
         if resolved.IsMaximized!! {
             resolved.OnRestore?.Invoke()
         } else {

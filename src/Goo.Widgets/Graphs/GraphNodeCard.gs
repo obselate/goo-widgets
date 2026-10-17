@@ -47,6 +47,7 @@ public data struct GraphNodeCard {
 
     /// Builds the graph node card.
     public func Build() Container {
+        let theme = Theme.Read()
         let width = if Width == 0.0 {
             160.0
         } else {
@@ -57,9 +58,9 @@ public data struct GraphNodeCard {
         } else {
             Height
         }
-        let padding = Padding ?? 12.0
-        let borderRadius = BorderRadius ?? 8.0
-        let borderWidth = BorderWidth ?? 1.0
+        let padding = Padding ?? theme.ControlPadding
+        let borderRadius = BorderRadius ?? theme.PanelRadius
+        let borderWidth = BorderWidth ?? theme.BorderWidth
         let center = Center ?? Node.Position
         if String.IsNullOrWhiteSpace(Node.Id) {
             throw ArgumentException("Node identity must be nonempty.", "Node")
@@ -87,9 +88,10 @@ public data struct GraphNodeCard {
         }
         let content = Node.Content ?? Text{
             Content: Node.Label,
-            Color: ForegroundColor ?? Color.Parse("#fafafa"),
-            FontSize: 13.0,
-            FontWeight: 700,
+            Color: ForegroundColor ?? (if Selected { theme.OnAccentColor } else { theme.TextColor }),
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.LabelFontWeight,
             TextWrap: TextWrap.NoWrap,
             TextTrimming: TextTrimming.Ellipsis,
         }
@@ -105,18 +107,19 @@ public data struct GraphNodeCard {
             BorderRadius: borderRadius,
             BorderWidth: borderWidth,
             BorderColor: if Selected {
-                SelectedBorderColor ?? Color.Parse("#93c5fd")
+                SelectedBorderColor ?? theme.AccentColor
             } else {
-                BorderColor ?? Color.Parse("#52525b")
+                BorderColor ?? theme.BorderColor
             },
             BackgroundColor: if Selected {
-                SelectedBackgroundColor ?? Color.Parse("#1d4ed8")
+                SelectedBackgroundColor ?? theme.AccentColor
             } else {
-                BackgroundColor ?? Color.Parse("#18181b")
+                BackgroundColor ?? theme.PanelColor
             },
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Focusable: true,
+            Focus: theme.FocusStyle,
             Cursor: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
             OnClick: OnActivate,

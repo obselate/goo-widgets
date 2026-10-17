@@ -1,6 +1,7 @@
 package Goo.Widgets.Graphs
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -87,7 +88,8 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     private var marqueeToggle bool
 
     protected override func Build(input GraphCanvasInput) Blob {
-        resolved = Resolve(input)
+        let theme = Theme.Read()
+        resolved = Resolve(input, theme)
         viewport = resolved.Viewport
         let root = Container{
             BasedOn: resolved.RootStyle,
@@ -99,6 +101,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             Overflow: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
             Focusable: true,
+            Focus: theme.FocusStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Graph canvas"},
             OnPointerDown: (e PointerEvent) -> BeginCanvasPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
@@ -119,7 +122,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
         return root
     }
 
-    private func Resolve(input GraphCanvasInput) GraphCanvasInput {
+    private func Resolve(input GraphCanvasInput, theme Theme) GraphCanvasInput {
         let minimumZoom = if input.MinimumZoom == 0.0 {
             0.1
         } else {
@@ -190,12 +193,12 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             } else {
                 input.EdgeWidth
             },
-            BackgroundColor = input.BackgroundColor ?? Color.Parse("#09090b"),
-            GridColor = input.GridColor ?? Color.Parse("#27272a"),
-            EdgeColor = input.EdgeColor ?? Color.Parse("#52525b"),
-            SelectedEdgeColor = input.SelectedEdgeColor ?? Color.Parse("#60a5fa"),
-            MarqueeFillColor = input.MarqueeFillColor ?? Color.Rgba(59, 130, 246, 40),
-            MarqueeBorderColor = input.MarqueeBorderColor ?? Color.Parse("#60a5fa"),
+            BackgroundColor = input.BackgroundColor ?? theme.CanvasColor,
+            GridColor = input.GridColor ?? theme.BorderColor,
+            EdgeColor = input.EdgeColor ?? theme.MutedTextColor,
+            SelectedEdgeColor = input.SelectedEdgeColor ?? theme.AccentColor,
+            MarqueeFillColor = input.MarqueeFillColor ?? theme.AccentColor.WithAlpha(0.15),
+            MarqueeBorderColor = input.MarqueeBorderColor ?? theme.AccentColor,
         }
         Validate(value)
         return value

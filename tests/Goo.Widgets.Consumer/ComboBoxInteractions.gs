@@ -243,7 +243,7 @@ func ComboActive(adapter SearchListSemantics, name string) bool {
 }
 
 func ComboBoxInteractions() {
-    ComboBoxContracts()
+    RunContracts(ComboBoxContracts)
     let host = ComboBoxHost()
     let semantics = SearchListSemantics()
     let window = Window{

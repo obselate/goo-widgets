@@ -503,7 +503,7 @@ func GridModifiedClick(window Window, handle ElementHandle, modifiers SDLKeymod)
 }
 
 func DataGridInteractions() {
-    DataGridContracts()
+    RunContracts(DataGridContracts)
     let host = DataGridHost()
     let semantics = SearchListSemantics()
     let window = Window{

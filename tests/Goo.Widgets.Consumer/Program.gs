@@ -261,13 +261,13 @@ func MaterialIconRegressions() {
     for state in[]AccessibilityChecked{AccessibilityChecked.True, AccessibilityChecked.Mixed} {
         let checkbox = (Checkbox{State: state}.Build() as Button)!!
         Require(
-            checkbox.Children.Count == 1 && checkbox.Children[0] is Shape,
+            checkbox.Children.Count == 1 && (checkbox.Children[0] as Container)!!.Children[0] is Shape,
             "Checkbox fell back to a font glyph for its state mark."
         )
     }
     let customMark = Text{Content: "custom"}
     let customCheckbox = (Checkbox{State: AccessibilityChecked.True, CheckedContent: customMark}.Build() as Button)!!
-    Require(customCheckbox.Children[0] == customMark, "Checkbox replaced its custom mark.")
+    Require((customCheckbox.Children[0] as Container)!!.Children[0] == customMark, "Checkbox replaced its custom mark.")
 
     var windowAction = ""
     let chrome = WindowChrome{
@@ -307,6 +307,37 @@ func MaterialIconRegressions() {
     }
 }
 
+internal class ContractHost : Cell {
+    private let action Action
+    internal var Complete bool
+
+    internal init(action Action) {
+        this.action = action
+    }
+
+    public override func Build() Blob {
+        if !Complete {
+            action()
+            Complete = true
+        }
+        return Container{}
+    }
+}
+
+func RunContracts(action Action) {
+    let host = ContractHost(action)
+    let window = Window{Title: "Widgets retained contracts", Width: 320, Height: 240, Root: host}
+    Theme.Attach(window)
+    try {
+        window.Open()
+        PumpFrames(window, 2)
+        Require(host.Complete, "Retained contract build did not run.")
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 3)
+    }
+}
+
 func Main() {
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_EDITING_BINDINGS") == "1" {
         EditingNavigationContracts()
@@ -342,7 +373,7 @@ func Main() {
         return
     }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID_CONTRACTS") == "1" {
-        DataGridContracts()
+        RunContracts(DataGridContracts)
         return
     }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_TREE") == "1" {
@@ -377,23 +408,25 @@ func Main() {
         DisclosureInteractions()
         return
     }
-    CalendarContracts()
-    WindowChromeContracts()
-    MarkdownContracts()
-    ComboBoxContracts()
-    OverlayContracts()
-    PackageComposition()
-    NumericAndIdentityRegressions()
-    MaterialIconRegressions()
-    TextAreaOwnership()
-    TabBarContracts()
-    GridChartContracts()
-    TimeAxisContracts()
-    TreeViewContracts()
-    DataGridContracts()
-    VirtualContracts()
-    SliderInteractions()
-    WidgetErgonomics()
+    RunContracts(() -> {
+        CalendarContracts()
+        WindowChromeContracts()
+        MarkdownContracts()
+        ComboBoxContracts()
+        OverlayContracts()
+        PackageComposition()
+        NumericAndIdentityRegressions()
+        MaterialIconRegressions()
+        TextAreaOwnership()
+        TabBarContracts()
+        GridChartContracts()
+        TimeAxisContracts()
+        TreeViewContracts()
+        DataGridContracts()
+        VirtualContracts()
+        SliderInteractions()
+        WidgetErgonomics()
+    })
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" {
         WindowInteractions()
     }

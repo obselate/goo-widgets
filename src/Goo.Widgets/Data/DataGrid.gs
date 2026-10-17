@@ -137,6 +137,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         StringComparer.Ordinal
     )
     private var input DataGridInput
+    private var theme Theme
     private var columns[]DataGridColumn = []DataGridColumn{}
     private var rows[]DataGridRow = []DataGridRow{}
     private var indices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
@@ -179,6 +180,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     }
 
     protected override func Build(value DataGridInput) Blob {
+        theme = Theme.Read()
         let nextRootHandle = value.RootHandle ?? defaultRootHandle
         if nextRootHandle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
@@ -190,17 +192,19 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         input = value with{
             Width = value.Width ?? Percent(100),
             Height = value.Height ?? defaultHeight,
-            RowHeight = value.RowHeight ?? 36.0,
-            HeaderHeight = value.HeaderHeight ?? 38.0,
-            FilterHeight = value.FilterHeight ?? 38.0,
-            ExpandColumnWidth = value.ExpandColumnWidth ?? 30.0,
-            DetailPadding = value.DetailPadding ?? 12.0,
-            DetailBackground = value.DetailBackground ?? Color.Parse("#20232c"),
+            RowHeight = value.RowHeight ?? theme.ControlHeight,
+            HeaderHeight = value.HeaderHeight ?? theme.ControlHeight,
+            FilterHeight = value.FilterHeight ?? theme.ControlHeight,
+            ExpandColumnWidth = value.ExpandColumnWidth ?? theme.ControlHeight,
+            DetailPadding = value.DetailPadding ?? theme.ControlPadding,
+            DetailBackground = value.DetailBackground ?? theme.FieldColor,
             AccessibilityName = value.AccessibilityName ?? "Data grid",
-            BackgroundColor = value.BackgroundColor ?? Color.Parse("#18181b"),
-            TextColor = value.TextColor ?? Color.Parse("#e4e4e7"),
-            SelectedColor = value.SelectedColor ?? Color.Parse("#34334c"),
-            FocusColor = value.FocusColor ?? Color.Parse("#a5b4fc")
+            BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
+            TextColor = value.TextColor ?? theme.TextColor,
+            SelectedColor = value.SelectedColor ?? theme.AccentColor.WithAlpha(0.15),
+            FocusColor = value.FocusColor ?? theme.AccentColor,
+            ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
+            ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
         }
         for height in[]float64{input.RowHeight!!, input.HeaderHeight!!, input.FilterHeight!!} {
             if !Double.IsFinite(height) || height <= 0.0 || height > 1000000.0 {
@@ -660,7 +664,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Height: filter ? snapshot.FilterHeight!!: snapshot.HeaderHeight!!,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
-            BackgroundColor: "#222228",
+            BackgroundColor: theme.FieldColor,
             BasedOn: snapshot.HeaderStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Row}
         }
@@ -688,7 +692,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     ),
                     Color: snapshot.TextColor!!,
                     TextWrap: TextWrap.NoWrap,
-                    FontSize: 13
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.LabelFontSize,
+                    FontWeight: theme.LabelFontWeight,
                 }
             )
             if filter {
@@ -710,7 +716,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 OnKeyDown: StopGridKeys
             }
             if filter {
-                slot.Padding = 4
+                slot.Padding = theme.Spacing
                 slot.Accessibility = Accessibility{Role: AccessibilityRole.GridCell, Name: "Filter " + label}
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
@@ -718,7 +724,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Key: "content",
                     FlexGrow: 1,
                     MinWidth: 0,
-                    Padding: Edges{Right: 10, Left: 10},
+                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                    Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
                     BackgroundColor: Color.Transparent,
                     Focusable: column.Sortable && snapshot.OnSort != nil && !snapshot.Disabled,
                     OnClick: () -> Sort(id),
@@ -733,8 +740,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && CanResize(index) {
                     var handle = Container{
-                        BackgroundColor: "#3f3f46",
-                        Hover: Style{BackgroundColor: "#818cf8"},
+                        BackgroundColor: theme.BorderColor,
+                        Hover: Style{BackgroundColor: theme.AccentColor},
+                        Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
                         BasedOn: snapshot.ResizeHandleStyle
                     }
                     if let create = snapshot.CreateResizeHandle {
@@ -853,7 +861,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     text = found
                 }
             }
-            var content Blob = Text{Content: text, Color: snapshot.TextColor!!, TextWrap: TextWrap.NoWrap, FontSize: 13}
+            var content Blob = Text{
+                Content: text, Color: snapshot.TextColor!!, TextWrap: TextWrap.NoWrap,
+                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+            }
             if let create = snapshot.CreateCell {
                 content = create(snapshot, row, column, content)
             }
@@ -863,7 +874,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Width: widths[index],
                     FlexShrink: 0,
                     MinWidth: 0,
-                    Padding: Edges{Right: 10, Left: 10},
+                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     JustifyContent: JustifyContent.Center,
                     Overflow: Overflow.Hidden,
                     OnKeyDown: StopGridKeys,

@@ -53,6 +53,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private let wheelHandle ElementHandle = ElementHandle{}
     private let wheelSource ColorWheelSource = ColorWheelSource(384)
     private var resolved ColorPickerInput
+    private var theme Theme
     private var currentRgb int32
     private var currentMode ColorMode
     private var lastExternalMode ColorMode?
@@ -69,6 +70,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     }
 
     protected override func Build(input ColorPickerInput) Blob {
+        theme = Theme.Read()
         resolved = Resolve(input)
         if resolved.Disabled && dragging {
             dragging = false
@@ -162,7 +164,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             input.MarkerSize
         }
         let sliderHeight = if input.ToneSliderHeight == 0.0 {
-            28.0
+            theme.ControlHeight
         } else {
             input.ToneSliderHeight
         }
@@ -179,10 +181,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             AccessibilityName = input.AccessibilityName ?? "Color picker",
             WheelSize = wheelSize,
             ToneSliderHeight = sliderHeight,
-            Gap = input.Gap ?? 12.0,
+            Gap = input.Gap ?? theme.ControlGap,
             MarkerSize = markerSize,
-            MarkerBorderColor = input.MarkerBorderColor ?? Color.White,
-            FocusOutlineColor = input.FocusOutlineColor ?? Color.Parse("#a1a1aa"),
+            MarkerBorderColor = input.MarkerBorderColor ?? theme.TextColor,
+            FocusOutlineColor = input.FocusOutlineColor ?? theme.AccentColor,
         }
     }
 
@@ -283,7 +285,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private func BuildModeSelector() Blob -> Container{
         Key: "color-modes",
         FlexDirection: FlexDirection.Row,
-        Gap: 6.0,
+        Gap: theme.ControlGap,
         Accessibility: Accessibility{
             Role: AccessibilityRole.Group,
             Name: resolved.AccessibilityName!!+ " color model",
@@ -296,16 +298,17 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private func BuildModeButton(mode ColorMode, label string) Blob {
         let button = Button{
             Key: "color-mode-" + label,
-            Height: 34.0,
+            Height: theme.ControlHeight,
             FlexGrow: 1.0,
-            Padding: Edges{Right: 8.0, Left: 8.0},
-            BorderRadius: 7.0,
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+            BorderRadius: theme.ControlRadius,
             BackgroundColor: if currentMode == mode {
-                "#3f3f46"
+                theme.PressedColor
             } else {
-                "#27272a"
+                theme.PanelColor
             },
-            Hover: Style{BackgroundColor: "#52525b"},
+            Hover: Style{BackgroundColor: theme.HoverColor},
+            Focus: theme.FocusStyle,
             Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
@@ -319,7 +322,11 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Selected: currentMode == mode,
             },
             OnClick: () -> SelectMode(mode),
-            Text{Key: "color-mode-label-" + label, Content: label, FontSize: 12.0, Color: "#fafafa"},
+            Text{
+                Key: "color-mode-label-" + label, Content: label,
+                FontFamily: theme.FontFamily, FontSize: theme.LabelFontSize,
+                FontWeight: theme.LabelFontWeight, Color: theme.TextColor,
+            },
         }
         WidgetKeyBindings.BindActivation(button)
         return button
@@ -330,14 +337,14 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         Height: 48.0,
         FlexDirection: FlexDirection.Row,
         AlignItems: AlignItems.Center,
-        Gap: 12.0,
+        Gap: theme.ControlGap,
         Container{
             Key: "color-preview-swatch",
             Width: 48.0,
             Height: 48.0,
-            BorderRadius: 8.0,
-            BorderWidth: 1.0,
-            BorderColor: Color.Parse("#52525b"),
+            BorderRadius: theme.ControlRadius,
+            BorderWidth: theme.BorderWidth,
+            BorderColor: theme.InputBorderColor,
             BackgroundColor: ColorMath.GooColor(currentRgb),
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Image,
@@ -347,9 +354,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         Text{
             Key: "color-preview-hex",
             Content: "#" + ColorMath.Hex(currentRgb),
-            FontSize: 14.0,
-            FontWeight: 700,
-            Color: "#fafafa",
+            FontFamily: theme.MonoFontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
+            Color: theme.TextColor,
         },
     }
 

@@ -77,10 +77,11 @@ public data struct WindowChrome {
         if Host != nil || EnableDoubleClick || EnableContextMenu {
             return Cell.Mount[WindowChrome, WindowChromeState](nil, this)
         }
-        return Resolve().BuildResolved()
+        let theme = Theme.Read()
+        return Resolve(theme).BuildResolved(theme)
     }
 
-    internal func Resolve() WindowChrome {
+    internal func Resolve(theme Theme) WindowChrome {
         let host = Host
         let maximized = IsMaximized ?? (host?.State == WindowState.Maximized || host?.State == WindowState.Fullscreen)
         var resolved = this with{
@@ -89,20 +90,20 @@ public data struct WindowChrome {
             ShowMaximize = ShowMaximize ?? true,
             ShowClose = ShowClose ?? true,
             Height = if Height == 0.0 {
-                32.0
+                theme.ControlHeight
             } else {
                 Height
             },
             ControlWidth = if ControlWidth == 0.0 {
-                46.0
+                Math.Max(46.0, theme.ControlHeight)
             } else {
                 ControlWidth
             },
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            BorderColor = BorderColor ?? Color.Parse("#27272a"),
-            ControlColor = ControlColor ?? Color.Parse("#a1a1aa"),
-            HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
-            CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? Color.Parse("#a62e3a"),
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            ControlColor = ControlColor ?? theme.MutedTextColor,
+            HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+            CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? theme.DangerHoverColor,
         }
         if !Double.IsFinite(resolved.Height) || resolved.Height <= 0.0
         || !Double.IsFinite(resolved.ControlWidth) || resolved.ControlWidth <= 0.0 {
@@ -125,7 +126,7 @@ public data struct WindowChrome {
         return resolved
     }
 
-    internal func BuildResolved(blankPointer Action[PointerEvent]? = nil) Container {
+    internal func BuildResolved(theme Theme, blankPointer Action[PointerEvent]? = nil) Container {
         let createContent = CreateControlContent
         let createControl = CreateControl
         let createRoot = CreateRoot
@@ -141,7 +142,7 @@ public data struct WindowChrome {
         }
         if resolved.ShowMinimize!! {
             children.Add(
-                BuildControl(resolved, WindowChromeAction.Minimize, resolved.OnMinimize, createContent, createControl)
+                BuildControl(theme, resolved, WindowChromeAction.Minimize, resolved.OnMinimize, createContent, createControl)
             )
         }
         if resolved.ShowMaximize!! {
@@ -152,6 +153,7 @@ public data struct WindowChrome {
             }
             children.Add(
                 BuildControl(
+                    theme,
                     resolved,
                     command,
                     if maximized {
@@ -166,7 +168,7 @@ public data struct WindowChrome {
         }
         if resolved.ShowClose!! {
             children.Add(
-                BuildControl(resolved, WindowChromeAction.Close, resolved.OnClose, createContent, createControl)
+                BuildControl(theme, resolved, WindowChromeAction.Close, resolved.OnClose, createContent, createControl)
             )
         }
         let ordered = children.ToArray()
@@ -199,6 +201,7 @@ public data struct WindowChrome {
     }
 
     private func BuildControl(
+        theme Theme,
         resolved WindowChrome,
         command WindowChromeAction,
         action Action?,
@@ -217,12 +220,15 @@ public data struct WindowChrome {
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Cursor: Cursor.Pointer,
+            Focus: theme.FocusStyle,
+            Color: resolved.ControlColor!!,
             Hover: Style{
                 BackgroundColor: if command == WindowChromeAction.Close {
                     resolved.CloseHoverBackgroundColor!!
                 } else {
                     resolved.HoverBackgroundColor!!
                 },
+                Color: if command == WindowChromeAction.Close { theme.OnAccentColor } else { resolved.ControlColor!! },
             },
         }
         let control = if let create = createControl {

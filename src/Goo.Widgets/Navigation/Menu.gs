@@ -48,6 +48,7 @@ public data struct MenuInput {
 /// A controlled anchored/context menu with roving focus and pointer/keyboard submenus.
 public open class Menu : Cell[MenuInput] {
     private var current MenuInput
+    private var theme Theme
     private let items Dictionary[string, MenuItem] = Dictionary[string, MenuItem](StringComparer.Ordinal)
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private let active Dictionary[int32, string] = Dictionary[int32, string]()
@@ -55,6 +56,7 @@ public open class Menu : Cell[MenuInput] {
     private var wasOpen bool
 
     protected override func Build(input MenuInput) Blob {
+        theme = Theme.Read()
         current = input
         if input.SubmenuPlacement != nil && input.SubmenuPlacement != PopoverPlacement.LeftStart
         && input.SubmenuPlacement != PopoverPlacement.RightStart {
@@ -116,14 +118,17 @@ public open class Menu : Cell[MenuInput] {
             selected = First(source, false)
         }
         active[depth] = selected
-        let rows = Container{Gap: 2.0, Accessibility: Accessibility{Role: AccessibilityRole.None}}
+        let rows = Container{Gap: theme.Spacing / 2.0, Accessibility: Accessibility{Role: AccessibilityRole.None}}
         for item in source {
             let id = item.Id!!
             if item.Separator {
                 let separator = if let create = current.CreateSeparator {
                     create(current, item)
                 } else {
-                    Container{Height: 1.0, Margin: Edges{Top: 4.0, Bottom: 4.0}, BackgroundColor: "#3f3f46"}
+                    Container{
+                        Height: theme.BorderWidth, Margin: Edges{Top: theme.Spacing, Bottom: theme.Spacing},
+                        BackgroundColor: theme.BorderColor,
+                    }
                 }
                 separator.Key = id
                 separator.Focusable = false
@@ -135,17 +140,20 @@ public open class Menu : Cell[MenuInput] {
             let label = item.Label ?? id
             let content = item.Content ?? Text{
                 Content: label,
-                FontSize: 14,
-                Color: item.Disabled ? Color.Parse("#71717a"): Color.Parse("#e4e4e7")
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
+                Color: item.Disabled ? theme.FaintTextColor: theme.TextColor,
             }
             let prepared = Button{
-                MinHeight: 32.0,
-                Padding: Edges(6.0, 8.0, 6.0, 10.0),
+                MinHeight: theme.ControlHeight,
+                Padding: Edges(theme.Spacing, theme.ControlPadding),
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
-                Gap: 14.0,
-                BackgroundColor: selected == id ? Color.Parse("#34334c"): Color.Transparent,
-                BorderRadius: 4.0,
+                Gap: theme.ControlGap,
+                BackgroundColor: selected == id ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
+                BorderRadius: theme.ControlRadius,
+                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
             let row = if let create = current.CreateItem {
@@ -179,8 +187,9 @@ public open class Menu : Cell[MenuInput] {
                     Text{
                         Key: "arrow",
                         Content: OpensLeft() ? "‹": "›",
-                        FontSize: 18,
-                        Color: "#a1a1aa",
+                        FontFamily: theme.FontFamily,
+                        FontSize: theme.HeadingFontSize,
+                        Color: theme.MutedTextColor,
                         BasedOn: current.SubmenuArrowStyle
                     }
                 )
@@ -212,7 +221,7 @@ public open class Menu : Cell[MenuInput] {
             MaxHeight: current.MaxHeight,
             ZIndex: current.ZIndex,
             Placement: depth == 0 ? current.Placement: current.SubmenuPlacement ?? PopoverPlacement.RightStart,
-            Padding: 4.0,
+            Padding: theme.Spacing,
             DismissOnOutsideClick: depth == 0,
             OnDismiss: (reason PopoverDismissReason) -> CloseLevel(depth),
             CreatePanel: Panel,
@@ -235,11 +244,11 @@ public open class Menu : Cell[MenuInput] {
 
     private func Panel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
-            Padding: 4.0,
-            BackgroundColor: "#18181b",
-            BorderColor: Color.Parse("#3f3f46"),
-            BorderWidth: 1.0,
-            BorderRadius: 7.0
+            Padding: theme.Spacing,
+            BackgroundColor: theme.PanelColor,
+            BorderColor: theme.BorderColor,
+            BorderWidth: theme.BorderWidth,
+            BorderRadius: theme.PanelRadius,
         }
         return if let create = current.CreatePanel {
             create(current, prepared)

@@ -407,7 +407,7 @@ func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantic
 )?.Focused ?? false
 
 func OverlayInteractions() {
-    OverlayContracts()
+    RunContracts(OverlayContracts)
     let host = OverlayHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

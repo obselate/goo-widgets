@@ -176,7 +176,7 @@ internal class MarkdownHost : Cell {
 func MarkdownLongCaption() string -> "complete release guide with all of the details needed to review this deployment and its follow-up changes"
 
 func MarkdownInteractions() {
-    MarkdownContracts()
+    RunContracts(MarkdownContracts)
     let host = MarkdownHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

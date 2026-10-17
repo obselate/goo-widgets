@@ -331,7 +331,7 @@ func RailInteractions() {
 }
 
 func CompositeInteractions() {
-    TextAreaOwnership()
+    RunContracts(TextAreaOwnership)
     RailInteractions()
     let host = CompositeHost()
     let root = ApplicationRoot(host)

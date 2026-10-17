@@ -60,6 +60,7 @@ internal data struct ComboBoxRow {
 /// An anchored selector with virtual options and commit/cancel keyboard navigation.
 public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var current ComboBoxInput
+    private var theme Theme
     private let trigger ElementHandle = ElementHandle()
     private let listHandle ElementHandle = ElementHandle()
     private let searchHandle ElementHandle = ElementHandle()
@@ -90,10 +91,11 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     }
 
     protected override func Build(input ComboBoxInput) Blob {
+        theme = Theme.Read()
         current = input with{
             Width = input.Width == 0.0 ? 280.0: input.Width,
             PopupHeight = input.PopupHeight == 0.0 ? 260.0: input.PopupHeight,
-            RowHeight = input.RowHeight == 0.0 ? 34.0: input.RowHeight,
+            RowHeight = input.RowHeight == 0.0 ? theme.ControlHeight: input.RowHeight,
             Placeholder = input.Placeholder ?? "Choose an option",
             AccessibilityName = input.AccessibilityName ?? "Choose an option",
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex
@@ -149,19 +151,23 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let label = selected?.Label ?? selected?.Id ?? current.Placeholder!!
         let valueContent = selected?.Content ?? Text{
             Content: label,
-            Color: selected == nil ? Color.Parse("#a1a1aa"): Color.Parse("#fafafa"),
+            Color: selected == nil ? theme.MutedTextColor: theme.TextColor,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
             TextWrap: TextWrap.NoWrap
         }
         var button = Button{
-            Height: 38.0,
-            Padding: Edges{Right: 10.0, Left: 12.0},
-            Gap: 12.0,
+            Height: theme.ControlHeight,
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+            Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: "#27272a",
-            BorderColor: Color.Parse("#52525b"),
-            BorderWidth: 1.0,
-            BorderRadius: 6.0
+            BackgroundColor: theme.FieldColor,
+            BorderColor: theme.InputBorderColor,
+            BorderWidth: theme.BorderWidth,
+            BorderRadius: theme.ControlRadius,
+            Focus: theme.FocusStyle,
         }
         if let create = current.CreateTrigger {
             button = create(current, button)
@@ -185,7 +191,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         button.Children.Add(
             Container{Key: "value", FlexGrow: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
-        var arrow Blob = MaterialIcons.Create("expand_more", 16, Color.Parse("#a1a1aa"))
+        var arrow Blob = MaterialIcons.Create("expand_more", 16, theme.MutedTextColor)
         if let create = current.CreateArrow {
             arrow = create(current, arrow)
         }
@@ -199,7 +205,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         root.Children.Add(button)
         let popupHeight = Math.Min(
             current.PopupHeight,
-            2.0 + (current.Searchable ? 38.0: 0.0) + Math.Max(44.0, float64(rows.Count) * current.RowHeight)
+            2.0 + (current.Searchable ? theme.ControlHeight: 0.0) + Math.Max(theme.ControlHeight, float64(rows.Count) * current.RowHeight)
         )
         var popup = PopoverInput{
             Open: isOpen,
@@ -231,11 +237,17 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let content = Container{Height: height - 2.0, MinHeight: 0.0, MinWidth: 0.0}
         if current.Searchable {
             var entry = TextEntry{
-                Height: 38.0,
+                Height: theme.ControlHeight,
                 FlexShrink: 0.0,
-                Padding: Edges{Right: 10.0, Left: 10.0},
-                BackgroundColor: "#202024",
-                Color: "#fafafa"
+                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                BackgroundColor: theme.FieldColor,
+                Color: theme.TextColor,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
+                SelectionColor: theme.AccentColor.WithAlpha(0.35),
+                Cursor: Cursor.Text,
+                Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
             }
             if let create = current.CreateSearch {
                 entry = create(current, entry)
@@ -282,7 +294,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             }
         }
         if rows.Count == 0 {
-            list.Children.Add(Text{Content: current.EmptyText ?? "No matches", Padding: 12.0, Color: "#a1a1aa"})
+            list.Children.Add(Text{
+                Content: current.EmptyText ?? "No matches", Padding: theme.ControlPadding, Color: theme.MutedTextColor,
+                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+            })
         } else {
             list.Children.Add(virtualRows)
         }
@@ -294,14 +309,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let item = row.Item
         let id = item.Id!!
         var result = Container{
-            Padding: Edges{Right: 10.0, Left: 10.0},
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: row.Active ? Color.Parse("#34334c"): Color.Transparent,
+            BackgroundColor: row.Active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Opacity: item.Disabled ? .45: 1.0,
-            OutlineWidth: row.Active ? 1.0: 0.0,
-            OutlineColor: "#818cf8",
-            OutlineOffset: -1.0
+            OutlineWidth: row.Active ? 2.0: 0.0,
+            OutlineColor: theme.AccentColor,
+            OutlineOffset: -2.0,
         }
         if let create = row.Input.CreateRow {
             result = create(row.Input, item, result)
@@ -335,17 +350,20 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         result.Children.Clear()
         result.Children.Add(
-            item.Content ?? Text{Content: item.Label ?? id, Color: "#fafafa", TextWrap: TextWrap.NoWrap}
+            item.Content ?? Text{
+                Content: item.Label ?? id, Color: theme.TextColor, TextWrap: TextWrap.NoWrap,
+                FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,
+            }
         )
         return result
     }
 
     private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
-            BackgroundColor: "#18181b",
-            BorderColor: Color.Parse("#52525b"),
-            BorderWidth: 1.0,
-            BorderRadius: 6.0
+            BackgroundColor: theme.PanelColor,
+            BorderColor: theme.InputBorderColor,
+            BorderWidth: theme.BorderWidth,
+            BorderRadius: theme.PanelRadius,
         }
         return if let create = current.CreatePopup {
             create(current, prepared)

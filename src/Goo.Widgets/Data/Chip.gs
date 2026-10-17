@@ -39,12 +39,12 @@ public data struct Chip {
     var SelectedActiveBackgroundColor Color?
     /// Focus outline border color. Nil resolves to #d4d4d8.
     var FocusBorderColor Color?
-    /// Fixed height of the chip. Zero resolves to 28.0.
-    var Height float64
-    /// Left and right horizontal padding. Zero resolves to 10.0.
-    var PaddingHorizontal float64
-    /// Spacing between leading element and text label. Zero resolves to 6.0.
-    var Gap float64
+    /// Fixed height. Nil uses the theme control height.
+    var Height float64?
+    /// Horizontal padding. Explicit zero is preserved.
+    var PaddingHorizontal float64?
+    /// Content gap. Explicit zero is preserved.
+    var Gap float64?
     /// Font size of the text label. Zero resolves to 12.0.
     var FontSize float64
     /// Font weight of the text label. Zero resolves to 600.
@@ -65,7 +65,7 @@ public data struct Chip {
     var FontFamily string?
     /// Visual transform applied to the root button. Nil resolves to identity.
     var Transform PanelTransform?
-    /// Visual transform applied during active press. Nil resolves to PanelTransform{Scale: 0.98}.
+    /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Custom factory for creating the label Text primitive from resolved props.
     var CreateText Func[Chip, Text]?
@@ -74,6 +74,7 @@ public data struct Chip {
 
     /// Builds a fresh Goo button tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createText = CreateText
         let createRoot = CreateRoot
         let originalLeading = Leading
@@ -81,50 +82,39 @@ public data struct Chip {
         let resolved = this with{
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            SelectedBackgroundColor = SelectedBackgroundColor ?? Color.Parse("#fafafa"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            SelectedTextColor = SelectedTextColor ?? Color.Parse("#09090b"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            SelectedBorderColor = SelectedBorderColor ?? Color.Parse("#fafafa"),
-            HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
-            SelectedHoverBackgroundColor = SelectedHoverBackgroundColor ?? Color.Parse("#e4e4e7"),
-            ActiveBackgroundColor = ActiveBackgroundColor ?? Color.Parse("#3f3f46"),
-            SelectedActiveBackgroundColor = SelectedActiveBackgroundColor ?? Color.Parse("#d4d4d8"),
-            FocusBorderColor = FocusBorderColor ?? Color.Parse("#d4d4d8"),
-            Height = if Height == 0.0 {
-                28.0
-            } else {
-                Height
-            },
-            PaddingHorizontal = if PaddingHorizontal == 0.0 {
-                10.0
-            } else {
-                PaddingHorizontal
-            },
-            Gap = if Gap == 0.0 {
-                6.0
-            } else {
-                Gap
-            },
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
+            TextColor = TextColor ?? theme.TextColor,
+            SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
+            BorderColor = BorderColor ?? theme.InputBorderColor,
+            SelectedBorderColor = SelectedBorderColor ?? theme.AccentColor,
+            HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+            SelectedHoverBackgroundColor = SelectedHoverBackgroundColor ?? theme.AccentHoverColor,
+            ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
+            SelectedActiveBackgroundColor = SelectedActiveBackgroundColor ?? theme.AccentPressedColor,
+            FocusBorderColor = FocusBorderColor ?? theme.AccentColor,
+            Height = Height ?? theme.ControlHeight,
+            PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
+            Gap = Gap ?? theme.ControlGap,
+            FontFamily = FontFamily ?? theme.FontFamily,
             FontSize = if FontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                600
+                theme.CaptionFontWeight
             } else {
                 FontWeight
             },
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 14.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             DisabledOpacity = DisabledOpacity ?? 0.5,
             Transform = Transform ?? PanelTransform{},
-            ActiveTransform = ActiveTransform ?? PanelTransform{Scale: 0.98},
+            ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
             CreateRoot = nil,
         }
@@ -171,9 +161,9 @@ public data struct Chip {
         }
 
         let root = Button{
-            Height: resolved.Height,
-            Padding: Edges{Right: resolved.PaddingHorizontal, Left: resolved.PaddingHorizontal},
-            Gap: resolved.Gap,
+            Height: resolved.Height!!,
+            Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
+            Gap: resolved.Gap!!,
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderColor: currentBorder,
@@ -189,7 +179,7 @@ public data struct Chip {
             TransitionEasing: resolved.TransitionEasing!!,
             Hover: Style{BackgroundColor: currentHoverBg},
             Active: Style{BackgroundColor: currentActiveBg, Transform: resolved.ActiveTransform!!},
-            Focus: Style{BorderColor: resolved.FocusBorderColor!!},
+            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: 2.0, OutlineOffset: 2.0},
             DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

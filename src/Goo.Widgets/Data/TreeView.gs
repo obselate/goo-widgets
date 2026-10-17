@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import System
@@ -110,21 +111,25 @@ public open class TreeView : Cell[TreeViewInput] {
     private var indices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
     private var rows List[TreeViewRow] = List[TreeViewRow]()
     private var input TreeViewInput
+    private var theme Theme
+    private var pointerFocus bool
     private var activeId string?
     private var hasFocus bool
 
     protected override func Build(value TreeViewInput) Blob {
+        theme = Theme.Read()
         let defaultHeight Length = 280
         input = value with{
             Virtualize = value.Virtualize ?? true,
             Width = value.Width ?? Percent(100),
             Height = value.Height ?? defaultHeight,
-            RowHeight = value.RowHeight ?? 34.0,
-            Indent = value.Indent ?? 20.0,
+            RowHeight = value.RowHeight ?? theme.ControlHeight,
+            Indent = value.Indent ?? theme.Spacing * 5.0,
             AccessibilityName = value.AccessibilityName ?? "Tree",
-            BackgroundColor = value.BackgroundColor ?? Color.Parse("#18181b"),
-            TextColor = value.TextColor ?? Color.Parse("#e4e4e7"),
-            SelectedColor = value.SelectedColor ?? Color.Parse("#34334c")
+            BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
+            TextColor = value.TextColor ?? theme.TextColor,
+            SelectedColor = value.SelectedColor ?? theme.AccentColor.WithAlpha(0.15),
+            ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
         }
         if !Double.IsFinite(input.RowHeight!!) || input.RowHeight!!<= 0.0 || !Double.IsFinite(input.Indent!!) ||
             input.Indent!!< 0.0 {
@@ -206,7 +211,7 @@ public open class TreeView : Cell[TreeViewInput] {
         content.MinHeight = 0
         content.OverflowX = Overflow.Hidden
         content.OverflowY = input.Virtualize!!? Overflow.Scroll: Overflow.Hidden
-        content.ScrollbarY = input.ScrollbarY
+        content.ScrollbarY = if input.Virtualize!! { input.ScrollbarY } else { nil }
         // A full-height provider realizes every row without replacing its retained subtree when the mode changes.
         let scroll = Container{
             FlexGrow: 1,
@@ -215,7 +220,7 @@ public open class TreeView : Cell[TreeViewInput] {
             MinHeight: 0,
             OverflowX: Overflow.Hidden,
             OverflowY: input.Virtualize!!? Overflow.Hidden: Overflow.Scroll,
-            ScrollbarY: input.ScrollbarY,
+            ScrollbarY: if input.Virtualize!! { nil } else { input.ScrollbarY },
             content
         }
         var root = Container{
@@ -225,7 +230,8 @@ public open class TreeView : Cell[TreeViewInput] {
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
-            BorderRadius: 5
+            BorderRadius: theme.PanelRadius,
+            Focus: theme.FocusStyle,
         }
         if let create = input.CreateRoot {
             root = create(input, root)
@@ -233,7 +239,11 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Handle = rootHandle
         root.Focusable = !input.Disabled
         root.Disabled = input.Disabled
-        root.OnKeyDown = KeyDown
+        root.OnPointerDown = (e PointerEvent) -> pointerFocus = true
+        root.OnKeyDown = (e KeyEvent) -> {
+            pointerFocus = false
+            KeyDown(e)
+        }
         root.OnFocus = (e FocusEvent) -> {
             hasFocus = true
             RevealActive()
@@ -420,7 +430,9 @@ public open class TreeView : Cell[TreeViewInput] {
             Content: row.Node.Label ?? id,
             Color: snapshot.TextColor!!,
             TextWrap: TextWrap.NoWrap,
-            FontSize: 14
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
         }
         if let create = snapshot.CreateContent {
             label = create(snapshot, row, label)
@@ -429,13 +441,13 @@ public open class TreeView : Cell[TreeViewInput] {
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            Gap: 6,
-            Padding: Edges{Right: 8, Left: 6.0 + float64(row.Depth) * snapshot.Indent!!},
+            Gap: theme.ControlGap,
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!},
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
-            OutlineWidth: row.Active && hasFocus ? 1.0: 0.0,
-            OutlineColor: "#a5b4fc",
-            OutlineOffset: -1,
+            OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
+            OutlineColor: theme.AccentColor,
+            OutlineOffset: -2.0,
             Opacity: row.Disabled ? .45: 1.0,
             Overflow: Overflow.Hidden
         }
@@ -446,7 +458,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Handle = Handle(id)
         root.FlexDirection = FlexDirection.Row
         root.AlignItems = AlignItems.Center
-        root.Padding = Edges{Left: 6.0 + float64(row.Depth) * snapshot.Indent!!}
+        root.Padding = Edges{Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!}
         root.MinWidth = 0
         root.Height = snapshot.RowHeight!!
         root.FlexShrink = 0
