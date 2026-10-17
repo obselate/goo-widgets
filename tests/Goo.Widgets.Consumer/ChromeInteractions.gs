@@ -371,7 +371,7 @@ func ChromeInteractions() {
         CompositeClick(window, host.BodyButton)
         PumpFrames(window, 12)
         Require(!host.MenuInput.Open, "Window menu outside-click dismissal failed")
-        Require(OverlayFocus(semantics, "Embedded control"), "Window menu outside-click did not restore focus")
+        Require(!OverlayFocus(semantics, "Embedded control"), "Window menu outside-click restored trigger focus")
         ChromeNativeDoubleClick(window)
         Require(
             window.State == WindowState.Normal && host.Commands == 5,
