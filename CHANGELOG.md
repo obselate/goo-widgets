@@ -13,6 +13,7 @@
 - Expose TextField invalid state and mounted label, description and error relationships, including custom entries.
 - ColorWheelSource now caches resolution-dependent hue and radius instead of recomputing polar geometry on every tone frame.
 - Remove growing list membership searches from DataGrid range selection while preserving order and disabled-row filtering.
+- Correct the usage guide's package and SDK versions.
 
 ## 0.2.19 - 2026-10-16
 
