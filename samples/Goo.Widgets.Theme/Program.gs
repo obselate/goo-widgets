@@ -77,17 +77,17 @@ class ThemeSample : Cell {
                                     },
                                     (
                                         theme.Button with{
-                                            Content = "Goo Dark",
+                                            Content = "Ink",
                                             OnClick = () -> {
-                                                Theme.Attach(window!!, GooDark)
+                                                Theme.Attach(window!!, Ink)
                                             }
                                         }
                                     ).Build(),
                                     (
                                         theme.Button with{
-                                            Content = "Goo Light",
+                                            Content = "Bone",
                                             OnClick = () -> {
-                                                Theme.Attach(window!!, GooLight)
+                                                Theme.Attach(window!!, Bone)
                                             }
                                         }
                                     ).Build(),

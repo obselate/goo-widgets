@@ -342,7 +342,7 @@ but replaces all palette roles, including custom colors.
 
 `Theme.Default` uses system fonts, 14 px body text, 32 px controls, 6 px control
 corners and 8 px panel corners. Named Ink, Bone and GitHubDark presets retain
-their branded typography and metrics. `GooDark` and `GooLight` remain aliases.
+their branded typography and metrics.
 Motion defaults to zero. `TransitionMs` opts into motion unless reduced motion
 is active. Window reduced-motion policy also applies inside fixed scopes, including
 scrollbar fades, and restores authored transition durations when disabled.
@@ -371,16 +371,6 @@ Without Density, a scope preserves custom metrics such as a 23 px control.
 Explicit widget properties and final factory/style overrides take precedence.
 Replacing primitive factories own their focus and scrolling semantics.
 
-Theme ownership audit:
-
-| Sources | Deliberate boundary |
-|---|---|
-| `ColorMath`, `ColorModels`, `ColorWheelSource` | Color conversion and sampled image data remain unchanged. They do not read a UI palette. |
-| `SelectionItem`, `GraphModels`, `NavigationItem` | Data-only declarations remain unchanged. |
-| `Grid`, `ModalDialogHost` | Layout and logical ownership stay neutral. Caller content is not restyled. |
-| `WidgetKeyBindings`, `WindowChrome.State` | Input behavior stays unchanged. Chrome state forwards its retained theme to visual builders. |
-| `MarkdownParser`, `MarkdownTypes` | Parsing stays unchanged. The input's nullable `BlockGap` preserves authored zero. |
-
 Run the [complete sample](../samples/Goo.Widgets.Theme/Program.gs):
 
 ```sh
@@ -401,9 +391,9 @@ tree. No global theme registration or initialization is required.
   mounted cells. Replacement factories must preserve required keys, handlers,
   handles, accessibility semantics, and layout properties.
 - Return fresh mutable content from factories when building multiple instances.
-- Focus styling uses Goo's keyboard-visible focus modality. There is no
-  `ShowFocusHighlight` switch. Widget buttons and composite controls install
-  their own bindings. Apply `WidgetKeyBindings.Editing(window.PlatformInput)`
+- Focus styling uses Goo's keyboard-visible focus modality. Widget buttons and
+  composite controls install their own bindings.
+  Apply `WidgetKeyBindings.Editing(window.PlatformInput)`
   to the application root for editing, focus traversal, clipboard and key repeat.
 - SearchList filters supplied in-memory items and needs unique stable IDs and a
   logical viewport width and height. The host owns remote search and storage.

@@ -22,7 +22,7 @@ public enum Density {
     Touch
 }
 
-/// Rounded widget presets in Goo Light, Goo Dark, and GitHub Dark palettes. Copy with `with` to customize.
+/// Rounded widget presets in Ink, Bone, and GitHub Dark palettes. Copy with `with` to customize.
 public data struct Theme {
     /// Window background.
     var CanvasColor Color
@@ -184,19 +184,9 @@ public data struct Theme {
             return created
         }
 
-        /// Goo Dark palette. Each access returns an independent value.
-        public prop GooDark Theme {
-            get -> Ink
-        }
-
-        /// Goo Light palette. Each access returns an independent value.
-        public prop GooLight Theme {
-            get -> Bone
-        }
-
         /// GitHub Dark palette with Goo's typography and rounded controls.
         public prop GitHubDark Theme {
-            get -> GooDark with{
+            get -> Ink with{
                 CanvasColor = "#0d1117",
                 PanelColor = "#161b22",
                 FieldColor = "#0d1117",
@@ -432,7 +422,7 @@ public data struct Theme {
     }
 
     /// Applies absolute density metrics without scaling inherited custom values.
-    public func WithDensity(density Density) Theme {
+    internal func WithDensity(density Density) Theme {
         let height = switch density {
             case Density.Compact: 28.0
             case Density.Comfortable: 40.0

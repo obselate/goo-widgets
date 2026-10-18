@@ -138,6 +138,20 @@ func ThemeFrames(host EmbeddedWindowHost) {
 }
 
 func ThemePolicyContracts() {
+    using let darkHost = ThemePreferenceHost()
+    darkHost.Resize(360, 280, 360, 280)
+    darkHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
+    let darkProbe = ThemeProbe()
+    let darkWindow = Window{Root: darkProbe}
+    Theme.Attach(darkWindow)
+    darkWindow.Attach(darkHost)
+    ThemeFrames(darkHost)
+    Require(
+        darkProbe.Snapshot.CanvasColor == Theme.Ink.CanvasColor
+        && darkProbe.Snapshot.TextColor == Theme.Ink.TextColor
+        && darkWindow.Background == Theme.Ink.CanvasColor && darkWindow.Foreground == Theme.Ink.TextColor,
+        "Initial System Dark did not publish the Ink snapshot and window pair."
+    )
     using let first = ThemePreferenceHost()
     using let second = ThemePreferenceHost()
     first.Resize(360, 280, 360, 280)
@@ -289,6 +303,7 @@ internal class ThemeVirtualHost : Cell {
     internal var Realizations int32
     internal var UseItems bool
     internal var UsePortal bool
+    internal var DensityValue Density?
     private let builder Func[int32, Blob]
 
     internal init() {
@@ -313,22 +328,25 @@ internal class ThemeVirtualHost : Cell {
         }
     }
 
-    public override func Build() Blob {
-        let theme = Theme.Read()
-        let view = if UseItems {
-            VirtualItems(Items, 300.0, theme.ControlHeight, (index int32) -> index.ToString(), builder)
-        } else {
-            VirtualRows(Items, theme.ControlHeight, (index int32) -> index.ToString(), builder)
-        }
-        view.Handle = Handle
-        view.Width = 300.0
-        view.Height = 180.0
-        return if UsePortal {
-            Portal{Width: 300, Height: 180, view}
-        } else {
-            view
-        }
-    }
+    public override func Build() Blob -> ThemeScope{
+        Density: DensityValue,
+        Content: () -> {
+            let theme = Theme.Read()
+            let view = if UseItems {
+                VirtualItems(Items, 300.0, theme.ControlHeight, (index int32) -> index.ToString(), builder)
+            } else {
+                VirtualRows(Items, theme.ControlHeight, (index int32) -> index.ToString(), builder)
+            }
+            view.Handle = Handle
+            view.Width = 300.0
+            view.Height = 180.0
+            return if UsePortal {
+                Portal{Width: 300, Height: 180, view}
+            } else {
+                view
+            }
+        },
+    }.Build()
 }
 
 func ThemeVirtualContracts() {
@@ -366,7 +384,9 @@ func ThemeVirtualContracts() {
             )
             let paletteCallbacks = root.Realizations - before
             let beforeDensity = root.Realizations
-            Theme.Attach(window, Theme.Default.WithDensity(Density.Touch))
+            Theme.SetMode(window, ThemeMode.Light)
+            root.DensityValue = Density.Touch
+            root.Rebuild()
             ThemeFrames(host)
             Require(
                 root.Rows[30] == retained && retained.Handle.IsMounted
@@ -487,7 +507,12 @@ func ThemeDensityContracts() {
             root.DensityValue = density
             root.Rebuild()
             PumpFrames(window, 6)
-            let expected = Theme.Default.WithDensity(density).ControlHeight
+            let expected = switch density {
+                case Density.Compact: 28.0
+                case Density.Comfortable: 40.0
+                case Density.Touch: 44.0
+                default: 32.0
+            }
             Require(
                 Math.Abs(root.ButtonHandle.BorderBox.Height - expected) < 0.1
                 && Math.Abs(root.IconHandle.BorderBox.Height - expected) < 0.1
