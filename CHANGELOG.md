@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.1 - 2026-10-18
+
+- Add nullable DataGridInput.SelectionColumnWidth and Checkbox.HitSize overrides while preserving theme-derived defaults.
+
 ## 0.3.0 - 2026-10-18
 
 - BREAKING: Replace independent widget defaults and focus opt-ins with ambient window/scoped themes, density-aware metrics, default focus rings and themed scrollbars on Goo 0.7.37.
