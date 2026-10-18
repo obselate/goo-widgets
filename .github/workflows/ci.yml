@@ -44,7 +44,23 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             fonts-dejavu-core libdecor-0-0 libfontconfig1 libwayland-client0 libwayland-cursor0 \
             libwayland-egl1 libxkbcommon0 mesa-vulkan-drivers weston
-      - run: bash scripts/verify-native.sh
+      - name: Native capture contracts
+        env:
+          DOTNET_DbgEnableMiniDump: 1
+          DOTNET_DbgMiniDumpType: 2
+          DOTNET_DbgMiniDumpName: ${{ github.workspace }}/artifacts/native-dumps/%e.%p.dmp
+          DOTNET_EnableCrashReport: 1
+        run: |
+          ulimit -c unlimited
+          mkdir -p artifacts/native-dumps
+          bash scripts/verify-native.sh
+      - name: Upload native crash evidence
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-crash-evidence
+          path: artifacts/native-dumps/*
+          if-no-files-found: ignore
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: Goo.Widgets
