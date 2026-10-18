@@ -44,11 +44,10 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             fonts-dejavu-core libdecor-0-0 libfontconfig1 libwayland-client0 libwayland-cursor0 \
             libwayland-egl1 libxkbcommon0 mesa-vulkan-drivers weston
-      - name: Install KWin clipboard seat dependencies
+      - name: Install Sway clipboard seat
         run: |
-          /usr/bin/time -f 'KWin seat dependency installation: %e seconds' \
-            sudo apt-get install -y --no-install-recommends kwin-wayland libei-dev python3-dbus at-spi2-core xwayland
-          QT_QPA_PLATFORM=offscreen kwin_wayland --version
+          /usr/bin/time -f 'Sway clipboard seat installation: %e seconds' \
+            sudo apt-get install -y --no-install-recommends sway
       - name: Native capture contracts
         env:
           DOTNET_DbgEnableMiniDump: 1

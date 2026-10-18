@@ -15,6 +15,8 @@ cleanup() {
     sleep 0.1
   done
   if (( status != 0 )); then
+    mkdir -p artifacts/native-test
+    cp "$compositor_log" artifacts/native-test/headless-compositor.log
     cat "$compositor_log"
   fi
   rm -rf -- "$runtime_root"
@@ -22,7 +24,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if command -v weston >/dev/null 2>&1; then
+if [[ "${GOO_WAYLAND_COMPOSITOR:-}" == sway ]]; then
+  WLR_BACKENDS=headless WLR_LIBINPUT_NO_DEVICES=1 WLR_RENDERER=pixman \
+    setsid dbus-run-session -- sway --config /dev/null >"$compositor_log" 2>&1 &
+  compositor_pid=$!
+  compositor_target=-$compositor_pid
+elif command -v weston >/dev/null 2>&1; then
   weston --backend=headless-backend.so --renderer="${GOO_WESTON_RENDERER:-pixman}" \
     --socket="$WAYLAND_DISPLAY" --idle-time=0 >"$compositor_log" 2>&1 &
   compositor_pid=$!
@@ -35,6 +42,14 @@ else
   compositor_target=-$compositor_pid
 fi
 for _ in $(seq 1 50); do
+  if [[ "${GOO_WAYLAND_COMPOSITOR:-}" == sway ]]; then
+    for socket in "$XDG_RUNTIME_DIR"/wayland-*; do
+      if [[ -S "$socket" ]]; then
+        export WAYLAND_DISPLAY="${socket##*/}"
+        break
+      fi
+    done
+  fi
   test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" && break
   sleep 0.1
 done

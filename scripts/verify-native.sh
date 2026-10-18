@@ -10,5 +10,5 @@ for suite in VIRTUAL COMBOBOX DATA_GRID TREE SEARCHLIST EDITING_BINDINGS CALENDA
     dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
 done
 printf 'SUITE MARKDOWN\n'
-env GOO_WIDGETS_MARKDOWN=1 SDL_VIDEODRIVER=wayland /usr/bin/python3 scripts/with-isolated-wayland.py -- \
+env GOO_WIDGETS_MARKDOWN=1 SDL_VIDEODRIVER=wayland GOO_WAYLAND_COMPOSITOR=sway scripts/with-headless-wayland.sh \
   dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
