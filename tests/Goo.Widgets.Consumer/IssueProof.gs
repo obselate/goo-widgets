@@ -3,6 +3,7 @@ package Goo.Widgets.Consumer
 import Goo
 import System.Diagnostics
 import System.IO
+import System.Threading
 
 // Optional actual-window evidence for the native interaction checks.
 func CaptureIssueProof(window Window, name string) {
@@ -31,8 +32,12 @@ func CaptureIssueProof(window Window, name string) {
     info.ArgumentList.Add(Path.Combine(directory, name + ".png"))
     using let capture = Process.Start(info)!!
     let deadline = Environment.TickCount64 + 15000
+    var previous = Environment.TickCount64
     while !capture.HasExited && Environment.TickCount64 < deadline {
-        PumpFrames(window, 1)
+        let now = Environment.TickCount64
+        window.Pump(float64(now - previous) / 1000.0)
+        previous = now
+        Thread.Sleep(1)
     }
     if !capture.HasExited {
         capture.Kill()

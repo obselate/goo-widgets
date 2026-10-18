@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import Hexa.NET.SDL3
 import System
@@ -503,7 +504,7 @@ func GridModifiedClick(window Window, handle ElementHandle, modifiers SDLKeymod)
 }
 
 func DataGridInteractions() {
-    DataGridContracts()
+    RunContracts(DataGridContracts)
     let host = DataGridHost()
     let semantics = SearchListSemantics()
     let window = Window{
@@ -729,12 +730,13 @@ func DataGridInteractions() {
         host.Rebuild()
         PumpFrames(window, 12)
         let fittedWidth = host.Root!!.Handle!!.ContentBox.Width - 14.0
+        let leading = Theme.Read(window).ControlHeight * 2.0
         let normalWidths = GridColumnWidths(semantics)
         let nameWidth = normalWidths[0]
         let stateWidth = normalWidths[1]
         let ownerWidth = normalWidths[2]
         Require(
-            Math.Abs(nameWidth + stateWidth + ownerWidth + 66.0 - fittedWidth) < 1.0 &&
+            Math.Abs(nameWidth + stateWidth + ownerWidth + leading - fittedWidth) < 1.0 &&
                 GridElement(host.Root!!, "Resize Owner") == nil,
             "Fitted grid did not use the measured viewport or exposed the final edge"
         )
@@ -778,7 +780,7 @@ func DataGridInteractions() {
         let compactState = compactWidths[1]
         let compactOwner = compactWidths[2]
         Require(
-            Math.Abs(compactName + compactState + compactOwner + 66.0 - compactWidth) < 1.0 &&
+            Math.Abs(compactName + compactState + compactOwner + leading - compactWidth) < 1.0 &&
                 compactName < host.Widths["name"] &&
                 compactState < host.Widths["state"],
             "Fitted grid compact resize did not fit flexible and fixed preferences"
@@ -787,7 +789,7 @@ func DataGridInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         let tinyWidths = GridColumnWidths(semantics)
-        let tinyTotal = tinyWidths[0] + tinyWidths[1] + tinyWidths[2] + 66.0
+        let tinyTotal = tinyWidths[0] + tinyWidths[1] + tinyWidths[2] + leading
         Require(
             tinyTotal > host.Root!!.Handle!!
                 .ContentBox

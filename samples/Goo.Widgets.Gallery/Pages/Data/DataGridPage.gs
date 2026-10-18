@@ -70,7 +70,6 @@ internal class DataGridExample : Cell {
             row.Id!!+
             "\nLast checked 2 minutes ago. Review inventory, ownership, and deployment history here.",
         FontSize: 13,
-        Color: "#a5b4fc"
     }
 
     public override func Build() Blob -> Container{
@@ -80,7 +79,6 @@ internal class DataGridExample : Cell {
             Key: "hint",
             Content: "Shared columns · controlled sorting · multiple selection · measured details",
             FontSize: 14,
-            Color: "#a1a1aa"
         },
         Cell.Mount[DataGridInput, DataGrid](
             "inventory",
@@ -126,7 +124,6 @@ internal class DataGridExample : Cell {
         Text{
             Key: "selection",
             Content: selected.Length.ToString() + " selected · use Ctrl/⌘ to toggle and Shift to extend",
-            Color: "#a1a1aa",
             FontSize: 13
         }
     }

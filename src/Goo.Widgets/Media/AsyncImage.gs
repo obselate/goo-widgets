@@ -1,6 +1,7 @@
 package Goo.Widgets.Media
 
 import Goo
+import Goo.Widgets
 
 /// A presentation-only image state control with loading and failure fallbacks.
 /// Factories receive resolved props and may replace the selected child or root.
@@ -19,23 +20,23 @@ public data struct AsyncImage {
     var PlaceholderText string?
     /// Failure text. Nil resolves to Image unavailable.
     var ErrorText string?
-    /// Root background color. Nil resolves to #18181b.
+    /// Root background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Loading text color. Nil resolves to #a1a1aa.
+    /// Loading text color. Nil uses the nearest theme.
     var PlaceholderTextColor Color?
-    /// Failure text color. Nil resolves to #fca5a5.
+    /// Failure text color. Nil uses the nearest theme.
     var ErrorTextColor Color?
-    /// Root border color. Nil resolves to #3f3f46.
+    /// Root border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Root width. Zero resolves to 160.0.
     var Width float64
     /// Root height. Zero resolves to 120.0.
     var Height float64
-    /// Border width. Nil resolves to 1.0; explicit zero survives.
+    /// Border width. Nil uses the nearest theme border width; explicit zero survives.
     var BorderWidth float64?
-    /// Border radius. Nil resolves to 8.0; explicit zero survives.
+    /// Border radius. Nil uses the nearest theme radius; explicit zero survives.
     var BorderRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero survives.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -47,9 +48,9 @@ public data struct AsyncImage {
     var Fit ImageFit?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Fallback text size. Zero resolves to 14.0.
+    /// Fallback text size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Fallback text weight. Zero resolves to 500.
+    /// Fallback text weight. Zero uses the nearest theme font weight.
     var FontWeight int32
     /// Creates the selected image from resolved props.
     var CreateImage Func[AsyncImage, Image]?
@@ -62,20 +63,21 @@ public data struct AsyncImage {
 
     /// Builds a fresh Goo tree after resolving props and selecting one child.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createImage = CreateImage
         let createPlaceholder = CreatePlaceholder
         let createError = CreateError
         let createRoot = CreateRoot
         let placeholderText = PlaceholderText ?? "Loading"
         let errorText = ErrorText ?? "Image unavailable"
-        let background = BackgroundColor ?? Color.Parse("#18181b")
+        let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
             PlaceholderText = placeholderText,
             ErrorText = errorText,
             BackgroundColor = background,
-            PlaceholderTextColor = PlaceholderTextColor ?? Color.Parse("#a1a1aa"),
-            ErrorTextColor = ErrorTextColor ?? Color.Parse("#fca5a5"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
+            PlaceholderTextColor = PlaceholderTextColor ?? theme.MutedTextColor,
+            ErrorTextColor = ErrorTextColor ?? theme.DangerColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
             Width = if Width == 0.0 {
                 160.0
             } else {
@@ -86,19 +88,20 @@ public data struct AsyncImage {
             } else {
                 Height
             },
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 8.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Fit = Fit ?? ImageFit.Cover,
+            FontFamily = FontFamily ?? theme.FontFamily,
             FontSize = if FontSize == 0.0 {
-                14.0
+                theme.FontSize
             } else {
                 FontSize
             },
             FontWeight = if FontWeight == 0 {
-                500
+                theme.FontWeight
             } else {
                 FontWeight
             },
@@ -165,6 +168,7 @@ public data struct AsyncImage {
             semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true}
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width,
             Height: resolved.Height,
             BorderRadius: resolved.BorderRadius!!,

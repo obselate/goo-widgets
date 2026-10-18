@@ -26,13 +26,9 @@ internal class GridExample : Cell {
             Columns: []GridTrack{GridTrack.Auto(70.0, 120.0), GridTrack.Fraction(1, 80), GridTrack.Fixed(70)},
             Rows: []GridTrack{GridTrack.Auto(), GridTrack.Auto(), GridTrack.Auto(), GridTrack.Auto()},
             Items: []GridItem{
-                GridItem{
-                    Id: "heading",
-                    ColumnSpan: 3,
-                    Content: Text{Content: "Project settings", FontSize: 24, Color: "#fafafa"}
-                },
-                GridItem{Id: "name-label", Row: 1, Content: Text{Content: "Name", Color: "#a1a1aa"}},
-                GridItem{Id: "name", Row: 1, Column: 1, Content: Text{Content: "Field notes", Color: "#e4e4e7"}},
+                GridItem{Id: "heading", ColumnSpan: 3, Content: Text{Content: "Project settings", FontSize: 24}},
+                GridItem{Id: "name-label", Row: 1, Content: Text{Content: "Name"}},
+                GridItem{Id: "name", Row: 1, Column: 1, Content: Text{Content: "Field notes"}},
                 GridItem{
                     Id: "status",
                     Row: 1,
@@ -45,14 +41,13 @@ internal class GridExample : Cell {
                         Text{Content: "Shared", FontSize: 12, Color: "#8de6c9"}
                     }
                 },
-                GridItem{Id: "description-label", Row: 2, Content: Text{Content: "Description", Color: "#a1a1aa"}},
+                GridItem{Id: "description-label", Row: 2, Content: Text{Content: "Description"}},
                 GridItem{
                     Id: "description",
                     Row: 2,
                     Column: 1,
                     Content: Text{
                         Content: "Actual font measurement keeps this wrapped text aligned with the shared tracks above. Change the available width to see the row grow.",
-                        Color: "#d4d4d8",
                         FontSize: 15
                     }
                 },

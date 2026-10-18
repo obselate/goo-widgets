@@ -141,13 +141,13 @@ class EmptyStatePage : GalleryPage {
                 Container{
                     FlexDirection: FlexDirection.Column,
                     Gap: 6.0,
-                    Text{Content: "EMPTY COLLECTION", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
+                    Text{Content: "EMPTY COLLECTION", FontSize: 10.0, FontWeight: 700},
                     emptyCollection.Build(),
                 },
                 Container{
                     FlexDirection: FlexDirection.Column,
                     Gap: 6.0,
-                    Text{Content: "NO SEARCH RESULTS", FontSize: 10.0, FontWeight: 700, Color: "#d4d4d8"},
+                    Text{Content: "NO SEARCH RESULTS", FontSize: 10.0, FontWeight: 700},
                     noResults.Build(),
                 },
             },
@@ -165,7 +165,7 @@ class EmptyStatePage : GalleryPage {
                 Container{
                     FlexDirection: FlexDirection.Column,
                     Gap: 6.0,
-                    Text{Content: "TITLE ONLY (MINIMAL)", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
+                    Text{Content: "TITLE ONLY (MINIMAL)", FontSize: 10.0, FontWeight: 700},
                     minimalState.Build(),
                 },
             },

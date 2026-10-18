@@ -1,6 +1,7 @@
 package Goo.Widgets.Markdown
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -29,23 +30,25 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
     private var models[]MarkdownModel = []MarkdownModel{}
     private var source string?
     private var current MarkdownViewInput
+    private var theme Theme
     private var headingCallback Action[IReadOnlyList[MarkdownHeading]]?
 
     protected override func Build(input MarkdownViewInput) Blob {
+        theme = Theme.Read()
         current = input with{
-            FontSize = input.FontSize == 0.0 ? 14.0: input.FontSize,
-            FontFamily = input.FontFamily ?? "",
-            CodeFontFamily = input.CodeFontFamily ?? "monospace",
-            Color = input.Color ?? Color.Parse("#e4e4e7"),
-            MutedColor = input.MutedColor ?? Color.Parse("#a1a1aa"),
-            LinkColor = input.LinkColor ?? Color.Parse("#a5b4fc"),
-            CodeBackground = input.CodeBackground ?? Color.Parse("#202024"),
-            SelectionColor = input.SelectionColor ?? Color.Parse("#4f46e5"),
-            BlockGap = input.BlockGap == 0.0 ? 12.0: input.BlockGap,
+            FontSize = input.FontSize == 0.0 ? theme.FontSize: input.FontSize,
+            FontFamily = input.FontFamily ?? theme.FontFamily,
+            CodeFontFamily = input.CodeFontFamily ?? theme.MonoFontFamily,
+            Color = input.Color ?? theme.TextColor,
+            MutedColor = input.MutedColor ?? theme.MutedTextColor,
+            LinkColor = input.LinkColor ?? theme.AccentColor,
+            CodeBackground = input.CodeBackground ?? theme.FieldColor,
+            SelectionColor = input.SelectionColor ?? theme.AccentColor.WithAlpha(0.35),
+            BlockGap = input.BlockGap ?? theme.Spacing * 3.0,
             MinimumTableColumnWidth = input.MinimumTableColumnWidth == 0.0 ? 100.0: input.MinimumTableColumnWidth
         }
-        if !Double.IsFinite(current.FontSize) || current.FontSize <= 0.0 || !Double.IsFinite(current.BlockGap) ||
-            current.BlockGap < 0.0
+        if !Double.IsFinite(current.FontSize) || current.FontSize <= 0.0 || !Double.IsFinite(current.BlockGap!!) ||
+            current.BlockGap!!< 0.0
         || !Double.IsFinite(current.MinimumTableColumnWidth) || current.MinimumTableColumnWidth <= 0.0 {
             throw ArgumentOutOfRangeException("Markdown dimensions")
         }
@@ -62,7 +65,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         for model in models {
             children.Add(Block(model, 400.0, TextAlign.Left))
         }
-        var root = Column(current.BlockGap)
+        var root = Column(current.BlockGap!!)
         root.Width = input.Width ?? Percent(100)
         if let create = input.CreateRoot {
             root = create(current, root)
@@ -100,8 +103,8 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             content = Leaf(model, current.FontSize, weight, alignment)
         } else if info.Kind == MarkdownBlockKind.Code {
             content = Container{
-                Padding: 12.0,
-                BorderRadius: 5.0,
+                Padding: theme.ControlPadding,
+                BorderRadius: theme.ControlRadius,
                 MinWidth: 0.0,
                 FlexShrink: 0.0,
                 BackgroundColor: current.CodeBackground!!,
@@ -114,22 +117,21 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         } else if info.Kind == MarkdownBlockKind.List {
             content = ListBlockView(model)
         } else {
-            let box = Column(current.BlockGap * .6)
+            let box = Column(current.BlockGap!!* .6)
             for child in model.Children {
                 box.Children.Add(Block(child, weight, alignment))
             }
             if info.Kind == MarkdownBlockKind.Quote || info.Kind == MarkdownBlockKind.Alert {
-                box.Padding = Edges{Left: 12.0}
-                box.BorderWidth = Edges{Left: 3.0}
+                box.Padding = Edges{Left: theme.ControlPadding}
+                box.BorderWidth = Edges{Left: theme.BorderWidth * 3.0}
                 box.BorderColor = Edges[Color]{Left: current.MutedColor!!}
             }
             if info.Kind == MarkdownBlockKind.Alert {
                 let kind = info.AlertKind ?? "NOTE"
-                let accent = kind == "WARNING" || kind == "CAUTION" ? Color.Parse(
-                    "#fbbf24"
-                ): kind == "TIP" ? Color.Parse("#86efac"): current.LinkColor!!
+                let accent = kind == "WARNING" || kind == "CAUTION" ? theme.WarningColor:
+                kind == "TIP" ? theme.SuccessColor: current.LinkColor!!
                 box.BorderColor = Edges[Color]{Left: accent}
-                box.Padding = 12.0
+                box.Padding = theme.ControlPadding
                 box.BackgroundColor = current.CodeBackground!!
                 box.Children.Insert(
                     0,
@@ -176,12 +178,12 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         let input = MarkdownLeafInput{Model: model, Options: current, Size: size, Weight: weight, Alignment: alignment}
         return Cell.Mount[MarkdownTextView](
             path + "@" + stamp.Revision.ToString(),
-            (cell MarkdownTextView) -> cell.Configure(input)
+            (cell MarkdownTextView) -> cell.Configure(input, theme)
         )
     }
 
     private func ListBlockView(model MarkdownModel) Blob {
-        let list = Column(5.0)
+        let list = Column(theme.Spacing)
         list.Accessibility = Accessibility{Role: AccessibilityRole.List}
         var index = model.Start
         for item in model.Children {
@@ -189,7 +191,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 Key: item.Block.Id,
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.FlexStart,
-                Gap: 8.0,
+                Gap: theme.ControlGap,
                 MinWidth: 0.0,
                 Accessibility: Accessibility{Role: AccessibilityRole.ListItem}
             }
@@ -234,7 +236,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             for column in 0 ... columns {
                 let box = Container{
                     Key: column.ToString(),
-                    Padding: 8.0,
+                    Padding: theme.ControlGap,
                     BorderWidth: Edges{Bottom: 1.0},
                     BorderColor: Edges[Color]{Bottom: current.MutedColor!!},
                     MinWidth: current.MinimumTableColumnWidth,
@@ -263,6 +265,12 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             rowContent.Accessibility = Accessibility{Role: AccessibilityRole.Row}
             table.Children.Add(rowContent)
         }
-        return Container{MinWidth: 0.0, FlexShrink: 0.0, OverflowX: Overflow.Scroll, table}
+        return Container{
+            MinWidth: 0.0,
+            FlexShrink: 0.0,
+            OverflowX: Overflow.Scroll,
+            ScrollbarX: theme.Scrollbar,
+            table,
+        }
     }
 }

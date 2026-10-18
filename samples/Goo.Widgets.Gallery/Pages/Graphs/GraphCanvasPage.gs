@@ -25,7 +25,6 @@ internal open class GraphCanvasExample : Cell {
             Key: "graph-instructions",
             Content: "Middle-drag to pan, wheel to zoom, drag nodes, or drag the background to select.",
             FontSize: 11.0,
-            Color: "#a1a1aa",
         },
         Cell.Mount[GraphCanvasInput, GraphCanvas](
             "graph-demo",
@@ -54,15 +53,14 @@ internal open class GraphCanvasExample : Cell {
             Key: "graph-status",
             Content: selected.Length.ToString() + " selected  |  " + (viewport.Zoom * 100.0).ToString("0") + "% zoom",
             FontSize: 11.0,
-            Color: "#d4d4d8",
         },
     }
 
     private func NodeContent(node GraphNode) Blob -> Container{
         AlignItems: AlignItems.Center,
         Gap: 3.0,
-        Text{Content: node.Label, FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
-        Text{Content: node.Id, FontSize: 10.0, Color: "#d4d4d8"},
+        Text{Content: node.Label, FontSize: 13.0, FontWeight: 700},
+        Text{Content: node.Id, FontSize: 10.0},
     }
 
     private func MoveNode(change GraphNodePositionChange) {

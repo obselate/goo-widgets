@@ -1,6 +1,7 @@
 package Goo.Widgets.Inputs
 
 import Goo
+import Goo.Widgets
 import System
 
 /// Controlled multiline field values, presentation, and optional external editor ownership.
@@ -11,6 +12,10 @@ public data struct TextAreaInput {
     var Controller TextEditorController?
     /// Optional external presentation layers for the same document. Their ownership stays with the caller.
     var Layers[]?TextPresentationLayer
+    /// Optional horizontal scrollbar descriptor. Nil uses the theme scrollbar.
+    var ScrollbarX Scrollbar?
+    /// Optional vertical scrollbar descriptor. Nil uses the theme scrollbar.
+    var ScrollbarY Scrollbar?
     /// Receives user/document changes, excluding synchronization from Value.
     var OnChange Action[string]?
     /// Empty-document hint.
@@ -35,22 +40,20 @@ public data struct TextAreaInput {
     var MinimumRows int32
     /// Optional minimum editor height in logical pixels.
     var MinimumHeight float64?
-    /// Font size. Nil resolves to 14.
+    /// Font size. Nil uses the nearest theme font size.
     var FontSize float64?
     /// Optional font family.
     var FontFamily string?
     /// Accessible editor name. Nil falls back to label, then placeholder.
     var AccessibilityName string?
-    /// Editor background. Nil resolves to #09090b.
+    /// Editor background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Editor foreground. Nil resolves to #fafafa.
+    /// Editor foreground. Nil uses the nearest theme.
     var TextColor Color?
-    /// Invalid border and issue color. Nil resolves to #ef4444.
+    /// Invalid border and issue color. Nil uses the nearest theme.
     var InvalidColor Color?
-    /// Focus border color. Nil resolves to #d4d4d8.
+    /// Focus border color. Nil uses the nearest theme.
     var FocusColor Color?
-    /// Enables a visible focus border.
-    var ShowFocusHighlight bool
     /// Base editor style, applied before the field's required layout and behavior.
     var EditorStyle Style?
     /// Base root style.
@@ -87,9 +90,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         if disposed {
             throw ObjectDisposedException("TextArea")
         }
+        let theme = Theme.Read()
         let rows = value.MinimumRows == 0 ? 3: value.MinimumRows
-        let font = value.FontSize ?? 14.0
-        let minimum = value.MinimumHeight ?? (float64(rows) * font * 1.4 + 24.0)
+        let font = value.FontSize ?? theme.FontSize
+        let minimum = value.MinimumHeight ?? (float64(rows) * font * theme.LineHeight + theme.ControlPadding * 2.0)
         if rows < 1 || !Double.IsFinite(font) || font <= 0.0 || !Double.IsFinite(minimum) || minimum < 0.0 {
             throw ArgumentOutOfRangeException("MinimumRows/FontSize/MinimumHeight")
         }
@@ -99,13 +103,14 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             MinimumRows = rows,
             MinimumHeight = minimum,
             FontSize = font,
+            FontFamily = value.FontFamily ?? theme.FontFamily,
             Width = value.Width ?? defaultWidth,
             Placeholder = value.Placeholder ?? "",
             AccessibilityName = value.AccessibilityName ?? value.Label ?? value.Placeholder ?? "",
-            BackgroundColor = value.BackgroundColor ?? Color.Parse("#09090b"),
-            TextColor = value.TextColor ?? Color.Parse("#fafafa"),
-            InvalidColor = value.InvalidColor ?? Color.Parse("#ef4444"),
-            FocusColor = value.FocusColor ?? Color.Parse("#d4d4d8")
+            BackgroundColor = value.BackgroundColor ?? theme.FieldColor,
+            TextColor = value.TextColor ?? theme.TextColor,
+            InvalidColor = value.InvalidColor ?? theme.DangerColor,
+            FocusColor = value.FocusColor ?? theme.AccentColor
         }
         if controller == nil {
             external = value.Controller
@@ -119,22 +124,28 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Synchronize(next)
         }
         var editor = TextEditor(editorController, value.Layers ?? []TextPresentationLayer{}){
-            BasedOn = value.EditorStyle,
             Width = Percent(100),
             Height = value.Height ?? defaultHeight,
             MinHeight = minimum,
-            Padding = 12,
+            Padding = theme.ControlPadding,
             FontSize = font,
+            FontWeight = theme.FontWeight,
             BackgroundColor = input.BackgroundColor!!,
+            FontFamily = input.FontFamily!!,
             Color = input.TextColor!!,
-            BorderWidth = 1,
-            BorderColor = value.Invalid ? input.InvalidColor!!: Color.Parse("#3f3f46"),
-            BorderRadius = 6,
-            Focus = value.ShowFocusHighlight ? Style{BorderColor: input.FocusColor!!}: Style{},
-            DisabledStyle = Style{BackgroundColor: "#18181b", Color: "#71717a"},
-        }
-        if let family = input.FontFamily {
-            editor.FontFamily = family
+            CaretColor = input.TextColor!!,
+            SelectionColor = theme.AccentColor.WithAlpha(0.35),
+            Cursor = Cursor.Text,
+            BorderWidth = theme.BorderWidth,
+            BorderColor = value.Invalid ? input.InvalidColor!!: theme.InputBorderColor,
+            BorderRadius = theme.ControlRadius,
+            Focus = Style{OutlineWidth: 2.0, OutlineColor: input.FocusColor!!, OutlineOffset: -2.0},
+            DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
+            TransitionMs = theme.TransitionMs,
+            LineHeight = theme.LineHeight,
+            ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
+            ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
+            BasedOn = value.EditorStyle,
         }
         if let create = input.CreateEditor {
             editor = create(input, editor)
@@ -162,23 +173,29 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             },
         }
         var root = Container{
-            BasedOn: input.RootStyle,
+            LineHeight: theme.LineHeight,
             Width: input.Width!!,
             MinWidth: 0,
-            Gap: 6,
-            FlexDirection: FlexDirection.Column
+            Gap: theme.ControlGap,
+            FlexDirection: FlexDirection.Column,
+            FontFamily: input.FontFamily!!,
+            BasedOn: input.RootStyle,
         }
         if let create = input.CreateRoot {
             root = create(input, root)
         }
         root.FlexDirection = FlexDirection.Column
-        if let family = input.FontFamily {
-            root.FontFamily = family
-        }
         root.Children.Clear()
         if let label = input.Label {
             root.Children.Add(
-                Text{Key: "label", Handle: labelHandle, Content: label, Color: "#a1a1aa", FontSize: 11, FontWeight: 600}
+                Text{
+                    Key: "label",
+                    Handle: labelHandle,
+                    Content: label,
+                    Color: theme.MutedTextColor,
+                    FontSize: theme.LabelFontSize,
+                    FontWeight: theme.LabelFontWeight
+                }
             )
         }
         root.Children.Add(editor)
@@ -189,7 +206,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                     Handle: issueHandle,
                     Content: issue,
                     Color: input.InvalidColor!!,
-                    FontSize: 12,
+                    FontSize: theme.CaptionFontSize,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Alert,
                         Name: issue,

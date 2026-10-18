@@ -28,12 +28,7 @@ internal open class ColorPickerExample : Cell {
                 },
             }
         ),
-        Text{
-            Key: "committed-color",
-            Content: "Committed #" + ColorMath.Hex(committed),
-            FontSize: 11.0,
-            Color: "#a1a1aa",
-        },
+        Text{Key: "committed-color", Content: "Committed #" + ColorMath.Hex(committed), FontSize: 11.0,},
     }
 }
 

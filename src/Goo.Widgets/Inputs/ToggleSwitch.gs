@@ -14,39 +14,37 @@ public data struct ToggleSwitch {
     var AccessibilityName string?
     /// Action forwarded directly to Goo.Button activation.
     var OnClick Action?
-    /// Off-state track color. Nil resolves to #27272a.
+    /// Off-state track color. Nil resolves to the theme panel color.
     var OffTrackColor Color?
-    /// On-state track color. Nil resolves to #fafafa.
+    /// On-state track color. Nil resolves to the theme accent color.
     var OnTrackColor Color?
-    /// Disabled track color. Nil resolves to #3f3f46.
+    /// Disabled track color. Nil resolves to the theme faint text color.
     var DisabledTrackColor Color?
-    /// Normal off-state thumb color. Nil resolves to #fafafa.
+    /// Off-state thumb color. Nil uses theme text.
     var ThumbColor Color?
-    /// Normal on-state thumb color. Nil resolves to #09090b.
+    /// Normal on-state thumb color. Nil resolves to the theme accent foreground color.
     var OnThumbColor Color?
-    /// Disabled thumb color. Nil resolves to #71717a.
+    /// Disabled thumb color. Nil resolves to the theme faint text color.
     var DisabledThumbColor Color?
-    /// Track border color. Nil resolves to #3f3f46.
+    /// Track border color. Nil resolves to the theme input border color.
     var BorderColor Color?
-    /// Focus border color. Nil resolves to #d4d4d8.
+    /// Keyboard focus outline color. Nil uses theme accent.
     var FocusBorderColor Color?
-    /// Whether focused state uses the configured focus border color.
-    var ShowFocusHighlight bool
-    /// Track width. Zero resolves to 44.0.
+    /// Track width. Zero uses eleven theme spacing units.
     var Width float64
-    /// Track height. Zero resolves to 24.0.
-    var Height float64
-    /// Track padding. Zero resolves to 2.0.
-    var Padding float64
-    /// Thumb width and height. Zero resolves to 20.0.
+    /// Visible track height. Nil uses six theme spacing units.
+    var Height float64?
+    /// Track padding. Nil uses half the theme spacing; explicit zero is preserved.
+    var Padding float64?
+    /// Thumb width and height. Zero uses five theme spacing units.
     var ThumbSize float64
-    /// Border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Border width. Nil uses the theme border width; explicit zero is preserved.
     var BorderWidth float64?
-    /// Track corner radius. Nil resolves to 12.0; explicit zero is preserved.
+    /// Track corner radius. Nil uses half the track height; explicit zero is preserved.
     var BorderRadius float64?
-    /// Thumb corner radius. Nil resolves to 10.0; explicit zero is preserved.
+    /// Thumb corner radius. Nil uses half the thumb size; explicit zero is preserved.
     var ThumbRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -54,7 +52,7 @@ public data struct ToggleSwitch {
     var Opacity float64?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Active pressed transform. Nil resolves to PanelTransform{Scale: 0.98}.
+    /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Creates the final thumb from resolved props. Nil uses the default thumb.
     var CreateThumb Func[ToggleSwitch, Container]?
@@ -62,52 +60,43 @@ public data struct ToggleSwitch {
     var CreateRoot Func[ToggleSwitch, Container, Button]?
     /// Builds a fresh Goo switch tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createThumb = CreateThumb
         let createRoot = CreateRoot
+        let height = Height ?? theme.Spacing * 6.0
+        let thumbSize = ThumbSize == 0.0 ? theme.Spacing * 5.0: ThumbSize
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "",
-            OffTrackColor = OffTrackColor ?? Color.Parse("#27272a"),
-            OnTrackColor = OnTrackColor ?? Color.Parse("#fafafa"),
-            DisabledTrackColor = DisabledTrackColor ?? Color.Parse("#3f3f46"),
-            ThumbColor = ThumbColor ?? Color.Parse("#fafafa"),
-            OnThumbColor = OnThumbColor ?? Color.Parse("#09090b"),
-            DisabledThumbColor = DisabledThumbColor ?? Color.Parse("#71717a"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            FocusBorderColor = FocusBorderColor ?? Color.Parse("#d4d4d8"),
+            OffTrackColor = OffTrackColor ?? theme.PanelColor,
+            OnTrackColor = OnTrackColor ?? theme.AccentColor,
+            DisabledTrackColor = DisabledTrackColor ?? theme.FaintTextColor,
+            ThumbColor = ThumbColor ?? theme.TextColor,
+            OnThumbColor = OnThumbColor ?? theme.OnAccentColor,
+            DisabledThumbColor = DisabledThumbColor ?? theme.FaintTextColor,
+            BorderColor = BorderColor ?? theme.InputBorderColor,
+            FocusBorderColor = FocusBorderColor ?? theme.AccentColor,
             Width = if Width == 0.0 {
-                44.0
+                theme.Spacing * 11.0
             } else {
                 Width
             },
-            Height = if Height == 0.0 {
-                24.0
-            } else {
-                Height
-            },
-            Padding = if Padding == 0.0 {
-                2.0
-            } else {
-                Padding
-            },
-            ThumbSize = if ThumbSize == 0.0 {
-                20.0
-            } else {
-                ThumbSize
-            },
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 12.0,
-            ThumbRadius = ThumbRadius ?? 10.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            Height = height,
+            Padding = Padding ?? theme.Spacing / 2.0,
+            ThumbSize = thumbSize,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? height / 2.0,
+            ThumbRadius = ThumbRadius ?? thumbSize / 2.0,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
-            ActiveTransform = ActiveTransform ?? PanelTransform{Scale: 0.98},
+            ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateThumb = nil,
             CreateRoot = nil,
         }
         let travel = Math.Max(
             0.0,
-            resolved.Width - 2.0 * (resolved.Padding + resolved.BorderWidth!!) - resolved.ThumbSize
+            resolved.Width - 2.0 * (resolved.Padding!!+ resolved.BorderWidth!!) - resolved.ThumbSize
         )
         let marginLeft = if resolved.Checked {
             travel
@@ -148,12 +137,10 @@ public data struct ToggleSwitch {
         }
         let button = Button{
             Width: resolved.Width,
-            Height: resolved.Height,
-            Padding: resolved.Padding,
-            BorderWidth: resolved.BorderWidth!!,
-            BorderRadius: resolved.BorderRadius!!,
-            BorderColor: resolved.BorderColor!!,
-            BackgroundColor: trackColor,
+            Height: Math.Max(resolved.Height!!, theme.ControlHeight),
+            Padding: 0.0,
+            BorderWidth: 0.0,
+            BackgroundColor: Color.Transparent,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
             Cursor: Cursor.Pointer,
@@ -163,12 +150,8 @@ public data struct ToggleSwitch {
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             Active: Style{Transform: resolved.ActiveTransform!!},
-            Focus: if resolved.ShowFocusHighlight {
-                Style{BorderColor: resolved.FocusBorderColor!!}
-            } else {
-                Style{}
-            },
-            DisabledStyle: Style{BackgroundColor: resolved.DisabledTrackColor!!},
+            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: 2.0, OutlineOffset: 2.0},
+            DisabledStyle: Style{},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.FlexStart,
@@ -181,7 +164,19 @@ public data struct ToggleSwitch {
                     AccessibilityChecked.False
                 },
             },
-            thumb,
+            Container{
+                Width: resolved.Width,
+                Height: resolved.Height!!,
+                Padding: resolved.Padding!!,
+                BorderWidth: resolved.BorderWidth!!,
+                BorderRadius: resolved.BorderRadius!!,
+                BorderColor: resolved.BorderColor!!,
+                BackgroundColor: trackColor,
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                HitTestSelf: false,
+                thumb,
+            },
         }
         WidgetKeyBindings.BindActivation(button)
         return button

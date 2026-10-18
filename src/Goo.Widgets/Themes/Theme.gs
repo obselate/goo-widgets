@@ -4,8 +4,25 @@ import Goo
 import Goo.Widgets.Actions
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
+import System
+import System.Runtime.CompilerServices
 
-/// Rounded widget presets in Goo Light, Goo Dark, and GitHub Dark palettes. Copy with `with` to customize.
+/// Selects the built-in window appearance policy.
+public enum ThemeMode {
+    System;
+    Light;
+    Dark
+}
+
+/// Selects absolute control metrics for a subtree.
+public enum Density {
+    Standard;
+    Compact;
+    Comfortable;
+    Touch
+}
+
+/// Rounded widget presets in Ink, Bone, and GitHub Dark palettes. Copy with `with` to customize.
 public data struct Theme {
     /// Window background.
     var CanvasColor Color
@@ -69,21 +86,107 @@ public data struct Theme {
     var Spacing float64
     /// Color transition duration in milliseconds. Zero disables transitions.
     var TransitionMs float64
+    internal var ReducedMotion bool
+    /// Body line height.
+    var LineHeight float64 = 1.4
+    /// Label size.
+    var LabelFontSize float64 = 12.0
+    /// Label weight.
+    var LabelFontWeight int32 = 500
+    /// Caption size.
+    var CaptionFontSize float64 = 12.0
+    /// Caption weight.
+    var CaptionFontWeight int32 = 400
+    /// Heading size.
+    var HeadingFontSize float64 = 20.0
+    /// Heading weight.
+    var HeadingFontWeight int32 = 600
+    /// Minimum action width.
+    var ControlMinWidth float64 = 64.0
+    /// Horizontal control padding.
+    var ControlPadding float64 = 12.0
+    /// Control content gap.
+    var ControlGap float64 = 8.0
+    /// Panel content padding.
+    var PanelPadding float64 = 16.0
+    /// Modal backdrop paint.
+    var BackdropColor Color = Color.Rgba(0, 0, 0, 204)
 
     shared {
-        /// Goo Dark palette. Each access returns an independent value.
-        public prop GooDark Theme {
-            get -> Ink
+        internal let Key Context[Theme] = Context[Theme]()
+        private let attachments ConditionalWeakTable[Window, ThemeAttachment] =
+        ConditionalWeakTable[Window, ThemeAttachment]()
+
+        /// Neutral metrics with Bone colors. This is a fixed light snapshot.
+        public prop Default Theme {
+            get -> Bone with{
+                FontFamily = "",
+                HeadingFontFamily = "",
+                MonoFontFamily = "monospace",
+                FontSize = 14.0,
+                FontWeight = 400,
+                ControlRadius = 6.0,
+                PanelRadius = 8.0,
+            }
         }
 
-        /// Goo Light palette. Each access returns an independent value.
-        public prop GooLight Theme {
-            get -> Bone
+        /// Attaches System appearance before the window opens.
+        public func Attach(window Window) {
+            let state = attachment(window)
+            state.Value = Default
+            state.Mode = ThemeMode.System
+            state.Fixed = false
+            state.Apply(window.Preferences)
+        }
+
+        /// Attaches an exact palette and metrics, independent of system appearance.
+        public func Attach(window Window, value Theme) {
+            let state = attachment(window)
+            state.Value = value
+            state.Fixed = true
+            state.Apply(window.Preferences)
+        }
+
+        /// Replaces palette roles while preserving the current typography and metrics.
+        public func SetMode(window Window, mode ThemeMode) {
+            let state = attachment(window)
+            state.Mode = mode
+            state.Fixed = false
+            state.Apply(window.Preferences)
+        }
+
+        /// Reads the nearest retained theme during an owned build or virtual callback.
+        public func Read() Theme {
+            let window = Key.Window
+            if !attachments.TryGetValue(window, out var state) {
+                Attach(window)
+            }
+            return Key.Read()
+        }
+
+        /// Reads the window snapshot, not a subtree override.
+        public func Read(window Window) Theme {
+            if !Key.TryRead(window, out var value) {
+                Attach(window)
+                return Key.Read(window)
+            }
+            return value
+        }
+
+        private func attachment(window Window) ThemeAttachment {
+            Key.TryRead(window, out var value)
+            if attachments.TryGetValue(window, out var state) {
+                return state
+            }
+            let created = ThemeAttachment(window)
+            attachments.Add(window, created)
+            window.PreferencesChanged += created.Apply
+            return created
         }
 
         /// GitHub Dark palette with Goo's typography and rounded controls.
         public prop GitHubDark Theme {
-            get -> GooDark with{
+            get -> Ink with{
                 CanvasColor = "#0d1117",
                 PanelColor = "#161b22",
                 FieldColor = "#0d1117",
@@ -172,7 +275,8 @@ public data struct Theme {
             Color: TextColor,
             FontFamily: FontFamily,
             FontSize: FontSize,
-            FontWeight: FontWeight
+            FontWeight: FontWeight,
+            LineHeight: LineHeight,
         }
     }
 
@@ -186,7 +290,7 @@ public data struct Theme {
         }
     }
 
-    /// Rounded neutral action with no pressed scaling or focus highlight.
+    /// Rounded neutral action with visible keyboard focus.
     public prop Button ActionButton {
         get -> ActionButton{
             BackgroundColor: PanelColor,
@@ -197,11 +301,11 @@ public data struct Theme {
             DisabledBackgroundColor: PanelColor,
             DisabledTextColor: FaintTextColor,
             Height: ControlHeight,
-            MinWidth: 64.0,
-            PaddingHorizontal: 14.0,
+            MinWidth: ControlMinWidth,
+            PaddingHorizontal: ControlPadding,
             FontFamily: FontFamily,
             FontSize: FontSize,
-            FontWeight: 600,
+            FontWeight: FontWeight,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
             TransitionMs: TransitionMs,
@@ -241,17 +345,17 @@ public data struct Theme {
         get -> TextField{
             BackgroundColor: FieldColor,
             TextColor: TextColor,
-            MutedTextColor: TextColor,
+            MutedTextColor: MutedTextColor,
             BorderColor: InputBorderColor,
             InvalidColor: DangerColor,
             DisabledBackgroundColor: PanelColor,
             DisabledTextColor: FaintTextColor,
             EntryHeight: ControlHeight,
-            PaddingHorizontal: 10.0,
+            PaddingHorizontal: ControlPadding,
             FontFamily: FontFamily,
             FontSize: FontSize,
-            LabelFontSize: FontSize,
-            LabelFontWeight: FontWeight,
+            LabelFontSize: LabelFontSize,
+            LabelFontWeight: LabelFontWeight,
             LabelTextTransform: TextTransform.None,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
@@ -265,9 +369,9 @@ public data struct Theme {
             LabelColor: TextColor,
             LabelFontSize: FontSize,
             LabelFontWeight: FontWeight,
-            LabelGap: 9.0,
-            Size: 18.0,
-            MarkSize: 12.0,
+            LabelGap: ControlGap,
+            Size: Spacing * 5.0,
+            MarkSize: Spacing * 3.5,
             BackgroundColor: FieldColor,
             BorderColor: InputBorderColor,
             CheckedBackgroundColor: AccentColor,
@@ -279,22 +383,22 @@ public data struct Theme {
         }
     }
 
-    /// Rounded slider track with a circular light thumb. Mount with a stable Cell key.
+    /// Rounded slider track with a palette-aware thumb. Mount with a stable Cell key.
     public prop Slider SliderInput {
         get -> SliderInput{
             LabelColor: TextColor,
             ValueColor: MutedTextColor,
-            LabelFontSize: FontSize,
-            ValueFontSize: FontSize - 2.0,
-            Height: 22.0,
-            TrackThickness: 6.0,
-            TrackRadius: 3.0,
+            LabelFontSize: LabelFontSize,
+            ValueFontSize: CaptionFontSize,
+            Height: ControlHeight,
+            TrackThickness: Spacing * 2.0,
+            TrackRadius: Spacing,
             TrackColor: BorderColor,
             FillColor: AccentColor,
-            ThumbSize: 18.0,
-            ThumbRadius: 9.0,
+            ThumbSize: Spacing * 5.0,
+            ThumbRadius: Spacing * 2.5,
             ThumbBorderWidth: BorderWidth,
-            ThumbColor: "#eceded",
+            ThumbColor: AccentColor,
             ThumbBorderColor: OnAccentColor,
         }
     }
@@ -306,14 +410,115 @@ public data struct Theme {
             TextColor: TextColor,
             BorderColor: BorderColor,
             MinHeight: ControlHeight,
-            PaddingHorizontal: 10.0,
-            PaddingVertical: 8.0,
+            PaddingHorizontal: ControlPadding,
+            PaddingVertical: Spacing * 2.0,
             FontFamily: FontFamily,
-            FontSize: FontSize - 2.0,
+            FontSize: FontSize,
             FontWeight: FontWeight,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius,
             TransitionMs: TransitionMs,
         }
+    }
+
+    /// Applies absolute density metrics without scaling inherited custom values.
+    internal func WithDensity(density Density) Theme {
+        let height = switch density {
+            case Density.Compact: 28.0
+            case Density.Comfortable: 40.0
+            case Density.Touch: 44.0
+            default: 32.0
+        }
+        let padding = switch density {
+            case Density.Compact: 8.0
+            case Density.Comfortable: 16.0
+            case Density.Touch: 16.0
+            default: 12.0
+        }
+        return this with{
+            ControlHeight = height,
+            ControlPadding = padding,
+            ControlGap = if density == Density.Compact {
+                4.0
+            } else {
+                8.0
+            },
+        }
+    }
+
+    /// Fresh keyboard focus declarations. Use an inset offset for clipped targets.
+    public prop FocusStyle Style {
+        get -> Style{OutlineWidth: 2.0, OutlineColor: AccentColor, OutlineOffset: 2.0}
+    }
+
+    /// Fresh overlay scrollbar with real pointer-controlled track and thumb parts.
+    public prop Scrollbar Scrollbar {
+        get -> Goo
+            .Scrollbar{
+            Thickness: 6.0,
+            HitThickness: 12.0,
+            Inset: 2.0,
+            MinThumbLength: 24.0,
+            HideDelayMs: 1000.0,
+            FadeMs: ReducedMotion ? 0.0: 250.0,
+            ReserveSpace: false,
+            Track: Container{BackgroundColor: Color.Transparent},
+            Thumb: Container{
+                BackgroundColor: MutedTextColor.WithAlpha(0.5),
+                BorderRadius: 3.0,
+                Hover: Style{BackgroundColor: AccentColor},
+                Active: Style{BackgroundColor: AccentColor},
+            },
+        }
+    }
+}
+
+internal sealed class ThemeAttachment {
+    private let window Window
+    internal var Value Theme = Theme.Default
+    internal var Mode ThemeMode
+    internal var Fixed bool
+
+    internal init(owner Window) {
+        window = owner
+    }
+
+    internal func Apply(preferences PlatformPreferences) {
+        var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
+        if !Fixed {
+            let palette = if Mode == ThemeMode.Dark
+            || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark) {
+                Theme.Ink
+            } else {
+                Theme.Bone
+            }
+            value = value with{
+                CanvasColor = palette.CanvasColor,
+                PanelColor = palette.PanelColor,
+                FieldColor = palette.FieldColor,
+                HoverColor = palette.HoverColor,
+                PressedColor = palette.PressedColor,
+                BorderColor = palette.BorderColor,
+                InputBorderColor = palette.InputBorderColor,
+                TextColor = palette.TextColor,
+                MutedTextColor = palette.MutedTextColor,
+                FaintTextColor = palette.FaintTextColor,
+                AccentColor = palette.AccentColor,
+                OnAccentColor = palette.OnAccentColor,
+                AccentHoverColor = palette.AccentHoverColor,
+                AccentPressedColor = palette.AccentPressedColor,
+                InfoColor = palette.InfoColor,
+                SuccessColor = palette.SuccessColor,
+                WarningColor = palette.WarningColor,
+                DangerColor = palette.DangerColor,
+                DangerFillColor = palette.DangerFillColor,
+                DangerHoverColor = palette.DangerHoverColor,
+            }
+        }
+        if preferences.ReducedMotion == true {
+            value.TransitionMs = 0.0
+        }
+        Theme.Key.Set(window, value)
+        window.SetColors(value.CanvasColor, value.TextColor)
     }
 }

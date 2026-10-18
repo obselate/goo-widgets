@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// An application header bar with slots, title/subtitle typography, bottom border, shadow, and custom factories.
 public data struct AppBar {
@@ -18,33 +19,33 @@ public data struct AppBar {
     var HeadingLevel int32
     /// Bar width. Nil resolves to Percent(100.0).
     var Width Length?
-    /// Bar height. Zero resolves to 56.0.
-    var Height float64
-    /// Bar background color. Nil resolves to #09090b.
+    /// Bar height. Nil uses the nearest theme spacing.
+    var Height float64?
+    /// Bar background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Inherited title and content text color. Nil resolves to #fafafa.
+    /// Inherited title and content text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Subtitle text color. Nil resolves to #a1a1aa.
+    /// Subtitle text color. Nil uses the nearest theme.
     var SubtitleColor Color?
-    /// Bottom border color. Nil resolves to #27272a.
+    /// Bottom border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Horizontal padding on left and right edges. Nil resolves to 16.0; explicit zero is preserved.
+    /// Horizontal padding on left and right edges. Nil uses the nearest theme padding; explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Spacing between slots and the title content stack. Nil resolves to 12.0; explicit zero is preserved.
+    /// Spacing between slots and the title content stack. Nil uses the nearest theme gap; explicit zero is preserved.
     var Gap float64?
-    /// Spacing between title and subtitle inside the content stack. Nil resolves to 2.0; explicit zero is preserved.
+    /// Spacing between title and subtitle inside the content stack. Nil uses the nearest theme spacing; explicit zero is preserved.
     var TitleGap float64?
-    /// Title text font size. Zero resolves to 16.0.
+    /// Title text font size. Zero uses the nearest theme heading font size.
     var TitleFontSize float64
-    /// Title text font weight. Zero resolves to 600.
+    /// Title text font weight. Zero uses the nearest theme heading font weight.
     var TitleFontWeight int32
-    /// Subtitle text font size. Zero resolves to 12.0.
+    /// Subtitle text font size. Zero uses the nearest theme caption font size.
     var SubtitleFontSize float64
-    /// Subtitle text font weight. Zero resolves to 400.
+    /// Subtitle text font weight. Zero uses the nearest theme caption font weight.
     var SubtitleFontWeight int32
-    /// Bottom border width. Nil resolves to 1.0; explicit zero is preserved.
+    /// Bottom border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
-    /// Outer drop shadow. Nil resolves to #000000 offset (0, 2) blur 8.0 spread 0.0.
+    /// Optional authored shadow. Nil leaves the bar unshadowed.
     var BoxShadow BoxShadow?
     /// Bar opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
@@ -61,11 +62,11 @@ public data struct AppBar {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createTitle = CreateTitle
         let createSubtitle = CreateSubtitle
         let createRoot = CreateRoot
         let titleText = Title ?? ""
-        let defaultShadow = BoxShadow{Color: Color.Parse("#000000"), OffsetX: 0.0, OffsetY: 2.0, Blur: 8.0, Spread: 0.0}
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
@@ -75,40 +76,37 @@ public data struct AppBar {
                 HeadingLevel
             },
             Width = Width ?? Percent(100.0),
-            Height = if Height == 0.0 {
-                56.0
-            } else {
-                Height
-            },
-            BackgroundColor = BackgroundColor ?? Color.Parse("#09090b"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            SubtitleColor = SubtitleColor ?? Color.Parse("#a1a1aa"),
-            BorderColor = BorderColor ?? Color.Parse("#27272a"),
-            PaddingHorizontal = PaddingHorizontal ?? 16.0,
-            Gap = Gap ?? 12.0,
-            TitleGap = TitleGap ?? 2.0,
+            Height = Height ?? theme.Spacing * 14.0,
+            BackgroundColor = BackgroundColor ?? theme.CanvasColor,
+            TextColor = TextColor ?? theme.TextColor,
+            SubtitleColor = SubtitleColor ?? theme.MutedTextColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
+            Gap = Gap ?? theme.ControlGap,
+            TitleGap = TitleGap ?? theme.Spacing / 2.0,
+            FontFamily = FontFamily ?? theme.FontFamily,
             TitleFontSize = if TitleFontSize == 0.0 {
-                16.0
+                theme.HeadingFontSize
             } else {
                 TitleFontSize
             },
             TitleFontWeight = if TitleFontWeight == 0 {
-                600
+                theme.HeadingFontWeight
             } else {
                 TitleFontWeight
             },
             SubtitleFontSize = if SubtitleFontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 SubtitleFontSize
             },
             SubtitleFontWeight = if SubtitleFontWeight == 0 {
-                400
+                theme.CaptionFontWeight
             } else {
                 SubtitleFontWeight
             },
-            BorderWidth = BorderWidth ?? 1.0,
-            BoxShadow = BoxShadow ?? defaultShadow,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BoxShadow = BoxShadow ?? Goo.BoxShadow{},
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
             CreateTitle = nil,
@@ -171,8 +169,9 @@ public data struct AppBar {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
-            Height: resolved.Height,
+            Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
             BackgroundColor: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,

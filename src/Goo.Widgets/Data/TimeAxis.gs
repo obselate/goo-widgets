@@ -79,9 +79,9 @@ public data struct TimeAxisInput {
     var OnOverflow Action[[]TimeAxisEvent]?
     /// Maximum visible collision lanes. Nil resolves to four; must be from one to 1024.
     var MaximumLanes int32?
-    /// Event row height. Nil resolves to 30.
+    /// Event row height. Nil uses the theme's control height.
     var LaneHeight float64?
-    /// Gap between event rows. Nil resolves to 6.
+    /// Gap between event rows. Nil uses the theme's gap.
     var LaneGap float64?
     /// Minimum event visual width, included in collision handling. Nil resolves to 6.
     var MinimumEventWidth float64?
@@ -89,7 +89,7 @@ public data struct TimeAxisInput {
     var CurrentTime DateTimeOffset?
     /// Marker label. Nil resolves to Now.
     var MarkerLabel string?
-    /// Marker fill. Nil resolves to #fb7185.
+    /// Marker fill. Nil uses the nearest theme.
     var MarkerColor Color?
     /// Center this instant once after mounting, unless InitialEventId is supplied.
     var InitialTime DateTimeOffset?
@@ -143,15 +143,16 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
     }
 
     protected override func Build(value TimeAxisInput) Blob {
+        let theme = Theme.Read()
         input = value with{
             TickInterval = value.TickInterval ?? TimeSpan.FromHours(1),
             PixelsPerHour = value.PixelsPerHour ?? 120.0,
             MaximumLanes = value.MaximumLanes ?? 4,
-            LaneHeight = value.LaneHeight ?? 30.0,
-            LaneGap = value.LaneGap ?? 6.0,
+            LaneHeight = value.LaneHeight ?? theme.ControlHeight,
+            LaneGap = value.LaneGap ?? theme.ControlGap,
             MinimumEventWidth = value.MinimumEventWidth ?? 6.0,
             MarkerLabel = value.MarkerLabel ?? "Now",
-            MarkerColor = value.MarkerColor ?? Color.Parse("#fb7185"),
+            MarkerColor = value.MarkerColor ?? theme.DangerColor,
             Width = value.Width ?? Percent(100),
             AccessibilityName = value.AccessibilityName ?? "Timeline"
         }
@@ -239,15 +240,17 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             var blob = Container{
                 Width: 1,
                 Height: canvasHeight,
-                BackgroundColor: "#34343e",
+                BackgroundColor: theme.BorderColor,
                 HitTestSelf: false,
                 Text{
                     Content: tick.Label!!,
                     Position: PositionType.Absolute,
                     Left: 5,
                     Top: 3,
-                    FontSize: 11,
-                    Color: "#a1a1aa",
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
+                    Color: theme.MutedTextColor,
                     TextWrap: TextWrap.NoWrap
                 }
             }
@@ -264,17 +267,23 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             let item = placement.Event
             let selected = item.Id == input.SelectedId
             var blob = Button{
-                Padding: Edges{Right: 8, Left: 8},
-                BackgroundColor: selected ? Color.Parse("#4f46a5"): Color.Parse("#313b50"),
-                BorderRadius: 4,
-                BorderWidth: selected ? 2.0: 0.0,
-                BorderColor: Color.Parse("#a5b4fc"),
-                Color: "#e4e4e7",
+                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                BackgroundColor: selected ? theme.AccentColor: theme.PressedColor,
+                BorderRadius: theme.ControlRadius,
+                BorderWidth: selected ? theme.BorderWidth: 0.0,
+                BorderColor: theme.AccentColor,
+                Color: selected ? theme.OnAccentColor: theme.TextColor,
                 Hover: Style{Opacity: .85},
-                Focus: Style{BorderWidth: 2, BorderColor: Color.Parse("#e0e7ff")},
+                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
                 Overflow: Overflow.Hidden,
                 JustifyContent: JustifyContent.Center,
-                Text{Content: item.Label!!, FontSize: 12, TextWrap: TextWrap.NoWrap}
+                Text{
+                    Content: item.Label!!,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
+                    TextWrap: TextWrap.NoWrap,
+                }
             }
             if placement.Width < 40.0 {
                 blob.Children.Clear()
@@ -302,12 +311,19 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 right = Math.Min(canvasWidth, Math.Max(right, X(item.End)))
             }
             var blob = Button{
-                Padding: Edges{Right: 6, Left: 6},
-                BackgroundColor: "#292936",
-                Color: "#c4b5fd",
-                BorderRadius: 4,
+                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                BackgroundColor: theme.PanelColor,
+                Color: theme.AccentColor,
+                BorderRadius: theme.ControlRadius,
+                Focus: theme.FocusStyle,
                 Overflow: Overflow.Hidden,
-                Text{Content: "+" + hidden.Length.ToString() + " more", FontSize: 12, TextWrap: TextWrap.NoWrap}
+                Text{
+                    Content: "+" + hidden.Length.ToString() + " more",
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
+                    TextWrap: TextWrap.NoWrap,
+                }
             }
             if let create = input.CreateOverflow {
                 blob = create(input, hidden, blob)
@@ -340,7 +356,9 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                         Position: PositionType.Absolute,
                         Left: 5,
                         Top: 16,
-                        FontSize: 10,
+                        FontFamily: theme.FontFamily,
+                        FontSize: theme.CaptionFontSize,
+                        FontWeight: theme.CaptionFontWeight,
                         Color: input.MarkerColor!!,
                         TextWrap: TextWrap.NoWrap
                     }
@@ -359,13 +377,16 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         }
         let naturalHeight Length = canvasHeight + 8.0
         var root = Container{
+            LineHeight: theme.LineHeight,
             Handle: viewport,
             Focusable: true,
             Width: input.Width!!,
             Height: input.Height ?? naturalHeight,
             MinWidth: 0,
-            BackgroundColor: "#17171e",
-            BorderRadius: 6
+            BackgroundColor: theme.CanvasColor,
+            BorderRadius: theme.PanelRadius,
+            Focus: theme.FocusStyle,
+            ScrollbarX: theme.Scrollbar,
         }
         if let create = input.CreateRoot {
             root = create(input, root)

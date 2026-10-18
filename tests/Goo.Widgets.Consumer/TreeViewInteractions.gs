@@ -215,7 +215,7 @@ func TreeActive(adapter SearchListSemantics, name string) bool {
 }
 
 func TreeViewInteractions() {
-    TreeViewContracts()
+    RunContracts(TreeViewContracts)
     let host = TreeHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

@@ -57,7 +57,7 @@ class AsyncImagePage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 6.0,
                 readyImage.Build(),
-                Text{Content: "Ready", FontSize: 12.0, Color: "#a1a1aa"},
+                Text{Content: "Ready", FontSize: 12.0},
             },
             Container{
                 Width: 150.0,
@@ -65,7 +65,7 @@ class AsyncImagePage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 6.0,
                 loadingImage.Build(),
-                Text{Content: "Loading", FontSize: 12.0, Color: "#a1a1aa"},
+                Text{Content: "Loading", FontSize: 12.0},
             },
             Container{
                 Width: 150.0,
@@ -81,7 +81,7 @@ class AsyncImagePage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 6.0,
                 customImage.Build(),
-                Text{Content: "Custom", FontSize: 12.0, Color: "#a1a1aa"},
+                Text{Content: "Custom", FontSize: 12.0},
             },
         }
     }

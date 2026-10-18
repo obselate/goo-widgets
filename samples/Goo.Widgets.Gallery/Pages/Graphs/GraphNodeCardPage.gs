@@ -7,11 +7,7 @@ import Goo.Widgets.Graphs
 internal open class GraphNodeCardExample : Cell {
     public override func Build() Blob -> Container{
         Gap: 12.0,
-        Text{
-            Content: "Graph node cards support normal, selected, and caller-owned content states.",
-            FontSize: 11.0,
-            Color: "#a1a1aa",
-        },
+        Text{Content: "Graph node cards support normal, selected, and caller-owned content states.", FontSize: 11.0,},
         Container{
             Width: 740.0,
             Height: 260.0,

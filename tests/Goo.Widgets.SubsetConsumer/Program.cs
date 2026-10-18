@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Goo;
 using Goo.Widgets.Icons;
 
 var expected = new[] {
@@ -13,7 +14,7 @@ if (!names.SequenceEqual(expected)) {
     throw new Exception("Material icon subset does not match the selected names and widget defaults.");
 }
 foreach (var name in names) {
-    MaterialIcons.Create(name);
+    MaterialIcons.Create(name, 24.0, Color.Black);
 }
 var embedded = Assembly.GetExecutingAssembly().GetManifestResourceNames()
     .Count(name => name.StartsWith("Goo.Widgets.MaterialSymbols.", StringComparison.Ordinal)

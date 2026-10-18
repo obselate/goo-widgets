@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// An animated slide-over container panel docked to the left or right edge of its viewport.
 /// Supports caller-owned content, custom container factories, and direction-aware transitions.
@@ -17,14 +18,14 @@ public data struct Drawer {
     var Width float64
     /// Drawer height. Nil resolves to Percent(100.0).
     var Height Length?
-    /// Background color of the drawer panel. Nil resolves to #18181b.
+    /// Background color of the drawer panel. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Border color of the drawer panel. Nil resolves to #3f3f46.
+    /// Border color of the drawer panel. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Horizontal padding on left and right edges. Zero or default resolves to 20.0.
-    var PaddingHorizontal float64
-    /// Vertical padding on top and bottom edges. Zero or default resolves to 20.0.
-    var PaddingVertical float64
+    /// Horizontal padding. Explicit zero is preserved.
+    var PaddingHorizontal float64?
+    /// Vertical padding. Explicit zero is preserved.
+    var PaddingVertical float64?
     /// Border stroke width. Nil resolves to 1.0; explicit zero is preserved.
     var BorderWidth float64?
     /// Corner radius of the drawer panel. Nil resolves to 12.0; explicit zero is preserved.
@@ -33,31 +34,27 @@ public data struct Drawer {
     var OpenOpacity float64?
     /// Panel opacity when Open is false. Nil resolves to 0.0; explicit zero is preserved.
     var ClosedOpacity float64?
-    /// Transition duration in milliseconds. Nil resolves to 220.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
-    /// Outer drop shadow applied to the drawer container. Nil resolves to a side-aware black shadow.
+    /// Optional authored shadow. Nil leaves the panel unshadowed.
     var BoxShadow BoxShadow?
     /// Transform applied when Open is true. Nil resolves to the identity transform.
     var OpenTransform PanelTransform?
-    /// Transform applied when Open is false. Nil resolves to a directional slide and 0.98 scale.
+    /// Closed transform. Nil slides out without scaling.
     var ClosedTransform PanelTransform?
     /// Custom factory for the root Container. Receives resolved props and caller Content.
     var CreateRoot Func[Drawer, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createRoot = CreateRoot
-        let sideShadow = if FromRight {
-            BoxShadow{Color: Color.Parse("#000000"), OffsetX: -8.0, OffsetY: 0.0, Blur: 24.0, Spread: 0.0}
-        } else {
-            BoxShadow{Color: Color.Parse("#000000"), OffsetX: 8.0, OffsetY: 0.0, Blur: 24.0, Spread: 0.0}
-        }
         let defaultClosedTransform = if FromRight {
-            PanelTransform{TranslateX: Percent(100.0), Scale: 0.98}
+            PanelTransform{TranslateX: Percent(100.0)}
         } else {
-            PanelTransform{TranslateX: Percent(-100.0), Scale: 0.98}
+            PanelTransform{TranslateX: Percent(-100.0)}
         }
 
         let resolved = this with{
@@ -68,25 +65,17 @@ public data struct Drawer {
                 Width
             },
             Height = Height ?? Percent(100.0),
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            PaddingHorizontal = if PaddingHorizontal == 0.0 {
-                20.0
-            } else {
-                PaddingHorizontal
-            },
-            PaddingVertical = if PaddingVertical == 0.0 {
-                20.0
-            } else {
-                PaddingVertical
-            },
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 12.0,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
+            PaddingVertical = PaddingVertical ?? theme.PanelPadding,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
             OpenOpacity = OpenOpacity ?? 1.0,
             ClosedOpacity = ClosedOpacity ?? 0.0,
-            TransitionMs = TransitionMs ?? 220.0,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
-            BoxShadow = BoxShadow ?? sideShadow,
+            BoxShadow = BoxShadow ?? Goo.BoxShadow{},
             OpenTransform = OpenTransform ?? PanelTransform{},
             ClosedTransform = ClosedTransform ?? defaultClosedTransform,
             CreateRoot = nil,
@@ -112,7 +101,7 @@ public data struct Drawer {
             Top: 0.0,
             Width: resolved.Width,
             Height: resolved.Height!!,
-            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
+            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             BackgroundColor: resolved.BackgroundColor!!,
             BorderColor: resolved.BorderColor!!,
             BorderWidth: resolved.BorderWidth!!,

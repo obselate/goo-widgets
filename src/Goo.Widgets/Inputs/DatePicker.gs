@@ -45,6 +45,7 @@ public data struct DatePickerInput {
 /// Composes an editable date field, Calendar, and the shared anchored Popover lifecycle.
 public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var current DatePickerInput
+    private var theme Theme
     private let entryHandle ElementHandle = ElementHandle()
     private let fieldHandle ElementHandle = ElementHandle()
     private let calendarHandle ElementHandle = ElementHandle()
@@ -69,6 +70,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     }
 
     protected override func Build(input DatePickerInput) Blob {
+        theme = Theme.Read()
         current = input with{
             AllowEmpty = input.AllowEmpty ?? true,
             Culture = input.Culture ?? CultureInfo.CurrentCulture,
@@ -102,13 +104,19 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         let requestedOpen = !input.Disabled && (input.Open ?? ownedOpen)
         let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         var entry = TextEntry{
-            Height: 38.0,
+            Height: theme.ControlHeight,
             MinWidth: 0.0,
-            Padding: Edges{Right: 6.0, Left: 10.0},
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             FlexGrow: 1.0,
             FlexBasis: 0.0,
             BackgroundColor: Color.Transparent,
-            Color: "#fafafa"
+            Color: theme.TextColor,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
+            SelectionColor: theme.AccentColor.WithAlpha(0.35),
+            Cursor: Cursor.Text,
+            Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
         }
         if let create = current.CreateInput {
             entry = create(current, entry)
@@ -138,7 +146,13 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
                 ErrorMessage: invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
             }
         }
-        var button = Button{Width: 36.0, Height: 38.0, Padding: 8.0, BackgroundColor: Color.Transparent}
+        var button = Button{
+            Width: theme.ControlHeight,
+            Height: theme.ControlHeight,
+            Padding: theme.Spacing * 2.0,
+            BackgroundColor: Color.Transparent,
+            Focus: theme.FocusStyle,
+        }
         if let create = current.CreateButton {
             button = create(current, button)
         }
@@ -155,20 +169,26 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Relationships: AccessibilityRelationships{Controls: []ElementHandle{calendarHandle}}
         }
         button.Children.Clear()
-        button.Children.Add(MaterialIcons.Create("calendar_month", 18.0, Color.Parse("#a5b4fc")))
+        button.Children.Add(MaterialIcons.Create("calendar_month", 18.0, theme.AccentColor))
         let field = Container{
             Key: "field",
             Handle: fieldHandle,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: "#18181b",
-            BorderColor: invalid ? Color.Parse("#f87171"): Color.Parse("#52525b"),
-            BorderWidth: 1.0,
-            BorderRadius: 6.0,
+            BackgroundColor: theme.FieldColor,
+            BorderColor: invalid ? theme.DangerColor: theme.InputBorderColor,
+            BorderWidth: theme.BorderWidth,
+            BorderRadius: theme.ControlRadius,
             entry,
             button
         }
-        var root = Container{Width: current.Width, MinWidth: 0.0, Gap: 5.0, Overflow: Overflow.Visible}
+        var root = Container{
+            Width: current.Width,
+            MinWidth: 0.0,
+            Gap: theme.ControlGap,
+            Overflow: Overflow.Visible,
+            LineHeight: theme.LineHeight,
+        }
         if let create = current.CreateRoot {
             root = create(current, root)
         }
@@ -180,8 +200,10 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
                     Key: "issue",
                     Handle: issueHandle,
                     Content: current.InvalidMessage ?? "Enter a valid date.",
-                    Color: "#f87171",
-                    FontSize: 12.0,
+                    Color: theme.DangerColor,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.CaptionFontSize,
+                    FontWeight: theme.CaptionFontWeight,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Alert,
                         Name: current.InvalidMessage ?? "Enter a valid date.",
@@ -338,10 +360,10 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
 
     private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
-            BackgroundColor: "#18181b",
-            BorderColor: Color.Parse("#52525b"),
-            BorderWidth: 1.0,
-            BorderRadius: 7.0
+            BackgroundColor: theme.PanelColor,
+            BorderColor: theme.InputBorderColor,
+            BorderWidth: theme.BorderWidth,
+            BorderRadius: theme.PanelRadius,
         }
         return if let create = current.CreatePopup {
             create(current, prepared)

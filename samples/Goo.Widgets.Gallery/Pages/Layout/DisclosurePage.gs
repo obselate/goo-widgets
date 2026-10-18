@@ -26,14 +26,9 @@ internal class DisclosureExample : Cell {
             OnExpandedChange: (value bool) -> {
                 expanded = value
             },
-            ShowFocusHighlight: true,
             Content: Container{
                 Gap: 12,
-                Text{
-                    Key: "hint",
-                    Content: "Increment, collapse, and reopen. The count stays with this section.",
-                    Color: "#a1a1aa"
-                },
+                Text{Key: "hint", Content: "Increment, collapse, and reopen. The count stays with this section.",},
                 Cell.Mount[DisclosureCounter]("counter")
             },
         }
@@ -57,7 +52,7 @@ internal class DisclosureExample : Cell {
         return Container{
             Width: 580,
             Gap: 16,
-            Text{Content: "Enter or Space toggles the focused header.", Color: "#a1a1aa"},
+            Text{Content: "Enter or Space toggles the focused header."},
             section.Build(),
             custom.Build(),
             (

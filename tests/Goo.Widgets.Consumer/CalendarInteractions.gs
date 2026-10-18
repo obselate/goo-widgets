@@ -303,7 +303,7 @@ func PickerDraft(window Window, id uint32, host CalendarHost, value string) {
 }
 
 func CalendarInteractions() {
-    CalendarContracts()
+    RunContracts(CalendarContracts)
     let host = CalendarHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

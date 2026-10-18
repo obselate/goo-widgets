@@ -14,22 +14,25 @@ internal open class NavigationRailExample : Cell {
     public override func Build() Blob -> Container{
         Gap: 16.0,
         FlexDirection: FlexDirection.Row,
-        Cell.Mount[NavigationRailInput, NavigationRail]("rail", NavigationRailInput{
-            Expanded: expanded,
-            SelectedId: selected,
-            AccessibilityName: "Example sections",
-            OnSelect: (id string) -> {
-                selected = id
-            },
-            Items: []NavigationItem{
-                NavigationItem{Id: "home", Label: "Home", Content: MaterialIcons.Create("home")},
-                NavigationItem{Id: "jobs", Label: "Jobs", Content: MaterialIcons.Create("work")},
-                NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
-            },
-        }),
+        Cell.Mount[NavigationRailInput, NavigationRail](
+            "rail",
+            NavigationRailInput{
+                Expanded: expanded,
+                SelectedId: selected,
+                AccessibilityName: "Example sections",
+                OnSelect: (id string) -> {
+                    selected = id
+                },
+                Items: []NavigationItem{
+                    NavigationItem{Id: "home", Label: "Home", Content: MaterialIcons.Create("home")},
+                    NavigationItem{Id: "jobs", Label: "Jobs", Content: MaterialIcons.Create("work")},
+                    NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
+                },
+            }
+        ),
         Container{
             Gap: 12.0,
-            Text{Content: "Selected: " + selected, Color: "#fafafa"},
+            Text{Content: "Selected: " + selected},
             ActionButton{
                 Content: if expanded {
                     "Collapse"

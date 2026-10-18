@@ -31,13 +31,13 @@ public data struct Disclosure {
     var ContentPadding float64?
     /// Gap between indicator and header content. Nil resolves to 8.
     var Gap float64?
-    /// Surface color. Nil resolves to #18181b.
+    /// Surface color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Header hover color. Nil resolves to #27272a.
+    /// Header hover color. Nil uses the nearest theme.
     var HoverColor Color?
-    /// Header text and indicator color. Nil resolves to #fafafa.
+    /// Header text and indicator color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Section border color. Nil resolves to #3f3f46.
+    /// Section border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Border width. Nil resolves to 1 and preserves explicit zero.
     var BorderWidth float64?
@@ -45,8 +45,6 @@ public data struct Disclosure {
     var BorderRadius float64?
     /// Disabled header opacity. Nil resolves to 0.5 and preserves explicit zero.
     var DisabledOpacity float64?
-    /// Enables a visible header focus outline. Disabled by default.
-    var ShowFocusHighlight bool
     /// Creates a decorative indicator from resolved props.
     var CreateIndicator Func[Disclosure, Blob]?
     /// Customizes the prepared header. Preserve its key, action, disabled state, and semantics.
@@ -58,6 +56,7 @@ public data struct Disclosure {
 
     /// Builds fresh primitives while stable child keys preserve mounted body identity.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createIndicator = CreateIndicator
         let createHeader = CreateHeader
         let createContent = CreateContent
@@ -66,16 +65,16 @@ public data struct Disclosure {
             Label = Label ?? "",
             AccessibilityName = AccessibilityName ?? (Label ?? ""),
             Width = Width ?? Percent(100),
-            HeaderHeight = HeaderHeight ?? 44.0,
-            HeaderPadding = HeaderPadding ?? 12.0,
-            ContentPadding = ContentPadding ?? 16.0,
-            Gap = Gap ?? 8.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            HoverColor = HoverColor ?? Color.Parse("#27272a"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 6.0,
+            HeaderHeight = HeaderHeight ?? theme.ControlHeight,
+            HeaderPadding = HeaderPadding ?? theme.ControlPadding,
+            ContentPadding = ContentPadding ?? theme.PanelPadding,
+            Gap = Gap ?? theme.ControlGap,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            HoverColor = HoverColor ?? theme.HoverColor,
+            TextColor = TextColor ?? theme.TextColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.ControlRadius,
             DisabledOpacity = DisabledOpacity ?? 0.5,
             CreateIndicator = nil,
             CreateHeader = nil,
@@ -95,7 +94,14 @@ public data struct Disclosure {
                 color: resolved.TextColor!!
             )
         }
-        let heading = resolved.Header ?? Text{Content: resolved.Label!!, FontWeight: 600, Color: resolved.TextColor!!}
+        let heading = resolved.Header ??
+        Text{
+            Content: resolved.Label!!,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.LabelFontWeight,
+            Color: resolved.TextColor!!,
+        }
         let onChange = resolved.OnExpandedChange
         let next = !resolved.Expanded
         let action Action? = if resolved.Disabled {
@@ -124,11 +130,7 @@ public data struct Disclosure {
             BorderBottomLeftRadius: resolved.Expanded ? 0.0: headerRadius,
             BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
             Hover: Style{BackgroundColor: resolved.HoverColor!!},
-            Focus: if resolved.ShowFocusHighlight {
-                Style{OutlineColor: resolved.TextColor!!, OutlineWidth: 1, OutlineOffset: -1}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
             Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {
@@ -175,6 +177,7 @@ public data struct Disclosure {
             return create(resolved, header, body)
         }
         return Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinWidth: 0,
             FlexShrink: 0,

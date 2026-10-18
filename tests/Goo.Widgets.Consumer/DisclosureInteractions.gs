@@ -72,7 +72,6 @@ internal class DisclosureHost : Cell {
             Label: "Connection details",
             Expanded: Expanded,
             Disabled: Disabled,
-            ShowFocusHighlight: true,
             HeaderPadding: 0.0,
             Content: Cell.Mount[DisclosureChild](
                 "child",

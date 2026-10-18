@@ -19,63 +19,61 @@ public data struct DismissibleContextBar {
     var Disabled bool
     /// Width of the context bar container. Nil resolves to Percent(100.0).
     var Width Length?
-    /// Background color of the context bar container. Nil resolves to #18181b.
+    /// Background color of the context bar container. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Text color for the context bar. Nil resolves to #fafafa.
+    /// Text color for the context bar. Nil uses the nearest theme.
     var TextColor Color?
-    /// Border color of the context bar container. Nil resolves to #3f3f46.
+    /// Border color of the context bar container. Nil uses the nearest theme.
     var BorderColor Color?
     /// Background color of the dismiss button. Nil resolves to Color.Transparent.
     var DismissBackgroundColor Color?
-    /// Text color of the dismiss button. Nil resolves to #a1a1aa.
+    /// Text color of the dismiss button. Nil uses the nearest theme.
     var DismissTextColor Color?
     /// Border color of the dismiss button. Nil resolves to Color.Transparent.
     var DismissBorderColor Color?
-    /// Hover background color of the dismiss button. Nil resolves to #27272a.
+    /// Hover background color of the dismiss button. Nil uses the nearest theme.
     var DismissHoverBackgroundColor Color?
-    /// Active background color of the dismiss button. Nil resolves to #3f3f46.
+    /// Active background color of the dismiss button. Nil uses the nearest theme.
     var DismissActiveBackgroundColor Color?
-    /// Focus border color of the dismiss button. Nil resolves to #d4d4d8.
+    /// Focus border color of the dismiss button. Nil uses the nearest theme.
     var DismissFocusBorderColor Color?
-    /// Whether the focused dismiss button uses the configured focus border color.
-    var ShowFocusHighlight bool
     /// Disabled background color of the dismiss button. Nil resolves to Color.Transparent.
     var DismissDisabledBackgroundColor Color?
-    /// Disabled text color of the dismiss button. Nil resolves to #71717a.
+    /// Disabled text color of the dismiss button. Nil uses the nearest theme.
     var DismissDisabledTextColor Color?
-    /// Minimum height of the context bar container. Zero resolves to 44.0.
-    var MinHeight float64
-    /// Horizontal padding of the context bar container. Zero resolves to 12.0.
-    var PaddingHorizontal float64
-    /// Vertical padding of the context bar container. Zero resolves to 8.0.
-    var PaddingVertical float64
-    /// Spacing between caller content and dismiss action. Nil resolves to 10.0; explicit zero is preserved.
+    /// Minimum height of the context bar container. Nil resolves to theme.ControlHeight.
+    var MinHeight float64?
+    /// Horizontal padding of the context bar container. Nil resolves to theme.PanelPadding.
+    var PaddingHorizontal float64?
+    /// Vertical padding of the context bar container. Nil resolves to theme.PanelPadding.
+    var PaddingVertical float64?
+    /// Spacing between caller content and dismiss action. Nil resolves to theme.ControlGap; explicit zero is preserved.
     var Gap float64?
     /// Border width of the context bar container. Nil resolves to 1.0; explicit zero is preserved.
     var BorderWidth float64?
-    /// Border radius of the context bar container. Nil resolves to 8.0; explicit zero is preserved.
+    /// Border radius of the context bar container. Nil resolves to theme.PanelRadius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Border radius of the dismiss button. Nil resolves to 5.0; explicit zero is preserved.
+    /// Border radius of the dismiss button. Nil resolves to theme.PanelRadius; explicit zero is preserved.
     var DismissBorderRadius float64?
     /// Border width of the dismiss button. Nil resolves to 1.0; explicit zero is preserved.
     var DismissBorderWidth float64?
-    /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil resolves to theme.TransitionMs; explicit zero is preserved.
     var TransitionMs float64?
     /// Easing curve applied to transitions. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
-    /// Transform applied when the dismiss button is active/pressed. Nil resolves to PanelTransform{Scale: 0.98}.
+    /// Transform applied when the dismiss button is active/pressed. Nil resolves to identity transform.
     var DismissActiveTransform PanelTransform?
     /// Opacity of the context bar container. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Height of the dismiss button. Zero resolves to 28.0.
-    var DismissHeight float64
-    /// Minimum width of the dismiss button. Zero resolves to 72.0.
-    var DismissMinWidth float64
-    /// Horizontal padding of the dismiss button. Zero resolves to 10.0.
-    var DismissPaddingHorizontal float64
-    /// Font size of the dismiss button text. Zero resolves to 12.0.
+    /// Height of the dismiss button. Nil resolves to theme.ControlHeight.
+    var DismissHeight float64?
+    /// Minimum width of the dismiss button. Nil resolves to 72.0.
+    var DismissMinWidth float64?
+    /// Horizontal padding of the dismiss button. Nil resolves to theme.ControlPadding.
+    var DismissPaddingHorizontal float64?
+    /// Font size of the dismiss button text. Zero resolves to theme.FontSize.
     var DismissFontSize float64
-    /// Font weight of the dismiss button text. Zero resolves to 600.
+    /// Font weight of the dismiss button text. Zero resolves to theme.FontWeight.
     var DismissFontWeight int32
     /// Optional font family for the dismiss button text.
     var FontFamily string?
@@ -91,71 +89,49 @@ public data struct DismissibleContextBar {
         let createDismiss = CreateDismiss
         let createRoot = CreateRoot
         let dismissText = DismissText ?? "Dismiss"
+        let theme = Theme.Read()
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "Context",
             DismissText = dismissText,
             DismissAccessibilityName = DismissAccessibilityName ?? dismissText,
             Width = Width ?? Percent(100.0),
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            TextColor = TextColor ?? theme.TextColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
             DismissBorderColor = DismissBorderColor ?? Color.Transparent,
             DismissBackgroundColor = DismissBackgroundColor ?? Color.Transparent,
-            DismissTextColor = DismissTextColor ?? Color.Parse("#a1a1aa"),
-            DismissHoverBackgroundColor = DismissHoverBackgroundColor ?? Color.Parse("#27272a"),
-            DismissActiveBackgroundColor = DismissActiveBackgroundColor ?? Color.Parse("#3f3f46"),
-            DismissFocusBorderColor = DismissFocusBorderColor ?? Color.Parse("#d4d4d8"),
+            DismissTextColor = DismissTextColor ?? theme.MutedTextColor,
+            DismissHoverBackgroundColor = DismissHoverBackgroundColor ?? theme.HoverColor,
+            DismissActiveBackgroundColor = DismissActiveBackgroundColor ?? theme.BorderColor,
+            DismissFocusBorderColor = DismissFocusBorderColor ?? theme.AccentColor,
             DismissDisabledBackgroundColor = DismissDisabledBackgroundColor ?? Color.Transparent,
-            DismissDisabledTextColor = DismissDisabledTextColor ?? Color.Parse("#71717a"),
-            MinHeight = if MinHeight == 0.0 {
-                44.0
-            } else {
-                MinHeight
-            },
-            PaddingHorizontal = if PaddingHorizontal == 0.0 {
-                12.0
-            } else {
-                PaddingHorizontal
-            },
-            PaddingVertical = if PaddingVertical == 0.0 {
-                8.0
-            } else {
-                PaddingVertical
-            },
-            Gap = Gap ?? 10.0,
-            BorderWidth = BorderWidth ?? 1.0,
-            DismissBorderWidth = DismissBorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 8.0,
-            DismissBorderRadius = DismissBorderRadius ?? 5.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            DismissDisabledTextColor = DismissDisabledTextColor ?? theme.FaintTextColor,
+            MinHeight = MinHeight ?? theme.ControlHeight,
+            PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
+            PaddingVertical = PaddingVertical ?? theme.PanelPadding,
+            Gap = Gap ?? theme.ControlGap,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            DismissBorderWidth = DismissBorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            DismissBorderRadius = DismissBorderRadius ?? theme.ControlRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
-            DismissActiveTransform = DismissActiveTransform ?? PanelTransform{Scale: 0.98},
+            DismissActiveTransform = DismissActiveTransform ?? PanelTransform{},
             Opacity = Opacity ?? 1.0,
-            DismissHeight = if DismissHeight == 0.0 {
-                28.0
-            } else {
-                DismissHeight
-            },
-            DismissMinWidth = if DismissMinWidth == 0.0 {
-                72.0
-            } else {
-                DismissMinWidth
-            },
-            DismissPaddingHorizontal = if DismissPaddingHorizontal == 0.0 {
-                10.0
-            } else {
-                DismissPaddingHorizontal
-            },
+            DismissHeight = DismissHeight ?? theme.ControlHeight,
+            DismissMinWidth = DismissMinWidth ?? theme.ControlMinWidth,
+            DismissPaddingHorizontal = DismissPaddingHorizontal ?? theme.ControlPadding,
             DismissFontSize = if DismissFontSize == 0.0 {
-                12.0
+                theme.FontSize
             } else {
                 DismissFontSize
             },
             DismissFontWeight = if DismissFontWeight == 0 {
-                600
+                theme.FontWeight
             } else {
                 DismissFontWeight
             },
+            FontFamily = FontFamily ?? theme.FontFamily,
             Transform = Transform ?? PanelTransform{},
             CreateDismiss = nil,
             CreateRoot = nil,
@@ -164,24 +140,16 @@ public data struct DismissibleContextBar {
         if let createDismiss = createDismiss {
             button = createDismiss(resolved)
         } else {
-            let label = if resolved.FontFamily != nil {
-                Text{
-                    Content: resolved.DismissText!!,
-                    FontFamily: resolved.FontFamily!!,
-                    FontSize: resolved.DismissFontSize,
-                    FontWeight: resolved.DismissFontWeight,
-                }
-            } else {
-                Text{
-                    Content: resolved.DismissText!!,
-                    FontSize: resolved.DismissFontSize,
-                    FontWeight: resolved.DismissFontWeight,
-                }
+            let label = Text{
+                Content: resolved.DismissText!!,
+                FontFamily: resolved.FontFamily ?? theme.FontFamily,
+                FontSize: resolved.DismissFontSize,
+                FontWeight: resolved.DismissFontWeight,
             }
             button = Button{
-                Height: resolved.DismissHeight,
-                MinWidth: resolved.DismissMinWidth,
-                Padding: Edges{Right: resolved.DismissPaddingHorizontal, Left: resolved.DismissPaddingHorizontal},
+                Height: resolved.DismissHeight!!,
+                MinWidth: resolved.DismissMinWidth!!,
+                Padding: Edges{Right: resolved.DismissPaddingHorizontal!!, Left: resolved.DismissPaddingHorizontal!!},
                 BorderWidth: resolved.DismissBorderWidth!!,
                 BorderColor: resolved.DismissBorderColor!!,
                 BorderRadius: resolved.DismissBorderRadius!!,
@@ -199,11 +167,7 @@ public data struct DismissibleContextBar {
                     BackgroundColor: resolved.DismissActiveBackgroundColor!!,
                     Transform: resolved.DismissActiveTransform!!
                 },
-                Focus: if resolved.ShowFocusHighlight {
-                    Style{BorderColor: resolved.DismissFocusBorderColor!!}
-                } else {
-                    Style{}
-                },
+                Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.DismissFocusBorderColor!!, OutlineOffset: 2.0},
                 DisabledStyle: Style{
                     BackgroundColor: resolved.DismissDisabledBackgroundColor!!,
                     Color: resolved.DismissDisabledTextColor!!
@@ -217,10 +181,11 @@ public data struct DismissibleContextBar {
             return createRoot(resolved, Content, button!!)
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             FlexDirection: FlexDirection.Row,
             Width: resolved.Width!!,
-            MinHeight: resolved.MinHeight,
-            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
+            MinHeight: resolved.MinHeight!!,
+            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             Gap: resolved.Gap!!,
             BackgroundColor: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,

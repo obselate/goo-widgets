@@ -10,7 +10,7 @@ internal class SplitPaneExample : Cell {
     public override func Build() Blob -> Container{
         Width: 600,
         Gap: 16,
-        Text{Key: "hint", Content: "Drag a divider, or focus it and use the arrow keys.", Color: "#a1a1aa"},
+        Text{Key: "hint", Content: "Drag a divider, or focus it and use the arrow keys."},
         Cell.Mount[SplitPaneInput, SplitPane](
             "horizontal",
             SplitPaneInput{

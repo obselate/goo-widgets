@@ -28,15 +28,13 @@ public data struct ColorPickerInput {
     var WheelSize float64
     /// Tone slider height. Zero resolves to 28.0.
     var ToneSliderHeight float64
-    /// Gap between the wheel and slider. Nil resolves to 12.0.
+    /// Gap between the wheel and slider. Nil uses the theme's gap.
     var Gap float64?
     /// Marker diameter. Zero resolves to 22.0.
     var MarkerSize float64
-    /// Marker border color. Nil resolves to white.
+    /// Marker border color. Nil uses the theme's text color.
     var MarkerBorderColor Color?
-    /// Enables the visible focus outline. Disabled by default.
-    var ShowFocusHighlight bool
-    /// Focus outline color. Nil resolves to #a1a1aa.
+    /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
     /// Optional base style for the picker root.
     var RootStyle Style?
@@ -55,6 +53,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private let wheelHandle ElementHandle = ElementHandle{}
     private let wheelSource ColorWheelSource = ColorWheelSource(384)
     private var resolved ColorPickerInput
+    private var theme Theme
     private var currentRgb int32
     private var currentMode ColorMode
     private var lastExternalMode ColorMode?
@@ -71,6 +70,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     }
 
     protected override func Build(input ColorPickerInput) Blob {
+        theme = Theme.Read()
         resolved = Resolve(input)
         if resolved.Disabled && dragging {
             dragging = false
@@ -125,7 +125,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 ThumbColor: ColorMath.GooColor(currentRgb),
                 ThumbBorderColor: resolved.MarkerBorderColor,
                 FocusOutlineColor: resolved.FocusOutlineColor,
-                ShowFocusHighlight: resolved.ShowFocusHighlight,
                 TrackStyle: Style{BackgroundGradient: ToneGradient()},
             }
         )
@@ -133,11 +132,12 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             return createRoot(resolved, wheel, slider)
         }
         let root = Container{
-            BasedOn: resolved.RootStyle,
+            LineHeight: theme.LineHeight,
             Key: "color-picker",
             Width: resolved.WheelSize,
             Gap: resolved.Gap!!,
             AlignItems: AlignItems.Stretch,
+            BasedOn: resolved.RootStyle,
         }
         if !resolved.Compact {
             root.Children.Add(BuildModeSelector())
@@ -165,7 +165,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             input.MarkerSize
         }
         let sliderHeight = if input.ToneSliderHeight == 0.0 {
-            28.0
+            theme.ControlHeight
         } else {
             input.ToneSliderHeight
         }
@@ -182,10 +182,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             AccessibilityName = input.AccessibilityName ?? "Color picker",
             WheelSize = wheelSize,
             ToneSliderHeight = sliderHeight,
-            Gap = input.Gap ?? 12.0,
+            Gap = input.Gap ?? theme.ControlGap,
             MarkerSize = markerSize,
-            MarkerBorderColor = input.MarkerBorderColor ?? Color.White,
-            FocusOutlineColor = input.FocusOutlineColor ?? Color.Parse("#a1a1aa"),
+            MarkerBorderColor = input.MarkerBorderColor ?? theme.TextColor,
+            FocusOutlineColor = input.FocusOutlineColor ?? theme.AccentColor,
         }
     }
 
@@ -196,7 +196,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             createMarker(resolved, currentRgb, hue, radius)
         } else {
             Container{
-                BasedOn: resolved.MarkerStyle,
                 Key: "color-marker",
                 Position: PositionType.Absolute,
                 Left: Percent(50.0 + x * 50.0),
@@ -208,6 +207,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 BorderWidth: 3.0,
                 BorderColor: resolved.MarkerBorderColor!!,
                 BackgroundColor: ColorMath.GooColor(currentRgb),
+                BasedOn: resolved.MarkerStyle,
                 HitTestSelf: false,
                 Accessibility: Accessibility{Hidden: true},
             }
@@ -232,7 +232,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             }
         }
         return Container{
-            BasedOn: resolved.WheelStyle,
             Key: "color-wheel",
             Handle: wheelHandle,
             Width: resolved.WheelSize,
@@ -248,11 +247,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: if resolved.ShowFocusHighlight {
-                Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 4.0}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
@@ -290,7 +286,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private func BuildModeSelector() Blob -> Container{
         Key: "color-modes",
         FlexDirection: FlexDirection.Row,
-        Gap: 6.0,
+        Gap: theme.ControlGap,
         Accessibility: Accessibility{
             Role: AccessibilityRole.Group,
             Name: resolved.AccessibilityName!!+ " color model",
@@ -303,16 +299,17 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private func BuildModeButton(mode ColorMode, label string) Blob {
         let button = Button{
             Key: "color-mode-" + label,
-            Height: 34.0,
+            Height: theme.ControlHeight,
             FlexGrow: 1.0,
-            Padding: Edges{Right: 8.0, Left: 8.0},
-            BorderRadius: 7.0,
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+            BorderRadius: theme.ControlRadius,
             BackgroundColor: if currentMode == mode {
-                "#3f3f46"
+                theme.PressedColor
             } else {
-                "#27272a"
+                theme.PanelColor
             },
-            Hover: Style{BackgroundColor: "#52525b"},
+            Hover: Style{BackgroundColor: theme.HoverColor},
+            Focus: theme.FocusStyle,
             Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
@@ -326,7 +323,14 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Selected: currentMode == mode,
             },
             OnClick: () -> SelectMode(mode),
-            Text{Key: "color-mode-label-" + label, Content: label, FontSize: 12.0, Color: "#fafafa"},
+            Text{
+                Key: "color-mode-label-" + label,
+                Content: label,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.LabelFontSize,
+                FontWeight: theme.LabelFontWeight,
+                Color: theme.TextColor,
+            },
         }
         WidgetKeyBindings.BindActivation(button)
         return button
@@ -337,14 +341,14 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         Height: 48.0,
         FlexDirection: FlexDirection.Row,
         AlignItems: AlignItems.Center,
-        Gap: 12.0,
+        Gap: theme.ControlGap,
         Container{
             Key: "color-preview-swatch",
             Width: 48.0,
             Height: 48.0,
-            BorderRadius: 8.0,
-            BorderWidth: 1.0,
-            BorderColor: Color.Parse("#52525b"),
+            BorderRadius: theme.ControlRadius,
+            BorderWidth: theme.BorderWidth,
+            BorderColor: theme.InputBorderColor,
             BackgroundColor: ColorMath.GooColor(currentRgb),
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Image,
@@ -354,9 +358,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         Text{
             Key: "color-preview-hex",
             Content: "#" + ColorMath.Hex(currentRgb),
-            FontSize: 14.0,
-            FontWeight: 700,
-            Color: "#fafafa",
+            FontFamily: theme.MonoFontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
+            Color: theme.TextColor,
         },
     }
 

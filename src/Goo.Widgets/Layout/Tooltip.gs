@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 import System
 
 /// Passive hover and keyboard-focus label shown in the Window overlay.
@@ -17,7 +18,7 @@ public data struct TooltipInput {
     var DelayMs float64?
     /// Preferred anchored position; Goo flips it at the viewport edge.
     var Placement PortalPlacement
-    /// Space around the label; nil uses 6 logical pixels.
+    /// Space around the label; nil uses the theme's gap.
     var Gap float64?
     /// Overlay order; zero uses 30.
     var ZIndex int32
@@ -50,6 +51,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
     }
 
     protected override func Build(input TooltipInput) Blob {
+        let theme = Theme.Read()
         if input.Window == nil || input.Target == nil {
             throw ArgumentException("Tooltip requires Window and Target")
         }
@@ -57,7 +59,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             throw ArgumentException("Tooltip requires Content or Text")
         }
         let delay = input.DelayMs ?? 500.0
-        let gap = input.Gap ?? 6.0
+        let gap = input.Gap ?? theme.ControlGap
         if !Double.IsFinite(delay) || delay < 0.0 || !Double.IsFinite(gap) || gap < 0.0 {
             throw ArgumentOutOfRangeException("input", "Tooltip delay and gap must be finite and nonnegative")
         }
@@ -73,6 +75,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         }
         current = input with{DelayMs = delay, Gap = gap, ZIndex = input.ZIndex == 0 ? 30: input.ZIndex}
         let root = Container{
+            LineHeight: theme.LineHeight,
             BasedOn: current.RootStyle,
             Handle: anchor,
             Position: PositionType.Relative,
@@ -86,31 +89,39 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             input.Target!!,
         }
         if input.Target!!.Disabled {
-            root.Children.Add(Container{
-                Position: PositionType.Absolute,
-                Left: 0.0,
-                Right: 0.0,
-                Top: 0.0,
-                Bottom: 0.0,
-                HitTestSelf: true,
-                Focusable: false,
-                TabStop: false,
-                Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
-            })
+            root.Children.Add(
+                Container{
+                    Position: PositionType.Absolute,
+                    Left: 0.0,
+                    Right: 0.0,
+                    Top: 0.0,
+                    Bottom: 0.0,
+                    HitTestSelf: true,
+                    Focusable: false,
+                    TabStop: false,
+                    Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
+                }
+            )
         }
         if visible {
-            let content = current.Content ?? Text{Content: current.Text!!, FontSize: 12.0, Color: "#E8EDF2"}
+            let content = current.Content ??
+            Text{
+                Content: current.Text!!,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.CaptionFontSize,
+                FontWeight: theme.CaptionFontWeight,
+                Color: theme.TextColor,
+            }
             let bubble = if let create = current.CreateBubble {
                 create(current, content)
             } else {
                 Container{
-                    BasedOn: current.BubbleStyle ?? Style{
-                        Padding: Edges{Top: 6.0, Right: 9.0, Bottom: 6.0, Left: 9.0},
-                        BackgroundColor: "#202832",
-                        BorderColor: Color.Parse("#465260"),
-                        BorderWidth: 1.0,
-                        BorderRadius: 6.0,
-                    },
+                    Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
+                    BackgroundColor: theme.PanelColor,
+                    BorderColor: theme.BorderColor,
+                    BorderWidth: theme.BorderWidth,
+                    BorderRadius: theme.PanelRadius,
+                    BasedOn: current.BubbleStyle,
                     content,
                 }
             }
@@ -118,13 +129,9 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             bubble.Focusable = false
             bubble.TabStop = false
             bubble.Accessibility = Accessibility{Role: AccessibilityRole.None, Hidden: true}
-            root.Children.Add(Portal{
-                Anchor: anchor,
-                Placement: current.Placement,
-                ZIndex: current.ZIndex,
-                Padding: gap,
-                bubble,
-            })
+            root.Children.Add(
+                Portal{Anchor: anchor, Placement: current.Placement, ZIndex: current.ZIndex, Padding: gap, bubble,}
+            )
         }
         return root
     }
@@ -139,7 +146,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             return
         }
         CancelPending()
-        if current.DelayMs!! == 0.0 {
+        if current.DelayMs!!== 0.0 {
             Show()
         } else {
             pending = current.Window!!.SetTimeout(() -> Show(), current.DelayMs!!)

@@ -25,7 +25,7 @@ public data struct TabBarInput {
     var AccessibilityName string?
     /// Root width. Nil resolves to 100%.
     var Width Length?
-    /// Minimum tab height. Nil resolves to 40.
+    /// Minimum tab height. Nil uses the theme's control height.
     var ItemHeight float64?
     /// Customizes item appearance; required identity, focus, handlers, and semantics are reapplied.
     var CreateItem Func[TabBarInput, NavigationItem, Button, Button]?
@@ -42,12 +42,13 @@ public open class TabBar : Cell[TabBarInput] {
     private var hasFocus bool
 
     protected override func Build(value TabBarInput) Blob {
+        let theme = Theme.Read()
         items = value.Items ?? []NavigationItem{}
         input = value with{
             Items = items,
             AccessibilityName = value.AccessibilityName ?? "Tabs",
             Width = value.Width ?? Percent(100),
-            ItemHeight = value.ItemHeight ?? 40.0
+            ItemHeight = value.ItemHeight ?? theme.ControlHeight
         }
         if !Double.IsFinite(input.ItemHeight!!) || input.ItemHeight!!< 0.0 {
             throw ArgumentOutOfRangeException("ItemHeight")
@@ -89,13 +90,20 @@ public open class TabBar : Cell[TabBarInput] {
                 Opacity: item.Disabled ? .45: 1.0,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
                 MinHeight: input.ItemHeight!!,
-                Padding: Edges{Right: 16, Left: 16},
+                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                 FlexShrink: 0,
-                Color: active ? "#fafafa": "#a1a1aa",
-                BackgroundColor: active ? "#3f3f46": "#18181b",
-                Hover: Style{BackgroundColor: "#27272a"},
-                Focus: Style{OutlineWidth: 1, OutlineColor: "#a1a1aa", OutlineOffset: -2},
-                item.Content ?? Text{Content: item.Label!!, TextWrap: TextWrap.NoWrap},
+                Color: active ? theme.OnAccentColor: theme.MutedTextColor,
+                BackgroundColor: active ? theme.AccentColor: theme.PanelColor,
+                Hover: Style{BackgroundColor: theme.HoverColor},
+                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+                item.Content ??
+                Text{
+                    Content: item.Label!!,
+                    TextWrap: TextWrap.NoWrap,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    FontWeight: theme.LabelFontWeight,
+                },
             }
             if let create = input.CreateItem {
                 button = create(input, item, button)
@@ -124,7 +132,14 @@ public open class TabBar : Cell[TabBarInput] {
             }
             buttons.Add(button)
         }
-        var root = Container{Width: input.Width!!, MinWidth: 0, Gap: 2, BackgroundColor: "#18181b"}
+        var root = Container{
+            LineHeight: theme.LineHeight,
+            Width: input.Width!!,
+            MinWidth: 0,
+            Gap: theme.Spacing / 2.0,
+            BackgroundColor: theme.PanelColor,
+            ScrollbarX: theme.Scrollbar,
+        }
         if let create = input.CreateRoot {
             root = create(input, root)
         }

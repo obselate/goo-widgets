@@ -160,7 +160,7 @@ func GraphNodeCardErgonomics() {
 }
 
 func ThemeErgonomics() {
-    for original in[]Theme{Theme.GooDark, Theme.GooLight, Theme.GitHubDark, Theme.Ink, Theme.Bone} {
+    for original in[]Theme{Theme.Ink, Theme.Bone, Theme.GitHubDark} {
         var custom = original with{
             AccentColor = Color.Rgb(30, 120, 90),
             FontSize = 19.0,
@@ -212,7 +212,7 @@ func ThemeErgonomics() {
         Require(custom.CanvasStyle != style, "Theme reused mutable canvas declarations.")
     }
     Require(
-        Theme.GitHubDark.FontSize == Theme.GooDark.FontSize,
+        Theme.GitHubDark.FontSize == Theme.Ink.FontSize,
         "Customizing GitHub Dark changed the shared theme defaults."
     )
     Console.WriteLine("PASS: packaged theme presets, customization independence, and button composition")
@@ -247,7 +247,7 @@ func TextFieldAccessibility() {
         PumpFrames(window, 8)
         let labelId = SelectorFindRole(semantics.Tree?.Root, AccessibilityRole.Text)!!.Id
         let issueId = FindSemantics(semantics.Tree?.Root, "Required")!!.Id
-        for custom in []bool{false, true} {
+        for custom in[]bool{false, true} {
             host.Custom = custom
             host.Rebuild()
             PumpFrames(window, 5)

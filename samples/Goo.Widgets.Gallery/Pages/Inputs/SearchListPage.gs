@@ -29,7 +29,7 @@ internal open class SearchListExample : Cell {
                 selected = value
             },
         }.Build(),
-        Text{Content: "Selected: " + selected, Color: "#fafafa"},
+        Text{Content: "Selected: " + selected},
     }
 }
 

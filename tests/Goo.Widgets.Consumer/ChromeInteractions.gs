@@ -250,7 +250,7 @@ func ChromeNativeDoubleClick(window Window) {
 }
 
 func ChromeInteractions() {
-    WindowChromeContracts()
+    RunContracts(WindowChromeContracts)
     let host = ChromeHost()
     let semantics = SearchListSemantics()
     let window = Window{
@@ -369,8 +369,10 @@ func ChromeInteractions() {
         )
         CaptureIssueProof(window, "chrome-maximized-menu")
         let body = host.BodyButton.BorderBox
-        ChromeSeat("move " + int32(body.X + body.Width / 2.0).ToString()
-            + " " + int32(body.Y + body.Height / 2.0).ToString())
+        ChromeSeat(
+            "move " + int32(body.X + body.Width / 2.0).ToString()
+            + " " + int32(body.Y + body.Height / 2.0).ToString()
+        )
         PumpFrames(window, 3)
         ChromeSeat("button 272 1")
         PumpFrames(window, 3)

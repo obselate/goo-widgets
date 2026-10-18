@@ -23,31 +23,31 @@ public data struct NavigationRailInput {
     var ExpandedWidth float64
     /// Height. Nil resolves to 100%.
     var Height Length?
-    /// Item height. Zero resolves to 44.
+    /// Item height. Zero uses the nearest theme control height.
     var ItemHeight float64
-    /// Gap between items. Nil resolves to 4 and preserves explicit zero.
+    /// Gap between items. Nil uses the nearest theme gap and preserves explicit zero.
     var Gap float64?
-    /// Horizontal item padding. Nil resolves to 10 and preserves explicit zero.
+    /// Horizontal item padding. Nil uses the nearest theme padding and preserves explicit zero.
     var ItemPaddingHorizontal float64?
-    /// Item content gap. Nil resolves to 10 and preserves explicit zero.
+    /// Item content gap. Nil uses the nearest theme gap and preserves explicit zero.
     var ItemGap float64?
-    /// Item corner radius. Nil resolves to 6 and preserves explicit zero.
+    /// Item corner radius. Nil uses the nearest theme radius and preserves explicit zero.
     var ItemBorderRadius float64?
-    /// Rail background. Nil resolves to #18181b.
+    /// Rail background. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Normal item background. Nil resolves to transparent.
     var ItemBackgroundColor Color?
-    /// Selected item background. Nil resolves to #27272a.
+    /// Selected item background. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Hover item background. Nil resolves to #27272a.
+    /// Hover item background. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Normal text color. Nil resolves to #a1a1aa.
+    /// Normal text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Selected text color. Nil resolves to #fafafa.
+    /// Selected text color. Nil uses the nearest theme.
     var SelectedTextColor Color?
-    /// Label font size. Zero resolves to 13.
+    /// Label font size. Zero uses the nearest theme font size.
     var FontSize float64
-    /// Label font weight. Zero resolves to 600.
+    /// Label font weight. Zero uses the nearest theme label font weight.
     var FontWeight int32
     /// Optional label font family.
     var FontFamily string?
@@ -60,7 +60,7 @@ public data struct NavigationRailInput {
     /// Creates the rail root from resolved values and item buttons.
     var CreateRoot Func[NavigationRailInput, []Button, Container]?
 
-    internal func Resolve() NavigationRailInput -> this with{
+    internal func Resolve(theme Theme) NavigationRailInput -> this with{
         Items = Items ?? []NavigationItem{},
         AccessibilityName = AccessibilityName ?? "Navigation",
         CollapsedWidth = if CollapsedWidth == 0.0 {
@@ -75,27 +75,28 @@ public data struct NavigationRailInput {
         },
         Height = Height ?? Percent(100.0),
         ItemHeight = if ItemHeight == 0.0 {
-            44.0
+            theme.ControlHeight
         } else {
             ItemHeight
         },
-        Gap = Gap ?? 4.0,
-        ItemPaddingHorizontal = ItemPaddingHorizontal ?? 10.0,
-        ItemGap = ItemGap ?? 10.0,
-        ItemBorderRadius = ItemBorderRadius ?? 6.0,
-        BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
+        Gap = Gap ?? theme.ControlGap,
+        ItemPaddingHorizontal = ItemPaddingHorizontal ?? theme.ControlPadding,
+        ItemGap = ItemGap ?? theme.ControlGap,
+        ItemBorderRadius = ItemBorderRadius ?? theme.ControlRadius,
+        BackgroundColor = BackgroundColor ?? theme.PanelColor,
+        FontFamily = FontFamily ?? theme.FontFamily,
         ItemBackgroundColor = ItemBackgroundColor ?? Color.Transparent,
-        SelectedBackgroundColor = SelectedBackgroundColor ?? Color.Parse("#27272a"),
-        HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
-        TextColor = TextColor ?? Color.Parse("#a1a1aa"),
-        SelectedTextColor = SelectedTextColor ?? Color.Parse("#fafafa"),
+        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
+        HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+        TextColor = TextColor ?? theme.MutedTextColor,
+        SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
         FontSize = if FontSize == 0.0 {
-            13.0
+            theme.FontSize
         } else {
             FontSize
         },
         FontWeight = if FontWeight == 0 {
-            600
+            theme.LabelFontWeight
         } else {
             FontWeight
         },
@@ -115,7 +116,8 @@ public open class NavigationRail : Cell[NavigationRailInput] {
     private var hasFocus bool
 
     protected override func Build(value NavigationRailInput) Blob {
-        input = value.Resolve()
+        let theme = Theme.Read()
+        input = value.Resolve(theme)
         let resolved = input
         let createItem = value.CreateItem
         let createRoot = value.CreateRoot
@@ -172,6 +174,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                         resolved.TextColor!!
                     },
                     Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+                    Focus: theme.FocusStyle,
                     Cursor: if item.Disabled {
                         Cursor.Default
                     } else {
@@ -231,6 +234,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             return createRoot(resolved, buttons)
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: if resolved.Expanded {
                 resolved.ExpandedWidth
             } else {

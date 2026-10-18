@@ -20,39 +20,39 @@ public data struct EmptyState {
     var Width Length?
     /// Minimum height for the root container. Nil resolves to 240.0; explicit zero is preserved.
     var MinHeight float64?
-    /// Background color of the root container. Nil resolves to #00000000.
+    /// Background color of the root container. Nil resolves to Color.Transparent.
     var BackgroundColor Color?
-    /// Border color of the root container. Nil resolves to #3f3f46.
+    /// Border color of the root container. Nil resolves to theme.BorderColor.
     var BorderColor Color?
-    /// Title text color. Nil resolves to #fafafa.
+    /// Title text color. Nil resolves to theme.TextColor.
     var TitleColor Color?
-    /// Description text color. Nil resolves to #a1a1aa.
+    /// Description text color. Nil resolves to theme.MutedTextColor.
     var DescriptionColor Color?
-    /// Horizontal padding. Nil resolves to 32.0; explicit zero is preserved.
+    /// Horizontal padding. Nil resolves to theme.PanelPadding; explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Vertical padding. Nil resolves to 40.0; explicit zero is preserved.
+    /// Vertical padding. Nil resolves to theme.PanelPadding; explicit zero is preserved.
     var PaddingVertical float64?
-    /// Main layout gap between illustration, copy, and action. Nil resolves to 16.0; explicit zero is preserved.
+    /// Main layout gap between illustration, copy, and action. Nil resolves to theme.ControlGap; explicit zero is preserved.
     var Gap float64?
-    /// Layout gap between title and description inside the copy container. Nil resolves to 6.0; explicit zero is preserved.
+    /// Layout gap between title and description inside the copy container. Nil resolves to theme.ControlGap; explicit zero is preserved.
     var TextGap float64?
     /// Border stroke width. Nil resolves to 0.0; explicit zero is preserved.
     var BorderWidth float64?
-    /// Corner radius of the root container. Nil resolves to 12.0; explicit zero is preserved.
+    /// Corner radius of the root container. Nil resolves to theme.PanelRadius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration in milliseconds. Nil resolves to theme.TransitionMs; explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
     /// Root opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Title font size. Zero resolves to 20.0.
+    /// Title font size. Zero resolves to theme.HeadingFontSize.
     var TitleFontSize float64
-    /// Title font weight. Zero resolves to 700.
+    /// Title font weight. Zero resolves to theme.HeadingFontWeight.
     var TitleFontWeight int32
-    /// Description font size. Zero resolves to 14.0.
+    /// Description font size. Zero resolves to theme.CaptionFontSize.
     var DescriptionFontSize float64
-    /// Description font weight. Zero resolves to 400.
+    /// Description font weight. Zero resolves to theme.CaptionFontWeight.
     var DescriptionFontWeight int32
     /// Optional font family for title and description elements.
     var FontFamily string?
@@ -73,6 +73,7 @@ public data struct EmptyState {
         let createDescription = CreateDescription
         let createRoot = CreateRoot
 
+        let theme = Theme.Read()
         let resolvedTitle = Title ?? ""
         let resolved = this with{
             Title = resolvedTitle,
@@ -84,36 +85,36 @@ public data struct EmptyState {
             },
             Width = Width ?? Percent(100.0),
             MinHeight = MinHeight ?? 240.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#00000000"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            TitleColor = TitleColor ?? Color.Parse("#fafafa"),
-            DescriptionColor = DescriptionColor ?? Color.Parse("#a1a1aa"),
-            PaddingHorizontal = PaddingHorizontal ?? 32.0,
-            PaddingVertical = PaddingVertical ?? 40.0,
-            Gap = Gap ?? 16.0,
-            TextGap = TextGap ?? 6.0,
+            BackgroundColor = BackgroundColor ?? Color.Transparent,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            TitleColor = TitleColor ?? theme.TextColor,
+            DescriptionColor = DescriptionColor ?? theme.MutedTextColor,
+            PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
+            PaddingVertical = PaddingVertical ?? theme.PanelPadding,
+            Gap = Gap ?? theme.ControlGap,
+            TextGap = TextGap ?? theme.ControlGap,
             BorderWidth = BorderWidth ?? 0.0,
-            BorderRadius = BorderRadius ?? 12.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             TitleFontSize = if TitleFontSize == 0.0 {
-                20.0
+                theme.HeadingFontSize
             } else {
                 TitleFontSize
             },
             TitleFontWeight = if TitleFontWeight == 0 {
-                700
+                theme.HeadingFontWeight
             } else {
                 TitleFontWeight
             },
             DescriptionFontSize = if DescriptionFontSize == 0.0 {
-                14.0
+                theme.CaptionFontSize
             } else {
                 DescriptionFontSize
             },
             DescriptionFontWeight = if DescriptionFontWeight == 0 {
-                400
+                theme.CaptionFontWeight
             } else {
                 DescriptionFontWeight
             },
@@ -130,6 +131,7 @@ public data struct EmptyState {
             title = Text{
                 Content: resolved.Title!!,
                 Color: resolved.TitleColor!!,
+                FontFamily: resolved.FontFamily ?? theme.FontFamily,
                 FontSize: resolved.TitleFontSize,
                 FontWeight: resolved.TitleFontWeight,
                 Accessibility: Accessibility{
@@ -137,9 +139,6 @@ public data struct EmptyState {
                     Name: resolved.Title!!,
                     Level: resolved.HeadingLevel
                 }
-            }
-            if resolved.FontFamily != nil {
-                title.FontFamily = resolved.FontFamily!!
             }
         }
 
@@ -151,11 +150,9 @@ public data struct EmptyState {
                 description = Text{
                     Content: resolved.Description!!,
                     Color: resolved.DescriptionColor!!,
+                    FontFamily: resolved.FontFamily ?? theme.FontFamily,
                     FontSize: resolved.DescriptionFontSize,
                     FontWeight: resolved.DescriptionFontWeight
-                }
-                if resolved.FontFamily != nil {
-                    description.FontFamily = resolved.FontFamily!!
                 }
             }
         }
@@ -176,6 +173,7 @@ public data struct EmptyState {
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
             Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),

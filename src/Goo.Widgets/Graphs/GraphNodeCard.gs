@@ -16,21 +16,21 @@ public data struct GraphNodeCard {
     var Width float64
     /// Card height in logical pixels. Zero resolves to 64.0.
     var Height float64
-    /// Card padding. Nil resolves to 12.0.
+    /// Card padding. Nil uses the theme's control padding.
     var Padding float64?
-    /// Card corner radius. Nil resolves to 8.0.
+    /// Card corner radius. Nil uses the theme's panel radius.
     var BorderRadius float64?
-    /// Card border width. Nil resolves to 1.0.
+    /// Card border width. Nil uses the theme's border width.
     var BorderWidth float64?
-    /// Unselected background color. Nil resolves to #18181b.
+    /// Unselected background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Selected background color. Nil resolves to #1d4ed8.
+    /// Selected background color. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Unselected border color. Nil resolves to #52525b.
+    /// Unselected border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Selected border color. Nil resolves to #93c5fd.
+    /// Selected border color. Nil uses the nearest theme.
     var SelectedBorderColor Color?
-    /// Fallback label color. Nil resolves to #fafafa.
+    /// Inherited content foreground. Nil uses the nearest theme. Explicit child colors win.
     var ForegroundColor Color?
     /// Optional base style for the card root.
     var RootStyle Style?
@@ -47,6 +47,7 @@ public data struct GraphNodeCard {
 
     /// Builds the graph node card.
     public func Build() Container {
+        let theme = Theme.Read()
         let width = if Width == 0.0 {
             160.0
         } else {
@@ -57,9 +58,9 @@ public data struct GraphNodeCard {
         } else {
             Height
         }
-        let padding = Padding ?? 12.0
-        let borderRadius = BorderRadius ?? 8.0
-        let borderWidth = BorderWidth ?? 1.0
+        let padding = Padding ?? theme.ControlPadding
+        let borderRadius = BorderRadius ?? theme.PanelRadius
+        let borderWidth = BorderWidth ?? theme.BorderWidth
         let center = Center ?? Node.Position
         if String.IsNullOrWhiteSpace(Node.Id) {
             throw ArgumentException("Node identity must be nonempty.", "Node")
@@ -85,16 +86,20 @@ public data struct GraphNodeCard {
         if !Double.IsFinite(borderWidth) || borderWidth < 0.0 {
             throw ArgumentOutOfRangeException("BorderWidth")
         }
-        let content = Node.Content ?? Text{
+        let foreground = ForegroundColor ?? (Selected ? theme.OnAccentColor: theme.TextColor)
+        let content = Node.Content ??
+        Text{
             Content: Node.Label,
-            Color: ForegroundColor ?? Color.Parse("#fafafa"),
-            FontSize: 13.0,
-            FontWeight: 700,
+            Color: foreground,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.LabelFontWeight,
             TextWrap: TextWrap.NoWrap,
             TextTrimming: TextTrimming.Ellipsis,
         }
         let card = Container{
-            BasedOn: RootStyle,
+            LineHeight: theme.LineHeight,
+            Color: foreground,
             Key: "graph-node-" + Node.Id,
             Position: PositionType.Absolute,
             Left: center.X - width * 0.5,
@@ -105,18 +110,20 @@ public data struct GraphNodeCard {
             BorderRadius: borderRadius,
             BorderWidth: borderWidth,
             BorderColor: if Selected {
-                SelectedBorderColor ?? Color.Parse("#93c5fd")
+                SelectedBorderColor ?? theme.AccentColor
             } else {
-                BorderColor ?? Color.Parse("#52525b")
+                BorderColor ?? theme.BorderColor
             },
             BackgroundColor: if Selected {
-                SelectedBackgroundColor ?? Color.Parse("#1d4ed8")
+                SelectedBackgroundColor ?? theme.AccentColor
             } else {
-                BackgroundColor ?? Color.Parse("#18181b")
+                BackgroundColor ?? theme.PanelColor
             },
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Focusable: true,
+            Focus: theme.FocusStyle,
+            BasedOn: RootStyle,
             Cursor: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
             OnClick: OnActivate,

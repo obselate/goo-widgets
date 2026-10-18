@@ -39,9 +39,9 @@ public data struct ModalDialog {
     var Padding float64?
     /// Dialog content gap. Nil resolves to 16 and preserves explicit zero.
     var Gap float64?
-    /// Dialog background. Nil resolves to #18181b.
+    /// Dialog background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Dialog border color. Nil resolves to #3f3f46.
+    /// Dialog border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Backdrop color. Nil resolves to translucent black.
     var BackdropColor Color?
@@ -67,6 +67,7 @@ public data struct ModalDialog {
             }
         }
 
+        let theme = Theme.Read()
         let createCancel = CreateCancel
         let createConfirm = CreateConfirm
         let createRoot = CreateRoot
@@ -87,13 +88,13 @@ public data struct ModalDialog {
                 ZIndex
             },
             MaxHeight = MaxHeight ?? Percent(90.0),
-            Padding = Padding ?? 20.0,
-            Gap = Gap ?? 16.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            BorderColor = BorderColor ?? Color.Parse("#3f3f46"),
-            BackdropColor = BackdropColor ?? Color.Rgba(0, 0, 0, 204),
-            BorderWidth = BorderWidth ?? 1.0,
-            BorderRadius = BorderRadius ?? 8.0,
+            Padding = Padding ?? theme.PanelPadding,
+            Gap = Gap ?? theme.ControlGap,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BorderColor = BorderColor ?? theme.BorderColor,
+            BackdropColor = BackdropColor ?? theme.BackdropColor,
+            BorderWidth = BorderWidth ?? theme.BorderWidth,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
             CreateCancel = nil,
             CreateConfirm = nil,
             CreateRoot = nil,
@@ -112,18 +113,27 @@ public data struct ModalDialog {
             Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
         }
 
-        let cancelContent = CancelContent ?? Text{Content: cancelText}
-        let confirmContent = ConfirmContent ?? Text{Content: confirmText}
+        let cancelContent = CancelContent ??
+        Text{Content: cancelText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,}
+        let confirmContent = ConfirmContent ??
+        Text{
+            Content: confirmText,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
+        }
         let cancel = if let createCancel = createCancel {
             createCancel(resolved, cancelContent)
         } else {
             Button{
-                Height: 36.0,
-                Padding: Edges{Right: 14.0, Left: 14.0},
-                BorderWidth: 1.0,
-                BorderRadius: 6.0,
+                Height: theme.ControlHeight,
+                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                BorderWidth: theme.BorderWidth,
+                BorderRadius: theme.ControlRadius,
                 BorderColor: resolved.BorderColor!!,
                 BackgroundColor: Color.Transparent,
+                Color: theme.TextColor,
+                Focus: theme.FocusStyle,
                 Cursor: Cursor.Pointer,
                 Focusable: true,
                 OnClick: resolved.OnCancel,
@@ -135,11 +145,12 @@ public data struct ModalDialog {
             createConfirm(resolved, confirmContent)
         } else {
             Button{
-                Height: 36.0,
-                Padding: Edges{Right: 14.0, Left: 14.0},
-                BorderRadius: 6.0,
-                BackgroundColor: Color.Parse("#fafafa"),
-                Color: Color.Parse("#09090b"),
+                Height: theme.ControlHeight,
+                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                BorderRadius: theme.ControlRadius,
+                BackgroundColor: theme.AccentColor,
+                Color: theme.OnAccentColor,
+                Focus: theme.FocusStyle,
                 Cursor: if resolved.ConfirmDisabled {
                     Cursor.Default
                 } else {
@@ -163,11 +174,12 @@ public data struct ModalDialog {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.FlexEnd,
-            Gap: 8.0,
+            Gap: theme.ControlGap,
             cancel,
             confirm,
         }
         let dialog = Container{
+            LineHeight: theme.LineHeight,
             Position: PositionType.Relative,
             Width: resolved.Width,
             MaxHeight: resolved.MaxHeight!!,

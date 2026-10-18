@@ -1,27 +1,28 @@
 package Goo.Widgets.Feedback
 
 import Goo
+import Goo.Widgets
 
 /// A horizontal progress bar with customizable track, fill, and root composition.
 /// Factories receive resolved props and may replace the final Goo primitives.
 public data struct ProgressBar {
     /// Normalized progress value. Clamped to 0..1 upon build.
     var Value float64
-    /// Track background color. Nil resolves to #27272a.
+    /// Track background color. Nil uses the nearest theme.
     var TrackColor Color?
-    /// Fill indicator color. Nil resolves to #fafafa.
+    /// Fill indicator color. Nil uses the nearest theme.
     var FillColor Color?
-    /// Border color. Nil resolves to #3f3f46.
+    /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
     /// Progress bar width. Zero resolves to 160.
     var Width float64
-    /// Progress bar height. Zero resolves to 8.
-    var Height float64
+    /// Progress height. Nil uses two theme spacing units.
+    var Height float64?
     /// Border width. Zero leaves the border unpainted.
     var BorderWidth float64
-    /// Corner radius. Zero resolves to half the resolved height.
-    var BorderRadius float64
-    /// Transition duration in milliseconds. Nil resolves to 150.0; explicit zero is preserved.
+    /// Radius. Nil uses half the resolved height. Explicit zero is preserved.
+    var BorderRadius float64?
+    /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
@@ -40,6 +41,7 @@ public data struct ProgressBar {
 
     /// Builds a fresh Goo tree, resolving props before invoking primitive factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createFill = CreateFill
         let createRoot = CreateRoot
         var clampedValue = Value
@@ -49,24 +51,16 @@ public data struct ProgressBar {
             clampedValue = 1.0
         }
 
-        let trackColor = TrackColor ?? Color.Parse("#27272a")
-        let fillColor = FillColor ?? Color.Parse("#fafafa")
-        let borderColor = BorderColor ?? Color.Parse("#3f3f46")
+        let trackColor = TrackColor ?? theme.BorderColor
+        let fillColor = FillColor ?? theme.AccentColor
+        let borderColor = BorderColor ?? theme.BorderColor
         let width = if Width == 0.0 {
             160.0
         } else {
             Width
         }
-        let height = if Height == 0.0 {
-            8.0
-        } else {
-            Height
-        }
-        let borderRadius = if BorderRadius == 0.0 {
-            height / 2.0
-        } else {
-            BorderRadius
-        }
+        let height = Height ?? theme.Spacing * 2.0
+        let borderRadius = BorderRadius ?? height / 2.0
 
         let resolved = this with{
             Value = clampedValue,
@@ -76,7 +70,7 @@ public data struct ProgressBar {
             Width = width,
             Height = height,
             BorderRadius = borderRadius,
-            TransitionMs = TransitionMs ?? 150.0,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -90,8 +84,8 @@ public data struct ProgressBar {
         } else {
             fill = Container{
                 Width: Percent(resolved.Value * 100.0),
-                Height: resolved.Height,
-                BorderRadius: resolved.BorderRadius,
+                Height: resolved.Height!!,
+                BorderRadius: resolved.BorderRadius!!,
                 BackgroundColor: resolved.FillColor!!,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
@@ -118,8 +112,8 @@ public data struct ProgressBar {
 
         return Container{
             Width: resolved.Width,
-            Height: resolved.Height,
-            BorderRadius: resolved.BorderRadius,
+            Height: resolved.Height!!,
+            BorderRadius: resolved.BorderRadius!!,
             BorderWidth: resolved.BorderWidth,
             BorderColor: resolved.BorderColor!!,
             BackgroundColor: resolved.TrackColor!!,

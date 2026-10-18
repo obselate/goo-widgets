@@ -52,6 +52,7 @@ public data struct CalendarInput {
 /// A six-week calendar with roving date focus, month navigation, and host-owned selection.
 public open class Calendar : Cell[CalendarInput], IDisposable {
     private var current CalendarInput
+    private var theme Theme
     private let rootHandle ElementHandle = ElementHandle()
     private let handles Dictionary[int32, ElementHandle] = Dictionary[int32, ElementHandle]()
     private var month DateOnly
@@ -77,13 +78,14 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
     }
 
     protected override func Build(input CalendarInput) Blob {
+        theme = Theme.Read()
         let width Length = 280.0
         let culture = input.Culture ?? CultureInfo.CurrentCulture
         current = input with{
             Culture = culture,
             FirstDayOfWeek = input.FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
             Width = input.Width ?? width,
-            DayHeight = input.DayHeight == 0.0 ? 32.0: input.DayHeight,
+            DayHeight = input.DayHeight == 0.0 ? theme.ControlHeight: input.DayHeight,
             Today = input.Today ?? DateOnly.FromDateTime(DateTime.Today),
             AccessibilityName = input.AccessibilityName ?? "Calendar",
             PreviousMonthLabel = input.PreviousMonthLabel ?? "Previous month",
@@ -133,19 +135,21 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         let title = month.ToString("MMMM yyyy", culture)
         let heading = Container{
             Key: "heading",
-            Height: Math.Max(32.0, current.DayHeight),
+            Height: Math.Max(theme.ControlHeight, current.DayHeight),
             FlexShrink: 0.0,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            Gap: 8.0,
+            Gap: theme.ControlGap,
             Navigation(-1),
             Text{
                 Key: "month",
                 Content: title,
                 FlexGrow: 1.0,
                 TextAlign: TextAlign.Center,
-                FontWeight: 600,
-                Color: "#fafafa",
+                FontFamily: theme.HeadingFontFamily,
+                FontSize: theme.HeadingFontSize,
+                FontWeight: theme.HeadingFontWeight,
+                Color: theme.TextColor,
                 BasedOn: current.MonthTextStyle,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Heading,
@@ -158,7 +162,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         }
         let grid = Container{
             Key: "grid",
-            Gap: 2.0,
+            Gap: theme.Spacing / 2.0,
             Accessibility: Accessibility{Role: AccessibilityRole.Grid, Name: title}
         }
         let weekdays = Container{
@@ -171,8 +175,10 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             let weekday = DayOfWeek((int32(current.FirstDayOfWeek!!) + column) % 7)
             let prepared = Text{
                 Content: culture.DateTimeFormat.GetShortestDayName(weekday),
-                Color: "#a1a1aa",
-                FontSize: 12.0,
+                Color: theme.MutedTextColor,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.CaptionFontSize,
+                FontWeight: theme.CaptionFontWeight,
                 TextAlign: TextAlign.Center
             }
             let label = if let create = current.CreateWeekday {
@@ -198,7 +204,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             let row = Container{
                 Key: "week-" + (first + week * 7).ToString(),
                 FlexDirection: FlexDirection.Row,
-                Gap: 2.0,
+                Gap: theme.Spacing / 2.0,
                 Accessibility: Accessibility{Role: AccessibilityRole.Row}
             }
             for column in 0 ... 7 {
@@ -243,13 +249,14 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             handles.Remove(number)
         }
         var root = Container{
+            LineHeight: theme.LineHeight,
             Width: current.Width!!,
             MinWidth: 0.0,
-            Padding: 8.0,
-            Gap: 8.0,
-            BackgroundColor: "#18181b",
-            BorderRadius: 7.0,
-            Color: "#fafafa"
+            Padding: theme.ControlPadding,
+            Gap: theme.ControlGap,
+            BackgroundColor: theme.PanelColor,
+            BorderRadius: theme.PanelRadius,
+            Color: theme.TextColor,
         }
         if let create = current.CreateRoot {
             root = create(current, root)
@@ -310,7 +317,14 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
     }
 
     private func Navigation(delta int32) Button {
-        var button = Button{Width: 30.0, Height: 30.0, Padding: 0.0, BackgroundColor: "#27272a", BorderRadius: 5.0}
+        var button = Button{
+            Width: theme.ControlHeight,
+            Height: theme.ControlHeight,
+            Padding: 0.0,
+            BackgroundColor: theme.PanelColor,
+            BorderRadius: theme.ControlRadius,
+            Focus: theme.FocusStyle,
+        }
         if let create = current.CreateNavigation {
             button = create(current, delta, button)
         }
@@ -325,7 +339,15 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Name: delta < 0 ? current.PreviousMonthLabel!!: current.NextMonthLabel!!
         }
         button.Children.Clear()
-        button.Children.Add(Text{Content: delta < 0 ? "‹": "›", FontSize: 22.0})
+        button.Children.Add(
+            Text{
+                Content: delta < 0 ? "‹": "›",
+                FontFamily: theme.FontFamily,
+                FontSize: theme.HeadingFontSize,
+                FontWeight: theme.HeadingFontWeight,
+                Color: theme.TextColor,
+            }
+        )
         return button
     }
 
@@ -333,11 +355,12 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         let date = day.Date
         var button = Button{
             Padding: 0.0,
-            BorderRadius: 4.0,
-            BackgroundColor: day.Selected ? Color.Parse("#4f46e5"): Color.Transparent,
-            BorderWidth: day.Today ? 1.0: 0.0,
-            BorderColor: Color.Parse("#818cf8"),
-            Focus: Style{OutlineWidth: 1.0, OutlineColor: "#c7d2fe", OutlineOffset: -2.0},
+            BorderRadius: theme.ControlRadius,
+            BackgroundColor: day.Selected ? theme.AccentColor: Color.Transparent,
+            Hover: Style{BackgroundColor: theme.HoverColor},
+            BorderWidth: day.Today ? theme.BorderWidth: 0.0,
+            BorderColor: theme.AccentColor,
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
             Opacity: day.Disabled ? .35: 1.0
         }
         if let create = current.CreateDay {
@@ -375,8 +398,16 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         button.Children.Add(
             Text{
                 Content: date.Day.ToString(current.Culture!!),
-                FontSize: 13.0,
-                Color: day.Selected || day.CurrentMonth ? Color.Parse("#fafafa"): Color.Parse("#71717a"),
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
+                Color: if day.Selected {
+                    theme.OnAccentColor
+                } else if day.CurrentMonth {
+                    theme.TextColor
+                } else {
+                    theme.FaintTextColor
+                },
                 BasedOn: current.DayTextStyle
             }
         )

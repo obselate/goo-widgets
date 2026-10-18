@@ -23,12 +23,10 @@ internal class CalendarExample : Cell {
     public override func Build() Blob -> Container{
         Width: 720.0,
         Gap: 18.0,
-        Color: "#fafafa",
         Text{Key: "title", Content: "Dates, with your locale and constraints", FontSize: 22.0, FontWeight: 700},
         Text{
             Key: "hint",
             Content: "Arrow keys move by day/week. Page Up/Down change month; Shift changes year.",
-            Color: "#a1a1aa",
             FontSize: 14.0
         },
         Container{
@@ -38,7 +36,7 @@ internal class CalendarExample : Cell {
             Container{
                 Key: "english",
                 Gap: 10.0,
-                Text{Key: "label", Content: "Sunday first · en-US", Color: "#a1a1aa", FontSize: 13.0},
+                Text{Key: "label", Content: "Sunday first · en-US", FontSize: 13.0},
                 Cell.Mount[CalendarInput, Calendar](
                     "calendar",
                     CalendarInput{
@@ -52,7 +50,7 @@ internal class CalendarExample : Cell {
             Container{
                 Key: "french",
                 Gap: 10.0,
-                Text{Key: "label", Content: "Monday first · fr-FR · weekdays only", Color: "#a1a1aa", FontSize: 13.0},
+                Text{Key: "label", Content: "Monday first · fr-FR · weekdays only", FontSize: 13.0},
                 Cell.Mount[CalendarInput, Calendar](
                     "calendar",
                     CalendarInput{
@@ -72,7 +70,6 @@ internal class CalendarExample : Cell {
         Text{
             Key: "selected",
             Content: "Selected: " + selected.ToString("yyyy-MM-dd") + " · " + french.ToString("yyyy-MM-dd"),
-            Color: "#a5b4fc",
             FontSize: 13.0
         }
     }

@@ -15,7 +15,7 @@ internal class MarkdownExample : Cell {
         Width: 720.0,
         Height: 450.0,
         Gap: 12.0,
-        Text{Key: "status", Content: activated, FontSize: 12.0, Color: "#a5b4fc"},
+        Text{Key: "status", Content: activated, FontSize: 12.0},
         Container{
             Key: "scroll",
             FlexGrow: 1.0,

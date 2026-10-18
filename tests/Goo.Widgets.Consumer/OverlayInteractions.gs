@@ -401,13 +401,11 @@ internal class OverlayHost : Cell {
     }
 }
 
-func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(
-    adapter.Tree?.Root,
-    name
-)?.Focused ?? false
+func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(adapter.Tree?.Root, name)?.Focused ??
+false
 
 func OverlayInteractions() {
-    OverlayContracts()
+    RunContracts(OverlayContracts)
     let host = OverlayHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

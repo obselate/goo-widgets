@@ -96,14 +96,14 @@ class AppBarPage : GalleryPage {
                 Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
-                Text{Content: "MINIMAL TITLE", FontSize: 10.0, FontWeight: 700, Color: "#a1a1aa"},
+                Text{Content: "MINIMAL TITLE", FontSize: 10.0, FontWeight: 700},
                 minimalTitleBar.Build(),
             },
             Container{
                 Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
-                Text{Content: "TITLE + SUBTITLE WITH SLOTS", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
+                Text{Content: "TITLE + SUBTITLE WITH SLOTS", FontSize: 10.0, FontWeight: 700},
                 slotsBar.Build(),
             },
             Container{
@@ -117,12 +117,7 @@ class AppBarPage : GalleryPage {
                 Width: Percent(100.0),
                 FlexDirection: FlexDirection.Column,
                 Gap: 4.0,
-                Text{
-                    Content: "DISTINCT CUSTOM PALETTE & TYPOGRAPHY",
-                    FontSize: 10.0,
-                    FontWeight: 700,
-                    Color: "#d4d4d8"
-                },
+                Text{Content: "DISTINCT CUSTOM PALETTE & TYPOGRAPHY", FontSize: 10.0, FontWeight: 700,},
                 distinctCustomBar.Build(),
             },
         }

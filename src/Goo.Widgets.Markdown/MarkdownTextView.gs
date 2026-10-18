@@ -22,6 +22,7 @@ internal class MarkdownTextView : Cell, IDisposable {
     private let handle ElementHandle = ElementHandle()
     private var width float64
     private var disposed bool
+    private var presentationTheme Theme
     public init() {
         handle.MetricsChanged += Metrics
     }
@@ -36,21 +37,22 @@ internal class MarkdownTextView : Cell, IDisposable {
         controller?.Dispose()
     }
 
-    internal func Configure(input MarkdownLeafInput) {
-        if controller != nil && current.Equals(input) {
+    internal func Configure(input MarkdownLeafInput, theme Theme) {
+        if controller != nil && current.Equals(input) && presentationTheme == theme {
             return
         }
         current = input
+        presentationTheme = theme
         if controller == nil {
             let document = TextDocument(input.Model!!.Block.Text ?? "")
             controller = TextEditorController(document)
             layer = TextPresentationLayer(document)
         }
-        UpdatePresentation()
+        UpdatePresentation(theme)
         Rebuild()
     }
 
-    private func UpdatePresentation() {
+    private func UpdatePresentation(theme Theme) {
         let input = current
         let model = input.Model!!
         let options = input.Options
@@ -85,7 +87,7 @@ internal class MarkdownTextView : Cell, IDisposable {
                 style = create(run, style)
             }
             layer!!.SetStyle(key, textRange, style)
-            if let content = Inline(run, style) {
+            if let content = Inline(run, style, theme) {
                 if run.Kind == MarkdownInlineKind.Image {
                     layer!!.SetBlockSlot(key, textRange, content)
                 } else {
@@ -97,10 +99,12 @@ internal class MarkdownTextView : Cell, IDisposable {
     }
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let input = current
         let model = input.Model!!
         let options = input.Options
         var editor = TextEditor(controller!!, []TextPresentationLayer{layer!!}){
+            LineHeight = theme.LineHeight,
             FontSize = input.Size,
             FontWeight = input.Weight,
             FontFamily = model.Block.Kind == MarkdownBlockKind.Code ? options.CodeFontFamily!!: options.FontFamily!!,
@@ -116,6 +120,7 @@ internal class MarkdownTextView : Cell, IDisposable {
             TextWrap = model.Block.Kind == MarkdownBlockKind.Code ? TextWrap.NoWrap: TextWrap.Wrap,
             OverflowX = model.Block.Kind == MarkdownBlockKind.Code ? Overflow.Scroll: Overflow.Hidden,
             OverflowY = Overflow.Hidden,
+            ScrollbarX = model.Block.Kind == MarkdownBlockKind.Code ? theme.Scrollbar: nil,
         }
         if let create = options.CreateEditor {
             editor = create(model.Block, editor)
@@ -165,7 +170,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         return ranges
     }
 
-    private func Inline(run MarkdownInline, style Style) Blob? {
+    private func Inline(run MarkdownInline, style Style, theme Theme) Blob? {
         if run.Kind == MarkdownInlineKind.Text {
             return nil
         }
@@ -201,7 +206,7 @@ internal class MarkdownTextView : Cell, IDisposable {
                     Name: run.Text ?? "",
                     Description: run.Title ?? ""
                 },
-                Focus: Style{OutlineWidth: 1.0, OutlineColor: options.LinkColor!!},
+                Focus: theme.FocusStyle,
                 content
             }
             button.Focusable = options.OnLink != nil
@@ -215,9 +220,9 @@ internal class MarkdownTextView : Cell, IDisposable {
             return button
         }
         if run.Kind == MarkdownInlineKind.Code {
-            root.Padding = Edges{Left: 3.0, Right: 3.0}
+            root.Padding = Edges{Left: theme.Spacing * .75, Right: theme.Spacing * .75}
             root.BackgroundColor = options.CodeBackground!!
-            root.BorderRadius = 3.0
+            root.BorderRadius = theme.ControlRadius / 2.0
         } else {
             root.Accessibility = Accessibility{
                 Role: AccessibilityRole.Image,
@@ -237,7 +242,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
         if Math.Abs(width - metrics.ContentBox.Width) > .1 {
             width = metrics.ContentBox.Width
-            UpdatePresentation()
+            UpdatePresentation(presentationTheme)
             Rebuild()
         }
     }

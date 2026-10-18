@@ -70,7 +70,7 @@ public data struct MarkdownViewInput {
     var LinkColor Color?
     var CodeBackground Color?
     var SelectionColor Color?
-    var BlockGap float64
+    var BlockGap float64?
     /// Minimum measured table-column width before horizontal scrolling is used.
     var MinimumTableColumnWidth float64
     var OnLink Action[string]?

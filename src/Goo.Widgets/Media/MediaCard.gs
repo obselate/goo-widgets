@@ -26,23 +26,23 @@ public data struct MediaCard {
     var ThumbnailHeight float64
     /// Metadata area height. Zero resolves to 88.0.
     var ContentHeight float64
-    /// Metadata padding. Nil resolves to 12.0.
+    /// Metadata padding. Nil uses the nearest theme padding.
     var Padding float64?
-    /// Gap between metadata rows. Nil resolves to 4.0.
+    /// Gap between metadata rows. Nil uses the nearest theme spacing.
     var Gap float64?
-    /// Card corner radius. Nil resolves to 8.0.
+    /// Card corner radius. Nil uses the nearest theme radius.
     var BorderRadius float64?
-    /// Card background. Nil resolves to #18181b.
+    /// Card background. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Card hover background. Nil resolves to #27272a.
+    /// Card hover background. Nil uses the nearest theme.
     var HoverBackgroundColor Color?
-    /// Primary text color. Nil resolves to #fafafa.
+    /// Primary text color. Nil uses the nearest theme.
     var TitleColor Color?
-    /// Secondary text color. Nil resolves to #a1a1aa.
+    /// Secondary text color. Nil uses the nearest theme.
     var SupportingColor Color?
-    /// Primary text size. Zero resolves to 16.0.
+    /// Primary text size. Zero uses the nearest theme heading font size.
     var TitleFontSize float64
-    /// Supporting text size. Zero resolves to 13.0.
+    /// Supporting text size. Zero uses the nearest theme caption font size.
     var SupportingFontSize float64
     /// Optional base style for the root button.
     var RootStyle Style?
@@ -53,6 +53,7 @@ public data struct MediaCard {
 
     /// Builds a fresh Goo card tree.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createContent = CreateContent
         let createRoot = CreateRoot
         let title = Title ?? ""
@@ -75,31 +76,32 @@ public data struct MediaCard {
             } else {
                 ContentHeight
             },
-            Padding = Padding ?? 12.0,
-            Gap = Gap ?? 4.0,
-            BorderRadius = BorderRadius ?? 8.0,
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            HoverBackgroundColor = HoverBackgroundColor ?? Color.Parse("#27272a"),
-            TitleColor = TitleColor ?? Color.Parse("#fafafa"),
-            SupportingColor = SupportingColor ?? Color.Parse("#a1a1aa"),
+            Padding = Padding ?? theme.PanelPadding,
+            Gap = Gap ?? theme.Spacing,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+            TitleColor = TitleColor ?? theme.TextColor,
+            SupportingColor = SupportingColor ?? theme.MutedTextColor,
             TitleFontSize = if TitleFontSize == 0.0 {
-                16.0
+                theme.HeadingFontSize
             } else {
                 TitleFontSize
             },
             SupportingFontSize = if SupportingFontSize == 0.0 {
-                13.0
+                theme.CaptionFontSize
             } else {
                 SupportingFontSize
             },
             CreateContent = nil,
             CreateRoot = nil,
         }
-        let thumbnail = resolved.Thumbnail ?? Container{
+        let thumbnail = resolved.Thumbnail ??
+        Container{
             Width: resolved.Width,
             Height: resolved.ThumbnailHeight,
             FlexShrink: 0.0,
-            BackgroundColor: Color.Parse("#27272a"),
+            BackgroundColor: theme.FieldColor,
             Accessibility: Accessibility{Hidden: true},
         }
         let content = if let createContent = createContent {
@@ -109,18 +111,19 @@ public data struct MediaCard {
             children.Add(
                 Text{
                     Content: resolved.Title!!,
+                    FontFamily: theme.HeadingFontFamily,
                     FontSize: resolved.TitleFontSize,
-                    FontWeight: 600,
+                    FontWeight: theme.HeadingFontWeight,
                     Color: resolved.TitleColor!!,
                     TextWrap: TextWrap.NoWrap,
                     TextTrimming: TextTrimming.Ellipsis,
                 }
             )
             if let subtitle = resolved.Subtitle {
-                children.Add(SupportingText(resolved, subtitle))
+                children.Add(SupportingText(theme, resolved, subtitle))
             }
             if let detail = resolved.Detail {
-                children.Add(SupportingText(resolved, detail))
+                children.Add(SupportingText(theme, resolved, detail))
             }
             Container{
                 Width: resolved.Width,
@@ -140,11 +143,12 @@ public data struct MediaCard {
             return button
         }
         let button = Button{
-            BasedOn: resolved.RootStyle,
+            LineHeight: theme.LineHeight,
             Width: resolved.Width,
             Height: resolved.ThumbnailHeight + resolved.ContentHeight,
             Padding: 0.0,
             BorderRadius: resolved.BorderRadius!!,
+            Focus: theme.FocusStyle,
             Cursor: Cursor.Pointer,
             Disabled: resolved.Disabled,
             AlignItems: AlignItems.Stretch,
@@ -153,6 +157,7 @@ public data struct MediaCard {
             OverflowY: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
             Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+            BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
             thumbnail,
@@ -162,8 +167,10 @@ public data struct MediaCard {
         return button
     }
 
-    private func SupportingText(input MediaCard, content string) Blob -> Text{
+    private func SupportingText(theme Theme, input MediaCard, content string) Blob -> Text{
         Content: content,
+        FontFamily: theme.FontFamily,
+        FontWeight: theme.CaptionFontWeight,
         FontSize: input.SupportingFontSize,
         Color: input.SupportingColor!!,
         TextWrap: TextWrap.NoWrap,

@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 import System
 
 /// Preferred anchor edge and alignment before viewport collision handling.
@@ -48,6 +49,10 @@ public data struct PopoverInput {
     var BackgroundColor Color?
     var BorderColor Color?
     var Padding float64?
+    /// Vertical scrollbar. Nil uses the theme overlay parts.
+    var ScrollbarY Scrollbar?
+    /// Vertical visibility. Nil uses Auto.
+    var ScrollbarVisibilityY ScrollbarVisibility?
     /// Creates the panel from resolved input, window bounds, and content. Placement and identity are rewired.
     var CreatePanel Func[PopoverInput, ElementRect, Blob, Container]?
     var CreateRoot Func[PopoverInput, Container, Container, Container]?
@@ -93,8 +98,9 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     }
 
     protected override func Build(input PopoverInput) Blob {
+        let theme = Theme.Read()
         let previous = current
-        current = Resolve(input)
+        current = Resolve(input, theme)
         BindAnchor(input.Open ? input.Anchor: nil)
         if !input.Open {
             anchorWasMounted = false
@@ -128,13 +134,16 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         layoutWidth = width
         var height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
-        if anchor != nil && (current.Placement == PopoverPlacement.BottomStart
-        || current.Placement == PopoverPlacement.BottomEnd
-        || current.Placement == PopoverPlacement.TopStart
-        || current.Placement == PopoverPlacement.TopEnd) {
+        if anchor != nil &&
+            (
+            current.Placement == PopoverPlacement.BottomStart
+            || current.Placement == PopoverPlacement.BottomEnd
+            || current.Placement == PopoverPlacement.TopStart
+            || current.Placement == PopoverPlacement.TopEnd
+        ) {
             let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
             let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
-            let above = Math.Max(0.0, anchorBox.Y - current.Gap!! - top)
+            let above = Math.Max(0.0, anchorBox.Y - current.Gap!!- top)
             let below = Math.Max(0.0, bottom - anchorBox.Y - anchorBox.Height - current.Gap!!)
             heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
             height = Math.Min(height, heightLimit)
@@ -149,8 +158,10 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 Padding: current.Padding!!,
                 BackgroundColor: current.BackgroundColor!!,
                 BorderColor: current.BorderColor!!,
-                BorderWidth: 1.0,
-                BorderRadius: 8.0,
+                BorderWidth: theme.BorderWidth,
+                BorderRadius: theme.PanelRadius,
+                ScrollbarY: current.ScrollbarY,
+                ScrollbarVisibilityY: current.ScrollbarVisibilityY!!,
             }
         }
         panel.Key = "panel"
@@ -210,18 +221,20 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         content,
     }
 
-    private func Resolve(input PopoverInput) PopoverInput {
+    private func Resolve(input PopoverInput, theme Theme) PopoverInput {
         let result = input with{
             Width = input.Width == 0.0 ? 280.0: input.Width,
             MaxHeight = input.MaxHeight == 0.0 ? 360.0: input.MaxHeight,
-            Gap = input.Gap ?? 4.0,
-            ViewportMargin = input.ViewportMargin ?? 8.0,
+            Gap = input.Gap ?? theme.Spacing,
+            ViewportMargin = input.ViewportMargin ?? theme.ControlGap,
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,
             Role = input.Role == AccessibilityRole.Auto ? AccessibilityRole.Group: input.Role,
             AccessibilityName = input.AccessibilityName ?? "Popup",
-            BackgroundColor = input.BackgroundColor ?? Color.Parse("#18181b"),
-            BorderColor = input.BorderColor ?? Color.Parse("#3f3f46"),
-            Padding = input.Padding ?? 8.0,
+            BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
+            BorderColor = input.BorderColor ?? theme.BorderColor,
+            Padding = input.Padding ?? theme.ControlPadding,
+            ScrollbarY = input.ScrollbarY ?? theme.Scrollbar,
+            ScrollbarVisibilityY = input.ScrollbarVisibilityY ?? Goo.ScrollbarVisibility.Auto,
         }
         if !Double.IsFinite(result.Width) || result.Width <= 0.0
         || !Double.IsFinite(result.MaxHeight) || result.MaxHeight <= 0.0

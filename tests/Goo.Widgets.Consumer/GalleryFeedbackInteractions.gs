@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Hexa.NET.SDL3
 import System
@@ -295,7 +296,16 @@ func FeedbackTree(window Window, adapter SearchListSemantics) {
     )
     PumpFrames(window, 12)
     let box = FeedbackNode(adapter, AccessibilityRole.TreeItem, "All hosts").Bounds
-    FeedbackClick(window, ElementRect{X: box.X + 34.0, Y: box.Y + 8.0, Width: 14, Height: 18})
+    let theme = Theme.Read(window)
+    FeedbackClick(
+        window,
+        ElementRect{
+            X: box.X + theme.ControlPadding + theme.ControlHeight + theme.ControlGap,
+            Y: box.Y,
+            Width: theme.ControlHeight,
+            Height: box.Height
+        }
+    )
     let checked = FeedbackNode(adapter, AccessibilityRole.TreeItem, "All hosts")
     Require(
         checked.Expanded == true && checked.Checked == AccessibilityChecked.True,

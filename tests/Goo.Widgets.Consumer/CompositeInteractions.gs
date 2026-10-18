@@ -213,7 +213,6 @@ internal class CompositeHost : Cell {
                         ReadOnly: ReadOnly,
                         Disabled: Disabled,
                         Wrap: NoWrap ? TextWrap.NoWrap: TextWrap.Wrap,
-                        ShowFocusHighlight: true,
                         CreateEditor: CaptureEditor,
                     }
                 )
@@ -239,28 +238,31 @@ internal class RailHost : Cell {
     internal var Empty bool
     internal var Buttons[]Button = []Button{}
 
-    public override func Build() Blob -> Cell.Mount[NavigationRailInput, NavigationRail]("rail", NavigationRailInput{
-        SelectedId: Selected,
-        Height: 250,
-        OnSelect: (id string) -> {
-            Selected = id
-            Requests++
-            Rebuild()
-        },
-        Items: Empty ? []NavigationItem{}: []NavigationItem{
-            NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected},
-            NavigationItem{Id: "locked", Label: "Rail locked", Disabled: true},
-            NavigationItem{Id: "three", Label: "Rail three"},
-        },
-        CreateRoot: (input NavigationRailInput, buttons[]Button) -> {
-            Buttons = buttons
-            let root = Container{Width: 220, Height: 250}
-            for button in buttons {
-                root.Children.Add(button)
-            }
-            return root
-        },
-    })
+    public override func Build() Blob -> Cell.Mount[NavigationRailInput, NavigationRail](
+        "rail",
+        NavigationRailInput{
+            SelectedId: Selected,
+            Height: 250,
+            OnSelect: (id string) -> {
+                Selected = id
+                Requests++
+                Rebuild()
+            },
+            Items: Empty ? []NavigationItem{}: []NavigationItem{
+                NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected},
+                NavigationItem{Id: "locked", Label: "Rail locked", Disabled: true},
+                NavigationItem{Id: "three", Label: "Rail three"},
+            },
+            CreateRoot: (input NavigationRailInput, buttons[]Button) -> {
+                Buttons = buttons
+                let root = Container{Width: 220, Height: 250}
+                for button in buttons {
+                    root.Children.Add(button)
+                }
+                return root
+            },
+        }
+    )
 }
 
 func RailInteractions() {
@@ -289,7 +291,8 @@ func RailInteractions() {
         SendKey(id, SDLScancode.Down)
         PumpFrames(window, 5)
         Require(
-            host.Selected == "one" && host.Requests == 0 &&
+            host.Selected == "one" &&
+                host.Requests == 0 &&
                 FindSemantics(semantics.Tree!!.Root, "Rail three")!!.Focused,
             "Rail arrow navigation did not skip disabled items or changed controlled selection"
         )
@@ -332,7 +335,7 @@ func RailInteractions() {
 }
 
 func CompositeInteractions() {
-    TextAreaOwnership()
+    RunContracts(TextAreaOwnership)
     RailInteractions()
     let host = CompositeHost()
     let root = ApplicationRoot(host)
@@ -502,25 +505,45 @@ internal class PointerCommitHost : Cell {
     internal let Previews[]int32 = [2]int32
 
     public override func Build() Blob -> Container{
-        Width: 300, Height: 300, Gap: 20,
-        Cell.Mount[SliderInput, Slider]("slider", SliderInput{
-            Value: 0.5, Width: 260, Height: 40,
-            OnValueChanged: (value float64) -> { Previews[0]++ },
-            OnValueCommitted: (value float64) -> { Commits[0]++ },
-            CreateRoot: (input SliderInput, root Container) -> {
-                SliderRoot = root
-                return root
+        Width: 300,
+        Height: 300,
+        Gap: 20,
+        Cell.Mount[SliderInput, Slider](
+            "slider",
+            SliderInput{
+                Value: 0.5,
+                Width: 260,
+                Height: 40,
+                OnValueChanged: (value float64) -> {
+                    Previews[0]++
+                },
+                OnValueCommitted: (value float64) -> {
+                    Commits[0]++
+                },
+                CreateRoot: (input SliderInput, root Container) -> {
+                    SliderRoot = root
+                    return root
+                }
             }
-        }),
-        Cell.Mount[ColorPickerInput, ColorPicker]("picker", ColorPickerInput{
-            Value: 0x336699, Compact: true, WheelSize: 120,
-            OnValueChanged: (value int32) -> { Previews[1]++ },
-            OnValueCommitted: (value int32) -> { Commits[1]++ },
-            CreateRoot: (input ColorPickerInput, wheel Blob, tone Blob) -> {
-                Wheel = wheel
-                return Container(){wheel, tone}
+        ),
+        Cell.Mount[ColorPickerInput, ColorPicker](
+            "picker",
+            ColorPickerInput{
+                Value: 0x336699,
+                Compact: true,
+                WheelSize: 120,
+                OnValueChanged: (value int32) -> {
+                    Previews[1]++
+                },
+                OnValueCommitted: (value int32) -> {
+                    Commits[1]++
+                },
+                CreateRoot: (input ColorPickerInput, wheel Blob, tone Blob) -> {
+                    Wheel = wheel
+                    return Container(){wheel, tone}
+                }
             }
-        })
+        )
     }
 }
 

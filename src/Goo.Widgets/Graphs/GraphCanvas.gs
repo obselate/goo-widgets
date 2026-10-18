@@ -1,6 +1,7 @@
 package Goo.Widgets.Graphs
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -30,19 +31,19 @@ public data struct GraphCanvasInput {
     var MinimumZoom float64
     /// Maximum permitted zoom. Zero resolves to 4.0.
     var MaximumZoom float64
-    /// Background color. Nil resolves to #09090b.
+    /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Grid line color. Nil resolves to #27272a.
+    /// Grid line color. Nil uses the nearest theme.
     var GridColor Color?
-    /// Edge color. Nil resolves to #52525b.
+    /// Edge color. Nil uses the nearest theme.
     var EdgeColor Color?
-    /// Color of edges connected to selected nodes. Nil resolves to #60a5fa.
+    /// Color of edges connected to selected nodes. Nil uses the nearest theme.
     var SelectedEdgeColor Color?
     /// Edge width in logical pixels. Zero resolves to 2.0.
     var EdgeWidth float64
-    /// Marquee fill color. Nil resolves to translucent blue.
+    /// Marquee fill color. Nil uses the theme accent with 15% opacity.
     var MarqueeFillColor Color?
-    /// Marquee border color. Nil resolves to #60a5fa.
+    /// Marquee border color. Nil uses the nearest theme.
     var MarqueeBorderColor Color?
     /// Optional base style for the canvas root.
     var RootStyle Style?
@@ -87,10 +88,10 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     private var marqueeToggle bool
 
     protected override func Build(input GraphCanvasInput) Blob {
-        resolved = Resolve(input)
+        let theme = Theme.Read()
+        resolved = Resolve(input, theme)
         viewport = resolved.Viewport
         let root = Container{
-            BasedOn: resolved.RootStyle,
             Key: "graph-canvas",
             Handle: handle,
             Position: PositionType.Relative,
@@ -99,6 +100,8 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             Overflow: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
             Focusable: true,
+            Focus: theme.FocusStyle,
+            BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Graph canvas"},
             OnPointerDown: (e PointerEvent) -> BeginCanvasPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
@@ -119,7 +122,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
         return root
     }
 
-    private func Resolve(input GraphCanvasInput) GraphCanvasInput {
+    private func Resolve(input GraphCanvasInput, theme Theme) GraphCanvasInput {
         let minimumZoom = if input.MinimumZoom == 0.0 {
             0.1
         } else {
@@ -190,12 +193,12 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             } else {
                 input.EdgeWidth
             },
-            BackgroundColor = input.BackgroundColor ?? Color.Parse("#09090b"),
-            GridColor = input.GridColor ?? Color.Parse("#27272a"),
-            EdgeColor = input.EdgeColor ?? Color.Parse("#52525b"),
-            SelectedEdgeColor = input.SelectedEdgeColor ?? Color.Parse("#60a5fa"),
-            MarqueeFillColor = input.MarqueeFillColor ?? Color.Rgba(59, 130, 246, 40),
-            MarqueeBorderColor = input.MarqueeBorderColor ?? Color.Parse("#60a5fa"),
+            BackgroundColor = input.BackgroundColor ?? theme.CanvasColor,
+            GridColor = input.GridColor ?? theme.BorderColor,
+            EdgeColor = input.EdgeColor ?? theme.MutedTextColor,
+            SelectedEdgeColor = input.SelectedEdgeColor ?? theme.AccentColor,
+            MarqueeFillColor = input.MarqueeFillColor ?? theme.AccentColor.WithAlpha(0.15),
+            MarqueeBorderColor = input.MarqueeBorderColor ?? theme.AccentColor,
         }
         Validate(value)
         return value
@@ -330,7 +333,6 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             let length = Math.Sqrt(dx * dx + dy * dy)
             let selected = IsSelected(edge.FromId) || IsSelected(edge.ToId)
             let stroke = Container{
-                BasedOn: resolved.EdgeStyle,
                 Key: "graph-edge-" + edge.Id,
                 Position: PositionType.Absolute,
                 Left: fromPosition.X,
@@ -352,6 +354,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
                 TransformOriginX: Percent(0.0),
                 TransformOriginY: Percent(50.0),
                 Transform: PanelTransform{Rotate: Math.Atan2(dy, dx) * 180.0 / Math.PI},
+                BasedOn: resolved.EdgeStyle,
                 HitTestSelf: false,
             }
             layer.Children.Add(
@@ -389,7 +392,9 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             Width: resolved.NodeWidth,
             Height: resolved.NodeHeight,
             RootStyle: resolved.NodeStyle,
-            OnActivate: () -> { EmitNodeSelection(node.Id, KeyModifiers{}) },
+            OnActivate: () -> {
+                EmitNodeSelection(node.Id, KeyModifiers{})
+            },
             OnPointerDown: (e PointerEvent) -> BeginNodePointer(node, e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> CancelPointer(e),

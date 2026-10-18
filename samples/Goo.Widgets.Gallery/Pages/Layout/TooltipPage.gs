@@ -13,17 +13,9 @@ internal class TooltipPage : GalleryPage {
         AlignItems: AlignItems.Center,
         JustifyContent: JustifyContent.Center,
         Gap: 18,
-        Text{Content: "Tooltips", FontSize: 24, FontWeight: 700, Color: "#fafafa"},
-        Text{
-            Content: "Hover or focus a button. The label follows its anchor without taking focus.",
-            FontSize: 14,
-            Color: "#a1a1aa",
-        },
-        Text{
-            Content: "Escape dismisses a label. Move away and return to show it again.",
-            FontSize: 13,
-            Color: "#a1a1aa",
-        },
+        Text{Content: "Tooltips", FontSize: 24, FontWeight: 700},
+        Text{Content: "Hover or focus a button. The label follows its anchor without taking focus.", FontSize: 14,},
+        Text{Content: "Escape dismisses a label. Move away and return to show it again.", FontSize: 13,},
         Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

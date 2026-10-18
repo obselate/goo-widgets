@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Widgets
 import System
 import System.Collections.Generic
 
@@ -31,7 +32,11 @@ public func VirtualItems[T](
     if itemBuilder == nil {
         throw ArgumentNullException("itemBuilder")
     }
-    return Virtual(VirtualItemsSource[T](items, width, height, itemKey, itemBuilder))
+    let theme = Theme.Read()
+    return Virtual(VirtualItemsSource[T](items, width, height, itemKey, itemBuilder)){
+        ScrollbarX = theme.Scrollbar,
+        ScrollbarY = theme.Scrollbar,
+    }
 }
 
 internal func virtualItemExtent(value float64, name string) float32 {
@@ -91,6 +96,8 @@ internal class VirtualItemsState[T] : VirtualState {
     private var window VirtualItemsWindow
     private var pendingWindow VirtualItemsWindow
     private var hasWindow bool
+    private var contextVersion int64 = -1
+    private var pendingContextVersion int64
     internal var Pending VirtualItemsSource[T]?
 
     public override func Realize(viewport VirtualViewport, output VirtualOutput) {
@@ -98,14 +105,62 @@ internal class VirtualItemsState[T] : VirtualState {
         guard let input = Pending ?? source else {
             throw InvalidOperationException("VirtualItems source is unavailable")
         }
-        let target = Window(viewport, input)
+        var scroll = viewport.ScrollOffset
+        var target = Window(viewport, input, scroll)
+        if hasWindow && contextVersion != viewport.ContextVersion && window.Total > 0 && target.Total > 0
+        &&
+            (
+            window.ItemW != target.ItemW || window.ItemH != target.ItemH
+            || window.Columns != target.Columns || window.Rows != target.Rows
+            || window.RowGap != target.RowGap || window.ColumnGap != target.ColumnGap
+            || window.Direction != target.Direction || window.Wrap != target.Wrap
+        ) {
+            var anchor = -1
+            var distance = Double.PositiveInfinity
+            for child in 0 ... viewport.ChildCount {
+                let position = Place(window, window.Start + child)
+                if position.X + window.ItemW > scroll.X && position.Y + window.ItemH > scroll.Y {
+                    let nextDistance = Math.Max(0.0, float64(position.X) - scroll.X)
+                    + Math.Max(0.0, float64(position.Y) - scroll.Y)
+                    if nextDistance < distance {
+                        distance = nextDistance
+                        anchor = child
+                    }
+                }
+            }
+            let index = window.Start + anchor
+            if anchor >= 0 && index < input.Items.Count && input.Key(input.Items[index]) == viewport.Child(anchor).Key {
+                let before = Place(window, index)
+                let after = Place(target, index)
+                let size = viewport.Size
+                scroll = Point{
+                    X: Math.Clamp(
+                        scroll.X + after.X - before.X,
+                        0.0,
+                        Math.Max(0.0, float64(target.ContentW) - size.Width)
+                    ),
+                    Y: if viewport.Pinned {
+                        Math.Max(0.0, float64(target.ContentH) - size.Height)
+                    } else {
+                        Math.Clamp(
+                            scroll.Y + after.Y - before.Y,
+                            0.0,
+                            Math.Max(0.0, float64(target.ContentH) - size.Height)
+                        )
+                    },
+                }
+                target = Window(viewport, input, scroll)
+                output.ScrollOffset = scroll
+            }
+        }
+        pendingContextVersion = viewport.ContextVersion
         for offset in 0 ... target.Count {
             let index = target.Start + offset
             let item = input.Items[index]
             let key = input.Key(item)
             var content Blob?
             var unchanged = false
-            if !String.IsNullOrEmpty(key) {
+            if contextVersion == viewport.ContextVersion && !String.IsNullOrEmpty(key) {
                 if current.TryGetValue(key, out var previous) {
                     unchanged = equality.Equals(previous, item)
                 }
@@ -139,7 +194,9 @@ internal class VirtualItemsState[T] : VirtualState {
         guard let input = source else {
             return false
         }
-        return !hasWindow || !Same(window, Window(viewport, input))
+        return !hasWindow ||
+            contextVersion != viewport.ContextVersion ||
+            !Same(window, Window(viewport, input, viewport.ScrollOffset))
     }
 
     public override func OffsetOf(viewport VirtualViewport, key string) Point? {
@@ -148,7 +205,7 @@ internal class VirtualItemsState[T] : VirtualState {
         }
         for i in 0 ... input.Items.Count {
             if input.Key(input.Items[i]) == key {
-                let place = Place(Window(viewport, input), i)
+                let place = Place(Window(viewport, input, viewport.ScrollOffset), i)
                 return Point{X: float64(place.X), Y: float64(place.Y)}
             }
         }
@@ -165,6 +222,7 @@ internal class VirtualItemsState[T] : VirtualState {
         }
         Pending = nil
         window = pendingWindow
+        contextVersion = pendingContextVersion
         hasWindow = true
     }
 
@@ -179,7 +237,7 @@ internal class VirtualItemsState[T] : VirtualState {
         source = nil
     }
 
-    private func Window(viewport VirtualViewport, input VirtualItemsSource[T]) VirtualItemsWindow {
+    private func Window(viewport VirtualViewport, input VirtualItemsSource[T], scroll Point) VirtualItemsWindow {
         let count = input.Items.Count
         let direction = viewport.Direction
         let wrap = viewport.Wrap
@@ -189,7 +247,6 @@ internal class VirtualItemsState[T] : VirtualState {
         let width = input.Width
         let height = input.Height
         let size = viewport.Size
-        let scroll = viewport.ScrollOffset
         let viewportW = float32(size.Width)
         let viewportH = float32(size.Height)
         let rowGap = float32(viewport.RowGap)

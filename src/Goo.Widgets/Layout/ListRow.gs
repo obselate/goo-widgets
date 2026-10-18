@@ -1,6 +1,7 @@
 package Goo.Widgets.Layout
 
 import Goo
+import Goo.Widgets
 
 /// A semantic list item row with optional slots, typography defaults, and factory customization.
 public data struct ListRow {
@@ -18,41 +19,41 @@ public data struct ListRow {
     var AccessibilityName string?
     /// Row width. Nil resolves to 100%.
     var Width Length?
-    /// Background color in normal state. Nil resolves to #18181b.
+    /// Background color in normal state. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Background color in selected state. Nil resolves to #27272a.
+    /// Background color in selected state. Nil uses the nearest theme.
     var SelectedBackgroundColor Color?
-    /// Primary title text color. Nil resolves to #fafafa.
+    /// Primary title text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Secondary caption text color. Nil resolves to #a1a1aa.
+    /// Secondary caption text color. Nil uses the nearest theme.
     var CaptionColor Color?
-    /// Box shadow applied when selected. Nil resolves to color #52525b and spread 1.0.
+    /// Authored selected-state shadow. Nil uses an accent border.
     var SelectedBoxShadow BoxShadow?
-    /// Minimum row height. Zero resolves to 64.0.
-    var MinHeight float64
-    /// Horizontal padding. Zero resolves to 14.0.
-    var PaddingHorizontal float64
-    /// Vertical padding. Zero resolves to 10.0.
-    var PaddingVertical float64
-    /// Gap between slots and content stack. Zero resolves to 12.0.
-    var Gap float64
-    /// Gap between title and caption inside the content stack. Zero resolves to 3.0.
-    var ContentGap float64
-    /// Border radius. Nil resolves to 8.0; explicit zero is preserved.
+    /// Minimum row height. Nil sizes to content and density.
+    var MinHeight float64?
+    /// Horizontal padding. Explicit zero is preserved.
+    var PaddingHorizontal float64?
+    /// Vertical padding. Explicit zero is preserved.
+    var PaddingVertical float64?
+    /// Slot gap. Explicit zero is preserved.
+    var Gap float64?
+    /// Text gap. Explicit zero is preserved.
+    var ContentGap float64?
+    /// Border radius. Nil uses the nearest theme radius; explicit zero is preserved.
     var BorderRadius float64?
-    /// Transition duration. Nil resolves to 150.0; explicit zero is preserved.
+    /// Transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
     /// Transition easing curve. Nil resolves to Easing.EaseOut.
     var TransitionEasing Easing?
     /// Row opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Title font size. Zero resolves to 14.0.
+    /// Title font size. Zero uses the nearest theme font size.
     var TitleFontSize float64
-    /// Title font weight. Zero resolves to 600.
+    /// Title font weight. Zero uses the nearest theme label font weight.
     var TitleFontWeight int32
-    /// Caption font size. Zero resolves to 12.0.
+    /// Caption font size. Zero uses the nearest theme caption font size.
     var CaptionFontSize float64
-    /// Caption font weight. Zero resolves to 400.
+    /// Caption font weight. Zero uses the nearest theme caption font weight.
     var CaptionFontWeight int32
     /// Optional font family for title and caption.
     var FontFamily string?
@@ -67,66 +68,47 @@ public data struct ListRow {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        let theme = Theme.Read()
         let createTitle = CreateTitle
         let createCaption = CreateCaption
         let createRoot = CreateRoot
         let titleText = Title ?? ""
-        let defaultShadow = BoxShadow{Color: Color.Parse("#52525b"), Spread: 1.0}
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
             Width = Width ?? Percent(100.0),
-            BackgroundColor = BackgroundColor ?? Color.Parse("#18181b"),
-            SelectedBackgroundColor = SelectedBackgroundColor ?? Color.Parse("#27272a"),
-            TextColor = TextColor ?? Color.Parse("#fafafa"),
-            CaptionColor = CaptionColor ?? Color.Parse("#a1a1aa"),
-            SelectedBoxShadow = SelectedBoxShadow ?? defaultShadow,
-            MinHeight = if MinHeight == 0.0 {
-                64.0
-            } else {
-                MinHeight
-            },
-            PaddingHorizontal = if PaddingHorizontal == 0.0 {
-                14.0
-            } else {
-                PaddingHorizontal
-            },
-            PaddingVertical = if PaddingVertical == 0.0 {
-                10.0
-            } else {
-                PaddingVertical
-            },
-            Gap = if Gap == 0.0 {
-                12.0
-            } else {
-                Gap
-            },
-            ContentGap = if ContentGap == 0.0 {
-                3.0
-            } else {
-                ContentGap
-            },
-            BorderRadius = BorderRadius ?? 8.0,
-            TransitionMs = TransitionMs ?? 150.0,
+            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor.WithAlpha(0.15),
+            TextColor = TextColor ?? theme.TextColor,
+            CaptionColor = CaptionColor ?? theme.MutedTextColor,
+            SelectedBoxShadow = SelectedBoxShadow ?? BoxShadow{Color: theme.AccentColor, Spread: theme.BorderWidth},
+            MinHeight = MinHeight ?? theme.ControlHeight,
+            PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
+            PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
+            Gap = Gap ?? theme.ControlGap,
+            ContentGap = ContentGap ?? theme.Spacing,
+            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            FontFamily = FontFamily ?? theme.FontFamily,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             TitleFontSize = if TitleFontSize == 0.0 {
-                14.0
+                theme.FontSize
             } else {
                 TitleFontSize
             },
             TitleFontWeight = if TitleFontWeight == 0 {
-                600
+                theme.LabelFontWeight
             } else {
                 TitleFontWeight
             },
             CaptionFontSize = if CaptionFontSize == 0.0 {
-                12.0
+                theme.CaptionFontSize
             } else {
                 CaptionFontSize
             },
             CaptionFontWeight = if CaptionFontWeight == 0 {
-                400
+                theme.CaptionFontWeight
             } else {
                 CaptionFontWeight
             },
@@ -173,7 +155,7 @@ public data struct ListRow {
         let content = Container{
             FlexDirection: FlexDirection.Column,
             JustifyContent: JustifyContent.Center,
-            Gap: resolved.ContentGap,
+            Gap: resolved.ContentGap!!,
             FlexGrow: 1.0
         }
         content.Children.Add(title)
@@ -191,18 +173,20 @@ public data struct ListRow {
             resolved.BackgroundColor!!
         }
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
-            MinHeight: resolved.MinHeight,
-            Padding: Edges(resolved.PaddingVertical, resolved.PaddingHorizontal),
+            MinHeight: resolved.MinHeight!!,
+            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             BorderRadius: resolved.BorderRadius!!,
             BackgroundColor: background,
+            Focus: theme.FocusStyle,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            Gap: resolved.Gap,
+            Gap: resolved.Gap!!,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.ListItem,
                 Name: resolved.AccessibilityName!!,

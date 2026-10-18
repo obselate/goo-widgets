@@ -1,6 +1,7 @@
 package Goo.Widgets.Charts
 
 import Goo
+import Goo.Widgets
 import System
 
 /// A horizontal quantitative bar with proportional segments and an empty track.
@@ -13,7 +14,7 @@ public data struct StackedBar {
     var Height float64?
     /// Track and segment clipping radius. Nil resolves to 4.
     var BorderRadius float64?
-    /// Empty track fill. Nil resolves to #27272a.
+    /// Empty track fill. Nil uses the nearest theme.
     var TrackColor Color?
     /// Whether to include the default customizable legend.
     var ShowLegend bool
@@ -34,11 +35,12 @@ public data struct StackedBar {
 
     /// Builds a fresh chart tree; normalization avoids overflow even for very large finite quantities.
     public func Build() Blob {
+        let theme = Theme.Read()
         let resolved = this with{
             Width = Width ?? Percent(100),
             Height = Height ?? 16.0,
-            BorderRadius = BorderRadius ?? 4.0,
-            TrackColor = TrackColor ?? Color.Parse("#27272a"),
+            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            TrackColor = TrackColor ?? theme.BorderColor,
             AccessibilityName = AccessibilityName ?? "Chart"
         }
         if !Double.IsFinite(resolved.Height!!) || resolved.Height!!<= 0.0 || !Double.IsFinite(
@@ -47,7 +49,7 @@ public data struct StackedBar {
             resolved.BorderRadius!!< 0.0 {
             throw ArgumentOutOfRangeException("Bar height/radius")
         }
-        let segments = ChartParts.Resolve(Series ?? []ChartSeries{})
+        let segments = ChartParts.Resolve(Series ?? []ChartSeries{}, theme)
         let plot = Container{
             Key: "plot",
             Width: Percent(100),
@@ -64,7 +66,7 @@ public data struct StackedBar {
             }
             var bar = Container{
                 BackgroundColor: segment.Series.Color!!,
-                Focus: Style{Opacity: .7},
+                Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
                 Cursor: OnActivate == nil ? Cursor.Default: Cursor.Pointer
             }
             if let create = CreateSegment {
@@ -77,7 +79,7 @@ public data struct StackedBar {
             ChartParts.Wire(bar, segment, OnActivate, OnHover)
             plot.Children.Add(bar)
         }
-        var root = Container{Width: resolved.Width!!, Gap: 12}
+        var root = Container{Width: resolved.Width!!, Gap: theme.Spacing * 3.0}
         if let create = CreateRoot {
             root = create(resolved, root)
         }
@@ -89,7 +91,7 @@ public data struct StackedBar {
         root.Children.Clear()
         root.Children.Add(plot)
         if ShowLegend {
-            var legend = ChartParts.Legend(segments, CreateLabel)
+            var legend = ChartParts.Legend(segments, CreateLabel, theme)
             if let create = CreateLegend {
                 legend = create(resolved, legend)
             }

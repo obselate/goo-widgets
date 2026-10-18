@@ -28,20 +28,22 @@ public data struct SearchList {
     var Width float64?
     /// Total height in pixels. Nil resolves to 240.
     var Height float64?
-    /// Virtual row height in pixels. Nil resolves to 40.
+    /// Virtual row height in pixels. Nil uses the theme's control height.
     var RowHeight float64?
-    /// Surface color. Nil resolves to #18181b.
+    /// Surface color. Nil uses the nearest theme.
     var BackgroundColor Color?
-    /// Primary text color. Nil resolves to #fafafa.
+    /// Primary text color. Nil uses the nearest theme.
     var TextColor Color?
-    /// Secondary text color. Nil resolves to #a1a1aa.
+    /// Secondary text color. Nil uses the nearest theme.
     var MutedColor Color?
-    /// Selected row color. Nil resolves to #3f3f46.
+    /// Selected row color. Nil uses the nearest theme.
     var SelectedColor Color?
-    /// Focus outline color. Nil resolves to #a1a1aa.
+    /// Focus outline color. Nil uses the nearest theme.
     var FocusColor Color?
-    /// Enables visible focus highlights. Disabled by default.
-    var ShowFocusHighlight bool
+    /// Vertical scrollbar. Nil uses the theme overlay parts.
+    var ScrollbarY Scrollbar?
+    /// Vertical visibility. Nil uses Auto.
+    var ScrollbarVisibilityY ScrollbarVisibility?
     /// Final entry customization. Preserve Value and OnChange for controlled editing.
     var CustomizeEntry Func[TextEntry, TextEntry]?
     /// Final row customization. Preserve the supplied action and disabled state.
@@ -51,10 +53,11 @@ public data struct SearchList {
 
     /// Builds a fresh list and rejects duplicate identifiers or invalid geometry.
     public func Build() Blob {
+        let theme = Theme.Read()
         let width = Width ?? 280.0
         let height = Height ?? 240.0
-        let rowHeight = RowHeight ?? 40.0
-        if !Double.IsFinite(width) || width <= 2.0 || !Double.IsFinite(height) || height <= 40.0
+        let rowHeight = RowHeight ?? theme.ControlHeight
+        if !Double.IsFinite(width) || width <= 2.0 || !Double.IsFinite(height) || height <= theme.ControlHeight
         || !Double.IsFinite(rowHeight) || rowHeight <= 0.0 {
             throw ArgumentOutOfRangeException(
                 "Width/Height/RowHeight",
@@ -62,12 +65,11 @@ public data struct SearchList {
             )
         }
 
-        let background = BackgroundColor ?? Color.Parse("#18181b")
-        let foreground = TextColor ?? Color.Parse("#fafafa")
-        let muted = MutedColor ?? Color.Parse("#a1a1aa")
-        let selection = SelectedColor ?? Color.Parse("#3f3f46")
-        let focus = FocusColor ?? muted
-        let showFocusHighlight = ShowFocusHighlight
+        let background = BackgroundColor ?? theme.PanelColor
+        let foreground = TextColor ?? theme.TextColor
+        let muted = MutedColor ?? theme.MutedTextColor
+        let selection = SelectedColor ?? theme.AccentColor.WithAlpha(0.15)
+        let focus = FocusColor ?? theme.AccentColor
         let selectedId = SelectedId
         let onSelect = OnSelect
         let customizeRow = CustomizeRow
@@ -80,7 +82,6 @@ public data struct SearchList {
             Muted: muted,
             Selection: selection,
             Focus: focus,
-            ShowFocusHighlight: showFocusHighlight,
             OnSelect: onSelect,
             Customize: customizeRow,
         }
@@ -109,21 +110,22 @@ public data struct SearchList {
 
         var entry = TextEntry{
             Key: "search",
-            Height: 40,
+            Height: theme.ControlHeight,
             FlexShrink: 0,
-            Padding: Edges{Right: 10, Left: 10},
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             BackgroundColor: background,
             Color: foreground,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
+            SelectionColor: theme.AccentColor.WithAlpha(0.35),
+            Cursor: Cursor.Text,
             Focusable: true,
             Value: query,
             Controlled: true,
             Placeholder: Placeholder ?? "Search",
             OnChange: OnQueryChange,
-            Focus: if showFocusHighlight {
-                Style{OutlineWidth: 1, OutlineColor: focus, OutlineOffset: -1}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: focus, OutlineOffset: -2.0},
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? "Search"},
         }
         if let customize = CustomizeEntry {
@@ -143,25 +145,37 @@ public data struct SearchList {
             MinHeight = 0,
             OverflowX = Overflow.Hidden,
             OverflowY = Overflow.Scroll,
-            ScrollbarVisibility = ScrollbarVisibility.Always,
+            ScrollbarY = ScrollbarY ?? theme.Scrollbar,
+            ScrollbarVisibilityY = ScrollbarVisibilityY ?? Goo.ScrollbarVisibility.Auto,
             Accessibility = Accessibility{Role: AccessibilityRole.List, Name: AccessibilityName ?? "Choose an item"},
         }
 
         let root = Container{
+            LineHeight: theme.LineHeight,
             Width: width,
             Height: height,
             MinHeight: 0,
             MinWidth: 0,
             FlexShrink: 0,
             BackgroundColor: background,
-            BorderWidth: 1,
+            BorderWidth: theme.BorderWidth,
             BorderColor: selection,
-            BorderRadius: 4,
+            BorderRadius: theme.ControlRadius,
             Overflow: Overflow.Hidden,
             entry,
         }
         if filtered.Count == 0 {
-            root.Children.Add(Text{Key: "empty", Content: EmptyText ?? "No matches", Color: muted, Padding: 12})
+            root.Children.Add(
+                Text{
+                    Key: "empty",
+                    Content: EmptyText ?? "No matches",
+                    Color: muted,
+                    Padding: theme.ControlPadding,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    FontWeight: theme.FontWeight,
+                }
+            )
         } else {
             root.Children.Add(list)
         }
@@ -188,6 +202,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
         (Options == other.Options || (Options?.Equals(other.Options) ?? false))
 
     internal func Build() Blob {
+        let theme = Theme.Read()
         let item = Item
         let id = item.Id ?? ""
         let options = Options!!
@@ -196,8 +211,8 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             Height: options.RowHeight,
             Width: Percent(100),
             FlexShrink: 0,
-            Padding: Edges{Right: 10, Left: 10},
-            Gap: 10,
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+            Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.FlexStart,
@@ -215,19 +230,29 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
                 options.Background
             },
             Hover: Style{BackgroundColor: options.Selection},
-            Focus: if options.ShowFocusHighlight {
-                Style{OutlineWidth: 1, OutlineColor: options.Focus, OutlineOffset: -1}
-            } else {
-                Style{}
-            },
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: options.Focus, OutlineOffset: -2.0},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: item.Label ?? "", Selected: Selected},
             OnClick: () -> {
                 if !item.Disabled {
                     onSelect?.Invoke(id)
                 }
             },
-            Text{Content: item.Label ?? "", Color: options.Foreground, FlexGrow: 1, MinWidth: 0},
-            Text{Content: item.Detail ?? "", Color: options.Muted, FontSize: 12},
+            Text{
+                Content: item.Label ?? "",
+                Color: options.Foreground,
+                FlexGrow: 1,
+                MinWidth: 0,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
+            },
+            Text{
+                Content: item.Detail ?? "",
+                Color: options.Muted,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.CaptionFontSize,
+                FontWeight: theme.CaptionFontWeight,
+            },
         }
         var result Blob = row
         if let customize = options.Customize {
@@ -246,7 +271,6 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     internal var Muted Color
     internal var Selection Color
     internal var Focus Color
-    internal var ShowFocusHighlight bool
     internal var OnSelect Action[string]?
     internal var Customize Func[SelectionItem, Button, Blob]?
 
@@ -254,7 +278,6 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     && RowHeight == other.RowHeight && sameColor(Background, other.Background)
     && sameColor(Foreground, other.Foreground) && sameColor(Muted, other.Muted)
     && sameColor(Selection, other.Selection) && sameColor(Focus, other.Focus)
-    && ShowFocusHighlight == other.ShowFocusHighlight
     && Object.Equals(OnSelect, other.OnSelect) && Object.Equals(Customize, other.Customize)
 
     private func sameColor(a Color, b Color) bool -> a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A

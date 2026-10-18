@@ -17,8 +17,8 @@ internal class DonutChartPage : GalleryPage {
             AccessibilityName: "Storage capacity",
             Center: Container{
                 AlignItems: AlignItems.Center,
-                Text{Content: "64%", FontSize: 26, Color: "#fafafa"},
-                Text{Content: "available", FontSize: 11, Color: "#a1a1aa"}
+                Text{Content: "64%", FontSize: 26},
+                Text{Content: "available", FontSize: 11}
             },
             Series: []ChartSeries{
                 ChartSeries{Id: "available", Label: "Available", Value: 64, Color: "#2dd4bf"},
@@ -30,11 +30,7 @@ internal class DonutChartPage : GalleryPage {
             FlexDirection: FlexDirection.Row,
             JustifyContent: JustifyContent.Center,
             Gap: 50,
-            DonutChart{
-                Size: 100,
-                Thickness: 14,
-                Center: Text{Content: "Empty", FontSize: 12, Color: "#a1a1aa"}
-            }.Build(),
+            DonutChart{Size: 100, Thickness: 14, Center: Text{Content: "Empty", FontSize: 12}}.Build(),
             DonutChart{
                 Size: 100,
                 Thickness: 14,

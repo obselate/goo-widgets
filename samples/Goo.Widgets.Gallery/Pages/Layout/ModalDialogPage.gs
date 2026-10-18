@@ -15,14 +15,13 @@ internal open class ModalDialogExample : Cell {
         Height: 360.0,
         Position: PositionType.Relative,
         Gap: 12.0,
-        Color: "#fafafa",
         ActionButton{
             Content: "Open dialog",
             OnClick: () -> {
                 dialogOpen = true
             }
         }.Build(),
-        Text{Content: result, Color: "#a1a1aa"},
+        Text{Content: result},
         ModalDialog{
             Open: dialogOpen,
             AccessibilityName: "Confirm change",

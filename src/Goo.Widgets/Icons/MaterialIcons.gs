@@ -2,6 +2,7 @@ package Goo.Widgets.Icons
 
 import Goo
 import Goo.Svg
+import Goo.Widgets
 import System
 import System.Collections.Generic
 import System.Reflection
@@ -48,7 +49,7 @@ public class MaterialIcons {
                     TranslateX: -float64(asset.ViewBoxX) * scale,
                     TranslateY: -float64(asset.ViewBoxY) * scale,
                 },
-                BackgroundColor: color ?? Color.Parse("#fafafa"),
+                BackgroundColor: color ?? Theme.Read().TextColor,
                 Accessibility: Accessibility{Hidden: true},
             }
         }
