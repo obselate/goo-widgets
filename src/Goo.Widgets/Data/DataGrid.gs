@@ -163,10 +163,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var resizeWidths[]float64 = []float64{}
     private var lastFittedWidths Dictionary[string, float64]?
     private var disposed bool
+    private let stopGridKeys Action[KeyEvent]
+    private let moveResize Action[PointerEvent]
+    private let endResize Action[PointerEvent]
+    private let cancelResize Action[PointerEvent]
 
     public init() {
         rootHandle = defaultRootHandle
         viewport = defaultViewport
+        stopGridKeys = StopGridKeys
+        moveResize = MoveResize
+        endResize = EndResize
+        cancelResize = CancelResize
         rootHandle.MetricsChanged += Metrics
     }
 
@@ -726,7 +734,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 MinWidth: 0,
                 Position: PositionType.Relative,
                 Overflow: Overflow.Hidden,
-                OnKeyDown: StopGridKeys
+                OnKeyDown: stopGridKeys
             }
             if filter {
                 slot.Padding = theme.Spacing
@@ -771,9 +779,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     handle.Cursor = Cursor.ResizeHorizontal
                     handle.Focusable = !snapshot.Disabled
                     handle.OnPointerDown = (e PointerEvent) -> BeginResize(id, e)
-                    handle.OnPointerMove = MoveResize
-                    handle.OnPointerUp = EndResize
-                    handle.OnPointerCancel = CancelResize
+                    handle.OnPointerMove = moveResize
+                    handle.OnPointerUp = endResize
+                    handle.OnPointerCancel = cancelResize
                     handle.OnKeyDown = (e KeyEvent) -> ResizeKey(id, e)
                     handle.Accessibility = Accessibility{
                         Role: AccessibilityRole.Slider,
@@ -901,7 +909,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     JustifyContent: JustifyContent.Center,
                     Overflow: Overflow.Hidden,
-                    OnKeyDown: StopGridKeys,
+                    OnKeyDown: stopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
                         Name: column.Label ?? column.Id!!,
@@ -981,7 +989,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Width: tableWidth,
                     Padding: snapshot.DetailPadding!!,
                     BackgroundColor: snapshot.DetailBackground!!,
-                    OnKeyDown: StopGridKeys,
+                    OnKeyDown: stopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
                         Name: "Details for " + (row.Label ?? id)

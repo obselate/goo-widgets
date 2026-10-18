@@ -33,6 +33,12 @@ public data struct TooltipInput {
 /// Wraps a control with a delayed, anchored label that never takes focus.
 public open class Tooltip : Cell[TooltipInput], IDisposable {
     private let anchor ElementHandle = ElementHandle()
+    private let pointerEnter Action[PointerEvent]
+    private let pointerLeave Action[PointerEvent]
+    private let pointerDown Action[PointerEvent]
+    private let focus Action[FocusEvent]
+    private let blur Action[FocusEvent]
+    private let keyDown Action[KeyEvent]
     private var current TooltipInput
     private var pending WindowTimer?
     private var hovered bool
@@ -40,6 +46,16 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
     private var visible bool
     private var suppressed bool
     private var disposed bool
+
+    /// Creates a retained tooltip with stable input callbacks.
+    public init() {
+        pointerEnter = (event PointerEvent) -> PointerEntered()
+        pointerLeave = (event PointerEvent) -> PointerLeft()
+        pointerDown = (event PointerEvent) -> Dismiss()
+        focus = (event FocusEvent) -> FocusEntered()
+        blur = (event FocusEvent) -> FocusLeft()
+        keyDown = KeyDown
+    }
 
     /// Cancels a pending label when this Cell unmounts.
     public func Dispose() {
@@ -80,12 +96,12 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             Handle: anchor,
             Position: PositionType.Relative,
             HitTestSelf: false,
-            OnPointerEnter: (event PointerEvent) -> PointerEntered(),
-            OnPointerLeave: (event PointerEvent) -> PointerLeft(),
-            OnPointerDown: (event PointerEvent) -> Dismiss(),
-            OnFocus: (event FocusEvent) -> FocusEntered(),
-            OnBlur: (event FocusEvent) -> FocusLeft(),
-            OnKeyDown: KeyDown,
+            OnPointerEnter: pointerEnter,
+            OnPointerLeave: pointerLeave,
+            OnPointerDown: pointerDown,
+            OnFocus: focus,
+            OnBlur: blur,
+            OnKeyDown: keyDown,
             input.Target!!,
         }
         if input.Target!!.Disabled {
