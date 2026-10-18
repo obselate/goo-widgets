@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-The theme API below is an unreleased breaking cutover to Goo `0.7.36`, .NET 10,
+The theme API below is an unreleased breaking cutover to Goo `0.7.37`, .NET 10,
 and `Gsharp.NET.Sdk/0.4.1150`. Goo supplies the upstream compiler needed for native
 child composition. Follow the [installation instructions](../README.md#install).
 
