@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## 0.3.0 - 2026-10-17
+## 0.3.0 - 2026-10-18
 
 - BREAKING: Replace independent widget defaults and focus opt-ins with ambient window/scoped themes, density-aware metrics, default focus rings and themed scrollbars on Goo 0.7.37.
 - Keep focused SearchList entry text in sync with the host query.
