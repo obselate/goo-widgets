@@ -66,7 +66,10 @@ with tempfile.TemporaryDirectory(prefix="goo-widgets-") as temporary:
     try:
         env["AT_SPI_BUS_ADDRESS"] = bus.stdout.readline().strip()
         assert env["AT_SPI_BUS_ADDRESS"].startswith("unix:")
-        registry = subprocess.Popen(["/usr/lib/at-spi2-registryd"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        registry_binary = shutil.which("at-spi2-registryd", path="/usr/lib:/usr/libexec:" + os.environ.get("PATH", ""))
+        if registry_binary is None:
+            raise RuntimeError("AT-SPI registry binary is not installed")
+        registry = subprocess.Popen([registry_binary], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         with (logdir / "compositor.log").open("w") as log:
             compositor = subprocess.Popen(["dbus-run-session", "--", "kwin_wayland", "--virtual", "--width", "1400", "--height", "900", "--scale", "1",
                 "--xwayland", "--no-global-shortcuts", "--no-lockscreen", "--no-kactivities", "--socket", "goo-widgets", "--exit-with-session", str(wrapper)],

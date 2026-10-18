@@ -44,6 +44,11 @@ jobs:
           sudo apt-get install -y --no-install-recommends \
             fonts-dejavu-core libdecor-0-0 libfontconfig1 libwayland-client0 libwayland-cursor0 \
             libwayland-egl1 libxkbcommon0 mesa-vulkan-drivers weston
+      - name: Install KWin clipboard seat dependencies
+        run: |
+          /usr/bin/time -f 'KWin seat dependency installation: %e seconds' \
+            sudo apt-get install -y --no-install-recommends kwin-wayland libei-dev python3-dbus at-spi2-core xwayland
+          QT_QPA_PLATFORM=offscreen kwin_wayland --version
       - name: Native capture contracts
         env:
           DOTNET_DbgEnableMiniDump: 1
@@ -53,11 +58,19 @@ jobs:
         run: |
           ulimit -c unlimited
           mkdir -p artifacts/native-dumps
-          for attempt in $(seq 1 20); do
-            printf 'ComboBox teardown probe %s\n' "$attempt"
-            env GOO_WIDGETS_COMBOBOX=1 SDL_VIDEODRIVER=wayland scripts/with-headless-wayland.sh \
-              dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
+          for attempt in $(seq 1 5); do
+            for suite in VIRTUAL COMBOBOX; do
+              printf 'Native teardown probe %s %s\n' "$attempt" "$suite"
+              env "GOO_WIDGETS_$suite=1" SDL_VIDEODRIVER=wayland scripts/with-headless-wayland.sh \
+                dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
+            done
           done
+      - name: Markdown clipboard seat contract
+        if: ${{ !cancelled() }}
+        env:
+          GOO_WIDGETS_MARKDOWN: 1
+          SDL_VIDEODRIVER: wayland
+        run: /usr/bin/python3 scripts/with-isolated-wayland.py -- dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
       - name: Upload native crash evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
