@@ -90,6 +90,21 @@ func ColorPickerErgonomics() {
     customPicker.Dispose()
 }
 
+internal class CheckboxHitHost : Cell {
+    internal let Sized ElementHandle = ElementHandle()
+    internal let Mark ElementHandle = ElementHandle()
+    internal let Automatic ElementHandle = ElementHandle()
+
+    public override func Build() Blob {
+        let sized = (Checkbox{Size: 16.0, HitSize: 16.0}.Build() as Button)!!
+        sized.Handle = Sized
+        sized.Children[0].Handle = Mark
+        let automatic = Checkbox{Size: 16.0}.Build()
+        automatic.Handle = Automatic
+        return Container{AlignItems: AlignItems.FlexStart, sized, automatic}
+    }
+}
+
 func CheckboxErgonomics() {
     var next = AccessibilityChecked.False
     let input = Checkbox{
@@ -110,6 +125,29 @@ func CheckboxErgonomics() {
     Require(
         after.Accessibility?.Checked == AccessibilityChecked.True,
         "Labeled Checkbox did not reflect its controlled state."
+    )
+    let root = CheckboxHitHost()
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(64, 64, 64, 64)
+    let window = Window{Root: root}
+    Theme.Attach(window, Theme.Default)
+    window.Attach(embedded)
+    embedded.RenderFrame(0.016)
+    let hit = root.Sized.BorderBox
+    let mark = root.Mark.BorderBox
+    let defaultHit = root.Automatic.BorderBox
+    Require(
+        Theme.Read(window)
+            .ControlHeight == 32.0 &&
+            hit.Width == 16.0 &&
+            hit.Height == 16.0 &&
+            mark.X == hit.X &&
+            mark.Y == hit.Y &&
+            mark.Width == 16.0 &&
+            mark.Height == 16.0 &&
+            defaultHit.Width == 32.0 &&
+            defaultHit.Height == 32.0,
+        "Checkbox HitSize did not preserve a 16px root without mark inset and the 32px automatic hit target"
     )
 }
 

@@ -426,6 +426,7 @@ internal class DataGridHost : Cell {
                     UseDefaultKeyboard: !Controlled,
                     OnKeyDown: Controlled ? Navigate: nil,
                     ShowSelection: true,
+                    SelectionColumnWidth: 36.0,
                     ExpandedIds: Expanded,
                     OnExpandedChange: Expand,
                     CreateRoot: CaptureRoot,
@@ -514,12 +515,23 @@ func DataGridInteractions() {
         Root: host,
         AccessibilityAdapter: semantics
     }
+    Theme.Attach(window, Theme.Default)
     window.Open()
     try {
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         GridAligned(host, "name")
         GridAligned(host, "state")
+        let theme = Theme.Read(window)
+        let gridX = host.Root!!.Handle!!.ContentBox.X
+        let check = host.Checks["alpha"].Handle!!.BorderBox
+        Require(
+            theme.ControlHeight == 32.0 && Math.Abs(
+                host.Headers["name"].BorderBox.X - gridX - theme.ControlPadding - theme.ControlHeight - 36.0
+            ) < .1 &&
+                Math.Abs(check.X + check.Width / 2.0 - gridX - 18.0) < .1,
+            "Explicit 36px selection column did not preserve header/row alignment and centered checkboxes at 32px control height"
+        )
         Require(host.DetailBuilds == 0, "Collapsed detail factory ran eagerly")
         CompositeClick(window, host.Headers["name"])
         PumpFrames(window, 8)
@@ -730,7 +742,7 @@ func DataGridInteractions() {
         host.Rebuild()
         PumpFrames(window, 12)
         let fittedWidth = host.Root!!.Handle!!.ContentBox.Width - 14.0
-        let leading = Theme.Read(window).ControlHeight * 2.0
+        let leading = 36.0 + Theme.Read(window).ControlHeight
         let normalWidths = GridColumnWidths(semantics)
         let nameWidth = normalWidths[0]
         let stateWidth = normalWidths[1]

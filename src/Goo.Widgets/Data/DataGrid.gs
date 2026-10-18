@@ -79,6 +79,8 @@ public data struct DataGridInput {
     var OnSelectionRequest Action[string, bool, bool]?
     /// Adds a leading composed checkbox. The row's semantics expose selection once.
     var ShowSelection bool
+    /// Selection column width. Nil uses the theme's control height.
+    var SelectionColumnWidth float64?
     var ExpandedIds[]?string
     var OnExpandedChange Action[string, bool]?
     /// Expansion control width. Nil uses the theme's control height; zero hides the control.
@@ -195,6 +197,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             RowHeight = value.RowHeight ?? theme.ControlHeight,
             HeaderHeight = value.HeaderHeight ?? theme.ControlHeight,
             FilterHeight = value.FilterHeight ?? theme.ControlHeight,
+            SelectionColumnWidth = value.SelectionColumnWidth ?? theme.ControlHeight,
             ExpandColumnWidth = value.ExpandColumnWidth ?? theme.ControlHeight,
             DetailPadding = value.DetailPadding ?? theme.ControlPadding,
             DetailBackground = value.DetailBackground ?? theme.FieldColor,
@@ -211,6 +214,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 throw ArgumentOutOfRangeException("Grid row/header/filter height")
             }
         }
+        ValidateWidth(input.SelectionColumnWidth!!)
         ValidateWidth(input.ExpandColumnWidth!!)
         ValidateWidth(input.DetailPadding!!)
         if input.Selection < DataGridSelection.None || input.Selection > DataGridSelection.Multiple
@@ -306,7 +310,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Reveal()
         }
         let details = hasDetails && input.ExpandColumnWidth > 0.0
-        leading = (input.ShowSelection && input.Selection != DataGridSelection.None ? theme.ControlHeight: 0.0) +
+        leading = (
+            input.ShowSelection && input.Selection != DataGridSelection.None ? input.SelectionColumnWidth!!: 0.0
+        ) +
             (details ? input.ExpandColumnWidth!!: 0.0)
         available = rootHandle.ContentBox.Width
         let verticalGutter = if let scrollbar = input.ScrollbarY {
@@ -834,7 +840,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 check.OnClick = () -> Select(id, true, false, false)
                 check.Accessibility = Accessibility{Hidden: true}
                 controls.Children.Add(
-                    Container{Key: "selection", Width: theme.ControlHeight, AlignItems: AlignItems.Center, check}
+                    Container{
+                        Key: "selection",
+                        Width: snapshot.SelectionColumnWidth!!,
+                        AlignItems: AlignItems.Center,
+                        check
+                    }
                 )
             }
             if details {

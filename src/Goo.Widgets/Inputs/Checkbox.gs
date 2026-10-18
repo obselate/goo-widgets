@@ -34,6 +34,8 @@ public data struct Checkbox {
     var MixedContent Blob?
     /// Visible box width and height. Zero uses five theme spacing units.
     var Size float64
+    /// Hit-target square size, or labeled row height. Nil uses the larger of Size and the theme's control height.
+    var HitSize float64?
     /// Background while false. Nil resolves to the theme field color.
     var BackgroundColor Color?
     /// Background while true or mixed. Nil resolves to the theme accent color.
@@ -70,6 +72,7 @@ public data struct Checkbox {
             State
         }
         let active = state != AccessibilityChecked.False
+        let size = Size == 0.0 ? theme.Spacing * 5.0: Size
         let resolved = this with{
             State = state,
             AccessibilityName = AccessibilityName ?? (Label ?? ""),
@@ -85,11 +88,8 @@ public data struct Checkbox {
                 LabelFontWeight
             },
             LabelGap = LabelGap ?? theme.ControlGap,
-            Size = if Size == 0.0 {
-                theme.Spacing * 5.0
-            } else {
-                Size
-            },
+            Size = size,
+            HitSize = HitSize ?? Math.Max(size, theme.ControlHeight),
             BackgroundColor = BackgroundColor ?? theme.FieldColor,
             CheckedBackgroundColor = CheckedBackgroundColor ?? theme.AccentColor,
             BorderColor = BorderColor ?? theme.InputBorderColor,
@@ -169,7 +169,7 @@ public data struct Checkbox {
             let root = Button{
                 LineHeight: theme.LineHeight,
                 Width: Length.Auto,
-                Height: Math.Max(resolved.Size, theme.ControlHeight),
+                Height: resolved.HitSize!!,
                 Padding: 0.0,
                 Gap: resolved.LabelGap!!,
                 BorderWidth: 0.0,
@@ -214,8 +214,8 @@ public data struct Checkbox {
             return root
         }
         let root = Button{
-            Width: Math.Max(resolved.Size, theme.ControlHeight),
-            Height: Math.Max(resolved.Size, theme.ControlHeight),
+            Width: resolved.HitSize!!,
+            Height: resolved.HitSize!!,
             BorderWidth: 0.0,
             BackgroundColor: Color.Transparent,
             Opacity: if resolved.Disabled {
