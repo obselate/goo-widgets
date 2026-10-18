@@ -667,7 +667,9 @@ selected ID), and Multiple. `SelectedIds`/`OnSelectionChange` are controlled.
 Click replaces selection, Ctrl/⌘ toggles, and Shift selects a range in the supplied
 row order, skipping disabled rows. Ctrl/⌘+Shift adds the range. Toggle operations
 preserve selected IDs absent from a filtered row set. `ShowSelection` composes a
-leading checkbox using the same callbacks. There is no imposed select-all policy.
+leading checkbox using the same callbacks. `SelectionColumnWidth` overrides that
+column's width independently of the theme's control height; nil uses that height.
+There is no imposed select-all policy.
 
 For selection shared with another view, supply `ActiveRowId` and handle
 `OnActiveRowChange` to keep the active row in the host. Set `OnSelectionRequest`
