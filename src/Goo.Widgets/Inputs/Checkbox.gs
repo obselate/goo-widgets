@@ -170,20 +170,11 @@ public data struct Checkbox {
                 LineHeight: theme.LineHeight,
                 Width: Length.Auto,
                 Height: resolved.HitSize!!,
-                Padding: 0.0,
                 Gap: resolved.LabelGap!!,
-                BorderWidth: 0.0,
-                BorderRadius: 0.0,
-                BackgroundColor: Color.Transparent,
                 Cursor: if resolved.Disabled {
                     Cursor.Default
                 } else {
                     Cursor.Pointer
-                },
-                Opacity: if resolved.Disabled {
-                    resolved.DisabledOpacity!!
-                } else {
-                    1.0
                 },
                 Focusable: true,
                 Focus: theme.FocusStyle,
@@ -192,7 +183,6 @@ public data struct Checkbox {
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
                 FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.FlexStart,
                 Hover: Style{BackgroundColor: Color.Transparent},
                 Active: Style{BackgroundColor: Color.Transparent},
@@ -210,19 +200,15 @@ public data struct Checkbox {
                     FontWeight: resolved.LabelFontWeight,
                 },
             }
+            if resolved.Disabled {
+                root.Opacity = resolved.DisabledOpacity!!
+            }
             WidgetKeyBindings.BindActivation(root)
             return root
         }
         let root = Button{
             Width: resolved.HitSize!!,
             Height: resolved.HitSize!!,
-            BorderWidth: 0.0,
-            BackgroundColor: Color.Transparent,
-            Opacity: if resolved.Disabled {
-                resolved.DisabledOpacity!!
-            } else {
-                1.0
-            },
             Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
@@ -234,13 +220,14 @@ public data struct Checkbox {
             OnClick: onClick,
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Checkbox,
                 Name: resolved.AccessibilityName!!,
                 Checked: state,
             },
+        }
+        if resolved.Disabled {
+            root.Opacity = resolved.DisabledOpacity!!
         }
         let markBox = Container{
             Width: resolved.Size,
