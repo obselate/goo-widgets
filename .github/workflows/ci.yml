@@ -53,7 +53,11 @@ jobs:
         run: |
           ulimit -c unlimited
           mkdir -p artifacts/native-dumps
-          bash scripts/verify-native.sh
+          for attempt in $(seq 1 20); do
+            printf 'ComboBox teardown probe %s\n' "$attempt"
+            env GOO_WIDGETS_COMBOBOX=1 SDL_VIDEODRIVER=wayland scripts/with-headless-wayland.sh \
+              dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
+          done
       - name: Upload native crash evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
