@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.3.2 - 2026-10-18
+
+- Reduce widget rebuild allocations by removing redundant checkbox-root style declarations and reusing retained DataGrid and Tooltip input callbacks.
+
 ## 0.3.1 - 2026-10-18
 
 - Add nullable DataGridInput.SelectionColumnWidth and Checkbox.HitSize overrides while preserving theme-derived defaults.
