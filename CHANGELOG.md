@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-10-20
+
+- Add lazy indexed DataGrid sources, measured and provider row heights, natural column widths and full-width group rows, and correct grid selection, nested focus, vertical reveal and TreeView row composition.
+
+### Behavior changes
+
+- Arrow, Home, End and Page keys select rows.
+- Star widths are weighted with CSS flexbox clamping.
+- Shift extends from the anchor selection.
+- Clicking interactive cell content does not select the row.
+- TreeView CreateRow keeps custom children and adds the standard slots before the factory.
+- New data struct fields change the generated Deconstruct.
+
 ## 0.3.2 - 2026-10-18
 
 - Reduce widget rebuild allocations by removing redundant checkbox-root style declarations and reusing retained DataGrid and Tooltip input callbacks.
