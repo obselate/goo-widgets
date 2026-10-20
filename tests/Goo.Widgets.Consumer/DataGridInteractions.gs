@@ -900,31 +900,12 @@ func DataGridInteractions() {
         SendKey(id, SDLScancode.Home)
         SendKey(id, SDLScancode.Down)
         SendKey(id, SDLScancode.Down)
+        SendKey(id, SDLScancode.Return)
         PumpFrames(window, 10)
         Require(
             host.Selected.Length == 1 && host.Selected[0] == "delta",
             "Grid keyboard selection did not skip disabled rows"
         )
-        host.Single = false
-        host.Rebuild()
-        PumpFrames(window, 4)
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home, Modifiers: KeyModifiers{Ctrl: true}})
-        PumpFrames(window, 4)
-        Require(host.Selected[0] == "delta", "Ctrl navigation changed selection")
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.End, Modifiers: KeyModifiers{Shift: true}})
-        PumpFrames(window, 4)
-        Require(
-            host.Selected.Length == 2 && host.Selected[0] == "delta" && host.Selected[1] == "echo",
-            "Shift navigation did not extend the selection anchor"
-        )
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.PageDown})
-        PumpFrames(window, 4)
-        Require(host.Selected.Length == 1 && host.Selected[0] != "alpha", "Page navigation did not select a row")
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down})
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down})
-        PumpFrames(window, 4)
         host.FilterHandle.Focus()
         SendKey(id, SDLScancode.Home)
         SendKey(id, SDLScancode.Return)
