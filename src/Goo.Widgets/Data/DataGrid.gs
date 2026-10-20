@@ -946,6 +946,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if snapshot.AutoRowHeight {
             cells.Height = Length.Auto
             cells.MinHeight = height
+            cells.AlignItems = AlignItems.Stretch
             if let maximum = snapshot.MaximumRowHeight {
                 cells.MaxHeight = maximum
             }
