@@ -1165,8 +1165,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         let changed = activeId != id
         activeId = id
-        rootHandle.Focus()
         if reveal {
+            rootHandle.Focus()
             Reveal()
         }
         if changed {
