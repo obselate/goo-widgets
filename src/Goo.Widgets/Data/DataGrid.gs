@@ -1214,14 +1214,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         } else if extend && Index(anchorId) >= 0 {
             let start = Math.Min(Index(anchorId), Index(id))
             let end = Math.Max(Index(anchorId), Index(id))
-            if toggle {
-                for current in selected {
-                    next.Add(current)
-                }
+            for current in selected {
+                next.Add(current)
             }
             for index in start ... end + 1 {
                 let row = Row(index)
-                if !row.Disabled && !row.IsGroup && (!toggle || !selected.Contains(row.Id!!)) {
+                if !row.Disabled && !row.IsGroup && !selected.Contains(row.Id!!) {
                     next.Add(row.Id!!)
                 }
             }
@@ -1237,7 +1235,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 next.Add(id)
             }
         }
-        if !extend {
+        if !extend && (!toggle || !selected.Contains(id)) {
             anchorId = id
         }
         if let changed = input.OnSelectionIndicesChange {
