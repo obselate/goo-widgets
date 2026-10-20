@@ -186,6 +186,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var hasFocus bool
     private var pointerFocus bool
     private var clickModifiers KeyModifiers
+    private var clickFromInteractiveChild bool
     private var pointer int64 = -1L
     private var resizeId string?
     private var origin float64
@@ -1091,6 +1092,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Disabled = row.Disabled || snapshot.Disabled
         root.OnPointerDown = (e PointerEvent) -> {
             clickModifiers = e.Modifiers
+            clickFromInteractiveChild = e.IsFromInteractiveChild
             if e.Button == PointerButton.Primary && !row.IsGroup {
                 pointerFocus = true
                 if activeId != id {
@@ -1102,7 +1104,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         let hostClick = root.OnClick
         root.OnClick = () -> {
-            Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+            if !clickFromInteractiveChild {
+                Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+            }
             hostClick?.Invoke()
         }
         let actions = List[AccessibilityAction]()
@@ -1165,8 +1169,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         let changed = activeId != id
         activeId = id
+        rootHandle.Focus()
         if reveal {
-            rootHandle.Focus()
             Reveal()
         }
         if changed {
