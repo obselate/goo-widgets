@@ -53,6 +53,8 @@ public data struct TreeViewInput {
     var SelectedId string?
     /// Requests single row selection.
     var OnSelect Action[string]?
+    /// Runs before built-in keyboard handling. Return true to handle the event and skip the default action.
+    var OnKeyDown Func[KeyEvent, bool]?
     /// Row click, Enter, and accessibility activation also request branch expansion. Defaults to false.
     /// Checkbox clicks and Space retain the host's check policy.
     var ExpandOnActivate bool
@@ -88,7 +90,7 @@ public data struct TreeViewInput {
     var CreateExpander Func[TreeViewInput, TreeViewRow, Button, Button]?
     /// Customizes the composed Checkbox button; required identity and input wiring are reapplied.
     var CreateCheck Func[TreeViewInput, TreeViewRow, Button, Button]?
-    /// Customizes row appearance; standard slots, identity, input, and semantics are reapplied.
+    /// Standard slots are added before this factory. Custom children are kept; identity, input, and semantics are reapplied.
     var CreateRow Func[TreeViewInput, TreeViewRow, Container, Container]?
     /// Customizes root appearance; viewport, focus, and tree semantics are reapplied.
     var CreateRoot Func[TreeViewInput, Container, Container]?
@@ -203,7 +205,8 @@ public open class TreeView : Cell[TreeViewInput] {
                 rows,
                 virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
                 key,
-                build
+                build,
+                nil
             )
         )
         content.Key = "rows"
@@ -255,6 +258,11 @@ public open class TreeView : Cell[TreeViewInput] {
         root.OnPointerDown = (e PointerEvent) -> pointerFocus = true
         root.OnKeyDown = (e KeyEvent) -> {
             pointerFocus = false
+            if input.OnKeyDown?.Invoke(e) ?? false {
+                e.PreventDefault()
+                e.StopPropagation()
+                return
+            }
             KeyDown(e)
         }
         root.OnFocus = (e FocusEvent) -> {
@@ -287,9 +295,7 @@ public open class TreeView : Cell[TreeViewInput] {
         visible bool,
         disabled bool
     ) {
-        for var index = children.Length;
-        index > 0;
-        index-- {
+        for var index = children.Length; index > 0; index-- {
             stack.Push(
                 TreeWalk{
                     Node: children[index - 1],
@@ -441,8 +447,10 @@ public open class TreeView : Cell[TreeViewInput] {
             check.Accessibility = Accessibility{Hidden: true}
             children.Add(check)
         }
-        var label Blob = row.Node.Content ??
-        Text{
+        var label Blob = row
+            .Node
+            .Content ??
+            Text{
             Content: row.Node.Label ?? id,
             Color: snapshot.TextColor!!,
             TextWrap: TextWrap.NoWrap,
@@ -453,7 +461,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if let create = snapshot.CreateContent {
             label = create(snapshot, row, label)
         }
-        children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, label})
+        children.Add(Container{Key: "content", FlexGrow: 1, FlexShrink: 1, MinWidth: 0, label})
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -469,6 +477,9 @@ public open class TreeView : Cell[TreeViewInput] {
             OutlineOffset: -2.0,
             Opacity: row.Disabled ? .45: 1.0,
             Overflow: Overflow.Hidden
+        }
+        for child in children {
+            root.Children.Add(child)
         }
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
@@ -511,10 +522,6 @@ public open class TreeView : Cell[TreeViewInput] {
             semantics.OnAction = (request AccessibilityActionRequest) -> AccessibilityAction(id, request)
         }
         root.Accessibility = semantics
-        root.Children.Clear()
-        for child in children {
-            root.Children.Add(child)
-        }
         return root
     }
 

@@ -6,42 +6,89 @@ import System.Collections.Generic
 
 // Prefix sums of row extents over a fixed number of slots, stored as a Fenwick tree.
 internal class VirtualRowIndex {
-    private let sums[]float64
+    private var sums[]float64 = []float64{}
+    private let capacity int32
+    private let uniform float64
+    private let deltas Dictionary[int32, float64] = Dictionary[int32, float64]()
+
+    internal init(count int32, extent float64) {
+        capacity = count
+        uniform = extent
+    }
+
     internal init(extents[]float64) {
-        sums = [extents.Length + 1]float64
-        for i in 1 ... sums.Length {
-            sums[i] += extents[i - 1]
-            let parent = i + (i & -i)
-            if parent < sums.Length {
-                sums[parent] += sums[i]
+        capacity = extents.Length
+        var same = true
+        let first = extents.Length == 0 ? 0.0: extents[0]
+        for extent in extents {
+            same = same && extent == first
+        }
+        uniform = same ? first: 0.0
+        if !same {
+            sums = [capacity + 1]float64
+            for i in 1 ... sums.Length {
+                sums[i] += extents[i - 1]
+                let parent = i + (i & -i)
+                if parent < sums.Length {
+                    sums[parent] += sums[i]
+                }
             }
         }
     }
+
     internal prop Capacity int32 {
-        get -> sums.Length - 1
+        get -> capacity
     }
 
-    // The sum of the first `count` slots.
     internal func Prefix(count int32) float64 {
         var index = Math.Clamp(count, 0, Capacity)
-        var result = 0.0
+        var result = float64(index) * uniform
+        if sums.Length == 0 && deltas.Count == 0 {
+            return result
+        }
         while index > 0 {
-            result += sums[index]
+            result += if sums.Length > 0 {
+                sums[index]
+            } else {
+                deltas.TryGetValue(index, out var delta) ? delta: 0.0
+            }
             index -= index & -index
         }
         return result
     }
 
     internal func Add(slot int32, delta float64) {
+        if delta == 0.0 {
+            return
+        }
+        if sums.Length == 0 {
+            var next = slot + 1
+            while next <= capacity {
+                let previous = deltas.TryGetValue(next, out var value) ? value: 0.0
+                deltas[next] = previous + delta
+                if next > capacity - (next & -next) {
+                    break
+                }
+                next += next & -next
+            }
+            return
+        }
         var next = slot + 1
         while next < sums.Length {
             sums[next] += delta
+            if next > capacity - (next & -next) {
+                break
+            }
             next += next & -next
         }
     }
 
-    // The number of leading slots whose sum does not exceed `offset`.
     internal func Find(offset float64) int32 {
+        if sums.Length == 0 && deltas.Count == 0 {
+            return uniform > 0.0 ? int32(
+                Math.Min(float64(Capacity), Math.Floor(Math.Max(0.0, offset) / uniform))
+            ): Capacity
+        }
         var index = 0
         var bit = 1
         while bit <= Capacity / 2 {
@@ -50,9 +97,17 @@ internal class VirtualRowIndex {
         var remaining = Math.Max(0.0, offset)
         while bit > 0 {
             let next = index + bit
-            if next <= Capacity && sums[next] <= remaining {
-                index = next
-                remaining -= sums[next]
+            if next <= Capacity {
+                let delta = if sums.Length > 0 {
+                    sums[next]
+                } else {
+                    deltas.TryGetValue(next, out var value) ? value: 0.0
+                }
+                let extent = delta + float64(next & -next) * uniform
+                if extent <= remaining {
+                    index = next
+                    remaining -= extent
+                }
             }
             bit /= 2
         }
@@ -71,14 +126,29 @@ internal data struct VirtualRow[T] {
 // start and appended at the end in time proportional to the change; the slot buffer is compacted or grown
 // when the end reaches its capacity.
 internal class VirtualRowMetadata[T] {
-    private var rows[]VirtualRow[T]
-    private var slots Dictionary[string, int32]
+    private var rows[]VirtualRow[T] = []VirtualRow[T]{}
+    private var slots Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
     private var index VirtualRowIndex
     private var head int32
     private var count int32
-    internal let Width float32
+    internal var Width float32
     internal let Gap float32
     internal let Estimate float32
+    private var get Func[int32, T]?
+    private var key Func[T, string]?
+    private var find Func[string, int32]?
+    private let measured Dictionary[int32, float32] = Dictionary[int32, float32]()
+
+    internal init(source VirtualRowsSource[T], width float32, gap float32) {
+        Width = width
+        Gap = gap
+        Estimate = source.Estimate
+        count = source.Count
+        get = source.Get
+        key = source.Key
+        find = source.Index
+        index = VirtualRowIndex(count, float64(Estimate) + float64(gap))
+    }
 
     // Throws when keys are empty or repeated.
     internal init(values[]VirtualRow[T], width float32, gap float32, estimate float32) {
@@ -101,9 +171,23 @@ internal class VirtualRowMetadata[T] {
         get -> count
     }
 
-    internal func Row(position int32) VirtualRow[T] -> rows[head + position]
+    internal func Height(position int32) float32 -> get != nil ?
+        (measured.TryGetValue(position, out var height) ? height: Estimate): rows[head + position].Height
+
+    internal func Row(position int32) VirtualRow[T] {
+        if let itemAt = get {
+            let item = itemAt(position)
+            let known = measured.TryGetValue(position, out var height)
+            return VirtualRow[T]{Item: item, Key: key!!(item), Height: known ? height: Estimate, Measured: known}
+        }
+        return rows[head + position]
+    }
 
     internal func TryIndex(key string, out position int32) bool {
+        if let lookup = find {
+            position = lookup(key)
+            return position >= 0 && position < count
+        }
         if slots.TryGetValue(key, out var slot) {
             position = slot - head
             return true
@@ -138,6 +222,16 @@ internal class VirtualRowMetadata[T] {
     }
 
     internal func Measure(position int32, height float32) {
+        if get != nil {
+            let previous = measured.TryGetValue(position, out var known) ? known: Estimate
+            index.Add(position, float64(height) - float64(previous))
+            if height == Estimate {
+                measured.Remove(position)
+            } else {
+                measured[position] = height
+            }
+            return
+        }
         let slot = head + position
         var row = rows[slot]
         index.Add(slot, float64(height) - float64(row.Height))
@@ -209,4 +303,5 @@ internal class VirtualRowMetadata[T] {
 internal data struct VirtualRowMeasurement {
     internal var Index int32
     internal var Height float32
+    internal var Previous float32
 }

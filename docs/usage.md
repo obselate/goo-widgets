@@ -585,9 +585,10 @@ rows at the end is applied in place: only the added rows are keyed and built.
 `PinToBottom` keeps the end in view until the reader scrolls away from it.
 `ElementHandle.ScrollToItem(key)` jumps to an item of either function.
 
-`VirtualRows` supports one million rows, mounts at most 4,096 rows, and keeps the
-row that contains keyboard focus mounted. Use `GOO_WIDGETS_VIRTUAL=1` with the
-native runner to exercise both functions.
+`VirtualRows` mounts at most 4,096 rows and keeps the row that contains keyboard
+focus mounted. Positions use float32. Whole-pixel placement is exact up to
+16,777,216 px of content and drifts beyond it. Use `GOO_WIDGETS_VIRTUAL=1`
+with the native runner to exercise both functions.
 
 ## Controlled TreeView
 
@@ -620,15 +621,20 @@ Tree/TreeItem semantics include level, selected, checked, expanded, disabled, an
 the root's multi-selection policy. Accessible Focus, Select, Activate, Expand, and
 Collapse actions use the same controlled callbacks as native input.
 
+`OnKeyDown` runs before built-in navigation. Return true to prevent the default
+action and stop propagation.
+
 Visible rows are flattened iteratively and virtualized by default. Fixed
 `RowHeight` and `Indent` control geometry. `Virtualize: false` realizes every row
 in a full-height provider inside an outer scroll viewport; changing the mode keeps
 the retained row structure and logical focus. `ScrollbarY` styles the active vertical
 scroller in either mode. Custom content follows ordinary Goo
 layout and can provide its own interaction. Content, expander, checkbox, row, and
-root factories customize prepared blobs; required slots and tree wiring are
-reapplied. Use `GOO_WIDGETS_TREE=1` with the native runner to exercise both modes,
-keyboard and accessibility input, and the 1,500-child case.
+root factories customize prepared blobs. Standard row slots are added before
+`CreateRow`; custom children are kept. Identity, input, and tree semantics are
+reapplied. A replacement row root must supply its own slots. Use `GOO_WIDGETS_TREE=1`
+with the native runner to exercise both modes, keyboard and accessibility input,
+and the 1,500-child case.
 
 ## Controlled DataGrid
 
@@ -640,13 +646,23 @@ row, and root factories provide composition without duplicating column sizing.
 Factories may customize appearance; the grid reapplies required slots, identity,
 input, and semantics. Use `with` on the data input for ordinary variants.
 
-A column has a fixed `Width` or a positive `Flex` weight, with `Minimum`/`Maximum`
-bounds. Flex columns share the remaining viewport width above their minimums;
-minimum widths may overflow horizontally. Controlled `ColumnWidths` override
-individual columns in pixels. `OnColumnWidthChange` requests a finite clamped
-width and `OnColumnWidthCommit` reports pointer-up or keyboard completion. The
-host must update its width map and rebuild. Cancellation stops capture without a
-commit; earlier live change requests remain applied. Resizers support Left/Right,
+For an indexed source, supply `RowAt`, nonnegative `RowCount`, and `RowIndex`
+without materializing `Rows`. Return -1 from `RowIndex` for absent IDs. Replace
+`RowAt` or increment `RowVersion` after data changes. Set `HasRowDetails` when
+lazy rows have details. `Tag` and `SourceIndex` pass host data to factories.
+`OnSelectionIndicesChange` and `OnActiveRowIndexChange` report source indices.
+Use `IsGroup` for rows that must not participate in selection or navigation.
+`CreateFullWidthRow` can replace the cell slots for group headers or other rows.
+
+A column has a fixed `Width`, natural `AutoWidth`, or a positive `Flex` weight,
+with `Minimum`/`Maximum` bounds. `AutoWidth` applies without a fixed width and
+grows to fit headers and realized cells without shrinking on scroll. Flex columns
+share the remaining viewport width above their minimums. Minimum widths may
+overflow horizontally. Controlled `ColumnWidths` override individual columns in
+pixels. `OnColumnWidthChange` requests a finite clamped width and
+`OnColumnWidthCommit` reports pointer-up or keyboard completion. The host must
+update its width map and rebuild. Cancellation stops capture without a commit.
+Earlier live change requests remain applied. Resizers support Left/Right,
 Home/End, and accessible value changes. Headers, filters, and virtual cells share
 one width array inside one horizontal scroll viewport.
 
@@ -664,8 +680,9 @@ containing every resolved column width; replace the controlled map and rebuild.
 `SortColumnId`/`SortDirection` and `OnSort` cycle None → Ascending → Descending →
 None. The host performs the sort. `Selection` supports None, Single (at most one
 selected ID), and Multiple. `SelectedIds`/`OnSelectionChange` are controlled.
-Click replaces selection, Ctrl/⌘ toggles, and Shift selects a range in the supplied
-row order, skipping disabled rows. Ctrl/⌘+Shift adds the range. Toggle operations
+Click replaces selection and Ctrl/⌘ toggles. Shift and Ctrl/⌘+Shift combine the
+selection saved at the anchor with the current range, so the range can shrink.
+Ranges use the supplied row order and skip disabled and group rows. Toggle operations
 preserve selected IDs absent from a filtered row set. `ShowSelection` composes a
 leading checkbox using the same callbacks. `SelectionColumnWidth` overrides that
 column's width independently of the theme's control height; nil uses that height.
@@ -680,21 +697,32 @@ request. `ActiveRowId: nil` keeps the grid's internal active row. Set
 `UseDefaultKeyboard: false` when the host handles grid navigation itself.
 
 The grid keeps keyboard focus on its root and exposes its active row through
-`ActiveDescendant`. Up/Down/Home/End move through enabled rows; Shift extends
-selection, Enter replaces it, and Space toggles it. Left/Right request detail
+`ActiveDescendant`. Up/Down/Home/End and PageUp/PageDown select enabled non-group
+rows. Ctrl/⌘ moves the active row without selecting it. Shift adds a range,
+Enter replaces selection, and Space toggles it. Left/Right request detail
 collapse/expansion. Headers, resize handles, and custom interactive content retain
-their own focus and keyboard behavior. Grid/Row/ColumnHeader/GridCell semantics
+their own focus and keyboard behavior. Clicking interactive cell content does not
+select the row or move focus to the grid. Grid/Row/ColumnHeader/GridCell semantics
 include selection, expansion, disabled state, sort descriptions, and composed
 accessibility actions. The current Goo metadata has no row/column index or sort
-enum fields; those are not fabricated by the widget.
+enum fields. Those are not fabricated by the widget.
 
 `ExpandedIds` and `OnExpandedChange` control details. Supply a row's `Detail`, or
 set `HasDetail` and provide `CreateDetail` for lazy composition. `VirtualRows`
 measures expanded content at the shared table width, so detail text can wrap and
-push following rows naturally. Ordinary row cells use fixed `RowHeight`. Replace
-changed arrays and maps before rebuilding; typed inputs do not observe in-place
-mutations. Use `GOO_WIDGETS_DATA_GRID=1` with the isolated native runner for sorting,
-selection, resizing/cancel, expanded details, horizontal scrolling, and 1,500 rows.
+push following rows naturally. Ordinary cells use fixed `RowHeight` by default.
+Set `AutoRowHeight` to measure visible cells, using `RowHeight` as the minimum
+and estimate. `MaximumRowHeight` caps the cells area, excluding details.
+Alternatively, `RowHeightProvider` supplies finite positive heights for array
+rows. Replace that delegate when heights change. It cannot be combined with
+`AutoRowHeight` or an indexed source.
+DataGrid positions use float32. Whole-pixel placement is exact up to 16,777,216 px
+of content and drifts beyond it.
+
+Replace changed arrays and maps before rebuilding. Typed inputs do not observe
+in-place mutations. Use `GOO_WIDGETS_DATA_GRID=1` with the isolated native runner
+for sorting, selection, resizing/cancel, variable heights, indexed rows, expanded
+details, horizontal scrolling, and 1,500 rows.
 
 
 ## Gallery feedback regression checks

@@ -47,6 +47,33 @@ func TreeViewContracts() {
         root.Focusable && root.Accessibility!!.MultiSelectable == true,
         "Tree lost stable-root focus or multiselect semantics"
     )
+    var intercepted int32
+    var selected string = ""
+    let keyboard = (
+        probe.Render(
+            TreeViewInput{
+                Virtualize: false,
+                Nodes: []TreeNode{TreeNode{Id: "one"}, TreeNode{Id: "two"}},
+                OnSelect: (id string) -> selected = id,
+                OnKeyDown: (e KeyEvent) -> {
+                    if (e.Key == Key.Down && e.Modifiers.Shift) || (e.Key == Key.Space && e.Modifiers.Ctrl) {
+                        intercepted++
+                        return true
+                    }
+                    return false
+                }
+            }
+        ) as Container
+    )!!
+    keyboard.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down, Modifiers: KeyModifiers{Shift: true}})
+    keyboard.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space})
+    Require(selected == "one", "Tree host hook did not run before default navigation")
+    selected = ""
+    keyboard.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space, Modifiers: KeyModifiers{Ctrl: true}})
+    Require(intercepted == 2 && selected == "", "Tree host hook lost modifiers or failed to suppress selection")
+    keyboard.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down})
+    keyboard.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space})
+    Require(selected == "two", "Tree hook disabled unhandled default keyboard input")
 }
 
 internal class TreeHost : Cell {
@@ -66,6 +93,14 @@ internal class TreeHost : Cell {
     internal let After ElementHandle = ElementHandle()
 
     private func Row(input TreeViewInput, row TreeViewRow, prepared Container) Container {
+        var contentFound bool
+        for child in prepared.Children {
+            if child is Container && child.Key == "content" {
+                contentFound = true
+            }
+        }
+        Require(contentFound, "Tree row customization did not receive composed children")
+        prepared.Children.Add(Container{Key: "custom-row", Width: 0, Height: 0})
         Rows[row.Node.Id!!] = prepared
         return prepared
     }
@@ -230,6 +265,11 @@ func TreeViewInteractions() {
     window.Open()
     try {
         PumpFrames(window, 20)
+        let row = host.Rows["alpha"]
+        Require(
+            row.Children.Count == 4 && row.Children[3].Key == "custom-row",
+            "Tree discarded customized row children"
+        )
         let id = OnlyNativeWindow()
         host.Root!!.Handle!!.Focus()
         PumpFrames(window, 8)
