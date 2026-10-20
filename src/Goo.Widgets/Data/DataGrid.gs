@@ -1185,7 +1185,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         let handle = Handle(rowHandles, activeId!!)
         if handle.IsMounted {
-            handle.ScrollIntoView()
+            let row = handle.BorderBox
+            let view = viewport.ContentBox
+            let offset = viewport.ScrollOffset
+            if row.Y < view.Y {
+                viewport.JumpTo(offset.X, Math.Max(0.0, offset.Y + row.Y - view.Y))
+            } else if row.Y + row.Height > view.Y + view.Height {
+                viewport.JumpTo(offset.X, offset.Y + row.Y + row.Height - view.Y - view.Height)
+            }
         } else {
             viewport.ScrollToItem(activeId!!)
         }

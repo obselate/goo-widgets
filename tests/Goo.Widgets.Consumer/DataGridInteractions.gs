@@ -915,6 +915,14 @@ func DataGridInteractions() {
         host.Widths["owner"] = 450.0
         host.Rebuild()
         PumpFrames(window, 10)
+        let left = host.Headers["name"].BorderBox.X
+        host.Root!!.Handle!!.Focus()
+        SendKey(id, SDLScancode.Home)
+        PumpFrames(window, 8)
+        Require(
+            Math.Abs(host.Headers["name"].BorderBox.X - left) < .1,
+            "Revealing an active grid row shifted the horizontal viewport"
+        )
         let ownerResize = GridElement(host.Root!!, "Resize Owner")!!.Handle!!
         ownerResize.Focus()
         ownerResize.ScrollIntoView()

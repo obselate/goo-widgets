@@ -461,7 +461,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if let create = snapshot.CreateContent {
             label = create(snapshot, row, label)
         }
-        children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, label})
+        children.Add(Container{Key: "content", FlexGrow: 1, FlexShrink: 1, MinWidth: 0, label})
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -477,6 +477,9 @@ public open class TreeView : Cell[TreeViewInput] {
             OutlineOffset: -2.0,
             Opacity: row.Disabled ? .45: 1.0,
             Overflow: Overflow.Hidden
+        }
+        for child in children {
+            root.Children.Add(child)
         }
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
@@ -519,10 +522,6 @@ public open class TreeView : Cell[TreeViewInput] {
             semantics.OnAction = (request AccessibilityActionRequest) -> AccessibilityAction(id, request)
         }
         root.Accessibility = semantics
-        root.Children.Clear()
-        for child in children {
-            root.Children.Add(child)
-        }
         return root
     }
 

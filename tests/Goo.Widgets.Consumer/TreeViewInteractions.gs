@@ -93,6 +93,14 @@ internal class TreeHost : Cell {
     internal let After ElementHandle = ElementHandle()
 
     private func Row(input TreeViewInput, row TreeViewRow, prepared Container) Container {
+        var contentFound bool
+        for child in prepared.Children {
+            if child is Container && child.Key == "content" {
+                contentFound = true
+            }
+        }
+        Require(contentFound, "Tree row customization did not receive composed children")
+        prepared.Children.Add(Container{Key: "custom-row", Width: 0, Height: 0})
         Rows[row.Node.Id!!] = prepared
         return prepared
     }
@@ -257,6 +265,11 @@ func TreeViewInteractions() {
     window.Open()
     try {
         PumpFrames(window, 20)
+        let row = host.Rows["alpha"]
+        Require(
+            row.Children.Count == 4 && row.Children[3].Key == "custom-row",
+            "Tree discarded customized row children"
+        )
         let id = OnlyNativeWindow()
         host.Root!!.Handle!!.Focus()
         PumpFrames(window, 8)
