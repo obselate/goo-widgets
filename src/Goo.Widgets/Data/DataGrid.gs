@@ -30,6 +30,7 @@ public data struct DataGridColumn {
     var Width float64?
     /// With no fixed Width, grows to the natural width of headers and realized cells without shrinking on scroll.
     var AutoWidth bool
+    var AutoWidthContent Blob?
     /// Positive relative flex weight. Nil resolves to 1.
     var Flex float64?
     /// Width bounds. Nil resolves to 60 and 1000000.
@@ -79,6 +80,7 @@ public data struct DataGridInput {
     var OnColumnWidthCommit Action[string, float64]?
     /// Fits columns to the measured root content width, excluding a reserved vertical scrollbar.
     var FitColumnsToViewport bool
+    var VirtualizeColumns bool
     /// Receives all resolved widths atomically. Columns without a definition width or AutoWidth remain flexible.
     var OnFittedColumnWidthsChange Action[IReadOnlyDictionary[string, float64]]?
     var OnFittedColumnWidthsCommit Action[IReadOnlyDictionary[string, float64]]?
@@ -143,6 +145,7 @@ public data struct DataGridInput {
     var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
     var CreateCell Func[DataGridInput, DataGridRow, DataGridColumn, Blob, Blob]?
+    var CreateCellContent Func[DataGridInput, DataGridRow, DataGridColumn, Blob]?
     /// Replaces content inside the sortable header button.
     var CreateHeader Func[DataGridInput, DataGridColumn, Blob, Blob]?
     var CreateFilter Func[DataGridInput, DataGridColumn, Blob, Blob]?
@@ -162,6 +165,7 @@ public data struct DataGridInput {
 public open class DataGrid : Cell[DataGridInput], IDisposable {
     private let defaultRootHandle ElementHandle = ElementHandle()
     private let defaultViewport ElementHandle = ElementHandle()
+    private let horizontalViewport ElementHandle = ElementHandle()
     private var rootHandle ElementHandle
     private var viewport ElementHandle
     private let rowHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
@@ -182,6 +186,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var available float64
     private var tableWidth float64
     private var leading float64
+    private var firstColumn int32
+    private var endColumn int32
+    private var beforeColumns float64
+    private var afterColumns float64
     private var activeId string?
     private var anchorId string?
     private var anchorSelection HashSet[string] = HashSet[string](StringComparer.Ordinal)
@@ -210,6 +218,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         endResize = EndResize
         cancelResize = CancelResize
         rootHandle.MetricsChanged += Metrics
+        horizontalViewport.MetricsChanged += HorizontalMetrics
     }
 
     /// Releases the root geometry subscription.
@@ -221,6 +230,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         pointer = -1L
         resizeId = nil
         rootHandle.MetricsChanged -= Metrics
+        horizontalViewport.MetricsChanged -= HorizontalMetrics
     }
 
     protected override func Build(value DataGridInput) Blob {
@@ -264,6 +274,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 throw ArgumentOutOfRangeException("MaximumRowHeight")
             }
         }
+        if input.AutoRowHeight && input.VirtualizeColumns {
+            throw ArgumentException("Column virtualization requires stable row heights")
+        }
         if input.AutoRowHeight && input.RowHeightProvider != nil {
             throw ArgumentException("AutoRowHeight and RowHeightProvider are mutually exclusive")
         }
@@ -275,6 +288,13 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             throw ArgumentOutOfRangeException("Grid selection/sort policy")
         }
         columns = input.Columns ?? []DataGridColumn{}
+        if sourceChanged {
+            for column in columns {
+                if column.AutoWidthContent != nil {
+                    autoWidths?.Remove(column.Id!!)
+                }
+            }
+        }
         let nextRows = input.Rows ?? (input.RowAt != nil ? rows: []DataGridRow{})
         let rowsChanged = !Object.ReferenceEquals(rows, nextRows)
         if input.RowAt != nil && (input.RowIndex == nil || input.RowCount < 0) {
@@ -391,6 +411,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             0.0
         }
         ResolveWidths(verticalGutter)
+        ResolveVisibleColumns()
         let snapshot = input
         var body Blob = if RowCount == 0 && input.EmptyContent != nil {
             Container{OverflowY: Overflow.Scroll, input.EmptyContent!!}
@@ -436,6 +457,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         canvas.Children.Add(body)
         let scroll = Container{
+            Handle: horizontalViewport,
             FlexGrow: 1,
             FlexBasis: 0,
             MinWidth: 0,
@@ -648,6 +670,42 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
     }
 
+    private func HorizontalMetrics(metrics ElementMetrics) {
+        if disposed || !metrics.IsMounted || !input.VirtualizeColumns {
+            return
+        }
+        let previousFirst = firstColumn
+        let previousEnd = endColumn
+        ResolveVisibleColumns()
+        if previousFirst != firstColumn || previousEnd != endColumn {
+            Rebuild()
+        }
+    }
+
+    private func ResolveVisibleColumns() {
+        firstColumn = 0
+        endColumn = columns.Length
+        beforeColumns = 0.0
+        afterColumns = 0.0
+        if !input.VirtualizeColumns || !horizontalViewport.IsMounted {
+            return
+        }
+        let left = horizontalViewport.ScrollOffset.X
+        let right = left + horizontalViewport.ContentBox.Width
+        var position = leading
+        for index in 0 ... columns.Length {
+            let end = position + widths[index]
+            if end <= left {
+                firstColumn = index + 1
+                beforeColumns += widths[index]
+            } else if position >= right {
+                endColumn = Math.Min(endColumn, index)
+                afterColumns += widths[index]
+            }
+            position = end
+        }
+    }
+
     private func Clamp(index int32, width float64) float64 -> Math.Clamp(
         width,
         columns[index].Minimum ?? 60.0,
@@ -853,7 +911,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             }
             if !filter && column.AutoWidth && column.Width == nil {
-                content = MeasureWidth(id, content)
+                content = MeasureWidth(id, content, column.AutoWidthContent)
             }
             let slot = Container{
                 Key: "column:" + id,
@@ -1031,7 +1089,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
                 cells.Children.Add(controls)
             }
-            for index in 0 ... columns.Length {
+            if beforeColumns > 0.0 {
+                cells.Children.Add(Container{Key: "before-columns", Width: beforeColumns, FlexShrink: 0})
+            }
+            for index in firstColumn ... endColumn {
                 let column = columns[index]
                 var text = ""
                 if let values = row.Values {
@@ -1039,18 +1100,22 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         text = found
                     }
                 }
-                var content Blob = Text{
-                    Content: text,
-                    Color: snapshot.TextColor!!,
-                    TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
-                    FontFamily: theme.FontFamily,
-                    FontSize: theme.FontSize,
-                    FontWeight: theme.FontWeight,
+                var content Blob = if let create = snapshot.CreateCellContent {
+                    create(snapshot, row, column)
+                } else {
+                    Text{
+                        Content: text,
+                        Color: snapshot.TextColor!!,
+                        TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
+                        FontFamily: theme.FontFamily,
+                        FontSize: theme.FontSize,
+                        FontWeight: theme.FontWeight,
+                    }
                 }
                 if let create = snapshot.CreateCell {
                     content = create(snapshot, row, column, content)
                 }
-                if column.AutoWidth && column.Width == nil {
+                if column.AutoWidth && column.Width == nil && column.AutoWidthContent == nil {
                     content = MeasureWidth(column.Id!!, content)
                 }
                 cells.Children.Add(
@@ -1071,6 +1136,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         content
                     }
                 )
+            }
+            if afterColumns > 0.0 {
+                cells.Children.Add(Container{Key: "after-columns", Width: afterColumns, FlexShrink: 0})
             }
         }
         var root = Container{
@@ -1571,7 +1639,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         return true
     }
 
-    private func MeasureWidth(id string, content Blob) Blob {
+    private func MeasureWidth(id string, content Blob, measurement Blob? = nil) Blob {
         let handle = ElementHandle()
         handle.MetricsChanged += (metrics ElementMetrics) -> {
             if disposed || !metrics.IsMounted {
@@ -1591,7 +1659,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             }
         }
         autoWidthLayout ??= DataGridAutoWidthLayout()
-        return Container{
+        let wrapper = Container{
             Width: Percent(100),
             MinWidth: 0,
             FlexGrow: 1,
@@ -1599,6 +1667,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Container{Width: Percent(100), MinWidth: 0, JustifyContent: JustifyContent.Center, content},
             Container{Handle: handle}
         }
+        if measurement != nil {
+            wrapper.Children.Add(
+                Container{Overflow: Overflow.Hidden, Accessibility: Accessibility{Hidden: true}, measurement}
+            )
+        }
+        return wrapper
     }
 }
 
@@ -1607,11 +1681,14 @@ internal class DataGridAutoWidthLayout : LayoutAlgorithm {
 
     public func Arrange(context LayoutContext, finalSize LayoutSize) {
         let natural = context.MeasureChild(
-            0,
+            context.ChildCount == 3 ? 2: 0,
             LayoutSize{Width: Double.PositiveInfinity, Height: Double.PositiveInfinity}
         )
         context.MeasureChild(0, finalSize)
         context.ArrangeChild(0, ElementRect{Width: finalSize.Width, Height: finalSize.Height})
         context.ArrangeChild(1, ElementRect{Width: natural.Width, Height: 0})
+        if context.ChildCount == 3 {
+            context.ArrangeChild(2, ElementRect{Width: natural.Width, Height: 0})
+        }
     }
 }

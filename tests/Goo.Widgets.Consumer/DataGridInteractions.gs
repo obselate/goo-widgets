@@ -20,6 +20,11 @@ internal class DataGridHeightHost : Cell {
     internal var Wrap bool
     internal var Compact bool
     internal var AutoColumns bool
+    internal var VirtualColumns bool
+    internal var SourceWidth bool
+    internal var Version int64
+    private let wideColumns[]DataGridColumn = [12]DataGridColumn
+    internal let Cells Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     internal var RowCalls int32
     internal var ActiveIndex int32 = -1
     internal var SelectedIndices[]int32 = []int32{}
@@ -33,6 +38,9 @@ internal class DataGridHeightHost : Cell {
     internal let WidthB ElementHandle = ElementHandle()
 
     internal init() {
+        for index in 0 ... wideColumns.Length {
+            wideColumns[index] = DataGridColumn{Id: index.ToString(), Width: 150}
+        }
         for index in 0 ... Rows.Length {
             let id = index.ToString()
             let values = Dictionary[string, string]()
@@ -50,7 +58,12 @@ internal class DataGridHeightHost : Cell {
 
     private func Height(row DataGridRow) float64 -> int32.Parse(row.Id!!) % 2 == 0 ? 32.0: 92.0
 
-    private func Content(input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) Blob {
+    private func Content(input DataGridInput, row DataGridRow, column DataGridColumn) Blob {
+        if VirtualColumns {
+            let handle = ElementHandle()
+            Cells[row.Id!!+ ":" + column.Id!!] = handle
+            return Text{Handle: handle, Content: column.Id!!, TextWrap: TextWrap.NoWrap}
+        }
         if AutoColumns {
             return Text{
                 Content: row.Id == "50" ? "A much wider value first realized after scrolling": "x",
@@ -82,11 +95,13 @@ internal class DataGridHeightHost : Cell {
             Columns: WidthCase > 0 ? []DataGridColumn{
                 DataGridColumn{Id: "a", Label: "A", Minimum: 500, Flex: 1},
                 DataGridColumn{Id: "b", Label: "B", Maximum: WidthCase == 1 ? 100: 300, Flex: 1}
-            }: []DataGridColumn{
+            }: VirtualColumns ? wideColumns: []DataGridColumn{
                 DataGridColumn{
                     Id: "value",
                     Width: AutoColumns ? nil: (Compact ? 100: 200),
                     AutoWidth: AutoColumns,
+                    AutoWidthContent: SourceWidth ?
+                    Text{Content: "A much wider value first realized after scrolling", TextWrap: TextWrap.NoWrap}: nil,
                     Minimum: AutoColumns ? 0: 60,
                     Maximum: 400
                 }
@@ -95,6 +110,8 @@ internal class DataGridHeightHost : Cell {
             RowAt: Indexed ? At: nil,
             RowIndex: Indexed ? Index: nil,
             RowCount: Indexed ? 2000000: 0,
+            RowVersion: Version,
+            VirtualizeColumns: VirtualColumns,
             RowHeight: Indexed ? 33: 32,
             AutoRowHeight: Auto,
             MaximumRowHeight: 80,
@@ -120,7 +137,7 @@ internal class DataGridHeightHost : Cell {
                 }
             },
             OnActiveRowIndexChange: (index int32) -> ActiveIndex = index,
-            CreateCell: Wrap ? nil: Content,
+            CreateCellContent: Wrap ? nil: Content,
             CreateFullWidthRow: FullWidth,
             CreateRoot: (input DataGridInput, root Container) -> {
                 Root = root
@@ -261,6 +278,46 @@ func DataGridHeightInteractions() {
             Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
             "Auto columns shrank after scrolling to shorter content"
         )
+        host.SourceWidth = true
+        host.Version++
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(
+            Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
+            "Source width did not resolve before the wide row was realized"
+        )
+        host.AutoColumns = false
+        host.SourceWidth = false
+        host.VirtualColumns = true
+        host.Version++
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(!host.Cells.ContainsKey("1:11"), "Grid built an offscreen column")
+        let horizontal = ((host.Root!!.Children[0] as Container)!!).Handle!!
+        let height = host.RowBlobs["1"].Handle!!.BorderBox.Height
+        let extent = horizontal.ScrollRange.X
+        Require(extent > 1500.0, "Column virtualization lost the horizontal extent")
+        Require(horizontal.JumpTo(extent, 0.0), "Grid rejected horizontal scrolling")
+        PumpFrames(window, 12)
+        Require(
+            host.Cells["1:11"].IsMounted && !host.Cells["1:0"].IsMounted,
+            "Grid did not replace clipped columns after horizontal scrolling"
+        )
+        Require(
+            Math.Abs(horizontal.ScrollRange.X - extent) < .1 && Math.Abs(
+                host.RowBlobs["1"].Handle!!.BorderBox.Height - height
+            ) < .1,
+            "Column virtualization changed the table extent or row height"
+        )
+        let right = host.Cells["1:11"].BorderBox
+        Require(
+            right.X >= horizontal.ContentBox.X && right.X < horizontal.ContentBox.X + horizontal.ContentBox.Width,
+            "Leading column spacer misaligned the final column"
+        )
+        Require(horizontal.JumpTo(0.0, 0.0), "Grid rejected returning to the first column")
+        PumpFrames(window, 12)
+        Require(host.Cells["1:0"].IsMounted && !host.Cells["1:11"].IsMounted, "Grid did not restore the first column")
+        host.VirtualColumns = false
         window.Width = 1000
         host.WidthCase = 1
         host.Rebuild()
@@ -297,6 +354,13 @@ func DataGridContracts() {
         rejected = true
     }
     Require(rejected, "Grid accepted duplicate column IDs")
+    rejected = false
+    try {
+        probe.Render(DataGridInput{AutoRowHeight: true, VirtualizeColumns: true})
+    } catch (error ArgumentException) {
+        rejected = true
+    }
+    Require(rejected, "Grid virtualized columns with unstable automatic row heights")
     rejected = false
     try {
         probe.Render(DataGridInput{Rows: []DataGridRow{DataGridRow{Id: "a"}, DataGridRow{Id: "a"}}})
