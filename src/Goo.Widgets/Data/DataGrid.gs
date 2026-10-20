@@ -1533,7 +1533,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             }
         }
         autoWidthLayout ??= DataGridAutoWidthLayout()
-        return Container{Width: Percent(100), MinWidth: 0, Layout: autoWidthLayout, content, Container{Handle: handle}}
+        return Container{
+            Width: Percent(100),
+            MinWidth: 0,
+            FlexGrow: 1,
+            Layout: autoWidthLayout,
+            Container{Width: Percent(100), MinWidth: 0, JustifyContent: JustifyContent.Center, content},
+            Container{Handle: handle}
+        }
     }
 }
 
