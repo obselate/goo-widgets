@@ -5,6 +5,7 @@
 ## 0.4.0 - 2026-10-20
 
 - Add lazy indexed DataGrid sources, measured and provider row heights, natural column widths and full-width group rows, and correct grid selection, nested focus, vertical reveal and TreeView row composition.
+- Add opt-in DataGrid VirtualizeColumns for horizontal cell culling and CreateCellContent to replace default cell text without building it.
 
 ### Behavior changes
 
