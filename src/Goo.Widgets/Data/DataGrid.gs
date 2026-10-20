@@ -679,27 +679,38 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         var remaining = Math.Max(0.0, available - verticalGutter - tableWidth)
         for pass in 0 ... columns.Length {
             var weight float64
+            var space = remaining
             for index in 0 ... columns.Length {
-                if flexible[index] && widths[index] < (columns[index].Maximum ?? 1000000.0) {
+                if flexible[index] {
                     weight += (columns[index].Flex ?? 1.0) / maxWeight
+                    space += widths[index]
                 }
             }
-            if weight <= 0.0 || remaining <= .001 {
+            if weight <= 0.0 {
                 break
             }
-            var consumed float64
+            var constrained = false
             for index in 0 ... columns.Length {
                 if !flexible[index] {
                     continue
                 }
-                let addition = Math.Min(
-                    (columns[index].Maximum ?? 1000000.0) - widths[index],
-                    remaining * ((columns[index].Flex ?? 1.0) / maxWeight) / weight
-                )
-                widths[index] += addition
-                consumed += addition
+                let share = space * ((columns[index].Flex ?? 1.0) / maxWeight) / weight
+                let width = Clamp(index, share)
+                if Math.Abs(width - share) > .001 {
+                    remaining -= width - widths[index]
+                    widths[index] = width
+                    flexible[index] = false
+                    constrained = true
+                }
             }
-            remaining -= consumed
+            if !constrained {
+                for index in 0 ... columns.Length {
+                    if flexible[index] {
+                        widths[index] = space * ((columns[index].Flex ?? 1.0) / maxWeight) / weight
+                    }
+                }
+                break
+            }
         }
         tableWidth = leading
         for width in widths {
@@ -1293,6 +1304,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 e.Key == Key.Up ||
                 e.Key == Key.Home ||
                 e.Key == Key.End ||
+                e.Key == Key.PageUp ||
+                e.Key == Key.PageDown ||
                 e.Key == Key.Left ||
                 e.Key == Key.Right ||
                 e.Key == Key.Space ||
@@ -1317,6 +1330,31 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             next = Index(First(false))
         } else if e.Key == Key.End {
             next = Index(First(true))
+        } else if e.Key == Key.PageUp || e.Key == Key.PageDown {
+            let delta = e.Key == Key.PageDown ? 1: -1
+            var remaining = viewport.ContentBox.Height
+            var moved = false
+            while next >= 0 && next < RowCount {
+                let candidate = next + delta
+                if candidate < 0 || candidate >= RowCount {
+                    break
+                }
+                let row = Row(delta > 0 ? next: candidate)
+                let height = if rowHandles.TryGetValue(row.Id!!, out var handle) && handle.IsMounted {
+                    handle.BorderBox.Height
+                } else {
+                    input.RowHeightProvider?.Invoke(row) ?? input.RowHeight!!
+                }
+                if moved && height > remaining {
+                    break
+                }
+                remaining -= height
+                next = candidate
+                moved = true
+            }
+            while next >= 0 && next < RowCount && (Row(next).Disabled || Row(next).IsGroup) {
+                next += delta
+            }
         } else if e.Key == Key.Space || e.Key == Key.Enter {
             if activeId != nil {
                 Select(activeId!!, e.Key == Key.Space || e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
@@ -1331,8 +1369,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         e.PreventDefault()
         e.StopPropagation()
         if next >= 0 && next < RowCount {
-            if e.Modifiers.Shift && (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Home || e.Key == Key.End) {
-                Select(Row(next).Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, true)
+            if e.Key == Key.Down ||
+                e.Key == Key.Up ||
+                e.Key == Key.Home ||
+                e.Key == Key.End ||
+                e.Key == Key.PageUp ||
+                e.Key == Key
+                .PageDown {
+                if (e.Modifiers.Ctrl || e.Modifiers.Super) && !e.Modifiers.Shift {
+                    Activate(Row(next).Id!!)
+                } else {
+                    Select(Row(next).Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+                }
             } else {
                 Activate(Row(next).Id!!)
             }
