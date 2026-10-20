@@ -23,10 +23,14 @@ internal class DataGridHeightHost : Cell {
     internal var RowCalls int32
     internal var ActiveIndex int32 = -1
     internal var SelectedIndices[]int32 = []int32{}
+    internal var SelectedIds[]string = []string{}
     internal var Root Container?
     internal let FullWidthIds HashSet[string] = HashSet[string]()
     internal var HeaderClicks int32
     internal var Header Button?
+    internal var WidthCase int32
+    internal let WidthA ElementHandle = ElementHandle()
+    internal let WidthB ElementHandle = ElementHandle()
 
     internal init() {
         for index in 0 ... Rows.Length {
@@ -75,7 +79,10 @@ internal class DataGridHeightHost : Cell {
     public override func Build() Blob -> Cell.Mount[DataGridInput, DataGrid](
         "grid",
         DataGridInput{
-            Columns: []DataGridColumn{
+            Columns: WidthCase > 0 ? []DataGridColumn{
+                DataGridColumn{Id: "a", Label: "A", Minimum: 500, Flex: 1},
+                DataGridColumn{Id: "b", Label: "B", Maximum: WidthCase == 1 ? 100: 300, Flex: 1}
+            }: []DataGridColumn{
                 DataGridColumn{
                     Id: "value",
                     Width: AutoColumns ? nil: (Compact ? 100: 200),
@@ -88,16 +95,22 @@ internal class DataGridHeightHost : Cell {
             RowAt: Indexed ? At: nil,
             RowIndex: Indexed ? Index: nil,
             RowCount: Indexed ? 2000000: 0,
-            RowHeight: 32,
+            RowHeight: Indexed ? 33: 32,
             AutoRowHeight: Auto,
             MaximumRowHeight: 80,
             RowHeightProvider: Auto || Indexed || AutoColumns ? nil: Height,
             ViewportHandle: Viewport,
             Height: 232,
-            Width: Compact ? 120: 220,
+            Width: WidthCase > 0 ? (WidthCase == 1 ? 800: 700): (Compact ? 120: 220),
+            ScrollbarVisibilityY: WidthCase > 0 ? ScrollbarVisibility.Hidden: ScrollbarVisibility.Auto,
+            CreateHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
+                Container{Handle: column.Id == "a" ? WidthA: WidthB, Width: Percent(100), content},
             Selection: DataGridSelection.Multiple,
+            SelectedIds: SelectedIds,
             OnSelectionIndicesChange: (indices[]int32) -> SelectedIndices = indices,
             OnSelectionChange: (ids[]string) -> {
+                SelectedIds = ids
+                Rebuild()
                 Require(ids.Length == SelectedIndices.Length, "Selection IDs ran before source indices")
                 for index in 0 ... ids.Length {
                     Require(
@@ -168,19 +181,36 @@ func DataGridHeightInteractions() {
         host.Auto = false
         host.Rebuild()
         PumpFrames(window, 12)
-        Require(host.RowCalls < 2000, "Indexed grid eagerly read unmounted rows")
-        Require(Math.Abs(host.Viewport.ScrollRange.Y - 63999800.0) < .1, "Two-million-row fixed extent was not exact")
+        Require(host.RowCalls < 200, "Indexed measurement read more than the visible row budget")
+        Require(Math.Abs(host.Viewport.ScrollRange.Y - 65999800.0) <= 4.0, "Two-million-row extent exceeded float32 precision")
         Require(host.Viewport.ScrollToItem("1999990"), "Indexed grid could not scroll to an unrealized ID")
         PumpFrames(window, 8)
         Require(
-            host.RowBlobs["1999990"].Handle!!.IsMounted && Math.Abs(host.Viewport.ScrollOffset.Y - 63999680.0) < .1,
-            "Indexed grid used an incorrect distant offset"
+            host.RowBlobs["1999990"].Handle!!.IsMounted && Math.Abs(host.Viewport.ScrollOffset.Y - 65999670.0) <= 4.0,
+            "Indexed grid exceeded float32 distant offset precision"
+        )
+        Require(host.Viewport.ScrollToItem("500000"), "Indexed grid rejected a pixel-exact offset")
+        PumpFrames(window, 8)
+        Require(Math.Abs(host.Viewport.ScrollOffset.Y - 16500000.0) < .1, "Indexed offset below float32 limit was not exact")
+        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
+        for step in 0 ... 4 {
+            host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down})
+            PumpFrames(window, 2)
+        }
+        for step in 0 ... 3 {
+            host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down, Modifiers: KeyModifiers{Shift: true}})
+            PumpFrames(window, 2)
+        }
+        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Up, Modifiers: KeyModifiers{Shift: true}})
+        PumpFrames(window, 2)
+        Require(
+            host.SelectedIndices.Length == 3 && Array.IndexOf(host.SelectedIndices, 5) >= 0 &&
+                Array.IndexOf(host.SelectedIndices, 6) >= 0 && Array.IndexOf(host.SelectedIndices, 7) >= 0,
+            "Shift range did not shrink to rows 5, 6, 7"
         )
         host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.End})
         PumpFrames(window, 8)
         Require(host.ActiveIndex == 1999999, "Indexed navigation did not report its active source index")
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space})
-        PumpFrames(window, 4)
         Require(
             host.SelectedIndices.Length == 1 && host.SelectedIndices[0] == 1999999,
             "Indexed selection did not report its source indices"
@@ -188,7 +218,12 @@ func DataGridHeightInteractions() {
         host.RowCalls = 0
         host.Rebuild()
         PumpFrames(window, 8)
-        Require(host.RowCalls < 2000, "Indexed rebuild scanned the full source")
+        Require(host.RowCalls < 200, "Indexed rebuild exceeded the visible row budget")
+        host.Auto = true
+        host.RowCalls = 0
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(host.RowCalls < 200, "Indexed height measurement exceeded the visible row budget")
         host.Indexed = false
         host.Auto = true
         host.Wrap = true
@@ -225,6 +260,24 @@ func DataGridHeightInteractions() {
         Require(
             Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
             "Auto columns shrank after scrolling to shorter content"
+        )
+        window.Width = 1000
+        host.WidthCase = 1
+        host.Rebuild()
+        PumpFrames(window, 12)
+        let headerPadding = 2.0 * Theme.Read(window).ControlPadding
+        Require(
+            Math.Abs(host.WidthA.BorderBox.Width + headerPadding - 700.0) < .1 &&
+                Math.Abs(host.WidthB.BorderBox.Width + headerPadding - 100.0) < .1,
+            "Mixed star bounds left unused viewport space"
+        )
+        host.WidthCase = 2
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(
+            Math.Abs(host.WidthA.BorderBox.Width + headerPadding - 500.0) < .1 &&
+                Math.Abs(host.WidthB.BorderBox.Width + headerPadding - 200.0) < .1,
+            "Mixed star bounds overflowed the viewport"
         )
     } finally {
         window.RequestClose()

@@ -79,7 +79,7 @@ public data struct DataGridInput {
     var OnColumnWidthCommit Action[string, float64]?
     /// Fits columns to the measured root content width, excluding a reserved vertical scrollbar.
     var FitColumnsToViewport bool
-    /// Receives all resolved widths atomically. Columns without a definition width remain flexible.
+    /// Receives all resolved widths atomically. Columns without a definition width or AutoWidth remain flexible.
     var OnFittedColumnWidthsChange Action[IReadOnlyDictionary[string, float64]]?
     var OnFittedColumnWidthsCommit Action[IReadOnlyDictionary[string, float64]]?
     var SortColumnId string?
@@ -158,6 +158,7 @@ public data struct DataGridInput {
 }
 
 /// Shared column sizing, captured resizing, controlled sorting/selection, and measured virtual detail rows.
+/// Positions use float32. Whole-pixel placement is exact up to 16,777,216 px of content and drifts beyond it.
 public open class DataGrid : Cell[DataGridInput], IDisposable {
     private let defaultRootHandle ElementHandle = ElementHandle()
     private let defaultViewport ElementHandle = ElementHandle()
@@ -183,6 +184,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var leading float64
     private var activeId string?
     private var anchorId string?
+    private var anchorSelection HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var hasFocus bool
     private var pointerFocus bool
     private var clickModifiers KeyModifiers
@@ -368,6 +370,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if Index(anchorId) < 0 {
             anchorId = activeId
+            anchorSelection = HashSet[string](selected, StringComparer.Ordinal)
         }
         if controlledActiveChanged && hasFocus && !pointerFocus {
             Reveal()
@@ -690,27 +693,24 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             if weight <= 0.0 {
                 break
             }
-            var constrained = false
+            var violation = 0.0
+            for index in 0 ... columns.Length {
+                if flexible[index] {
+                    let share = space * ((columns[index].Flex ?? 1.0) / maxWeight) / weight
+                    violation += Clamp(index, share) - share
+                }
+            }
             for index in 0 ... columns.Length {
                 if !flexible[index] {
                     continue
                 }
                 let share = space * ((columns[index].Flex ?? 1.0) / maxWeight) / weight
                 let width = Clamp(index, share)
-                if Math.Abs(width - share) > .001 {
+                if (violation == 0.0) || (violation < 0.0 && width < share) || (violation > 0.0 && width > share) {
                     remaining -= width - widths[index]
                     widths[index] = width
                     flexible[index] = false
-                    constrained = true
                 }
-            }
-            if !constrained {
-                for index in 0 ... columns.Length {
-                    if flexible[index] {
-                        widths[index] = space * ((columns[index].Flex ?? 1.0) / maxWeight) / weight
-                    }
-                }
-                break
             }
         }
         tableWidth = leading
@@ -1221,12 +1221,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         } else if extend && Index(anchorId) >= 0 {
             let start = Math.Min(Index(anchorId), Index(id))
             let end = Math.Max(Index(anchorId), Index(id))
-            for current in selected {
+            for current in anchorSelection {
                 next.Add(current)
             }
             for index in start ... end + 1 {
                 let row = Row(index)
-                if !row.Disabled && !row.IsGroup && !selected.Contains(row.Id!!) {
+                if !row.Disabled && !row.IsGroup && !anchorSelection.Contains(row.Id!!) {
                     next.Add(row.Id!!)
                 }
             }
@@ -1244,6 +1244,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if !extend && (!toggle || !selected.Contains(id)) {
             anchorId = id
+            anchorSelection = HashSet[string](next, StringComparer.Ordinal)
         }
         if let changed = input.OnSelectionIndicesChange {
             let positions = [next.Count]int32

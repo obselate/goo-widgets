@@ -9,6 +9,7 @@ import System.Collections.Generic
 /// A change that only removes rows from the start and adds rows at the end, such as streaming output, updates
 /// the list in place: unchanged rows are compared, and keys are read and rows are built only for the added rows.
 /// Set PinToBottom on the result to keep the end in view until the reader scrolls away from it.
+/// Positions use float32. Whole-pixel placement is exact up to 16,777,216 px of content and drifts beyond it.
 /// @param items Immutable row values. Replace changed values and rebuild the owning Cell after a change.
 /// The list can be the same instance on each build.
 /// @param estimatedItemHeight A finite, positive estimate used until a row is measured.
@@ -179,7 +180,7 @@ internal class VirtualRowsState[T] : VirtualState {
                     break
                 }
                 if NeedsMeasurement(viewport.Child(i), data, out var index, out var measured) {
-                    measurements.Add(VirtualRowMeasurement{Index: index, Height: measured})
+                    measurements.Add(VirtualRowMeasurement{Index: index, Height: measured, Previous: data.Height(index)})
                 }
             }
         }
@@ -481,7 +482,7 @@ internal class VirtualRowsState[T] : VirtualState {
             for i in 0 ... measurements.Count {
                 let value = measurements[i]
                 if value.Index < count {
-                    result += float64(value.Height) - float64(data.Row(value.Index).Height)
+                    result += float64(value.Height) - float64(value.Previous)
                 }
             }
         }
@@ -571,8 +572,7 @@ internal class VirtualRowsState[T] : VirtualState {
         if !Single.IsFinite(height) || height < 0.0F {
             throw InvalidOperationException("Virtual row measured an invalid height")
         }
-        let row = data.Row(index)
-        return !row.Measured || Math.Abs(row.Height - height) > 0.01F
+        return Math.Abs(data.Height(index) - height) > 0.01F
     }
 
     private func FocusedIndex(viewport VirtualViewport, data VirtualRowMetadata[T]) int32 {

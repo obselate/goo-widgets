@@ -585,9 +585,10 @@ rows at the end is applied in place: only the added rows are keyed and built.
 `PinToBottom` keeps the end in view until the reader scrolls away from it.
 `ElementHandle.ScrollToItem(key)` jumps to an item of either function.
 
-`VirtualRows` supports one million rows, mounts at most 4,096 rows, and keeps the
-row that contains keyboard focus mounted. Use `GOO_WIDGETS_VIRTUAL=1` with the
-native runner to exercise both functions.
+`VirtualRows` mounts at most 4,096 rows and keeps the row that contains keyboard
+focus mounted. Positions use float32. Whole-pixel placement is exact up to
+16,777,216 px of content and drifts beyond it. Use `GOO_WIDGETS_VIRTUAL=1`
+with the native runner to exercise both functions.
 
 ## Controlled TreeView
 
@@ -629,9 +630,11 @@ in a full-height provider inside an outer scroll viewport; changing the mode kee
 the retained row structure and logical focus. `ScrollbarY` styles the active vertical
 scroller in either mode. Custom content follows ordinary Goo
 layout and can provide its own interaction. Content, expander, checkbox, row, and
-root factories customize prepared blobs; required slots and tree wiring are
-reapplied. Use `GOO_WIDGETS_TREE=1` with the native runner to exercise both modes,
-keyboard and accessibility input, and the 1,500-child case.
+root factories customize prepared blobs. Standard row slots are added before
+`CreateRow`; custom children are kept. Identity, input, and tree semantics are
+reapplied. A replacement row root must supply its own slots. Use `GOO_WIDGETS_TREE=1`
+with the native runner to exercise both modes, keyboard and accessibility input,
+and the 1,500-child case.
 
 ## Controlled DataGrid
 
@@ -677,8 +680,9 @@ containing every resolved column width; replace the controlled map and rebuild.
 `SortColumnId`/`SortDirection` and `OnSort` cycle None → Ascending → Descending →
 None. The host performs the sort. `Selection` supports None, Single (at most one
 selected ID), and Multiple. `SelectedIds`/`OnSelectionChange` are controlled.
-Click replaces selection and Ctrl/⌘ toggles. Shift and Ctrl/⌘+Shift add a range
-in the supplied row order, skipping disabled and group rows. Toggle operations
+Click replaces selection and Ctrl/⌘ toggles. Shift and Ctrl/⌘+Shift combine the
+selection saved at the anchor with the current range, so the range can shrink.
+Ranges use the supplied row order and skip disabled and group rows. Toggle operations
 preserve selected IDs absent from a filtered row set. `ShowSelection` composes a
 leading checkbox using the same callbacks. `SelectionColumnWidth` overrides that
 column's width independently of the theme's control height; nil uses that height.
@@ -712,6 +716,8 @@ and estimate. `MaximumRowHeight` caps the cells area, excluding details.
 Alternatively, `RowHeightProvider` supplies finite positive heights for array
 rows. Replace that delegate when heights change. It cannot be combined with
 `AutoRowHeight` or an indexed source.
+DataGrid positions use float32. Whole-pixel placement is exact up to 16,777,216 px
+of content and drifts beyond it.
 
 Replace changed arrays and maps before rebuilding. Typed inputs do not observe
 in-place mutations. Use `GOO_WIDGETS_DATA_GRID=1` with the isolated native runner

@@ -90,7 +90,7 @@ public data struct TreeViewInput {
     var CreateExpander Func[TreeViewInput, TreeViewRow, Button, Button]?
     /// Customizes the composed Checkbox button; required identity and input wiring are reapplied.
     var CreateCheck Func[TreeViewInput, TreeViewRow, Button, Button]?
-    /// Customizes row appearance; standard slots, identity, input, and semantics are reapplied.
+    /// Standard slots are added before this factory. Custom children are kept; identity, input, and semantics are reapplied.
     var CreateRow Func[TreeViewInput, TreeViewRow, Container, Container]?
     /// Customizes root appearance; viewport, focus, and tree semantics are reapplied.
     var CreateRoot Func[TreeViewInput, Container, Container]?

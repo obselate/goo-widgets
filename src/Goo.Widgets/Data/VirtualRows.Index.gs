@@ -171,6 +171,9 @@ internal class VirtualRowMetadata[T] {
         get -> count
     }
 
+    internal func Height(position int32) float32 -> get != nil ?
+        (measured.TryGetValue(position, out var height) ? height: Estimate): rows[head + position].Height
+
     internal func Row(position int32) VirtualRow[T] {
         if let itemAt = get {
             let item = itemAt(position)
@@ -222,7 +225,11 @@ internal class VirtualRowMetadata[T] {
         if get != nil {
             let previous = measured.TryGetValue(position, out var known) ? known: Estimate
             index.Add(position, float64(height) - float64(previous))
-            measured[position] = height
+            if height == Estimate {
+                measured.Remove(position)
+            } else {
+                measured[position] = height
+            }
             return
         }
         let slot = head + position
@@ -296,4 +303,5 @@ internal class VirtualRowMetadata[T] {
 internal data struct VirtualRowMeasurement {
     internal var Index int32
     internal var Height float32
+    internal var Previous float32
 }
