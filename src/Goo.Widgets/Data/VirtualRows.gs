@@ -33,7 +33,7 @@ public func VirtualRows[T](
         throw ArgumentNullException("itemBuilder")
     }
     let theme = Theme.Read()
-    return Virtual(VirtualRowsSource[T](items, estimate, itemKey, itemBuilder)){
+    return Virtual(VirtualRowsSource[T](items, estimate, itemKey, itemBuilder, nil)){
         OverflowX = Overflow.Hidden,
         ScrollbarY = theme.Scrollbar,
     }
@@ -44,12 +44,27 @@ internal class VirtualRowsSource[T] : VirtualSource {
     internal let Estimate float32
     internal let Key((T) -> string)
     internal let Build((T) -> Blob)
+    internal let Height Func[T, float64]?
+    internal var Get Func[int32, T]?
+    internal var Index Func[string, int32]?
+    internal var Count int32
+    internal var Version int64
+    internal var StableItems bool
+    internal var Identity object?
+    internal var AutoHeight bool
 
-    internal init(items IReadOnlyList[T], estimate float32, key((T) -> string), build((T) -> Blob)) {
+    internal init(
+        items IReadOnlyList[T],
+        estimate float32,
+        key((T) -> string),
+        build((T) -> Blob),
+        height Func[T, float64]?
+    ) {
         Items = items
         Estimate = estimate
         Key = key
         Build = build
+        Height = height
     }
 
     public func State(current VirtualState?) VirtualState {
@@ -76,15 +91,21 @@ internal class VirtualRowsState[T] : VirtualState {
     private var metadata VirtualRowMetadata[T]?
     private var source VirtualRowsSource[T]?
     private var window VirtualRowsWindow
+    private var pendingWidth float32
     private var pendingMetadata VirtualRowMetadata[T]?
     private var pendingWindow VirtualRowsWindow
     private var contextVersion int64 = -1
     private var pendingContextVersion int64
+    private var anchorKey string = ""
+    private var anchorIndex int32
+    private var pendingAnchorKey string = ""
+    private var pendingAnchorIndex int32
     internal var Pending VirtualRowsSource[T]?
 
     public override func Realize(viewport VirtualViewport, output VirtualOutput) {
         next.Clear()
         measurements.Clear()
+        pendingAnchorKey = ""
         pendingMetadata = nil
         guard let input = Pending ?? source else {
             throw InvalidOperationException("VirtualRows source is unavailable")
@@ -93,12 +114,11 @@ internal class VirtualRowsState[T] : VirtualState {
             throw InvalidOperationException("VirtualRows supports only Column direction without wrapping")
         }
         let items = input.Items
-        if items.Count > 1000000 {
-            throw ArgumentOutOfRangeException("items", "VirtualRows supports at most one million metadata entries")
-        }
+        let count = input.Get == nil ? items.Count: input.Count
         let size = viewport.Size
         let offset = viewport.ScrollOffset
         let width = float32(size.Width)
+        pendingWidth = width
         let height = float32(size.Height)
         let gap = Gap(viewport)
         let sameBuilder = Pending == nil || Object.Equals(source?.Build, input.Build)
@@ -111,13 +131,36 @@ internal class VirtualRowsState[T] : VirtualState {
         if let previous = old {
             if previous.Count > 0 {
                 oldIndex = AnchorIndex(previous, float32(offset.Y))
-                anchor = previous.Row(oldIndex).Key
+                anchor = if source?.Get != nil {
+                    oldIndex == anchorIndex ? anchorKey: ""
+                } else {
+                    previous.Row(oldIndex).Key
+                }
                 before = previous.Prefix(oldIndex)
             }
         }
         var data VirtualRowMetadata[T]
         var shifted = false
-        if Pending == nil && old != nil {
+        var stable = false
+        if let previous = source {
+            if let previousData = old {
+                stable = input.StableItems && Object.ReferenceEquals(previous.Items, items) && Object.Equals(
+                    previous.Identity,
+                    input.Identity
+                ) &&
+                    Object.Equals(previous.Height, input.Height) &&
+                    previous.Version == input.Version &&
+                    previous.AutoHeight == input.AutoHeight &&
+                    previousData.Count == count &&
+                    previousData.Estimate == input.Estimate &&
+                    previousData.Gap == gap
+            }
+        }
+        if stable {
+            data = old!!
+        } else if input.Get != nil {
+            data = VirtualRowMetadata[T](input, width, gap)
+        } else if Pending == nil && old != nil {
             data = if old.Width == width && old.Gap == gap {
                 old
             } else {
@@ -130,7 +173,7 @@ internal class VirtualRowsState[T] : VirtualState {
             data = Snapshot(items, input, width, gap, sameBuilder)
         }
         pendingMetadata = data
-        if sameContext && Object.ReferenceEquals(old, data) && width > 0.0F {
+        if sameContext && Object.ReferenceEquals(old, data) && data.Width == width && width > 0.0F {
             for i in 0 ... viewport.ChildCount {
                 if measurements.Count == 128 {
                     break
@@ -159,6 +202,7 @@ internal class VirtualRowsState[T] : VirtualState {
             scroll = Math.Max(0.0, scroll + Prefix(data, nextIndex, true) - before)
         }
         let target = Window(data, scroll, height, true)
+        pendingAnchorIndex = input.Get == nil ? -1: Find(data, Math.Max(0.0, scroll), true)
         if target.Count > 4096 {
             throw InvalidOperationException("VirtualRows viewport exceeds the 4096-row realization budget")
         }
@@ -172,7 +216,7 @@ internal class VirtualRowsState[T] : VirtualState {
         if focused >= target.Start + target.Count {
             AddRow(focused, data, input, sameBuilder && sameContext, output)
         }
-        output.ContentSize = LayoutSize{Width: float64(data.Width), Height: float64(target.ContentH)}
+        output.ContentSize = LayoutSize{Width: float64(width), Height: float64(target.ContentH)}
         output.ItemCount = data.Count
         output.ScrollOffset = Point{X: offset.X, Y: scroll}
         pendingWindow = target
@@ -232,12 +276,15 @@ internal class VirtualRowsState[T] : VirtualState {
             let value = measurements[i]
             data.Measure(value.Index, value.Height)
         }
+        data.Width = pendingWidth
         metadata = data
         if let input = Pending {
             source = input
         }
         window = pendingWindow
         contextVersion = pendingContextVersion
+        anchorKey = pendingAnchorKey
+        anchorIndex = pendingAnchorIndex
         let previous = current
         current = next
         next = previous
@@ -275,6 +322,9 @@ internal class VirtualRowsState[T] : VirtualState {
         output VirtualOutput
     ) {
         let row = data.Row(index)
+        if index == pendingAnchorIndex {
+            pendingAnchorKey = row.Key
+        }
         var content Blob?
         var unchanged = false
         if sameBuilder {
@@ -293,7 +343,7 @@ internal class VirtualRowsState[T] : VirtualState {
                 Key: row.Key,
                 Index: index,
                 Y: Prefix(data, index, true),
-                Width: float64(data.Width),
+                Width: float64(pendingWidth),
                 Content: content,
             }
         )
@@ -309,7 +359,11 @@ internal class VirtualRowsState[T] : VirtualState {
     ) VirtualRowMetadata[T] {
         let estimate = input.Estimate
         let key = input.Key
-        let old = metadata
+        let old = if source?.Get == nil {
+            metadata
+        } else {
+            nil
+        }
         var unchanged = old != nil &&
             old.Count == items.Count &&
             old.Width == width &&
@@ -333,11 +387,23 @@ internal class VirtualRowsState[T] : VirtualState {
         for i in 0 ... items.Count {
             let item = items[i]
             let id = key(item)
-            var row = VirtualRow[T]{Item: item, Key: id, Height: estimate}
+            var row = VirtualRow[T]{
+                Item: item,
+                Key: id,
+                Height: if let height = input.Height {
+                    virtualItemExtent(height(item), "RowHeightProvider")
+                } else {
+                    estimate
+                }
+            }
             if let previous = old {
                 if previous.TryIndex(id, out var index) {
                     let retained = previous.Row(index)
-                    row.Height = retained.Height
+                    if previous.Estimate == estimate &&
+                        source?.AutoHeight == input.AutoHeight &&
+                        (input.Height == nil || sameBuilder) {
+                        row.Height = retained.Height
+                    }
                     row.Measured = retained.Measured && previous.Width == width && sameBuilder && equality.Equals(
                         retained.Item,
                         item
@@ -360,7 +426,8 @@ internal class VirtualRowsState[T] : VirtualState {
             return nil
         }
         let items = input.Items
-        if !sameBuilder ||
+        if input.Height != nil ||
+            !sameBuilder ||
             data.Width != width ||
             data.Gap != gap ||
             data.Estimate != input.Estimate ||
@@ -443,7 +510,7 @@ internal class VirtualRowsState[T] : VirtualState {
         var low = 0
         var high = data.Count
         while low < high {
-            let middle = low + (high - low + 1) / 2
+            let middle = low + (high - low) / 2 + (high - low) % 2
             if Prefix(data, middle, true) <= offset {
                 low = middle
             } else {
@@ -463,7 +530,8 @@ internal class VirtualRowsState[T] : VirtualState {
         let end = if count == 0 {
             0
         } else {
-            Math.Min(count, Find(data, Math.Max(0.0, scroll + float64(height)), pending) + 3)
+            let last = Find(data, Math.Max(0.0, scroll + float64(height)), pending)
+            last + Math.Min(3, count - last)
         }
         let total = Math.Max(
             0.0,

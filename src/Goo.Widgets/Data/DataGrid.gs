@@ -28,6 +28,8 @@ public data struct DataGridColumn {
     var Label string?
     /// Fixed logical width; nil participates in flex distribution.
     var Width float64?
+    /// With no fixed Width, grows to the natural width of headers and realized cells without shrinking on scroll.
+    var AutoWidth bool
     /// Positive relative flex weight. Nil resolves to 1.
     var Flex float64?
     /// Width bounds. Nil resolves to 60 and 1000000.
@@ -45,7 +47,13 @@ public data struct DataGridColumn {
 public data struct DataGridRow {
     var Id string?
     var Label string?
+    /// Host-owned data passed unchanged to row and cell factories.
+    var Tag object?
+    /// Host-owned source index passed unchanged to factories.
+    var SourceIndex int32
     var Disabled bool
+    /// Excludes this row from grid selection and navigation without disabling its content.
+    var IsGroup bool
     var Values IReadOnlyDictionary[string, string]?
     /// Advertises a lazily built detail supplied by CreateDetail.
     var HasDetail bool
@@ -56,6 +64,14 @@ public data struct DataGridRow {
 public data struct DataGridInput {
     var Columns[]?DataGridColumn
     var Rows[]?DataGridRow
+    /// Lazy indexed rows. Supply RowIndex and replace RowAt or increment RowVersion after data changes.
+    var RowAt Func[int32, DataGridRow]?
+    var RowCount int32
+    /// Returns the current index of a stable row ID, or -1 when absent.
+    var RowIndex Func[string, int32]?
+    var RowVersion int64
+    /// Advertises detail controls without enumerating lazy rows.
+    var HasRowDetails bool
     /// Controlled pixel preferences; fit mode keeps definition-flex columns flexible.
     var ColumnWidths IReadOnlyDictionary[string, float64]?
     var OnColumnWidthChange Action[string, float64]?
@@ -72,9 +88,13 @@ public data struct DataGridInput {
     var Selection DataGridSelection
     var SelectedIds[]?string
     var OnSelectionChange Action[[]string]?
+    /// Runs before OnSelectionChange with source indices in the same order. Missing IDs have index -1.
+    var OnSelectionIndicesChange Action[[]int32]?
     /// Nil keeps the grid's active row. A valid ID controls its focus outline and active descendant.
     var ActiveRowId string?
     var OnActiveRowChange Action[string]?
+    /// Receives the active source index without a host ID lookup.
+    var OnActiveRowIndexChange Action[int32]?
     /// When set, the host owns selection and its range anchor. Arguments are ID, toggle, extend.
     var OnSelectionRequest Action[string, bool, bool]?
     /// Adds a leading composed checkbox. The row's semantics expose selection once.
@@ -93,6 +113,12 @@ public data struct DataGridInput {
     var Width Length?
     var Height Length?
     var RowHeight float64?
+    /// Measures visible cell content at the resolved column widths. RowHeight is the minimum and estimate.
+    var AutoRowHeight bool
+    /// Caps the measured cells area, excluding expanded details.
+    var MaximumRowHeight float64?
+    /// Supplies finite positive cell heights. Replace this delegate when heights change.
+    var RowHeightProvider Func[DataGridRow, float64]?
     var HeaderHeight float64?
     var FilterHeight float64?
     var AccessibilityName string?
@@ -125,6 +151,9 @@ public data struct DataGridInput {
     /// Required slots, width, identity, and semantics are reapplied.
     /// A returned OnClick handler runs after the grid's selection handler.
     var CreateRow Func[DataGridInput, DataGridRow, Container, Container]?
+    /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
+    /// Set IsGroup on group headers to exclude them from navigation and selection.
+    var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
     var CreateRoot Func[DataGridInput, Container, Container]?
 }
 
@@ -147,6 +176,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var selected HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var expanded HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var widths[]float64 = []float64{}
+    private var autoWidths Dictionary[string, float64]?
+    private var autoWidthLayout DataGridAutoWidthLayout?
     private var available float64
     private var tableWidth float64
     private var leading float64
@@ -191,6 +222,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     protected override func Build(value DataGridInput) Blob {
         theme = Theme.Read()
+        let sourceChanged = !Object.Equals(input.RowAt, value.RowAt) ||
+            input.RowVersion != value.RowVersion ||
+            input.RowCount != value.RowCount
         let nextRootHandle = value.RootHandle ?? defaultRootHandle
         if nextRootHandle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
@@ -222,6 +256,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 throw ArgumentOutOfRangeException("Grid row/header/filter height")
             }
         }
+        if let maximum = input.MaximumRowHeight {
+            if !Double.IsFinite(maximum) || maximum < input.RowHeight!!|| maximum > 1000000.0 {
+                throw ArgumentOutOfRangeException("MaximumRowHeight")
+            }
+        }
+        if input.AutoRowHeight && input.RowHeightProvider != nil {
+            throw ArgumentException("AutoRowHeight and RowHeightProvider are mutually exclusive")
+        }
         ValidateWidth(input.SelectionColumnWidth!!)
         ValidateWidth(input.ExpandColumnWidth!!)
         ValidateWidth(input.DetailPadding!!)
@@ -230,8 +272,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             throw ArgumentOutOfRangeException("Grid selection/sort policy")
         }
         columns = input.Columns ?? []DataGridColumn{}
-        let nextRows = input.Rows ?? []DataGridRow{}
+        let nextRows = input.Rows ?? (input.RowAt != nil ? rows: []DataGridRow{})
         let rowsChanged = !Object.ReferenceEquals(rows, nextRows)
+        if input.RowAt != nil && (input.RowIndex == nil || input.RowCount < 0) {
+            throw ArgumentException("Indexed rows require RowIndex and a nonnegative count")
+        }
+        if input.RowAt != nil && input.RowHeightProvider != nil {
+            throw ArgumentException("Indexed rows use RowHeight or AutoRowHeight")
+        }
         let columnIds = HashSet[string](StringComparer.Ordinal)
         for column in columns {
             if String.IsNullOrEmpty(column.Id) || !columnIds.Add(column.Id!!) {
@@ -255,8 +303,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 ValidateWidth(pair.Value)
             }
         }
-        if rowsChanged {
-            let nextIndices = Dictionary[string, int32](StringComparer.Ordinal)
+        if input.RowAt != nil {
+            hasDetails = input.HasRowDetails
+            if sourceChanged {
+                indices.Clear()
+                PruneRows()
+            }
+        } else if rowsChanged || sourceChanged {
+            let nextIndices = Dictionary[string, int32](nextRows.Length, StringComparer.Ordinal)
             var nextHasDetails bool
             for index in 0 ... nextRows.Length {
                 let row = nextRows[index]
@@ -293,9 +347,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             selectionChanged &&
             input.Selection == DataGridSelection.Single &&
             selected.Count == 1 {
-            for row in rows {
-                if !row.Disabled && selected.Contains(row.Id!!) {
-                    activeId = row.Id
+            for id in selected {
+                if Index(id) >= 0 {
+                    activeId = id
                     break
                 }
             }
@@ -303,9 +357,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if Index(activeId) < 0 {
             activeId = nil
-            for row in rows {
-                if !row.Disabled && selected.Contains(row.Id!!) {
-                    activeId = row.Id
+            for id in selected {
+                if Index(id) >= 0 {
+                    activeId = id
                     break
                 }
             }
@@ -334,19 +388,27 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         ResolveWidths(verticalGutter)
         let snapshot = input
-        var body Blob = if rows.Length == 0 && input.EmptyContent != nil {
+        var body Blob = if RowCount == 0 && input.EmptyContent != nil {
             Container{OverflowY: Overflow.Scroll, input.EmptyContent!!}
         } else {
             let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
             let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)
-            Virtual(
-                VirtualRowsSource[DataGridRow](
-                    rows,
-                    virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
-                    key,
-                    build
-                )
-            )
+            let source = VirtualRowsSource[DataGridRow](
+                rows,
+                virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
+                key,
+                build,
+                snapshot.RowHeightProvider
+            ){
+                Get = input.RowAt == nil ? nil: Row,
+                Index = RawIndex,
+                Count = RowCount,
+                AutoHeight = input.AutoRowHeight,
+                Version = input.RowVersion,
+                StableItems = true,
+                Identity = input.RowAt
+            }
+            Virtual(source)
         }
         body.Key = "body"
         body.Handle = viewport
@@ -456,7 +518,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Grid,
             Name: input.AccessibilityName!!,
-            Description: rows.Length.ToString() + " rows, " + columns.Length.ToString() + " columns",
+            Description: RowCount.ToString() + " rows, " + columns.Length.ToString() + " columns",
             MultiSelectable: input.Selection == DataGridSelection.Multiple,
             Relationships: AccessibilityRelationships{ActiveDescendant: active}
         }
@@ -486,7 +548,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private func PruneRows() {
         let removed = List[string]()
         for id in rowHandles.Keys {
-            if !indices.ContainsKey(id) {
+            if (id != activeId && !rowHandles[id].IsMounted) || RawIndex(id) < 0 {
                 removed.Add(id)
             }
         }
@@ -496,6 +558,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     }
 
     private func Handle(handles Dictionary[string, ElementHandle], id string) ElementHandle {
+        if Object.ReferenceEquals(handles, rowHandles) && rowHandles.Count >= 4096 {
+            PruneRows()
+            if input.RowAt != nil {
+                let retained = Dictionary[string, int32](rowHandles.Count, StringComparer.Ordinal)
+                for key in rowHandles.Keys {
+                    if indices.TryGetValue(key, out var index) {
+                        retained.Add(key, index)
+                    }
+                }
+                indices = retained
+            }
+        }
         if !handles.ContainsKey(id) {
             handles.Add(id, ElementHandle())
         }
@@ -511,19 +585,50 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         return -1
     }
 
+    private prop RowCount int32 {
+        get -> input.RowAt == nil ? rows.Length: input.RowCount
+    }
+
+    private func Row(index int32) DataGridRow {
+        let row = if let at = input.RowAt {
+            at(index)
+        } else {
+            rows[index]
+        }
+        if String.IsNullOrEmpty(row.Id) {
+            throw ArgumentException("Grid row IDs must be nonempty and unique")
+        }
+        if indices.TryGetValue(row.Id!!, out var previous) && previous != index {
+            throw ArgumentException("Grid row IDs must be nonempty and unique")
+        }
+        indices[row.Id!!] = index
+        return row
+    }
+
+    private func RawIndex(id string) int32 {
+        if indices.TryGetValue(id, out var cached) {
+            return cached
+        }
+        return input.RowIndex?.Invoke(id) ?? -1
+    }
+
     private func Index(id string?) int32 {
-        if id == nil || !indices.ContainsKey(id) {
+        if id == nil {
             return -1
         }
-        let index = indices[id]
-        return rows[index].Disabled ? -1: index
+        let index = RawIndex(id)
+        if index < 0 || index >= RowCount {
+            return -1
+        }
+        let row = Row(index)
+        return row.Disabled || row.IsGroup ? -1: index
     }
 
     private func First(last bool) string? {
-        for step in 0 ... rows.Length {
-            let index = last ? rows.Length - step - 1: step
-            if !rows[index].Disabled {
-                return rows[index].Id
+        for step in 0 ... RowCount {
+            let row = Row(last ? RowCount - step - 1: step)
+            if !row.Disabled && !row.IsGroup {
+                return row.Id
             }
         }
         return nil
@@ -557,6 +662,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         for index in 0 ... columns.Length {
             let column = columns[index]
             var fixedWidth = column.Width
+            if column.AutoWidth && fixedWidth == nil {
+                fixedWidth = autoWidths != nil && autoWidths!!.TryGetValue(column.Id!!, out var measured) ?
+                measured: (column.Minimum ?? 60.0)
+            }
             if let overrides = input.ColumnWidths {
                 if overrides.TryGetValue(column.Id!!, out var width) {
                     fixedWidth = width
@@ -607,12 +716,16 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         for index in 0 ... columns.Length {
             let column = columns[index]
             var requested = column.Width
+            if column.AutoWidth && requested == nil {
+                requested = autoWidths != nil && autoWidths!!.TryGetValue(column.Id!!, out var measured) ?
+                measured: (column.Minimum ?? 60.0)
+            }
             if let overrides = input.ColumnWidths {
                 if overrides.TryGetValue(column.Id!!, out var width) {
                     requested = width
                 }
             }
-            flexible[index] = column.Width == nil
+            flexible[index] = column.Width == nil && !column.AutoWidth
             widths[index] = Clamp(index, requested ?? (column.Minimum ?? 60.0))
             total += widths[index]
         }
@@ -704,7 +817,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             let label = column.Label ?? id
             var content Blob = filter ? (column.Filter ?? Container{}): (
                 column.Header ??
-                Text{
+                    Text{
                     Content: label +
                         (
                         snapshot.SortColumnId == id ? (
@@ -726,6 +839,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 if let create = snapshot.CreateHeader {
                     content = create(snapshot, column, content)
                 }
+            }
+            if !filter && column.AutoWidth && column.Width == nil {
+                content = MeasureWidth(id, content)
             }
             let slot = Container{
                 Key: "column:" + id,
@@ -809,115 +925,140 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
 
     private func BuildRow(snapshot DataGridInput, row DataGridRow, details bool) Blob {
         let id = row.Id!!
-        let isSelected = snapshot.Selection != DataGridSelection.None && selected.Contains(id)
+        let isSelected = !row.IsGroup && snapshot.Selection != DataGridSelection.None && selected.Contains(id)
         let isExpanded = expanded.Contains(id) && (row.HasDetail || row.Detail != nil)
+        let fullWidth = snapshot.CreateFullWidthRow?.Invoke(snapshot, row)
+        let height = if let provider = snapshot.RowHeightProvider {
+            float64(virtualItemExtent(provider(row), "RowHeightProvider"))
+        } else {
+            snapshot.RowHeight!!
+        }
         let cells = Container{
             Key: "cells",
             Width: Percent(100),
-            Height: snapshot.RowHeight!!,
+            Height: height,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
             OutlineWidth: activeId == id && hasFocus && !pointerFocus ? 2.0: 0.0,
             OutlineColor: snapshot.FocusColor!!,
             OutlineOffset: -2
         }
-        if leading > 0.0 {
-            let controls = Container{
-                Key: "leading",
-                Width: leading,
-                FlexShrink: 0,
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.Center,
-                Accessibility: Accessibility{Role: AccessibilityRole.GridCell, Name: "Row controls"}
+        if snapshot.AutoRowHeight {
+            cells.Height = Length.Auto
+            cells.MinHeight = height
+            if let maximum = snapshot.MaximumRowHeight {
+                cells.MaxHeight = maximum
             }
-            if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
-                var check = (
-                    Checkbox{
-                        State: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
-                        Size: 18
-                    }.Build() as Button
-                )!!
-                if let create = snapshot.CreateSelection {
-                    check = create(snapshot, row, check)
+        }
+        if let content = fullWidth {
+            cells.OnKeyDown = stopGridKeys
+            cells.Children.Add(content)
+        } else {
+            if leading > 0.0 {
+                let controls = Container{
+                    Key: "leading",
+                    Width: leading,
+                    FlexShrink: 0,
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    Accessibility: Accessibility{Role: AccessibilityRole.GridCell, Name: "Row controls"}
                 }
-                check.Focusable = false
-                check.TabStop = false
-                check.Disabled = row.Disabled ||
-                    snapshot.Disabled ||
-                    (snapshot.OnSelectionRequest == nil && snapshot.OnSelectionChange == nil)
-                check.OnClick = () -> Select(id, true, false, false)
-                check.Accessibility = Accessibility{Hidden: true}
-                controls.Children.Add(
+                if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
+                    var check = (
+                        Checkbox{
+                            State: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
+                            Size: 18
+                        }.Build() as Button
+                    )!!
+                    if let create = snapshot.CreateSelection {
+                        check = create(snapshot, row, check)
+                    }
+                    check.Focusable = false
+                    check.TabStop = false
+                    check.Disabled = row.Disabled ||
+                        snapshot.Disabled ||
+                        (
+                        snapshot.OnSelectionRequest == nil &&
+                            snapshot.OnSelectionChange == nil &&
+                            snapshot.OnSelectionIndicesChange == nil
+                    )
+                    check.OnClick = () -> Select(id, true, false, false)
+                    check.Accessibility = Accessibility{Hidden: true}
+                    controls.Children.Add(
+                        Container{
+                            Key: "selection",
+                            Width: snapshot.SelectionColumnWidth!!,
+                            AlignItems: AlignItems.Center,
+                            check
+                        }
+                    )
+                }
+                if details {
+                    let expand = Button{
+                        Width: Math.Min(theme.ControlHeight, snapshot.ExpandColumnWidth!!),
+                        Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
+                        Padding: theme.Spacing,
+                        BackgroundColor: Color.Transparent,
+                        Focusable: false,
+                        TabStop: false,
+                        Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
+                        OnClick: () -> Expand(id, !isExpanded, false),
+                        Accessibility: Accessibility{Hidden: true},
+                        MaterialIcons.Create(isExpanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
+                    }
+                    let slot = Container{
+                        Key: "expansion",
+                        Width: snapshot.ExpandColumnWidth!!,
+                        AlignItems: AlignItems.Center
+                    }
+                    if row.HasDetail || row.Detail != nil {
+                        slot.Children.Add(expand)
+                    }
+                    controls.Children.Add(slot)
+                }
+                cells.Children.Add(controls)
+            }
+            for index in 0 ... columns.Length {
+                let column = columns[index]
+                var text = ""
+                if let values = row.Values {
+                    if values.TryGetValue(column.Id!!, out var found) {
+                        text = found
+                    }
+                }
+                var content Blob = Text{
+                    Content: text,
+                    Color: snapshot.TextColor!!,
+                    TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    FontWeight: theme.FontWeight,
+                }
+                if let create = snapshot.CreateCell {
+                    content = create(snapshot, row, column, content)
+                }
+                if column.AutoWidth && column.Width == nil {
+                    content = MeasureWidth(column.Id!!, content)
+                }
+                cells.Children.Add(
                     Container{
-                        Key: "selection",
-                        Width: snapshot.SelectionColumnWidth!!,
-                        AlignItems: AlignItems.Center,
-                        check
+                        Key: "column:" + column.Id!!,
+                        Width: widths[index],
+                        FlexShrink: 0,
+                        MinWidth: 0,
+                        Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                        JustifyContent: JustifyContent.Center,
+                        Overflow: Overflow.Hidden,
+                        OnKeyDown: stopGridKeys,
+                        Accessibility: Accessibility{
+                            Role: AccessibilityRole.GridCell,
+                            Name: column.Label ?? column.Id!!,
+                            Value: text
+                        },
+                        content
                     }
                 )
             }
-            if details {
-                let expand = Button{
-                    Width: Math.Min(theme.ControlHeight, snapshot.ExpandColumnWidth!!),
-                    Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
-                    Padding: theme.Spacing,
-                    BackgroundColor: Color.Transparent,
-                    Focusable: false,
-                    TabStop: false,
-                    Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
-                    OnClick: () -> Expand(id, !isExpanded, false),
-                    Accessibility: Accessibility{Hidden: true},
-                    MaterialIcons.Create(isExpanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
-                }
-                let slot = Container{
-                    Key: "expansion",
-                    Width: snapshot.ExpandColumnWidth!!,
-                    AlignItems: AlignItems.Center
-                }
-                if row.HasDetail || row.Detail != nil {
-                    slot.Children.Add(expand)
-                }
-                controls.Children.Add(slot)
-            }
-            cells.Children.Add(controls)
-        }
-        for index in 0 ... columns.Length {
-            let column = columns[index]
-            var text = ""
-            if let values = row.Values {
-                if values.TryGetValue(column.Id!!, out var found) {
-                    text = found
-                }
-            }
-            var content Blob = Text{
-                Content: text,
-                Color: snapshot.TextColor!!,
-                TextWrap: TextWrap.NoWrap,
-                FontFamily: theme.FontFamily,
-                FontSize: theme.FontSize,
-                FontWeight: theme.FontWeight,
-            }
-            if let create = snapshot.CreateCell {
-                content = create(snapshot, row, column, content)
-            }
-            cells.Children.Add(
-                Container{
-                    Key: "column:" + column.Id!!,
-                    Width: widths[index],
-                    FlexShrink: 0,
-                    MinWidth: 0,
-                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-                    JustifyContent: JustifyContent.Center,
-                    Overflow: Overflow.Hidden,
-                    OnKeyDown: stopGridKeys,
-                    Accessibility: Accessibility{
-                        Role: AccessibilityRole.GridCell,
-                        Name: column.Label ?? column.Id!!,
-                        Value: text
-                    },
-                    content
-                }
-            )
         }
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
@@ -932,16 +1073,17 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Width = tableWidth
         root.FlexDirection = FlexDirection.Column
         root.FlexShrink = 0
-        root.MinHeight = snapshot.RowHeight!!
+        root.MinHeight = height
         root.Focusable = false
         root.TabStop = false
         root.Disabled = row.Disabled || snapshot.Disabled
         root.OnPointerDown = (e PointerEvent) -> {
             clickModifiers = e.Modifiers
-            if e.Button == PointerButton.Primary {
+            if e.Button == PointerButton.Primary && !row.IsGroup {
                 pointerFocus = true
                 if activeId != id {
                     activeId = id
+                    input.OnActiveRowIndexChange?.Invoke(RawIndex(id))
                     input.OnActiveRowChange?.Invoke(id)
                 }
             }
@@ -952,11 +1094,15 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             hostClick?.Invoke()
         }
         let actions = List[AccessibilityAction]()
-        if !row.Disabled && !snapshot.Disabled {
+        if !row.Disabled && !row.IsGroup && !snapshot.Disabled {
             actions.Add(AccessibilityAction.Focus)
             actions.Add(AccessibilityAction.Activate)
             if snapshot.Selection != DataGridSelection.None &&
-                (snapshot.OnSelectionRequest != nil || snapshot.OnSelectionChange != nil) {
+                (
+                snapshot.OnSelectionRequest != nil ||
+                    snapshot.OnSelectionChange != nil ||
+                    snapshot.OnSelectionIndicesChange != nil
+            ) {
                 actions.Add(AccessibilityAction.Select)
                 actions.Add(AccessibilityAction.Deselect)
             }
@@ -967,7 +1113,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         let semantics = Accessibility{
             Role: AccessibilityRole.Row,
             Name: row.Label ?? id,
-            Selected: snapshot.Selection == DataGridSelection.None ? nil: isSelected,
+            Selected: snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected,
             Expanded: (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
             Actions: actions.ToArray()
         }
@@ -1012,6 +1158,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Reveal()
         }
         if changed {
+            input.OnActiveRowIndexChange?.Invoke(RawIndex(id))
             input.OnActiveRowChange?.Invoke(id)
         }
     }
@@ -1034,7 +1181,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         Activate(id, reveal)
         if input.Selection == DataGridSelection.None ||
-            (input.OnSelectionRequest == nil && input.OnSelectionChange == nil) {
+            (
+            input.OnSelectionRequest == nil && input.OnSelectionChange == nil && input.OnSelectionIndicesChange == nil
+        ) {
             return
         }
         if let request = input.OnSelectionRequest {
@@ -1055,8 +1204,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             }
             for index in start ... end + 1 {
-                if !rows[index].Disabled && (!toggle || !selected.Contains(rows[index].Id!!)) {
-                    next.Add(rows[index].Id!!)
+                let row = Row(index)
+                if !row.Disabled && !row.IsGroup && (!toggle || !selected.Contains(row.Id!!)) {
+                    next.Add(row.Id!!)
                 }
             }
         } else {
@@ -1074,11 +1224,18 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if !extend {
             anchorId = id
         }
-        input.OnSelectionChange!!(next.ToArray())
+        if let changed = input.OnSelectionIndicesChange {
+            let positions = [next.Count]int32
+            for index in 0 ... next.Count {
+                positions[index] = RawIndex(next[index])
+            }
+            changed(positions)
+        }
+        input.OnSelectionChange?.Invoke(next.ToArray())
     }
 
     private func Expand(id string, state bool, reveal bool = true) {
-        if Index(id) < 0 || input.Disabled || !(rows[Index(id)].HasDetail || rows[Index(id)].Detail != nil) {
+        if Index(id) < 0 || input.Disabled || !(Row(Index(id)).HasDetail || Row(Index(id)).Detail != nil) {
             return
         }
         Activate(id, reveal)
@@ -1111,7 +1268,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if (request.Action == AccessibilityAction.Select || request.Action == AccessibilityAction.Deselect) &&
             input.Selection != DataGridSelection.None &&
-            (input.OnSelectionRequest != nil || input.OnSelectionChange != nil) {
+            (
+            input.OnSelectionRequest != nil || input.OnSelectionChange != nil || input.OnSelectionIndicesChange != nil
+        ) {
             let desired = request.Action == AccessibilityAction.Select
             if selected.Contains(id) != desired {
                 Select(id, input.Selection == DataGridSelection.Multiple || !desired, false)
@@ -1120,7 +1279,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if (request.Action == AccessibilityAction.Expand || request.Action == AccessibilityAction.Collapse) &&
             input.OnExpandedChange != nil
-        && (rows[Index(id)].HasDetail || rows[Index(id)].Detail != nil) {
+        && (Row(Index(id)).HasDetail || Row(Index(id)).Detail != nil) {
             Expand(id, request.Action == AccessibilityAction.Expand)
             return true
         }
@@ -1150,7 +1309,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if e.Key == Key.Down || e.Key == Key.Up {
             let delta = e.Key == Key.Down ? 1: -1
             next += delta
-            while next >= 0 && next < rows.Length && rows[next].Disabled {
+            while next >= 0 && next < RowCount && (Row(next).Disabled || Row(next).IsGroup) {
                 next += delta
             }
         } else if e.Key == Key.Home {
@@ -1170,11 +1329,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         e.PreventDefault()
         e.StopPropagation()
-        if next >= 0 && next < rows.Length {
+        if next >= 0 && next < RowCount {
             if e.Modifiers.Shift && (e.Key == Key.Down || e.Key == Key.Up || e.Key == Key.Home || e.Key == Key.End) {
-                Select(rows[next].Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, true)
+                Select(Row(next).Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, true)
             } else {
-                Activate(rows[next].Id!!)
+                Activate(Row(next).Id!!)
             }
         }
     }
@@ -1351,5 +1510,42 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         RequestWidth(id, width, true, widths)
         return true
+    }
+
+    private func MeasureWidth(id string, content Blob) Blob {
+        let handle = ElementHandle()
+        handle.MetricsChanged += (metrics ElementMetrics) -> {
+            if disposed || !metrics.IsMounted {
+                return
+            }
+            let index = ColumnIndex(id)
+            if index < 0 || !columns[index].AutoWidth {
+                return
+            }
+            let width = Clamp(index, metrics.BorderBox.Width + theme.ControlPadding * 2.0)
+            autoWidths ??= Dictionary[string, float64](StringComparer.Ordinal)
+            let values = autoWidths!!
+            let previous = values.TryGetValue(id, out var known) ? known: (columns[index].Minimum ?? 60.0)
+            if width > previous + .1 {
+                values[id] = width
+                Rebuild()
+            }
+        }
+        autoWidthLayout ??= DataGridAutoWidthLayout()
+        return Container{Width: Percent(100), MinWidth: 0, Layout: autoWidthLayout, content, Container{Handle: handle}}
+    }
+}
+
+internal class DataGridAutoWidthLayout : LayoutAlgorithm {
+    public func Measure(context LayoutContext, available LayoutSize) LayoutSize -> context.MeasureChild(0, available)
+
+    public func Arrange(context LayoutContext, finalSize LayoutSize) {
+        let natural = context.MeasureChild(
+            0,
+            LayoutSize{Width: Double.PositiveInfinity, Height: Double.PositiveInfinity}
+        )
+        context.MeasureChild(0, finalSize)
+        context.ArrangeChild(0, ElementRect{Width: finalSize.Width, Height: finalSize.Height})
+        context.ArrangeChild(1, ElementRect{Width: natural.Width, Height: 0})
     }
 }
