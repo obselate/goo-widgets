@@ -130,7 +130,7 @@ public data struct Theme {
             }
         }
 
-        /// Attaches System appearance before the window opens.
+        /// Attaches System appearance, preserving an app-set background while updating the text color.
         public func Attach(window Window) {
             let state = attachment(window)
             state.Value = Default
@@ -475,6 +475,7 @@ public data struct Theme {
 
 internal sealed class ThemeAttachment {
     private let window Window
+    private var lastBackground Color = Color.White
     internal var Value Theme = Theme.Default
     internal var Mode ThemeMode
     internal var Fixed bool
@@ -519,6 +520,11 @@ internal sealed class ThemeAttachment {
             value.TransitionMs = 0.0
         }
         Theme.Key.Set(window, value)
-        window.SetColors(value.CanvasColor, value.TextColor)
+        var background = window.Background
+        if Fixed || background == lastBackground {
+            background = value.CanvasColor
+            lastBackground = background
+        }
+        window.SetColors(background, value.TextColor)
     }
 }

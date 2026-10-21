@@ -335,6 +335,7 @@ The shape is decorative. Give its button an accessible name.
 
 Call `Theme.Attach(window)` before `Open` to follow the system appearance.
 Light and Unknown select Bone colors. Dark selects Ink colors.
+System attachment preserves app-set window backgrounds at attachment and on appearance updates, while text color follows the theme and `Theme.Attach(window, value)` explicitly sets both colors.
 `Theme.Attach(window, value)` selects a fixed snapshot, including `Theme.Default`.
 `Theme.SetMode(window, ThemeMode.Light)` or `Dark` locks the built-in palette.
 `System` resumes preference tracking. SetMode preserves typography and metrics
