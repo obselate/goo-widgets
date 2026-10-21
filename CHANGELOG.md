@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.1 - 2026-10-21
+
+- Automatic themes preserve application-set window backgrounds.
+
 ## 0.4.0 - 2026-10-20
 
 - Add lazy indexed DataGrid sources, measured and provider row heights, natural column widths and full-width group rows, and correct grid selection, nested focus, vertical reveal and TreeView row composition.
