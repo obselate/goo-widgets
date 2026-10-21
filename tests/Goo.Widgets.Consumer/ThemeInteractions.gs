@@ -137,6 +137,50 @@ func ThemeFrames(host EmbeddedWindowHost) {
     }
 }
 
+func ThemeBackgroundContracts() {
+    using let glassHost = ThemePreferenceHost()
+    using let defaultHost = ThemePreferenceHost()
+    glassHost.Resize(360, 280, 360, 280)
+    defaultHost.Resize(360, 280, 360, 280)
+    glassHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+    defaultHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+    let glass = Window{Root: ThemeProbe()}
+    let untouched = Window{Root: ThemeProbe()}
+    glass.Background = Color.Transparent
+    glass.Attach(glassHost)
+    untouched.Attach(defaultHost)
+    ThemeFrames(glassHost)
+    ThemeFrames(defaultHost)
+    Require(
+        glass.Background == Color.Transparent && untouched.Background == Theme.Bone.CanvasColor,
+        "Automatic theme attachment overwrote an app background or missed an untouched window."
+    )
+    glassHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
+    defaultHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
+    ThemeFrames(glassHost)
+    ThemeFrames(defaultHost)
+    Require(
+        glass.Background == Color.Transparent && untouched.Background == Theme.Ink.CanvasColor
+        && glass.Foreground == Theme.Ink.TextColor && untouched.Foreground == Theme.Ink.TextColor,
+        "System appearance overwrote an app background or stopped updating theme-owned colors."
+    )
+    untouched.Background = Color.Transparent
+    defaultHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+    ThemeFrames(defaultHost)
+    Require(
+        untouched.Background == Color.Transparent && untouched.Foreground == Theme.Bone.TextColor,
+        "System appearance overwrote a background set after automatic attachment."
+    )
+    Theme.Attach(glass, Theme.Bone)
+    glassHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+    ThemeFrames(glassHost)
+    Require(
+        glass.Background == Theme.Bone.CanvasColor && glass.Foreground == Theme.Bone.TextColor,
+        "An explicit palette did not replace the app background and text color."
+    )
+    Console.WriteLine("PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette")
+}
+
 func ThemePolicyContracts() {
     using let darkHost = ThemePreferenceHost()
     darkHost.Resize(360, 280, 360, 280)
@@ -727,6 +771,7 @@ func ThemeInteractions() {
         rejected = true
     }
     Require(rejected, "Theme.Read outside an owned build silently selected a global value.")
+    ThemeBackgroundContracts()
     ThemePolicyContracts()
     ThemeAttachmentContracts()
     ThemeCostContracts()
