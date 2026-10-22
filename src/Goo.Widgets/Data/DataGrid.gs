@@ -186,6 +186,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var available float64
     private var tableWidth float64
     private var leading float64
+    private var horizontalOffset float64
     private var firstColumn int32
     private var endColumn int32
     private var beforeColumns float64
@@ -218,10 +219,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         endResize = EndResize
         cancelResize = CancelResize
         rootHandle.MetricsChanged += Metrics
-        horizontalViewport.MetricsChanged += HorizontalMetrics
+        viewport.MetricsChanged += HorizontalMetrics
+        horizontalViewport.MetricsChanged += HeaderMetrics
     }
 
-    /// Releases the root geometry subscription.
+    /// Releases geometry subscriptions.
     public func Dispose() {
         if disposed {
             return
@@ -230,7 +232,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         pointer = -1L
         resizeId = nil
         rootHandle.MetricsChanged -= Metrics
-        horizontalViewport.MetricsChanged -= HorizontalMetrics
+        viewport.MetricsChanged -= HorizontalMetrics
+        horizontalViewport.MetricsChanged -= HeaderMetrics
     }
 
     protected override func Build(value DataGridInput) Blob {
@@ -244,7 +247,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             rootHandle = nextRootHandle
             rootHandle.MetricsChanged += Metrics
         }
-        viewport = value.ViewportHandle ?? defaultViewport
+        let nextViewport = value.ViewportHandle ?? defaultViewport
+        if nextViewport != viewport {
+            viewport.MetricsChanged -= HorizontalMetrics
+            viewport = nextViewport
+            viewport.MetricsChanged += HorizontalMetrics
+        }
         let defaultHeight Length = 300
         input = value with{
             Width = value.Width ?? Percent(100),
@@ -414,7 +422,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         ResolveVisibleColumns()
         let snapshot = input
         var body Blob = if RowCount == 0 && input.EmptyContent != nil {
-            Container{OverflowY: Overflow.Scroll, input.EmptyContent!!}
+            Container{
+                OverflowY: Overflow.Scroll,
+                Container{Width: tableWidth, FlexGrow: 1, MinHeight: 0, input.EmptyContent!!}
+            }
         } else {
             let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
             let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)
@@ -431,22 +442,28 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 AutoHeight = input.AutoRowHeight,
                 Version = input.RowVersion,
                 StableItems = true,
-                Identity = input.RowAt
+                Identity = input.RowAt,
+                ContentWidth = tableWidth
             }
             Virtual(source)
         }
         body.Key = "body"
         body.Handle = viewport
         body.ScrollbarY = input.ScrollbarY
-        body.OverflowX = Overflow.Hidden
+        body.OverflowX = Overflow.Scroll
+        body.ScrollbarX = input.ScrollbarX
+        if let visibility = input.ScrollbarVisibilityX {
+            body.ScrollbarVisibilityX = visibility
+        }
         if let visibility = input.ScrollbarVisibilityY {
             body.ScrollbarVisibilityY = visibility
         }
-        body.Width = tableWidth + verticalGutter
+        body.Width = Percent(100)
         body.FlexGrow = 1
         body.FlexBasis = 0
+        body.MinWidth = 0
         body.MinHeight = 0
-        let canvas = Container{Width: tableWidth + verticalGutter, Height: Percent(100), FlexShrink: 0, MinHeight: 0}
+        let canvas = Container{Width: tableWidth + verticalGutter, FlexShrink: 0}
         canvas.Children.Add(BuildHeader(snapshot, false))
         var filters = input.CreateFilter != nil
         for column in columns {
@@ -455,20 +472,15 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if filters {
             canvas.Children.Add(BuildHeader(snapshot, true))
         }
-        canvas.Children.Add(body)
-        let scroll = Container{
+        let headers = Container{
             Handle: horizontalViewport,
-            FlexGrow: 1,
-            FlexBasis: 0,
+            Width: Percent(100),
+            FlexShrink: 0,
             MinWidth: 0,
-            MinHeight: 0,
             OverflowX: Overflow.Scroll,
             OverflowY: Overflow.Hidden,
+            ScrollbarVisibilityX: ScrollbarVisibility.Hidden,
             canvas
-        }
-        scroll.ScrollbarX = input.ScrollbarX
-        if let visibility = input.ScrollbarVisibilityX {
-            scroll.ScrollbarVisibilityX = visibility
         }
         var root = Container{
             LineHeight: theme.LineHeight,
@@ -549,7 +561,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Relationships: AccessibilityRelationships{ActiveDescendant: active}
         }
         root.Children.Clear()
-        root.Children.Add(scroll)
+        root.Children.Add(headers)
+        root.Children.Add(body)
         return root
     }
 
@@ -670,8 +683,27 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
     }
 
+    private func HeaderMetrics(metrics ElementMetrics) {
+        if disposed || !metrics.IsMounted || !viewport.IsMounted
+        || metrics.ScrollOffset.X == horizontalOffset {
+            return
+        }
+        viewport.JumpTo(metrics.ScrollOffset.X, viewport.ScrollOffset.Y)
+        horizontalOffset = viewport.ScrollOffset.X
+        if metrics.ScrollOffset.X != horizontalOffset {
+            horizontalViewport.JumpTo(horizontalOffset, 0)
+        }
+    }
+
     private func HorizontalMetrics(metrics ElementMetrics) {
-        if disposed || !metrics.IsMounted || !input.VirtualizeColumns {
+        if disposed || !metrics.IsMounted {
+            return
+        }
+        if metrics.ScrollOffset.X != horizontalOffset {
+            horizontalOffset = metrics.ScrollOffset.X
+            horizontalViewport.JumpTo(horizontalOffset, 0)
+        }
+        if !input.VirtualizeColumns {
             return
         }
         let previousFirst = firstColumn
@@ -687,11 +719,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         endColumn = columns.Length
         beforeColumns = 0.0
         afterColumns = 0.0
-        if !input.VirtualizeColumns || !horizontalViewport.IsMounted {
+        if !input.VirtualizeColumns || !viewport.IsMounted {
             return
         }
-        let left = horizontalViewport.ScrollOffset.X
-        let right = left + horizontalViewport.ContentBox.Width
+        let left = viewport.ScrollOffset.X
+        let right = left + viewport.ContentBox.Width
         var position = leading
         for index in 0 ... columns.Length {
             let end = position + widths[index]
