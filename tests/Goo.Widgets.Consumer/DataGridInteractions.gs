@@ -116,6 +116,7 @@ internal class DataGridHeightHost : Cell {
             RowVersion: Version,
             VirtualizeColumns: VirtualColumns,
             RowHeight: Indexed ? 33: 32,
+            EstimatedRowHeight: Auto ? 64: nil,
             AutoRowHeight: Auto,
             MaximumRowHeight: 80,
             RowHeightProvider: Auto || Indexed || AutoColumns ? nil: Height,
@@ -395,6 +396,19 @@ func DataGridContracts() {
         rejected = true
     }
     Require(rejected, "Grid virtualized columns with unstable automatic row heights")
+    let invalidEstimates = []DataGridInput{
+        DataGridInput{RowHeight: 32, EstimatedRowHeight: 64},
+        DataGridInput{AutoRowHeight: true, RowHeight: 32, EstimatedRowHeight: 16},
+    }
+    for value in invalidEstimates {
+        rejected = false
+        try {
+            probe.Render(value)
+        } catch (error ArgumentOutOfRangeException) {
+            rejected = error.ParamName == "EstimatedRowHeight"
+        }
+        Require(rejected, "Grid accepted an invalid row-height estimate")
+    }
     rejected = false
     try {
         probe.Render(DataGridInput{Rows: []DataGridRow{DataGridRow{Id: "a"}, DataGridRow{Id: "a"}}})
