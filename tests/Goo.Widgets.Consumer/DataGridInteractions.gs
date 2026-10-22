@@ -873,7 +873,6 @@ func DataGridInteractions() {
         Width: 720,
         Height: 450,
         Root: host,
-        SmoothScrolling: false,
         AccessibilityAdapter: semantics
     }
     Theme.Attach(window, Theme.Default)
