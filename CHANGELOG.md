@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.4.2 - 2026-10-22
+
+- Keep DataGrid scrollbars inside the visible viewport and synchronize header scrolling in the same frame, including empty states.
+- Require Goo 0.7.51.
+
 ## 0.4.1 - 2026-10-21
 
 - Automatic themes preserve application-set window backgrounds.
