@@ -115,7 +115,9 @@ public data struct DataGridInput {
     var Width Length?
     var Height Length?
     var RowHeight float64?
-    /// Measures visible cell content at the resolved column widths. RowHeight is the minimum and estimate.
+    /// Initial virtual row extent before measurement. Nil uses RowHeight.
+    var EstimatedRowHeight float64?
+    /// Measures visible cell content at the resolved column widths. RowHeight stays the minimum.
     var AutoRowHeight bool
     /// Caps the measured cells area, excluding expanded details.
     var MaximumRowHeight float64?
@@ -431,7 +433,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)
             let source = VirtualRowsSource[DataGridRow](
                 rows,
-                virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
+                virtualItemExtent(input.EstimatedRowHeight ?? input.RowHeight!!, "EstimatedRowHeight"),
                 key,
                 build,
                 snapshot.RowHeightProvider

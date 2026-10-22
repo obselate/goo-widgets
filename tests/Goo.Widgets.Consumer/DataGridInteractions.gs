@@ -116,6 +116,7 @@ internal class DataGridHeightHost : Cell {
             RowVersion: Version,
             VirtualizeColumns: VirtualColumns,
             RowHeight: Indexed ? 33: 32,
+            EstimatedRowHeight: Auto ? 64: nil,
             AutoRowHeight: Auto,
             MaximumRowHeight: 80,
             RowHeightProvider: Auto || Indexed || AutoColumns ? nil: Height,
