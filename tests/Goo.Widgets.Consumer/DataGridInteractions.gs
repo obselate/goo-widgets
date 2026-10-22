@@ -36,10 +36,11 @@ internal class DataGridHeightHost : Cell {
     internal var WidthCase int32
     internal let WidthA ElementHandle = ElementHandle()
     internal let WidthB ElementHandle = ElementHandle()
+    internal let VerticalThumb ElementHandle = ElementHandle()
 
     internal init() {
         for index in 0 ... wideColumns.Length {
-            wideColumns[index] = DataGridColumn{Id: index.ToString(), Width: 150}
+            wideColumns[index] = DataGridColumn{Id: index.ToString(), Minimum: 150}
         }
         for index in 0 ... Rows.Length {
             let id = index.ToString()
@@ -120,6 +121,11 @@ internal class DataGridHeightHost : Cell {
             Height: 232,
             Width: WidthCase > 0 ? (WidthCase == 1 ? 800: 700): (Compact ? 120: 220),
             ScrollbarVisibilityY: WidthCase > 0 ? ScrollbarVisibility.Hidden: ScrollbarVisibility.Auto,
+            ScrollbarY: VirtualColumns ? Scrollbar{
+                Thickness: 10,
+                Inset: 0,
+                Thumb: Container{Handle: VerticalThumb, BackgroundColor: "#a1a1aa"}
+            }: nil,
             CreateHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
                 Container{Handle: column.Id == "a" ? WidthA: WidthB, Width: Percent(100), content},
             Selection: DataGridSelection.Multiple,
@@ -293,12 +299,24 @@ func DataGridHeightInteractions() {
         host.Rebuild()
         PumpFrames(window, 12)
         Require(!host.Cells.ContainsKey("1:11"), "Grid built an offscreen column")
-        let horizontal = ((host.Root!!.Children[0] as Container)!!).Handle!!
+        let horizontal = host.Viewport
+        let headers = ((host.Root!!.Children[0] as Container)!!).Handle!!
+        let grid = host.Root!!.Handle!!.BorderBox
+        let thumb = host.VerticalThumb.BorderBox
+        Require(
+            horizontal.ScrollRange.Y > 0.0 && host.VerticalThumb.IsMounted &&
+                Math.Abs(thumb.X + thumb.Width - grid.X - grid.Width) < .1,
+            "Grid vertical scrollbar was outside the visible right edge"
+        )
         let height = host.RowBlobs["1"].Handle!!.BorderBox.Height
         let extent = horizontal.ScrollRange.X
         Require(extent > 1500.0, "Column virtualization lost the horizontal extent")
         Require(horizontal.JumpTo(extent, 0.0), "Grid rejected horizontal scrolling")
         PumpFrames(window, 12)
+        Require(
+            Math.Abs(headers.ScrollOffset.X - horizontal.ScrollOffset.X) < .1,
+            "Grid header did not follow the body horizontal offset"
+        )
         Require(
             host.Cells["1:11"].IsMounted && !host.Cells["1:0"].IsMounted,
             "Grid did not replace clipped columns after horizontal scrolling"
@@ -467,7 +485,7 @@ func DataGridContracts() {
     custom.OnTextInput?.Invoke("x")
     let scroll = (custom.Children[0] as Container)!!
     let canvas = (scroll.Children[0] as Container)!!
-    let body = (canvas.Children[canvas.Children.Count - 1] as Container)!!
+    let body = (custom.Children[1] as Container)!!
     let header = (canvas.Children[0] as Container)!!
     let slot = (header.Children[0] as Container)!!
     let sort = (slot.Children[0] as Button)!!
@@ -855,6 +873,7 @@ func DataGridInteractions() {
         Width: 720,
         Height: 450,
         Root: host,
+        SmoothScrolling: false,
         AccessibilityAdapter: semantics
     }
     Theme.Attach(window, Theme.Default)

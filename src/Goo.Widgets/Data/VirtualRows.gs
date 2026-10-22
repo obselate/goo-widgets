@@ -53,6 +53,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     internal var StableItems bool
     internal var Identity object?
     internal var AutoHeight bool
+    internal var ContentWidth float64?
 
     internal init(
         items IReadOnlyList[T],
@@ -118,7 +119,7 @@ internal class VirtualRowsState[T] : VirtualState {
         let count = input.Get == nil ? items.Count: input.Count
         let size = viewport.Size
         let offset = viewport.ScrollOffset
-        let width = float32(size.Width)
+        let width = float32(input.ContentWidth ?? size.Width)
         pendingWidth = width
         let height = float32(size.Height)
         let gap = Gap(viewport)
@@ -231,7 +232,7 @@ internal class VirtualRowsState[T] : VirtualState {
             return false
         }
         let size = viewport.Size
-        if data.Width != float32(size.Width) || data.Gap != Gap(viewport) {
+        if data.Width != float32((Pending ?? source)?.ContentWidth ?? size.Width) || data.Gap != Gap(viewport) {
             return true
         }
         let target = Window(data, viewport.ScrollOffset.Y, float32(size.Height), false)
@@ -266,7 +267,7 @@ internal class VirtualRowsState[T] : VirtualState {
         if !data.TryIndex(key, out var index) {
             return nil
         }
-        return Point{X: 0.0, Y: data.Prefix(index)}
+        return Point{X: viewport.ScrollOffset.X, Y: data.Prefix(index)}
     }
 
     public override func Commit() {

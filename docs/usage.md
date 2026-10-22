@@ -665,7 +665,8 @@ pixels. `OnColumnWidthChange` requests a finite clamped width and
 update its width map and rebuild. Cancellation stops capture without a commit.
 Earlier live change requests remain applied. Resizers support Left/Right,
 Home/End, and accessible value changes. Headers, filters, and virtual cells share
-one width array inside one horizontal scroll viewport.
+one width array. `ViewportHandle` scrolls both body axes. The clipped header and
+filter viewport follows the body's horizontal offset.
 
 Set `FitColumnsToViewport` to fit the columns to the measured grid width minus
 the reserved vertical scrollbar. Fixed column widths are preferences. Flex
