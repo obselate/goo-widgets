@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.4.3 - 2026-10-22
+
+- Add an optional DataGrid EstimatedRowHeight for unseen virtual rows without changing the RowHeight minimum.
+
 ## 0.4.2 - 2026-10-22
 
 - Keep DataGrid scrollbars inside the visible viewport and synchronize header scrolling in the same frame, including empty states.
