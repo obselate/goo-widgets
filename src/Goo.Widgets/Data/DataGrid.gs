@@ -422,7 +422,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         ResolveVisibleColumns()
         let snapshot = input
         var body Blob = if RowCount == 0 && input.EmptyContent != nil {
-            Container{OverflowY: Overflow.Scroll, input.EmptyContent!!}
+            Container{
+                OverflowY: Overflow.Scroll,
+                Container{Width: tableWidth, FlexGrow: 1, MinHeight: 0, input.EmptyContent!!}
+            }
         } else {
             let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
             let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)

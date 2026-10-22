@@ -22,6 +22,7 @@ internal class DataGridHeightHost : Cell {
     internal var AutoColumns bool
     internal var VirtualColumns bool
     internal var SourceWidth bool
+    internal var Empty bool
     internal var Version int64
     private let wideColumns[]DataGridColumn = [12]DataGridColumn
     internal let Cells Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
@@ -107,7 +108,8 @@ internal class DataGridHeightHost : Cell {
                     Maximum: 400
                 }
             },
-            Rows: Rows,
+            Rows: Empty ? []DataGridRow{}: Rows,
+            EmptyContent: Empty ? Text{Content: "No rows"}: nil,
             RowAt: Indexed ? At: nil,
             RowIndex: Indexed ? Index: nil,
             RowCount: Indexed ? 2000000: 0,
@@ -335,6 +337,20 @@ func DataGridHeightInteractions() {
         Require(horizontal.JumpTo(0.0, 0.0), "Grid rejected returning to the first column")
         PumpFrames(window, 12)
         Require(host.Cells["1:0"].IsMounted && !host.Cells["1:11"].IsMounted, "Grid did not restore the first column")
+        host.Empty = true
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(
+            Math.Abs(horizontal.ScrollRange.X - extent) < .1 && horizontal.ScrollRange.Y == 0,
+            "Empty grid lost the column extent or created vertical overflow"
+        )
+        Require(horizontal.JumpTo(extent, 0), "Empty grid rejected horizontal scrolling")
+        PumpFrames(window, 8)
+        Require(
+            headers.ScrollOffset.X == extent && horizontal.ScrollOffset.X == extent,
+            "Empty grid header did not follow horizontal scrolling"
+        )
+        host.Empty = false
         host.VirtualColumns = false
         window.Width = 1000
         host.WidthCase = 1
@@ -497,7 +513,8 @@ func DataGridContracts() {
         "Grid replaced host input"
     )
     Require(
-        HasKeyBinding(custom, Key.F2) && body.Handle == viewport && body.Children[0] == empty,
+        HasKeyBinding(custom, Key.F2) && body.Handle == viewport &&
+            ((body.Children[0] as Container)!!).Children[0] == empty,
         "Grid lost host bindings or empty viewport"
     )
     Require(
