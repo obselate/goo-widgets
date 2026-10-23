@@ -44,6 +44,7 @@ jobs:
       - name: Update Linux package lists
         id: linux-apt
         run: |
+          printf '%s\n' 'https://archive.ubuntu.com/ubuntu/' | sudo tee /etc/apt/apt-mirrors.txt
           sudo apt-get update
           mkdir -p "$RUNNER_TEMP/goo-apt-archives"
           sudo apt-get --print-uris --yes --no-install-recommends install $WIDGETS_APT_PACKAGES sway \
@@ -51,7 +52,8 @@ jobs:
           read -r key _ < <(sha256sum "$RUNNER_TEMP/goo-apt-packages")
           echo "key=$key" >> "$GITHUB_OUTPUT"
       - name: Restore Linux package archives
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        id: apt-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
           path: ${{ runner.temp }}/goo-apt-archives/*.deb
           key: apt-linux-x64-${{ steps.linux-apt.outputs.key }}
@@ -65,6 +67,12 @@ jobs:
           /usr/bin/time -f 'Sway clipboard seat installation: %e seconds' \
             sudo apt-get install -y --no-install-recommends \
               -o Dir::Cache::archives="$RUNNER_TEMP/goo-apt-archives" sway
+      - name: Save Linux package archives
+        if: steps.apt-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ${{ runner.temp }}/goo-apt-archives/*.deb
+          key: apt-linux-x64-${{ steps.linux-apt.outputs.key }}
       - name: Native capture contracts
         env:
           DOTNET_DbgEnableMiniDump: 1
