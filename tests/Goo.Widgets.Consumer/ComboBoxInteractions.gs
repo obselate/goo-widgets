@@ -57,6 +57,7 @@ internal class ComboBoxHost : Cell {
     internal var Placement PopoverPlacement
     internal var Query string = ""
     internal var BackgroundClicks int32
+    internal var WidePanel bool
     private func Open(value bool) {
         IsOpen = value
         Rebuild()
@@ -85,6 +86,9 @@ internal class ComboBoxHost : Cell {
 
     private func CapturePanel(input ComboBoxInput, prepared Container) Container {
         Panel = prepared
+        if WidePanel {
+            prepared.MinWidth = 600.0
+        }
         return prepared
     }
 
@@ -313,8 +317,10 @@ func ComboBoxInteractions() {
             !host.IsOpen && host.Selected == "gamma" && host.Commits == 1 && OverlayFocus(semantics, "Target selector"),
             "ComboBox commit/restore failed"
         )
+        host.WidePanel = true
         CompositeClick(window, host.Trigger!!.Handle!!)
         PumpFrames(window, 12)
+        Require(host.Panel!!.Handle!!.BorderBox.Width >= 599.5, "Popover replaced a custom panel MinWidth")
         Require(
             !window.PerformAccessibilityAction(
                 FindSemantics(semantics.Tree?.Root, "Locked")!!.Id,
@@ -326,6 +332,7 @@ func ComboBoxInteractions() {
         MouseButton(id, 10.0F, 10.0F, false)
         PumpFrames(window, 9)
         Require(!host.IsOpen && host.BackgroundClicks == 0, "ComboBox outside click escaped its overlay")
+        host.WidePanel = false
         host.Large = true
         host.Searchable = true
         host.Selected = "item-1201"

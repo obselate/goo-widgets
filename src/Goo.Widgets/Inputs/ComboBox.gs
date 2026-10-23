@@ -36,6 +36,8 @@ public data struct ComboBoxInput {
     var SearchPlaceholder string?
     var EmptyText string?
     var Width float64
+    /// Makes the popup at least as wide as the mounted trigger.
+    var MatchTriggerWidth bool
     var PopupHeight float64
     var Placement PopoverPlacement
     var RowHeight float64
@@ -236,6 +238,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         if isOpen && overlay != nil {
             popup.Viewport = overlayBox
+        }
+        if current.MatchTriggerWidth && trigger.IsMounted {
+            popup.MinWidth = trigger.BorderBox.Width
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
         return root
