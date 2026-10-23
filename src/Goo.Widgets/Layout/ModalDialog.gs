@@ -11,6 +11,8 @@ public data struct ModalDialog {
     var Header Blob?
     /// Dialog body content.
     var Content Blob?
+    /// Optional action row. Replaces the default cancel and confirm buttons.
+    var Footer Blob?
     /// Optional custom cancel-button content.
     var CancelContent Blob?
     /// Optional custom confirm-button content.
@@ -113,70 +115,73 @@ public data struct ModalDialog {
             Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
         }
 
-        let cancelContent = CancelContent ??
-        Text{Content: cancelText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,}
-        let confirmContent = ConfirmContent ??
-        Text{
-            Content: confirmText,
-            FontFamily: theme.FontFamily,
-            FontSize: theme.FontSize,
-            FontWeight: theme.FontWeight,
-        }
-        let cancel = if let createCancel = createCancel {
-            createCancel(resolved, cancelContent)
-        } else {
-            Button{
-                Height: theme.ControlHeight,
-                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-                BorderWidth: theme.BorderWidth,
-                BorderRadius: theme.ControlRadius,
-                BorderColor: resolved.BorderColor!!,
-                BackgroundColor: Color.Transparent,
-                Color: theme.TextColor,
-                Focus: theme.FocusStyle,
-                Cursor: Cursor.Pointer,
-                Focusable: true,
-                OnClick: resolved.OnCancel,
-                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: cancelText},
-                cancelContent,
+        var actions = Footer
+        if actions == nil {
+            let cancelContent = CancelContent ??
+            Text{Content: cancelText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,}
+            let confirmContent = ConfirmContent ??
+            Text{
+                Content: confirmText,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
             }
-        }
-        let confirm = if let createConfirm = createConfirm {
-            createConfirm(resolved, confirmContent)
-        } else {
-            Button{
-                Height: theme.ControlHeight,
-                Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-                BorderRadius: theme.ControlRadius,
-                BackgroundColor: theme.AccentColor,
-                Color: theme.OnAccentColor,
-                Focus: theme.FocusStyle,
-                Cursor: if resolved.ConfirmDisabled {
-                    Cursor.Default
-                } else {
-                    Cursor.Pointer
-                },
-                Focusable: true,
-                Disabled: resolved.ConfirmDisabled,
-                OnClick: resolved.OnConfirm,
-                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
-                confirmContent,
+            let cancel = if let createCancel = createCancel {
+                createCancel(resolved, cancelContent)
+            } else {
+                Button{
+                    Height: theme.ControlHeight,
+                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                    BorderWidth: theme.BorderWidth,
+                    BorderRadius: theme.ControlRadius,
+                    BorderColor: resolved.BorderColor!!,
+                    BackgroundColor: Color.Transparent,
+                    Color: theme.TextColor,
+                    Focus: theme.FocusStyle,
+                    Cursor: Cursor.Pointer,
+                    Focusable: true,
+                    OnClick: resolved.OnCancel,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: cancelText},
+                    cancelContent,
+                }
             }
-        }
+            let confirm = if let createConfirm = createConfirm {
+                createConfirm(resolved, confirmContent)
+            } else {
+                Button{
+                    Height: theme.ControlHeight,
+                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+                    BorderRadius: theme.ControlRadius,
+                    BackgroundColor: theme.AccentColor,
+                    Color: theme.OnAccentColor,
+                    Focus: theme.FocusStyle,
+                    Cursor: if resolved.ConfirmDisabled {
+                        Cursor.Default
+                    } else {
+                        Cursor.Pointer
+                    },
+                    Focusable: true,
+                    Disabled: resolved.ConfirmDisabled,
+                    OnClick: resolved.OnConfirm,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
+                    confirmContent,
+                }
+            }
 
-        cancel.OnClick = resolved.OnCancel
-        WidgetKeyBindings.BindActivation(cancel)
-        confirm.OnClick = resolved.OnConfirm
-        WidgetKeyBindings.BindActivation(confirm)
-        confirm.Disabled = resolved.ConfirmDisabled
+            cancel.OnClick = resolved.OnCancel
+            WidgetKeyBindings.BindActivation(cancel)
+            confirm.OnClick = resolved.OnConfirm
+            WidgetKeyBindings.BindActivation(confirm)
+            confirm.Disabled = resolved.ConfirmDisabled
 
-        let actions = Container{
-            FlexDirection: FlexDirection.Row,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.FlexEnd,
-            Gap: theme.ControlGap,
-            cancel,
-            confirm,
+            actions = Container{
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.FlexEnd,
+                Gap: theme.ControlGap,
+                cancel,
+                confirm,
+            }
         }
         let dialog = Container{
             LineHeight: theme.LineHeight,
