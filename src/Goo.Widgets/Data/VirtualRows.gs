@@ -40,6 +40,25 @@ public func VirtualRows[T](
     }
 }
 
+/// Provides virtual list factories through a named CLR type.
+public class VirtualLists {
+    shared {
+        /// Creates measured-height virtual rows through the same policy as VirtualRows.
+        /// @param items Immutable row values. Replace changed values and rebuild the owning Cell.
+        /// @param estimatedItemHeight A finite, positive estimate used until a row is measured.
+        /// @param itemKey Returns a stable, nonempty key, unique in the collection.
+        /// @param itemBuilder Builds one row. Keep the same builder between builds to reuse unchanged rows.
+        /// @typeparam T The immutable row value type.
+        /// @returns A vertically scrolling Virtual element with bounded measurement work.
+        public func Rows[T](
+            items IReadOnlyList[T],
+            estimatedItemHeight float64,
+            itemKey((T) -> string),
+            itemBuilder((T) -> Blob)
+        ) Virtual -> VirtualRows[T](items, estimatedItemHeight, itemKey, itemBuilder)
+    }
+}
+
 internal class VirtualRowsSource[T] : VirtualSource {
     internal let Items IReadOnlyList[T]
     internal let Estimate float32
