@@ -9,6 +9,8 @@ public data struct TextField {
     var Label string?
     /// Initial value. Nil resolves to an empty string.
     var Value string?
+    /// Applies Value while the entry is focused. False lets focused edits win until blur.
+    var Controlled bool
     /// Empty-value hint. Nil resolves to an empty string.
     var Placeholder string?
     /// Optional validation issue text.
@@ -179,6 +181,7 @@ public data struct TextField {
                 FontSize: resolved.FontSize,
                 FontWeight: theme.FontWeight,
                 Value: resolved.Value!!,
+                Controlled: resolved.Controlled,
                 Placeholder: resolved.Placeholder!!,
                 OnChange: resolved.OnChange,
                 OnSubmit: resolved.OnSubmit,
