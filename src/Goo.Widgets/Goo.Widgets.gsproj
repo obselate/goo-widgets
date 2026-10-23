@@ -23,6 +23,7 @@
     <PackageReference Include="Goo" Version="0.10.0" />
     <PackageReference Include="Goo.Gestures" Version="0.10.0" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Shaders/touch_magnifier.goo-effect" LogicalName="Goo.Widgets.TouchMagnifier" />
     <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
     <None Include="../../buildTransitive/Goo.Widgets.targets" Pack="true" PackagePath="buildTransitive/Goo.Widgets.targets" />
     <None Include="../../buildTransitive/MaterialSymbols.Subset" Pack="true" PackagePath="buildTransitive/MaterialSymbols.Subset" />

@@ -1,0 +1,73 @@
+{
+  "schema": 2,
+  "abi": "goo-shader-effect-2",
+  "artifacts": [
+    {
+      "backend": "vulkan",
+      "format": "spirv",
+      "target": {
+        "vulkan": "1.3",
+        "spirv": "1.6",
+        "stage": "fragment",
+        "entryPoint": "main"
+      },
+      "binary": {
+        "sha256": "19271e0b2250281cb195e41761d0af8f5095f26016cc962d18e12037404602bd",
+        "bytes": 6952,
+        "capabilities": [
+          1
+        ]
+      }
+    }
+  ],
+  "validator": {
+    "project": "KhronosGroup/SPIRV-Tools",
+    "version": "2026.3",
+    "commit": "9a49b0883b9b635689a85b5647dbfcb223268151",
+    "sdk": "1.4.357.0"
+  },
+  "compiler": {
+    "project": "shader-slang/slang",
+    "version": "2026.16",
+    "commit": "2c6ca521d2c38e7ab67c63293351bc88eb747340",
+    "platform": "linux-x64-glibc-2.27",
+    "archiveSha256": "b9c5e195ce9a7124147d47febe78b7f8c59c96829add50b0938bd04b8056fb88",
+    "executableSha256": "17272094a0dfde5dfc1534c5583cfbb36cb540edc6a88198aa9ebbca0c2fc336",
+    "runtimeSha256": "e7ac31add0058c5b2a5406be803d38d3e750a4717ab6f425f98530cf791467c8",
+    "arguments": [
+      "-lang",
+      "slang",
+      "\u003Csource\u003E",
+      "-I",
+      "\u003Cauthoring\u003E",
+      "-entry",
+      "main",
+      "-stage",
+      "fragment",
+      "-target",
+      "spirv",
+      "-capability",
+      "SPIRV_1_5",
+      "-matrix-layout-row-major",
+      "-fp-mode",
+      "precise",
+      "-O2",
+      "-Wall",
+      "-Wpedantic",
+      "-warnings-as-errors",
+      "all",
+      "-restrictive-capability-check",
+      "-diagnostic-color",
+      "never",
+      "-std",
+      "2026",
+      "-o",
+      "\u003Coutput\u003E"
+    ]
+  },
+  "source": {
+    "language": "slang",
+    "sha256": "f9dc4e4321a0eb2eb8342d40fb13940834b84efa290f2fc875dd796056c0b3a7",
+    "authoringSha256": "ff6462e880190d42479e43f4e9fb657a8e8a7cded32b98ef448bb09832090a44"
+  }
+}

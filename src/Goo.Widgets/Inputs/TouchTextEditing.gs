@@ -104,6 +104,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
             let overlay = Portal{Key: keyed ? "touch-editing" : nil, Handle: viewportHandle,
                 Width: Percent(100), Height: Percent(100), ZIndex: 40}
             this.overlay = overlay
+            if moving { overlay.Add(Magnifier()) }
             if selection.Anchor.Offset != selection.Active.Offset || (moving && movingAnchor) {
                 AddHandle(overlay, selection.Anchor, true)
             }

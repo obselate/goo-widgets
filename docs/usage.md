@@ -474,6 +474,7 @@ let area = Cell.Mount[TextAreaInput, TextArea]("notes", TextAreaInput{Value: not
 
 - Touch editing is enabled by default. Set `TouchEditing: false` to disable it.
 - Hold a word to select it. Drag either handle to change one endpoint.
+- A 2x magnifier follows the held selection point without copying text or reading pixels to the CPU.
 - The toolbar provides Cut, Copy, Paste and Select all without changing editor focus.
 - Read-only fields provide selection and Copy. Password fields hide Cut and Copy.
 - Goo draws the handles and toolbar on every platform.
