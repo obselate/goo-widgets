@@ -82,6 +82,7 @@ internal class OverlayHost : Cell {
     internal var MenuOpen bool
     internal var PointPopup bool
     internal var ExplicitViewport bool
+    internal var FitWidth bool
     internal var ShowAnchor bool = true
     internal var ShowDialogs bool = true
     internal var EmptyDialog bool
@@ -361,6 +362,10 @@ internal class OverlayHost : Cell {
         if ExplicitViewport {
             popup.Viewport = ElementRect{X: 20.0, Y: 30.0, Width: 360.0, Height: 480.0}
         }
+        if FitWidth {
+            popup.Width = Length.Auto
+            popup.MaxWidth = 240.0
+        }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
         root.Children.Add(
             Cell.Mount[MenuInput, Menu](
@@ -545,6 +550,20 @@ func OverlayInteractions() {
             !host.PopupOpen && host.LastDismiss == PopoverDismissReason.AnchorRemoved,
             "Removed anchor retained its popup lifecycle"
         )
+        host.ShowAnchor = true
+        host.FitWidth = true
+        host.PopupOpen = true
+        host.Rebuild()
+        PumpFrames(window, 14)
+        let fitted = host.PopupPanel!!.Handle!!.BorderBox
+        Require(
+            fitted.Width > 120.0 && fitted.Width <= 240.5 && FindSemantics(semantics.Tree?.Root, "Popup action") != nil,
+            "Content-width popover was not presented within its MaxWidth"
+        )
+        CaptureIssueProof(window, "popover-content-width")
+        SendKey(id, SDLScancode.Escape)
+        PumpFrames(window, 8)
+        host.FitWidth = false
         host.Before.Focus()
         host.MenuOpen = true
         host.Rebuild()
@@ -610,6 +629,6 @@ func OverlayInteractions() {
         PumpFrames(window, 5)
     }
     Console.WriteLine(
-        "PASS: native managed modal entry/containment/nesting/fallback/backdrop/unmount, popover anchor/point/flip/resize/dismiss/restore, menu disabled/separator/keyboard/submenu/hover/activation policy"
+        "PASS: native managed modal entry/containment/nesting/fallback/backdrop/unmount, popover anchor/point/flip/resize/dismiss/restore/content width, menu disabled/separator/keyboard/submenu/hover/activation policy"
     )
 }
