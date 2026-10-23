@@ -219,7 +219,6 @@ public open class Menu : Cell[MenuInput] {
             Overlays: overlays,
             Role: AccessibilityRole.Menu,
             AccessibilityName: name,
-            Width: current.Width,
             MaxHeight: current.MaxHeight,
             ZIndex: current.ZIndex,
             Placement: depth == 0 ? current.Placement: current.SubmenuPlacement ?? PopoverPlacement.RightStart,
@@ -237,6 +236,9 @@ public open class Menu : Cell[MenuInput] {
         }
         if let viewport = current.Viewport {
             popup.Viewport = viewport
+        }
+        if current.Width != 0.0 {
+            popup.Width = current.Width
         }
         if selected != "" {
             popup.InitialFocus = handles[selected]
