@@ -130,7 +130,7 @@ public data struct Theme {
             }
         }
 
-        /// Attaches System appearance, preserving an app-set background while updating the text color.
+        /// Attaches System appearance, preserving an app-set background and following the system accent.
         public func Attach(window Window) {
             let state = attachment(window)
             state.Value = Default
@@ -514,6 +514,11 @@ internal sealed class ThemeAttachment {
                 DangerColor = palette.DangerColor,
                 DangerFillColor = palette.DangerFillColor,
                 DangerHoverColor = palette.DangerHoverColor,
+            }
+            if Mode == ThemeMode.System {
+                if let accent = preferences.AccentColor {
+                    value.AccentColor = accent
+                }
             }
         }
         if preferences.ReducedMotion == true {

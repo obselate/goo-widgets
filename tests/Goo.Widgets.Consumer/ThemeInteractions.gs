@@ -184,7 +184,8 @@ func ThemeBackgroundContracts() {
 func ThemePolicyContracts() {
     using let darkHost = ThemePreferenceHost()
     darkHost.Resize(360, 280, 360, 280)
-    darkHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
+    let accent = Color.Rgb(31, 91, 173)
+    darkHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, AccentColor: accent})
     let darkProbe = ThemeProbe()
     let darkWindow = Window{Root: darkProbe}
     Theme.Attach(darkWindow)
@@ -193,9 +194,20 @@ func ThemePolicyContracts() {
     Require(
         darkProbe.Snapshot.CanvasColor == Theme.Ink.CanvasColor
         && darkProbe.Snapshot.TextColor == Theme.Ink.TextColor
-        && darkWindow.Background == Theme.Ink.CanvasColor && darkWindow.Foreground == Theme.Ink.TextColor,
+        && darkWindow.Background == Theme.Ink.CanvasColor && darkWindow.Foreground == Theme.Ink.TextColor
+        && darkProbe.Snapshot.AccentColor == accent,
         "Initial System Dark did not publish the Ink snapshot and window pair."
     )
+    darkHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, AccentColor: Color.Rgb(40, 120, 90)})
+    ThemeFrames(darkHost)
+    Require(darkProbe.Snapshot.AccentColor == Color.Rgb(40, 120, 90), "System accent changes were not applied.")
+    darkHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
+    ThemeFrames(darkHost)
+    Require(darkProbe.Snapshot.AccentColor == Theme.Ink.AccentColor, "Unknown system accent lost the palette fallback.")
+    Theme.Attach(darkWindow, Theme.Bone with{AccentColor = accent})
+    darkHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light, AccentColor: Color.Rgb(40, 120, 90)})
+    ThemeFrames(darkHost)
+    Require(darkProbe.Snapshot.AccentColor == accent, "System appearance overwrote an application accent.")
     using let first = ThemePreferenceHost()
     using let second = ThemePreferenceHost()
     first.Resize(360, 280, 360, 280)
