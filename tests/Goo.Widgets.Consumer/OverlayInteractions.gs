@@ -72,6 +72,9 @@ func OverlayContracts() {
 internal class OverlayHost : Cell {
     private var platformInput PlatformInput?
     internal let Before ElementHandle = ElementHandle()
+    private var window Window?
+    internal let TooltipTarget ElementHandle = ElementHandle()
+    internal let TooltipLabel ElementHandle = ElementHandle()
     internal let Anchor ElementHandle = ElementHandle()
     internal let Edit ElementHandle = ElementHandle()
     internal let Nested ElementHandle = ElementHandle()
@@ -212,6 +215,7 @@ internal class OverlayHost : Cell {
 
     internal func AttachWindow(window Window) {
         platformInput = window.PlatformInput
+        this.window = window
     }
 
     public override func Build() Blob {
@@ -246,6 +250,17 @@ internal class OverlayHost : Cell {
                 Text{Content: "Background action"}
             }
         }
+        root.Children.Add(
+            Cell.Mount[TooltipInput, Tooltip](
+                "tooltip",
+                TooltipInput{
+                    Window: window,
+                    DelayMs: 0.0,
+                    Target: Button{Handle: TooltipTarget, Width: 180.0, Height: 38.0, Text{Content: "Tooltip target"}},
+                    Content: Text{Handle: TooltipLabel, Content: "Tooltip label"},
+                }
+            )
+        )
         if ShowAnchor {
             root.Children.Add(
                 Button{
@@ -428,6 +443,20 @@ func OverlayInteractions() {
         PumpFrames(window, 12)
         let id = OnlyNativeWindow()
         host.Before.Focus()
+        let tooltipBounds = host.TooltipTarget.BorderBox
+        MouseMove(id, float32(tooltipBounds.X + tooltipBounds.Width / 2.0), float32(tooltipBounds.Y + tooltipBounds.Height / 2.0))
+        PumpFrames(window, 4)
+        Require(host.TooltipLabel.IsMounted, "Hover did not show the tooltip")
+        SendKey(id, SDLScancode.Escape)
+        PumpFrames(window, 40)
+        Require(!host.TooltipLabel.IsMounted, "Escape did not keep the hovered tooltip dismissed")
+        MouseMove(id, 4.0F, 4.0F)
+        PumpFrames(window, 4)
+        MouseMove(id, float32(tooltipBounds.X + tooltipBounds.Width / 2.0), float32(tooltipBounds.Y + tooltipBounds.Height / 2.0))
+        PumpFrames(window, 4)
+        Require(host.TooltipLabel.IsMounted, "Tooltip did not reopen after leaving and re-entering")
+        MouseMove(id, 4.0F, 4.0F)
+        PumpFrames(window, 4)
         let oldBackground = FindSemantics(semantics.Tree?.Root, "Background action")!!.Id
         host.DialogOpen = true
         host.Rebuild()
