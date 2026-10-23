@@ -29,8 +29,12 @@ func TextAreaOwnership() {
     Require(!ControllerDisposed(external), "TextArea disposed an external controller")
     external.Dispose()
     let owned = TextAreaProbe()
-    let root = (owned.Render(TextAreaInput{Value: "Owned"}) as Container)!!
-    let controller = (root.Children[0] as TextEditor)!!.Controller
+    var editor TextEditor?
+    owned.Render(TextAreaInput{Value: "Owned", CreateEditor: (input TextAreaInput, created TextEditor) -> {
+        editor = created
+        return created
+    }})
+    let controller = editor!!.Controller
     owned.Dispose()
     owned.Dispose()
     Require(ControllerDisposed(controller), "TextArea failed to dispose its owned controller")

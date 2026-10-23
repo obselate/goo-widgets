@@ -465,6 +465,19 @@ Set `GOO_WIDGETS_PROOF_DIR` to capture native results and `GOO_CLI` to the match
 Goo DevTools executable or DLL. The runner creates a private KWin session and input
 seat and requires the platform packages listed in its docstring.
 
+## Touch text editing
+
+```gsharp
+let field = TextField{Value: "Alpha beta gamma"}.Build()
+let area = Cell.Mount[TextAreaInput, TextArea]("notes", TextAreaInput{Value: notes, OnChange: SaveNotes})
+```
+
+- Touch editing is enabled by default. Set `TouchEditing: false` to disable it.
+- Hold a word to select it. Drag either handle to change one endpoint.
+- The toolbar provides Cut, Copy, Paste and Select all without changing editor focus.
+- Read-only fields provide selection and Copy. Password fields hide Cut and Copy.
+- Goo draws the handles and toolbar on every platform.
+
 ## Measured Grid layout
 
 `Grid` places keyed `GridItem` slots in explicitly declared `Rows` and `Columns`.

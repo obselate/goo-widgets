@@ -30,6 +30,8 @@ public data struct TextAreaInput {
     var ReadOnly bool
     /// Prevents all field input.
     var Disabled bool
+    /// Nil enables long-press selection and touch editing controls.
+    var TouchEditing bool?
     /// Wrapping mode; NoWrap enables horizontal scrolling by default.
     var Wrap TextWrap
     /// Root width. Nil resolves to 280.
@@ -215,7 +217,8 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 }
             )
         }
-        return root
+        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](root.Key,
+            TouchTextEditingInput{Content: root, Editor: editor, Enabled: input.TouchEditing})
     }
 
     private func Changed(change TextDocumentChange) {

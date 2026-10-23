@@ -162,18 +162,18 @@ func PackageComposition() {
     )
 
     var edited string = ""
-    let field = (
-        TextField{
-            Label: "Name",
-            Value: "before",
-            OnChange: (value string) -> {
-                edited = value
-            },
-            CreateEntry: (resolved TextField) -> TextEntry{Value: resolved.Value ?? "", OnChange: resolved.OnChange},
-        }.Build() as Container
-    )!!
-    let entry = (field.Children[1] as TextEntry)!!
-    entry.OnChange?.Invoke("after")
+    var entry TextEntry?
+    TextField{
+        Label: "Name",
+        Value: "before",
+        OnChange: (value string) -> edited = value,
+        CreateEntry: (resolved TextField) -> {
+            let created = TextEntry{Value: resolved.Value ?? "", OnChange: resolved.OnChange}
+            entry = created
+            return created
+        },
+    }.Build()
+    entry!!.OnChange?.Invoke("after")
     Require(edited == "after", "Custom text entry lost the controlled edit callback.")
 
     let widgets = []Blob{
@@ -395,6 +395,10 @@ func Main() {
     }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_COMPOSITES") == "1" {
         CompositeInteractions()
+        return
+    }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_TOUCH_EDITING") == "1" {
+        TouchEditingInteractions()
         return
     }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_SEARCHLIST_BENCH") == "1" {

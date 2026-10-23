@@ -20,7 +20,8 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo" Version="0.7.51" />
+    <PackageReference Include="Goo" Version="0.7.54-touch.1" />
+    <PackageReference Include="Goo.Gestures" Version="0.7.54-touch.1" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
     <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
     <None Include="../../buildTransitive/Goo.Widgets.targets" Pack="true" PackagePath="buildTransitive/Goo.Widgets.targets" />

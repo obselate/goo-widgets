@@ -10,11 +10,19 @@
       },
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.7.51",
-        "contentHash": "gDtWoXeBpOxvpFSTrrNrJKekwkYsTFb7MIUUpnGI4rwYy5DWj+GFkXHLKuU2yQm1/BL/SG7etQGrnfWElVLklg==",
+        "resolved": "0.7.54-touch.1",
+        "contentHash": "LNN27tk3hPNX3ycuvYfpH6nfQOlgpw/h6RQSeh6VgtbcClJyc5gxebsvcP7aagLHL8u/2iA4HC2qOi6jJBqrRA==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Unicode.Bidi": "0.3.18"
+        }
+      },
+      "Goo.Gestures": {
+        "type": "Transitive",
+        "resolved": "0.7.54-touch.1",
+        "contentHash": "pMI+nf3atdbIhrfIED7a1i17kNDgX7cnJumLQG/D+ktKHnD27eM+ZU6qlWt1G9qheJlqrMK+g00JyP0+XzBeCg==",
+        "dependencies": {
+          "Goo": "0.7.54-touch.1"
         }
       },
       "Hexa.NET.SDL3": {
@@ -38,7 +46,8 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.7.51, )"
+          "Goo": "[0.7.54-touch.1, )",
+          "Goo.Gestures": "[0.7.54-touch.1, )"
         }
       }
     }

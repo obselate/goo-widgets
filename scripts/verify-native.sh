@@ -12,3 +12,6 @@ done
 printf 'SUITE MARKDOWN\n'
 env GOO_WIDGETS_MARKDOWN=1 SDL_VIDEODRIVER=wayland GOO_WAYLAND_COMPOSITOR=sway scripts/with-headless-wayland.sh \
   dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
+printf 'SUITE TOUCH_EDITING\n'
+env GOO_WIDGETS_TOUCH_EDITING=1 SDL_VIDEODRIVER=wayland GOO_WAYLAND_COMPOSITOR=sway scripts/with-headless-wayland.sh \
+  dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
