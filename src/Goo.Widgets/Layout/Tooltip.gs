@@ -39,6 +39,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
     private let focus Action[FocusEvent]
     private let blur Action[FocusEvent]
     private let keyDown Action[KeyEvent]
+    private let windowKeyPressed Action[Key, KeyModifiers]
     private var current TooltipInput
     private var pending WindowTimer?
     private var hovered bool
@@ -55,6 +56,11 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         focus = (event FocusEvent) -> FocusEntered()
         blur = (event FocusEvent) -> FocusLeft()
         keyDown = KeyDown
+        windowKeyPressed = (key Key, modifiers KeyModifiers) -> {
+            if key == Key.Escape && visible && !focused {
+                Dismiss()
+            }
+        }
     }
 
     /// Cancels a pending label when this Cell unmounts.
@@ -64,6 +70,9 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         }
         disposed = true
         CancelPending()
+        if let window = current.Window {
+            window.KeyPressed -= windowKeyPressed
+        }
     }
 
     protected override func Build(input TooltipInput) Blob {
@@ -84,6 +93,10 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         }
         if current.Window != input.Window {
             CancelPending()
+            if let window = current.Window {
+                window.KeyPressed -= windowKeyPressed
+            }
+            input.Window!!.KeyPressed += windowKeyPressed
             hovered = false
             focused = false
             visible = false
@@ -195,7 +208,9 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
     }
 
     private func KeyDown(event KeyEvent) {
-        if event.Key == Key.Escape {
+        if event.Key == Key.Escape && visible {
+            event.PreventDefault()
+            event.StopPropagation()
             Dismiss()
         }
     }
