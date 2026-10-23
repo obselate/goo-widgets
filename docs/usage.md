@@ -575,6 +575,15 @@ log.PinToBottom = true
 log.Height = 240
 ```
 
+```csharp
+var log = VirtualLists.Rows(lines, 20.0, line => line.Id,
+    line => new Text { Content = line.Message });
+log.Height = 240;
+```
+
+C#, F# and VB can call the same measured-row policy through the named CLR type
+`Goo.Widgets.Data.VirtualLists.Rows<T>`. The G# `VirtualRows` function remains available.
+
 Keys must be stable, nonempty, and unique in the collection. Keep item values
 immutable and rebuild the owning Cell after a change. An item that equals its
 previous value is not built again. `VirtualRows` also needs the same builder
