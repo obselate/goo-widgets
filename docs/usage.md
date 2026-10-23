@@ -408,6 +408,9 @@ tree. No global theme registration or initialization is required.
   modal isolation. Content and confirmation work remain host-owned.
 - GraphCanvas uses supplied node positions. The host owns layout calculation,
   selection, and viewport state. Cards keep their screen size as positions zoom.
+- Touch pans the canvas. A second contact adds pinch zoom without a viewport jump.
+- Touch node dragging uses the same core gesture arbitration as scrolling and drag/drop.
+- Lifting or canceling a pinch contact ends navigation. Held contacts cannot start another action.
 - WindowChrome needs a Window or callbacks for window actions. `EnableDoubleClick`
   routes blank titlebar double-clicks through the resolved maximize/restore action;
   supply `Host` for native drag regions in undecorated windows, including when

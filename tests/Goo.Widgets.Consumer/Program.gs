@@ -401,6 +401,10 @@ func Main() {
         TouchEditingInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_GRAPH_TOUCH") == "1" {
+        GraphTouchInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_SEARCHLIST_BENCH") == "1" {
         SearchListBenchmarks()
         return

@@ -73,7 +73,7 @@ enum GraphPointerMode {
 }
 
 /// An interactive controlled graph canvas with panning, zooming, selection, and node dragging.
-public open class GraphCanvas : Cell[GraphCanvasInput] {
+public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     private let handle ElementHandle = ElementHandle{}
     private var resolved GraphCanvasInput
     private var viewport GraphViewport
@@ -91,6 +91,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
         let theme = Theme.Read()
         resolved = Resolve(input, theme)
         viewport = resolved.Viewport
+        RefreshTouchNodes()
         let root = Container{
             Key: "graph-canvas",
             Handle: handle,
@@ -103,6 +104,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             Focus: theme.FocusStyle,
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Graph canvas"},
+            Gestures: navigation,
             OnPointerDown: (e PointerEvent) -> BeginCanvasPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
@@ -399,6 +401,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> CancelPointer(e),
         }.Build()
+        card.Gestures = NodeGestures(node.Id)
         return if let customizeNode = resolved.CustomizeNode {
             customizeNode(node, card)
         } else {
@@ -424,6 +427,10 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func BeginCanvasPointer(e PointerEvent) {
+        if e.Device == PointerDevice.Touch {
+            canvasTapId = e.PointerId
+            return
+        }
         if pointerMode != GraphPointerMode.None {
             return
         }
@@ -448,6 +455,10 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func BeginNodePointer(node GraphNode, e PointerEvent) {
+        if e.Device == PointerDevice.Touch {
+            e.StopPropagation()
+            return
+        }
         if e.Button != PointerButton.Primary || pointerMode != GraphPointerMode.None {
             return
         }
@@ -496,6 +507,11 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func EndPointer(e PointerEvent) {
+        if e.Device == PointerDevice.Touch && e.PointerId == canvasTapId {
+            canvasTapId = -1L
+            if pointerMode == GraphPointerMode.None { EmitSelection([]string{}) }
+            return
+        }
         if e.PointerId != pointerId {
             return
         }
@@ -506,6 +522,7 @@ public open class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func CancelPointer(e PointerEvent) {
+        if e.Device == PointerDevice.Touch && e.PointerId == canvasTapId { canvasTapId = -1L }
         if e.PointerId != pointerId {
             return
         }
