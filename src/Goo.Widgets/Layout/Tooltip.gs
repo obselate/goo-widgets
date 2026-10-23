@@ -38,8 +38,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
     private let pointerDown Action[PointerEvent]
     private let focus Action[FocusEvent]
     private let blur Action[FocusEvent]
-    private let keyDown Action[KeyEvent]
-    private let windowKeyPressed Action[Key, KeyModifiers]
+    private let previewKeyPressed Func[Key, KeyModifiers, bool]
     private var current TooltipInput
     private var pending WindowTimer?
     private var hovered bool
@@ -55,11 +54,12 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         pointerDown = (event PointerEvent) -> Dismiss()
         focus = (event FocusEvent) -> FocusEntered()
         blur = (event FocusEvent) -> FocusLeft()
-        keyDown = KeyDown
-        windowKeyPressed = (key Key, modifiers KeyModifiers) -> {
-            if key == Key.Escape && visible && !focused {
-                Dismiss()
+        previewKeyPressed = (key Key, modifiers KeyModifiers) -> {
+            if key != Key.Escape || !visible {
+                return false
             }
+            Dismiss()
+            return true
         }
     }
 
@@ -71,7 +71,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         disposed = true
         CancelPending()
         if let window = current.Window {
-            window.KeyPressed -= windowKeyPressed
+            window.PreviewKeyPressed -= previewKeyPressed
         }
     }
 
@@ -94,9 +94,9 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         if current.Window != input.Window {
             CancelPending()
             if let window = current.Window {
-                window.KeyPressed -= windowKeyPressed
+                window.PreviewKeyPressed -= previewKeyPressed
             }
-            input.Window!!.KeyPressed += windowKeyPressed
+            input.Window!!.PreviewKeyPressed += previewKeyPressed
             hovered = false
             focused = false
             visible = false
@@ -114,7 +114,6 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             OnPointerDown: pointerDown,
             OnFocus: focus,
             OnBlur: blur,
-            OnKeyDown: keyDown,
             input.Target!!,
         }
         if input.Target!!.Disabled {
@@ -204,14 +203,6 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         suppressed = false
         if !hovered {
             Hide()
-        }
-    }
-
-    private func KeyDown(event KeyEvent) {
-        if event.Key == Key.Escape && visible {
-            event.PreventDefault()
-            event.StopPropagation()
-            Dismiss()
         }
     }
 
