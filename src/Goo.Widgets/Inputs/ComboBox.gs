@@ -54,6 +54,7 @@ internal data struct ComboBoxRow {
     var Item ComboBoxOption
     var Selected bool
     var Active bool
+    var KeyboardActive bool
     var Input ComboBoxInput
 }
 
@@ -70,6 +71,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var overlayBox ElementRect
     private var rows List[ComboBoxRow] = List[ComboBoxRow]()
     private var activeId string = ""
+    private var pointerFocus bool
     private var ownedOpen bool
     private var ownedQuery string = ""
     private var wasOpen bool
@@ -146,7 +148,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             activeId = First(false)
         }
         for i in 0 ... rows.Count {
-            rows[i] = rows[i]with{Active = rows[i].Item.Id == activeId}
+            let active = rows[i].Item.Id == activeId
+            rows[i] = rows[i]with{Active = active, KeyboardActive = active && !pointerFocus}
         }
         let label = selected?.Label ?? selected?.Id ?? current.Placeholder!!
         let valueContent = selected?.Content ??
@@ -178,6 +181,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         button.Disabled = current.Disabled
         button.Focusable = !current.Disabled
         button.OnClick = () -> SetOpen(!isOpen)
+        button.OnPointerDown = (event PointerEvent) -> pointerFocus = true
         WidgetKeyBindings.BindActivation(button)
         button.OnKeyDown = TriggerKey
         button.Accessibility = Accessibility{
@@ -329,7 +333,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             AlignItems: AlignItems.Center,
             BackgroundColor: row.Active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Opacity: item.Disabled ? .45: 1.0,
-            OutlineWidth: row.Active ? 2.0: 0.0,
+            OutlineWidth: row.KeyboardActive ? 2.0: 0.0,
             OutlineColor: theme.AccentColor,
             OutlineOffset: -2.0,
         }
@@ -347,6 +351,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         result.OnPointerEnter = (event PointerEvent) -> {
             if !item.Disabled {
                 activeId = id
+                pointerFocus = true
                 Rebuild()
             }
         }
@@ -468,6 +473,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     }
 
     private func TriggerKey(event KeyEvent) {
+        pointerFocus = false
         if event.Key == Key.Down || event.Key == Key.Up || event.Key == Key.Home || event.Key == Key.End {
             event.PreventDefault()
             event.StopPropagation()
@@ -487,6 +493,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         event.PreventDefault()
         event.StopPropagation()
+        pointerFocus = false
         if event.Key == Key.Home || event.Key == Key.End {
             activeId = First(event.Key == Key.End)
         } else {
