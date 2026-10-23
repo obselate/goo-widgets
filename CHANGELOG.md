@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.7.1 - 2026-10-23
+
+- Dismiss a hovered tooltip on Escape and keep it hidden until the pointer re-enters (WCAG 1.4.13).
+
 ## 0.7.0 - 2026-10-23
 
 - Add touch text selection handles and an editing toolbar.
