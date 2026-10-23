@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-10-23
+
+- Add a named CLR factory for measured virtual rows.
+
 ## 0.4.3 - 2026-10-22
 
 - Add an optional DataGrid EstimatedRowHeight for unseen virtual rows without changing the RowHeight minimum.
