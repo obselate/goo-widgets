@@ -39,9 +39,9 @@ public data struct PopoverInput {
     /// Width defaults to 280. Auto fits the content and Percent uses the viewport width.
     /// Maximum height defaults to 360. Both shrink to the available viewport.
     var Width Length?
-    /// Lower width bound. Nil resolves to zero.
+    /// Lower width bound. Nil keeps the panel's own MinWidth.
     var MinWidth float64?
-    /// Upper width bound. Nil uses the available viewport.
+    /// Upper width bound. Nil uses the available viewport and keeps the panel's own MaxWidth unless Width is Auto.
     var MaxWidth float64?
     var MaxHeight float64
     var Gap float64?
@@ -133,7 +133,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let margin = current.ViewportMargin!!
         let available = Math.Max(1.0, viewport.Width - 2.0 * margin)
         let maxWidth = Math.Min(current.MaxWidth ?? available, available)
-        let minWidth = Math.Min(current.MinWidth!!, maxWidth)
+        let minWidth = Math.Min(current.MinWidth ?? 0.0, maxWidth)
         let requested = current.Width!!
         let fit = !requested.HasMagnitude
         let width = Math.Clamp(
@@ -185,8 +185,12 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         panel.Left = origin.X - rootBox.X
         panel.Top = origin.Y - rootBox.Y
         panel.Width = fit ? Length.Auto: width
-        panel.MinWidth = minWidth
-        panel.MaxWidth = maxWidth
+        if current.MinWidth != nil {
+            panel.MinWidth = minWidth
+        }
+        if fit || current.MaxWidth != nil {
+            panel.MaxWidth = maxWidth
+        }
         panel.MaxHeight = presented ? heightLimit: current.MaxHeight
         panel.MinHeight = 0.0
         panel.FlexShrink = 0.0
@@ -242,7 +246,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let defaultWidth Length = 280
         let result = input with{
             Width = input.Width ?? defaultWidth,
-            MinWidth = input.MinWidth ?? 0.0,
             MaxHeight = input.MaxHeight == 0.0 ? 360.0: input.MaxHeight,
             Gap = input.Gap ?? theme.Spacing,
             ViewportMargin = input.ViewportMargin ?? theme.ControlGap,
@@ -257,7 +260,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         let width = result.Width!!
         if width.HasMagnitude && (!Double.IsFinite(width.Magnitude) || width.Magnitude <= 0.0)
-        || !Double.IsFinite(result.MinWidth!!) || result.MinWidth!!< 0.0
+        || result.MinWidth != nil && (!Double.IsFinite(result.MinWidth!!) || result.MinWidth!!< 0.0)
         || result.MaxWidth != nil && (!Double.IsFinite(result.MaxWidth!!) || result.MaxWidth!!<= 0.0)
         || !Double.IsFinite(result.MaxHeight) || result.MaxHeight <= 0.0
         || !Double.IsFinite(result.Gap!!) || result.Gap!!< 0.0
