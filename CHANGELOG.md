@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.6.0 - 2026-10-23
+
+- ComboBox shows its active option ring only after keyboard input.
+- Add TextField Controlled to show the host value while the field is focused.
+- TextField Width and EntryHeight accept Length values, including Percent and Auto (breaking: an explicit zero width is now zero, not the 280 default).
+- Add an optional ModalDialog Footer slot that replaces the default action row.
+- Popover Width accepts Length, including Auto content sizing within new MinWidth and MaxWidth bounds (breaking: a Width of zero or less now throws instead of meaning 280).
+
 ## 0.5.0 - 2026-10-23
 
 - Add a named CLR factory for measured virtual rows.
