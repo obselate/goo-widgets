@@ -4,8 +4,8 @@
     "net10.0": {
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.8.2",
-        "contentHash": "9yHc8Js6ZMFgqVqFel/ppbFx2dKgGIeZ/pgZUZWXNUC9FSvtOpzRb/jU/Tg37Wr+Jq/iTQ8G/i/nolOzEU7Kqg==",
+        "resolved": "0.10.0",
+        "contentHash": "vPd3aqTYKf0AOlGDcJONGB/K/dXhmGUEnQnqLN0vMZUTUODAvLshfs+vOL2MRY6U3UbZJxGRLnSnlilYy7e29A==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Unicode.Bidi": "0.3.18"
@@ -13,10 +13,10 @@
       },
       "Goo.Gestures": {
         "type": "Transitive",
-        "resolved": "0.8.2",
-        "contentHash": "utLh4jZ4TdDmd629WK+w3zXaZQ5aGTdxuAfwnXK/NvWGdrVUZsCwTbliYtbgZc+VfBNVzdP86gpE5Qkgl2UFiw==",
+        "resolved": "0.10.0",
+        "contentHash": "znHbiQWApHr90UTKZnHsCmJVqkoa8CtgGZlOMYv18tcOk5c/f+r2I4K1vgZG4STqjnkfNuT/v3EKJT9HOF4p6g==",
         "dependencies": {
-          "Goo": "0.8.2"
+          "Goo": "0.10.0"
         }
       },
       "Hexa.NET.SDL3": {
@@ -40,8 +40,8 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.8.2, )",
-          "Goo.Gestures": "[0.8.2, )"
+          "Goo": "[0.10.0, )",
+          "Goo.Gestures": "[0.10.0, )"
         }
       }
     }
