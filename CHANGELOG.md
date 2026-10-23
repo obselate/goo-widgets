@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep controlled DataGrid active rows at the nearest viewport edge when they are not yet realized.
+
 ## 0.6.1 - 2026-10-23
 
 - Keep custom popover panel MinWidth and MaxWidth, fixing a 0.6.0 regression that shrank custom ComboBox popups, and add ComboBox MatchTriggerWidth.

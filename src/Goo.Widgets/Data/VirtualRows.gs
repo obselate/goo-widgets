@@ -73,6 +73,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     internal var Identity object?
     internal var AutoHeight bool
     internal var ContentWidth float64?
+    internal var Current VirtualRowsState[T]?
 
     internal init(
         items IReadOnlyList[T],
@@ -90,6 +91,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
 
     public func State(current VirtualState?) VirtualState {
         let state = (current as VirtualRowsState[T]) ?? VirtualRowsState[T]()
+        Current = state
         state.Pending = this
         return state
     }
@@ -287,6 +289,16 @@ internal class VirtualRowsState[T] : VirtualState {
             return nil
         }
         return Point{X: viewport.ScrollOffset.X, Y: data.Prefix(index)}
+    }
+
+    internal func BoundsOf(key string) ElementRect? {
+        guard let data = metadata else {
+            return nil
+        }
+        if !data.TryIndex(key, out var index) {
+            return nil
+        }
+        return ElementRect{Y: data.Prefix(index), Height: data.Height(index)}
     }
 
     public override func Commit() {

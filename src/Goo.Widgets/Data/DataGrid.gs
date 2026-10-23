@@ -171,6 +171,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private let horizontalViewport ElementHandle = ElementHandle()
     private var rootHandle ElementHandle
     private var viewport ElementHandle
+    private var virtualRows VirtualRowsSource[DataGridRow]?
     private let rowHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private let resizeHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](
         StringComparer.Ordinal
@@ -453,6 +454,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 Identity = input.RowAt,
                 ContentWidth = tableWidth
             }
+            virtualRows = source
             Virtual(source)
         }
         body.Key = "body"
@@ -1301,8 +1303,14 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             } else if row.Y + row.Height > view.Y + view.Height {
                 viewport.JumpTo(offset.X, offset.Y + row.Y + row.Height - view.Y - view.Height)
             }
-        } else {
-            viewport.ScrollToItem(activeId!!)
+        } else if let row = virtualRows?.Current?.BoundsOf(activeId!!) {
+            let view = viewport.ContentBox
+            let offset = viewport.ScrollOffset
+            if row.Y < offset.Y {
+                viewport.JumpTo(offset.X, row.Y)
+            } else if row.Y + row.Height > offset.Y + view.Height {
+                viewport.JumpTo(offset.X, row.Y + row.Height - view.Height)
+            }
         }
     }
 
