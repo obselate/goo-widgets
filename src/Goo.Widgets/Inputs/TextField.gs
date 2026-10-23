@@ -19,6 +19,8 @@ public data struct TextField {
     var Invalid bool
     /// Whether the field rejects input.
     var Disabled bool
+    /// Nil enables long-press selection and touch editing controls.
+    var TouchEditing bool?
     /// Accessible name. Nil falls back to label, placeholder, then empty.
     var AccessibilityName string?
     /// Callback for edited values.
@@ -231,7 +233,9 @@ public data struct TextField {
             }
         }
         if let createRoot = createRoot {
-            return createRoot(resolved, label, entry!!, issue)
+            let content = createRoot(resolved, label, entry!!, issue)
+            return Cell.Mount[TouchTextEditingInput, TouchTextEditing](content.Key,
+                TouchTextEditingInput{Content: content, Editor: entry!!, Enabled: resolved.TouchEditing})
         }
         let root = Container{
             LineHeight: theme.LineHeight,
@@ -248,6 +252,7 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
-        return root
+        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](root.Key,
+            TouchTextEditingInput{Content: root, Editor: entry!!, Enabled: resolved.TouchEditing})
     }
 }

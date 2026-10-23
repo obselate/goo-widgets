@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-Goo Widgets `0.6.1` requires Goo `0.7.51`, .NET 10, and
+Goo Widgets `0.6.1` requires Goo `0.10.0`, .NET 10, and
 `Gsharp.NET.Sdk/0.4.1150`. SVG is included in Goo.
 Follow the [installation instructions](../README.md#install).
 
@@ -408,6 +408,9 @@ tree. No global theme registration or initialization is required.
   modal isolation. Content and confirmation work remain host-owned.
 - GraphCanvas uses supplied node positions. The host owns layout calculation,
   selection, and viewport state. Cards keep their screen size as positions zoom.
+- Touch pans the canvas. A second contact adds pinch zoom without a viewport jump.
+- Touch node dragging uses the same core gesture arbitration as scrolling and drag/drop.
+- Lifting or canceling a pinch contact ends navigation. Held contacts cannot start another action.
 - WindowChrome needs a Window or callbacks for window actions. `EnableDoubleClick`
   routes blank titlebar double-clicks through the resolved maximize/restore action;
   supply `Host` for native drag regions in undecorated windows, including when
@@ -464,6 +467,20 @@ GOO_WIDGETS_COMPOSITES=1 /usr/bin/python3 scripts/with-isolated-wayland.py -- \
 Set `GOO_WIDGETS_PROOF_DIR` to capture native results and `GOO_CLI` to the matching
 Goo DevTools executable or DLL. The runner creates a private KWin session and input
 seat and requires the platform packages listed in its docstring.
+
+## Touch text editing
+
+```gsharp
+let field = TextField{Value: "Alpha beta gamma"}.Build()
+let area = Cell.Mount[TextAreaInput, TextArea]("notes", TextAreaInput{Value: notes, OnChange: SaveNotes})
+```
+
+- Touch editing is enabled by default. Set `TouchEditing: false` to disable it.
+- Hold a word to select it. Drag either handle to change one endpoint.
+- A 2x magnifier follows the held selection point without copying text or reading pixels to the CPU.
+- The toolbar provides Cut, Copy, Paste and Select all without changing editor focus.
+- Read-only fields provide selection and Copy. Password fields hide Cut and Copy.
+- Goo draws the handles and toolbar on every platform.
 
 ## Measured Grid layout
 
