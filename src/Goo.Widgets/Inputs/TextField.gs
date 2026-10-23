@@ -9,6 +9,8 @@ public data struct TextField {
     var Label string?
     /// Initial value. Nil resolves to an empty string.
     var Value string?
+    /// Applies Value while the entry is focused. False lets focused edits win until blur.
+    var Controlled bool
     /// Empty-value hint. Nil resolves to an empty string.
     var Placeholder string?
     /// Optional validation issue text.
@@ -39,10 +41,10 @@ public data struct TextField {
     var DisabledBackgroundColor Color?
     /// Disabled entry text color. Nil uses the nearest theme.
     var DisabledTextColor Color?
-    /// Root width. Zero resolves to 280.0.
-    var Width float64
-    /// Entry height. Nil uses the theme control height.
-    var EntryHeight float64?
+    /// Root width, including Percent and Auto. Nil resolves to 280. Explicit zero is preserved.
+    var Width Length?
+    /// Entry height, including Percent and Auto. Nil uses the theme control height.
+    var EntryHeight Length?
     /// Root child gap. Explicit zero is preserved.
     var Gap float64?
     /// Entry horizontal padding. Explicit zero is preserved.
@@ -85,6 +87,8 @@ public data struct TextField {
         let value = Value ?? ""
         let placeholder = Placeholder ?? ""
         let labelName = Label ?? placeholder
+        let defaultWidth Length = 280
+        let controlHeight Length = theme.ControlHeight
         let resolved = this with{
             Value = value,
             Placeholder = placeholder,
@@ -98,12 +102,8 @@ public data struct TextField {
             DisabledBackgroundColor = DisabledBackgroundColor ?? theme.PanelColor,
             DisabledTextColor = DisabledTextColor ?? theme.FaintTextColor,
             FontFamily = FontFamily ?? theme.FontFamily,
-            Width = if Width == 0.0 {
-                280.0
-            } else {
-                Width
-            },
-            EntryHeight = EntryHeight ?? theme.ControlHeight,
+            Width = Width ?? defaultWidth,
+            EntryHeight = EntryHeight ?? controlHeight,
             Gap = Gap ?? theme.ControlGap,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             FontSize = if FontSize == 0.0 {
@@ -181,6 +181,7 @@ public data struct TextField {
                 FontSize: resolved.FontSize,
                 FontWeight: theme.FontWeight,
                 Value: resolved.Value!!,
+                Controlled: resolved.Controlled,
                 Placeholder: resolved.Placeholder!!,
                 OnChange: resolved.OnChange,
                 OnSubmit: resolved.OnSubmit,
@@ -234,7 +235,7 @@ public data struct TextField {
         }
         let root = Container{
             LineHeight: theme.LineHeight,
-            Width: resolved.Width,
+            Width: resolved.Width!!,
             FlexDirection: FlexDirection.Column,
             Gap: resolved.Gap!!,
             Opacity: resolved.Opacity!!,
