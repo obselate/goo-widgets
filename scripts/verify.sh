@@ -15,10 +15,10 @@ dotnet run --project tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj -c R
 version="$(dotnet msbuild src/Goo.Widgets/Goo.Widgets.gsproj -getProperty:Version -nologo)"
 subset_packages="$(mktemp -d)"
 trap 'rm -rf -- "$subset_packages"' EXIT
-NUGET_PACKAGES="$subset_packages" dotnet restore tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.csproj \
+NUGET_PACKAGES="$subset_packages" dotnet restore tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.gsproj \
   -p:GooWidgetsPackageVersion="$version" -p:NuGetLockFilePath="$subset_packages/subset.lock.json" \
   -s artifacts/packages -s https://api.nuget.org/v3/index.json
-NUGET_PACKAGES="$subset_packages" dotnet run --project tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.csproj \
+NUGET_PACKAGES="$subset_packages" dotnet run --project tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.gsproj \
   -c Release --no-restore -p:GooWidgetsPackageVersion="$version" \
   -p:NuGetLockFilePath="$subset_packages/subset.lock.json"
 
