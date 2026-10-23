@@ -189,6 +189,7 @@ GalleryRegistry(
                 CheckboxPage{},
                 TextFieldPage{},
                 TextAreaPage{},
+                TouchTextEditingPage{},
                 ToggleSwitchPage{},
                 StepperPage{},
                 UploadTilePage{},
