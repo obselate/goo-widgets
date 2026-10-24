@@ -6,6 +6,7 @@ import Goo.Widgets.Inputs
 
 internal class TextAreaExample : Cell {
     private var notes string = "Ship the release on Friday.\nConfirm the rollout window with the team."
+    private var submitted bool
     public override func Build() Blob -> Container{
         Width: Percent(100),
         MaxWidth: 560,
