@@ -421,10 +421,6 @@ func Main() {
         PathActionsInteractions()
         return
     }
-    if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID_HEIGHTS") == "1" {
-        DataGridHeightInteractions()
-        return
-    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID") == "1" {
         DataGridInteractions()
         return
