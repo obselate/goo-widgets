@@ -4,6 +4,7 @@ import Goo
 import Goo.Widgets
 import Goo.Widgets.Feedback
 import Goo.Widgets.Gallery
+import Goo.Widgets.Media
 import Hexa.NET.SDL3
 import System
 import System.Diagnostics
@@ -18,6 +19,13 @@ internal class FeedbackIdentityHost : Cell {
     internal let Panel ElementHandle = ElementHandle()
     internal var SpinnerRoot Container?
     internal var SpinnerBuilds int32
+    internal let AvatarFrames[]ElementHandle = []ElementHandle{
+        ElementHandle(),
+        ElementHandle(),
+        ElementHandle(),
+        ElementHandle()
+    }
+    internal let PresenceDots[]ElementHandle = []ElementHandle{ElementHandle(), ElementHandle(), ElementHandle()}
 
     internal func Show(id string) {
         Items = []ToastItem{
@@ -57,6 +65,28 @@ internal class FeedbackIdentityHost : Cell {
                 }
             ),
         }
+        let avatars = (
+            AvatarGroup{
+                Size: 48,
+                Overlap: 14,
+                Max: 3,
+                AccessibilityName: "Project members",
+                Items: []Avatar{
+                    Avatar{FallbackText: "AL", Presence: StatusState.Done},
+                    Avatar{FallbackText: "BE", Presence: StatusState.Waiting},
+                    Avatar{FallbackText: "CK", Presence: StatusState.Offline},
+                    Avatar{FallbackText: "DM"},
+                    Avatar{FallbackText: "ES"},
+                },
+            }.Build() as Container
+        )!!
+        for index in 0 ... 4 {
+            avatars.Children[index].Handle = AvatarFrames[index]
+        }
+        for index in 0 ... 3 {
+            avatars.Children[index + 4].Handle = PresenceDots[index]
+        }
+        root.Children.Add(avatars)
         if let window = Window {
             root.Children.Add(
                 Cell.Mount[ToastHostInput, ToastHost](
@@ -104,6 +134,24 @@ func FeedbackIdentityInteractions() {
     host.Rebuild()
     try {
         PumpFrames(window, 4)
+        for index in 0 ... 4 {
+            let frame = host.AvatarFrames[index].BorderBox
+            Require(
+                Math.Abs(frame.Width - 48.0) < 0.1 && Math.Abs(frame.Height - 48.0) < 0.1,
+                "Avatar group lost its circle bounds"
+            )
+        }
+        for index in 0 ... 3 {
+            let frame = host.AvatarFrames[index].BorderBox
+            let dot = host.PresenceDots[index].BorderBox
+            Require(
+                Math.Abs(dot.Width - 12.0) < 0.1 && Math.Abs(dot.Height - 12.0) < 0.1
+                && dot.X >= frame.X && dot.Y >= frame.Y
+                && dot.X + dot.Width <= frame.X + frame.Width + 0.1
+                && dot.Y + dot.Height <= frame.Y + frame.Height + 0.1,
+                "Avatar presence dot escapes its rendered bounds"
+            )
+        }
         host.Before.Focus()
         host.Show("auto")
         PumpFrames(window, 4)
@@ -193,6 +241,6 @@ func FeedbackIdentityInteractions() {
         PumpFrames(proof, 4)
     }
     Console.WriteLine(
-        "PASS: toast timeout, hover/focus pause, action, retained exit, polite status, spinner animation and reduced-motion still frame"
+        "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner animation and reduced-motion still frame"
     )
 }

@@ -143,26 +143,8 @@ public data struct Avatar {
             child,
         }
         if let presence = Presence {
-            let marker = Container{
-                Position: PositionType.Absolute,
-                Right: 0.0,
-                Bottom: 0.0,
-                Width: size / 4.0,
-                Height: size / 4.0,
-                BorderRadius: size / 8.0,
-                BorderWidth: theme.BorderWidth * 2.0,
-                BorderColor: theme.PanelColor,
-                BackgroundColor: theme.ToneColor(
-                    switch presence {
-                        case StatusState.Done: Tone.Success
-                        case StatusState.Running: Tone.Info
-                        case StatusState.Waiting: Tone.Warning
-                        case StatusState.Failed: Tone.Danger
-                        default: Tone.Neutral
-                    }
-                ),
-                Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
-            }
+            let marker = BuildPresence(theme, size)!!
+            marker.Right = 0.0
             if let name = resolved.AccessibilityName {
                 semantics = Accessibility{Role: AccessibilityRole.Image, Name: name + ", " + presence.ToString()}
             }
@@ -179,6 +161,31 @@ public data struct Avatar {
         }
         return root
     }
+
+    internal func BuildPresence(theme Theme, size float64) Container? {
+        guard let presence = Presence else {
+            return nil
+        }
+        return Container{
+            Position: PositionType.Absolute,
+            Bottom: 0.0,
+            Width: size / 4.0,
+            Height: size / 4.0,
+            BorderRadius: size / 8.0,
+            BorderWidth: theme.BorderWidth * 2.0,
+            BorderColor: theme.PanelColor,
+            BackgroundColor: theme.ToneColor(
+                switch presence {
+                    case StatusState.Done: Tone.Success
+                    case StatusState.Running: Tone.Info
+                    case StatusState.Waiting: Tone.Warning
+                    case StatusState.Failed: Tone.Danger
+                    default: Tone.Neutral
+                }
+            ),
+            Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
+        }
+    }
 }
 
 /// Overlapping avatars with an overflow count and optional per-person actions.
@@ -192,16 +199,34 @@ public data struct AvatarGroup {
 
     /// Builds a named group. Only actionable avatars enter the tab order.
     public func Build() Blob {
+        let theme = Theme.Read()
+        let size = Size == 0.0 ? 40.0: Size
+        let overlap = Overlap ?? 12.0
         let items = Items ?? []Avatar{}
         let count = Math.Min(items.Length, Math.Max(0, Max ?? 5))
+        let displayed = count + (items.Length > count ? 1: 0)
         let root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
+            Position: PositionType.Relative,
+            Overflow: Overflow.Visible,
+            Width: displayed == 0 ? 0.0: size * float64(displayed) - overlap * float64(displayed - 1),
+            Height: size,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: AccessibilityName ?? "People"},
         }
         for index in 0 ... count {
-            let avatar = (items[index]with{Size = Size, AccessibilityName = nil}).Build()
-            let offset = index == 0 ? 0.0: -(Overlap ?? 12.0)
+            let avatar = (
+                items[index]with{
+                    Size = size,
+                    AccessibilityName = nil,
+                    Presence = nil,
+                    BackgroundColor = items[index].BackgroundColor ?? theme.HoverColor,
+                    RingColor = items[index].RingColor ?? theme.PanelColor,
+                    BorderWidth = items[index].BorderWidth == 0.0 ? theme.BorderWidth * 2.0: items[index].BorderWidth,
+                }
+            ).Build()
+            avatar.FlexShrink = 0.0
+            let offset = index == 0 ? 0.0: -overlap
             if let activate = OnActivate {
                 let itemIndex = index
                 let button = Button{
@@ -221,9 +246,22 @@ public data struct AvatarGroup {
             }
         }
         if items.Length > count {
-            let more = Avatar{FallbackText: "+" + (items.Length - count).ToString(), Size: Size}.Build()
-            more.Margin = Edges{Left: count == 0 ? 0.0: -(Overlap ?? 12.0)}
+            let more = Avatar{
+                FallbackText: "+" + (items.Length - count).ToString(),
+                Size: size,
+                BackgroundColor: theme.HoverColor,
+                RingColor: theme.PanelColor,
+                BorderWidth: theme.BorderWidth * 2.0,
+            }.Build()
+            more.FlexShrink = 0.0
+            more.Margin = Edges{Left: count == 0 ? 0.0: -overlap}
             root.Children.Add(more)
+        }
+        for index in 0 ... count {
+            if let marker = items[index].BuildPresence(theme, size) {
+                marker.Left = float64(index) * (size - overlap) + size * 0.75
+                root.Children.Add(marker)
+            }
         }
         return root
     }
