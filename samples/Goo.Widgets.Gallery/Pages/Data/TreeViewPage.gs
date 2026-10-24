@@ -52,6 +52,7 @@ internal class TreeViewExample : Cell {
             Width: 300,
             Gap: 12,
             Text{Key: "label", Content: "Single selection", FontSize: 18},
+            Text{Content: "Type a label to move focus.", FontSize: 12},
             Cell.Mount[TreeViewInput, TreeView](
                 "simple",
                 TreeViewInput{

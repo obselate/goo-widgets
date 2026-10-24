@@ -53,6 +53,7 @@ public open class Menu : Cell[MenuInput] {
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private let active Dictionary[int32, string] = Dictionary[int32, string]()
     private let path List[string] = List[string]()
+    private let typeAhead Dictionary[int32, TypeAhead] = Dictionary[int32, TypeAhead]()
     private var wasOpen bool
 
     protected override func Build(input MenuInput) Blob {
@@ -66,6 +67,7 @@ public open class Menu : Cell[MenuInput] {
         if !input.Open {
             path.Clear()
             active.Clear()
+            typeAhead.Clear()
             wasOpen = false
         } else if !wasOpen {
             path.Clear()
@@ -118,6 +120,19 @@ public open class Menu : Cell[MenuInput] {
             selected = First(source)
         }
         active[depth] = selected
+        if !typeAhead.ContainsKey(depth) {
+            typeAhead.Add(depth, TypeAhead())
+        }
+        let search = typeAhead[depth]
+        let searchable = List[string]()
+        for item in source {
+            if !item.Disabled && !item.Separator {
+                searchable.Add(item.Id!!)
+            }
+        }
+        search.Items = searchable
+        search.TextForId = (id string) -> items[id].Label ?? id
+        search.OnMatch = (id string) -> Focus(depth, id)
         let rows = Container{Gap: theme.Spacing / 2.0, Accessibility: Accessibility{Role: AccessibilityRole.None}}
         for item in source {
             let id = item.Id!!
@@ -377,6 +392,11 @@ public open class Menu : Cell[MenuInput] {
     private func OpensLeft() bool -> current.SubmenuPlacement == PopoverPlacement.LeftStart
 
     private func KeyDown(source[]MenuItem, depth int32, id string, event KeyEvent) {
+        let search = typeAhead[depth]
+        search.ActiveId = id
+        if search.HandleKey(event) {
+            return
+        }
         if event.Key == Key.Up || event.Key == Key.Down || event.Key == Key.Home || event.Key == Key.End {
             event.PreventDefault()
             event.StopPropagation()
