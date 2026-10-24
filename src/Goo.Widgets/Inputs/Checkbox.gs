@@ -203,6 +203,9 @@ public data struct Checkbox {
                     FontWeight: resolved.LabelFontWeight,
                 },
             }
+            if !resolved.Card && resolved.Description == nil {
+                root.Height = resolved.HitSize!!
+            }
             if let description = resolved.Description {
                 let labelText = root.Children[1]
                 root.Children[1] = Container{
