@@ -2,6 +2,8 @@ package Goo.Widgets.Media
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Feedback
+import System
 
 /// A fixed-size avatar that selects an image or fallback text child.
 /// Factories receive resolved props and may replace the selected final primitives.
@@ -14,6 +16,10 @@ public data struct Avatar {
     var ImageSource ImageSourceProvider?
     /// Fallback text. Nil renders as an empty string.
     var FallbackText string?
+    var Presence StatusState?
+    var RingColor Color?
+    var NameTone Tone?
+    var FallbackIcon Blob?
     /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Fallback text color. Nil uses the nearest theme.
@@ -61,8 +67,8 @@ public data struct Avatar {
         let resolved = this with{
             Size = size,
             BackgroundColor = background,
-            TextColor = TextColor ?? theme.TextColor,
-            BorderColor = BorderColor ?? theme.BorderColor,
+            TextColor = TextColor ?? (NameTone != nil ? theme.ToneColor(NameTone!!): theme.TextColor),
+            BorderColor = RingColor ?? BorderColor ?? theme.BorderColor,
             BorderRadius = BorderRadius ?? (size / 2.0),
             FontFamily = FontFamily ?? theme.FontFamily,
             FontSize = if FontSize == 0.0 {
@@ -98,6 +104,8 @@ public data struct Avatar {
             }
         } else if let createFallback = createFallback {
             child = createFallback(resolved)
+        } else if let icon = FallbackIcon {
+            child = icon
         } else {
             let fallback = Text{
                 Content: resolved.FallbackText ?? "",
@@ -118,12 +126,12 @@ public data struct Avatar {
         if let accessibilityName = resolved.AccessibilityName {
             semantics = Accessibility{Role: AccessibilityRole.Image, Name: accessibilityName}
         }
-        return Container{
+        let root = Container{
             LineHeight: theme.LineHeight,
             Width: resolved.Size,
             Height: resolved.Size,
             BorderRadius: resolved.BorderRadius!!,
-            BorderWidth: resolved.BorderWidth,
+            BorderWidth: RingColor != nil && BorderWidth == 0.0 ? theme.BorderWidth: resolved.BorderWidth,
             BorderColor: resolved.BorderColor!!,
             BackgroundColor: resolved.BackgroundColor!!,
             Opacity: resolved.Opacity!!,
@@ -134,5 +142,89 @@ public data struct Avatar {
             Accessibility: semantics,
             child,
         }
+        if let presence = Presence {
+            let marker = Container{
+                Position: PositionType.Absolute,
+                Right: 0.0,
+                Bottom: 0.0,
+                Width: size / 4.0,
+                Height: size / 4.0,
+                BorderRadius: size / 8.0,
+                BorderWidth: theme.BorderWidth * 2.0,
+                BorderColor: theme.PanelColor,
+                BackgroundColor: theme.ToneColor(
+                    switch presence {
+                        case StatusState.Done: Tone.Success
+                        case StatusState.Running: Tone.Info
+                        case StatusState.Waiting: Tone.Warning
+                        case StatusState.Failed: Tone.Danger
+                        default: Tone.Neutral
+                    }
+                ),
+                Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
+            }
+            if let name = resolved.AccessibilityName {
+                semantics = Accessibility{Role: AccessibilityRole.Image, Name: name + ", " + presence.ToString()}
+            }
+            root.Accessibility = Accessibility{Role: AccessibilityRole.None, Hidden: true}
+            return Container{
+                Position: PositionType.Relative,
+                Overflow: Overflow.Visible,
+                Width: size,
+                Height: size,
+                Accessibility: semantics,
+                root,
+                marker,
+            }
+        }
+        return root
+    }
+}
+
+/// Overlapping avatars with an overflow count and optional per-person actions.
+public data struct AvatarGroup {
+    var Items[]Avatar
+    var Max int32?
+    var Size float64
+    var Overlap float64?
+    var AccessibilityName string?
+    var OnActivate Action[int32]?
+
+    /// Builds a named group. Only actionable avatars enter the tab order.
+    public func Build() Blob {
+        let items = Items ?? []Avatar{}
+        let count = Math.Min(items.Length, Math.Max(0, Max ?? 5))
+        let root = Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: AccessibilityName ?? "People"},
+        }
+        for index in 0 ... count {
+            let avatar = (items[index]with{Size = Size, AccessibilityName = nil}).Build()
+            let offset = index == 0 ? 0.0: -(Overlap ?? 12.0)
+            if let activate = OnActivate {
+                let itemIndex = index
+                let button = Button{
+                    Margin: Edges{Left: offset},
+                    OnClick: () -> activate(itemIndex),
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.Button,
+                        Name: items[index].AccessibilityName ?? items[index].FallbackText ?? "Person"
+                    },
+                    avatar,
+                }
+                WidgetKeyBindings.BindActivation(button)
+                root.Children.Add(button)
+            } else {
+                avatar.Margin = Edges{Left: offset}
+                root.Children.Add(avatar)
+            }
+        }
+        if items.Length > count {
+            let more = Avatar{FallbackText: "+" + (items.Length - count).ToString(), Size: Size}.Build()
+            more.Margin = Edges{Left: count == 0 ? 0.0: -(Overlap ?? 12.0)}
+            root.Children.Add(more)
+        }
+        return root
     }
 }

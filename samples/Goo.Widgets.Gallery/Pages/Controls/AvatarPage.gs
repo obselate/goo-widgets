@@ -1,6 +1,8 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
+import Goo.Widgets.Feedback
 import Goo.Widgets.Gallery
 import Goo.Widgets.Media
 
@@ -10,18 +12,22 @@ class AvatarPage : GalleryPage {
     public override func Build() Blob {
         let baseAvatar = Avatar{FallbackText: "?", Size: 64.0, FontSize: 18.0, FontWeight: 700, BorderWidth: 2.0,}
 
-        let defaultAvatar = baseAvatar with{AccessibilityName = "AL", FallbackText = "AL",}
+        let defaultAvatar = baseAvatar with{
+            AccessibilityName = "Alex",
+            FallbackText = "AL",
+            Presence = StatusState.Done
+        }
         let successAvatar = baseAvatar with{
-            AccessibilityName = "BE",
+            AccessibilityName = "Bea",
             FallbackText = "BE",
-            BackgroundColor = Color.Parse("#166534"),
-            BorderColor = Color.Parse("#22c55e"),
+            Presence = StatusState.Running,
+            NameTone = Tone.Info,
         }
         let warningAvatar = baseAvatar with{
-            AccessibilityName = "CK",
+            AccessibilityName = "Chris",
             FallbackText = "CK",
-            BackgroundColor = Color.Parse("#854d0e"),
-            BorderColor = Color.Parse("#f59e0b"),
+            Presence = StatusState.Waiting,
+            NameTone = Tone.Warning,
         }
         let squareAvatar = baseAvatar with{
             AccessibilityName = "GX",
@@ -33,37 +39,48 @@ class AvatarPage : GalleryPage {
         }
 
         return Container{
-            FlexDirection: FlexDirection.Row,
+            FlexDirection: FlexDirection.Column,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Gap: 20,
+            AvatarGroup{
+                AccessibilityName: "Project members",
+                Max: 2,
+                Size: 40,
+                Items: []Avatar{defaultAvatar, successAvatar, warningAvatar, squareAvatar},
+            }.Build(),
             Container{
-                FlexDirection: FlexDirection.Column,
+                FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
-                Gap: 8,
-                defaultAvatar.Build(),
-                Text{Content: "Default", FontSize: 12},
-            },
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8,
-                successAvatar.Build(),
-                Text{Content: "Success", FontSize: 12},
-            },
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8,
-                warningAvatar.Build(),
-                Text{Content: "Warning", FontSize: 12},
-            },
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8,
-                squareAvatar.Build(),
-                Text{Content: "Square", FontSize: 12},
+                Gap: 20,
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8,
+                    defaultAvatar.Build(),
+                    Text{Content: "Default", FontSize: 12},
+                },
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8,
+                    successAvatar.Build(),
+                    Text{Content: "Success", FontSize: 12},
+                },
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8,
+                    warningAvatar.Build(),
+                    Text{Content: "Warning", FontSize: 12},
+                },
+                Container{
+                    FlexDirection: FlexDirection.Column,
+                    AlignItems: AlignItems.Center,
+                    Gap: 8,
+                    squareAvatar.Build(),
+                    Text{Content: "Square", FontSize: 12},
+                },
             },
         }
     }

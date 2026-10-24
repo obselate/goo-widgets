@@ -340,6 +340,10 @@ func Main() {
         ChoiceInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_FEEDBACK_IDENTITY") == "1" {
+        FeedbackIdentityInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_THEME_CATALOG") == "1" {
         ThemeCatalogContracts()
         return

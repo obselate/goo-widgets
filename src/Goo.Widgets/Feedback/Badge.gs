@@ -9,6 +9,10 @@ public data struct Badge {
     /// Badge text. Nil selects dot mode; an empty string remains content mode.
     var Content string?
     var Tone Tone
+    var Count int32?
+    var MaxCount int32?
+    var Anchor Blob?
+    var Live bool
     /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Text color. Nil uses the nearest theme.
@@ -51,9 +55,21 @@ public data struct Badge {
     /// Builds a fresh Goo tree, resolving props before invoking either primitive factory.
     public func Build() Blob {
         let theme = Theme.Read()
+        if let anchor = Anchor {
+            let badge = (this with{Anchor = nil}).Build()
+            badge.Position = PositionType.Absolute
+            badge.Top = 0.0
+            badge.Right = 0.0
+            return Container{Position: PositionType.Relative, anchor, badge}
+        }
         let createText = CreateText
         let createRoot = CreateRoot
-        let isDot = Content == nil
+        let content = if let count = Count {
+            count > (MaxCount ?? 99) ? (MaxCount ?? 99).ToString() + "+": count.ToString()
+        } else {
+            Content
+        }
+        let isDot = content == nil
         let dotSize = if DotSize == 0.0 {
             theme.Spacing * 2.0
         } else {
@@ -64,9 +80,14 @@ public data struct Badge {
         let padding = PaddingHorizontal ?? theme.Spacing * 1.5
         var resolvedName string? = AccessibilityName
         if resolvedName == nil && !isDot {
-            resolvedName = Content
+            resolvedName = if let count = Count {
+                count.ToString()
+            } else {
+                content
+            }
         }
         let resolved = this with{
+            Content = content,
             BackgroundColor = BackgroundColor ?? (isDot ? theme.ToneColor(Tone): theme.ToneFill(Tone)),
             TextColor = TextColor ?? theme.ToneColor(Tone),
             BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone)),
@@ -76,7 +97,7 @@ public data struct Badge {
             MinWidth = minWidth,
             PaddingHorizontal = padding,
             BorderRadius = BorderRadius ??
-            (
+                (
                 if isDot {
                     dotSize / 2.0
                 } else {
@@ -124,7 +145,11 @@ public data struct Badge {
 
         var semantics = Accessibility{Role: AccessibilityRole.None, Hidden: true}
         if let accessibilityName = resolved.AccessibilityName {
-            semantics = Accessibility{Role: AccessibilityRole.Status, Name: accessibilityName,}
+            semantics = Accessibility{
+                Role: AccessibilityRole.Status,
+                Name: accessibilityName,
+                Live: Live ? AccessibilityLive.Polite: AccessibilityLive.Off
+            }
         }
         if isDot {
             return Container{
@@ -158,6 +183,80 @@ public data struct Badge {
             JustifyContent: JustifyContent.Center,
             Accessibility: semantics,
             text!!,
+        }
+    }
+}
+
+/// Shared status values for indicators and avatar presence.
+public enum StatusState {
+    Idle;
+    Running;
+    Waiting;
+    Done;
+    Failed;
+    Offline
+}
+
+/// Dot, icon or filled pill status presentation.
+public enum StatusVariant {
+    Dot;
+    Icon;
+    Pill
+}
+
+/// A text-labelled semantic status using the shared tone palette.
+public data struct StatusIndicator {
+    var State StatusState
+    var Variant StatusVariant
+    var Tone Tone?
+    var Label string?
+    var Icon Blob?
+    var Live bool
+
+    /// Builds a status marker and label. Running uses Spinner.
+    public func Build() Blob {
+        let theme = Theme.Read()
+        let tone = Tone ??
+            (
+            switch State {
+                case StatusState.Running: Goo.Widgets.Tone.Info
+                case StatusState.Waiting: Goo.Widgets.Tone.Warning
+                case StatusState.Done: Goo.Widgets.Tone.Success
+                case StatusState.Failed: Goo.Widgets.Tone.Danger
+                default: Goo.Widgets.Tone.Neutral
+            }
+        )
+        let label = Label ?? State.ToString()
+        let indicator = if State == StatusState.Running {
+            Cell.Mount[SpinnerInput, Spinner](nil, SpinnerInput{Size: 14.0, Color: theme.ToneColor(tone), Label: label})
+        } else if Variant == StatusVariant.Icon {
+            Icon ??
+                Text{
+                Content: switch State {
+                    case StatusState.Done: "✓"
+                    case StatusState.Failed: "!"
+                    case StatusState.Waiting: "…"
+                    default: "○"
+                },
+                Color: theme.ToneColor(tone)
+            }
+        } else {
+            Badge{Tone: tone}.Build()
+        }
+        return Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: theme.Spacing,
+            Padding: Variant == StatusVariant.Pill ? theme.Spacing: 0.0,
+            BorderRadius: theme.ControlRadius,
+            BackgroundColor: Variant == StatusVariant.Pill ? theme.ToneFill(tone): Color.Transparent,
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.Status,
+                Name: label,
+                Live: Live ? AccessibilityLive.Polite: AccessibilityLive.Off
+            },
+            indicator,
+            Text{Content: label, Color: theme.ToneColor(tone), FontSize: theme.CaptionFontSize},
         }
     }
 }
