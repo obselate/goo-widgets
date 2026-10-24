@@ -77,11 +77,12 @@ public data struct Grid {
 
     /// Builds a fresh immutable layout policy and a normal retained subtree.
     public func Build() Blob {
-        let columns = Columns
-        let rows = Rows
+        let columns = Columns ?? []GridTrack{}
+        let rows = Rows ?? []GridTrack{}
         let resolved = this with{
             Columns = columns.Length == 0 ? []GridTrack{GridTrack.Auto()}: columns,
             Rows = rows.Length == 0 ? []GridTrack{GridTrack.Auto()}: rows,
+            Items = Items ?? []GridItem{},
             Width = Width ?? Percent(100),
             Height = Height ?? Length.Auto,
         }

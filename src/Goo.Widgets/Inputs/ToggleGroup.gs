@@ -29,7 +29,7 @@ public data struct ToggleGroupInput {
     var Look ToggleGroupLook
     var Stretch bool
     var Disabled bool
-    var Orientation AccessibilityOrientation = AccessibilityOrientation.Horizontal
+    var Orientation AccessibilityOrientation?
     var AccessibilityName string?
     var CreateItem Func[ToggleGroupInput, ToggleOption, Button, Button]?
     var CreateRoot Func[ToggleGroupInput, Container, Container]?
@@ -44,7 +44,11 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
 
     protected override func Build(value ToggleGroupInput) Blob {
         let theme = Theme.Read()
-        input = value with{Items = value.Items ?? []ToggleOption{}, SelectedIds = value.SelectedIds ?? []string{}}
+        input = value with{
+            Items = value.Items ?? []ToggleOption{},
+            SelectedIds = value.SelectedIds ?? []string{},
+            Orientation = value.Orientation ?? AccessibilityOrientation.Horizontal,
+        }
         let items = input.Items!!
         let selected = input.SelectedIds!!
         let activeId string? = hasFocus ? focusedId: selected.Length > 0 ? selected[0]: nil
@@ -80,7 +84,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
             Name: input.AccessibilityName ?? "Options",
-            Orientation: input.Orientation,
+            Orientation: input.Orientation!!,
         }
         root.Children.Clear()
         for item in items {
@@ -198,7 +202,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             items,
             current,
             e.Key,
-            input.Orientation,
+            input.Orientation!!,
             true,
             (item ToggleOption) -> item.Disabled
         )

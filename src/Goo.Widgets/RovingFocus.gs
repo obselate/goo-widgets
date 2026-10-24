@@ -8,8 +8,8 @@ import System.Collections.Generic
 public data struct RovingFocus {
     var Ids[]?string
     var ActiveId string?
-    var Orientation AccessibilityOrientation = AccessibilityOrientation.Horizontal
-    var Wrap bool = true
+    var Orientation AccessibilityOrientation?
+    var Wrap bool?
     var RightToLeft bool
     var IsDisabled Func[string, bool]?
     var OnMove Action[string]?
@@ -40,7 +40,8 @@ public data struct RovingFocus {
                 break
             }
         }
-        let next = Next[string](ids, index, event.Key, Orientation, Wrap, IsDisabled, RightToLeft)
+        let next = Next[string](ids, index, event.Key, Orientation ?? AccessibilityOrientation.Horizontal,
+            Wrap ?? true, IsDisabled, RightToLeft)
         if next < 0 {
             return false
         }
