@@ -103,7 +103,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 : active ? theme.AccentColor: theme.InputBorderColor,
                 BorderRadius: input.Look == ToggleGroupLook.Chips ? theme.ControlHeight / 2: theme.ControlRadius,
                 BackgroundColor: active
-                ? input.Look == ToggleGroupLook.Segmented ? theme.PanelColor: theme.ActiveColor
+                ? input.Look == ToggleGroupLook.Segmented ? theme.RaisedColor: theme.ActiveColor
                 : Color.Transparent,
                 BoxShadow: active && input.Look == ToggleGroupLook.Segmented ? theme.ElevationSm: BoxShadow{},
                 Color: active ? theme.TextColor: theme.MutedTextColor,
