@@ -6,19 +6,30 @@ import Goo.Widgets.Inputs
 
 internal class TextAreaExample : Cell {
     private var notes string = "A controlled multiline editor.\nSelect text, copy it, or add a new line."
+    private var submitted bool
     public override func Build() Blob -> Container{
-        Width: 560,
+        Width: Percent(100),
+        MaxWidth: 560,
+        MinWidth: 0,
         Gap: 20,
         Cell.Mount[TextAreaInput, TextArea](
             "notes",
             TextAreaInput{
-                Label: "Notes",
+                Label: submitted ? "Submitted": "Enter sends. Shift+Enter adds a line.",
                 Value: notes,
                 OnChange: (value string) -> {
                     notes = value
+                    Rebuild()
                 },
                 Width: Percent(100),
-                MinimumRows: 4,
+                MinimumRows: 2,
+                MaximumRows: 5,
+                MaxLength: 120,
+                SubmitOnEnter: true,
+                OnSubmit: value -> {
+                    submitted = true
+                    Rebuild()
+                },
             }
         ),
         Cell.Mount[TextAreaInput, TextArea](
@@ -29,6 +40,7 @@ internal class TextAreaExample : Cell {
                 Width: Percent(100),
                 ReadOnly: true,
                 MinimumRows: 2,
+                MaximumRows: 2,
                 Wrap: TextWrap.NoWrap
             }
         ),
