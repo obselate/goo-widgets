@@ -158,6 +158,84 @@ public data struct Theme {
     /// Modal backdrop paint.
     var BackdropColor Color = Color.Rgba(0, 0, 0, 204)
 
+    internal func ResolveDefaults() Theme {
+        let defaults = Default
+        return this with{
+            CanvasColor = CanvasColor == Color{} ? defaults.CanvasColor: CanvasColor,
+            PanelColor = PanelColor == Color{} ? defaults.PanelColor: PanelColor,
+            RaisedColor = RaisedColor == Color{} ? defaults.RaisedColor: RaisedColor,
+            OverlayColor = OverlayColor == Color{} ? defaults.OverlayColor: OverlayColor,
+            FieldColor = FieldColor == Color{} ? defaults.FieldColor: FieldColor,
+            BorderColor = BorderColor == Color{} ? defaults.BorderColor: BorderColor,
+            InputBorderColor = InputBorderColor == Color{} ? defaults.InputBorderColor: InputBorderColor,
+            TextColor = TextColor == Color{} ? defaults.TextColor: TextColor,
+            MutedTextColor = MutedTextColor == Color{} ? defaults.MutedTextColor: MutedTextColor,
+            FaintTextColor = FaintTextColor == Color{} ? defaults.FaintTextColor: FaintTextColor,
+            AccentColor = AccentColor == Color{} ? defaults.AccentColor: AccentColor,
+            OnAccentColor = OnAccentColor == Color{} ? defaults.OnAccentColor: OnAccentColor,
+            AccentHoverColor = AccentHoverColor == Color{} ? defaults.AccentHoverColor: AccentHoverColor,
+            AccentPressedColor = AccentPressedColor == Color{} ? defaults.AccentPressedColor: AccentPressedColor,
+            InfoColor = InfoColor == Color{} ? defaults.InfoColor: InfoColor,
+            SuccessColor = SuccessColor == Color{} ? defaults.SuccessColor: SuccessColor,
+            WarningColor = WarningColor == Color{} ? defaults.WarningColor: WarningColor,
+            DangerColor = DangerColor == Color{} ? defaults.DangerColor: DangerColor,
+            DangerFillColor = DangerFillColor == Color{} ? defaults.DangerFillColor: DangerFillColor,
+            DangerHoverColor = DangerHoverColor == Color{} ? defaults.DangerHoverColor: DangerHoverColor,
+            SunkenColor = SunkenColor == Color{} ? defaults.SunkenColor: SunkenColor,
+            StrongBorderColor = StrongBorderColor == Color{} ? defaults.StrongBorderColor: StrongBorderColor,
+            SubtleTextColor = SubtleTextColor == Color{} ? defaults.SubtleTextColor: SubtleTextColor,
+            DisabledTextColor = DisabledTextColor == Color{} ? defaults.DisabledTextColor: DisabledTextColor,
+            LinkColor = LinkColor == Color{} ? defaults.LinkColor: LinkColor,
+            FocusColor = FocusColor == Color{} ? defaults.FocusColor: FocusColor,
+            RadiusSm = RadiusSm == 0 ? defaults.RadiusSm: RadiusSm,
+            RadiusMd = RadiusMd == 0 ? defaults.RadiusMd: RadiusMd,
+            RadiusLg = RadiusLg == 0 ? defaults.RadiusLg: RadiusLg,
+            RadiusXl = RadiusXl == 0 ? defaults.RadiusXl: RadiusXl,
+            DisplayFontSize = DisplayFontSize == 0 ? defaults.DisplayFontSize: DisplayFontSize,
+            H1FontSize = H1FontSize == 0 ? defaults.H1FontSize: H1FontSize,
+            H2FontSize = H2FontSize == 0 ? defaults.H2FontSize: H2FontSize,
+            H3FontSize = H3FontSize == 0 ? defaults.H3FontSize: H3FontSize,
+            H4FontSize = H4FontSize == 0 ? defaults.H4FontSize: H4FontSize,
+            H5FontSize = H5FontSize == 0 ? defaults.H5FontSize: H5FontSize,
+            H6FontSize = H6FontSize == 0 ? defaults.H6FontSize: H6FontSize,
+            SubtitleFontSize = SubtitleFontSize == 0 ? defaults.SubtitleFontSize: SubtitleFontSize,
+            OverlineFontSize = OverlineFontSize == 0 ? defaults.OverlineFontSize: OverlineFontSize,
+            CodeFontSize = CodeFontSize == 0 ? defaults.CodeFontSize: CodeFontSize,
+            MotionFastMs = ReducedMotion || MotionFastMs != 0.0 ? MotionFastMs: defaults.MotionFastMs,
+            MotionNormalMs = ReducedMotion || MotionNormalMs != 0.0 ? MotionNormalMs: defaults.MotionNormalMs,
+            MotionSlowMs = ReducedMotion || MotionSlowMs != 0.0 ? MotionSlowMs: defaults.MotionSlowMs,
+            SpinnerPeriodMs = ReducedMotion || SpinnerPeriodMs != 0.0 ? SpinnerPeriodMs: defaults.SpinnerPeriodMs,
+            SeriesPalette = SeriesPalette ?? defaults.SeriesPalette,
+            ColorBlindPalette = ColorBlindPalette ?? defaults.ColorBlindPalette,
+            Syntax = Syntax == SyntaxPalette{} ? defaults.Syntax: Syntax,
+            Diff = Diff == DiffPalette{} ? defaults.Diff: Diff,
+            Ansi = Ansi == AnsiPalette{} ? defaults.Ansi: Ansi,
+            TextScaleFactor = TextScaleFactor == 0 ? defaults.TextScaleFactor: TextScaleFactor,
+            PlatformTextScaleFactor = PlatformTextScaleFactor == 0 ? defaults.PlatformTextScaleFactor: PlatformTextScaleFactor,
+            FontFamily = FontFamily ?? defaults.FontFamily,
+            HeadingFontFamily = HeadingFontFamily ?? defaults.HeadingFontFamily,
+            MonoFontFamily = MonoFontFamily ?? defaults.MonoFontFamily,
+            FontSize = FontSize == 0 ? defaults.FontSize: FontSize,
+            FontWeight = FontWeight == 0 ? defaults.FontWeight: FontWeight,
+            ControlHeight = ControlHeight == 0 ? defaults.ControlHeight: ControlHeight,
+            ControlRadius = ControlRadius == 0 ? defaults.ControlRadius: ControlRadius,
+            PanelRadius = PanelRadius == 0 ? defaults.PanelRadius: PanelRadius,
+            BorderWidth = BorderWidth == 0 ? defaults.BorderWidth: BorderWidth,
+            Spacing = Spacing == 0 ? defaults.Spacing: Spacing,
+            LineHeight = LineHeight == 0 ? defaults.LineHeight: LineHeight,
+            LabelFontSize = LabelFontSize == 0 ? defaults.LabelFontSize: LabelFontSize,
+            LabelFontWeight = LabelFontWeight == 0 ? defaults.LabelFontWeight: LabelFontWeight,
+            CaptionFontSize = CaptionFontSize == 0 ? defaults.CaptionFontSize: CaptionFontSize,
+            CaptionFontWeight = CaptionFontWeight == 0 ? defaults.CaptionFontWeight: CaptionFontWeight,
+            HeadingFontSize = HeadingFontSize == 0 ? defaults.HeadingFontSize: HeadingFontSize,
+            HeadingFontWeight = HeadingFontWeight == 0 ? defaults.HeadingFontWeight: HeadingFontWeight,
+            ControlMinWidth = ControlMinWidth == 0 ? defaults.ControlMinWidth: ControlMinWidth,
+            ControlPadding = ControlPadding == 0 ? defaults.ControlPadding: ControlPadding,
+            ControlGap = ControlGap == 0 ? defaults.ControlGap: ControlGap,
+            PanelPadding = PanelPadding == 0 ? defaults.PanelPadding: PanelPadding,
+        }
+    }
+
     shared {
         internal let Key Context[Theme] = Context[Theme]()
         private let attachments ConditionalWeakTable[Window, ThemeAttachment] =
@@ -185,10 +263,10 @@ public data struct Theme {
             state.Apply(window.Preferences)
         }
 
-        /// Attaches an exact palette and metrics, independent of system appearance.
+        /// Attaches a palette with Default fallbacks for zero metrics, opaque colors and nil fields.
         public func Attach(window Window, value Theme) {
             let state = attachment(window)
-            state.Value = value
+            state.Value = value.ResolveDefaults()
             state.Fixed = true
             state.Apply(window.Preferences)
         }
