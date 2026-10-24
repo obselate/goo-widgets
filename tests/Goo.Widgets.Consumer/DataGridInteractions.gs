@@ -29,6 +29,7 @@ internal class DataGridHeightHost : Cell {
     internal let Cells Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     internal var RowCalls int32
     internal var ActiveIndex int32 = -1
+    internal var Active string?
     internal var SelectedIndices[]int32 = []int32{}
     internal var SelectedIds[]string = []string{}
     internal var Root Container?
@@ -147,6 +148,7 @@ internal class DataGridHeightHost : Cell {
                 }
             },
             OnActiveRowIndexChange: (index int32) -> ActiveIndex = index,
+            ActiveRowId: Active,
             CreateCellContent: Wrap ? nil: Content,
             CreateFullWidthRow: FullWidth,
             CreateRoot: (input DataGridInput, root Container) -> {
@@ -170,6 +172,19 @@ func DataGridHeightInteractions() {
         PumpFrames(window, 12)
         Require(Math.Abs(host.Viewport.ScrollRange.Y + host.Viewport.ContentBox.Height - 6200.0) < .1, "Mixed heights did not seed the full extent")
         Require(host.FullWidthIds.Count < 12, "Full-width factory ran for off-screen rows")
+        Require(!host.RowBlobs.ContainsKey("50"), "Controlled reveal target was already realized")
+        Require(host.Root!!.Handle!!.Focus(), "Controlled reveal could not focus the grid")
+        host.Active = "50"
+        host.Rebuild()
+        PumpFrames(window, 8)
+        let revealed = host.RowBlobs["50"].Handle!!.BorderBox
+        let view = host.Viewport.ContentBox
+        Require(
+            host.RowBlobs["50"].Handle!!.IsMounted &&
+                Math.Abs(revealed.Y + revealed.Height - view.Y - view.Height) < .1,
+            "Controlled reveal placed an unrealized row at the top instead of the bottom edge"
+        )
+        host.Active = nil
         Require(host.Viewport.JumpTo(0.0, 3100.0), "Mixed heights rejected scrolling")
         PumpFrames(window, 8)
         Require(Math.Abs(host.Viewport.ScrollOffset.Y - 3100.0) < .1, "Mixed heights changed a valid scroll offset")
