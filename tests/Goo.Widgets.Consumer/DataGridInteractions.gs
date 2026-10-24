@@ -182,7 +182,8 @@ func DataGridHeightInteractions() {
         PumpFrames(window, 8)
         Require(Math.Abs(host.Viewport.ScrollOffset.Y - 3100.0) < .1, "Mixed heights used fixed row offsets")
         Require(host.Viewport.ScrollToItem("0"), "Group header was not virtualized")
-        PumpFrames(window, 8)
+        WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
+            Math.Abs(host.Header!!.Handle!!.BorderBox.Width - 200.0) < .1)
         Require(Math.Abs(host.Header!!.Handle!!.BorderBox.Width - 200.0) < .1, "Group header did not span the columns")
         CompositeClick(window, host.Header!!.Handle!!)
         PumpFrames(window, 4)
@@ -270,19 +271,24 @@ func DataGridHeightInteractions() {
         host.Rebuild()
         PumpFrames(window, 12)
         Require(host.Viewport.ScrollToItem("0"), "Auto columns rejected the group header")
-        PumpFrames(window, 8)
+        WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
+            host.Header!!.Handle!!.BorderBox.Width > 30.0 && host.Header!!.Handle!!.BorderBox.Width < 300.0)
         let initialWidth = host.Header!!.Handle!!.BorderBox.Width
         Require(initialWidth > 30.0 && initialWidth < 300.0, "Auto columns did not measure the header lazily")
         Require(host.Viewport.ScrollToItem("50"), "Auto columns rejected a distant row")
-        PumpFrames(window, 12)
+        WaitVirtual(window, () -> host.RowBlobs.ContainsKey("50") &&
+            host.RowBlobs["50"].Handle?.IsMounted == true &&
+            host.RowBlobs["50"].Handle!!.BorderBox.Width > initialWidth)
         Require(host.Viewport.ScrollToItem("0"), "Auto columns lost the group header")
-        PumpFrames(window, 8)
+        WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
+            host.Header!!.Handle!!.BorderBox.Width > initialWidth)
         let grownWidth = host.Header!!.Handle!!.BorderBox.Width
         Require(grownWidth > initialWidth && grownWidth <= 400.0, "Auto columns did not grow to realized cell content")
         Require(host.Viewport.ScrollToItem("75"), "Auto columns rejected later short content")
-        PumpFrames(window, 8)
+        WaitVirtual(window, () -> host.RowBlobs.ContainsKey("75") && host.RowBlobs["75"].Handle?.IsMounted == true)
         Require(host.Viewport.ScrollToItem("0"), "Auto columns lost their earlier width")
-        PumpFrames(window, 8)
+        WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
+            Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1)
         Require(
             Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
             "Auto columns shrank after scrolling to shorter content"
@@ -290,7 +296,8 @@ func DataGridHeightInteractions() {
         host.SourceWidth = true
         host.Version++
         host.Rebuild()
-        PumpFrames(window, 12)
+        WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
+            Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1)
         Require(
             Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
             "Source width did not resolve before the wide row was realized"
