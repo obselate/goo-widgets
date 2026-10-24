@@ -84,7 +84,7 @@ internal class TabBarExample : Cell {
                     TabBarInput{
                         Placement: TabPlacement.Left,
                         Width: 180,
-                        Height: 120,
+                        Height: 136,
                         Items: items.ToArray(),
                         SelectedId: selected,
                         OnSelect: Select,

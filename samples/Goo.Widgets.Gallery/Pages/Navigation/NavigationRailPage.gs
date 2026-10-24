@@ -10,7 +10,6 @@ import System.Collections.Generic
 internal open class NavigationRailExample : Cell {
     private var expanded bool = true
     private var selected string = "home"
-    private var collapsed bool
 
     /// Builds the interactive navigation-rail example.
     public override func Build() Blob -> Container{
@@ -20,23 +19,7 @@ internal open class NavigationRailExample : Cell {
             "rail",
             NavigationRailInput{
                 Height: 300,
-                Groups: []NavigationGroup{
-                    NavigationGroup{
-                        Id: "workspace",
-                        Label: "Workspace",
-                        Items: []NavigationItem{
-                            NavigationItem{Id: "files", Label: "Files", Content: MaterialIcons.Create("folder")},
-                            NavigationItem{Id: "search", Label: "Search", Content: MaterialIcons.Create("search")},
-                            NavigationItem{Id: "locked", Label: "Unavailable", Disabled: true},
-                        },
-                    }
-                },
                 Counts: Dictionary[string, int32](){["files"] = 12, ["jobs"] = 3},
-                CollapsedGroups: collapsed ? []string{"workspace"}: []string{},
-                OnGroupToggle: (id string) -> {
-                    collapsed = !collapsed
-                    Rebuild()
-                },
                 BottomItems: []NavigationItem{
                     NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
                 },
@@ -49,6 +32,9 @@ internal open class NavigationRailExample : Cell {
                 Items: []NavigationItem{
                     NavigationItem{Id: "home", Label: "Home", Content: MaterialIcons.Create("home")},
                     NavigationItem{Id: "jobs", Label: "Jobs", Content: MaterialIcons.Create("work")},
+                    NavigationItem{Id: "files", Label: "Files", Content: MaterialIcons.Create("folder")},
+                    NavigationItem{Id: "search", Label: "Search", Content: MaterialIcons.Create("search")},
+                    NavigationItem{Id: "locked", Label: "Unavailable", Disabled: true},
                 },
             }
         ),
