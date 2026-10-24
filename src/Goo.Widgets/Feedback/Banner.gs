@@ -64,7 +64,7 @@ public data struct Banner {
         let createRoot = CreateRoot
         let content = Content ?? ""
         let textColor = theme.TextColor
-        let border = Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone).WithAlpha(0.40)
+        let border = Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone)
         let background = Variant == MessageVariant.Rule || Variant == MessageVariant.Inline ?
             Color.Transparent: theme.ToneFill(Tone)
         let resolved = this with{
