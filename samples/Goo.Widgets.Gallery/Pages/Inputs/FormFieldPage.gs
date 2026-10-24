@@ -9,7 +9,6 @@ internal class FormFieldPage : GalleryPage {
 
     override func Build() Blob -> FormSection{
         Legend: "Profile",
-        Description: "One shared frame for different controls.",
         Width: 360,
         Children: []Blob{
             FormField{

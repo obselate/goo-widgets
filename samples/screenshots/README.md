@@ -1,121 +1,100 @@
 # Gallery screenshots
 
-Each image is captured from the running Goo Widgets gallery. Click an image for its full resolution.
-
-## Refresh screenshots
-
-Install the optional [Goo DevTools](https://github.com/obselate/goo/blob/main/docs/devtools/README.md) capture tool, then run these commands from the repository root in a graphical session:
-
 ```sh
-dotnet tool install --global Goo.DevTools --version 0.6.7
 dotnet build samples/Goo.Widgets.Gallery -c Release
-dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --screenshots samples/screenshots
+SDL_VIDEODRIVER=wayland scripts/with-headless-wayland.sh \
+  dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- \
+  --screenshots samples/screenshots --theme dark
 dotnet run --project tools/Goo.Widgets.Checks -c Release -- screenshots
 ```
 
-In a Wayland session, set `SDL_VIDEODRIVER=wayland` to select the native display driver.
+Install [Goo DevTools](https://github.com/obselate/goo/blob/main/docs/devtools/README.md) first. Put `goo` on `PATH`, or set `GOO_CLI` to its executable or CLI DLL.
 
-Ensure `goo` is on `PATH`, or set `GOO_CLI` to its executable or CLI DLL. The capture command opens one window, visits every widget, waits for the presentation to settle, and closes the window when finished. Screenshots include the gallery frame.
+Each image is an actual gallery capture in Ink, 1100 wide at scale 1. Its height fits the page content, with a minimum of 420. The sidebar is hidden. The gallery waits 30 frames before each capture.
 
-To refresh just one widget, add its gallery page title:
+For full-shell captures, set `GOO_HEADLESS_WIDTH=1600` and `GOO_HEADLESS_HEIGHT=1100` so the private display has room for the window.
 
-```sh
-dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --screenshots samples/screenshots --page "Color picker"
-```
+Add `--page "Color picker"` to capture one page. Use `--theme light` for Bone. Use `--shell-screenshots <directory> --page "Action button"` for a full 1440x900 shell capture.
 
-Every new widget needs a registered `<WidgetName>Page.gs`, a matching `<WidgetName>.png`, and an entry below. Refresh the screenshot when its appearance changes. Keep the images as actual gallery captures. Helper and model types do not need their own images.
+Each image links to its page source. New pages need a registration, a matching PNG and an entry below.
 
 ## Actions
 
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [ActionButton](../Goo.Widgets.Gallery/Pages/Controls/ActionButtonPage.gs) | [![ActionButton in the Goo Widgets gallery](ActionButton.png)](ActionButton.png) |
-| [IconButton](../Goo.Widgets.Gallery/Pages/Actions/IconButtonPage.gs) | [![IconButton in the Goo Widgets gallery](IconButton.png)](IconButton.png) |
-
-## Charts
-
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [DonutChart](../Goo.Widgets.Gallery/Pages/Charts/DonutChartPage.gs) | [![DonutChart in the Goo Widgets gallery](DonutChart.png)](DonutChart.png) |
-| [StackedBar](../Goo.Widgets.Gallery/Pages/Charts/StackedBarPage.gs) | [![StackedBar in the Goo Widgets gallery](StackedBar.png)](StackedBar.png) |
-
-## Colors
-
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [ColorPicker](../Goo.Widgets.Gallery/Pages/Colors/ColorPickerPage.gs) | [![ColorPicker in the Goo Widgets gallery](ColorPicker.png)](ColorPicker.png) |
-
-## Data
-
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [Chip](../Goo.Widgets.Gallery/Pages/Controls/ChipPage.gs) | [![Chip in the Goo Widgets gallery](Chip.png)](Chip.png) |
-| [TimeAxis](../Goo.Widgets.Gallery/Pages/Data/TimeAxisPage.gs) | [![TimeAxis in the Goo Widgets gallery](TimeAxis.png)](TimeAxis.png) |
-| [TreeView](../Goo.Widgets.Gallery/Pages/Data/TreeViewPage.gs) | [![TreeView in the Goo Widgets gallery](TreeView.png)](TreeView.png) |
-
-## Feedback
-
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [Badge](../Goo.Widgets.Gallery/Pages/Controls/BadgePage.gs) | [![Badge in the Goo Widgets gallery](Badge.png)](Badge.png) |
-| [Banner](../Goo.Widgets.Gallery/Pages/Controls/BannerPage.gs) | [![Banner in the Goo Widgets gallery](Banner.png)](Banner.png) |
-| [DismissibleContextBar](../Goo.Widgets.Gallery/Pages/Controls/DismissibleContextBarPage.gs) | [![DismissibleContextBar in the Goo Widgets gallery](DismissibleContextBar.png)](DismissibleContextBar.png) |
-| [EmptyState](../Goo.Widgets.Gallery/Pages/Controls/EmptyStatePage.gs) | [![EmptyState in the Goo Widgets gallery](EmptyState.png)](EmptyState.png) |
-| [ProgressBar](../Goo.Widgets.Gallery/Pages/Controls/ProgressBarPage.gs) | [![ProgressBar in the Goo Widgets gallery](ProgressBar.png)](ProgressBar.png) |
-| [ProgressSummary](../Goo.Widgets.Gallery/Pages/Feedback/ProgressSummaryPage.gs) | [![ProgressSummary in the Goo Widgets gallery](ProgressSummary.png)](ProgressSummary.png) |
-
-## Graphs
-
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [GraphCanvas](../Goo.Widgets.Gallery/Pages/Graphs/GraphCanvasPage.gs) | [![GraphCanvas in the Goo Widgets gallery](GraphCanvas.png)](GraphCanvas.png) |
-| [GraphNodeCard](../Goo.Widgets.Gallery/Pages/Graphs/GraphNodeCardPage.gs) | [![GraphNodeCard in the Goo Widgets gallery](GraphNodeCard.png)](GraphNodeCard.png) |
+| | | |
+| --- | --- | --- |
+| [![Action button](ActionButton.png)](../Goo.Widgets.Gallery/Pages/Controls/ActionButtonPage.gs)<br>Action button | [![Icon button](IconButton.png)](../Goo.Widgets.Gallery/Pages/Actions/IconButtonPage.gs)<br>Icon button | |
 
 ## Inputs
 
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [Checkbox](../Goo.Widgets.Gallery/Pages/Inputs/CheckboxPage.gs) | [![Checkbox in the Goo Widgets gallery](Checkbox.png)](Checkbox.png) |
-| [SearchList](../Goo.Widgets.Gallery/Pages/Inputs/SearchListPage.gs) | [![SearchList in the Goo Widgets gallery](SearchList.png)](SearchList.png) |
-| [Slider](../Goo.Widgets.Gallery/Pages/Inputs/SliderPage.gs) | [![Slider in the Goo Widgets gallery](Slider.png)](Slider.png) |
-| [Stepper](../Goo.Widgets.Gallery/Pages/Controls/StepperPage.gs) | [![Stepper in the Goo Widgets gallery](Stepper.png)](Stepper.png) |
-| [TextField](../Goo.Widgets.Gallery/Pages/Controls/TextFieldPage.gs) | [![TextField in the Goo Widgets gallery](TextField.png)](TextField.png) |
-| [ToggleSwitch](../Goo.Widgets.Gallery/Pages/Controls/ToggleSwitchPage.gs) | [![ToggleSwitch in the Goo Widgets gallery](ToggleSwitch.png)](ToggleSwitch.png) |
-| [UploadTile](../Goo.Widgets.Gallery/Pages/Controls/UploadTilePage.gs) | [![UploadTile in the Goo Widgets gallery](UploadTile.png)](UploadTile.png) |
+| | | |
+| --- | --- | --- |
+| [![Checkbox](Checkbox.png)](../Goo.Widgets.Gallery/Pages/Inputs/CheckboxPage.gs)<br>Checkbox | [![Radio group](RadioGroup.png)](../Goo.Widgets.Gallery/Pages/Inputs/RadioGroupPage.gs)<br>Radio group | [![Toggle group](ToggleGroup.png)](../Goo.Widgets.Gallery/Pages/Inputs/ToggleGroupPage.gs)<br>Toggle group |
+| [![Text field](TextField.png)](../Goo.Widgets.Gallery/Pages/Controls/TextFieldPage.gs)<br>Text field | [![Number input](NumberInput.png)](../Goo.Widgets.Gallery/Pages/Inputs/NumberInputPage.gs)<br>Number input | [![Form field](FormField.png)](../Goo.Widgets.Gallery/Pages/Inputs/FormFieldPage.gs)<br>Form field |
+| [![Text area](TextArea.png)](../Goo.Widgets.Gallery/Pages/Inputs/TextAreaPage.gs)<br>Text area | [![Touch text editing](TouchTextEditing.png)](../Goo.Widgets.Gallery/Pages/Inputs/TouchTextEditingPage.gs)<br>Touch text editing | [![Toggle switch](ToggleSwitch.png)](../Goo.Widgets.Gallery/Pages/Controls/ToggleSwitchPage.gs)<br>Toggle switch |
+| [![Stepper](Stepper.png)](../Goo.Widgets.Gallery/Pages/Controls/StepperPage.gs)<br>Stepper | [![Upload tile](UploadTile.png)](../Goo.Widgets.Gallery/Pages/Controls/UploadTilePage.gs)<br>Upload tile | [![Search list](SearchList.png)](../Goo.Widgets.Gallery/Pages/Inputs/SearchListPage.gs)<br>Search list |
+| [![Combo box](ComboBox.png)](../Goo.Widgets.Gallery/Pages/Inputs/ComboBoxPage.gs)<br>Combo box | [![Calendar](Calendar.png)](../Goo.Widgets.Gallery/Pages/Inputs/CalendarPage.gs)<br>Calendar | [![Date picker](DatePicker.png)](../Goo.Widgets.Gallery/Pages/Inputs/DatePickerPage.gs)<br>Date picker |
+| [![Slider](Slider.png)](../Goo.Widgets.Gallery/Pages/Inputs/SliderPage.gs)<br>Slider | [![Find bar](FindBar.png)](../Goo.Widgets.Gallery/Pages/Inputs/FindBarPage.gs)<br>Find bar | |
+
+## Data
+
+| | | |
+| --- | --- | --- |
+| [![Chip](Chip.png)](../Goo.Widgets.Gallery/Pages/Controls/ChipPage.gs)<br>Chip | [![Time axis](TimeAxis.png)](../Goo.Widgets.Gallery/Pages/Data/TimeAxisPage.gs)<br>Time axis | [![List view](ListView.png)](../Goo.Widgets.Gallery/Pages/Data/ListViewPage.gs)<br>List view |
+| [![Tree view](TreeView.png)](../Goo.Widgets.Gallery/Pages/Data/TreeViewPage.gs)<br>Tree view | [![Data grid](DataGrid.png)](../Goo.Widgets.Gallery/Pages/Data/DataGridPage.gs)<br>Data grid | |
+
+## Feedback
+
+| | | |
+| --- | --- | --- |
+| [![Toast](Toast.png)](../Goo.Widgets.Gallery/Pages/Feedback/ToastPage.gs)<br>Toast | [![Spinner](Spinner.png)](../Goo.Widgets.Gallery/Pages/Feedback/SpinnerPage.gs)<br>Spinner | |
+| [![Badge](Badge.png)](../Goo.Widgets.Gallery/Pages/Controls/BadgePage.gs)<br>Badge | [![Banner](Banner.png)](../Goo.Widgets.Gallery/Pages/Controls/BannerPage.gs)<br>Banner | [![Dismissible context bar](DismissibleContextBar.png)](../Goo.Widgets.Gallery/Pages/Controls/DismissibleContextBarPage.gs)<br>Dismissible context bar |
+| [![Empty state](EmptyState.png)](../Goo.Widgets.Gallery/Pages/Controls/EmptyStatePage.gs)<br>Empty state | [![Progress bar](ProgressBar.png)](../Goo.Widgets.Gallery/Pages/Controls/ProgressBarPage.gs)<br>Progress bar | [![Progress summary](ProgressSummary.png)](../Goo.Widgets.Gallery/Pages/Feedback/ProgressSummaryPage.gs)<br>Progress summary |
 
 ## Layout
 
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [Grid](../Goo.Widgets.Gallery/Pages/Layout/GridPage.gs) | [![Grid in the Goo Widgets gallery](Grid.png)](Grid.png) |
-| [AppBar](../Goo.Widgets.Gallery/Pages/Controls/AppBarPage.gs) | [![AppBar in the Goo Widgets gallery](AppBar.png)](AppBar.png) |
-| [Drawer](../Goo.Widgets.Gallery/Pages/Controls/DrawerPage.gs) | [![Drawer in the Goo Widgets gallery](Drawer.png)](Drawer.png) |
-| [ListRow](../Goo.Widgets.Gallery/Pages/Controls/ListRowPage.gs) | [![ListRow in the Goo Widgets gallery](ListRow.png)](ListRow.png) |
-| [MasterDetail](../Goo.Widgets.Gallery/Pages/Layout/MasterDetailPage.gs) | [![MasterDetail in the Goo Widgets gallery](MasterDetail.png)](MasterDetail.png) |
-| [ModalDialog](../Goo.Widgets.Gallery/Pages/Layout/ModalDialogPage.gs) | [![ModalDialog in the Goo Widgets gallery](ModalDialog.png)](ModalDialog.png) |
-| [SectionHeader](../Goo.Widgets.Gallery/Pages/Controls/SectionHeaderPage.gs) | [![SectionHeader in the Goo Widgets gallery](SectionHeader.png)](SectionHeader.png) |
-| [WindowChrome](../Goo.Widgets.Gallery/Pages/Layout/WindowChromePage.gs) | [![WindowChrome in the Goo Widgets gallery](WindowChrome.png)](WindowChrome.png) |
-| [Disclosure](../Goo.Widgets.Gallery/Pages/Layout/DisclosurePage.gs) | [![Disclosure in the Goo Widgets gallery](Disclosure.png)](Disclosure.png) |
-
-## Media
-
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [AsyncImage](../Goo.Widgets.Gallery/Pages/Controls/AsyncImagePage.gs) | [![AsyncImage in the Goo Widgets gallery](AsyncImage.png)](AsyncImage.png) |
-| [Avatar](../Goo.Widgets.Gallery/Pages/Controls/AvatarPage.gs) | [![Avatar in the Goo Widgets gallery](Avatar.png)](Avatar.png) |
-| [MediaCard](../Goo.Widgets.Gallery/Pages/Media/MediaCardPage.gs) | [![MediaCard in the Goo Widgets gallery](MediaCard.png)](MediaCard.png) |
-| [MediaTransport](../Goo.Widgets.Gallery/Pages/Media/MediaTransportPage.gs) | [![MediaTransport in the Goo Widgets gallery](MediaTransport.png)](MediaTransport.png) |
+| | | |
+| --- | --- | --- |
+| [![App bar](AppBar.png)](../Goo.Widgets.Gallery/Pages/Controls/AppBarPage.gs)<br>App bar | [![Drawer](Drawer.png)](../Goo.Widgets.Gallery/Pages/Controls/DrawerPage.gs)<br>Drawer | [![Section header](SectionHeader.png)](../Goo.Widgets.Gallery/Pages/Controls/SectionHeaderPage.gs)<br>Section header |
+| [![List row](ListRow.png)](../Goo.Widgets.Gallery/Pages/Controls/ListRowPage.gs)<br>List row | [![Master detail](MasterDetail.png)](../Goo.Widgets.Gallery/Pages/Layout/MasterDetailPage.gs)<br>Master detail | [![Modal dialog](ModalDialog.png)](../Goo.Widgets.Gallery/Pages/Layout/ModalDialogPage.gs)<br>Modal dialog |
+| [![Modal dialog host](ModalDialogHost.png)](../Goo.Widgets.Gallery/Pages/Layout/ModalDialogHostPage.gs)<br>Modal dialog host | [![Popover](Popover.png)](../Goo.Widgets.Gallery/Pages/Layout/PopoverPage.gs)<br>Popover | [![Tooltip](Tooltip.png)](../Goo.Widgets.Gallery/Pages/Layout/TooltipPage.gs)<br>Tooltip |
+| [![Disclosure](Disclosure.png)](../Goo.Widgets.Gallery/Pages/Layout/DisclosurePage.gs)<br>Disclosure | [![Split pane](SplitPane.png)](../Goo.Widgets.Gallery/Pages/Layout/SplitPanePage.gs)<br>Split pane | [![Grid](Grid.png)](../Goo.Widgets.Gallery/Pages/Layout/GridPage.gs)<br>Grid |
+| [![Window chrome](WindowChrome.png)](../Goo.Widgets.Gallery/Pages/Layout/WindowChromePage.gs)<br>Window chrome | [![Theme scope](ThemeScope.png)](../Goo.Widgets.Gallery/Pages/Layout/ThemeScopePage.gs)<br>Theme scope | |
 
 ## Navigation
 
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [NavigationRail](../Goo.Widgets.Gallery/Pages/Navigation/NavigationRailPage.gs) | [![NavigationRail in the Goo Widgets gallery](NavigationRail.png)](NavigationRail.png) |
+| | | |
+| --- | --- | --- |
+| [![Navigation rail](NavigationRail.png)](../Goo.Widgets.Gallery/Pages/Navigation/NavigationRailPage.gs)<br>Navigation rail | [![Tab bar](TabBar.png)](../Goo.Widgets.Gallery/Pages/Navigation/TabBarPage.gs)<br>Tab bar | [![Menu](Menu.png)](../Goo.Widgets.Gallery/Pages/Navigation/MenuPage.gs)<br>Menu |
+| [![Breadcrumb](Breadcrumb.png)](../Goo.Widgets.Gallery/Pages/Content/BreadcrumbPage.gs)<br>Breadcrumb | | |
 
-## New controlled widgets
+## Media
 
-| Widget example | Gallery screenshot |
-| --- | --- |
-| [SplitPane](../Goo.Widgets.Gallery/Pages/Layout/SplitPanePage.gs) | [![SplitPane](SplitPane.png)](SplitPane.png) |
-| [TabBar](../Goo.Widgets.Gallery/Pages/Navigation/TabBarPage.gs) | [![TabBar](TabBar.png)](TabBar.png) |
-| [TextArea](../Goo.Widgets.Gallery/Pages/Inputs/TextAreaPage.gs) | [![TextArea](TextArea.png)](TextArea.png) |
+| | | |
+| --- | --- | --- |
+| [![Async image](AsyncImage.png)](../Goo.Widgets.Gallery/Pages/Controls/AsyncImagePage.gs)<br>Async image | [![Avatar](Avatar.png)](../Goo.Widgets.Gallery/Pages/Controls/AvatarPage.gs)<br>Avatar | [![Media card](MediaCard.png)](../Goo.Widgets.Gallery/Pages/Media/MediaCardPage.gs)<br>Media card |
+| [![Media transport](MediaTransport.png)](../Goo.Widgets.Gallery/Pages/Media/MediaTransportPage.gs)<br>Media transport | | |
+
+## Charts
+
+| | | |
+| --- | --- | --- |
+| [![Donut chart](DonutChart.png)](../Goo.Widgets.Gallery/Pages/Charts/DonutChartPage.gs)<br>Donut chart | [![Stacked bar](StackedBar.png)](../Goo.Widgets.Gallery/Pages/Charts/StackedBarPage.gs)<br>Stacked bar | |
+
+## Graphs
+
+| | | |
+| --- | --- | --- |
+| [![Graph canvas](GraphCanvas.png)](../Goo.Widgets.Gallery/Pages/Graphs/GraphCanvasPage.gs)<br>Graph canvas | [![Graph node card](GraphNodeCard.png)](../Goo.Widgets.Gallery/Pages/Graphs/GraphNodeCardPage.gs)<br>Graph node card | |
+
+## Colors
+
+| | | |
+| --- | --- | --- |
+| [![Color picker](ColorPicker.png)](../Goo.Widgets.Gallery/Pages/Colors/ColorPickerPage.gs)<br>Color picker | | |
+
+## Content
+
+| | | |
+| --- | --- | --- |
+| [![Markdown view](MarkdownView.png)](../Goo.Widgets.Gallery/Pages/Content/MarkdownViewPage.gs)<br>Markdown view | [![Typography](Typography.png)](../Goo.Widgets.Gallery/Pages/Content/TypographyPage.gs)<br>Typography | [![Kbd](Kbd.png)](../Goo.Widgets.Gallery/Pages/Content/KbdPage.gs)<br>Kbd |
+| [![Code block](CodeBlock.png)](../Goo.Widgets.Gallery/Pages/Content/CodeBlockPage.gs)<br>Code block | | |

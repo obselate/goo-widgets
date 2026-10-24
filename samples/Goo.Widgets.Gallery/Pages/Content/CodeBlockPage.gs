@@ -8,7 +8,7 @@ import Goo.Widgets.Gallery
 internal class CodeBlockExample : Cell {
     internal var Window Window?
     private var expanded bool
-    private let code string = "package Example\n\nimport Goo\n\nfunc Main() {\n    let message = \"Hello, Goo\"\n    Console.WriteLine(message)\n}"
+    private let code string = "package Example\n\nimport Log\n\nfunc Main() {\n    let message = \"Hello, you\"\n    Console.WriteLine(message)\n}"
 
     public override func Build() Blob -> Container{
         Width: Percent(100),

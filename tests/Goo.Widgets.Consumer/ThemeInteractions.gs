@@ -687,7 +687,171 @@ func ThemeFocused(node AccessibilityNode?) AccessibilityNode? {
     return nil
 }
 
+class GallerySizingPage(Fill bool) : GalleryPage {
+    public override func Title() string -> Fill ? "Percentage sizing": "Compact sizing"
+    public override func Build() Blob -> Container{
+        Width: Percent(100), Height: Fill ? Percent(100): Length.Auto,
+        Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Percentage demo"},
+        Text{Content: "Content box"}
+    }
+}
+
+func GalleryStageContracts() {
+    for width in[]int32{1100, 960} {
+        let registry = GalleryRegistry([]GalleryCategory{GalleryCategory("Sizing", "widgets", []GalleryPage{
+            GallerySizingPage(true), GallerySizingPage(false)
+        })})
+        using let gallery = Gallery(registry, 0, width == 1100)
+        let adapter = SearchListSemantics()
+        let window = Window{Root: gallery, Width: width, Height: width == 1100 ? 800: 640, AccessibilityAdapter: adapter}
+        gallery.AttachWindow(window)
+        try {
+            window.Open()
+            PumpFrames(window, 12)
+            let demo = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
+            let expectedWidth = width == 1100 ? 936.0: 588.0
+            Require(Math.Abs(demo.Width - expectedWidth) < 2
+                && Math.Abs(demo.X + demo.Width - (width == 1100 ? 1018.0: 894.0)) < 2
+                && Math.Abs(demo.Y + demo.Height - (window.Height - 74.0)) < 2,
+                "Percentage demo escaped the stage content box: " + demo.ToString())
+            CaptureIssueProof(window, "gallery-percent-" + width.ToString())
+            gallery.Show(1)
+            PumpFrames(window, 12)
+            let compact = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
+            Require(compact.Y + compact.Height < 400, "A small demo card grew to fill the page: " + compact.ToString())
+        } finally {
+            window.RequestClose()
+            PumpFrames(window, 5)
+        }
+    }
+}
+
+func GalleryNavigationContracts(window Window, gallery Gallery, registry GalleryRegistry, adapter SearchListSemantics) {
+    let id = OnlyNativeWindow()
+    Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Gallery did not default to Ink.")
+    FeedbackNode(adapter, AccessibilityRole.Heading, "Action button")
+    Require(FeedbackNode(adapter, AccessibilityRole.Tab, "Action button").Selected == true, "Initial sidebar selection is missing.")
+    SelectorKey(id, SDLScancode.Pageup, SDLKeymod.Ctrl)
+    PumpFrames(window, 30)
+    FeedbackNode(adapter, AccessibilityRole.Heading, registry.CurrentPage(registry.Count() - 1).Name())
+    let lastRow = FeedbackNode(adapter, AccessibilityRole.Tab, registry.CurrentPage(registry.Count() - 1).Name()).Bounds
+    Require(lastRow.Y >= 110 && lastRow.Y + lastRow.Height <= window.Height - 100,
+        "Page navigation did not reveal the selected sidebar row: " + lastRow.Y.ToString())
+    SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
+    PumpFrames(window, 8)
+    FeedbackNode(adapter, AccessibilityRole.Heading, "Action button")
+    SelectorKey(id, SDLScancode.K, SDLKeymod.Ctrl)
+    PumpFrames(window, 5)
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Search widgets", "Ctrl K did not focus search.")
+    SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
+    PumpFrames(window, 8)
+    FeedbackNode(adapter, AccessibilityRole.Heading, "Icon button")
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Search widgets", "Page navigation moved search focus.")
+    SelectorType(window, id, "icbt")
+    PumpFrames(window, 8)
+    let rows = List[AccessibilityNode]()
+    FeedbackNodes(adapter.Tree?.Root, AccessibilityRole.Tab, "", rows)
+    Require(rows.Count == 1 && rows[0].Name == "Icon button", "Search did not filter with fuzzy matching.")
+    SendKey(id, SDLScancode.Down)
+    PumpFrames(window, 5)
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Icon button", "Down did not focus the first search match.")
+    SendKey(id, SDLScancode.Return)
+    PumpFrames(window, 5)
+    Require(FeedbackNode(adapter, AccessibilityRole.Tab, "Icon button").Selected == true, "Sidebar activation did not select its page.")
+    SelectorKey(id, SDLScancode.K, SDLKeymod.Ctrl)
+    PumpFrames(window, 5)
+    SendKey(id, SDLScancode.Escape)
+    PumpFrames(window, 5)
+    SendKey(id, SDLScancode.Down)
+    PumpFrames(window, 5)
+    SendKey(id, SDLScancode.End)
+    PumpFrames(window, 5)
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Icon button", "End did not stay within the Actions category.")
+    SendKey(id, SDLScancode.Home)
+    PumpFrames(window, 5)
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Action button", "Home did not focus the first category row.")
+    SendKey(id, SDLScancode.Down)
+    PumpFrames(window, 5)
+    SendKey(id, SDLScancode.Up)
+    PumpFrames(window, 5)
+    SendKey(id, SDLScancode.Space)
+    PumpFrames(window, 8)
+    FeedbackNode(adapter, AccessibilityRole.Heading, "Action button")
+    SelectorKey(id, SDLScancode.K, SDLKeymod.Ctrl)
+    PumpFrames(window, 5)
+    SelectorType(window, id, "no-widget-can-match-this-query")
+    PumpFrames(window, 8)
+    FeedbackNode(adapter, AccessibilityRole.Button, "Clear search")
+    FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Clear search").Bounds)
+    FeedbackNode(adapter, AccessibilityRole.Tab, "Action button")
+    SelectorKey(id, SDLScancode.K, SDLKeymod.Ctrl)
+    PumpFrames(window, 5)
+    SelectorType(window, id, "icbt")
+    SelectorKey(id, SDLScancode.K, SDLKeymod.Ctrl)
+    PumpFrames(window, 5)
+    SelectorType(window, id, "Calendar")
+    SendKey(id, SDLScancode.Return)
+    PumpFrames(window, 8)
+    FeedbackNode(adapter, AccessibilityRole.Heading, "Calendar")
+    SendKey(id, SDLScancode.Escape)
+    PumpFrames(window, 5)
+    FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Light").Bounds)
+    Require(Theme.Read(window).CanvasColor == Theme.Bone.CanvasColor, "Light did not select Bone.")
+    FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Dark").Bounds)
+    Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Dark did not restore Ink.")
+    for width in[]int32{960, 1440, 1707} {
+        window.Width = width
+        window.Height = width == 960 ? 640: width == 1440 ? 900: 960
+        PumpFrames(window, 12)
+        let footer = FeedbackNode(adapter, AccessibilityRole.Button, "Light").Bounds
+        let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search widgets").Bounds
+        Require(footer.Y > search.Y + search.Height && footer.Y + footer.Height < window.Height,
+            "Gallery footer or search did not fit the window.")
+        if width == 960 {
+            gallery.Show(registry.IndexOf("Calendar"))
+            PumpFrames(window, 12)
+            let title = FeedbackNode(adapter, AccessibilityRole.Heading, "Calendar").Bounds
+            let demo = FeedbackNode(adapter, AccessibilityRole.Text, "en-US").Bounds
+            Require(demo.X >= title.X, "A wide demo shifted behind the stage's left edge.")
+            let day = FeedbackNode(adapter, AccessibilityRole.GridCell, "Monday, September 14, 2026")
+            Require(window.PerformAccessibilityAction(day.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
+                "The calendar day did not accept focus.")
+            SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
+            PumpFrames(window, 8)
+            FeedbackNode(adapter, AccessibilityRole.Heading, "Date picker")
+        }
+    }
+    window.Width = 1100
+    window.Height = 800
+    let menuIndex = registry.IndexOf("Menu")
+    gallery.Show(menuIndex)
+    PumpFrames(window, 20)
+    FeedbackNode(adapter, AccessibilityRole.Menu, "Project actions")
+    SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
+    PumpFrames(window, 12)
+    FeedbackNode(adapter, AccessibilityRole.Heading, registry.CurrentPage(menuIndex + 1).Name())
+    gallery.Show(menuIndex)
+    PumpFrames(window, 20)
+    SelectorKey(id, SDLScancode.K, SDLKeymod.Ctrl)
+    PumpFrames(window, 8)
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Search widgets", "Ctrl K did not leave a nonmodal popup.")
+    let dialogIndex = registry.IndexOf("Modal dialog host")
+    gallery.Show(dialogIndex)
+    PumpFrames(window, 20)
+    FeedbackNode(adapter, AccessibilityRole.Dialog, "Review deployment")
+    SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
+    PumpFrames(window, 12)
+    FeedbackNode(adapter, AccessibilityRole.Heading, registry.CurrentPage(dialogIndex + 1).Name())
+    let dialogs = List[AccessibilityNode]()
+    FeedbackNodes(adapter.Tree?.Root, AccessibilityRole.Dialog, "Review deployment", dialogs)
+    Require(dialogs.Count == 0, "Page navigation left the old modal dialog open.")
+    gallery.Show(0)
+    PumpFrames(window, 8)
+    Console.WriteLine("PASS gallery navigation: wrap, focus, fuzzy search, sidebar keys, appearance")
+}
+
 func ThemeCatalogContracts() {
+    GalleryStageContracts()
     let registry = CreateRegistry()
     let gallery = Gallery(registry, 0)
     let adapter = SearchListSemantics()
@@ -695,17 +859,19 @@ func ThemeCatalogContracts() {
     gallery.AttachWindow(window)
     try {
         window.Open()
+        PumpFrames(window, 12)
+        GalleryNavigationContracts(window, gallery, registry, adapter)
         for mode in[]ThemeMode{ThemeMode.Light, ThemeMode.Dark} {
             Theme.SetMode(window, mode)
             for index in 0 ... registry.Count() {
                 gallery.Show(index)
                 PumpFrames(window, 8)
-                let title = registry.CurrentPage(index).Title()
+                let title = registry.CurrentPage(index).Name()
                 let image = ThemeCapture(window)
                 Require(image.Width > 0u && image.Height > 0u, "The real widget catalog did not capture.")
                 CaptureIssueProof(window, "theme-" + mode.ToString() + "-" + index.ToString())
                 Console.WriteLine("CAPTURE theme catalog: " + mode.ToString() + " / " + title)
-                if title == "Managed dialog" {
+                if title == "Modal dialog host" {
                     FeedbackClick(
                         window,
                         FeedbackNode(adapter, AccessibilityRole.Button, "Open nested confirmation").Bounds
@@ -740,7 +906,7 @@ func ThemeCatalogContracts() {
                         "Banner did not close after its millisecond transition."
                     )
                 }
-                if title == "Managed dialog" || title == "Modal dialog" || title == "Popover"
+                if title == "Modal dialog host" || title == "Modal dialog" || title == "Popover"
                 || title == "Date picker" || title == "Combo box" || title == "Menu" || title == "Tooltip" {
                     SendKey(OnlyNativeWindow(), SDLScancode.Escape)
                     PumpFrames(window, 12)

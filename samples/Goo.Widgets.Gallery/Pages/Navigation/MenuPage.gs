@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Navigation
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
@@ -12,14 +13,14 @@ internal class MenuExample : Cell {
     private var openLeft bool
     private var usePoint bool
     private var point Point
-    private var selected string = "No action selected"
+    private var selected string = "none"
     private func Dismiss() {
         isOpen = false
         Rebuild()
     }
 
     private func Activate(id string) {
-        selected = "Selected: " + id
+        selected = id
         Rebuild()
     }
 
@@ -30,6 +31,7 @@ internal class MenuExample : Cell {
     }
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         var menu = MenuInput{
             Open: isOpen,
             Placement: openUp ? PopoverPlacement.TopStart: PopoverPlacement.BottomStart,
@@ -76,20 +78,15 @@ internal class MenuExample : Cell {
                     Rebuild()
                 }
             },
-            Text{Key: "title", Content: "Project actions", FontSize: 22.0, FontWeight: 700},
-            Text{
-                Key: "hint",
-                Content: "Right-click for a context menu. Choose opening directions below; arrows follow the submenu side.",
-                FontSize: 14.0,
-            },
-            Text{Key: "selected", Content: selected, FontSize: 13.0},
+            Text{Key: "selected", Content: "Selected " + selected, FontSize: 13.0},
             Container{
                 Key: "directions",
                 FlexDirection: FlexDirection.Row,
                 Gap: 12,
                 Button{
                     Padding: 8,
-                    BackgroundColor: "#27272a",
+                    BackgroundColor: theme.Button.BackgroundColor!!,
+                    Color: theme.TextColor,
                     OnClick: () -> {
                         openUp = !openUp
                         isOpen = false
@@ -99,7 +96,8 @@ internal class MenuExample : Cell {
                 },
                 Button{
                     Padding: 8,
-                    BackgroundColor: "#27272a",
+                    BackgroundColor: theme.Button.BackgroundColor!!,
+                    Color: theme.TextColor,
                     OnClick: () -> {
                         openLeft = !openLeft
                         isOpen = false
@@ -113,10 +111,11 @@ internal class MenuExample : Cell {
                 Handle: trigger,
                 Position: PositionType.Absolute,
                 Left: 350.0,
-                Top: 270.0,
+                Top: 200.0,
                 Width: 220.0,
                 Height: 36.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: theme.Button.BackgroundColor!!,
+                Color: theme.TextColor,
                 BorderRadius: 6.0,
                 OnClick: OpenTrigger,
                 OnKeyDown: (event KeyEvent) -> {

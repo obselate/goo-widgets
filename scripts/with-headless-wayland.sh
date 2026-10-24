@@ -31,12 +31,13 @@ if [[ "${GOO_WAYLAND_COMPOSITOR:-}" == sway ]]; then
   compositor_target=-$compositor_pid
 elif command -v weston >/dev/null 2>&1; then
   weston --backend=headless-backend.so --renderer="${GOO_WESTON_RENDERER:-pixman}" \
+    --width="${GOO_HEADLESS_WIDTH:-1400}" --height="${GOO_HEADLESS_HEIGHT:-900}" \
     --socket="$WAYLAND_DISPLAY" --idle-time=0 >"$compositor_log" 2>&1 &
   compositor_pid=$!
   compositor_target=$compositor_pid
 else
   XDG_CONFIG_HOME="$runtime_root/config" setsid dbus-run-session -- kwin_wayland --virtual \
-    --width 1400 --height 900 --scale 1 --no-global-shortcuts --no-lockscreen --no-kactivities \
+    --width "${GOO_HEADLESS_WIDTH:-1400}" --height "${GOO_HEADLESS_HEIGHT:-900}" --scale 1 --no-global-shortcuts --no-lockscreen --no-kactivities \
     --socket "$WAYLAND_DISPLAY" >"$compositor_log" 2>&1 &
   compositor_pid=$!
   compositor_target=-$compositor_pid

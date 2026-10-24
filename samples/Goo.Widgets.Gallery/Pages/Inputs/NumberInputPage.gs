@@ -10,7 +10,7 @@ internal class NumberInputExample : Cell {
     private var price float64 = 12.5
     private var width float64 = 80
     private var unit string = "px"
-    private var committed string = "Enter or leave the field to commit."
+    private var committed string = "none"
 
     public override func Build() Blob -> Container{
         Width: 360,
@@ -24,7 +24,6 @@ internal class NumberInputExample : Cell {
                 Minimum: 0,
                 Maximum: 100,
                 Step: 1,
-                Description: "Arrow keys step by 1. Page keys step by 10. Drag the grip to scrub.",
                 Width: Percent(100),
                 ScrubLabel: "↔",
                 OnChange: value -> {
@@ -32,7 +31,7 @@ internal class NumberInputExample : Cell {
                     Rebuild()
                 },
                 OnCommit: value -> {
-                    committed = "Committed quantity: " + value.ToString()
+                    committed = value.ToString()
                     Rebuild()
                 }
             }
@@ -71,7 +70,7 @@ internal class NumberInputExample : Cell {
                 }
             }
         ),
-        Text{Content: committed, Color: Theme.Read().MutedTextColor},
+        Text{Content: "Committed " + committed, Color: Theme.Read().MutedTextColor},
     }
 }
 

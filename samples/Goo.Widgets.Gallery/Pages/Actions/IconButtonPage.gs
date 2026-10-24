@@ -39,7 +39,7 @@ internal open class IconButtonExample : Cell {
                 Icon: MaterialIcons.Create("close"),
             }.Build(),
         },
-        Text{Content: "Add pressed " + count.ToString() + " times", FontSize: 12.0},
+        Text{Content: "Presses " + count.ToString(), FontSize: 12.0},
     }
 }
 

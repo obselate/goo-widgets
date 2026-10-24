@@ -21,11 +21,6 @@ internal open class GraphCanvasExample : Cell {
         Width: 740.0,
         Gap: 10.0,
         FlexDirection: FlexDirection.Column,
-        Text{
-            Key: "graph-instructions",
-            Content: "Middle-drag to pan, wheel to zoom, drag nodes, or drag the background to select.",
-            FontSize: 11.0,
-        },
         Cell.Mount[GraphCanvasInput, GraphCanvas](
             "graph-demo",
             GraphCanvasInput{

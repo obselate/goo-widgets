@@ -9,5 +9,6 @@
     <ProjectReference Include="../../src/Goo.Widgets/Goo.Widgets.gsproj" />
     <ProjectReference Include="../../src/Goo.Widgets.Markdown/Goo.Widgets.Markdown.gsproj" />
     <Watch Include="**/*.gs" Exclude="bin/**;obj/**" />
+    <None Include="Fonts/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

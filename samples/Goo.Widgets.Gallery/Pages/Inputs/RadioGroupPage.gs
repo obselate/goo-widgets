@@ -17,7 +17,6 @@ class RadioDemo : Cell {
     private var reminders AccessibilityChecked
     public override func Build() Blob -> Container{
         Gap: 12,
-        Text{Content: "Delivery choices", FontSize: Theme.Read().HeadingFontSize},
         Cell.Mount[RadioGroupInput, RadioGroup](
             "radio",
             RadioGroupInput{
@@ -34,7 +33,6 @@ class RadioDemo : Cell {
                 },
             }
         ),
-        Text{Content: "Choice cards", FontSize: Theme.Read().HeadingFontSize},
         Cell.Mount[RadioGroupInput, RadioGroup](
             "cards",
             RadioGroupInput{

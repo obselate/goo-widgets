@@ -99,36 +99,11 @@ class UploadTilePage : GalleryPage {
         return Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
             Gap: 24.0,
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8.0,
-                Text{Content: "WAITING (INITIAL)", FontSize: 10.0, FontWeight: 700},
-                waitingTile.Build(),
-            },
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8.0,
-                Text{Content: "PROGRESS (ACTIVE)", FontSize: 10.0, FontWeight: 700},
-                progressTile.Build(),
-            },
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8.0,
-                Text{Content: "FAILED (RETRY STATE)", FontSize: 10.0, FontWeight: 700, Color: "#ef4444"},
-                failedTile.Build(),
-            },
-            Container{
-                FlexDirection: FlexDirection.Column,
-                AlignItems: AlignItems.Center,
-                Gap: 8.0,
-                Text{Content: "READY (CUSTOM PALETTE)", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
-                readyTile.Build(),
-            },
+            waitingTile.Build(),
+            progressTile.Build(),
+            failedTile.Build(),
+            readyTile.Build(),
         }
     }
 }

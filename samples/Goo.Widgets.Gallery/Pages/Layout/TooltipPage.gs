@@ -9,13 +9,9 @@ internal class TooltipPage : GalleryPage {
 
     override func Build() Blob -> Container{
         Width: 720,
-        Height: 400,
         AlignItems: AlignItems.Center,
         JustifyContent: JustifyContent.Center,
         Gap: 18,
-        Text{Content: "Tooltips", FontSize: 24, FontWeight: 700},
-        Text{Content: "Hover or focus a button. The label follows its anchor without taking focus.", FontSize: 14,},
-        Text{Content: "Escape dismisses a label. Move away and return to show it again.", FontSize: 13,},
         Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

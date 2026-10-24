@@ -10,7 +10,7 @@ class TextFieldPage : GalleryPage {
     public override func Title() string -> "TextField"
 
     public override func Build() Blob {
-        let baseField = TextField{EntryHeight: 44.0, Gap: 7.0, BorderRadius: 8.0,}
+        let baseField = TextField{EntryHeight: 44.0, Gap: 7.0, BorderRadius: 8.0, Width: 280.0}
 
         let defaultField = baseField with{
             Label = "Email address",
@@ -52,73 +52,22 @@ class TextFieldPage : GalleryPage {
             Value = "correct horse",
             Password = true,
             RevealButton = true,
-            Width = 280,
         }
         let address = baseField with{
             Label = "Site address",
             Value = "team",
             Clearable = true,
             MaxLength = 20,
-            Width = 280,
             PrefixAddon = Text{Content: "https://", Color: Theme.Read().MutedTextColor},
             SuffixAddon = Text{Content: ".dev", Color: Theme.Read().MutedTextColor},
             Leading = MaterialIcons.Create("link", 16, Theme.Read().MutedTextColor),
         }
 
         return Container{
-            Width: 620.0,
-            FlexDirection: FlexDirection.Column,
             Gap: 18.0,
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.FlexStart,
-                JustifyContent: JustifyContent.Center,
-                Gap: 24.0,
-                Container{
-                    Width: 280.0,
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 5.0,
-                    Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700},
-                    defaultField.Build(),
-                },
-                Container{
-                    Width: 280.0,
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 5.0,
-                    Text{Content: "INVALID", FontSize: 10.0, FontWeight: 700, Color: "#ef4444"},
-                    invalidField.Build(),
-                },
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.FlexStart,
-                JustifyContent: JustifyContent.Center,
-                Gap: 24.0,
-                Container{
-                    Width: 280.0,
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 5.0,
-                    Text{Content: "DISABLED", FontSize: 10.0, FontWeight: 700},
-                    disabledField.Build(),
-                },
-                Container{
-                    Width: 280.0,
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 5.0,
-                    Text{Content: "CUSTOM", FontSize: 10.0, FontWeight: 700},
-                    customField.Build(),
-                },
-            },
-            Container{
-                Width: Percent(100),
-                FlexDirection: FlexDirection.Row,
-                Gap: 24,
-                JustifyContent: JustifyContent.Center,
-                password.Build(),
-                address.Build()
-            },
+            Container{FlexDirection: FlexDirection.Row, AlignItems: AlignItems.FlexStart, Gap: 24.0, defaultField.Build(), invalidField.Build()},
+            Container{FlexDirection: FlexDirection.Row, AlignItems: AlignItems.FlexStart, Gap: 24.0, disabledField.Build(), customField.Build()},
+            Container{FlexDirection: FlexDirection.Row, AlignItems: AlignItems.FlexStart, Gap: 24.0, password.Build(), address.Build()},
         }
     }
 }

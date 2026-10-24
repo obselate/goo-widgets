@@ -5,7 +5,7 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
 
 internal class TouchTextEditingExample : Cell {
-    private var value string = "Long-press a word to select it.\nDrag either handle to adjust the selection.\nUse the toolbar to copy, cut, paste or select all."
+    private var value string = "Meet at the north entrance at nine.\nBring the signed forms and a laptop.\nLunch is served after the session."
 
     public override func Build() Blob -> Container{
         Width: 560,

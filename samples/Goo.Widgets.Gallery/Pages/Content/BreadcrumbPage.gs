@@ -24,13 +24,11 @@ internal class BreadcrumbExample : Cell {
     public override func Build() Blob -> Container{
         Width: Percent(100),
         Gap: 24,
-        Typography{Content: "Breadcrumb and path bar", Variant: TextVariant.H2}.Build(),
         Cell.Mount[BreadcrumbInput, Breadcrumb]("full", BreadcrumbInput{Items: items, OnSelect: Select}),
         Container{
             Width: 300,
             Cell.Mount[BreadcrumbInput, Breadcrumb]("collapsed", BreadcrumbInput{Items: items, OnSelect: Select})
         },
-        Typography{Content: "Path bar: chevrons open sibling locations", Variant: TextVariant.Caption}.Build(),
         Cell.Mount[BreadcrumbInput, PathBar](
             "siblings",
             BreadcrumbInput{

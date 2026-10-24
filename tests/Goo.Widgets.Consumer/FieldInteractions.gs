@@ -277,7 +277,7 @@ func FieldCultureContract() {
 
 func FieldGalleryProof() {
     for mode in[]ThemeMode{ThemeMode.Light, ThemeMode.Dark} {
-        for title in[]string{"TextField", "Number input", "Form field"} {
+        for title in[]string{"Text field", "Number input", "Form field"} {
             let registry = CreateRegistry()
             let gallery = Gallery(registry, registry.IndexOf(title))
             let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title}

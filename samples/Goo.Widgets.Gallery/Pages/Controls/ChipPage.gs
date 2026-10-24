@@ -31,42 +31,13 @@ class ChipPage : GalleryPage {
         }
 
         return Container{
-            FlexDirection: FlexDirection.Column,
+            FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: 24.0,
-            Container{
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.Center,
-                Gap: 24.0,
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    AlignItems: AlignItems.Center,
-                    Gap: 8.0,
-                    Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700},
-                    defaultChip.Build(),
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    AlignItems: AlignItems.Center,
-                    Gap: 8.0,
-                    Text{Content: "SELECTED + LEADING", FontSize: 10.0, FontWeight: 700},
-                    selectedLeadingChip.Build(),
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    AlignItems: AlignItems.Center,
-                    Gap: 8.0,
-                    Text{Content: "DISABLED SELECTED", FontSize: 10.0, FontWeight: 700},
-                    disabledSelectedChip.Build(),
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    AlignItems: AlignItems.Center,
-                    Gap: 8.0,
-                    Text{Content: "CUSTOM STYLE", FontSize: 10.0, FontWeight: 700},
-                    customStyledChip.Build(),
-                },
-            },
+            defaultChip.Build(),
+            selectedLeadingChip.Build(),
+            disabledSelectedChip.Build(),
+            customStyledChip.Build(),
         }
     }
 }

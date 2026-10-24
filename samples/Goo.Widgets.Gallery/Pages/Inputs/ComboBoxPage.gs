@@ -51,12 +51,6 @@ internal class ComboBoxExample : Cell {
         Width: 720.0,
         Height: 430.0,
         Gap: 12.0,
-        Text{Key: "heading", Content: "Choose a deployment target", FontSize: 22.0, FontWeight: 700},
-        Text{
-            Key: "hint",
-            Content: "Arrow keys preview an option. Enter commits; Escape keeps the previous value.",
-            FontSize: 14.0
-        },
         Container{
             Key: "fields",
             FlexDirection: FlexDirection.Row,
@@ -97,7 +91,7 @@ internal class ComboBoxExample : Cell {
                 Key: "search",
                 Gap: 9.0,
                 Width: 350.0,
-                Text{Key: "label", Content: "Region · 500 virtual options", FontSize: 13.0},
+                Text{Key: "label", Content: "Region", FontSize: 13.0},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "region",
                     ComboBoxInput{

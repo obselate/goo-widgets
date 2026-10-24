@@ -73,7 +73,7 @@ internal class ManagedDialogExample : Cell {
                 Content: Container{
                     Gap: 16.0,
                     Text{
-                        Content: "Tab stays inside this dialog. Closing returns focus to the control that opened it.",
+                        Content: "Deploy three services to production.",
                     },
                     TextEntry{
                         Value: "Production update",
@@ -101,7 +101,7 @@ internal class ManagedDialogExample : Cell {
                 Width: 390.0,
                 AccessibilityName: "Nested confirmation",
                 Header: Text{Content: "Nested confirmation", FontSize: 20.0, FontWeight: 700},
-                Content: Text{Content: "Escape returns to the underlying dialog."},
+                Content: Text{Content: "Discard the label change?"},
                 OnClose: CloseNested,
                 OnCancel: CloseNested,
                 OnConfirm: CloseNested

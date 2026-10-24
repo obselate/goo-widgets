@@ -129,46 +129,9 @@ class EmptyStatePage : GalleryPage {
         }
 
         return Container{
-            FlexDirection: FlexDirection.Column,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
             Gap: 16.0,
-            Container{
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.Center,
-                JustifyContent: JustifyContent.Center,
-                Gap: 16.0,
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 6.0,
-                    Text{Content: "EMPTY COLLECTION", FontSize: 10.0, FontWeight: 700},
-                    emptyCollection.Build(),
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 6.0,
-                    Text{Content: "NO SEARCH RESULTS", FontSize: 10.0, FontWeight: 700},
-                    noResults.Build(),
-                },
-            },
-            Container{
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.Center,
-                JustifyContent: JustifyContent.Center,
-                Gap: 16.0,
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 6.0,
-                    Text{Content: "PERMISSION REQUIRED (BORDERED)", FontSize: 10.0, FontWeight: 700, Color: "#ef4444"},
-                    permission.Build(),
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 6.0,
-                    Text{Content: "TITLE ONLY (MINIMAL)", FontSize: 10.0, FontWeight: 700},
-                    minimalState.Build(),
-                },
-            },
+            Container{FlexDirection: FlexDirection.Row, Gap: 16.0, emptyCollection.Build(), noResults.Build()},
+            Container{FlexDirection: FlexDirection.Row, Gap: 16.0, permission.Build(), minimalState.Build()},
         }
     }
 }

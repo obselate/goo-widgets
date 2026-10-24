@@ -15,7 +15,6 @@ internal class DataGridExample : Cell {
         DataGridSortColumn{ColumnId: "name", Direction: DataGridSort.Ascending}
     }
     private var order[]string = []string{"name", "status", "owner", "load"}
-    private var invoked string = "Enter or double-click a host to open it"
     private var query string = ""
     private func Width(id string, value float64) {
         widths = Dictionary[string, float64](widths)
@@ -75,12 +74,7 @@ internal class DataGridExample : Cell {
         return rows.ToArray()
     }
 
-    private func Detail(input DataGridInput, row DataGridRow) Blob -> Text{
-        Content: "Managed host · " +
-            row.Id!!+
-            "\nLast checked 2 minutes ago. Review inventory, ownership, and deployment history here.",
-        FontSize: 13,
-    }
+    private func Detail(input DataGridInput, row DataGridRow) Blob -> Text{Content: "Host " + row.Id!! + "\nLast checked 2 minutes ago", FontSize: 13}
 
     public override func Build() Blob {
         let rows = Rows()
@@ -91,11 +85,6 @@ internal class DataGridExample : Cell {
         return Container{
             Width: Percent(100),
             Gap: 14,
-            Text{
-                Key: "hint",
-                Content: "Multi-sort · pinned host · Alt+Left/Right to reorder · compact rows",
-                FontSize: 14,
-            },
             Cell.Mount[DataGridInput, DataGrid](
                 "inventory",
                 DataGridInput{
@@ -135,12 +124,9 @@ internal class DataGridExample : Cell {
                         Rebuild()
                     },
                     Density: DataGridDensity.Compact,
-                    OnRowInvoke: (id string) -> {
-                        invoked = "Opened " + id
-                        Rebuild()
-                    },
+                    OnRowInvoke: (id string) -> Expand(id, true),
                     Footer: Typography{
-                        Content: rows.Length.ToString() + " hosts · total load " + total.ToString(),
+                        Content: "Hosts " + rows.Length.ToString() + " · Load " + total.ToString(),
                         Variant: TextVariant.Caption
                     }.Build(),
                     CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) -> {
@@ -171,7 +157,7 @@ internal class DataGridExample : Cell {
                     CreateDetail: Detail
                 }
             ),
-            Text{Key: "selection", Content: selected.Length.ToString() + " selected · " + invoked, FontSize: 13}
+            Text{Key: "selection", Content: "Selected " + selected.Length.ToString(), FontSize: 13}
         }
     }
 }

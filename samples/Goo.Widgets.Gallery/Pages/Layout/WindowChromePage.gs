@@ -7,7 +7,7 @@ import Goo.Widgets.Layout
 internal open class WindowChromeExample : Cell {
     private var maximized bool
     private var clicks int32
-    private var status string = "Double-click the blank titlebar, or right-click for window commands."
+    private var status string = "none"
 
     public override func Build() Blob {
         let chrome = WindowChrome{
@@ -21,27 +21,27 @@ internal open class WindowChromeExample : Cell {
                 BackgroundColor: "#373044",
                 OnClick: () -> {
                     clicks++
-                    status = "Embedded control: " + clicks.ToString()
+                    status = "Embedded " + clicks.ToString()
                     Rebuild()
                 },
                 Text{Content: "Embedded control", FontSize: 11.0, Color: "#fafafa"}
             },
             OnMinimize: () -> {
-                status = "Minimize callback"
+                status = "Minimize"
                 Rebuild()
             },
             OnMaximize: () -> {
                 maximized = true
-                status = "Maximize callback"
+                status = "Maximize"
                 Rebuild()
             },
             OnRestore: () -> {
                 maximized = false
-                status = "Restore callback"
+                status = "Restore"
                 Rebuild()
             },
             OnClose: () -> {
-                status = "Close callback"
+                status = "Close"
                 Rebuild()
             },
         }.Build()
@@ -62,13 +62,12 @@ internal open class WindowChromeExample : Cell {
                 JustifyContent: JustifyContent.Center,
                 Text{Content: maximized ? "Maximized": "Normal", FontSize: 28.0, FontWeight: 700.0, Color: "#fafafa"},
                 Text{
-                    Content: status,
+                    Content: "Last command " + status,
                     FontSize: 13.0,
                     Color: "#a5b4fc",
                     TextAlign: TextAlign.Center,
                     TextWrap: TextWrap.Wrap
                 },
-                Text{Content: "Focus a titlebar control and press Menu or Shift+F10.", FontSize: 12.0, Color: "#a1a1aa"}
             }
         }
     }

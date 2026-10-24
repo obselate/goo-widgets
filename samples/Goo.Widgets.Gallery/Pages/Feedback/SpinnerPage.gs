@@ -12,8 +12,6 @@ class SpinnerPage : GalleryPage {
         let theme = Theme.Read()
         let root = Container{
             Gap: 24,
-            Text{Content: "Loading indicators", FontSize: theme.HeadingFontSize, Color: theme.TextColor},
-            Text{Content: "A still frame replaces motion when reduced motion is enabled.", Color: theme.MutedTextColor},
         }
         for variant in[]SpinnerVariant{SpinnerVariant.Ring, SpinnerVariant.Dots, SpinnerVariant.Bars} {
             let row = Container{
