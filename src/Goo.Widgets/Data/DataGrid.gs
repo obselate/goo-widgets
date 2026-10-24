@@ -130,7 +130,7 @@ public data struct DataGridInput {
     var OnExpandedChange Action[string, bool]?
     /// Expansion control width. Nil uses the theme's control height; zero hides the control.
     var ExpandColumnWidth float64?
-    /// Detail padding. Nil uses the theme's control padding; explicit zero is preserved.
+    /// Padding inside details, after the leading control columns. Nil uses theme control padding; zero is preserved.
     var DetailPadding float64?
     /// Detail surface color. Nil uses the nearest theme.
     var DetailBackground Color?
