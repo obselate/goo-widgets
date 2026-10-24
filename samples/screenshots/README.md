@@ -65,7 +65,8 @@ Each image links to its page source. New pages need a registration, a matching P
 | | | |
 | --- | --- | --- |
 | [![Navigation rail](NavigationRail.png)](../Goo.Widgets.Gallery/Pages/Navigation/NavigationRailPage.gs)<br>Navigation rail | [![Tab bar](TabBar.png)](../Goo.Widgets.Gallery/Pages/Navigation/TabBarPage.gs)<br>Tab bar | [![Menu](Menu.png)](../Goo.Widgets.Gallery/Pages/Navigation/MenuPage.gs)<br>Menu |
-| [![Breadcrumb](Breadcrumb.png)](../Goo.Widgets.Gallery/Pages/Content/BreadcrumbPage.gs)<br>Breadcrumb | | |
+| [![Breadcrumb](Breadcrumb.png)](../Goo.Widgets.Gallery/Pages/Content/BreadcrumbPage.gs)<br>Breadcrumb | [![Menu button](MenuButton.png)](../Goo.Widgets.Gallery/Pages/Navigation/MenuButtonPage.gs)<br>Menu button | [![Split button](SplitButton.png)](../Goo.Widgets.Gallery/Pages/Navigation/SplitButtonPage.gs)<br>Split button |
+| [![Command palette](CommandPalette.png)](../Goo.Widgets.Gallery/Pages/Navigation/CommandPalettePage.gs)<br>Command palette | | |
 
 ## Media
 
