@@ -2,6 +2,7 @@ package Goo.Widgets.Data
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Icons
 
 /// A selectable tag/filter chip with leading element support and customizable primitive factories.
 public data struct Chip {
@@ -18,6 +19,9 @@ public data struct Chip {
     var AccessibilityName string?
     /// Action invoked when the chip button is activated.
     var OnClick Action?
+    var OnRemove Action?
+    var RemoveAccessibilityName string?
+    var Invalid bool
     /// Background color in normal unselected state. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Background color in selected state. Nil uses the nearest theme.
@@ -80,15 +84,17 @@ public data struct Chip {
         let createRoot = CreateRoot
         let originalLeading = Leading
         let label = Label ?? ""
+        let tone = Invalid ? Tone.Danger: Tone
         let resolved = this with{
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
-            BackgroundColor = BackgroundColor ?? theme.ToneFill(Tone),
-            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
-            TextColor = TextColor ?? theme.ToneColor(Tone),
+            Tone = tone,
+            BackgroundColor = BackgroundColor ?? theme.ToneFill(tone),
+            SelectedBackgroundColor = SelectedBackgroundColor ?? (Invalid ? theme.DangerColor: theme.AccentColor),
+            TextColor = TextColor ?? theme.ToneColor(tone),
             SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
-            BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.InputBorderColor: theme.ToneColor(Tone)),
-            SelectedBorderColor = SelectedBorderColor ?? theme.AccentColor,
+            BorderColor = BorderColor ?? (tone == Tone.Neutral ? theme.InputBorderColor: theme.ToneColor(tone)),
+            SelectedBorderColor = SelectedBorderColor ?? (Invalid ? theme.DangerColor: theme.AccentColor),
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             SelectedHoverBackgroundColor = SelectedHoverBackgroundColor ?? theme.AccentHoverColor,
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
@@ -132,7 +138,7 @@ public data struct Chip {
         if let createRoot = createRoot {
             let button = createRoot(resolved, originalLeading, text)
             WidgetKeyBindings.BindActivation(button)
-            return button
+            return RemovalRoot(button, resolved)
         }
 
         let currentBg = if resolved.Selected {
@@ -188,6 +194,7 @@ public data struct Chip {
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Checkbox,
                 Name: resolved.AccessibilityName!!,
+                Invalid: resolved.Invalid,
                 Checked: if resolved.Selected {
                     AccessibilityChecked.True
                 } else {
@@ -203,6 +210,53 @@ public data struct Chip {
             root.Children.Add(text)
         }
         WidgetKeyBindings.BindActivation(root)
-        return root
+        return RemovalRoot(root, resolved)
+    }
+
+    private func RemovalRoot(button Button, input Chip) Blob {
+        guard let remove = input.OnRemove else {
+            return button
+        }
+        let theme = Theme.Read()
+        let action = Button{
+            Key: "remove",
+            Width: input.Height!! - 8.0,
+            Height: input.Height!! - 8.0,
+            Margin: Edges{Right: 4.0},
+            Padding: 0,
+            Focusable: !input.Disabled,
+            Disabled: input.Disabled,
+            BorderRadius: (input.Height!! - 8.0) / 2.0,
+            Color: button.Color,
+            Hover: Style{BackgroundColor: theme.HoverColor},
+            Focus: theme.FocusStyle,
+            DisabledStyle: Style{Opacity: input.DisabledOpacity!!},
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.Button,
+                Name: input.RemoveAccessibilityName ?? "Remove " + input.Label!!,
+            },
+            OnClick: remove,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            MaterialIcons.Create("close", 14, button.Color),
+        }
+        WidgetKeyBindings.BindActivation(action)
+        let border = button.BorderWidth
+        let container = Container{
+            Height: button.Height,
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            BackgroundColor: button.BackgroundColor,
+            BorderColor: button.BorderColor,
+            BorderWidth: border,
+            BorderRadius: button.BorderRadius,
+            button,
+            action,
+        }
+        button.Height = button.Height - 2.0 * border
+        button.BorderWidth = 0.0
+        button.Hover = Style{}
+        button.Padding = Edges{Left: button.Padding.Left, Right: input.Gap!!}
+        return container
     }
 }
