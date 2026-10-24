@@ -589,8 +589,8 @@ the items near the viewport. Give the result a bounded size.
 | `VirtualRows(items, estimatedItemHeight, itemKey, itemBuilder)` | Content width, measured height | A column. `RowGap` or `Gap` sets the spacing |
 
 ```gsharp
-let log = VirtualRows(lines, 20.0, (line LogLine) -> line.Id, BuildLine)
-log.PinToBottom = true
+let log = VirtualRows(lines, 20.0, (line LogLine) -> line.Id, BuildLine, followEnd: follow)
+log.Handle = viewport
 log.Height = 240
 ```
 
@@ -611,7 +611,9 @@ delegate on each build to reuse rows.
 `VirtualRows` keeps the first visible row in place when rows above it change
 size or the width changes. A change that only removes rows from the start and adds
 rows at the end is applied in place: only the added rows are keyed and built.
-`PinToBottom` keeps the end in view until the reader scrolls away from it.
+`followEnd: true` scrolls to the last row when inputs change. It does not block user scrolling.
+In `viewport.MetricsChanged`, set `follow` to `metrics.ScrollOffset.Y >= metrics.ScrollRange.Y - 0.5`
+and rebuild when it changes. Start with `follow = true` for a live log.
 `ElementHandle.ScrollToItem(key)` jumps to an item of either function.
 
 `VirtualRows` mounts at most 4,096 rows and keeps the row that contains keyboard
