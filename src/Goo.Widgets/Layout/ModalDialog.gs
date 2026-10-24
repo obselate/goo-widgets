@@ -92,7 +92,7 @@ public data struct ModalDialog {
             MaxHeight = MaxHeight ?? Percent(90.0),
             Padding = Padding ?? theme.PanelPadding,
             Gap = Gap ?? theme.ControlGap,
-            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BackgroundColor = BackgroundColor ?? theme.OverlayColor,
             BorderColor = BorderColor ?? theme.BorderColor,
             BackdropColor = BackdropColor ?? theme.BackdropColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,

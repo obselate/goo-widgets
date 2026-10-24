@@ -76,7 +76,7 @@ public data struct ActionButton {
         let createText = CreateText
         let createRoot = CreateRoot
         let content = Content ?? ""
-        let background = BackgroundColor ?? theme.PanelColor
+        let background = BackgroundColor ?? theme.RaisedColor
         let resolved = this with{
             Content = content,
             Disabled = Disabled || Loading,
@@ -100,7 +100,7 @@ public data struct ActionButton {
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
-            FontWeight = FontWeight ?? theme.FontWeight,
+            FontWeight = FontWeight ?? theme.LabelFontWeight,
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,

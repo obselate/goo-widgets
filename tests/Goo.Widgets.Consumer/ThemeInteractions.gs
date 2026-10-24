@@ -240,6 +240,8 @@ func ThemePolicyContracts() {
     )
     Require(
         outside.Snapshot.CanvasColor == Theme.Ink.CanvasColor
+        && outside.Snapshot.RaisedColor == Theme.Ink.RaisedColor
+        && outside.Snapshot.OverlayColor == Theme.Ink.OverlayColor
         && window.Background == Theme.Ink.CanvasColor && window.Foreground == Theme.Ink.TextColor,
         "System Dark did not publish the window pair and dependent snapshot together."
     )
@@ -332,7 +334,12 @@ func ThemePolicyContracts() {
     Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Locked Dark followed the system.")
     Theme.SetMode(window, ThemeMode.System)
     ThemeFrames(first)
-    Require(Theme.Read(window).CanvasColor == Theme.Bone.CanvasColor, "System mode did not resume preference tracking.")
+    Require(
+        Theme.Read(window).CanvasColor == Theme.Bone.CanvasColor
+        && Theme.Read(window).RaisedColor == Theme.Bone.RaisedColor
+        && Theme.Read(window).OverlayColor == Theme.Bone.OverlayColor,
+        "System mode did not resume preference tracking."
+    )
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Unknown, ReducedMotion: true})
     ThemeFrames(first)
     Require(

@@ -170,7 +170,7 @@ func ChoiceInteractions() {
             let image = ThemeCapture(window)
             Require(
                 ThemePixel(image, int32(bounds.X), int32(bounds.Y + bounds.Height / 2), palette.StrongBorderColor)
-                && ThemePixel(image, int32(bounds.X + bounds.Width / 2), int32(bounds.Y + 3), palette.PanelColor),
+                && ThemePixel(image, int32(bounds.X + bounds.Width / 2), int32(bounds.Y + 3), palette.RaisedColor),
                 "Selected segment lost its surface or contrasting boundary"
             )
         }

@@ -69,7 +69,7 @@ public data struct Badge {
         let resolved = this with{
             BackgroundColor = BackgroundColor ?? (isDot ? theme.ToneColor(Tone): theme.ToneFill(Tone)),
             TextColor = TextColor ?? theme.ToneColor(Tone),
-            BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone)),
+            BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone).WithAlpha(0.40)),
             FontFamily = FontFamily ?? theme.FontFamily,
             DotSize = dotSize,
             Height = height,

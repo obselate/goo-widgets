@@ -252,7 +252,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,
             Role = input.Role == AccessibilityRole.Auto ? AccessibilityRole.Group: input.Role,
             AccessibilityName = input.AccessibilityName ?? "Popup",
-            BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
+            BackgroundColor = input.BackgroundColor ?? theme.OverlayColor,
             BorderColor = input.BorderColor ?? theme.BorderColor,
             Padding = input.Padding ?? theme.ControlPadding,
             ScrollbarY = input.ScrollbarY ?? theme.Scrollbar,
