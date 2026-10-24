@@ -47,7 +47,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
         input = value with{Items = value.Items ?? []ToggleOption{}, SelectedIds = value.SelectedIds ?? []string{}}
         let items = input.Items!!
         let selected = input.SelectedIds!!
-        let activeId = hasFocus ? focusedId: selected.Length > 0 ? selected[0]: nil
+        let activeId string? = hasFocus ? focusedId: selected.Length > 0 ? selected[0]: nil
         var tabStop string?
         let seen = HashSet[string](StringComparer.Ordinal)
         for item in items {
