@@ -92,7 +92,7 @@ internal class ComboBoxExample : Cell {
                         AccessibilityName: "Account policy"
                     }
                 ),
-                Text{Content: "Labels · multiple and creatable", FontSize: 13},
+                Text{Content: "Labels", FontSize: 13},
                 Cell.Mount[ComboBoxInput, ComboBox](
                     "labels",
                     ComboBoxInput{

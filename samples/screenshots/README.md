@@ -33,14 +33,14 @@ Each image links to its page source. New pages need a registration, a matching P
 | [![Text area](TextArea.png)](../Goo.Widgets.Gallery/Pages/Inputs/TextAreaPage.gs)<br>Text area | [![Touch text editing](TouchTextEditing.png)](../Goo.Widgets.Gallery/Pages/Inputs/TouchTextEditingPage.gs)<br>Touch text editing | [![Toggle switch](ToggleSwitch.png)](../Goo.Widgets.Gallery/Pages/Controls/ToggleSwitchPage.gs)<br>Toggle switch |
 | [![Stepper](Stepper.png)](../Goo.Widgets.Gallery/Pages/Controls/StepperPage.gs)<br>Stepper | [![Upload tile](UploadTile.png)](../Goo.Widgets.Gallery/Pages/Controls/UploadTilePage.gs)<br>Upload tile | [![Search list](SearchList.png)](../Goo.Widgets.Gallery/Pages/Inputs/SearchListPage.gs)<br>Search list |
 | [![Combo box](ComboBox.png)](../Goo.Widgets.Gallery/Pages/Inputs/ComboBoxPage.gs)<br>Combo box | [![Calendar](Calendar.png)](../Goo.Widgets.Gallery/Pages/Inputs/CalendarPage.gs)<br>Calendar | [![Date picker](DatePicker.png)](../Goo.Widgets.Gallery/Pages/Inputs/DatePickerPage.gs)<br>Date picker |
-| [![Slider](Slider.png)](../Goo.Widgets.Gallery/Pages/Inputs/SliderPage.gs)<br>Slider | [![Find bar](FindBar.png)](../Goo.Widgets.Gallery/Pages/Inputs/FindBarPage.gs)<br>Find bar | |
+| [![Slider](Slider.png)](../Goo.Widgets.Gallery/Pages/Inputs/SliderPage.gs)<br>Slider | [![Find bar](FindBar.png)](../Goo.Widgets.Gallery/Pages/Inputs/FindBarPage.gs)<br>Find bar | [![Token input](TokenInput.png)](../Goo.Widgets.Gallery/Pages/Inputs/TokenInputPage.gs)<br>Token input |
 
 ## Data
 
 | | | |
 | --- | --- | --- |
 | [![Chip](Chip.png)](../Goo.Widgets.Gallery/Pages/Controls/ChipPage.gs)<br>Chip | [![Time axis](TimeAxis.png)](../Goo.Widgets.Gallery/Pages/Data/TimeAxisPage.gs)<br>Time axis | [![List view](ListView.png)](../Goo.Widgets.Gallery/Pages/Data/ListViewPage.gs)<br>List view |
-| [![Tree view](TreeView.png)](../Goo.Widgets.Gallery/Pages/Data/TreeViewPage.gs)<br>Tree view | [![Data grid](DataGrid.png)](../Goo.Widgets.Gallery/Pages/Data/DataGridPage.gs)<br>Data grid | |
+| [![Tree view](TreeView.png)](../Goo.Widgets.Gallery/Pages/Data/TreeViewPage.gs)<br>Tree view | [![Data grid](DataGrid.png)](../Goo.Widgets.Gallery/Pages/Data/DataGridPage.gs)<br>Data grid | [![Attachment chip](AttachmentChip.png)](../Goo.Widgets.Gallery/Pages/Data/AttachmentChipPage.gs)<br>Attachment chip |
 
 ## Feedback
 

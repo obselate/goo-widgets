@@ -39,6 +39,8 @@ class ChipPage : GalleryPage {
             selectedLeadingChip.Build(),
             disabledSelectedChip.Build(),
             customStyledChip.Build(),
+            Chip{Label: "Removable", OnRemove: () -> { }}.Build(),
+            Chip{Label: "Invalid token", Invalid: true, OnRemove: () -> { }}.Build(),
         }
     }
 }
