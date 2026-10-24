@@ -57,7 +57,12 @@ func ValidatePackage(id string, directory string, license string, extras[]string
     for entry in entries {
         Require(
             entry.DataSize == 0 ||
-                (entry.DataPointer >= 0 && entry.DataPointer + int64(entry.DataSize) <= assembly.Length),
+                (
+                entry.DataSize > 0 &&
+                    entry.DataPointer >= 0 &&
+                    entry.DataPointer +
+                    int64(entry.DataSize) <= assembly.Length
+            ),
             "Packaged assembly has invalid debug data."
         )
     }
