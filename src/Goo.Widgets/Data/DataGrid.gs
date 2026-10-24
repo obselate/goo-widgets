@@ -1021,7 +1021,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             let column = columns[index]
             let id = column.Id!!
             let label = column.Label ?? id
-            let direction = SortDirection(id)
+            let direction = filter ? DataGridSort.None: SortDirection(id)
             var content Blob = filter ? (column.Filter ?? Container{}): (
                 column.Header ??
                     Text{
@@ -1103,7 +1103,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.ColumnHeader,
                         Name: label,
-                        Description: SortDirection(id).ToString()
+                        Description: direction.ToString()
                     },
                     content
                 }

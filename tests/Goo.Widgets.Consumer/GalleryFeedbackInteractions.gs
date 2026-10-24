@@ -27,7 +27,7 @@ func FeedbackNode(adapter SearchListSemantics, role AccessibilityRole, name stri
     return nodes[index]
 }
 
-func FeedbackClick(window Window, bounds ElementRect, count int32 = 1) {
+func FeedbackClick(window Window, bounds ElementRect, count int32 = 1, settleFrames int32 = 12) {
     let id = OnlyNativeWindow()
     let x = float32(bounds.X + bounds.Width / 2.0)
     let y = float32(bounds.Y + bounds.Height / 2.0)
@@ -37,7 +37,7 @@ func FeedbackClick(window Window, bounds ElementRect, count int32 = 1) {
         PumpFrames(window, 3)
         MouseButton(id, x, y, false)
     }
-    PumpFrames(window, 12)
+    PumpFrames(window, settleFrames)
 }
 
 func FeedbackSetValue(window Window, node AccessibilityNode, value string) {
@@ -148,10 +148,11 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
         }
     }
     Require(SDL.PushEvent(ref event), "SDL rejected gallery wheel input")
-    PumpFrames(window, 20)
+    PumpFrames(window, 4)
 }
 
 func FeedbackGrid(window Window, adapter SearchListSemantics) {
+    window.SmoothScrolling = false
     window.Height = 640
     PumpFrames(window, 20)
     let sequenceGrid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
@@ -175,7 +176,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
             let before = FeedbackNode(adapter, AccessibilityRole.Row, name)
             let wasSelected = before.Selected
             let box = before.Bounds
-            FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20, Height: 20})
+            FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20, Height: 20}, settleFrames: 3)
             let after = FeedbackNode(adapter, AccessibilityRole.Row, name)
             Console.WriteLine(
                 "grid-sequence " + name + " before-y=" + box.Y.ToString() + " after-y=" + after.Bounds.Y.ToString()
@@ -208,7 +209,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
     PumpFrames(window, 2)
     let clicked = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     CaptureIssueProof(window, "gallery-grid-scrolled-before-check")
-    FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20})
+    FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20}, settleFrames: 3)
     let clickedAfter = FeedbackNode(adapter, AccessibilityRole.Row, "fjord")
     CaptureIssueProof(window, "gallery-grid-scrolled-after-check")
     Console.WriteLine(
@@ -234,7 +235,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         partial.Y < footer.Y && partial.Y + partial.Height > footer.Y,
         "Expected a partially visible row for the edge-click regression"
     )
-    FeedbackClick(window, ElementRect{X: partial.X + 8.0, Y: partial.Y + 10.0, Width: 20, Height: 4})
+    FeedbackClick(window, ElementRect{X: partial.X + 8.0, Y: partial.Y + 10.0, Width: 20, Height: 4}, settleFrames: 3)
     let partialAfter = FeedbackNode(adapter, AccessibilityRole.Row, "grove")
     Require(
         partialAfter.Selected == true && Math.Abs(partialAfter.Bounds.Y - partial.Y) < .1,
@@ -248,7 +249,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         PumpFrames(window, 8)
         let row = FeedbackNode(adapter, AccessibilityRole.Row, name)
         let box = row.Bounds
-        FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20.0, Height: 20.0})
+        FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20.0, Height: 20.0}, settleFrames: 3)
         let current = FeedbackNode(adapter, AccessibilityRole.Row, name)
         Console.WriteLine(
             "grid-check " + name + " selected=" + current.Selected.ToString() + " before-y=" + box.Y.ToString() +
