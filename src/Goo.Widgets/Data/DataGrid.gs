@@ -488,6 +488,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             OverflowX: Overflow.Scroll,
             OverflowY: Overflow.Hidden,
             ScrollbarVisibilityX: ScrollbarVisibility.Hidden,
+            OnFocus: (e FocusEvent) -> e.StopPropagation(),
+            OnBlur: (e FocusEvent) -> e.StopPropagation(),
             canvas
         }
         var root = Container{
