@@ -22,13 +22,19 @@ internal class TabBarExample : Cell {
 
     public override func Build() Blob {
         let theme = Theme.Read()
+        var label = selected
+        for item in items {
+            if item.Id == selected {
+                label = item.Label!!
+            }
+        }
         return Container{
             Width: Percent(100),
             MaxWidth: 600,
             Gap: 20,
             Cell.Mount[TabBarInput, TabBar](
                 "display",
-                TabBarInput{SelectedId: selected, OnSelect: Select, Items: items.ToArray(),}
+                TabBarInput{SelectedId: selected, OnSelect: Select, Items: items.ToArray(), OverflowMenu: true,}
             ),
             Cell.Mount[TabBarInput, TabBar](
                 "editor",
@@ -90,7 +96,7 @@ internal class TabBarExample : Cell {
                         OnSelect: Select,
                     }
                 ),
-                Text{Content: "Selected: " + selected, FontSize: theme.HeadingFontSize, FlexGrow: 1, MinWidth: 0},
+                Text{Content: "Selected " + label, FlexGrow: 1, MinWidth: 0},
             },
         }
     }

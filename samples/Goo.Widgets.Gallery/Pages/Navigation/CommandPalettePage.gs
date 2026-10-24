@@ -13,6 +13,7 @@ internal class CommandPaletteExample : Cell {
     public override func Build() Blob -> Container{
         Width: Percent(100),
         MaxWidth: 560,
+        MinHeight: 256,
         Gap: 20,
         ActionButton{
             Content: "Open command palette",

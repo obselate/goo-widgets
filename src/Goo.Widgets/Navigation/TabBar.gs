@@ -56,7 +56,7 @@ public data struct TabBarInput {
     var CreateRoot Func[TabBarInput, Container, Container]?
 }
 
-/// Scrolling tabs with one Tab stop and disabled-aware arrow navigation.
+/// Tabs with one Tab stop and disabled-aware arrow navigation. With OverflowMenu, horizontal tabs show only whole tabs.
 public open class TabBar : Cell[TabBarInput] {
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private var input TabBarInput
@@ -126,6 +126,7 @@ public open class TabBar : Cell[TabBarInput] {
                 Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
+                JustifyContent: input.Vertical ? JustifyContent.FlexStart: JustifyContent.Center,
                 Gap: theme.ControlGap,
                 item.Content ??
                     Text{
@@ -166,13 +167,14 @@ public open class TabBar : Cell[TabBarInput] {
             let dirty = Array.IndexOf(input.DirtyIds!!, id) >= 0
             var name = item.AccessibilityName!!
             if dirty {
-                button.Children.Add(Text{Content: "●", FontSize: theme.CaptionFontSize})
+                button.Children.Add(Container{Width: 6, Height: 6, BorderRadius: 3, BackgroundColor: theme.MutedTextColor})
             }
             if input.Badges != nil && input.Badges!!.TryGetValue(id, out var badge) {
                 button.Children.Add(Text{Content: badge, FontSize: theme.CaptionFontSize})
                 name += ", " + badge
             }
             button.Accessibility!!.Name = name + (dirty ? ", unsaved": "") + (pinned ? ", pinned": "")
+            var indicator Container? = nil
             if active && (input.ShowIndicator ?? true) {
                 let marker = Container{
                     Position: PositionType.Absolute,
@@ -198,20 +200,31 @@ public open class TabBar : Cell[TabBarInput] {
                         marker.Bottom = 0
                     }
                 }
-                button.Children.Add(marker)
+                indicator = marker
             }
             if input.OnClose != nil && !pinned {
+                button.Padding = Edges{Left: theme.ControlPadding, Right: 0}
+                button.BackgroundColor = Color.Transparent
+                button.Hover = Style{}
                 let tab = Container{
                     Key: id,
                     FlexDirection: FlexDirection.Row,
                     FlexShrink: 0,
                     AlignItems: AlignItems.Center,
+                    Padding: Edges{Right: theme.Spacing * 2},
+                    BackgroundColor: active ? theme.ActiveColor: theme.PanelColor,
+                    Hover: Style{BackgroundColor: theme.HoverColor},
                     button
                 }
                 let close = Button{
                     Key: "close-" + id,
-                    Width: 28,
-                    MinHeight: input.ItemHeight!!,
+                    Width: 20,
+                    Height: 20,
+                    BorderRadius: theme.RadiusSm,
+                    AlignItems: AlignItems.Center,
+                    JustifyContent: JustifyContent.Center,
+                    Color: theme.MutedTextColor,
+                    Hover: Style{BackgroundColor: theme.PressedColor, Color: theme.TextColor},
                     Disabled: item.Disabled,
                     Focusable: !item.Disabled,
                     TabStop: false,
@@ -222,7 +235,12 @@ public open class TabBar : Cell[TabBarInput] {
                 }
                 WidgetKeyBindings.BindActivation(close)
                 tab.Children.Add(close)
+                if let marker = indicator {
+                    tab.Children.Add(marker)
+                }
                 buttons[buttons.Count - 1] = tab
+            } else if let marker = indicator {
+                button.Children.Add(marker)
             }
         }
         var root = Container{
@@ -239,8 +257,18 @@ public open class TabBar : Cell[TabBarInput] {
             root = create(input, root)
         }
         root.FlexDirection = input.Vertical ? FlexDirection.Column: FlexDirection.Row
-        root.OverflowX = input.Vertical ? Overflow.Hidden: Overflow.Scroll
+        root.OverflowX = input.Vertical || input.OverflowMenu ? Overflow.Hidden: Overflow.Scroll
         root.OverflowY = input.Vertical ? Overflow.Scroll: Overflow.Hidden
+        if !input.Vertical && input.OverflowMenu {
+            var visible = -1
+            let shown = hasFocus && focused ? focusedId: input.SelectedId
+            for index in 0 ... items.Length {
+                if items[index].Id == shown {
+                    visible = index
+                }
+            }
+            root.Layout = WholeTabsLayout(visible, theme.Spacing / 2.0)
+        }
         root.ScrollbarY = theme.Scrollbar
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.TabList,
@@ -365,5 +393,56 @@ public open class TabBar : Cell[TabBarInput] {
         if input.Activation == TabActivation.Automatic {
             Select(item.Id!!)
         }
+    }
+}
+
+internal class WholeTabsLayout(Visible int32, Gap float64) : LayoutAlgorithm {
+    public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
+        var width = 0.0
+        var height = 0.0
+        for index in 0 ... context.ChildCount {
+            let size = context.MeasureChild(index, LayoutSize{Width: Double.PositiveInfinity, Height: available.Height})
+            width += size.Width + (index > 0 ? Gap: 0.0)
+            height = Math.Max(height, size.Height)
+        }
+        return LayoutSize{Width: Math.Min(available.Width, width), Height: height}
+    }
+
+    public func Arrange(context LayoutContext, finalSize LayoutSize) {
+        let widths = [context.ChildCount]float64
+        for index in 0 ... widths.Length {
+            widths[index] = context.MeasureChild(
+                index,
+                LayoutSize{Width: Double.PositiveInfinity, Height: finalSize.Height}
+            ).Width
+        }
+        var start int32 = 0
+        var end = End(widths, start, finalSize.Width)
+        while Visible >= end && start < Visible {
+            start++
+            end = End(widths, start, finalSize.Width)
+        }
+        var x = 0.0
+        for index in 0 ... widths.Length {
+            if index >= start && index < end {
+                context.ArrangeChild(index, ElementRect{X: x, Width: widths[index], Height: finalSize.Height})
+                x += widths[index] + Gap
+            } else {
+                context.ArrangeChild(
+                    index,
+                    ElementRect{X: finalSize.Width + Gap, Width: widths[index], Height: finalSize.Height}
+                )
+            }
+        }
+    }
+
+    private func End(widths[]float64, start int32, width float64) int32 {
+        var x = 0.0
+        var index = start
+        while index < widths.Length && (index == start || x + widths[index] <= width) {
+            x += widths[index] + Gap
+            index++
+        }
+        return index
     }
 }

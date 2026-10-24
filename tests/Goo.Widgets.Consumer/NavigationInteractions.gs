@@ -222,9 +222,11 @@ func NavigationInteractions() {
         )
         host.Tabs["one"].Handle!!.Focus()
         ChoiceKey(window, SDLScancode.End)
+        let last = host.Tabs["eight"].Handle!!.BorderBox
+        let strip = host.Viewport.BorderBox
         Require(
-            host.Selected == "eight" && host.Viewport.ScrollOffset.X > 0,
-            "Tab End did not select and scroll overflow into view"
+            host.Selected == "eight" && last.X >= strip.X && last.X + last.Width <= strip.X + strip.Width,
+            "Tab End did not select and reveal the last whole tab"
         )
         let overflow = FindSemantics(semantics.Tree?.Root, "All tabs")!!
         Require(

@@ -253,12 +253,16 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         if let leading = command.Leading {
             button.Children.Add(leading)
         }
-        let label = Container{FlexDirection: FlexDirection.Row, MinWidth: 0}
+        let label = Container{FlexDirection: FlexDirection.Row, MinWidth: 0, FlexShrink: 1}
         var position = 0
         for span in matches[id].Ranges {
             if span.Start > position {
                 label.Children.Add(
-                    Text{Content: command.Label.Substring(position, span.Start - position), TextWrap: TextWrap.NoWrap}
+                    Text{
+                        Content: command.Label.Substring(position, span.Start - position),
+                        TextWrap: TextWrap.NoWrap,
+                        FlexShrink: 0,
+                    }
                 )
             }
             label.Children.Add(
@@ -267,12 +271,19 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                     FontWeight: theme.HeadingFontWeight,
                     Color: theme.AccentColor,
                     TextWrap: TextWrap.NoWrap,
+                    FlexShrink: 0,
                 }
             )
             position = span.Start + span.Length
         }
         if position < command.Label.Length {
             label.Children.Add(Text{Content: command.Label.Substring(position), TextWrap: TextWrap.NoWrap})
+        }
+        if label.Children.Count > 0 {
+            let tail = (label.Children[label.Children.Count - 1] as Text)!!
+            tail.MinWidth = 0
+            tail.FlexShrink = 1
+            tail.TextTrimming = TextTrimming.Ellipsis
         }
         let content = Container{
             FlexDirection: FlexDirection.Row,
@@ -289,6 +300,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                     FontSize: theme.CaptionFontSize,
                     Color: theme.MutedTextColor,
                     TextWrap: TextWrap.NoWrap,
+                    TextTrimming: TextTrimming.Ellipsis,
                     MinWidth: 0,
                     FlexShrink: 1,
                 }
@@ -296,7 +308,9 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         }
         button.Children.Add(content)
         if let shortcut = command.Shortcut {
-            button.Children.Add(Kbd{Keys: []KeyBinding{shortcut}}.Build())
+            let keys = Kbd{Keys: []KeyBinding{shortcut}}.Build()
+            keys.FlexShrink = 0
+            button.Children.Add(keys)
         }
         if let create = snapshot.CreateItem {
             return create(command, matches[id], button)
