@@ -2,7 +2,7 @@ package Goo.Widgets.Layout
 
 import Goo
 import Goo.Widgets
-import Goo.Widgets.Actions
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import System
 
@@ -83,7 +83,9 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
         if value.OnQueryChange != nil {
             root.Children.Add(
                 TextField{
-                    Label: "Search settings",
+                    Placeholder: "Search",
+                    AccessibilityName: "Search settings",
+                    Leading: MaterialIcons.Create("search", 16, theme.MutedTextColor),
                     Value: value.Query,
                     Controlled: true,
                     OnChange: value.OnQueryChange,
@@ -97,7 +99,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
             Width: narrow ? Percent(100): value.SidebarWidth,
             FlexShrink: 0,
             MinWidth: 0,
-            Gap: theme.Spacing,
+            Gap: 2,
             FlexDirection: narrow ? FlexDirection.Row: FlexDirection.Column,
             FlexWrap: FlexWrap.Wrap,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Settings sections"}
@@ -107,14 +109,32 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
         var found bool
         for section in sections {
             let id = section.Id
-            navigation.Children.Add(
-                ActionButton{
-                    Content: section.Title,
-                    Leading: section.Icon,
-                    Pressed: selected == id,
-                    OnClick: () -> value.OnSelect?.Invoke(id)
-                }.Build()
-            )
+            let row = Button{
+                Width: narrow ? Length.Auto: Percent(100),
+                Height: theme.ControlHeight - 4,
+                Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.FlexStart,
+                Gap: theme.Spacing,
+                BorderRadius: theme.ControlRadius,
+                BackgroundColor: selected == id ? theme.ActiveColor: Color.Transparent,
+                Color: theme.TextColor,
+                OnClick: () -> value.OnSelect?.Invoke(id),
+                Hover: Style{BackgroundColor: selected == id ? theme.ActiveColor: theme.HoverColor},
+                Focus: theme.FocusStyle,
+                Accessibility: Accessibility{
+                    Role: AccessibilityRole.Button,
+                    Name: section.Title ?? id,
+                    Checked: selected == id ? AccessibilityChecked.True: AccessibilityChecked.False
+                }
+            }
+            if let icon = section.Icon {
+                row.Children.Add(icon)
+            }
+            row.Children.Add(Text{Content: section.Title ?? id, FontWeight: selected == id ? theme.LabelFontWeight: theme.FontWeight})
+            WidgetKeyBindings.BindActivation(row)
+            navigation.Children.Add(row)
             if query.Length == 0 && selected != id {
                 continue
             }

@@ -22,20 +22,16 @@ internal class CardPage : GalleryPage {
                 Card{
                     Variant: variant,
                     Title: variant.ToString(),
-                    Subtitle: "Workspace storage",
                     HeaderAction: ActionButton{Content: "Manage", Height: 28}.Build(),
                     Content: Text{Content: "42.8 GB of 100 GB", Color: theme.TextColor},
-                    Footer: Text{Content: "Across all workspaces", Color: theme.MutedTextColor}
+                    Footer: Text{Content: "12 workspaces", Color: theme.MutedTextColor}
                 }.Build()
             )
         }
-        left.Children.Add(
-            Card{Title: "Open workspace", Subtitle: "A single pressable surface", OnClick: () -> { }}.Build()
-        )
+        left.Children.Add(Card{Title: "Open workspace", OnClick: () -> { }}.Build())
         right.Children.Add(
             Card{
                 Title: "Unavailable",
-                Subtitle: "Disabled pressable surface",
                 Disabled: true,
                 OnClick: () -> { }
             }.Build()

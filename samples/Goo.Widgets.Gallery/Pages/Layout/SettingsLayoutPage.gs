@@ -26,12 +26,10 @@ internal class SettingsLayoutExample : Cell {
                 SettingsSection{
                     Id: "general",
                     Title: "General",
-                    Description: "Your workspace preferences",
                     Rows: []SettingsRow{
                         SettingsRow{
                             Id: "name",
                             Label: "Workspace name",
-                            Description: "Shown in the title bar",
                             Keywords: []string{"project", "title"},
                             Control: TextField{
                                 Value: name,
@@ -58,7 +56,6 @@ internal class SettingsLayoutExample : Cell {
                 SettingsSection{
                     Id: "privacy",
                     Title: "Privacy",
-                    Description: "Data and diagnostics",
                     Rows: []SettingsRow{
                         SettingsRow{
                             Id: "diagnostics",

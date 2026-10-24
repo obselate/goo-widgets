@@ -13,7 +13,6 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
         Width: Percent(100),
         MinWidth: 0,
         Gap: 24,
-        Text{Content: "Low-priority details hide first as the bar becomes narrow.", Color: Theme.Read().MutedTextColor},
         Cell.Mount[StatusBarInput, StatusBar](
             "full",
             StatusBarInput{
@@ -50,7 +49,7 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
             }
         ),
         Container{
-            Width: 240,
+            Width: 180,
             Cell.Mount[StatusBarInput, StatusBar](
                 "narrow",
                 StatusBarInput{

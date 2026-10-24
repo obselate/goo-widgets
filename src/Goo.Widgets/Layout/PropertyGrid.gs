@@ -2,7 +2,7 @@ package Goo.Widgets.Layout
 
 import Goo
 import Goo.Widgets
-import Goo.Widgets.Actions
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import System
 import System.Collections.Generic
@@ -52,7 +52,9 @@ public data struct PropertyGrid {
                 Container{
                     Key: "search",
                     TextField{
-                        Label: "Search properties",
+                        Placeholder: "Search",
+                        AccessibilityName: "Search properties",
+                        Leading: MaterialIcons.Create("search", 16, theme.MutedTextColor),
                         Value: query,
                         Controlled: true,
                         OnChange: OnQueryChange,
@@ -78,27 +80,25 @@ public data struct PropertyGrid {
             }
             let collapsed = Array.IndexOf(CollapsedSections ?? []string{}, section) >= 0 && query.Length == 0
             if section.Length > 0 {
+                group.Children.Add(Container{Key: "divider", Height: 1, BackgroundColor: theme.BorderColor})
                 if let toggle = OnSectionToggle {
                     let name = section
-                    group.Children.Add(
-                        ActionButton{
-                            Content: (collapsed ? "+ ": "- ") + name,
-                            OnClick: () -> toggle(name),
-                            CreateRoot: (input, text) -> Button{
-                                Key: "heading",
-                                Accessibility: Accessibility{
-                                    Role: AccessibilityRole.Button,
-                                    Name: name,
-                                    Expanded: !collapsed
-                                },
-                                OnClick: input.OnClick,
-                                Height: theme.ControlHeight,
-                                Color: theme.TextColor,
-                                Focus: theme.FocusStyle,
-                                text
-                            }
-                        }.Build()
-                    )
+                    let heading = Button{
+                        Key: "heading",
+                        Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name, Expanded: !collapsed},
+                        OnClick: () -> toggle(name),
+                        Height: theme.ControlHeight - 8,
+                        FlexDirection: FlexDirection.Row,
+                        AlignItems: AlignItems.Center,
+                        JustifyContent: JustifyContent.FlexStart,
+                        Gap: theme.Spacing,
+                        Color: theme.TextColor,
+                        Focus: theme.FocusStyle,
+                        MaterialIcons.Create(collapsed ? "chevron_right": "expand_more", 16, theme.MutedTextColor),
+                        Text{Content: name, FontWeight: theme.HeadingFontWeight}
+                    }
+                    WidgetKeyBindings.BindActivation(heading)
+                    group.Children.Add(heading)
                 } else {
                     group.Children.Add(
                         Text{
@@ -150,6 +150,26 @@ public data struct PropertyGrid {
         let theme = Theme.Read()
         let layout = Layout
         let labelWidth = LabelWidth == 0 ? 160: LabelWidth
+        let reset Blob? = if item.Modified && item.OnReset != nil {
+            let button = Button{
+                Width: 24,
+                Height: 24,
+                FlexShrink: 0,
+                BorderRadius: theme.ControlRadius,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                Disabled: item.Disabled,
+                OnClick: item.OnReset,
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Reset " + item.Label},
+                Hover: Style{BackgroundColor: theme.HoverColor},
+                Focus: theme.FocusStyle,
+                MaterialIcons.Create("restart_alt", 16, theme.MutedTextColor)
+            }
+            WidgetKeyBindings.BindActivation(button)
+            button
+        } else {
+            nil
+        }
         let field = FormField{
             Label: item.Label ?? "",
             Description: item.Description,
@@ -158,6 +178,16 @@ public data struct PropertyGrid {
             CreateContent: item.CreateEditor,
             LabelFor: item.LabelFor,
             CreateRoot: (input, root) -> {
+                if reset != nil && root.Children.Count > 1 {
+                    root.Children[1] = Container{
+                        MinWidth: 0,
+                        FlexDirection: FlexDirection.Row,
+                        AlignItems: AlignItems.Center,
+                        Gap: theme.Spacing,
+                        root.Children[1],
+                        reset
+                    }
+                }
                 if layout == PropertyGridLayout.Compact {
                     let label = root.Children[0]
                     label.Width = labelWidth
@@ -170,7 +200,7 @@ public data struct PropertyGrid {
                     root.Children.Add(label)
                     root.Children.Add(editor)
                     root.FlexDirection = FlexDirection.Row
-                    root.AlignItems = AlignItems.FlexStart
+                    root.AlignItems = editor.Children.Count > 1 ? AlignItems.FlexStart: AlignItems.Center
                 }
                 root.FlexGrow = 1
                 root.Width = Length.Auto
@@ -188,21 +218,8 @@ public data struct PropertyGrid {
             Gap: theme.ControlGap,
             field
         }
-        if item.Modified {
-            if let reset = item.OnReset {
-                row.Children.Add(
-                    ActionButton{
-                        Content: "Reset",
-                        AccessibilityName: "Reset " + item.Label,
-                        OnClick: reset,
-                        Disabled: item.Disabled,
-                        MinWidth: 0,
-                        FontSize: theme.CaptionFontSize
-                    }.Build()
-                )
-            } else {
-                row.Children.Add(Text{Content: "Modified", Color: theme.WarningColor, FontSize: theme.CaptionFontSize})
-            }
+        if item.Modified && item.OnReset == nil {
+            row.Children.Add(Text{Content: "Modified", Color: theme.WarningColor, FontSize: theme.CaptionFontSize})
         }
         return row
     }

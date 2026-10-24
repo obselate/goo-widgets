@@ -92,7 +92,7 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
             let priority = List[StatusBarItem](items)
             priority.Sort((a, b) -> a.Priority.CompareTo(b.Priority))
             for item in priority {
-                if total <= width {
+                if total <= width - 2 * theme.BorderWidth {
                     break
                 }
                 if widths.TryGetValue(item.Id, out let measured) {
@@ -121,7 +121,11 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
             Height: theme.ControlHeight,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: theme.SunkenColor,
+            Overflow: Overflow.Hidden,
+            BackgroundColor: theme.PanelColor,
+            BorderWidth: theme.BorderWidth,
+            BorderColor: theme.BorderColor,
+            BorderRadius: theme.ControlRadius,
             Color: theme.TextColor,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Status bar"},
             start,
@@ -154,6 +158,7 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
                 BorderWidth: 0,
                 BorderRadius: 0,
                 BackgroundColor: Color.Transparent,
+                DisabledBackgroundColor: Color.Transparent,
                 FontSize: theme.CaptionFontSize
             }
             if item.MenuItems != nil {

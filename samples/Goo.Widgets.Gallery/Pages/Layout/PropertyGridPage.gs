@@ -39,7 +39,6 @@ internal class PropertyGridExample : Cell {
                     Label: "Name",
                     Key: "workspace.name",
                     Section: "Workspace",
-                    Description: "Shown in the title bar",
                     Modified: name != "Workspace",
                     OnReset: () -> {
                         name = "Workspace"
