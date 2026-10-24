@@ -226,8 +226,9 @@ func ThemeErgonomics() {
                 }
             ).Build() as Button
         )!!
+        let contents = (button.Children[0] as Container)!!
         Require(
-            (button.Children[0] as Text)!!.Content == "Apply theme"
+            (contents.Children[0] as Text)!!.Content == "Apply theme"
             && button.Accessibility?.Name == "Apply theme",
             "Themed button lost its typography or accessible label."
         )
