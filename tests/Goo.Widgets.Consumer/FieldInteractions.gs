@@ -349,6 +349,10 @@ func AddonFramePixels() {
                         host.Other.Focus()
                     }
                     PumpFrames(window, 4)
+                    Require(
+                        FindSemantics(semantics.Tree?.Root, "Addon field")!!.Focused == focused,
+                        "Addon border check did not reach the requested focus state"
+                    )
                     let box = host.Frame.BorderBox
                     let image = ThemeCapture(window)
                     let border = invalid ? palette.DangerColor: palette.InputBorderColor
