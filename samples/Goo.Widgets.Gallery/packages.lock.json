@@ -4,19 +4,12 @@
     "net10.0": {
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.13.0",
-        "contentHash": "IJIdv+RsDm6oAQJmGz+HQl7dFJrc2cLX5HX2rBVq7ZN5rSLJmxqqvNcQXl30K6xmHkaqYzF0+TH72KJmTkgohw==",
+        "resolved": "0.16.0",
+        "contentHash": "frlPLkUeS3mM/KdIZEBF7c/KNvT8FOSBk7NlzHyyRXJeL4wGM4zCZ7m7MgkNcLgo2Jl4dq92N2DvE9SOn8uh2w==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
+          "Tmds.DBus.Protocol": "0.95.1",
           "Unicode.Bidi": "0.3.18"
-        }
-      },
-      "Goo.Gestures": {
-        "type": "Transitive",
-        "resolved": "0.10.0",
-        "contentHash": "znHbiQWApHr90UTKZnHsCmJVqkoa8CtgGZlOMYv18tcOk5c/f+r2I4K1vgZG4STqjnkfNuT/v3EKJT9HOF4p6g==",
-        "dependencies": {
-          "Goo": "0.10.0"
         }
       },
       "Hexa.NET.SDL3": {
@@ -37,6 +30,11 @@
         "resolved": "1.3.2",
         "contentHash": "fZgOC/3CswUrndjDTac70aQpYdtxbW5+5bRumR7vzvI2HJbkmgKisB1c9oT+GA6v0jB/JDR9BLa9FiPzQmaK6A=="
       },
+      "Tmds.DBus.Protocol": {
+        "type": "Transitive",
+        "resolved": "0.95.1",
+        "contentHash": "IbGhqZAqqgB/DkT70+lAk4MNv95tZtsTMFQ+S3uGy0aTfOkGVeFjeNJsX8dBI/3+CPnO5XW6lRQKGeFEgHElKw=="
+      },
       "Unicode.Bidi": {
         "type": "Transitive",
         "resolved": "0.3.18",
@@ -45,14 +43,13 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.13.0, )",
-          "Goo.Gestures": "[0.10.0, )"
+          "Goo": "[0.16.0, )"
         }
       },
       "goo.widgets.markdown": {
         "type": "Project",
         "dependencies": {
-          "Goo.Widgets": "[0.8.0, )",
+          "Goo.Widgets": "[0.9.0, )",
           "Markdig": "[1.3.2, )"
         }
       }
