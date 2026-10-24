@@ -182,6 +182,23 @@ func ThemeBackgroundContracts() {
 }
 
 func ThemePolicyContracts() {
+    using let literalHost = ThemePreferenceHost()
+    literalHost.Resize(360, 280, 360, 280)
+    let literalAccent = Color.Rgb(31, 91, 173)
+    let literalRoot = ThemeScopeHost(){
+        Value = Theme{AccentColor: literalAccent, BackdropColor: Color.Transparent, HoverColor: Color.Transparent}
+    }
+    let literalWindow = Window{Root: literalRoot}
+    Theme.Attach(literalWindow, Theme{AccentColor: literalAccent})
+    literalWindow.Attach(literalHost)
+    ThemeFrames(literalHost)
+    for probe in []ThemeProbe{literalRoot.Outside!!, literalRoot.Inside!!} {
+        Require(probe.Snapshot.FontSize == Theme.Default.FontSize && probe.Handle.ContentBox.Height > 0.0,
+            "A consumer theme literal did not render text at the default size.")
+        Require(probe.Snapshot.AccentColor == literalAccent, "Theme normalization lost the consumer accent.")
+    }
+    Require(literalRoot.Inside!!.Snapshot.BackdropColor == Color.Transparent
+        && literalRoot.Inside!!.Snapshot.HoverColor == Color.Transparent, "Theme normalization replaced transparent tints.")
     using let darkHost = ThemePreferenceHost()
     darkHost.Resize(360, 280, 360, 280)
     let accent = Color.Rgb(31, 91, 173)

@@ -4,7 +4,7 @@ import Goo
 
 /// Retained subtree theme. Content must construct widgets inside the deferred callback.
 public data struct ThemeScope {
-    /// Palette and metrics, or nil to inherit. Window reduced-motion policy always applies.
+    /// Palette and metrics, or nil to inherit. Missing values use Default. Window reduced-motion policy always applies.
     var Value Theme?
     /// Absolute control metrics, or nil to preserve the snapshot's metrics.
     var Density Density?
@@ -14,7 +14,7 @@ public data struct ThemeScope {
     /// Builds a layout-transparent retained provider without changing window colors.
     public func Build() Blob {
         let inherited = Theme.Read()
-        var value = Value ?? inherited
+        var value = Value?.ResolveDefaults() ?? inherited
         value.ReducedMotion = inherited.ReducedMotion
         if let density = Density {
             value = value.WithDensity(density)
