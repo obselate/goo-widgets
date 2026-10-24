@@ -6,9 +6,7 @@ Follow the [installation instructions](../README.md#install).
 
 ## Basic widgets
 
-Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Insert that result alongside the parent container's properties and other children.
-
-The [complete example](../samples/Goo.Widgets.QuickStart/Program.gs) uses an action button to reset the selected color:
+Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Add it to the parent container:
 
 ```gsharp
 import Goo.Widgets.Actions
@@ -20,9 +18,9 @@ ActionButton{Content: "Reset", OnClick: () -> ResetColor(),}.Build()
 accessible name. Set `AccessibilityName` only when assistive technology should
 announce different text.
 
-`ResetColor` belongs to the host Cell. It only changes application state: Goo
-automatically rebuilds the Cell after its input callback. Callbacks from a
-separately mounted child that change parent state must call the parent's `Rebuild()`.
+`ResetColor` changes the host Cell's state. Input callbacks rebuild that Cell
+automatically. A mounted child's callback that changes parent state must call
+the parent's `Rebuild()`. See the [complete example](../samples/Goo.Widgets.QuickStart/Program.gs).
 
 ### Widget categories
 
@@ -42,9 +40,8 @@ separately mounted child that change parent state must call the parent's `Rebuil
 
 ## Application input bindings
 
-Goo 0.6.4 makes primitive keyboard policy explicit. Widget buttons and composite
-controls provide their own activation and navigation bindings. Attach the shared
-editing policy to the application root after creating its `Window`:
+Widget buttons and composite controls supply activation and navigation bindings.
+Attach the shared editing policy to the application root after creating its `Window`:
 
 ```gsharp
 import Goo.Widgets
@@ -90,7 +87,7 @@ ModalDialog{
 
 ## Color picker integration
 
-Keep the selected color in your application's host cell. Mount `ColorPicker` inside the host's `Build` method with a stable key:
+Keep the selected color in the host Cell. Mount `ColorPicker` in `Build` with a stable key:
 
 ```gsharp
 import Goo
@@ -118,13 +115,11 @@ Cell.Mount[ColorPickerInput, ColorPicker](
 | `OnModeChanged` | Adopt a mode button choice when the host owns `Mode`. |
 | Mount key | Keep the same key across rebuilds so the picker retains its internal interaction state. |
 
-Set `Compact: true` to show only the wheel and tone
-slider. The default is the full composition with the mode selector and preview.
-Leave `Mode` unset when the picker should switch models locally through its
-built-in buttons. If the host owns the model, supply `Mode` and update that value
-from `OnModeChanged` when a mode button is pressed.
+Set `Compact: true` for only the wheel and tone slider. The default also shows
+the mode selector and preview. Leave `Mode` unset for local switching.
+To control it from the host, set `Mode` and update it from `OnModeChanged`.
 
-The example host implements the callbacks as follows:
+Implement the callbacks in the host:
 
 ```gsharp
 private var liveColor int32 = 0x4F8FEA
@@ -142,7 +137,7 @@ private func CommitColor(value int32) {
 }
 ```
 
-The sample keeps `committedColor` in memory. In your application, `CommitColor` is where you can update a settings model, document, or undo history. Keeping persistence in this callback avoids saving every drag preview.
+The sample keeps `committedColor` in memory. Save to settings, a document, or undo history in `CommitColor`, not on each drag preview.
 
 Convert the packed value when building Goo visuals:
 
@@ -152,9 +147,9 @@ Container{Width: 260.0, Height: 96.0, BackgroundColor: ColorMath.GooColor(liveCo
 Text("#${ColorMath.Hex(liveColor)}")
 ```
 
-Changing `liveColor` from elsewhere and rebuilding the host also updates the picker. The sample's Reset button demonstrates this. The picker manages its wheel image and disposes it when Goo unmounts the cell.
+Changing `liveColor` and rebuilding the host updates the picker, as the sample's Reset button shows. The picker disposes its wheel image on unmount.
 
-When the mounted picker has siblings, give those siblings keys as well. The complete example keys the Reset button and committed-color readout.
+Key the picker's siblings, as the example does for Reset and the committed-color readout.
 
 ## Labels and color controls
 
@@ -193,9 +188,9 @@ Cell.Mount[SliderInput, Slider](
 node's `Position`; supply `Center: Point{ X: 300.0, Y: 120.0 }` for an explicit
 screen-space card center.
 
-## Run the complete application
+## Run the example
 
-From this repository:
+From the repository:
 
 ```sh
 dotnet run --project samples/Goo.Widgets.QuickStart -c Release
@@ -204,8 +199,7 @@ dotnet run --project samples/Goo.Widgets.QuickStart -c Release
 In a Wayland session, set `SDL_VIDEODRIVER=wayland` if needed to select the native display driver.
 
 The [project](../samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj) uses
-source project references. The same application source works with the NuGet
-installation above.
+source references. Its application source also works with the NuGet package.
 
 ## Dialogs, popovers, and menus
 
@@ -400,10 +394,9 @@ Banner{
 }.Build()
 ```
 
-`Tone` is Neutral, Info, Success, Warning or Danger. It is also available on
-Badge and Chip. Banner replaces `Loud = true` with `Tone.Warning` and
-`Alert = true` with `Tone.Danger`. All repository callers use the new API.
-Danger uses an assertive alert. Other tones use a polite status.
+`Tone` is Neutral, Info, Success, Warning or Danger. Badge and Chip also use it.
+Replace Banner's `Loud = true` with `Tone.Warning` and `Alert = true` with
+`Tone.Danger`. Danger uses an assertive alert. Other tones use a polite status.
 Set `Live = false` for static messages.
 
 Banner supports a title, icon, trailing action, actions below its body and a
@@ -418,9 +411,9 @@ calendar and tree key policies stay unchanged.
 
 ## Compose and customize
 
-Widgets expose data, callbacks, appearance properties, and factories for their Goo
-primitives. Use G# `with` to derive widget values. Each `Build()` creates a fresh
-tree. No global theme registration or initialization is required.
+Widgets expose data, callbacks, appearance, and factories for Goo primitives.
+Use G# `with` to derive values. Each `Build()` creates a fresh tree.
+No global theme registration or initialization is required.
 
 - Build value widgets inside the host Cell's `Build`. Input callbacks automatically
   rebuild that Cell. Mount stateful widgets such as Slider, ColorPicker,
@@ -465,9 +458,8 @@ tree. No global theme registration or initialization is required.
 ## Controlled split panes, tabs, and multiline fields
 
 Mount `SplitPaneInput/SplitPane`, `TabBarInput/TabBar`, and `TextAreaInput/TextArea`
-with stable `Cell.Mount` keys. Update the supplied value in the host callback and
-call the host's `Rebuild()`; each mounted control retains its own interaction
-state.
+with stable keys. In the host callback, update the value and call `Rebuild()`.
+Each mounted control retains its interaction state.
 
 `SplitPane` accepts first/second content, horizontal or vertical orientation, and
 a controlled ratio or pixel value. Minima are in logical pixels. When their sum
@@ -584,11 +576,10 @@ custom segments. `OnActivate` enables pointer/Enter/Space activation and Tab foc
 
 Mount `TimeAxisInput/TimeAxis` with a stable key. Supply an absolute
 `DateTimeOffset` range and identified `TimeAxisEvent` intervals. `TickInterval`,
-`FormatTick`, and `PixelsPerHour` control the ruler. Ticks begin at the range start
-and retain its UTC offset; calendar/time-zone formatting beyond that belongs in
-the formatter. Ranges are half-open, and equal event endpoints represent points.
-At most 4096 ticks and a canvas width between .01 and 1e9 logical pixels are
-accepted. This widget lays out its event set; it is not a virtual event database.
+`FormatTick`, and `PixelsPerHour` control the ruler. Ticks start at the range start
+and retain its UTC offset. Put other calendar/time-zone formatting in the formatter.
+Ranges are half-open. Equal event endpoints are points. Limits: 4096 ticks and
+a canvas width of .01 to 1e9 logical pixels. This is not a virtual event database.
 
 Events are sorted by start and then ordinal ID, clipped to the range, and assigned
 the first available lane. `MinimumEventWidth` participates in collision handling,
@@ -660,18 +651,17 @@ with the native runner to exercise both functions.
 
 ## Controlled TreeView
 
-Mount `TreeViewInput/TreeView` with unique `TreeNode.Id` values throughout the
-hierarchy, including collapsed descendants. Each node supplies a label or custom
-content, optional check state, and children. A disabled node also disables its
-descendants. Cycles and shared/duplicate node identities are rejected. Expansion
-uses `ExpandedIds` and `OnExpandedChange`; single row selection uses `SelectedId`
-and `OnSelect`. Host callbacks should update their input and rebuild the host.
-Set `ExpandOnActivate: true` to make a branch's row click, Enter, and accessible
-Activate request both selection and expansion/collapse. The host still updates
-`ExpandedIds`. Expander buttons toggle once; checkbox clicks and Space retain the
-host's check policy. This is enabled in both gallery examples and defaults to false.
-Replace node/expansion arrays when their contents change; typed Cell inputs are
-immutable snapshots and do not observe in-place collection edits.
+Mount `TreeViewInput/TreeView` with unique `TreeNode.Id` values, including collapsed
+descendants. Nodes supply a label or custom content, optional check state, and
+children. Disabling a node disables its descendants. Cycles and shared/duplicate
+identities are rejected. Control expansion with `ExpandedIds`/`OnExpandedChange`
+and single-row selection with `SelectedId`/`OnSelect`. Callbacks must update inputs
+and rebuild the host.
+Set `ExpandOnActivate: true` for branch row clicks, Enter, and accessible Activate
+to request selection and expansion/collapse. The host still updates `ExpandedIds`.
+Expander buttons toggle once. Checkbox clicks and Space retain the host's check
+policy. Both gallery examples enable this option. The default is false.
+Replace changed node/expansion arrays. Typed Cell inputs do not observe in-place edits.
 
 The tree composes `Checkbox` for False, True, and Mixed states. Unspecified omits
 the check. `OnCheckChange` requests True from False/Mixed and False from True; it
@@ -805,7 +795,7 @@ GOO_CLI=/path/to/goo dotnet run --project tools/Goo.Widgets.NativeTests -c Relea
 ```
 
 The runner writes screenshots, per-page logs, and `results.json` to
-`artifacts/gallery-feedback`. Use `--output` to change that directory; optional
-page names select cases, such as `'Data grid' 'Tree view'`. These checks compile
-the gallery's actual cells into the package consumer and separate native presses
-from releases with rendered frames, so focus-induced layout changes are exercised.
+`artifacts/gallery-feedback`. Change it with `--output`. Optional page names select
+cases, such as `'Data grid' 'Tree view'`. Checks compile the gallery cells into the
+package consumer. Frames between native presses and releases expose focus-induced
+layout changes.
