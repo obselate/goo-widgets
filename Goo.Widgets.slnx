@@ -4,4 +4,5 @@
   <Project Path="samples/Goo.Widgets.Gallery/Goo.Widgets.Gallery.gsproj" Type="9A19103F-16F7-4668-BE54-9A1E7A4F7556" />
   <Project Path="samples/Goo.Widgets.QuickStart/Goo.Widgets.QuickStart.gsproj" Type="9A19103F-16F7-4668-BE54-9A1E7A4F7556" />
   <Project Path="samples/Goo.Widgets.Theme/Goo.Widgets.Theme.gsproj" Type="9A19103F-16F7-4668-BE54-9A1E7A4F7556" />
+  <Project Path="tools/Goo.Widgets.NativeTests/Goo.Widgets.NativeTests.gsproj" Type="9A19103F-16F7-4668-BE54-9A1E7A4F7556" />
 </Solution>

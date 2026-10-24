@@ -462,13 +462,14 @@ NoWrap enables horizontal scrolling, and both modes allow vertical scrolling.
 Run `bash scripts/verify.sh` before the optional native checks:
 
 ```sh
-GOO_WIDGETS_COMPOSITES=1 /usr/bin/python3 scripts/with-isolated-wayland.py -- \
+GOO_WIDGETS_COMPOSITES=1 dotnet run --project tools/Goo.Widgets.NativeTests -c Release -- isolated -- \
   dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
 ```
 
 Set `GOO_WIDGETS_PROOF_DIR` to capture native results and `GOO_CLI` to the matching
-Goo DevTools executable or DLL. The runner creates a private KWin session and input
-seat and requires the platform packages listed in its docstring.
+Goo DevTools executable or DLL. The runner requires KWin, libei and D-Bus development
+files, `dbus-run-session`, and AT-SPI registry binaries. It owns private runtime,
+config, cache, data and bus paths. It does not use the desktop session.
 
 ## Touch text editing
 
@@ -763,8 +764,8 @@ Build with `scripts/verify.sh`, then run the actual gallery pages in isolated
 native processes. `GOO_CLI` may name a Goo executable or its built CLI DLL:
 
 ```sh
-GOO_CLI=/path/to/goo /usr/bin/python3 scripts/with-isolated-wayland.py -- \
-  python3 scripts/verify-gallery-feedback.py
+GOO_CLI=/path/to/goo dotnet run --project tools/Goo.Widgets.NativeTests -c Release -- isolated -- \
+  dotnet tools/Goo.Widgets.NativeTests/bin/Release/net10.0/Goo.Widgets.NativeTests.dll gallery
 ```
 
 The runner writes screenshots, per-page logs, and `results.json` to
