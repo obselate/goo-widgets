@@ -181,7 +181,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
 func CreateRegistry() GalleryRegistry ->
 GalleryRegistry(
     []GalleryCategory{
-        GalleryCategory("Content", []GalleryPage{MarkdownViewPage{}, TypographyPage{}, KbdPage{}}),
+        GalleryCategory("Content", []GalleryPage{MarkdownViewPage{}, TypographyPage{}, KbdPage{}, CodeBlockPage{}}),
         GalleryCategory("Actions", []GalleryPage{ActionButtonPage{}, IconButtonPage{},}),
         GalleryCategory(
             "Inputs",
@@ -193,6 +193,7 @@ GalleryRegistry(
                 NumberInputPage{},
                 FormFieldPage{},
                 TextAreaPage{},
+                FindBarPage{},
                 TouchTextEditingPage{},
                 ToggleSwitchPage{},
                 StepperPage{},

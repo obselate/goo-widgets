@@ -383,6 +383,10 @@ func Main() {
         ThemeInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_TEXT_SURFACES") == "1" {
+        TextSurfaceInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_EDITING_BINDINGS") == "1" {
         EditingNavigationContracts()
         TextFieldAccessibility()
