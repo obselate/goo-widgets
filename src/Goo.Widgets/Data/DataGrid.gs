@@ -1021,15 +1021,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             let column = columns[index]
             let id = column.Id!!
             let label = column.Label ?? id
+            let direction = SortDirection(id)
             var content Blob = filter ? (column.Filter ?? Container{}): (
                 column.Header ??
                     Text{
-                    Content: label +
-                        (
-                        SortDirection(id) == DataGridSort.Ascending ? " ↑": SortDirection(
-                            id
-                        ) == DataGridSort.Descending ? " ↓": ""
-                    ),
+                    Content: label,
                     Color: theme.MutedTextColor,
                     TextWrap: TextWrap.NoWrap,
                     FontFamily: theme.FontFamily,
@@ -1037,6 +1033,15 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     FontWeight: theme.LabelFontWeight,
                 }
             )
+            if !filter && column.Header == nil && direction != DataGridSort.None {
+                content = Container{
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    Gap: theme.Spacing,
+                    content,
+                    MaterialIcons.Create(direction == DataGridSort.Ascending ? "arrow_upward": "arrow_downward", 14, theme.MutedTextColor)
+                }
+            }
             if filter {
                 if let create = snapshot.CreateFilter {
                     content = create(snapshot, column, content)

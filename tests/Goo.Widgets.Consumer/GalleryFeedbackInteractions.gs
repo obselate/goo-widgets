@@ -152,11 +152,21 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
 }
 
 func FeedbackGrid(window Window, adapter SearchListSemantics) {
+    window.Height = 640
+    PumpFrames(window, 20)
     let sequenceGrid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
+    let resize = FeedbackNode(adapter, AccessibilityRole.Slider, "Resize Host").Bounds
+    MouseMove(OnlyNativeWindow(), float32(resize.X + resize.Width / 2), float32(resize.Y + resize.Height / 2))
+    PumpFrames(window, 4)
+    CaptureIssueProof(window, "gallery-grid-resize-hover")
+    let hovered = FeedbackNode(adapter, AccessibilityRole.Row, "borealis").Bounds
+    MouseMove(OnlyNativeWindow(), float32(hovered.X + hovered.Width / 2), float32(hovered.Y + hovered.Height / 2))
+    PumpFrames(window, 4)
+    CaptureIssueProof(window, "gallery-grid-row-hover")
     for name in[]string{"atlas", "borealis", "cirrus", "ember", "fjord", "grove", "harbor"} {
         for step in 0 ... 20 {
             let row = FeedbackNode(adapter, AccessibilityRole.Row, name).Bounds
-            if row.Y + 18.0 < sequenceGrid.Y + sequenceGrid.Height - 4.0 {
+            if row.Y + 28.0 < FeedbackNode(adapter, AccessibilityRole.Group, "Grid summary").Bounds.Y - 16.0 {
                 break
             }
             FeedbackWheel(window, sequenceGrid, -1.0F)
@@ -192,7 +202,10 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         "Focusing a grid filter changed the body scroll position"
     )
     let grid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
-    FeedbackWheel(window, grid, -0.3F)
+    Require(window.PerformAccessibilityAction(FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not reveal the scrolled row")
+    PumpFrames(window, 8)
+    Require(window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not restore toolbar focus")
+    PumpFrames(window, 2)
     let clicked = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     CaptureIssueProof(window, "gallery-grid-scrolled-before-check")
     FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20})
@@ -210,6 +223,11 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         clickedAfter.Selected == true && Math.Abs(clickedAfter.Bounds.Y - clicked.Y) < .1,
         "Focusing a scrolled grid moved the checkbox under the pointer or selected a different row"
     )
+    Require(window.PerformAccessibilityAction(FeedbackNode(adapter, AccessibilityRole.Row, "grove").Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not reveal the edge row")
+    PumpFrames(window, 8)
+    FeedbackWheel(window, grid, 0.3F)
+    Require(window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not restore toolbar focus")
+    PumpFrames(window, 2)
     let partial = FeedbackNode(adapter, AccessibilityRole.Row, "grove").Bounds
     let footer = FeedbackNode(adapter, AccessibilityRole.Group, "Grid summary").Bounds
     Require(
@@ -226,6 +244,8 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
     FeedbackWheel(window, grid, 20.0F)
     CaptureIssueProof(window, "gallery-grid-initial")
     for name in[]string{"borealis", "cirrus", "ember"} {
+        Require(window.PerformAccessibilityAction(FeedbackNode(adapter, AccessibilityRole.Row, name).Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not reveal selection row")
+        PumpFrames(window, 8)
         let row = FeedbackNode(adapter, AccessibilityRole.Row, name)
         let box = row.Bounds
         FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20.0, Height: 20.0})
