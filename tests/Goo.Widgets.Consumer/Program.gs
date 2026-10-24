@@ -367,6 +367,10 @@ func RunContracts(action Action) {
 }
 
 func Main() {
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_TOKENS") == "1" {
+        TokenInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_CHOICES") == "1" {
         ChoiceInteractions()
         return

@@ -21,6 +21,12 @@ public data struct ComboBoxInput {
     var Items[]?ComboBoxOption
     var SelectedId string?
     var OnSelect Action[string]?
+    var Multiple bool
+    var SelectedIds[]?string
+    var OnSelectedIdsChange Action[[]string]?
+    var AllowFreeText bool
+    var CreateText Func[string, string]?
+    var OnCreate Action[string]?
     var Disabled bool
     var Placeholder string?
     var AccessibilityName string?
@@ -79,6 +85,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var wasOpen bool
     private var revealPending bool
     private var disposed bool
+    private var createId string = ""
 
     public init() {
         viewport.MetricsChanged += ListMetrics
@@ -113,8 +120,15 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         BindOverlay(input.OverlayHost)
         let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         let query = input.Query ?? ownedQuery
+        let creation = input.AllowFreeText ? query.Trim(): ""
         let ids = HashSet[string](StringComparer.Ordinal)
         var selected ComboBoxOption?
+        let selectedIds HashSet[string]? = input.Multiple ? HashSet[string](
+            input.SelectedIds ?? []string{},
+            StringComparer.Ordinal
+        ): nil
+        let labels List[string]? = input.Multiple ? List[string](): nil
+        var exact bool
         rows = List[ComboBoxRow]()
         for item in input.Items ?? []ComboBoxOption{} {
             if String.IsNullOrEmpty(item.Id) || !ids.Add(item.Id!!) {
@@ -123,12 +137,45 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             if item.Id == input.SelectedId {
                 selected = item
             }
-            if !input.Searchable || query.Length == 0 || (item.Label ?? item.Id!!).IndexOf(
+            if input.Multiple && selectedIds!!.Contains(item.Id!!) {
+                labels!!.Add(item.Label ?? item.Id!!)
+            }
+            if input.AllowFreeText && String.Equals(
+                item.Label ?? item.Id!!,
+                creation,
+                StringComparison.OrdinalIgnoreCase
+            ) {
+                exact = true
+            }
+            if (!input.Searchable && !input.AllowFreeText) || query.Length == 0 || (item.Label ?? item.Id!!).IndexOf(
                 query,
                 StringComparison.OrdinalIgnoreCase
             ) >= 0 {
-                rows.Add(ComboBoxRow{Item: item, Selected: item.Id == input.SelectedId, Input: current})
+                rows.Add(
+                    ComboBoxRow{
+                        Item: item,
+                        Selected: input.Multiple ? selectedIds!!.Contains(item.Id!!): item.Id == input.SelectedId,
+                        Input: current,
+                    }
+                )
             }
+        }
+        createId = ""
+        if creation.Length > 0 && !exact {
+            createId = "create"
+            while ids.Contains(createId) {
+                createId += "-"
+            }
+            ids.Add(createId)
+            rows.Add(
+                ComboBoxRow{
+                    Item: ComboBoxOption{
+                        Id: createId,
+                        Label: input.CreateText?.Invoke(creation) ?? "Create “" + creation + "”",
+                    },
+                    Input: current,
+                }
+            )
         }
         let removed = List[string]()
         for id in handles.Keys {
@@ -151,13 +198,18 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         for i in 0 ... rows.Count {
             let active = rows[i].Item.Id == activeId
-            rows[i] = rows[i]with{Active = active, KeyboardActive = active && !pointerFocus}
+            rows[i] = rows[i]with{
+                Active = active,
+                KeyboardActive = active && !pointerFocus && !input.Searchable && !input.AllowFreeText
+            }
         }
-        let label = selected?.Label ?? selected?.Id ?? current.Placeholder!!
-        let valueContent = selected?.Content ??
-        Text{
+        let label = input.Multiple
+        ? (labels!!.Count == 0 ? current.Placeholder!!: String.Join(", ", labels!!))
+        : selected?.Label ?? selected?.Id ?? current.Placeholder!!
+        let valueContent = (input.Multiple ? nil: selected?.Content) ??
+            Text{
             Content: label,
-            Color: selected == nil ? theme.MutedTextColor: theme.TextColor,
+            Color: (input.Multiple ? labels!!.Count == 0: selected == nil) ? theme.MutedTextColor: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.FontWeight,
@@ -217,7 +269,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         root.Children.Add(button)
         let popupHeight = Math.Min(
             current.PopupHeight,
-            2.0 + (current.Searchable ? theme.ControlHeight: 0.0) + Math.Max(
+            2.0 + ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) + Math.Max(
                 theme.ControlHeight,
                 float64(rows.Count) * current.RowHeight
             )
@@ -231,7 +283,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             MaxHeight: popupHeight,
             Padding: 0.0,
             AccessibilityName: current.AccessibilityName,
-            InitialFocus: current.Searchable ? searchHandle: listHandle,
+            InitialFocus: (current.Searchable || current.AllowFreeText) ? searchHandle: listHandle,
             OnDismiss: Dismiss,
             CreatePanel: PopupPanel,
             ZIndex: current.ZIndex,
@@ -253,19 +305,18 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         let relationships = AccessibilityRelationships{ActiveDescendant: activeHandle}
         let content = Container{Height: height - 2.0, MinHeight: 0.0, MinWidth: 0.0}
-        if current.Searchable {
+        if current.Searchable || current.AllowFreeText {
             var entry = TextEntry{
                 Height: theme.ControlHeight,
                 FlexShrink: 0.0,
                 Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-                BackgroundColor: theme.FieldColor,
+                BackgroundColor: Color.Transparent,
                 Color: theme.TextColor,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
                 SelectionColor: theme.AccentColor.WithAlpha(0.35),
                 Cursor: Cursor.Text,
-                Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
             }
             if let create = current.CreateSearch {
                 entry = create(current, entry)
@@ -285,6 +336,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 Relationships: relationships
             }
             content.Children.Add(entry)
+            content.Children.Add(Container{Height: 1.0, FlexShrink: 0.0, BackgroundColor: theme.BorderColor})
         }
         let virtualRows = VirtualRows(rows, current.RowHeight, (row ComboBoxRow) -> row.Item.Id!!, BuildRow)
         virtualRows.Key = "rows"
@@ -301,7 +353,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             FlexGrow: 1.0,
             FlexBasis: 0.0,
             MinHeight: 0.0,
-            Focusable: !current.Searchable,
+            Focusable: !current.Searchable && !current.AllowFreeText,
             OnKeyDown: ListKey,
             OnFocus: (event FocusEvent) -> Reveal(),
             Accessibility: Accessibility{
@@ -336,6 +388,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
+            Margin: Edges{Right: 4.0, Left: 4.0},
+            BorderRadius: theme.ControlRadius,
             BackgroundColor: row.Active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Opacity: item.Disabled ? .45: 1.0,
             OutlineWidth: row.KeyboardActive ? 2.0: 0.0,
@@ -361,9 +415,11 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             }
         }
         result.Accessibility = Accessibility{
-            Role: AccessibilityRole.ListItem,
+            Role: row.Input.Multiple && id != createId ? AccessibilityRole.Checkbox: AccessibilityRole.ListItem,
             Name: item.Label ?? id,
             Selected: row.Selected,
+            Checked: row.Input.Multiple && id != createId
+            ? (row.Selected ? AccessibilityChecked.True: AccessibilityChecked.False): AccessibilityChecked.Unspecified,
             Actions: []AccessibilityAction{AccessibilityAction.Select},
             OnAction: (request AccessibilityActionRequest) -> {
                 if request.Action != AccessibilityAction.Select || item.Disabled {
@@ -374,9 +430,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             }
         }
         result.Children.Clear()
+        if row.Input.Multiple && id != createId {
+            result.Children.Add(
+                MaterialIcons.Create(row.Selected ? "check_box": "check_box_outline_blank", 18, theme.AccentColor)
+            )
+        }
         result.Children.Add(
             item.Content ??
-            Text{
+                Text{
                 Content: item.Label ?? id,
                 Color: theme.TextColor,
                 TextWrap: TextWrap.NoWrap,
@@ -466,8 +527,24 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if current.Disabled || Index(id) < 0 {
             return
         }
-        current.OnSelect?.Invoke(id)
-        SetOpen(false)
+        if id == createId {
+            current.OnCreate?.Invoke((current.Query ?? ownedQuery).Trim())
+            if !current.Multiple {
+                SetOpen(false)
+            } else {
+                QueryChanged("")
+            }
+        } else if current.Multiple {
+            let values = List[string](current.SelectedIds ?? []string{})
+            if !values.Remove(id) {
+                values.Add(id)
+            }
+            current.OnSelectedIdsChange?.Invoke(values.ToArray())
+            Rebuild()
+        } else {
+            current.OnSelect?.Invoke(id)
+            SetOpen(false)
+        }
     }
 
     private func QueryChanged(value string) {

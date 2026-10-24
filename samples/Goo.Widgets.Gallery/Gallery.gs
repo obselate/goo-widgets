@@ -379,6 +379,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         RadioGroupPage{DisplayTitle: "Radio group"},
         ToggleGroupPage{DisplayTitle: "Toggle group"},
         TextFieldPage{DisplayTitle: "Text field"},
+        TokenInputPage{DisplayTitle: "Token input"},
         NumberInputPage{DisplayTitle: "Number input"},
         FormFieldPage{DisplayTitle: "Form field"},
         TextAreaPage{DisplayTitle: "Text area"},
@@ -395,6 +396,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
     }),
     GalleryCategory("Data", "table_chart", []GalleryPage{
         ChipPage{DisplayTitle: "Chip"},
+        AttachmentChipPage{DisplayTitle: "Attachment chip"},
         TimeAxisPage{DisplayTitle: "Time axis"},
         ListViewPage{DisplayTitle: "List view"},
         TreeViewPage{DisplayTitle: "Tree view"},

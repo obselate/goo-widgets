@@ -3,6 +3,7 @@ package Goo.Widgets.Gallery.Pages.Inputs
 import Goo
 import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
+import System.Collections.Generic
 
 internal class ComboBoxExample : Cell {
     private var environment string = "prod"
@@ -10,6 +11,10 @@ internal class ComboBoxExample : Cell {
     private var fixedOpen bool
     private var regionsOpen bool = true
     private let regions[]ComboBoxOption
+    private var labels[]string = []string{"work"}
+    private let labelOptions List[ComboBoxOption] = List[ComboBoxOption](
+        []ComboBoxOption{ComboBoxOption{Id: "work", Label: "Work"}, ComboBoxOption{Id: "personal", Label: "Personal"}}
+    )
     public init() {
         regions = [500]ComboBoxOption
         for index in 0 ... regions.Length {
@@ -51,6 +56,7 @@ internal class ComboBoxExample : Cell {
         Width: 720.0,
         Height: 430.0,
         Gap: 12.0,
+
         Container{
             Key: "fields",
             FlexDirection: FlexDirection.Row,
@@ -85,7 +91,31 @@ internal class ComboBoxExample : Cell {
                         Placeholder: "Managed by your administrator",
                         AccessibilityName: "Account policy"
                     }
-                )
+                ),
+                Text{Content: "Labels", FontSize: 13},
+                Cell.Mount[ComboBoxInput, ComboBox](
+                    "labels",
+                    ComboBoxInput{
+                        Width: 290,
+                        Multiple: true,
+                        AllowFreeText: true,
+                        Searchable: true,
+                        SelectedIds: labels,
+                        Items: labelOptions.ToArray(),
+                        AccessibilityName: "Labels",
+                        OnSelectedIdsChange: values -> {
+                            labels = values
+                            Rebuild()
+                        },
+                        OnCreate: value -> {
+                            labelOptions.Add(ComboBoxOption{Id: value, Label: value})
+                            let values = List[string](labels)
+                            values.Add(value)
+                            labels = values.ToArray()
+                            Rebuild()
+                        },
+                    }
+                ),
             },
             Container{
                 Key: "search",

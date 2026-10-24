@@ -11,7 +11,7 @@ class ChipPage : GalleryPage {
         let defaultChip = Chip{Label: "Documentation",}
 
         let selectedLeadingChip = Chip{
-            Label: "Filter ∶ Active",
+            Label: "Active",
             Selected: true,
             Leading: Container{Width: 8.0, Height: 8.0, BorderRadius: 4.0, BackgroundColor: "#09090b",},
         }
@@ -32,12 +32,15 @@ class ChipPage : GalleryPage {
 
         return Container{
             FlexDirection: FlexDirection.Row,
+            FlexWrap: FlexWrap.Wrap,
             AlignItems: AlignItems.Center,
             Gap: 24.0,
             defaultChip.Build(),
             selectedLeadingChip.Build(),
             disabledSelectedChip.Build(),
             customStyledChip.Build(),
+            Chip{Label: "Removable", OnRemove: () -> { }}.Build(),
+            Chip{Label: "Invalid token", Invalid: true, OnRemove: () -> { }}.Build(),
         }
     }
 }
