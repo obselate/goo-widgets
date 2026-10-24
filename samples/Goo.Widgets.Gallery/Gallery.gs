@@ -207,6 +207,8 @@ GalleryRegistry(
         GalleryCategory(
             "Feedback",
             []GalleryPage{
+                ToastPage{},
+                SpinnerPage{},
                 BadgePage{},
                 BannerPage{},
                 DismissibleContextBarPage{},
