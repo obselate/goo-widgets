@@ -118,12 +118,6 @@ internal class DataGridExample : Cell {
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: 12,
-                Container{
-                    FlexGrow: 1,
-                    Gap: 4,
-                    Typography{Content: "Managed hosts", Variant: TextVariant.Subtitle}.Build(),
-                    Typography{Content: rows.Length.ToString() + " hosts", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build()
-                },
                 TextField{
                     Value: query,
                     Placeholder: "Search hosts",
@@ -163,18 +157,17 @@ internal class DataGridExample : Cell {
                         Gap: 8,
                         AlignItems: AlignItems.Center,
                         MaterialIcons.Create("search_off", 24, Theme.Read().MutedTextColor),
-                        Typography{Content: "No hosts found", Variant: TextVariant.Subtitle}.Build(),
-                        Typography{Content: "Try a different hostname or clear the search.", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build()
+                        Typography{Content: "No hosts found", Variant: TextVariant.Subtitle}.Build()
                     },
                     Columns: []DataGridColumn{
                         DataGridColumn{
                             Id: "name",
                             Label: "Host",
-                            Width: 190,
+                            Width: 140,
                             Minimum: 110,
                             Sortable: true
                         },
-                        DataGridColumn{Id: "status", Label: "Status", Flex: 1, Minimum: 120, Sortable: true},
+                        DataGridColumn{Id: "status", Label: "Status", Flex: 1, Minimum: 100, Sortable: true},
                         DataGridColumn{Id: "owner", Label: "Team", Flex: 2, Minimum: 160, Sortable: true},
                         DataGridColumn{Id: "load", Label: "Load", Width: 100, Minimum: 80, Alignment: TextAlign.Right},
                     },
