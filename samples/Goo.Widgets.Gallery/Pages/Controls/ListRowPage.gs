@@ -1,153 +1,83 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 
+internal class ListRowExample : Cell {
+    private var message string = "Hover or focus a row to show its actions."
+
+    public override func Build() Blob {
+        let theme = Theme.Read()
+        return Container{
+            Width: Percent(100),
+            MaxWidth: 620,
+            MinWidth: 0,
+            Gap: theme.ControlGap,
+            ListRow{
+                Title: "Inbox notifications",
+                Caption: "Receive email summaries and digest alerts",
+                Leading: MaterialIcons.Create("inbox", 24, theme.MutedTextColor),
+                OnClick: () -> {
+                    message = "Inbox selected"
+                    Rebuild()
+                },
+                OnInvoke: () -> {
+                    message = "Inbox opened"
+                    Rebuild()
+                },
+                Actions: Button{
+                    Padding: theme.Spacing,
+                    OnClick: () -> {
+                        message = "Inbox pinned"
+                        Rebuild()
+                    },
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Pin inbox"},
+                    Text{Content: "Pin", Color: theme.TextColor}
+                }
+            }.Build(),
+            ListRow{
+                Title: "Selected workspace",
+                Caption: "Actions stay visible on a selected row",
+                Selected: true,
+                Leading: MaterialIcons.Create("folder", 24, theme.MutedTextColor),
+                OnClick: () -> {
+                    message = "Workspace selected"
+                    Rebuild()
+                },
+                Actions: Button{
+                    Padding: theme.Spacing,
+                    OnClick: () -> {
+                        message = "Workspace saved"
+                        Rebuild()
+                    },
+                    Text{Content: "Save", Color: theme.TextColor}
+                }
+            }.Build(),
+            ListRow{
+                Title: "Unavailable archive",
+                Caption: "Disabled rows do not accept input",
+                Disabled: true,
+                OnClick: () -> {
+                    message = "Archive"
+                    Rebuild()
+                },
+                Leading: MaterialIcons.Create("lock", 24, theme.MutedTextColor)
+            }.Build(),
+            ListRow{
+                Title: "Plain information",
+                Caption: "A row without callbacks is not a focus stop",
+                Trailing: Text{Content: "12 items", Color: theme.MutedTextColor}
+            }.Build(),
+            Text{Content: message, Color: theme.MutedTextColor}
+        }
+    }
+}
+
 class ListRowPage : GalleryPage {
     public override func Title() string -> "ListRow"
 
-    public override func Build() Blob {
-        let defaultLeading = Container{
-            Width: 32.0,
-            Height: 32.0,
-            BorderRadius: 6.0,
-            BackgroundColor: Color.Parse("#27272a"),
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("inbox", 20.0, Color.Parse("#a1a1aa")),
-        }
-        let defaultTrailing = Container{
-            Padding: Edges(3.0, 8.0),
-            BorderRadius: 10.0,
-            BackgroundColor: Color.Parse("#27272a"),
-            Text{Content: "12", FontSize: 11.0, FontWeight: 600, Color: "#d4d4d8"},
-        }
-        let defaultRow = ListRow{
-            Title: "Inbox notifications",
-            Caption: "Receive email summaries and digest alerts",
-            AccessibilityName: "Inbox notifications",
-            Leading: defaultLeading,
-            Trailing: defaultTrailing,
-        }
-
-        let selectedLeading = Container{
-            Width: 32.0,
-            Height: 32.0,
-            BorderRadius: 6.0,
-            BackgroundColor: Color.Parse("#3f3f46"),
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("verified_user", 20.0),
-        }
-        let selectedTrailing = Container{
-            Padding: Edges(3.0, 8.0),
-            BorderRadius: 10.0,
-            BackgroundColor: Color.Parse("#52525b"),
-            Text{Content: "Active", FontSize: 11.0, FontWeight: 600, Color: "#fafafa"},
-        }
-        let selectedRow = ListRow{
-            Title: "Security and authentication",
-            Caption: "Passkeys, multi-factor, and session logs",
-            Selected: true,
-            AccessibilityName: "Security and authentication",
-            Leading: selectedLeading,
-            Trailing: selectedTrailing,
-        }
-
-        let compactLeading = Container{
-            Width: 28.0,
-            Height: 28.0,
-            BorderRadius: 5.0,
-            BackgroundColor: Color.Parse("#27272a"),
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("keyboard", 20.0, Color.Parse("#a1a1aa")),
-        }
-        let compactTrailing = Container{
-            Padding: Edges(2.0, 6.0),
-            BorderRadius: 4.0,
-            BackgroundColor: Color.Parse("#18181b"),
-            BorderWidth: 1.0,
-            BorderColor: Color.Parse("#3f3f46"),
-            Text{Content: "Ctrl+K", FontSize: 11.0, FontWeight: 500, Color: "#a1a1aa"},
-        }
-        let compactRow = ListRow{
-            Title: "Keyboard shortcuts",
-            MinHeight: 48.0,
-            PaddingVertical: 8.0,
-            AccessibilityName: "Keyboard shortcuts",
-            Leading: compactLeading,
-            Trailing: compactTrailing,
-        }
-
-        let customLeading = Container{
-            Width: 36.0,
-            Height: 36.0,
-            BorderRadius: 8.0,
-            BackgroundColor: Color.Parse("#14532d"),
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("code", 20.0, Color.Parse("#bbf7d0")),
-        }
-        let customTrailing = Container{
-            Padding: Edges(3.0, 8.0),
-            BorderRadius: 10.0,
-            BackgroundColor: Color.Parse("#14532d"),
-            Text{Content: "PRO", FontSize: 11.0, FontWeight: 700, Color: "#bbf7d0"},
-        }
-        let customRow = ListRow{
-            Title: "Developer workspace",
-            Caption: "Emerald environment with relaxed padding",
-            AccessibilityName: "Developer workspace",
-            BackgroundColor: Color.Parse("#052e16"),
-            TextColor: Color.Parse("#f0fdf4"),
-            CaptionColor: Color.Parse("#86efac"),
-            MinHeight: 68.0,
-            PaddingHorizontal: 18.0,
-            PaddingVertical: 12.0,
-            Gap: 16.0,
-            BorderRadius: 12.0,
-            TitleFontSize: 15.0,
-            TitleFontWeight: 700,
-            CaptionFontSize: 12.5,
-            Leading: customLeading,
-            Trailing: customTrailing,
-        }
-
-        return Container{
-            Width: 620.0,
-            FlexDirection: FlexDirection.Column,
-            Gap: 10.0,
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 3.0,
-                Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700},
-                defaultRow.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 3.0,
-                Text{Content: "SELECTED", FontSize: 10.0, FontWeight: 700},
-                selectedRow.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 3.0,
-                Text{Content: "TITLE ONLY", FontSize: 10.0, FontWeight: 700},
-                compactRow.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 3.0,
-                Text{Content: "CUSTOM", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
-                customRow.Build(),
-            },
-        }
-    }
+    public override func Build() Blob -> Cell.Mount[ListRowExample]("row-example")
 }

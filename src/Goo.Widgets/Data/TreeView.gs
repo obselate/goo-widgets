@@ -19,6 +19,8 @@ public data struct TreeNode {
     var Disabled bool
     /// Child nodes in display order.
     var Children[]?TreeNode
+    /// Whether this branch has children that the host has not loaded yet.
+    var HasChildren bool
     /// Optional check state. Unspecified omits the checkbox; parents may be Mixed.
     var CheckState AccessibilityChecked
 }
@@ -39,6 +41,8 @@ public data struct TreeViewRow {
     var Active bool
     /// Includes disabled ancestors and the root disabled state.
     var Disabled bool
+    /// Whether this is the nonselectable loading placeholder.
+    var Loading bool
 }
 
 /// Controlled hierarchy, selection, and appearance for a mounted tree.
@@ -53,6 +57,16 @@ public data struct TreeViewInput {
     var SelectedId string?
     /// Requests single row selection.
     var OnSelect Action[string]?
+    /// Controlled selection. When supplied, this takes precedence over SelectedId.
+    var SelectedIds[]?string
+    var Multiple bool
+    var OnSelectionChange Action[[]string]?
+    /// Called when an unloaded branch opens. The host supplies Children and LoadingIds.
+    var LoadChildren Action[string]?
+    var LoadingIds[]?string
+    /// Requests editing of the active row. The host owns the editor and new label.
+    var OnRename Action[string]?
+    var OnDrop Action[[]string, string, TreeDropPosition]?
     /// Runs before built-in keyboard handling. Return true to handle the event and skip the default action.
     var OnKeyDown Func[KeyEvent, bool]?
     /// Row click, Enter, and accessibility activation also request branch expansion. Defaults to false.
@@ -60,7 +74,7 @@ public data struct TreeViewInput {
     var ExpandOnActivate bool
     /// Requests a check change without applying any descendant or ancestor cascade. Mixed requests True.
     var OnCheckChange Action[string, AccessibilityChecked]?
-    /// Describes a host policy allowing multiple checked nodes; row selection remains single.
+    /// Legacy accessibility flag for host-owned check selection.
     var MultiSelectable bool
     /// Disables the whole tree.
     var Disabled bool
@@ -104,6 +118,15 @@ internal data struct TreeWalk {
     var Disabled bool
 }
 
+/// The destination relative to a tree row.
+public enum TreeDropPosition {
+    Before;
+    After;
+    Into
+}
+
+internal class TreeDrag(Owner TreeView, Ids[]string) { }
+
 /// A controlled tree using one stable focus target and an accessible active descendant, including virtual rows.
 public open class TreeView : Cell[TreeViewInput] {
     private let rootHandle ElementHandle = ElementHandle()
@@ -118,6 +141,10 @@ public open class TreeView : Cell[TreeViewInput] {
     private var pointerFocus bool
     private var activeId string?
     private var hasFocus bool
+    private var anchorId string?
+    private var clickModifiers KeyModifiers
+    private var clickFromChild bool
+    private var selected HashSet[string] = HashSet[string](StringComparer.Ordinal)
 
     protected override func Build(value TreeViewInput) Blob {
         theme = Theme.Read()
@@ -144,6 +171,11 @@ public open class TreeView : Cell[TreeViewInput] {
         rows = List[TreeViewRow]()
         let searchable = List[string]()
         let expanded = HashSet[string](input.ExpandedIds ?? []string{}, StringComparer.Ordinal)
+        selected = HashSet[string](
+            input.SelectedIds ?? (input.SelectedId == nil ? []string{}: []string{input.SelectedId!!}),
+            StringComparer.Ordinal
+        )
+        let loading = HashSet[string](input.LoadingIds ?? []string{}, StringComparer.Ordinal)
         let stack = Stack[TreeWalk]()
         Push(stack, input.Nodes ?? []TreeNode{}, nil, 0, true, input.Disabled)
         while stack.Count > 0 {
@@ -165,8 +197,8 @@ public open class TreeView : Cell[TreeViewInput] {
                 Node: node,
                 ParentId: walk.ParentId,
                 Depth: walk.Depth,
-                Expanded: children.Length > 0 && expanded.Contains(node.Id!!),
-                Selected: node.Id == input.SelectedId,
+                Expanded: (children.Length > 0 || node.HasChildren) && expanded.Contains(node.Id!!),
+                Selected: selected.Contains(node.Id!!),
                 Disabled: walk.Disabled || node.Disabled
             }
             nodes.Add(node.Id!!, row)
@@ -175,6 +207,17 @@ public open class TreeView : Cell[TreeViewInput] {
                 rows.Add(row)
                 if !row.Disabled {
                     searchable.Add(node.Id!!)
+                }
+                if row.Expanded && loading.Contains(node.Id!!) {
+                    rows.Add(
+                        TreeViewRow{
+                            Node: TreeNode{Id: node.Id + "\0loading", Label: "Loading…"},
+                            ParentId: node.Id,
+                            Depth: row.Depth + 1,
+                            Disabled: true,
+                            Loading: true
+                        }
+                    )
                 }
             }
             Push(stack, children, node.Id, walk.Depth + 1, walk.Visible && row.Expanded, row.Disabled)
@@ -288,7 +331,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Tree,
             Name: input.AccessibilityName!!,
-            MultiSelectable: input.MultiSelectable,
+            MultiSelectable: input.Multiple || input.MultiSelectable,
             Relationships: AccessibilityRelationships{ActiveDescendant: activeHandle}
         }
         root.Children.Clear()
@@ -334,8 +377,13 @@ public open class TreeView : Cell[TreeViewInput] {
 
     private func First() string? {
         let index = RovingFocus.Next[TreeViewRow](
-            rows, -1, Key.Home, AccessibilityOrientation.Vertical, false,
-            (row TreeViewRow) -> row.Disabled)
+            rows,
+            -1,
+            Key.Home,
+            AccessibilityOrientation.Vertical,
+            false,
+            (row TreeViewRow) -> row.Disabled
+        )
         return index < 0 ? nil: rows[index].Node.Id
     }
 
@@ -360,12 +408,41 @@ public open class TreeView : Cell[TreeViewInput] {
         }
     }
 
-    private func Select(id string) {
+    private func Select(id string, toggle bool = false, extend bool = false) {
         if Index(id) < 0 {
             return
         }
+        let previous = activeId
         Activate(id)
-        input.OnSelect?.Invoke(id)
+        if input.OnSelectionChange == nil {
+            input.OnSelect?.Invoke(id)
+            return
+        }
+        let next = HashSet[string](StringComparer.Ordinal)
+        if input.Multiple && toggle {
+            next.UnionWith(selected)
+        }
+        if input.Multiple && extend {
+            let anchor = Index(anchorId) >= 0 ? Index(anchorId): Index(previous)
+            let target = Index(id)
+            for index in Math.Min(Math.Max(0, anchor), target) ... Math.Max(anchor, target) + 1 {
+                if !rows[index].Disabled {
+                    next.Add(rows[index].Node.Id!!)
+                }
+            }
+        } else {
+            if !next.Add(id) {
+                next.Remove(id)
+            }
+            anchorId = id
+        }
+        let values = List[string]()
+        for row in rows {
+            if !row.Disabled && next.Contains(row.Node.Id!!) {
+                values.Add(row.Node.Id!!)
+            }
+        }
+        input.OnSelectionChange?.Invoke(values.ToArray())
     }
 
     private func ActivateRow(id string) {
@@ -374,8 +451,8 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let row = rows[Index(id)]
         Select(id)
-        if input.ExpandOnActivate && (row.Node.Children ?? []TreeNode{}).Length > 0 {
-            input.OnExpandedChange?.Invoke(id, !row.Expanded)
+        if input.ExpandOnActivate && ((row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren) {
+            Expand(id, !row.Expanded)
         }
     }
 
@@ -385,6 +462,10 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         Activate(id)
         input.OnExpandedChange?.Invoke(id, expanded)
+        let node = rows[Index(id)].Node
+        if expanded && node.HasChildren && node.Children == nil && !(input.LoadingIds ?? []string{}).Contains(id) {
+            input.LoadChildren?.Invoke(id)
+        }
     }
 
     private func Check(id string) {
@@ -405,7 +486,16 @@ public open class TreeView : Cell[TreeViewInput] {
     private func BuildRow(snapshot TreeViewInput, row TreeViewRow) Blob {
         let id = row.Node.Id!!
         let children = List[Blob]()
-        let branch = (row.Node.Children ?? []TreeNode{}).Length > 0
+        if row.Loading {
+            return Container{
+                Key: id,
+                Height: snapshot.RowHeight!!,
+                Padding: Edges{Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!},
+                Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: "Loading children", Busy: true},
+                Text{Content: "Loading…", Color: theme.MutedTextColor}
+            }
+        }
+        let branch = (row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren
         if branch {
             var expander = Button{
                 Width: theme.ControlHeight,
@@ -500,14 +590,57 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Disabled = row.Disabled
         root.Focusable = false
         root.TabStop = false
-        root.OnClick = () -> ActivateRow(id)
+        root.OnPointerDown = (e PointerEvent) -> {
+            clickModifiers = e.Modifiers
+            clickFromChild = e.IsFromInteractiveChild
+        }
+        root.OnClick = () -> {
+            if !clickFromChild {
+                if snapshot.OnSelectionChange != nil {
+                    Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift)
+                    if snapshot.ExpandOnActivate && branch {
+                        Expand(id, !row.Expanded)
+                    }
+                } else {
+                    ActivateRow(id)
+                }
+            }
+        }
+        if snapshot.OnDrop != nil && !row.Disabled {
+            root.DragSource = DragSource(
+                (e DragStartEvent) -> {
+                    let ids = List[string]()
+                    if selected.Contains(id) {
+                        for item in rows {
+                            if !item.Disabled && selected.Contains(item.Node.Id!!) {
+                                ids.Add(item.Node.Id!!)
+                            }
+                        }
+                    } else {
+                        ids.Add(id)
+                    }
+                    return DragData(TreeDrag(this, ids.ToArray()), DragEffect.Move)
+                }
+            )
+            root.DropTarget = DropTarget(
+                (e DragEvent) -> CanDrop(e, id) ? DragEffect.Move: DragEffect.None,
+                (e DragEvent) -> {
+                    if e.Kind == DragEventKind.Drop && CanDrop(e, id) {
+                        let payload = (e.Data.Value as TreeDrag)!!
+                        let position = e.Position.Y < snapshot.RowHeight!!/ 4.0 ? TreeDropPosition.Before:
+                        e.Position.Y > snapshot.RowHeight!!* .75 ? TreeDropPosition.After: TreeDropPosition.Into
+                        snapshot.OnDrop?.Invoke(payload.Ids, id, position)
+                    }
+                }
+            )
+        }
         root.OnFocus = (e FocusEvent) -> {
             activeId = id
         }
         let actions = List[AccessibilityAction]()
         if !row.Disabled {
             actions.Add(AccessibilityAction.Focus)
-            if snapshot.OnSelect != nil {
+            if snapshot.OnSelect != nil || snapshot.OnSelectionChange != nil {
                 actions.Add(AccessibilityAction.Select)
             }
             actions.Add(AccessibilityAction.Activate)
@@ -540,12 +673,15 @@ public open class TreeView : Cell[TreeViewInput] {
             Activate(id)
             return true
         }
-        if request.Action == Goo.AccessibilityAction.Select && input.OnSelect != nil {
+        if request.Action == Goo
+            .AccessibilityAction
+            .Select &&
+            (input.OnSelect != nil || input.OnSelectionChange != nil) {
             Select(id)
             return true
         }
         if request.Action == Goo.AccessibilityAction.Activate {
-            if input.ExpandOnActivate && (row.Node.Children ?? []TreeNode{}).Length > 0 {
+            if input.ExpandOnActivate && ((row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren) {
                 ActivateRow(id)
                 return true
             }
@@ -553,7 +689,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 Check(id)
                 return true
             }
-            if input.OnSelect != nil {
+            if input.OnSelect != nil || input.OnSelectionChange != nil {
                 Select(id)
                 return true
             }
@@ -561,11 +697,28 @@ public open class TreeView : Cell[TreeViewInput] {
             return true
         }
         if (request.Action == Goo.AccessibilityAction.Expand || request.Action == Goo.AccessibilityAction.Collapse)
-        && input.OnExpandedChange != nil && (row.Node.Children ?? []TreeNode{}).Length > 0 {
+        && input.OnExpandedChange != nil && ((row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren) {
             Expand(id, request.Action == Goo.AccessibilityAction.Expand)
             return true
         }
         return false
+    }
+
+    private func CanDrop(e DragEvent, id string) bool {
+        let payload = e.Data.Value as TreeDrag
+        if payload == nil || payload.Owner != this || Index(id) < 0 {
+            return false
+        }
+        var ancestor string? = id
+        while ancestor != nil {
+            for source in payload.Ids {
+                if ancestor == source {
+                    return false
+                }
+            }
+            ancestor = nodes[ancestor].ParentId
+        }
+        return true
     }
 
     private func KeyDown(e KeyEvent) {
@@ -576,6 +729,18 @@ public open class TreeView : Cell[TreeViewInput] {
         if index < 0 {
             return
         }
+        if input.Multiple && (e.Modifiers.Ctrl || e.Modifiers.Super) && e.Key == Key.A {
+            let ids = List[string]()
+            for item in rows {
+                if !item.Disabled {
+                    ids.Add(item.Node.Id!!)
+                }
+            }
+            input.OnSelectionChange?.Invoke(ids.ToArray())
+            e.PreventDefault()
+            e.StopPropagation()
+            return
+        }
         typeAhead.ActiveId = activeId
         if typeAhead.HandleKey(e) {
             return
@@ -584,8 +749,13 @@ public open class TreeView : Cell[TreeViewInput] {
         var next = index
         if e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End {
             next = RovingFocus.Next[TreeViewRow](
-                rows, index, e.Key, AccessibilityOrientation.Vertical, false,
-                (item TreeViewRow) -> item.Disabled)
+                rows,
+                index,
+                e.Key,
+                AccessibilityOrientation.Vertical,
+                false,
+                (item TreeViewRow) -> item.Disabled
+            )
         } else if e.Key == Key.Left {
             if row.Expanded {
                 Expand(row.Node.Id!!, false)
@@ -593,7 +763,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 next = Index(row.ParentId)
             }
         } else if e.Key == Key.Right {
-            if (row.Node.Children ?? []TreeNode{}).Length > 0 {
+            if (row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren {
                 if !row.Expanded {
                     Expand(row.Node.Id!!, true)
                 } else {
@@ -614,15 +784,25 @@ public open class TreeView : Cell[TreeViewInput] {
             if row.Node.CheckState != AccessibilityChecked.Unspecified {
                 Check(row.Node.Id!!)
             } else {
-                Select(row.Node.Id!!)
+                Select(row.Node.Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
             }
+        } else if e.Key == Key.F2 {
+            input.OnRename?.Invoke(row.Node.Id!!)
         } else {
             return
         }
         e.PreventDefault()
         e.StopPropagation()
         if next >= 0 && next < rows.Count {
-            Activate(rows[next].Node.Id!!)
+            let id = rows[next].Node.Id!!
+            if next != index &&
+                input.OnSelectionChange != nil &&
+                (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End) &&
+                (!(e.Modifiers.Ctrl || e.Modifiers.Super) || e.Modifiers.Shift) {
+                Select(id, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+            } else {
+                Activate(id)
+            }
         }
     }
 }

@@ -3,6 +3,8 @@ package Goo.Widgets.Layout
 import Goo
 import Goo.Widgets
 
+import System
+
 /// A semantic list item row with optional slots, typography defaults, and factory customization.
 public data struct ListRow {
     /// Optional leading slot element.
@@ -15,6 +17,13 @@ public data struct ListRow {
     var Trailing Blob?
     /// Whether the row is selected.
     var Selected bool
+    var OnClick Action?
+    var OnInvoke Action?
+    var Disabled bool
+    var HoverBackgroundColor Color?
+    var PressedBackgroundColor Color?
+    var Actions Blob?
+    var ShowActionsOnHover bool = true
     /// Accessible name. Nil resolves to the resolved title.
     var AccessibilityName string?
     /// Row width. Nil resolves to 100%.
@@ -68,6 +77,13 @@ public data struct ListRow {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        if Actions != nil && ShowActionsOnHover {
+            return Cell.Mount[ListRow, InteractiveListRow](nil, this)
+        }
+        return Render()
+    }
+
+    internal func Render() Blob {
         let theme = Theme.Read()
         let createTitle = CreateTitle
         let createCaption = CreateCaption
@@ -79,6 +95,8 @@ public data struct ListRow {
             Width = Width ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor.WithAlpha(0.15),
+            HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
+            PressedBackgroundColor = PressedBackgroundColor ?? theme.PressedColor,
             TextColor = TextColor ?? theme.TextColor,
             CaptionColor = CaptionColor ?? theme.MutedTextColor,
             SelectedBoxShadow = SelectedBoxShadow ?? BoxShadow{Color: theme.AccentColor, Spread: theme.BorderWidth},
@@ -163,16 +181,18 @@ public data struct ListRow {
             content.Children.Add(caption)
         }
 
-        if let createRoot = createRoot {
-            return createRoot(resolved, Leading, content, Trailing)
-        }
-
         let background = if resolved.Selected {
             resolved.SelectedBackgroundColor!!
         } else {
             resolved.BackgroundColor!!
         }
-        let root = Container{
+        var root = Container{
+            Disabled: resolved.Disabled,
+            Focusable: !resolved.Disabled && (resolved.OnClick != nil || resolved.OnInvoke != nil),
+            Hover: resolved.OnClick != nil ||
+                resolved.OnInvoke != nil ? Style{BackgroundColor: resolved.HoverBackgroundColor!!}: nil,
+            Active: resolved.OnClick != nil ||
+                resolved.OnInvoke != nil ? Style{BackgroundColor: resolved.PressedBackgroundColor!!}: nil,
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
@@ -180,7 +200,7 @@ public data struct ListRow {
             BorderRadius: resolved.BorderRadius!!,
             BackgroundColor: background,
             Focus: theme.FocusStyle,
-            Opacity: resolved.Opacity!!,
+            Opacity: resolved.Opacity!!* (resolved.Disabled ? .45: 1),
             Transform: resolved.Transform!!,
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
@@ -193,15 +213,101 @@ public data struct ListRow {
                 Selected: resolved.Selected
             },
         }
-        if resolved.Selected {
+        if let create = createRoot {
+            root = create(resolved, Leading, content, Trailing)
+        }
+        if resolved.Disabled {
+            root.Disabled = true
+        }
+        if resolved.OnClick != nil || resolved.OnInvoke != nil {
+            root.Focusable = !resolved.Disabled
+            var fromChild bool
+            var presses int32
+            root.OnPointerDown = (e PointerEvent) -> {
+                fromChild = e.IsFromInteractiveChild
+                presses = e.ClickCount
+            }
+            root.OnClick = () -> {
+                if !resolved.Disabled && !fromChild {
+                    resolved.OnClick?.Invoke()
+                    if presses == 2 {
+                        resolved.OnInvoke?.Invoke()
+                    }
+                }
+            }
+            root.OnKeyDown = (e KeyEvent) -> {
+                if !resolved.Disabled && (e.Key == Key.Enter || e.Key == Key.Space) {
+                    if e.Key == Key.Enter && resolved.OnInvoke != nil {
+                        resolved.OnInvoke?.Invoke()
+                    } else {
+                        resolved.OnClick?.Invoke()
+                    }
+                    e.PreventDefault()
+                    e.StopPropagation()
+                }
+            }
+        }
+        if resolved.Selected && createRoot == nil {
             root.BoxShadow = resolved.SelectedBoxShadow!!
         }
-        if let leading = Leading {
-            root.Children.Add(leading)
+        if createRoot == nil {
+            if let leading = Leading {
+                root.Children.Add(leading)
+            }
+            root.Children.Add(content)
+            if let trailing = Trailing {
+                root.Children.Add(trailing)
+            }
         }
-        root.Children.Add(content)
-        if let trailing = Trailing {
-            root.Children.Add(trailing)
+        if let actions = resolved.Actions {
+            root.Children.Add(
+                Container{
+                    FlexDirection: FlexDirection.Row,
+                    OnKeyDown: (e KeyEvent) -> {
+                        if e.Key == Key.Enter || e.Key == Key.Space {
+                            e.StopPropagation()
+                        }
+                    },
+                    actions
+                }
+            )
+        }
+        return root
+    }
+}
+
+internal class InteractiveListRow : Cell[ListRow] {
+    private var hovered bool
+    private var focused bool
+    private var touch bool
+
+    protected override func Build(value ListRow) Blob {
+        let visible = value.Selected || hovered || focused || touch
+        let root = (value with{ShowActionsOnHover = false, Actions = visible ? value.Actions: nil}).Render()
+        root.Focusable = !value.Disabled
+        root.OnPointerEnter = (e PointerEvent) -> {
+            hovered = true
+            Rebuild()
+        }
+        root.OnPointerLeave = (e PointerEvent) -> {
+            hovered = false
+            Rebuild()
+        }
+        let down = root.OnPointerDown
+        root.OnPointerDown = (e PointerEvent) -> {
+            down?.Invoke(e)
+            if e.Device == PointerDevice.Touch {
+                touch = true
+                Rebuild()
+            }
+        }
+        root.OnFocus = (e FocusEvent) -> {
+            focused = true
+            Rebuild()
+        }
+        root.OnBlur = (e FocusEvent) -> {
+            focused = false
+            Rebuild()
         }
         return root
     }

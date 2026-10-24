@@ -235,7 +235,7 @@ GalleryRegistry(
             }
         ),
         GalleryCategory("Media", []GalleryPage{AsyncImagePage{}, AvatarPage{}, MediaCardPage{}, MediaTransportPage{},}),
-        GalleryCategory("Data", []GalleryPage{ChipPage{}, TimeAxisPage{}, TreeViewPage{}, DataGridPage{},}),
+        GalleryCategory("Data", []GalleryPage{ChipPage{}, TimeAxisPage{}, ListViewPage{}, TreeViewPage{}, DataGridPage{},}),
         GalleryCategory("Navigation", []GalleryPage{NavigationRailPage{}, TabBarPage{}, MenuPage{},}),
         GalleryCategory("Colors", []GalleryPage{ColorPickerPage{},}),
         GalleryCategory("Charts", []GalleryPage{DonutChartPage{}, StackedBarPage{}}),
