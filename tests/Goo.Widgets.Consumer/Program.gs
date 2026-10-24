@@ -351,6 +351,7 @@ func Main() {
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_EDITING_BINDINGS") == "1" {
         EditingNavigationContracts()
         TextFieldAccessibility()
+        FieldInteractions()
         return
     }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_GALLERY_FEEDBACK") == "1" {

@@ -1,7 +1,9 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 
 class TextFieldPage : GalleryPage {
@@ -30,6 +32,7 @@ class TextFieldPage : GalleryPage {
             Placeholder = "you@example.com",
             Disabled = true,
             AccessibilityName = "Locked account email",
+            Clearable = true,
         }
         let customField = baseField with{
             Label = "Workspace",
@@ -43,6 +46,23 @@ class TextFieldPage : GalleryPage {
             BorderWidth = 1.5,
             BorderRadius = 12.0,
             FocusRingWidth = 3.0,
+        }
+        let password = baseField with{
+            Label = "Password",
+            Value = "correct horse",
+            Password = true,
+            RevealButton = true,
+            Width = 280,
+        }
+        let address = baseField with{
+            Label = "Site address",
+            Value = "team",
+            Clearable = true,
+            MaxLength = 20,
+            Width = 280,
+            PrefixAddon = Text{Content: "https://", Color: Theme.Read().MutedTextColor},
+            SuffixAddon = Text{Content: ".dev", Color: Theme.Read().MutedTextColor},
+            Leading = MaterialIcons.Create("link", 16, Theme.Read().MutedTextColor),
         }
 
         return Container{
@@ -90,6 +110,14 @@ class TextFieldPage : GalleryPage {
                     Text{Content: "CUSTOM", FontSize: 10.0, FontWeight: 700},
                     customField.Build(),
                 },
+            },
+            Container{
+                Width: Percent(100),
+                FlexDirection: FlexDirection.Row,
+                Gap: 24,
+                JustifyContent: JustifyContent.Center,
+                password.Build(),
+                address.Build()
             },
         }
     }

@@ -27,6 +27,22 @@ public data struct TextField {
     var OnChange Action[string]?
     /// Callback for submitted values.
     var OnSubmit Action[string]?
+    /// Callback on Enter or when the entry loses focus.
+    var OnCommit Action[string]?
+    /// Content inside the entry frame before and after the editor.
+    var Leading Blob?
+    var Trailing Blob?
+    /// Content in separate attached sections of the entry frame.
+    var PrefixAddon Blob?
+    var SuffixAddon Blob?
+    /// Shows a named clear action while the field is nonempty.
+    var Clearable bool
+    /// Masks text until the optional reveal action is pressed.
+    var Password bool
+    var RevealButton bool
+    /// Soft character limit. Input is retained when the count exceeds it.
+    var MaxLength int32?
+    var CounterText string?
     /// Entry background. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Entry text color. Nil uses the nearest theme.
@@ -83,6 +99,13 @@ public data struct TextField {
     var CreateRoot Func[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
     public func Build() Blob {
+        if Clearable || RevealButton || OnCommit != nil || MaxLength != nil {
+            return Cell.Mount[TextField, TextFieldState](nil, this)
+        }
+        return BuildContent()
+    }
+
+    internal func BuildContent(state TextFieldState? = nil) Blob {
         let theme = Theme.Read()
         let createEntry = CreateEntry
         let createRoot = CreateRoot
@@ -101,8 +124,8 @@ public data struct TextField {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             FocusColor = FocusColor ?? theme.AccentColor,
             InvalidColor = InvalidColor ?? theme.DangerColor,
-            DisabledBackgroundColor = DisabledBackgroundColor ?? theme.PanelColor,
-            DisabledTextColor = DisabledTextColor ?? theme.FaintTextColor,
+            DisabledBackgroundColor = DisabledBackgroundColor ?? theme.SunkenColor,
+            DisabledTextColor = DisabledTextColor ?? theme.DisabledTextColor,
             FontFamily = FontFamily ?? theme.FontFamily,
             Width = Width ?? defaultWidth,
             EntryHeight = EntryHeight ?? controlHeight,
@@ -187,6 +210,7 @@ public data struct TextField {
                 Placeholder: resolved.Placeholder!!,
                 OnChange: resolved.OnChange,
                 OnSubmit: resolved.OnSubmit,
+                Password: resolved.Password,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
                 Focus: Style{OutlineColor: accent, OutlineWidth: resolved.FocusRingWidth!!, OutlineOffset: 2.0},
@@ -219,6 +243,7 @@ public data struct TextField {
                 issue.FontFamily = resolved.FontFamily!!
             }
         }
+        let readOnly = entry!!.Accessibility?.ReadOnly ?? false
         entry!!.Key = "entry"
         entry!!.Disabled = resolved.Disabled
         entry!!.Focusable = !resolved.Disabled
@@ -226,16 +251,23 @@ public data struct TextField {
             Role: AccessibilityRole.TextInput,
             Name: resolved.AccessibilityName!!,
             Invalid: resolved.Invalid,
+            ReadOnly: readOnly,
             Relationships: AccessibilityRelationships{
                 LabelledBy: label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
                 DescribedBy: issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
                 ErrorMessage: resolved.Invalid && issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
             }
         }
+        if state != nil {
+            entry!!.OnFocus = state.Focused
+            entry!!.OnBlur = state.Blurred
+        }
         if let createRoot = createRoot {
             let content = createRoot(resolved, label, entry!!, issue)
-            return Cell.Mount[TouchTextEditingInput, TouchTextEditing](content.Key,
-                TouchTextEditingInput{Content: content, Editor: entry!!, Enabled: resolved.TouchEditing})
+            return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+                content.Key,
+                TouchTextEditingInput{Content: content, Editor: entry!!, Enabled: resolved.TouchEditing}
+            )
         }
         let root = Container{
             LineHeight: theme.LineHeight,
@@ -248,11 +280,164 @@ public data struct TextField {
         if let label = label {
             root.Children.Add(label)
         }
-        root.Children.Add(entry!!)
+        if resolved.Leading != nil || resolved.Trailing != nil || resolved.PrefixAddon != nil
+        || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton {
+            let frame = Container{
+                Width: Percent(100),
+                Height: resolved.EntryHeight!!,
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                BackgroundColor: resolved.Disabled ? resolved.DisabledBackgroundColor!!: resolved.BackgroundColor!!,
+                BorderColor: resolved.Invalid ? resolved.InvalidColor!!: resolved.BorderColor!!,
+                BorderWidth: resolved.BorderWidth!!,
+                BorderRadius: resolved.BorderRadius!!,
+            }
+            entry!!.Width = Length.Auto
+            entry!!.FlexGrow = 1
+            entry!!.MinWidth = 0
+            entry!!.BorderWidth = 0
+            entry!!.BorderRadius = 0
+            entry!!.BackgroundColor = Color.Transparent
+            entry!!.DisabledStyle = Style{Color: resolved.DisabledTextColor!!}
+            if let addon = resolved.PrefixAddon {
+                frame.Children.Add(Addon(addon, resolved))
+            }
+            if let leading = resolved.Leading {
+                frame.Children.Add(leading)
+            }
+            frame.Children.Add(entry!!)
+            if let trailing = resolved.Trailing {
+                frame.Children.Add(trailing)
+            }
+            if resolved.Clearable && !resolved.Disabled && !readOnly && value.Length > 0 && state != nil {
+                frame.Children.Add(state.ActionButton("Clear " + resolved.AccessibilityName!!, "close", state.Clear))
+            }
+            if (resolved.Password || state?.Revealed == true) && resolved.RevealButton && state != nil {
+                frame.Children.Add(
+                    state.ActionButton(
+                        state.Revealed ? "Hide password": "Show password",
+                        state.Revealed ? "visibility_off": "visibility",
+                        state.Reveal
+                    )
+                )
+            }
+            if let addon = resolved.SuffixAddon {
+                frame.Children.Add(Addon(addon, resolved))
+            }
+            root.Children.Add(frame)
+        } else {
+            root.Children.Add(entry!!)
+        }
+        var counter = resolved.CounterText
+        if counter == nil && resolved.MaxLength != nil {
+            counter = value.Length.ToString() + " / " + resolved.MaxLength!!.ToString()
+        }
+        if let counter = counter {
+            root.Children.Add(
+                Text{
+                    Key: "counter",
+                    Content: counter,
+                    FontSize: resolved.IssueFontSize,
+                    Color: resolved.MaxLength != nil && value.Length > resolved.MaxLength!!
+                    ? resolved.InvalidColor!!: resolved.MutedTextColor!!
+                }
+            )
+        }
         if let issue = issue {
             root.Children.Add(issue)
         }
-        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](root.Key,
-            TouchTextEditingInput{Content: root, Editor: entry!!, Enabled: resolved.TouchEditing})
+        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+            root.Key,
+            TouchTextEditingInput{Content: root, Editor: entry!!, Enabled: resolved.TouchEditing}
+        )
+    }
+
+    private func Addon(content Blob, input TextField) Blob -> Container{
+        Height: Percent(100),
+        Padding: Edges{Left: input.PaddingHorizontal!!, Right: input.PaddingHorizontal!!},
+        AlignItems: AlignItems.Center,
+        JustifyContent: JustifyContent.Center,
+        BackgroundColor: Theme.Read().SunkenColor,
+        content,
+    }
+}
+
+internal class TextFieldState : Cell[TextField] {
+    private var current TextField
+    private var source string?
+    private var value string = ""
+    private var focused bool
+    internal var Revealed bool
+
+    protected override func Build(input TextField) Blob {
+        if source != input.Value || input.Controlled {
+            source = input.Value
+            if !focused || input.Controlled {
+                value = input.Value ?? ""
+            }
+        }
+        current = input
+        return (
+            input with{
+                Value = value,
+                Controlled = true,
+                Password = input.Password && !Revealed,
+                RevealButton = input.Password && input.RevealButton,
+                OnChange = Changed,
+                OnSubmit = Submitted,
+            }
+        ).BuildContent(this)
+    }
+
+    private func Changed(text string) {
+        value = text
+        current.OnChange?.Invoke(text)
+        Rebuild()
+    }
+
+    private func Submitted(text string) {
+        current.OnSubmit?.Invoke(text)
+        current.OnCommit?.Invoke(text)
+    }
+
+    internal func Focused(event FocusEvent) {
+        focused = true
+    }
+
+    internal func Blurred(event FocusEvent) {
+        focused = false
+        current.OnCommit?.Invoke(value)
+        if !current.Controlled {
+            value = current.Value ?? ""
+        }
+        Rebuild()
+    }
+
+    internal func Clear() {
+        Changed("")
+    }
+
+    internal func Reveal() {
+        Revealed = !Revealed
+        Rebuild()
+    }
+
+    internal func ActionButton(name string, icon string, action Action) Blob {
+        let theme = Theme.Read()
+        let button = Button{
+            Width: theme.ControlHeight,
+            Height: Percent(100),
+            Padding: 0,
+            Disabled: current.Disabled,
+            Focusable: !current.Disabled,
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
+            OnClick: action,
+            Focus: theme.FocusStyle,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            MaterialIcons.Create(icon, 16, theme.MutedTextColor),
+        }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 }
