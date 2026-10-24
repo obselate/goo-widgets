@@ -294,7 +294,7 @@ public data struct Theme {
                 DangerColor: "#ff8577",
                 DangerFillColor: "#c93a32",
                 DangerHoverColor: "#ce3f37",
-                SunkenColor: Color.Rgba(255, 255, 255, 12),
+                SunkenColor: "#1e2026",
                 ActiveColor: "#1b2a45",
                 StrongBorderColor: "#878e9d",
                 SubtleTextColor: "#b4b9c4",
