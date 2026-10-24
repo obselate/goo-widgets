@@ -190,6 +190,8 @@ GalleryRegistry(
                 RadioGroupPage{},
                 ToggleGroupPage{},
                 TextFieldPage{},
+                NumberInputPage{},
+                FormFieldPage{},
                 TextAreaPage{},
                 TouchTextEditingPage{},
                 ToggleSwitchPage{},
