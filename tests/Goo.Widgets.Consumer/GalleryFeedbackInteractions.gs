@@ -180,13 +180,19 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         }
     }
     FeedbackWheel(window, sequenceGrid, 20.0F)
+    let beforeFilter = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     let filter = FeedbackNode(adapter, AccessibilityRole.TextInput, "")
     Require(
         window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
         "Grid filter focus failed"
     )
+    PumpFrames(window, 2)
+    Require(
+        Math.Abs(FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds.Y - beforeFilter.Y) < .1,
+        "Focusing a grid filter changed the body scroll position"
+    )
     let grid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
-    FeedbackWheel(window, grid, -0.8F)
+    FeedbackWheel(window, grid, -0.02F)
     let clicked = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     CaptureIssueProof(window, "gallery-grid-scrolled-before-check")
     FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20})
