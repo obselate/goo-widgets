@@ -485,6 +485,21 @@ public data struct Theme {
         get -> Button with{BackgroundColor = Color.Transparent, BorderColor = Color.Transparent}
     }
 
+    /// Transparent action with a visible border.
+    public prop OutlineButton ActionButton {
+        get -> Button with{BackgroundColor = Color.Transparent}
+    }
+
+    /// Quiet action on a sunken surface.
+    public prop SubtleButton ActionButton {
+        get -> Button with{BackgroundColor = SunkenColor, BorderColor = Color.Transparent}
+    }
+
+    /// Link-colored action with no resting border or fill.
+    public prop LinkButton ActionButton {
+        get -> GhostButton with{TextColor = LinkColor}
+    }
+
     /// Destructive action with contrasting text.
     public prop DangerButton ActionButton {
         get -> Button with{

@@ -187,6 +187,8 @@ GalleryRegistry(
             "Inputs",
             []GalleryPage{
                 CheckboxPage{},
+                RadioGroupPage{},
+                ToggleGroupPage{},
                 TextFieldPage{},
                 TextAreaPage{},
                 TouchTextEditingPage{},

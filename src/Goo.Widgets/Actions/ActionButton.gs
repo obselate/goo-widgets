@@ -13,6 +13,16 @@ public data struct ActionButton {
     var OnClick Action?
     /// Whether the button rejects input.
     var Disabled bool
+    /// Content before the label.
+    var Leading Blob?
+    /// Content after the label.
+    var Trailing Blob?
+    /// Display-only keyboard shortcut hint.
+    var Shortcut string?
+    /// Shows progress without changing width and rejects input.
+    var Loading bool
+    /// Controlled toggle state. Nil keeps ordinary button semantics.
+    var Pressed bool?
     /// Background. Nil uses the theme panel.
     var BackgroundColor Color?
     /// Text. Nil uses the theme text.
@@ -69,6 +79,8 @@ public data struct ActionButton {
         let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
             Content = content,
+            Disabled = Disabled || Loading,
+            OnClick = Disabled || Loading ? nil: OnClick,
             AccessibilityName = AccessibilityName ?? content,
             BackgroundColor = background,
             TextColor = TextColor ?? theme.TextColor,
@@ -110,6 +122,17 @@ public data struct ActionButton {
         }
         if let createRoot = createRoot {
             let button = createRoot(resolved, text)
+            button.Disabled = resolved.Disabled
+            if resolved.Disabled {
+                button.OnClick = nil
+            }
+            button.Accessibility = Accessibility{
+                Role: AccessibilityRole.Button,
+                Name: resolved.AccessibilityName!!,
+                Busy: Loading,
+                Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
+                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
+            }
             WidgetKeyBindings.BindActivation(button)
             return button
         }
@@ -122,10 +145,12 @@ public data struct ActionButton {
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderColor: resolved.BorderColor!!,
-            BackgroundColor: resolved.BackgroundColor!!,
+            BackgroundColor: Pressed == true ? resolved.ActiveBackgroundColor!!: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
+            FlexDirection: FlexDirection.Row,
+            Gap: theme.ControlGap,
             Cursor: Cursor.Pointer,
             Focusable: true,
             Disabled: resolved.Disabled,
@@ -139,8 +164,46 @@ public data struct ActionButton {
                 BackgroundColor: resolved.DisabledBackgroundColor!!,
                 Color: resolved.DisabledTextColor!!,
             },
-            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!,},
-            text,
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.Button,
+                Name: resolved.AccessibilityName!!,
+                Busy: Loading,
+                Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
+                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
+            },
+        }
+        let contents = Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: theme.ControlGap,
+            Opacity: Loading ? 0.0: 1.0,
+        }
+        if let leading = Leading {
+            contents.Children.Add(leading)
+        }
+        contents.Children.Add(text)
+        if let trailing = Trailing {
+            contents.Children.Add(trailing)
+        }
+        if let shortcut = Shortcut {
+            contents.Children.Add(
+                Text{Content: shortcut, FontFamily: theme.MonoFontFamily, FontSize: theme.CaptionFontSize,}
+            )
+        }
+        root.Children.Add(contents)
+        if Loading {
+            root.Children.Add(
+                Container{
+                    Position: PositionType.Absolute,
+                    Left: 0,
+                    Right: 0,
+                    Top: 0,
+                    Bottom: 0,
+                    AlignItems: AlignItems.Center,
+                    JustifyContent: JustifyContent.Center,
+                    Text{Content: "...", FontSize: resolved.FontSize!!},
+                }
+            )
         }
         WidgetKeyBindings.BindActivation(root)
         return root
