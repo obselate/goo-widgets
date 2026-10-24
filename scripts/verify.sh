@@ -3,13 +3,13 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-python3 scripts/generate-material-symbol-substitutions.py --check
+dotnet run --project tools/Goo.Widgets.Checks -c Release -- symbols --check
 dotnet restore Goo.Widgets.slnx --locked-mode
 dotnet build Goo.Widgets.slnx -c Release --no-restore --nologo
-python3 scripts/verify-screenshots.py
+dotnet run --project tools/Goo.Widgets.Checks -c Release --no-build -- screenshots
 dotnet pack src/Goo.Widgets/Goo.Widgets.gsproj -c Release --no-build --no-restore -o artifacts/packages
 dotnet pack src/Goo.Widgets.Markdown/Goo.Widgets.Markdown.gsproj -c Release --no-build --no-restore -o artifacts/packages
-python3 scripts/verify-package.py --markdown
+dotnet run --project tools/Goo.Widgets.Checks -c Release --no-build -- package --markdown
 dotnet restore tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj --locked-mode
 dotnet run --project tests/Goo.Widgets.Consumer/Goo.Widgets.Consumer.gsproj -c Release --no-restore
 version="$(dotnet msbuild src/Goo.Widgets/Goo.Widgets.gsproj -getProperty:Version -nologo)"

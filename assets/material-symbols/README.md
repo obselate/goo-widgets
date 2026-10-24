@@ -27,7 +27,7 @@ Without selection, the full catalog stays available.
 To update, select the same upstream paths at a new commit, copy the SVG bytes
 without modifying their content, retain the license, and update this provenance
 and the packaged-consumer icon count. Run
-`python3 scripts/generate-material-symbol-substitutions.py` to refresh the
+`dotnet run --project tools/Goo.Widgets.Checks -c Release -- symbols` to refresh the
 NativeAOT resource list. `bash scripts/verify.sh` checks that list and verifies
 all embedded icons through the packaged library. Then refresh the IconButton
 gallery screenshot.
