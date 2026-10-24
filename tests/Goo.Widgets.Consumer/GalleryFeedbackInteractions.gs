@@ -27,7 +27,7 @@ func FeedbackNode(adapter SearchListSemantics, role AccessibilityRole, name stri
     return nodes[index]
 }
 
-func FeedbackClick(window Window, bounds ElementRect, count int32 = 1) {
+func FeedbackClick(window Window, bounds ElementRect, count int32 = 1, settleFrames int32 = 12) {
     let id = OnlyNativeWindow()
     let x = float32(bounds.X + bounds.Width / 2.0)
     let y = float32(bounds.Y + bounds.Height / 2.0)
@@ -37,7 +37,7 @@ func FeedbackClick(window Window, bounds ElementRect, count int32 = 1) {
         PumpFrames(window, 3)
         MouseButton(id, x, y, false)
     }
-    PumpFrames(window, 12)
+    PumpFrames(window, settleFrames)
 }
 
 func FeedbackSetValue(window Window, node AccessibilityNode, value string) {
@@ -143,20 +143,23 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
             WindowID: OnlyNativeWindow(),
             Which: 1u,
             MouseX: float32(bounds.X + bounds.Width / 2.0),
-            MouseY: float32(bounds.Y + bounds.Height - 30.0),
+            MouseY: float32(bounds.Y + bounds.Height / 2.0),
             Y: direction,
         }
     }
     Require(SDL.PushEvent(ref event), "SDL rejected gallery wheel input")
-    PumpFrames(window, 20)
+    PumpFrames(window, 4)
 }
 
 func FeedbackGrid(window Window, adapter SearchListSemantics) {
+    window.SmoothScrolling = false
+    window.Height = 640
+    PumpFrames(window, 20)
     let sequenceGrid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
     for name in[]string{"atlas", "borealis", "cirrus", "ember", "fjord", "grove", "harbor"} {
         for step in 0 ... 20 {
             let row = FeedbackNode(adapter, AccessibilityRole.Row, name).Bounds
-            if row.Y + 18.0 < sequenceGrid.Y + sequenceGrid.Height - 4.0 {
+            if row.Y + 28.0 < FeedbackNode(adapter, AccessibilityRole.Group, "Grid summary").Bounds.Y - 16.0 {
                 break
             }
             FeedbackWheel(window, sequenceGrid, -1.0F)
@@ -165,7 +168,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
             let before = FeedbackNode(adapter, AccessibilityRole.Row, name)
             let wasSelected = before.Selected
             let box = before.Bounds
-            FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20, Height: 20})
+            FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20, Height: 20}, settleFrames: 3)
             let after = FeedbackNode(adapter, AccessibilityRole.Row, name)
             Console.WriteLine(
                 "grid-sequence " + name + " before-y=" + box.Y.ToString() + " after-y=" + after.Bounds.Y.ToString()
@@ -181,7 +184,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
     }
     FeedbackWheel(window, sequenceGrid, 20.0F)
     let beforeFilter = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
-    let filter = FeedbackNode(adapter, AccessibilityRole.TextInput, "")
+    let filter = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts")
     Require(
         window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
         "Grid filter focus failed"
@@ -192,10 +195,13 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         "Focusing a grid filter changed the body scroll position"
     )
     let grid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
-    FeedbackWheel(window, grid, -0.02F)
+    Require(window.PerformAccessibilityAction(FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not reveal the scrolled row")
+    PumpFrames(window, 8)
+    Require(window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not restore toolbar focus")
+    PumpFrames(window, 2)
     let clicked = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     CaptureIssueProof(window, "gallery-grid-scrolled-before-check")
-    FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20})
+    FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20}, settleFrames: 3)
     let clickedAfter = FeedbackNode(adapter, AccessibilityRole.Row, "fjord")
     CaptureIssueProof(window, "gallery-grid-scrolled-after-check")
     Console.WriteLine(
@@ -210,24 +216,36 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         clickedAfter.Selected == true && Math.Abs(clickedAfter.Bounds.Y - clicked.Y) < .1,
         "Focusing a scrolled grid moved the checkbox under the pointer or selected a different row"
     )
+    let footer = FeedbackNode(adapter, AccessibilityRole.Group, "Grid summary").Bounds
+    for step in 0 ... 40 {
+        let edge = FeedbackNode(adapter, AccessibilityRole.Row, "grove").Bounds
+        if edge.Y + edge.Height > footer.Y && edge.Y + 28 < footer.Y {
+            break
+        }
+        FeedbackWheel(window, grid, edge.Y + edge.Height <= footer.Y ? 0.1F: -0.1F)
+    }
     let partial = FeedbackNode(adapter, AccessibilityRole.Row, "grove").Bounds
     Require(
-        partial.Y < grid.Y + grid.Height && partial.Y + partial.Height > grid.Y + grid.Height,
+        partial.Y + 28 < footer.Y && partial.Y + partial.Height > footer.Y,
         "Expected a partially visible row for the edge-click regression"
     )
-    FeedbackClick(window, ElementRect{X: partial.X + 8.0, Y: partial.Y + 10.0, Width: 20, Height: 4})
+    FeedbackClick(window, ElementRect{X: partial.X + 8.0, Y: partial.Y + 10.0, Width: 20, Height: 4}, settleFrames: 3)
     let partialAfter = FeedbackNode(adapter, AccessibilityRole.Row, "grove")
     Require(
         partialAfter.Selected == true && Math.Abs(partialAfter.Bounds.Y - partial.Y) < .1,
         "Clicking a partially visible checkbox scrolled the row before activation"
     )
     CaptureIssueProof(window, "gallery-grid-partial-check")
+    window.Height = 800
+    PumpFrames(window, 20)
     FeedbackWheel(window, grid, 20.0F)
     CaptureIssueProof(window, "gallery-grid-initial")
     for name in[]string{"borealis", "cirrus", "ember"} {
+        Require(window.PerformAccessibilityAction(FeedbackNode(adapter, AccessibilityRole.Row, name).Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Could not reveal selection row")
+        PumpFrames(window, 8)
         let row = FeedbackNode(adapter, AccessibilityRole.Row, name)
         let box = row.Bounds
-        FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20.0, Height: 20.0})
+        FeedbackClick(window, ElementRect{X: box.X + 8.0, Y: box.Y + 8.0, Width: 20.0, Height: 20.0}, settleFrames: 3)
         let current = FeedbackNode(adapter, AccessibilityRole.Row, name)
         Console.WriteLine(
             "grid-check " + name + " selected=" + current.Selected.ToString() + " before-y=" + box.Y.ToString() +
@@ -253,7 +271,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         FeedbackNode(adapter, AccessibilityRole.Row, "borealis").Selected == true,
         "Filtering lost selected identity"
     )
-    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, ""), "")
+    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "")
     let ember = FeedbackNode(adapter, AccessibilityRole.Row, "ember")
     Require(
         window.PerformAccessibilityAction(ember.Id, AccessibilityActionRequest(AccessibilityAction.Expand)),
@@ -267,6 +285,34 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
             "Filtering or detail expansion transferred selected identity: " + name
         )
     }
+    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "no-matching-host")
+    let empty = FeedbackNode(adapter, AccessibilityRole.Text, "No hosts found").Bounds
+    Require(empty.X >= grid.X && empty.Y >= grid.Y && empty.X + empty.Width <= grid.X + grid.Width, "Grid empty state escaped its frame")
+    CaptureIssueProof(window, "gallery-grid-empty")
+    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "")
+}
+
+func FeedbackGridFit(window Window, adapter SearchListSemantics) {
+    for width in []int32{960, 1280} {
+        window.Width = width
+        window.Height = width == 960 ? 640: 800
+        PumpFrames(window, 20)
+        let fitted = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
+        let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts").Bounds
+        let action = FeedbackNode(adapter, AccessibilityRole.Button, "Clear selection").Bounds
+        Require(fitted.Height > 180 && fitted.Y + fitted.Height < window.Height, "Grid did not fit the gallery height")
+        Require(search.X >= fitted.X && search.X + search.Width <= fitted.X + fitted.Width, "Search did not fit the toolbar")
+        Require(fitted.X + fitted.Width <= window.Width - 16 && action.X + action.Width <= window.Width - 16, "Grid or action escaped the gallery viewport")
+        CaptureIssueProof(window, "gallery-grid-fit-" + width.ToString())
+    }
+    let resize = FeedbackNode(adapter, AccessibilityRole.Slider, "Resize Host").Bounds
+    MouseMove(OnlyNativeWindow(), float32(resize.X + resize.Width / 2), float32(resize.Y + resize.Height / 2))
+    PumpFrames(window, 4)
+    CaptureIssueProof(window, "gallery-grid-resize-hover")
+    let hovered = FeedbackNode(adapter, AccessibilityRole.Row, "borealis").Bounds
+    MouseMove(OnlyNativeWindow(), float32(hovered.X + hovered.Width / 2), float32(hovered.Y + hovered.Height / 2))
+    PumpFrames(window, 4)
+    CaptureIssueProof(window, "gallery-grid-row-hover")
 }
 
 func FeedbackTree(window Window, adapter SearchListSemantics) {
@@ -393,7 +439,11 @@ func GalleryFeedbackInteractions() {
             } else if page == "Media transport" {
                 FeedbackMedia(window, adapter)
             } else if page == "Data grid" {
-                FeedbackGrid(window, adapter)
+                if Environment.GetEnvironmentVariable("GOO_WIDGETS_GALLERY_FIT") == "1" {
+                    FeedbackGridFit(window, adapter)
+                } else {
+                    FeedbackGrid(window, adapter)
+                }
             } else if page == "Tree view" {
                 FeedbackTree(window, adapter)
             } else if page == "Menu" {

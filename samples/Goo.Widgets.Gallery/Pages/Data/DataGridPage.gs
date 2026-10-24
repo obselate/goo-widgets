@@ -2,8 +2,11 @@ package Goo.Widgets.Gallery.Pages.Data
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Actions
 import Goo.Widgets.Data
 import Goo.Widgets.Gallery
+import Goo.Widgets.Icons
+import Goo.Widgets.Inputs
 import System
 import System.Collections.Generic
 
@@ -74,7 +77,28 @@ internal class DataGridExample : Cell {
         return rows.ToArray()
     }
 
-    private func Detail(input DataGridInput, row DataGridRow) Blob -> Text{Content: "Host " + row.Id!! + "\nLast checked 2 minutes ago", FontSize: 13}
+    private func Detail(input DataGridInput, row DataGridRow) Blob -> Container{
+        FlexDirection: FlexDirection.Row,
+        Gap: 24,
+        Container{
+            FlexGrow: 1,
+            Gap: 4,
+            Typography{Content: "Environment", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+            Text{Content: "Production", FontSize: Theme.Read().FontSize}
+        },
+        Container{
+            FlexGrow: 1,
+            Gap: 4,
+            Typography{Content: "Region", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+            Text{Content: "Europe West", FontSize: Theme.Read().FontSize}
+        },
+        Container{
+            FlexGrow: 1,
+            Gap: 4,
+            Typography{Content: "Last checked", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+            Text{Content: "2 minutes ago", FontSize: Theme.Read().FontSize}
+        }
+    }
 
     public override func Build() Blob {
         let rows = Rows()
@@ -84,34 +108,68 @@ internal class DataGridExample : Cell {
         }
         return Container{
             Width: Percent(100),
-            Gap: 14,
+            Height: Percent(100),
+            MinWidth: 0,
+            MinHeight: 0,
+            Gap: 16,
+            Container{
+                Key: "toolbar",
+                FlexShrink: 0,
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                Gap: 12,
+                TextField{
+                    Value: query,
+                    Placeholder: "Search hosts",
+                    AccessibilityName: "Search hosts",
+                    OnChange: Filter,
+                    Width: 220,
+                    EntryHeight: 36,
+                    Leading: MaterialIcons.Create("search", 16, Theme.Read().MutedTextColor),
+                    Clearable: true
+                }.Build(),
+                ActionButton{
+                    Content: selected.Length > 0 ? "Clear selection": "Select all",
+                    Height: 36,
+                    OnClick: () -> {
+                        let ids = List[string]()
+                        if selected.Length == 0 {
+                            for row in rows {
+                                if !row.Disabled {
+                                    ids.Add(row.Id!!)
+                                }
+                            }
+                        }
+                        Select(ids.ToArray())
+                    }
+                }.Build()
+            },
             Cell.Mount[DataGridInput, DataGrid](
                 "inventory",
                 DataGridInput{
-                    Height: 335,
+                    Height: Length.Auto,
+                    RowHeight: 40,
+                    HeaderHeight: 40,
+                    ScrollbarVisibilityY: ScrollbarVisibility.Always,
                     AccessibilityName: "Managed hosts",
                     Rows: rows,
+                    EmptyContent: Container{
+                        Gap: 8,
+                        AlignItems: AlignItems.Center,
+                        MaterialIcons.Create("search_off", 24, Theme.Read().MutedTextColor),
+                        Typography{Content: "No hosts found", Variant: TextVariant.Subtitle}.Build()
+                    },
                     Columns: []DataGridColumn{
                         DataGridColumn{
                             Id: "name",
                             Label: "Host",
-                            Width: 190,
+                            Width: 140,
                             Minimum: 110,
-                            Sortable: true,
-                            Filter: TextEntry{
-                                Value: query,
-                                Placeholder: "Filter hosts",
-                                OnChange: Filter,
-                                Width: Percent(100),
-                                Height: 30,
-                                Padding: 5,
-                                Color: "#fafafa",
-                                BackgroundColor: "#09090b"
-                            }
+                            Sortable: true
                         },
-                        DataGridColumn{Id: "status", Label: "Status", Flex: 1, Minimum: 120, Sortable: true},
+                        DataGridColumn{Id: "status", Label: "Status", Flex: 1, Minimum: 100, Sortable: true},
                         DataGridColumn{Id: "owner", Label: "Team", Flex: 2, Minimum: 160, Sortable: true},
-                        DataGridColumn{Id: "load", Label: "Load", Width: 120, Minimum: 100},
+                        DataGridColumn{Id: "load", Label: "Load", Width: 100, Minimum: 80, Alignment: TextAlign.Right},
                     },
                     ColumnWidths: widths,
                     OnColumnWidthChange: Width,
@@ -123,29 +181,26 @@ internal class DataGridExample : Cell {
                         order = value
                         Rebuild()
                     },
-                    Density: DataGridDensity.Compact,
+                    Density: DataGridDensity.Normal,
                     OnRowInvoke: (id string) -> Expand(id, true),
-                    Footer: Typography{
-                        Content: "Hosts " + rows.Length.ToString() + " · Load " + total.ToString(),
-                        Variant: TextVariant.Caption
-                    }.Build(),
+                    Footer: Container{
+                        FlexDirection: FlexDirection.Row,
+                        JustifyContent: JustifyContent.SpaceBetween,
+                        Typography{Content: selected.Length.ToString() + " selected", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+                        Typography{
+                            Content: rows.Length == 0 ? "No load data": "Average load " + (total / rows.Length).ToString() + "%",
+                            Variant: TextVariant.Caption,
+                            Color: Theme.Read().MutedTextColor
+                        }.Build()
+                    },
                     CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) -> {
                         if column.Id != "load" {
                             return content
                         }
-                        return Container{
-                            Position: PositionType.Relative,
-                            Height: 20,
-                            JustifyContent: JustifyContent.Center,
-                            Container{
-                                Position: PositionType.Absolute,
-                                Left: 0,
-                                Top: 0,
-                                Bottom: 0,
-                                Width: Percent(float64.Parse(row.Values!!["load"])),
-                                BackgroundColor: Theme.Read().AccentColor.WithAlpha(0.25)
-                            },
-                            content
+                        return Text{
+                            Content: row.Values!!["load"] + "%",
+                            TextAlign: TextAlign.Right,
+                            FontSize: Theme.Read().FontSize
                         }
                     },
                     Selection: DataGridSelection.Multiple,
@@ -154,10 +209,14 @@ internal class DataGridExample : Cell {
                     OnSelectionChange: Select,
                     ExpandedIds: expanded,
                     OnExpandedChange: Expand,
+                    CreateRoot: (input DataGridInput, root Container) -> {
+                        root.FlexGrow = 1
+                        root.FlexBasis = 0
+                        return root
+                    },
                     CreateDetail: Detail
                 }
-            ),
-            Text{Key: "selection", Content: "Selected " + selected.Length.ToString(), FontSize: 13}
+            )
         }
     }
 }
