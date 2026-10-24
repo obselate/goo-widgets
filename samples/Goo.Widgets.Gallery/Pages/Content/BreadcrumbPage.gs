@@ -30,6 +30,7 @@ internal class BreadcrumbExample : Cell {
             Width: 300,
             Cell.Mount[BreadcrumbInput, Breadcrumb]("collapsed", BreadcrumbInput{Items: items, OnSelect: Select})
         },
+        Typography{Content: "Path bar: chevrons open sibling locations", Variant: TextVariant.Caption}.Build(),
         Cell.Mount[BreadcrumbInput, PathBar](
             "siblings",
             BreadcrumbInput{

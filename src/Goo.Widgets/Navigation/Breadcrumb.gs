@@ -43,12 +43,14 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
 
     public init() {
         rootHandle.MetricsChanged += Measure
+        overflowHandle.MetricsChanged += Measure
         separatorHandle.MetricsChanged += Measure
     }
 
     /// Releases path measurement subscriptions.
     public func Dispose() {
         rootHandle.MetricsChanged -= Measure
+        overflowHandle.MetricsChanged -= Measure
         separatorHandle.MetricsChanged -= Measure
         for handle in handles.Values {
             handle.MetricsChanged -= Measure
@@ -114,7 +116,6 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Button{
                         Key: overflowId,
                         Handle: overflowHandle,
-                        Width: theme.ControlHeight,
                         FlexShrink: 0,
                         TabStop: focus.TabStop(overflowId),
                         OnClick: OpenOverflow,
@@ -126,6 +127,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         },
                         OnKeyDown: (e KeyEvent) -> focus.Handle(e),
                         BackgroundColor: Color.Transparent,
+                        Hover: Style{BackgroundColor: theme.FieldColor},
+                        Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.Button,
                             Name: "Show hidden path",
@@ -197,11 +200,13 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                 WidgetKeyBindings.BindActivation(button)
                 root.Children.Add(button)
             }
-            if value.SiblingItems != nil {
+            if value.SiblingItems != nil && !current {
                 let sibling = Button{
                     Handle: index == 0 ? separatorHandle: nil,
                     FlexShrink: 0,
                     BackgroundColor: Color.Transparent,
+                    Hover: Style{BackgroundColor: theme.FieldColor},
+                    Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,
                         Name: "Locations in " + (item.Label ?? id)
@@ -296,7 +301,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
             return
         }
         let gap = theme.Spacing * 2 + (separatorHandle.IsMounted ? separatorHandle.BorderBox.Width: theme.FontSize)
-        var total = Math.Max(0, items.Length - 1) * gap + (input.SiblingItems == nil ? 0: gap)
+        var total = Math.Max(0, items.Length - 1) * gap
         for item in items {
             total += widths[item.Id!!]
         }
@@ -305,7 +310,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
         if total > rootHandle.ContentBox.Width && items.Length > 2 {
             start = Math.Clamp(input.KeepStart, 1, items.Length - 2)
             end = items.Length - Math.Clamp(input.KeepEnd, 1, items.Length - start - 1) - 1
-            var shown = total + theme.ControlHeight + gap
+            let overflowWidth = overflowHandle.IsMounted ? overflowHandle.BorderBox.Width: theme.FontSize
+            var shown = total + overflowWidth + gap
             for index in start ... end + 1 {
                 shown -= widths[items[index].Id!!] + gap
             }

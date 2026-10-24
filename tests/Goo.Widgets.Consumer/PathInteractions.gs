@@ -83,7 +83,14 @@ func PathActionsInteractions() {
     let chord = KeyBinding{Key: Key.K, Modifiers: KeyModifiers{Ctrl: true, Shift: true, Super: true}}
     Require(Kbd.Label(chord, KbdPlatform.Linux) == "Ctrl+Shift+Super+K", "Linux key labels changed")
     Require(Kbd.Label(chord, KbdPlatform.Windows) == "Ctrl+Shift+Super+K", "Windows key labels changed")
-    Require(Kbd.Label(chord, KbdPlatform.MacOS) == "Ctrl+Shift+Cmd+K", "Mac primary modifier was lost")
+    Require(Kbd.Label(chord, KbdPlatform.MacOS) == "⌃⇧⌘K", "Mac primary modifier was lost")
+    Require(
+        Kbd.Label(
+            KeyBinding{Key: Key.K, Modifiers: KeyModifiers{Ctrl: true, Alt: true, Shift: true, Super: true}},
+            KbdPlatform.MacOS
+        ) == "⌃⌥⇧⌘K",
+        "Mac modifier order changed"
+    )
     let host = PathActionsHost()
     let semantics = SearchListSemantics()
     let window = Window{

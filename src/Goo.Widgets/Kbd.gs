@@ -23,6 +23,7 @@ public data struct Kbd {
     /// Creates a row of labeled keycaps.
     public func Build() Blob {
         let theme = Theme.Read()
+        let family = theme.MonoFontFamily + ", sans-serif"
         let root = Container{FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center, Gap: theme.Spacing}
         let labels = List[string]()
         for binding in Keys ?? []KeyBinding{} {
@@ -32,7 +33,7 @@ public data struct Kbd {
                 root.Children.Add(
                     Text{
                         Content: label,
-                        FontFamily: theme.MonoFontFamily,
+                        FontFamily: family,
                         FontSize: theme.CaptionFontSize,
                         Color: Color ?? theme.MutedTextColor
                     }
@@ -49,7 +50,7 @@ public data struct Kbd {
                         BackgroundColor: theme.FieldColor,
                         Text{
                             Content: key,
-                            FontFamily: theme.MonoFontFamily,
+                            FontFamily: family,
                             FontSize: theme.CaptionFontSize,
                             Color: Color ?? theme.TextColor
                         }
@@ -67,16 +68,16 @@ public data struct Kbd {
             let mac = platform == KbdPlatform.MacOS || platform == KbdPlatform.Auto && OperatingSystem.IsMacOS()
             let parts = List[string]()
             if binding.Modifiers.Ctrl {
-                parts.Add("Ctrl")
+                parts.Add(mac ? "⌃": "Ctrl")
             }
             if binding.Modifiers.Alt {
-                parts.Add(mac ? "Option": "Alt")
+                parts.Add(mac ? "⌥": "Alt")
             }
             if binding.Modifiers.Shift {
-                parts.Add("Shift")
+                parts.Add(mac ? "⇧": "Shift")
             }
             if binding.Modifiers.Super {
-                parts.Add(mac ? "Cmd": "Super")
+                parts.Add(mac ? "⌘": "Super")
             }
             let key = switch binding.Key {
                 case Key.KeypadEnter: "Enter"
@@ -85,7 +86,7 @@ public data struct Kbd {
                 default: binding.Key.ToString()
             }
             parts.Add(key)
-            return String.Join("+", parts)
+            return String.Join(mac ? "": "+", parts)
         }
     }
 }
