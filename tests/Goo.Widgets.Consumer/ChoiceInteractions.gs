@@ -265,7 +265,7 @@ func ChoiceInteractions() {
         PumpFrames(window, 5)
     }
     if !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("GOO_WIDGETS_PROOF_DIR")) {
-        for page in[]string{"ActionButton", "Radio group", "Toggle group"} {
+        for page in[]string{"Action button", "Radio group", "Toggle group"} {
             for dark in[]bool{false, true} {
                 for size in 0 ... 3 {
                     let width = size == 1 ? 900: size == 2 ? 2560: 1100

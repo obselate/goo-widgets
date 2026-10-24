@@ -8,7 +8,7 @@ import System
 
 internal class ListViewExample : Cell {
     private var selected[]string = []string{"inbox"}
-    private var invoked string = "Enter or double press opens a row."
+    private var invoked string = "none"
 
     public override func Build() Blob {
         let theme = Theme.Read()
@@ -17,8 +17,6 @@ internal class ListViewExample : Cell {
             MaxWidth: 620,
             MinHeight: 0,
             Gap: theme.ControlGap,
-            Text{Content: "Select several folders", FontSize: theme.HeadingFontSize, Color: theme.TextColor},
-            Text{Content: "Shift extends selection. Ctrl or Command toggles.", Color: theme.MutedTextColor},
             Cell.Mount[ListViewInput, ListView](
                 "folders",
                 ListViewInput{
@@ -30,7 +28,7 @@ internal class ListViewExample : Cell {
                         Rebuild()
                     },
                     OnInvoke: (id string) -> {
-                        invoked = "Opened " + id
+                        invoked = id
                         Rebuild()
                     },
                     Sections: []ListViewSection{
@@ -55,7 +53,7 @@ internal class ListViewExample : Cell {
                     }
                 }
             ),
-            Text{Content: invoked, Color: theme.MutedTextColor}
+            Text{Content: "Opened " + invoked, Color: theme.MutedTextColor}
         }
     }
 }

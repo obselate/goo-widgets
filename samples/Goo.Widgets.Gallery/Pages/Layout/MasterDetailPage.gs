@@ -18,7 +18,7 @@ internal open class MasterDetailExample : Cell {
             FlexDirection: FlexDirection.Row,
             Gap: 8.0,
             ActionButton{
-                Content: "Toggle layout",
+                Content: narrow ? "Narrow": "Wide",
                 OnClick: () -> {
                     narrow = !narrow
                 }
@@ -30,15 +30,15 @@ internal open class MasterDetailExample : Cell {
                 }
             }.Build(),
         },
-        MasterDetail{
+        Container{Height: 316.0, MasterDetail{
             Narrow: narrow,
             Selected: selected,
             OnBack: () -> {
                 selected = false
             },
-            Master: Container{Padding: 16.0, Text{Content: "Master list"},},
-            Detail: Container{Padding: 16.0, Text{Content: "Selected item details"},},
-        }.Build(),
+            Master: Container{Padding: 16.0, Text{Content: "Inbox"},},
+            Detail: Container{Padding: 16.0, Text{Content: "Message from Alex"},},
+        }.Build()},
     }
 }
 

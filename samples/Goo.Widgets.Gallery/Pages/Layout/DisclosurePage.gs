@@ -8,7 +8,7 @@ import Goo.Widgets.Layout
 internal class DisclosureCounter : Cell {
     private var count int32
     public override func Build() Blob -> ActionButton{
-        Content: "Retained counter: " + count.ToString(),
+        Content: "Count " + count.ToString(),
         OnClick: () -> {
             count++
         },
@@ -28,7 +28,6 @@ internal class DisclosureExample : Cell {
             },
             Content: Container{
                 Gap: 12,
-                Text{Key: "hint", Content: "Increment, collapse, and reopen. The count stays with this section.",},
                 Cell.Mount[DisclosureCounter]("counter")
             },
         }
@@ -45,14 +44,13 @@ internal class DisclosureExample : Cell {
             BorderRadius = 12.0,
             HeaderPadding = 16.0,
             Content = Text{
-                Content: "Derived with overrides; the same pointer and keyboard behavior.",
+                Content: "Port 443 · TLS 1.3",
                 Color: "#d1fae5"
             },
         }
         return Container{
             Width: 580,
             Gap: 16,
-            Text{Content: "Enter or Space toggles the focused header."},
             section.Build(),
             custom.Build(),
             (

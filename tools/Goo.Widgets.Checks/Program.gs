@@ -114,8 +114,8 @@ func Screenshots() {
         } else if pages.Length > 1 {
             errors.Add("multiple gallery pages for " + widget + ": " + String.Join(", ", pages))
         }
-        if !Regex.IsMatch(registry, "\\b" + Regex.Escape(widget) + "Page\\s*\\{\\s*\\}") {
-            errors.Add("missing gallery registration: " + registryPath + " (" + widget + "Page{})")
+        if !Regex.IsMatch(registry, "\\b" + Regex.Escape(widget) + "Page\\s*\\{") {
+            errors.Add("missing gallery registration: " + registryPath + " (" + widget + "Page)")
         }
         let screenshot = Path.Combine(root, "samples/screenshots", widget + ".png")
         if !File.Exists(screenshot) {

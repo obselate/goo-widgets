@@ -16,7 +16,7 @@ class BannerPage : GalleryPage {
             root.Children.Add(Banner{
                 Tone: tone,
                 Title: tone.ToString(),
-                Content: "A semantic message with actions.",
+                Content: "Two updates are ready to install.",
                 TransitionMs: 200.0,
                 Action: ActionButton{Content: "Review"}.Build(),
                 OnDismiss: () -> Console.WriteLine("Dismissed " + tone.ToString()),
@@ -30,10 +30,10 @@ class BannerPage : GalleryPage {
         }
         root.Children.Add(badges)
         root.Children.Add(Alert{
-            Tone: Tone.Info, Variant: AlertVariant.Rule, Title: "Rule",
-            Description: "Static callout", Live: false
+            Tone: Tone.Info, Variant: AlertVariant.Rule, Title: "Maintenance",
+            Description: "Sunday 02:00 to 04:00", Live: false
         }.Build())
-        root.Children.Add(InlineMessage{Tone: Tone.Success, Content: "Inline message"}.Build())
+        root.Children.Add(InlineMessage{Tone: Tone.Success, Content: "Saved"}.Build())
         return root
     }
 }

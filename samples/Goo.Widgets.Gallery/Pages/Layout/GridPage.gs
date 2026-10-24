@@ -17,7 +17,7 @@ internal class GridExample : Cell {
             OnClick: () -> {
                 narrow = !narrow
             },
-            Text{Content: "Toggle available width"}
+            Text{Content: narrow ? "Width 340": "Width 610"}
         },
         Grid{
             Width: narrow ? 340.0: 610.0,
@@ -47,7 +47,7 @@ internal class GridExample : Cell {
                     Row: 2,
                     Column: 1,
                     Content: Text{
-                        Content: "Actual font measurement keeps this wrapped text aligned with the shared tracks above. Change the available width to see the row grow.",
+                        Content: "Notes from the spring field survey, grouped by site and sorted by date of the first visit.",
                         FontSize: 15
                     }
                 },
@@ -64,7 +64,7 @@ internal class GridExample : Cell {
                         OnClick: () -> {
                             clicks++
                         },
-                        Text{Content: "Retained clicks: " + clicks.ToString()}
+                        Text{Content: "Clicks " + clicks.ToString()}
                     }
                 },
             },

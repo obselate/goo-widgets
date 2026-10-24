@@ -22,7 +22,6 @@ class FeedbackIdentityDemo(Page ToastPage) : Cell {
         let root = Container{
             Gap: 24,
             MaxWidth: Percent(100),
-            Text{Content: "Loading, status and people", FontSize: theme.HeadingFontSize, Color: theme.TextColor},
             Container{
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
@@ -54,7 +53,7 @@ class FeedbackIdentityDemo(Page ToastPage) : Cell {
                 },
             }.Build(),
             ActionButton{
-                Content: restored ? "Restored. Show another toast": "Show toast",
+                Content: restored ? "Restored": "Show toast",
                 OnClick: () -> {
                     visible = true
                     restored = false
@@ -71,7 +70,7 @@ class FeedbackIdentityDemo(Page ToastPage) : Cell {
                             ToastItem{
                                 Id: "undo",
                                 Title: "File moved to trash",
-                                Description: "Hover or focus to pause the timer.",
+                                Description: "report.pdf",
                                 Tone: Tone.Success,
                                 ActionLabel: "Undo",
                                 OnAction: () -> {

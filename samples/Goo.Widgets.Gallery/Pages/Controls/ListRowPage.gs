@@ -8,7 +8,7 @@ import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 
 internal class ListRowExample : Cell {
-    private var message string = "Hover or focus a row to show its actions."
+    private var message string = "none"
 
     public override func Build() Blob {
         let theme = Theme.Read()
@@ -40,7 +40,7 @@ internal class ListRowExample : Cell {
             }.Build(),
             ListRow{
                 Title: "Selected workspace",
-                Caption: "Actions stay visible on a selected row",
+                Caption: "Shared with 4 people",
                 Selected: true,
                 Leading: MaterialIcons.Create("folder", 24, theme.MutedTextColor),
                 OnClick: () -> {
@@ -57,7 +57,7 @@ internal class ListRowExample : Cell {
             }.Build(),
             ListRow{
                 Title: "Unavailable archive",
-                Caption: "Disabled rows do not accept input",
+                Caption: "Read only",
                 Disabled: true,
                 OnClick: () -> {
                     message = "Archive"
@@ -67,10 +67,10 @@ internal class ListRowExample : Cell {
             }.Build(),
             ListRow{
                 Title: "Plain information",
-                Caption: "A row without callbacks is not a focus stop",
+                Caption: "Updated today",
                 Trailing: Text{Content: "12 items", Color: theme.MutedTextColor}
             }.Build(),
-            Text{Content: message, Color: theme.MutedTextColor}
+            Text{Content: "Last action " + message, Color: theme.MutedTextColor}
         }
     }
 }

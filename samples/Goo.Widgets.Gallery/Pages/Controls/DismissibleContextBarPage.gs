@@ -25,7 +25,7 @@ class DismissibleContextBarPage : GalleryPage {
         }
 
         let disabledContent = Text{
-            Content: "Applying batch operation (cannot dismiss)",
+            Content: "Applying batch operation",
             FontSize: 13.0,
             FontWeight: 600
         }
@@ -56,38 +56,6 @@ class DismissibleContextBarPage : GalleryPage {
             Gap = 16.0,
         }
 
-        return Container{
-            Width: 620.0,
-            FlexDirection: FlexDirection.Column,
-            Gap: 14.0,
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700},
-                baseBar.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "CUSTOM ACTION", FontSize: 10.0, FontWeight: 700},
-                customActionBar.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "DISABLED", FontSize: 10.0, FontWeight: 700},
-                disabledBar.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "CUSTOM STYLE", FontSize: 10.0, FontWeight: 700},
-                customStyleBar.Build(),
-            },
-        }
+        return Container{Width: 620.0, Gap: 14.0, baseBar.Build(), customActionBar.Build(), disabledBar.Build(), customStyleBar.Build()}
     }
 }

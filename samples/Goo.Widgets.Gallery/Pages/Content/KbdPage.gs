@@ -10,7 +10,6 @@ internal class KbdPage : GalleryPage {
     override func Build() Blob -> Container{
         Width: Percent(100),
         Gap: 20,
-        Typography{Content: "Keyboard shortcuts", Variant: TextVariant.H2}.Build(),
         Kbd{
             Keys: []KeyBinding{KeyBinding{Key: Key.K, Modifiers: KeyModifiers{Ctrl: true, Shift: true}}},
             Platform: KbdPlatform.Linux

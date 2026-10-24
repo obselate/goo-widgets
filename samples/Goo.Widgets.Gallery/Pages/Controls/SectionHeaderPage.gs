@@ -44,38 +44,6 @@ class SectionHeaderPage : GalleryPage {
             MetaFontWeight: 600,
         }
 
-        return Container{
-            Width: 620.0,
-            FlexDirection: FlexDirection.Column,
-            Gap: 24.0,
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 6.0,
-                Text{Content: "DEFAULT", FontSize: 10.0, FontWeight: 700},
-                defaultHeader.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 6.0,
-                Text{Content: "ACCENT + META", FontSize: 10.0, FontWeight: 700},
-                accentMetaHeader.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 6.0,
-                Text{Content: "COLLAPSED STATE", FontSize: 10.0, FontWeight: 700},
-                collapsedHeader.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 6.0,
-                Text{Content: "CUSTOM STYLE", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
-                customHeader.Build(),
-            },
-        }
+        return Container{Width: 620.0, Gap: 24.0, defaultHeader.Build(), accentMetaHeader.Build(), collapsedHeader.Build(), customHeader.Build()}
     }
 }

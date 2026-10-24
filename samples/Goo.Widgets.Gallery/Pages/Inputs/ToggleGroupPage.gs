@@ -17,7 +17,6 @@ class ToggleDemo : Cell {
     private var formats[]string = []string{"bold"}
     public override func Build() Blob -> Container{
         Gap: 20,
-        Text{Content: "Segmented selection", FontSize: Theme.Read().HeadingFontSize},
         Cell.Mount[ToggleGroupInput, ToggleGroup](
             "segments",
             ToggleGroupInput{
@@ -35,7 +34,6 @@ class ToggleDemo : Cell {
                 },
             }
         ),
-        Text{Content: "Toolbar multi-selection", FontSize: Theme.Read().HeadingFontSize},
         Cell.Mount[ToggleGroupInput, ToggleGroup](
             "toolbar",
             ToggleGroupInput{
@@ -58,7 +56,6 @@ class ToggleDemo : Cell {
                 },
             }
         ),
-        Text{Content: "Choice chips", FontSize: Theme.Read().HeadingFontSize},
         Cell.Mount[ToggleGroupInput, ToggleGroup](
             "chips",
             ToggleGroupInput{

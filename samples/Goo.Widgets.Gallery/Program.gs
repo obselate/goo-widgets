@@ -18,7 +18,7 @@ func VerifyGallery(registry GalleryRegistry) {
                 window.Pump(0.016)
                 Thread.Sleep(16)
             }
-            Console.WriteLine("PASS: " + registry.CurrentPage(index).Title())
+            Console.WriteLine("PASS: " + registry.CurrentPage(index).Name())
         }
     } finally {
         window.RequestClose()
@@ -133,7 +133,7 @@ func CaptureWindow(window Window, path string) {
     }
 }
 
-func CaptureGallery(registry GalleryRegistry, directory string, requestedPage string?, mode ThemeMode) {
+func CaptureGallery(registry GalleryRegistry, directory string, requestedPage string?, mode ThemeMode, fullShell bool = false) {
     Directory.CreateDirectory(directory)
     let first = if requestedPage != nil {
         registry.IndexOf(requestedPage)
@@ -145,8 +145,13 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
     } else {
         registry.Count()
     }
-    let gallery = Gallery(registry, first)
-    let window = Window{Title: "Goo Widgets gallery screenshots", Width: 1100, Height: 800, Root: gallery}
+    let gallery = Gallery(registry, first, !fullShell)
+    let window = Window{
+        Title: "Goo Widgets gallery screenshots",
+        Width: fullShell ? 1440: 1100,
+        Height: fullShell ? 900: 800,
+        Root: gallery
+    }
     gallery.AttachWindow(window)
     Theme.SetMode(window, mode)
     window.Open()
@@ -154,7 +159,13 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
         using let diagnostics = DevTools.Attach(window)
         for index in first ... end {
             gallery.Show(index)
+            window.Height = fullShell ? 900: 800
             PumpFrames(window, 30)
+            if !fullShell {
+                let card = gallery.CardHandle.BorderBox
+                window.Height = int32(Math.Max(420.0, Math.Ceiling(card.Y + card.Height + 41.0)))
+                PumpFrames(window, 30)
+            }
             let page = registry.CurrentPage(index)
             let path = Path.Combine(directory, ScreenshotName(page) + ".png")
             CaptureWindow(window, path)
@@ -181,33 +192,33 @@ class Spotlight(Page GalleryPage) : Cell {
             FlexDirection: FlexDirection.Column,
             Gap: 4.0,
             Text{Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: "#fafafa"},
-            Text{Content: Page.Title(), FontSize: 14.0, Color: "#a1a1aa"},
+            Text{Content: Page.Name(), FontSize: 14.0, Color: "#a1a1aa"},
         },
         Container{FlexGrow: 1.0, AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center, Page.Build(),},
     }
 }
 
 func SpotlightWidth(page GalleryPage) int32 {
-    if page.Title() == "Color picker" {
+    if page.Name() == "Color picker" {
         return 600
     }
-    if page.Title() == "Checkbox" {
+    if page.Name() == "Checkbox" {
         return 640
     }
-    if page.Title() == "Slider" {
+    if page.Name() == "Slider" {
         return 640
     }
     return 800
 }
 
 func SpotlightHeight(page GalleryPage) int32 {
-    if page.Title() == "Color picker" {
+    if page.Name() == "Color picker" {
         return 560
     }
-    if page.Title() == "Checkbox" {
+    if page.Name() == "Checkbox" {
         return 220
     }
-    if page.Title() == "Slider" {
+    if page.Name() == "Slider" {
         return 430
     }
     return 600
@@ -219,7 +230,7 @@ func CaptureSpotlight(registry GalleryRegistry, directory string, requestedPage 
     let width = SpotlightWidth(page)
     let height = SpotlightHeight(page)
     let window = Window{
-        Title: "Goo Widgets spotlight: " + page.Title(),
+        Title: "Goo Widgets spotlight: " + page.Name(),
         Width: width,
         Height: height,
         Root: Spotlight(page),
@@ -242,12 +253,26 @@ func CaptureSpotlight(registry GalleryRegistry, directory string, requestedPage 
 }
 
 func Main(args[]string) {
+    let font = File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Fonts", "VendSans.ttf"))
+    using let regular = FontSource("Vend Sans", 400, false, font, 0u, []FontVariation{FontVariation("wght", 400.0F)})
+    using let medium = FontSource("Vend Sans", 500, false, font, 0u, []FontVariation{FontVariation("wght", 500.0F)})
+    using let semibold = FontSource("Vend Sans", 600, false, font, 0u, []FontVariation{FontVariation("wght", 600.0F)})
+    regular.Register()
+    medium.Register()
+    semibold.Register()
     let registry = CreateRegistry()
     if args.Length == 1 && args[0] == "--verify" {
         VerifyGallery(registry)
         return
     }
     let requestedPage = RequestedValue(args, "--page")
+    let appearance = RequestedValue(args, "--theme")
+    let mode = appearance == "light" ? ThemeMode.Light: ThemeMode.Dark
+    if let directory = RequestedValue(args, "--shell-screenshots") {
+        Window.ConfigureApplication("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
+        CaptureGallery(registry, directory, requestedPage, mode, true)
+        return
+    }
     if let spotlightDirectory = RequestedValue(args, "--spotlight") {
         if let title = requestedPage {
             Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
@@ -258,8 +283,6 @@ func Main(args[]string) {
     }
     if let screenshotDirectory = RequestedValue(args, "--screenshots") {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
-        let appearance = RequestedValue(args, "--theme")
-        let mode = appearance == "light" ? ThemeMode.Light: appearance == "dark" ? ThemeMode.Dark: ThemeMode.System
         CaptureGallery(registry, screenshotDirectory, requestedPage, mode)
         return
     }
@@ -269,7 +292,8 @@ func Main(args[]string) {
     }
     Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
     let gallery = Gallery(registry, initialIndex)
-    let window = Window{Title: "Goo Widgets Gallery", Width: 1100, Height: 800, Root: gallery}
+    let window = Window{Title: "Goo Widgets Gallery", Width: 1440, Height: 900, MinWidth: 960, MinHeight: 640, Root: gallery}
     gallery.AttachWindow(window)
+    Theme.SetMode(window, mode)
     window.Run()
 }

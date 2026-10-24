@@ -7,7 +7,7 @@ import System.Collections.Generic
 
 internal class TreeViewExample : Cell {
     private var selected[]string = []string{"guide"}
-    private var editing string = "Shift selects a span. F2 requests rename."
+    private var editing string = "none"
     private var expanded[]string = []string{"docs", "groups"}
     private var workstations bool = true
     private var servers bool
@@ -55,8 +55,6 @@ internal class TreeViewExample : Cell {
             FlexBasis: 0,
             MinWidth: 0,
             Gap: 12,
-            Text{Key: "label", Content: "Multiple selection", FontSize: 18},
-            Text{Content: editing, FontSize: 12},
             Cell.Mount[TreeViewInput, TreeView](
                 "simple",
                 TreeViewInput{
@@ -65,7 +63,7 @@ internal class TreeViewExample : Cell {
                     SelectedIds: selected,
                     Multiple: true,
                     OnRename: (id string) -> {
-                        editing = "Rename requested: " + id
+                        editing = id
                         Rebuild()
                     },
                     ExpandedIds: expanded,
@@ -88,14 +86,14 @@ internal class TreeViewExample : Cell {
                         }
                     },
                 }
-            )
+            ),
+            Text{Content: "Rename " + editing, FontSize: 12}
         },
         Container{
             FlexGrow: 1,
             FlexBasis: 0,
             MinWidth: 0,
             Gap: 12,
-            Text{Key: "label", Content: "Host-owned check policy", FontSize: 18},
             Cell.Mount[TreeViewInput, TreeView](
                 "checks",
                 TreeViewInput{

@@ -19,7 +19,6 @@ class ActionButtonDemo : Cell {
         let theme = Theme.Read()
         return Container{
             Gap: 16,
-            Text{Content: "Actions", FontSize: theme.HeadingFontSize, Color: theme.TextColor},
             Container{
                 FlexDirection: FlexDirection.Row,
                 FlexWrap: FlexWrap.Wrap,

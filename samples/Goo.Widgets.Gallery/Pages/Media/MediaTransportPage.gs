@@ -14,7 +14,7 @@ internal open class MediaTransportExample : Cell {
     public override func Build() Blob -> Container{
         Width: 720.0,
         Gap: 12.0,
-        Text{Key: "media-title", Content: "Example item " + item.ToString(), FontSize: 16.0, FontWeight: 700,},
+        Text{Key: "media-title", Content: "Track " + item.ToString(), FontSize: 16.0, FontWeight: 700,},
         Cell.Mount[MediaTransportInput, MediaTransport](
             "media-transport",
             MediaTransportInput{

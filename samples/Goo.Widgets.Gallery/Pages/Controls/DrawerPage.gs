@@ -35,8 +35,6 @@ class DrawerPage : GalleryPage {
             AccessibilityName: "Open right inspector drawer",
         }
 
-        let closedDrawer = Drawer{Open: false, Width: 150.0, AccessibilityName: "Closed drawer off-canvas",}
-
         let customContent = Container{
             Gap: 6.0,
             Text{Content: "Custom Drawer", FontSize: 12.0, FontWeight: 800, Color: "#bbf7d0"},
@@ -86,21 +84,6 @@ class DrawerPage : GalleryPage {
             openRightDrawer.Build(),
         }
 
-        let viewport3 = Container{
-            Position: PositionType.Relative,
-            Overflow: Overflow.Hidden,
-            Width: 280.0,
-            Height: 135.0,
-            BorderRadius: 8.0,
-            BorderWidth: 1.0,
-            BorderColor: Color.Parse("#3f3f46"),
-            BackgroundColor: Color.Parse("#09090b"),
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            Text{Content: "Canvas view (drawer slid off-canvas)", FontSize: 11.0, Color: "#a1a1aa"},
-            closedDrawer.Build(),
-        }
-
         let viewport4 = Container{
             Position: PositionType.Relative,
             Overflow: Overflow.Hidden,
@@ -113,44 +96,6 @@ class DrawerPage : GalleryPage {
             customDrawer.Build(),
         }
 
-        return Container{
-            Width: 580.0,
-            FlexDirection: FlexDirection.Column,
-            Gap: 16.0,
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Row,
-                JustifyContent: JustifyContent.SpaceBetween,
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 4.0,
-                    Text{Content: "OPEN LEFT", FontSize: 10.0, FontWeight: 700},
-                    viewport1,
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 4.0,
-                    Text{Content: "OPEN RIGHT", FontSize: 10.0, FontWeight: 700},
-                    viewport2,
-                },
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Row,
-                JustifyContent: JustifyContent.SpaceBetween,
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 4.0,
-                    Text{Content: "CLOSED OFF-CANVAS", FontSize: 10.0, FontWeight: 700},
-                    viewport3,
-                },
-                Container{
-                    FlexDirection: FlexDirection.Column,
-                    Gap: 4.0,
-                    Text{Content: "CUSTOM STYLED RIGHT", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
-                    viewport4,
-                },
-            },
-        }
+        return Container{Width: 580.0, FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap, Gap: 16.0, viewport1, viewport2, viewport4}
     }
 }

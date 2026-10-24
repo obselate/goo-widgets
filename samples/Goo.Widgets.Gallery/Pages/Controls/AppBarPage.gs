@@ -88,38 +88,6 @@ class AppBarPage : GalleryPage {
             Trailing: actionSlot,
         }
 
-        return Container{
-            Width: 700.0,
-            FlexDirection: FlexDirection.Column,
-            Gap: 10.0,
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "MINIMAL TITLE", FontSize: 10.0, FontWeight: 700},
-                minimalTitleBar.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "TITLE + SUBTITLE WITH SLOTS", FontSize: 10.0, FontWeight: 700},
-                slotsBar.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "COMPACT CUSTOM (NO BORDER / SHADOW)", FontSize: 10.0, FontWeight: 700, Color: "#4ade80"},
-                compactCustomBar.Build(),
-            },
-            Container{
-                Width: Percent(100.0),
-                FlexDirection: FlexDirection.Column,
-                Gap: 4.0,
-                Text{Content: "DISTINCT CUSTOM PALETTE & TYPOGRAPHY", FontSize: 10.0, FontWeight: 700,},
-                distinctCustomBar.Build(),
-            },
-        }
+        return Container{Width: 700.0, Gap: 16.0, minimalTitleBar.Build(), slotsBar.Build(), compactCustomBar.Build(), distinctCustomBar.Build()}
     }
 }
