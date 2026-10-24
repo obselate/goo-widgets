@@ -105,15 +105,27 @@ public data struct SplitButton {
 
     /// Builds the primary action and its menu arrow.
     public func Build() Blob {
+        let primary = (Button.Build() as Button)!!
+        primary.BorderEndWidth = 0
+        primary.BorderTopRightRadius = 0
+        primary.BorderBottomRightRadius = 0
         let arrow = Menu.Button with{
             Content = "",
             AccessibilityName = ArrowAccessibilityName ?? "More actions",
             MinWidth = 0.0,
+            PaddingHorizontal = Theme.Read().Spacing,
             Disabled = Button.Disabled || Button.Loading || Menu.Button.Disabled,
+            CreateRoot = (resolved ActionButton, text Text) -> {
+                let root = ((resolved with{OnClick = nil}).Build() as Button)!!
+                root.OnClick = resolved.OnClick
+                root.BorderTopLeftRadius = 0
+                root.BorderBottomLeftRadius = 0
+                return root
+            },
         }
         return Container{
             FlexDirection: FlexDirection.Row,
-            Button.Build(),
+            primary,
             Cell.Mount[MenuButtonInput, MenuButton]("split-menu", Menu with{Button = arrow}),
         }
     }

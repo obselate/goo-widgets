@@ -8,14 +8,12 @@ import Goo.Widgets.Navigation
 internal class CommandPaletteExample : Cell {
     private var isOpen bool = true
     private var query string = ""
-    private var result string = "No command selected"
-    private var recent[]string = []string{"save"}
+    private var result string = "None"
 
     public override func Build() Blob -> Container{
         Width: Percent(100),
         MaxWidth: 560,
         Gap: 20,
-        Text{Content: "Search uses ranked fuzzy matches. Arrows select. Enter runs. Escape closes."},
         ActionButton{
             Content: "Open command palette",
             OnClick: () -> {
@@ -24,13 +22,12 @@ internal class CommandPaletteExample : Cell {
                 Rebuild()
             }
         }.Build(),
-        Text{Content: result},
+        Text{Content: "Last action " + result},
         Cell.Mount[CommandPaletteInput, CommandPalette](
             "palette",
             CommandPaletteInput{
                 Open: isOpen,
                 Query: query,
-                RecentIds: recent,
                 OnQueryChange: (value string) -> {
                     query = value
                     Rebuild()
@@ -40,31 +37,24 @@ internal class CommandPaletteExample : Cell {
                     Rebuild()
                 },
                 OnActivate: (id string) -> {
-                    result = "Selected: " + id
-                    recent = []string{id}
+                    result = id
                     Rebuild()
-                },
-                Groups: []CommandGroup{
-                    CommandGroup{Id: "file", Label: "File"},
-                    CommandGroup{Id: "view", Label: "View"}
                 },
                 Items: []CommandItem{
                     CommandItem{
-                        Id: "open",
+                        Id: "Open file",
                         Label: "Open file",
-                        GroupId: "file",
                         Shortcut: KeyBinding{Key: Key.O, Modifiers: KeyModifiers{Ctrl: true}}
                     },
                     CommandItem{
-                        Id: "save",
+                        Id: "Save file",
                         Label: "Save file",
-                        GroupId: "file",
                         Shortcut: KeyBinding{Key: Key.S, Modifiers: KeyModifiers{Ctrl: true}}
                     },
-                    CommandItem{Id: "format", Label: "Format document", GroupId: "file"},
-                    CommandItem{Id: "settings", Label: "Open settings", GroupId: "view"},
-                    CommandItem{Id: "theme", Label: "Change color theme", GroupId: "view"},
-                    CommandItem{Id: "locked", Label: "Restricted command", GroupId: "view", Disabled: true},
+                    CommandItem{Id: "Format document", Label: "Format document"},
+                    CommandItem{Id: "Open settings", Label: "Open settings"},
+                    CommandItem{Id: "Change color theme", Label: "Change color theme"},
+                    CommandItem{Id: "Restricted command", Label: "Restricted command", Disabled: true},
                 },
             }
         ),

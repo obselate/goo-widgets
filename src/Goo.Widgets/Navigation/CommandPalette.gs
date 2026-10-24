@@ -2,6 +2,7 @@ package Goo.Widgets.Navigation
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 import System
@@ -103,7 +104,9 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 }
                 RemoveEmptyHeader()
             }
-            AddHeader("commands", "Commands")
+            if ordered.Count > 0 {
+                AddHeader("commands", "Commands")
+            }
             for match in ranked {
                 if seen.Add(match.Item.Id) {
                     AddCommand(match.Item)
@@ -134,13 +137,17 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         }
         priorQuery = query
         wasOpen = true
+        let inputHeight = theme.ControlHeight + theme.Spacing * 2
         let search = SearchList{
             Items: ordered.ToArray(),
             SelectedId: activeId,
             OnSelect: Activate,
             Width: input.Width ?? 560,
-            Height: Math.Min(input.Height ?? 360, theme.ControlHeight + Math.Max(1, ordered.Count) * 48 + 2),
-            RowHeight: 48,
+            Height: Math.Min(
+                input.Height ?? 360,
+                inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
+            ),
+            RowHeight: theme.ControlHeight,
             AccessibilityName: "Commands",
             Placeholder: input.Placeholder ?? "Search commands",
             OnQueryChange: input.OnQueryChange,
@@ -148,13 +155,33 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 entry.Value = query
                 entry.Controlled = true
                 entry.OnKeyDown = KeyDown
+                entry.FlexGrow = 1
+                entry.Padding = Edges{Right: theme.ControlPadding}
+                entry.BackgroundColor = Color.Transparent
+                entry.Focus = Style{}
                 return entry
             },
             CustomizeRow: (item SelectionItem, button Button) -> Row(input, item, button),
             CustomizeRoot: (root Container) -> {
-                if root.Children.Count > 1 && root.Children[1] is Virtual {
-                    root.Children[1].Handle = viewport
+                root.Children[0] = Container{
+                    Height: inputHeight,
+                    FlexShrink: 0,
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    Gap: theme.ControlGap,
+                    Padding: Edges{Left: theme.ControlPadding},
+                    MaterialIcons.Create("search", 18, theme.MutedTextColor),
+                    root.Children[0],
                 }
+                root.Children.Insert(
+                    1,
+                    Container{Height: theme.BorderWidth, FlexShrink: 0, BackgroundColor: theme.BorderColor}
+                )
+                if root.Children[2] is Virtual {
+                    root.Children[2].Handle = viewport
+                }
+                root.BorderColor = Color.Transparent
+                root.BorderRadius = theme.PanelRadius - theme.BorderWidth
                 root.MaxWidth = Percent(100)
                 root.FlexShrink = 1
                 return root
@@ -210,8 +237,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         let id = item.Id!!
         if headers.TryGetValue(id, out var header) {
             return Container{
-                Height: 48,
-                Padding: theme.ControlPadding,
+                Height: theme.ControlHeight,
+                Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
                 JustifyContent: JustifyContent.Center,
                 Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: header},
                 Text{Content: header, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize},
@@ -247,13 +274,29 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         if position < command.Label.Length {
             label.Children.Add(Text{Content: command.Label.Substring(position), TextWrap: TextWrap.NoWrap})
         }
-        let content = Container{FlexGrow: 1, MinWidth: 0, label}
+        let content = Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: theme.ControlGap,
+            FlexGrow: 1,
+            MinWidth: 0,
+            label,
+        }
         if let detail = command.Detail {
-            content.Children.Add(Text{Content: detail, FontSize: theme.CaptionFontSize, Color: theme.MutedTextColor})
+            content.Children.Add(
+                Text{
+                    Content: detail,
+                    FontSize: theme.CaptionFontSize,
+                    Color: theme.MutedTextColor,
+                    TextWrap: TextWrap.NoWrap,
+                    MinWidth: 0,
+                    FlexShrink: 1,
+                }
+            )
         }
         button.Children.Add(content)
         if let shortcut = command.Shortcut {
-            button.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false}.Build())
+            button.Children.Add(Kbd{Keys: []KeyBinding{shortcut}}.Build())
         }
         if let create = snapshot.CreateItem {
             return create(command, matches[id], button)

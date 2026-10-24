@@ -7,7 +7,7 @@ import Goo.Widgets.Navigation
 
 internal class MenuButtonExample : Cell {
     private var menuOpen bool
-    private var result string = "Choose an action"
+    private var result string = "None"
 
     private func Activate(id string) {
         result = id
@@ -25,7 +25,6 @@ internal class MenuButtonExample : Cell {
             Width: Percent(100),
             MaxWidth: 560,
             Gap: 20,
-            Text{Content: "Down opens first. Up opens last. Escape restores trigger focus."},
             Cell.Mount[MenuButtonInput, MenuButton](
                 "trigger",
                 MenuButtonInput{
@@ -43,7 +42,7 @@ internal class MenuButtonExample : Cell {
                 "disabled",
                 MenuButtonInput{Button: ActionButton{Content: "Disabled menu", Disabled: true}, Items: items,}
             ),
-            Text{Content: result},
+            Text{Content: "Last action " + result},
         }
     }
 }

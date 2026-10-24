@@ -7,7 +7,7 @@ import Goo.Widgets.Navigation
 
 internal class SplitButtonExample : Cell {
     private var isOpen bool
-    private var result string = "Ready to send"
+    private var result string = "None"
 
     private func Activate(id string) {
         result = id
@@ -16,9 +16,8 @@ internal class SplitButtonExample : Cell {
 
     public override func Build() Blob -> Container{
         Gap: 20,
-        Text{Content: "The primary action runs without opening the menu."},
         SplitButton{
-            Button: ActionButton{Content: "Send", OnClick: () -> Activate("Sent")},
+            Button: ActionButton{Content: "Send", OnClick: () -> Activate("Send")},
             ArrowAccessibilityName: "Other send actions",
             Menu: MenuButtonInput{
                 Open: isOpen,
@@ -28,13 +27,13 @@ internal class SplitButtonExample : Cell {
                 },
                 OnActivate: Activate,
                 Items: []MenuItem{
-                    MenuItem{Id: "Scheduled", Label: "Schedule send"},
-                    MenuItem{Id: "Draft saved", Label: "Save as draft"},
+                    MenuItem{Id: "Schedule send", Label: "Schedule send"},
+                    MenuItem{Id: "Save as draft", Label: "Save as draft"},
                 },
             },
         }.Build(),
         SplitButton{Button: ActionButton{Content: "Disabled send", Disabled: true}}.Build(),
-        Text{Content: result},
+        Text{Content: "Last action " + result},
     }
 }
 
