@@ -107,6 +107,7 @@ jobs:
     permissions:
       contents: write
       id-token: write
+      packages: write
     env:
       WIDGETS_VERSION: ${{ needs.verify.outputs.version }}
     steps:
@@ -137,7 +138,7 @@ jobs:
         uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841
         with:
           user: ${{ vars.NUGET_USER }}
-      - name: Publish to NuGet.org
+      - name: Publish to NuGet.org and GitHub Packages
         env:
           NUGET_API_KEY: ${{ steps.nuget.outputs.NUGET_API_KEY }}
         run: |
@@ -145,6 +146,11 @@ jobs:
             dotnet nuget push "artifacts/packages/$package.$WIDGETS_VERSION.nupkg" \
               --api-key "$NUGET_API_KEY" \
               --source https://api.nuget.org/v3/index.json \
+              --no-symbols \
+              --skip-duplicate
+            dotnet nuget push "artifacts/packages/$package.$WIDGETS_VERSION.nupkg" \
+              --api-key "${{ github.token }}" \
+              --source https://nuget.pkg.github.com/obselate/index.json \
               --no-symbols \
               --skip-duplicate
           done
