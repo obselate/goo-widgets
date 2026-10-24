@@ -181,7 +181,7 @@ class Gallery(Registry GalleryRegistry, InitialIndex int32) : Cell {
 func CreateRegistry() GalleryRegistry ->
 GalleryRegistry(
     []GalleryCategory{
-        GalleryCategory("Content", []GalleryPage{MarkdownViewPage{}}),
+        GalleryCategory("Content", []GalleryPage{MarkdownViewPage{}, TypographyPage{}, KbdPage{}}),
         GalleryCategory("Actions", []GalleryPage{ActionButtonPage{}, IconButtonPage{},}),
         GalleryCategory(
             "Inputs",
@@ -236,7 +236,7 @@ GalleryRegistry(
         ),
         GalleryCategory("Media", []GalleryPage{AsyncImagePage{}, AvatarPage{}, MediaCardPage{}, MediaTransportPage{},}),
         GalleryCategory("Data", []GalleryPage{ChipPage{}, TimeAxisPage{}, ListViewPage{}, TreeViewPage{}, DataGridPage{},}),
-        GalleryCategory("Navigation", []GalleryPage{NavigationRailPage{}, TabBarPage{}, MenuPage{},}),
+        GalleryCategory("Navigation", []GalleryPage{NavigationRailPage{}, TabBarPage{}, MenuPage{}, BreadcrumbPage{}}),
         GalleryCategory("Colors", []GalleryPage{ColorPickerPage{},}),
         GalleryCategory("Charts", []GalleryPage{DonutChartPage{}, StackedBarPage{}}),
         GalleryCategory("Graphs", []GalleryPage{GraphCanvasPage{}, GraphNodeCardPage{},}),

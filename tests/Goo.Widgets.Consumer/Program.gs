@@ -378,6 +378,10 @@ func Main() {
         OverlayInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_PATH_ACTIONS") == "1" {
+        PathActionsInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID") == "1" {
         DataGridInteractions()
         return

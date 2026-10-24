@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Data
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import Goo.Widgets.Gallery
 import System
@@ -10,8 +11,11 @@ internal class DataGridExample : Cell {
     private var widths Dictionary[string, float64] = Dictionary[string, float64]()
     private var selected[]string = []string{"atlas"}
     private var expanded[]string = []string{"atlas"}
-    private var sortId string = "name"
-    private var sortDirection DataGridSort = DataGridSort.Ascending
+    private var sorts[]DataGridSortColumn = []DataGridSortColumn{
+        DataGridSortColumn{ColumnId: "name", Direction: DataGridSort.Ascending}
+    }
+    private var order[]string = []string{"name", "status", "owner", "load"}
+    private var invoked string = "Enter or double-click a host to open it"
     private var query string = ""
     private func Width(id string, value float64) {
         widths = Dictionary[string, float64](widths)
@@ -29,9 +33,8 @@ internal class DataGridExample : Cell {
         Rebuild()
     }
 
-    private func Sort(id string, direction DataGridSort) {
-        sortId = id
-        sortDirection = direction
+    private func Sort(value[]DataGridSortColumn) {
+        sorts = value
         Rebuild()
     }
 
@@ -52,16 +55,23 @@ internal class DataGridExample : Cell {
             values.Add("name", name)
             values.Add("status", index % 3 == 0 ? "Review": "Healthy")
             values.Add("owner", index % 2 == 0 ? "Infrastructure": "Platform")
+            values.Add("load", ((index + 1) * 10).ToString())
             rows.Add(DataGridRow{Id: name, Label: name, Values: values, Disabled: name == "drift", HasDetail: true})
         }
-        if sortDirection != DataGridSort.None {
-            rows.Sort(
-                (a DataGridRow, b DataGridRow) -> StringComparer.Ordinal.Compare(
-                    a.Values!![sortId],
-                    b.Values!![sortId]
-                ) * (sortDirection == DataGridSort.Descending ? -1: 1)
-            )
-        }
+        rows.Sort(
+            (a DataGridRow, b DataGridRow) -> {
+                for sort in sorts {
+                    let compared = StringComparer.Ordinal.Compare(
+                        a.Values!![sort.ColumnId!!],
+                        b.Values!![sort.ColumnId!!]
+                    )
+                    if compared != 0 {
+                        return compared * (sort.Direction == DataGridSort.Descending ? -1: 1)
+                    }
+                }
+                return 0
+            }
+        )
         return rows.ToArray()
     }
 
@@ -72,59 +82,96 @@ internal class DataGridExample : Cell {
         FontSize: 13,
     }
 
-    public override func Build() Blob -> Container{
-        Width: 700,
-        Gap: 14,
-        Text{
-            Key: "hint",
-            Content: "Shared columns · controlled sorting · multiple selection · measured details",
-            FontSize: 14,
-        },
-        Cell.Mount[DataGridInput, DataGrid](
-            "inventory",
-            DataGridInput{
-                Height: 335,
-                AccessibilityName: "Managed hosts",
-                Rows: Rows(),
-                Columns: []DataGridColumn{
-                    DataGridColumn{
-                        Id: "name",
-                        Label: "Host",
-                        Width: 190,
-                        Minimum: 110,
-                        Sortable: true,
-                        Filter: TextEntry{
-                            Value: query,
-                            Placeholder: "Filter hosts",
-                            OnChange: Filter,
-                            Width: Percent(100),
-                            Height: 30,
-                            Padding: 5,
-                            Color: "#fafafa",
-                            BackgroundColor: "#09090b"
+    public override func Build() Blob {
+        let rows = Rows()
+        var total = 0
+        for row in rows {
+            total += int32.Parse(row.Values!!["load"])
+        }
+        return Container{
+            Width: Percent(100),
+            Gap: 14,
+            Text{
+                Key: "hint",
+                Content: "Multi-sort · pinned host · Alt+Left/Right to reorder · compact rows",
+                FontSize: 14,
+            },
+            Cell.Mount[DataGridInput, DataGrid](
+                "inventory",
+                DataGridInput{
+                    Height: 335,
+                    AccessibilityName: "Managed hosts",
+                    Rows: rows,
+                    Columns: []DataGridColumn{
+                        DataGridColumn{
+                            Id: "name",
+                            Label: "Host",
+                            Width: 190,
+                            Minimum: 110,
+                            Sortable: true,
+                            Filter: TextEntry{
+                                Value: query,
+                                Placeholder: "Filter hosts",
+                                OnChange: Filter,
+                                Width: Percent(100),
+                                Height: 30,
+                                Padding: 5,
+                                Color: "#fafafa",
+                                BackgroundColor: "#09090b"
+                            }
+                        },
+                        DataGridColumn{Id: "status", Label: "Status", Flex: 1, Minimum: 120, Sortable: true},
+                        DataGridColumn{Id: "owner", Label: "Team", Flex: 2, Minimum: 160, Sortable: true},
+                        DataGridColumn{Id: "load", Label: "Load", Width: 120, Minimum: 100},
+                    },
+                    ColumnWidths: widths,
+                    OnColumnWidthChange: Width,
+                    Sorts: sorts,
+                    OnSortsChange: Sort,
+                    PinnedColumns: []string{"name"},
+                    ColumnOrder: order,
+                    OnColumnOrderChange: (value[]string) -> {
+                        order = value
+                        Rebuild()
+                    },
+                    Density: DataGridDensity.Compact,
+                    OnRowInvoke: (id string) -> {
+                        invoked = "Opened " + id
+                        Rebuild()
+                    },
+                    Footer: Typography{
+                        Content: rows.Length.ToString() + " hosts · total load " + total.ToString(),
+                        Variant: TextVariant.Caption
+                    }.Build(),
+                    CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) -> {
+                        if column.Id != "load" {
+                            return content
+                        }
+                        return Container{
+                            Position: PositionType.Relative,
+                            Height: 20,
+                            JustifyContent: JustifyContent.Center,
+                            Container{
+                                Position: PositionType.Absolute,
+                                Left: 0,
+                                Top: 0,
+                                Bottom: 0,
+                                Width: Percent(float64.Parse(row.Values!!["load"])),
+                                BackgroundColor: Theme.Read().AccentColor.WithAlpha(0.25)
+                            },
+                            content
                         }
                     },
-                    DataGridColumn{Id: "status", Label: "Status", Flex: 1, Minimum: 120, Sortable: true},
-                    DataGridColumn{Id: "owner", Label: "Team", Flex: 2, Minimum: 160, Sortable: true},
-                },
-                ColumnWidths: widths,
-                OnColumnWidthChange: Width,
-                SortColumnId: sortId,
-                SortDirection: sortDirection,
-                OnSort: Sort,
-                Selection: DataGridSelection.Multiple,
-                ShowSelection: true,
-                SelectedIds: selected,
-                OnSelectionChange: Select,
-                ExpandedIds: expanded,
-                OnExpandedChange: Expand,
-                CreateDetail: Detail
-            }
-        ),
-        Text{
-            Key: "selection",
-            Content: selected.Length.ToString() + " selected · use Ctrl/⌘ to toggle and Shift to extend",
-            FontSize: 13
+                    Selection: DataGridSelection.Multiple,
+                    ShowSelection: true,
+                    SelectedIds: selected,
+                    OnSelectionChange: Select,
+                    ExpandedIds: expanded,
+                    OnExpandedChange: Expand,
+                    CreateDetail: Detail
+                }
+            ),
+            Text{Key: "selection", Content: selected.Length.ToString() + " selected · " + invoked, FontSize: 13}
         }
     }
 }
