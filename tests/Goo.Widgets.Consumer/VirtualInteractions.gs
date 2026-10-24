@@ -50,6 +50,16 @@ internal class VirtualProbeHost : Cell {
         }
         key = Key
         build = BuildItem
+        if kind == VirtualProbeKind.Rows {
+            Handle.MetricsChanged += metrics -> {
+                if !metrics.IsMounted { return }
+                let follow = metrics.ScrollOffset.Y >= metrics.ScrollRange.Y - 0.5
+                if Pin != follow {
+                    Pin = follow
+                    Rebuild()
+                }
+            }
+        }
     }
 
     internal func Mounted() int32 {
@@ -97,9 +107,7 @@ internal class VirtualProbeHost : Cell {
 
     private func List() Virtual {
         if kind == VirtualProbeKind.Rows {
-            let rows = VirtualRows(Items, 20.0, key, build)
-            rows.PinToBottom = Pin
-            return rows
+            return VirtualRows(Items, 20.0, key, build, followEnd: Pin)
         }
         if kind == VirtualProbeKind.Grid {
             let grid = VirtualItems(Items, 20.0, 20.0, key, build)

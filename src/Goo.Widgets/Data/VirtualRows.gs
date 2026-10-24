@@ -8,20 +8,22 @@ import System.Collections.Generic
 /// Creates a vertically scrolling virtual list whose rows take the content width and their own measured height.
 /// A change that only removes rows from the start and adds rows at the end, such as streaming output, updates
 /// the list in place: unchanged rows are compared, and keys are read and rows are built only for the added rows.
-/// Set PinToBottom on the result to keep the end in view until the reader scrolls away from it.
+/// Set followEnd on each rebuild to keep the last row in view. Track scroll metrics to stop when the reader scrolls back.
 /// Positions use float32. Whole-pixel placement is exact up to 16,777,216 px of content and drifts beyond it.
 /// @param items Immutable row values. Replace changed values and rebuild the owning Cell after a change.
 /// The list can be the same instance on each build.
 /// @param estimatedItemHeight A finite, positive estimate used until a row is measured.
 /// @param itemKey Returns a stable, nonempty key, unique in the collection. Equal items have equal keys.
 /// @param itemBuilder Builds one row. Keep the same builder between builds so unchanged rows are reused.
+/// @param followEnd Scrolls to the end when new row inputs are supplied. Does not prevent user scrolling.
 /// @typeparam T The immutable row value type.
 /// @returns A Virtual element with two rows of overscan on each side and bounded measurement work.
 public func VirtualRows[T](
     items IReadOnlyList[T],
     estimatedItemHeight float64,
     itemKey((T) -> string),
-    itemBuilder((T) -> Blob)
+    itemBuilder((T) -> Blob),
+    followEnd bool = false
 ) Virtual {
     if items == nil {
         throw ArgumentNullException("items")
@@ -34,7 +36,9 @@ public func VirtualRows[T](
         throw ArgumentNullException("itemBuilder")
     }
     let theme = Theme.Read()
-    return Virtual(VirtualRowsSource[T](items, estimate, itemKey, itemBuilder, nil)){
+    let source = VirtualRowsSource[T](items, estimate, itemKey, itemBuilder, nil)
+    source.FollowEnd = followEnd
+    return Virtual(source){
         OverflowX = Overflow.Hidden,
         ScrollbarY = theme.Scrollbar,
     }
@@ -48,14 +52,16 @@ public class VirtualLists {
         /// @param estimatedItemHeight A finite, positive estimate used until a row is measured.
         /// @param itemKey Returns a stable, nonempty key, unique in the collection.
         /// @param itemBuilder Builds one row. Keep the same builder between builds to reuse unchanged rows.
+        /// @param followEnd Scrolls to the end when new row inputs are supplied.
         /// @typeparam T The immutable row value type.
         /// @returns A vertically scrolling Virtual element with bounded measurement work.
         public func Rows[T](
             items IReadOnlyList[T],
             estimatedItemHeight float64,
             itemKey((T) -> string),
-            itemBuilder((T) -> Blob)
-        ) Virtual -> VirtualRows[T](items, estimatedItemHeight, itemKey, itemBuilder)
+            itemBuilder((T) -> Blob),
+            followEnd bool = false
+        ) Virtual -> VirtualRows[T](items, estimatedItemHeight, itemKey, itemBuilder, followEnd)
     }
 }
 
@@ -73,6 +79,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     internal var Identity object?
     internal var AutoHeight bool
     internal var ContentWidth float64?
+    internal var FollowEnd bool
 
     internal init(
         items IReadOnlyList[T],
@@ -208,7 +215,7 @@ internal class VirtualRowsState[T] : VirtualState {
         let atEnd = measurements.Count > 0 &&
             window.ContentH > window.ViewportH &&
             offset.Y >= float64(window.ContentH - window.ViewportH) - 0.01
-        if viewport.Pinned || atEnd {
+        if (Pending != nil && input.FollowEnd) || atEnd {
             scroll = Math.Max(0.0, float64(Window(data, 0.0, height, true).ContentH) - float64(height))
         } else if anchor != "" && data.Count > 0 {
             let nextIndex = if data.TryIndex(anchor, out var found) {

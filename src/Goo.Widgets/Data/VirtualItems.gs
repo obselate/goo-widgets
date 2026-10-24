@@ -139,15 +139,11 @@ internal class VirtualItemsState[T] : VirtualState {
                         0.0,
                         Math.Max(0.0, float64(target.ContentW) - size.Width)
                     ),
-                    Y: if viewport.Pinned {
+                    Y: Math.Clamp(
+                        scroll.Y + after.Y - before.Y,
+                        0.0,
                         Math.Max(0.0, float64(target.ContentH) - size.Height)
-                    } else {
-                        Math.Clamp(
-                            scroll.Y + after.Y - before.Y,
-                            0.0,
-                            Math.Max(0.0, float64(target.ContentH) - size.Height)
-                        )
-                    },
+                    ),
                 }
                 target = Window(viewport, input, scroll)
                 output.ScrollOffset = scroll
