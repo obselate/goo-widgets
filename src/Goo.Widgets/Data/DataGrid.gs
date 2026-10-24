@@ -22,6 +22,19 @@ public enum DataGridSelection {
     Multiple
 }
 
+/// Resolves the default row height from the theme.
+public enum DataGridDensity {
+    Normal;
+    Compact;
+    Comfortable
+}
+
+/// One host-owned sort, ordered from highest to lowest priority.
+public data struct DataGridSortColumn {
+    var ColumnId string?
+    var Direction DataGridSort
+}
+
 /// One stable column definition used by headers, filters, and body cells.
 public data struct DataGridColumn {
     var Id string?
@@ -87,6 +100,14 @@ public data struct DataGridInput {
     var SortColumnId string?
     var SortDirection DataGridSort
     var OnSort Action[string, DataGridSort]?
+    var Sorts[]?DataGridSortColumn
+    var OnSortsChange Action[[]DataGridSortColumn]?
+    var PinnedColumns[]?string
+    var ColumnOrder[]?string
+    var OnColumnOrderChange Action[[]string]?
+    var Footer Blob?
+    var Density DataGridDensity
+    var OnRowInvoke Action[string]?
     var Selection DataGridSelection
     var SelectedIds[]?string
     var OnSelectionChange Action[[]string]?
@@ -201,6 +222,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var pointerFocus bool
     private var clickModifiers KeyModifiers
     private var clickFromInteractiveChild bool
+    private var clickCount int32
+    private var reorderOrigin float64
+    private var reordered bool
+    private var pinnedCount int32
     private var pointer int64 = -1L
     private var resizeId string?
     private var origin float64
@@ -260,7 +285,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         input = value with{
             Width = value.Width ?? Percent(100),
             Height = value.Height ?? defaultHeight,
-            RowHeight = value.RowHeight ?? theme.ControlHeight,
+            RowHeight = value.RowHeight ??
+                theme.ControlHeight * (
+                value.Density == DataGridDensity.Compact ? 0.8: value.Density == DataGridDensity.Comfortable ? 1.25: 1.0
+            ),
             HeaderHeight = value.HeaderHeight ?? theme.ControlHeight,
             FilterHeight = value.FilterHeight ?? theme.ControlHeight,
             SelectionColumnWidth = value.SelectionColumnWidth ?? theme.ControlHeight,
@@ -336,6 +364,33 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             if let width = column.Width {
                 ValidateWidth(width)
             }
+        }
+        if input.ColumnOrder != nil || input.PinnedColumns != nil {
+            let ordered = List[DataGridColumn](columns.Length)
+            let used = HashSet[string](StringComparer.Ordinal)
+            for id in input.PinnedColumns ?? []string{} {
+                if !columnIds.Contains(id) || !used.Add(id) {
+                    throw ArgumentException("Invalid pinned column ID")
+                }
+                ordered.Add(columns[ColumnIndex(id)])
+            }
+            pinnedCount = ordered.Count
+            for id in input.ColumnOrder ?? []string{} {
+                if !columnIds.Contains(id) {
+                    throw ArgumentException("Invalid column order ID")
+                }
+                if used.Add(id) {
+                    ordered.Add(columns[ColumnIndex(id)])
+                }
+            }
+            for column in columns {
+                if used.Add(column.Id!!) {
+                    ordered.Add(column)
+                }
+            }
+            columns = ordered.ToArray()
+        } else {
+            pinnedCount = 0
         }
         if let overrides = input.ColumnWidths {
             for pair in overrides {
@@ -573,6 +628,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Children.Clear()
         root.Children.Add(headers)
         root.Children.Add(body)
+        if let footer = input.Footer {
+            root.Children.Add(footer)
+        }
         return root
     }
 
@@ -703,6 +761,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if metrics.ScrollOffset.X != horizontalOffset {
             horizontalViewport.JumpTo(horizontalOffset, 0)
         }
+        if pinnedCount > 0 {
+            Rebuild()
+        }
     }
 
     private func HorizontalMetrics(metrics ElementMetrics) {
@@ -712,6 +773,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         if metrics.ScrollOffset.X != horizontalOffset {
             horizontalOffset = metrics.ScrollOffset.X
             horizontalViewport.JumpTo(horizontalOffset, 0)
+            if pinnedCount > 0 {
+                Rebuild()
+            }
         }
         if !input.VirtualizeColumns {
             return
@@ -737,10 +801,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         var position = leading
         for index in 0 ... columns.Length {
             let end = position + widths[index]
-            if end <= left {
+            if index >= pinnedCount && end <= left {
                 firstColumn = index + 1
                 beforeColumns += widths[index]
-            } else if position >= right {
+            } else if index >= pinnedCount && position >= right {
                 endColumn = Math.Min(endColumn, index)
                 afterColumns += widths[index]
             }
@@ -932,9 +996,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Text{
                     Content: label +
                         (
-                        snapshot.SortColumnId == id ? (
-                            snapshot.SortDirection == DataGridSort.Ascending ? " ↑": snapshot.SortDirection == DataGridSort.Descending ? " ↓": ""
-                        ): ""
+                        SortDirection(id) == DataGridSort.Ascending ? " ↑": SortDirection(
+                            id
+                        ) == DataGridSort.Descending ? " ↓": ""
                     ),
                     Color: snapshot.TextColor!!,
                     TextWrap: TextWrap.NoWrap,
@@ -976,12 +1040,33 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
                     BackgroundColor: Color.Transparent,
-                    Focusable: column.Sortable && snapshot.OnSort != nil && !snapshot.Disabled,
+                    Focusable: column.Sortable &&
+                        (snapshot.OnSort != nil || snapshot.OnSortsChange != nil) &&
+                        !snapshot.Disabled ||
+                        snapshot.OnColumnOrderChange != nil &&
+                        !snapshot.Disabled,
                     OnClick: () -> Sort(id),
+                    OnPointerDown: (e PointerEvent) -> {
+                        reorderOrigin = e.WindowPosition.X
+                        reordered = false
+                        if snapshot.OnColumnOrderChange != nil &&
+                            e.Button == PointerButton.Primary &&
+                            !snapshot.Disabled {
+                            e.Capture()
+                        }
+                    },
+                    OnPointerUp: (e PointerEvent) -> Reorder(id, e),
+                    OnKeyDown: (e KeyEvent) -> {
+                        if e.Modifiers.Alt && (e.Key == Key.Left || e.Key == Key.Right) {
+                            MoveColumn(id, e.Key == Key.Left ? -1: 1)
+                            e.PreventDefault()
+                            e.StopPropagation()
+                        }
+                    },
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.ColumnHeader,
                         Name: label,
-                        Description: snapshot.SortColumnId == id ? snapshot.SortDirection.ToString(): "Unsorted"
+                        Description: SortDirection(id).ToString()
                     },
                     content
                 }
@@ -1029,6 +1114,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     }
                     slot.Children.Add(handle)
                 }
+            }
+            if index < pinnedCount {
+                slot.Transform = PanelTransform{TranslateX: horizontalOffset}
+                slot.ZIndex = 1
+                slot.BackgroundColor = snapshot.BackgroundColor!!
             }
             row.Children.Add(slot)
         }
@@ -1131,10 +1221,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 }
                 cells.Children.Add(controls)
             }
-            if beforeColumns > 0.0 {
-                cells.Children.Add(Container{Key: "before-columns", Width: beforeColumns, FlexShrink: 0})
-            }
-            for index in firstColumn ... endColumn {
+            let unpinnedStart = Math.Max(firstColumn, pinnedCount)
+            for step in 0 ... pinnedCount + endColumn - unpinnedStart {
+                let index = step < pinnedCount ? step: unpinnedStart + step - pinnedCount
+                if step == pinnedCount && beforeColumns > 0.0 {
+                    cells.Children.Add(Container{Key: "before-columns", Width: beforeColumns, FlexShrink: 0})
+                }
                 let column = columns[index]
                 var text = ""
                 if let values = row.Values {
@@ -1170,6 +1262,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         JustifyContent: JustifyContent.Center,
                         Overflow: Overflow.Hidden,
                         OnKeyDown: stopGridKeys,
+                        Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
+                        ZIndex: index < pinnedCount ? 1: 0,
+                        BackgroundColor: index < pinnedCount ? (
+                            isSelected ? snapshot.SelectedColor!!: snapshot.BackgroundColor!!
+                        ): Color.Transparent,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.GridCell,
                             Name: column.Label ?? column.Id!!,
@@ -1203,6 +1300,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.OnPointerDown = (e PointerEvent) -> {
             clickModifiers = e.Modifiers
             clickFromInteractiveChild = e.IsFromInteractiveChild
+            clickCount = e.Button == PointerButton.Primary ? e.ClickCount: 0
             if e.Button == PointerButton.Primary && !row.IsGroup {
                 pointerFocus = true
                 if activeId != id {
@@ -1216,6 +1314,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.OnClick = () -> {
             if !clickFromInteractiveChild {
                 Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+                if clickCount == 2 {
+                    Invoke(id)
+                }
             }
             hostClick?.Invoke()
         }
@@ -1374,16 +1475,103 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         input.OnExpandedChange?.Invoke(id, state)
     }
 
+    private func SortDirection(id string) DataGridSort {
+        if let sorts = input.Sorts {
+            for sort in sorts {
+                if sort.ColumnId == id {
+                    return sort.Direction
+                }
+            }
+            return DataGridSort.None
+        }
+        return input.SortColumnId == id ? input.SortDirection: DataGridSort.None
+    }
+
     private func Sort(id string) {
+        if reordered {
+            reordered = false
+            return
+        }
         let index = ColumnIndex(id)
         if index < 0 || input.Disabled || !columns[index].Sortable {
             return
         }
-        let current = input.SortColumnId == id ? input.SortDirection: DataGridSort.None
-        input.OnSort?.Invoke(
-            id,
-            current == DataGridSort.None ? DataGridSort.Ascending: current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.None
-        )
+        let current = SortDirection(id)
+        let next = current == DataGridSort.None ? DataGridSort.Ascending: current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.None
+        if input.OnSortsChange != nil {
+            let sorts = List[DataGridSortColumn]()
+            var found = false
+            for sort in input.Sorts ?? []DataGridSortColumn{} {
+                if sort.ColumnId == id {
+                    found = true
+                    if next != DataGridSort.None {
+                        sorts.Add(DataGridSortColumn{ColumnId: id, Direction: next})
+                    }
+                } else {
+                    sorts.Add(sort)
+                }
+            }
+            if !found && next != DataGridSort.None {
+                sorts.Add(DataGridSortColumn{ColumnId: id, Direction: next})
+            }
+            input.OnSortsChange?.Invoke(sorts.ToArray())
+        } else {
+            input.OnSort?.Invoke(id, next)
+        }
+    }
+
+    private func MoveColumn(id string, delta int32) {
+        let index = ColumnIndex(id)
+        let target = index + delta
+        if input.Disabled ||
+            input.OnColumnOrderChange == nil ||
+            index < pinnedCount ||
+            target < pinnedCount ||
+            target >= columns.Length {
+            return
+        }
+        let order = [columns.Length]string
+        for i in 0 ... columns.Length {
+            order[i] = columns[i].Id!!
+        }
+        order[index] = columns[target].Id!!
+        order[target] = id
+        input.OnColumnOrderChange?.Invoke(order)
+    }
+
+    private func Reorder(id string, e PointerEvent) {
+        e.ReleaseCapture()
+        if input.Disabled || e.Button != PointerButton.Primary || Math.Abs(e.WindowPosition.X - reorderOrigin) < 8 ||
+            input.OnColumnOrderChange == nil {
+            return
+        }
+        let index = ColumnIndex(id)
+        var target = pinnedCount
+        var x = rootHandle.ContentBox.X + leading - horizontalOffset
+        for i in 0 ... columns.Length {
+            if e.WindowPosition.X >= x + widths[i] / 2 {
+                target = i
+            }
+            x += widths[i]
+        }
+        if index < pinnedCount || target == index {
+            return
+        }
+        let order = List[string](columns.Length)
+        for column in columns {
+            if column.Id != id {
+                order.Add(column.Id!!)
+            }
+        }
+        order.Insert(Math.Clamp(target, pinnedCount, order.Count), id)
+        reordered = true
+        input.OnColumnOrderChange?.Invoke(order.ToArray())
+    }
+
+    private func Invoke(id string) {
+        if !input.Disabled && Index(id) >= 0 {
+            input.OnRowInvoke?.Invoke(id)
+        }
     }
 
     private func RowAction(id string, request AccessibilityActionRequest) bool {
@@ -1396,6 +1584,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if request.Action == AccessibilityAction.Activate {
             Select(id, false, false)
+            Invoke(id)
             return true
         }
         if (request.Action == AccessibilityAction.Select || request.Action == AccessibilityAction.Deselect) &&
@@ -1478,6 +1667,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         } else if e.Key == Key.Space || e.Key == Key.Enter {
             if activeId != nil {
                 Select(activeId!!, e.Key == Key.Space || e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+                if e.Key == Key.Enter && !e.Repeat {
+                    Invoke(activeId!!)
+                }
             }
         } else if e.Key == Key.Left || e.Key == Key.Right {
             if activeId != nil {

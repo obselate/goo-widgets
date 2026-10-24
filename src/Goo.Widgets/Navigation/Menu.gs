@@ -14,6 +14,7 @@ public data struct MenuItem {
     var Disabled bool
     var Separator bool
     var Children[]?MenuItem
+    var Shortcut KeyBinding?
     /// Overrides the menu's shared activation callback for this item.
     var OnActivate Action?
 }
@@ -199,6 +200,9 @@ public open class Menu : Cell[MenuInput] {
             row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
             row.Children.Clear()
             row.Children.Add(Container{Key: "content", FlexGrow: 1.0, MinWidth: 0.0, content})
+            if let shortcut = item.Shortcut {
+                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false}.Build())
+            }
             if hasChildren {
                 row.Children.Add(
                     Text{
