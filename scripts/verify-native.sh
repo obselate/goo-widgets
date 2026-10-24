@@ -4,11 +4,14 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 for suite in VIRTUAL COMBOBOX DATA_GRID PATH_ACTIONS TREE LISTS SEARCHLIST EDITING_BINDINGS CALENDAR OVERLAYS TIME_AXIS GRID_CHARTS \
-  COMPOSITES DISCLOSURE WINDOW THEME CHOICES FEEDBACK_IDENTITY TEXT_SURFACES; do
+  COMPOSITES DISCLOSURE WINDOW THEME CHOICES FEEDBACK_IDENTITY; do
   printf 'SUITE %s\n' "$suite"
   env "GOO_WIDGETS_$suite=1" SDL_VIDEODRIVER=wayland scripts/with-headless-wayland.sh \
     dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
 done
+printf 'SUITE TEXT_SURFACES\n'
+env GOO_WIDGETS_TEXT_SURFACES=1 SDL_VIDEODRIVER=wayland GOO_WAYLAND_COMPOSITOR=sway scripts/with-headless-wayland.sh \
+  dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
 printf 'SUITE MARKDOWN\n'
 env GOO_WIDGETS_MARKDOWN=1 SDL_VIDEODRIVER=wayland GOO_WAYLAND_COMPOSITOR=sway scripts/with-headless-wayland.sh \
   dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
