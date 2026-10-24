@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.8.0 - 2026-10-24
+
+- Consume the first Escape when dismissing a visible tooltip, through Goo 0.13.0 Window.PreviewKeyPressed. Dialogs no longer close on the same Escape.
+- VirtualRows gains followEnd to keep the last row in view when new rows arrive, replacing core pinned-scroll state.
+- Requires Goo 0.13.0 or later.
+
 ## 0.7.1 - 2026-10-23
 
 - Dismiss a hovered tooltip on Escape and keep it hidden until the pointer re-enters (WCAG 1.4.13).

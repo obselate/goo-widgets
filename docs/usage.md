@@ -1,6 +1,6 @@
 # Using Goo Widgets
 
-Goo Widgets `0.7.1` requires Goo `0.10.0`, .NET 10, and
+Goo Widgets `0.8.0` requires Goo `0.10.0`, .NET 10, and
 `Gsharp.NET.Sdk/0.4.1150`. SVG is included in Goo.
 Follow the [installation instructions](../README.md#install).
 
