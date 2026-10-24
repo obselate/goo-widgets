@@ -721,7 +721,7 @@ func GalleryStageContracts() {
             Require(compact.Y + compact.Height < 400, "A small demo card grew to fill the page: " + compact.ToString())
         } finally {
             window.RequestClose()
-            window.Pump(0)
+            PumpFrames(window, 5)
         }
     }
 }
