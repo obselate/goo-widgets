@@ -64,6 +64,48 @@ public data struct Theme {
     var DangerFillColor Color
     /// Hovered destructive action fill.
     var DangerHoverColor Color
+    var SunkenColor Color
+    var ActiveColor Color
+    var StrongBorderColor Color
+    var SubtleTextColor Color
+    var DisabledTextColor Color
+    var LinkColor Color
+    var FocusColor Color
+    var InfoFillColor Color
+    var SuccessFillColor Color
+    var WarningFillColor Color
+    var DangerQuietColor Color
+    var RadiusSm float64 = 4.0
+    var RadiusMd float64 = 8.0
+    var RadiusLg float64 = 12.0
+    var RadiusXl float64 = 20.0
+    var ElevationSm BoxShadow
+    var ElevationMd BoxShadow
+    var ElevationLg BoxShadow
+    var DisplayFontSize float64 = 40.0
+    var H1FontSize float64 = 32.0
+    var H2FontSize float64 = 28.0
+    var H3FontSize float64 = 24.0
+    var H4FontSize float64 = 20.0
+    var H5FontSize float64 = 18.0
+    var H6FontSize float64 = 16.0
+    var SubtitleFontSize float64 = 16.0
+    var OverlineFontSize float64 = 10.0
+    var CodeFontSize float64 = 14.0
+    var MotionFastMs float64 = 120.0
+    var MotionNormalMs float64 = 200.0
+    var MotionSlowMs float64 = 320.0
+    var SpinnerPeriodMs float64 = 1000.0
+    var SeriesPalette[]Color
+    var ColorBlindPalette[]Color
+    var Syntax SyntaxPalette
+    var Diff DiffPalette
+    var Ansi AnsiPalette
+    internal var HighContrast bool
+    /// Current absolute text scale. Use WithTextScale to change it.
+    var TextScaleFactor float64 = 1.0
+    /// Applied platform scale, preserved by consumer copy-update expressions.
+    var PlatformTextScaleFactor float64 = 1.0
     /// UI font family. Resolved by Goo or supplied by the host through FontSource.
     var FontFamily string
     /// Heading font family.
@@ -207,6 +249,17 @@ public data struct Theme {
                 DangerColor = "#fa7970",
                 DangerFillColor = "#fa7970",
                 DangerHoverColor = "#fa7970",
+                SunkenColor = "#010409",
+                ActiveColor = "#1c334b",
+                StrongBorderColor = "#89929b",
+                SubtleTextColor = "#c6cdd5",
+                DisabledTextColor = "#89929b",
+                LinkColor = "#77bdfb",
+                FocusColor = "#77bdfb",
+                InfoFillColor = "#2c2c3c",
+                SuccessFillColor = "#223329",
+                WarningFillColor = "#312b28",
+                DangerQuietColor = "#312629",
             }
         }
 
@@ -233,6 +286,28 @@ public data struct Theme {
                 DangerColor: "#ef6a4d",
                 DangerFillColor: "#ef6a4d",
                 DangerHoverColor: "#f18b75",
+                SunkenColor: "#05070b",
+                ActiveColor: "#21384f",
+                StrongBorderColor: "#9099a8",
+                SubtleTextColor: "#b8bfc9",
+                DisabledTextColor: "#9099a8",
+                LinkColor: "#6fa6de",
+                FocusColor: "#6fa6de",
+                InfoFillColor: "#1c2632",
+                SuccessFillColor: "#1b2923",
+                WarningFillColor: "#2d251e",
+                DangerQuietColor: "#2c1e21",
+                ElevationSm: BoxShadow{OffsetY: 1.0, Blur: 3.0, Color: Color.Black.WithAlpha(0.25)},
+                ElevationMd: BoxShadow{OffsetY: 4.0, Blur: 12.0, Color: Color.Black.WithAlpha(0.35)},
+                ElevationLg: BoxShadow{OffsetY: 12.0, Blur: 32.0, Color: Color.Black.WithAlpha(0.45)},
+                SeriesPalette: []Color{"#6fa6de", "#6cbc5f", "#f9a238", "#bd95dc", "#ef6a4d", "#58bdc3", "#df89ae", "#b9bd70"},
+                ColorBlindPalette: []Color{"#e69f00", "#56b4e9", "#009e73", "#f0e442", "#0072b2", "#d55e00", "#cc79a7", "#eeeeee"},
+                Syntax: SyntaxPalette{Keyword: "#bd95dc", String: "#6cbc5f", Number: "#f9a238", Comment: "#9099a8", Function: "#6fa6de", Type: "#58bdc3", Punctuation: "#b8bfc9"},
+                Diff: DiffPalette{Added: "#6cbc5f", Removed: "#ef6a4d", Changed: "#f9a238", AddedFill: "#1b2923", RemovedFill: "#2c1e21", ChangedFill: "#2d251e"},
+                Ansi: AnsiPalette{
+                    Colors: []Color{"#11141b", "#ef6a4d", "#6cbc5f", "#f9a238", "#6fa6de", "#bd95dc", "#58bdc3", "#b8bfc9"},
+                    BrightColors: []Color{"#9099a8", "#f18b75", "#8fd184", "#ffbd69", "#9bc2ec", "#d5b5ed", "#87d7dc", "#eceded"},
+                },
                 FontFamily: "Vend Sans",
                 HeadingFontFamily: "Space Grotesk",
                 MonoFontFamily: "JetBrains Mono",
@@ -264,7 +339,88 @@ public data struct Theme {
                 SuccessColor = "#30672a",
                 WarningColor = "#805019",
                 DangerColor = "#a43723",
+                SunkenColor = "#e0e3e7",
+                ActiveColor = "#d7e3ee",
+                StrongBorderColor = "#5e6676",
+                SubtleTextColor = "#4a5161",
+                DisabledTextColor = "#5e6676",
+                LinkColor = "#245b91",
+                FocusColor = "#245b91",
+                InfoFillColor = "#dce3eb",
+                SuccessFillColor = "#dde5de",
+                WarningFillColor = "#e7e2dc",
+                DangerQuietColor = "#ebdfde",
+                ElevationSm = BoxShadow{OffsetY: 1.0, Blur: 3.0, Color: Color.Black.WithAlpha(0.10)},
+                ElevationMd = BoxShadow{OffsetY: 4.0, Blur: 12.0, Color: Color.Black.WithAlpha(0.15)},
+                ElevationLg = BoxShadow{OffsetY: 12.0, Blur: 32.0, Color: Color.Black.WithAlpha(0.20)},
+                SeriesPalette = []Color{"#245b91", "#30672a", "#805019", "#71468c", "#a43723", "#19666c", "#933f68", "#62651d"},
+                ColorBlindPalette = []Color{"#986800", "#24769c", "#007450", "#777000", "#0072b2", "#b64d00", "#9b4d79", "#090b10"},
+                Syntax = SyntaxPalette{Keyword: "#71468c", String: "#30672a", Number: "#805019", Comment: "#5e6676", Function: "#245b91", Type: "#19666c", Punctuation: "#4a5161"},
+                Diff = DiffPalette{Added: "#30672a", Removed: "#a43723", Changed: "#805019", AddedFill: "#dde5de", RemovedFill: "#ebdfde", ChangedFill: "#e7e2dc"},
+                Ansi = AnsiPalette{
+                    Colors: []Color{"#090b10", "#a43723", "#30672a", "#805019", "#245b91", "#71468c", "#19666c", "#5e6676"},
+                    BrightColors: []Color{"#4a5161", "#b84c36", "#3d7b35", "#946025", "#306ea9", "#8555a3", "#247b81", "#f5f6f7"},
+                },
             }
+        }
+    }
+
+    /// Resolves semantic foreground paint.
+    public func ToneColor(tone Tone) Color -> switch tone {
+        case Tone.Info: InfoColor
+        case Tone.Success: SuccessColor
+        case Tone.Warning: WarningColor
+        case Tone.Danger: DangerColor
+        default: TextColor
+    }
+
+    /// Resolves a semantic quiet surface.
+    public func ToneFill(tone Tone) Color -> switch tone {
+        case Tone.Info: InfoFillColor
+        case Tone.Success: SuccessFillColor
+        case Tone.Warning: WarningFillColor
+        case Tone.Danger: DangerQuietColor
+        default: PanelColor
+    }
+
+    /// Strengthens text, borders and focus without replacing the palette.
+    public func WithHighContrast() Theme -> this with{
+        HighContrast = true,
+        BorderColor = TextColor,
+        InputBorderColor = TextColor,
+        StrongBorderColor = TextColor,
+        MutedTextColor = TextColor,
+        FaintTextColor = TextColor,
+        SubtleTextColor = TextColor,
+        DisabledTextColor = TextColor,
+        FocusColor = TextColor,
+        BorderWidth = Math.Max(2.0, BorderWidth),
+    }
+
+    /// Sets absolute text and minimum-control scale without compounding.
+    public func WithTextScale(scale float64) Theme {
+        if !Double.IsFinite(scale) || scale <= 0.0 {
+            throw ArgumentOutOfRangeException("scale")
+        }
+        let ratio = scale / TextScaleFactor
+        return this with{
+            TextScaleFactor = scale,
+            FontSize = FontSize * ratio,
+            LabelFontSize = LabelFontSize * ratio,
+            CaptionFontSize = CaptionFontSize * ratio,
+            HeadingFontSize = HeadingFontSize * ratio,
+            DisplayFontSize = DisplayFontSize * ratio,
+            H1FontSize = H1FontSize * ratio,
+            H2FontSize = H2FontSize * ratio,
+            H3FontSize = H3FontSize * ratio,
+            H4FontSize = H4FontSize * ratio,
+            H5FontSize = H5FontSize * ratio,
+            H6FontSize = H6FontSize * ratio,
+            SubtitleFontSize = SubtitleFontSize * ratio,
+            OverlineFontSize = OverlineFontSize * ratio,
+            CodeFontSize = CodeFontSize * ratio,
+            ControlHeight = ControlHeight * ratio,
+            ControlMinWidth = ControlMinWidth * ratio,
         }
     }
 
@@ -403,12 +559,9 @@ public data struct Theme {
         }
     }
 
-    /// Status banner on the palette's panel surface. Override BorderColor for a semantic status.
+    /// Status banner that resolves semantic colors from its tone.
     public prop Banner Banner {
         get -> Banner{
-            BackgroundColor: PanelColor,
-            TextColor: TextColor,
-            BorderColor: BorderColor,
             MinHeight: ControlHeight,
             PaddingHorizontal: ControlPadding,
             PaddingVertical: Spacing * 2.0,
@@ -436,7 +589,7 @@ public data struct Theme {
             default: 12.0
         }
         return this with{
-            ControlHeight = height,
+            ControlHeight = height * TextScaleFactor,
             ControlPadding = padding,
             ControlGap = if density == Density.Compact {
                 4.0
@@ -448,7 +601,7 @@ public data struct Theme {
 
     /// Fresh keyboard focus declarations. Use an inset offset for clipped targets.
     public prop FocusStyle Style {
-        get -> Style{OutlineWidth: 2.0, OutlineColor: AccentColor, OutlineOffset: 2.0}
+        get -> Style{OutlineWidth: 2.0, OutlineColor: FocusColor, OutlineOffset: 2.0}
     }
 
     /// Fresh overlay scrollbar with real pointer-controlled track and thumb parts.
@@ -514,6 +667,25 @@ internal sealed class ThemeAttachment {
                 DangerColor = palette.DangerColor,
                 DangerFillColor = palette.DangerFillColor,
                 DangerHoverColor = palette.DangerHoverColor,
+                SunkenColor = palette.SunkenColor,
+                ActiveColor = palette.ActiveColor,
+                StrongBorderColor = palette.StrongBorderColor,
+                SubtleTextColor = palette.SubtleTextColor,
+                DisabledTextColor = palette.DisabledTextColor,
+                LinkColor = palette.LinkColor,
+                FocusColor = palette.FocusColor,
+                InfoFillColor = palette.InfoFillColor,
+                SuccessFillColor = palette.SuccessFillColor,
+                WarningFillColor = palette.WarningFillColor,
+                DangerQuietColor = palette.DangerQuietColor,
+                ElevationSm = palette.ElevationSm,
+                ElevationMd = palette.ElevationMd,
+                ElevationLg = palette.ElevationLg,
+                SeriesPalette = palette.SeriesPalette,
+                ColorBlindPalette = palette.ColorBlindPalette,
+                Syntax = palette.Syntax,
+                Diff = palette.Diff,
+                Ansi = palette.Ansi,
             }
             if Mode == ThemeMode.System {
                 if let accent = preferences.AccentColor {
@@ -521,8 +693,18 @@ internal sealed class ThemeAttachment {
                 }
             }
         }
+        if preferences.HighContrast == true {
+            value = value.WithHighContrast()
+        }
+        let scale = float64(preferences.TextScaleFactor ?? 1.0F)
+        value = value.WithTextScale(value.TextScaleFactor * scale / value.PlatformTextScaleFactor)
+        value.PlatformTextScaleFactor = scale
         if preferences.ReducedMotion == true {
             value.TransitionMs = 0.0
+            value.MotionFastMs = 0.0
+            value.MotionNormalMs = 0.0
+            value.MotionSlowMs = 0.0
+            value.SpinnerPeriodMs = 0.0
         }
         Theme.Key.Set(window, value)
         var background = window.Background

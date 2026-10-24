@@ -182,7 +182,7 @@ public open class TreeView : Cell[TreeViewInput] {
                     break
                 }
             }
-            activeId = Index(ancestor) >= 0 ? ancestor: Index(input.SelectedId) >= 0 ? input.SelectedId: First(false)
+            activeId = Index(ancestor) >= 0 ? ancestor: Index(input.SelectedId) >= 0 ? input.SelectedId: First()
         }
         for index in 0 ... rows.Count {
             rows[index] = rows[index]with{Active = rows[index].Node.Id == activeId}
@@ -323,14 +323,11 @@ public open class TreeView : Cell[TreeViewInput] {
         return rows[index].Disabled ? -1: index
     }
 
-    private func First(last bool) string? {
-        for step in 0 ... rows.Count {
-            let index = last ? rows.Count - step - 1: step
-            if !rows[index].Disabled {
-                return rows[index].Node.Id
-            }
-        }
-        return nil
+    private func First() string? {
+        let index = RovingFocus.Next[TreeViewRow](
+            rows, -1, Key.Home, AccessibilityOrientation.Vertical, false,
+            (row TreeViewRow) -> row.Disabled)
+        return index < 0 ? nil: rows[index].Node.Id
     }
 
     private func Activate(id string) {
@@ -473,7 +470,7 @@ public open class TreeView : Cell[TreeViewInput] {
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
             OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
-            OutlineColor: theme.AccentColor,
+            OutlineColor: theme.FocusColor,
             OutlineOffset: -2.0,
             Opacity: row.Disabled ? .45: 1.0,
             Overflow: Overflow.Hidden
@@ -572,16 +569,10 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let row = rows[index]
         var next = index
-        if e.Key == Key.Up || e.Key == Key.Down {
-            let direction = e.Key == Key.Up ? -1: 1
-            next += direction
-            while next >= 0 && next < rows.Count && rows[next].Disabled {
-                next += direction
-            }
-        } else if e.Key == Key.Home {
-            next = Index(First(false))
-        } else if e.Key == Key.End {
-            next = Index(First(true))
+        if e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End {
+            next = RovingFocus.Next[TreeViewRow](
+                rows, index, e.Key, AccessibilityOrientation.Vertical, false,
+                (item TreeViewRow) -> item.Disabled)
         } else if e.Key == Key.Left {
             if row.Expanded {
                 Expand(row.Node.Id!!, false)

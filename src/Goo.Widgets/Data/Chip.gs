@@ -9,6 +9,7 @@ public data struct Chip {
     var Label string?
     /// Optional leading element placed before the text label.
     var Leading Blob?
+    var Tone Tone
     /// Whether the chip is in its selected active state.
     var Selected bool
     /// Whether the chip rejects input and uses disabled styling.
@@ -82,17 +83,17 @@ public data struct Chip {
         let resolved = this with{
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
-            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BackgroundColor = BackgroundColor ?? theme.ToneFill(Tone),
             SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
-            TextColor = TextColor ?? theme.TextColor,
+            TextColor = TextColor ?? theme.ToneColor(Tone),
             SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
-            BorderColor = BorderColor ?? theme.InputBorderColor,
+            BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.InputBorderColor: theme.ToneColor(Tone)),
             SelectedBorderColor = SelectedBorderColor ?? theme.AccentColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             SelectedHoverBackgroundColor = SelectedHoverBackgroundColor ?? theme.AccentHoverColor,
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             SelectedActiveBackgroundColor = SelectedActiveBackgroundColor ?? theme.AccentPressedColor,
-            FocusBorderColor = FocusBorderColor ?? theme.AccentColor,
+            FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             Height = Height ?? theme.ControlHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             Gap = Gap ?? theme.ControlGap,

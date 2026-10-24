@@ -199,7 +199,7 @@ class ThemeSample : Cell {
                                             (theme.Button with{Content = "Unavailable", Disabled = true}).Build(),
                                         },
                                     },
-                                    (theme.Banner with{Content = status, BorderColor = theme.SuccessColor}).Build(),
+                                    (theme.Banner with{Content = status, Tone = Tone.Success}).Build(),
                                     ThemeScope{
                                         Value: theme with{AccentColor = theme.DangerColor},
                                         Content: () -> (
