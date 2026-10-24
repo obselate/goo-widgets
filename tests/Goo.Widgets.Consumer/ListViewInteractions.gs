@@ -282,11 +282,11 @@ internal class ListRowHost : Cell {
             Container{Handle: Row, Height: 60, content},
             Actions: ActionButton{
                 Content: "Pin",
+                AccessibilityName: "Row action",
                 OnClick: () -> Actions++,
                 CreateRoot: (value ActionButton, text Text) -> Button{
                     Handle: ActionHandle,
                     OnClick: value.OnClick,
-                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row action"},
                     text
                 }
             }.Build()
