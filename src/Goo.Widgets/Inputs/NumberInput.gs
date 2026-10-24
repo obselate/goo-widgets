@@ -114,6 +114,7 @@ public class NumberInput : Cell[NumberInputInput] {
         if let create = input.CreateEntry {
             entry = create(input, entry)
         }
+        entry.Handle ??= handle
         entry.Key = "entry"
         entry.Disabled = input.Disabled
         entry.Focusable = !input.Disabled
@@ -152,7 +153,7 @@ public class NumberInput : Cell[NumberInputInput] {
             Label: input.Label,
             Description: input.Description,
             Issue: input.Issue,
-            LabelFor: handle,
+            LabelFor: entry.Handle,
             Width: input.Width ?? defaultWidth,
             CreateContent: (relations AccessibilityRelationships) -> {
                 entry.Accessibility = Accessibility{
@@ -181,6 +182,7 @@ public class NumberInput : Cell[NumberInputInput] {
                         }
                         if request.Action == AccessibilityAction.SetValue {
                             draft = request.Value
+                            editing = true
                             Commit()
                             return !invalid
                         }
@@ -307,7 +309,7 @@ public class NumberInput : Cell[NumberInputInput] {
     }
 
     private func ScrubMove(event PointerEvent) {
-        if scrubbing {
+        if scrubbing && !current.Disabled {
             SetValue(scrubValue + Math.Truncate((event.WindowPosition.X - scrubX) / 8) * (current.Step ?? 1))
         }
     }
@@ -318,6 +320,8 @@ public class NumberInput : Cell[NumberInputInput] {
         }
         scrubbing = false
         event.ReleaseCapture()
-        current.OnCommit?.Invoke(value)
+        if !current.Disabled {
+            current.OnCommit?.Invoke(value)
+        }
     }
 }

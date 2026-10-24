@@ -150,6 +150,11 @@ func FieldInteractions() {
         )
         PumpFrames(window, 5)
         Require(host.Number == 0.5, "Spin button did not step")
+        host.PasswordHandle.Focus()
+        FeedbackClick(window, FeedbackNode(semantics, AccessibilityRole.Text, "Quantity").Bounds)
+        SendKey(id, SDLScancode.Up)
+        PumpFrames(window, 5)
+        Require(host.Number == 1, "Form label did not focus the custom entry handle")
         Require(host.PasswordEntry!!.Password, "Password field did not start masked")
         let reveal = FindSemantics(semantics.Tree?.Root, "Show password")!!
         Require(
@@ -198,6 +203,22 @@ func FieldInteractions() {
             && FindSemantics(semantics.Tree?.Root, "Clear Password") == nil,
             "Clear did not update controlled text"
         )
+        let numeric = FindSemantics(semantics.Tree?.Root, "Quantity")!!
+        Require(
+            !window.PerformAccessibilityAction(numeric.Id, AccessibilityActionRequest.SetValue("invalid")),
+            "Invalid accessibility input was accepted"
+        )
+        PumpFrames(window, 5)
+        Require(
+            host.Entry!!.Value == "invalid" && host.Entry!!.Accessibility!!.Invalid == true,
+            "Invalid accessibility draft was discarded"
+        )
+        Require(
+            window.PerformAccessibilityAction(numeric.Id, AccessibilityActionRequest.SetValue("2")),
+            "Valid accessibility input was rejected"
+        )
+        PumpFrames(window, 5)
+        Require(host.Number == 2, "Accessibility input did not commit")
         host.Disabled = true
         host.Rebuild()
         PumpFrames(window, 5)
