@@ -3,10 +3,10 @@ package Goo.Widgets.Feedback
 import Goo
 import Goo.Widgets
 
-/// A placement-neutral status badge. Nil Content renders a dot; non-nil Content renders a pill.
+/// A status dot or a pill containing text or a capped count.
 /// Factories receive resolved props and may replace the final Goo primitives.
 public data struct Badge {
-    /// Badge text. Nil selects dot mode; an empty string remains content mode.
+    /// Badge text when Count is nil. Nil selects a dot; an empty string remains a pill.
     var Content string?
     var Tone Tone
     var Count int32?

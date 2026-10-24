@@ -28,7 +28,7 @@ public data struct Avatar {
     var BorderColor Color?
     /// Avatar width and height. Zero resolves to 40.
     var Size float64
-    /// Border width. Preserved as supplied.
+    /// Border width. A RingColor uses the theme border width when this is zero.
     var BorderWidth float64
     /// Corner radius. Nil resolves to half the size; explicit zero remains zero.
     var BorderRadius float64?
