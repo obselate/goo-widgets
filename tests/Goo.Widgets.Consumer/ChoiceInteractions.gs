@@ -162,6 +162,18 @@ func ChoiceInteractions() {
             OneTabStop(host.RadioRoot!!) && OneTabStop(host.SingleRoot!!) && OneTabStop(host.MultiRoot!!),
             "Choices do not expose one tab stop per group"
         )
+        for palette in[]Theme{Theme.Bone, Theme.Ink} {
+            Theme.Attach(window, palette)
+            PumpFrames(window, 12)
+            let button = (host.SingleRoot!!.Children[0] as Button)!!
+            let bounds = button.Handle!!.BorderBox
+            let image = ThemeCapture(window)
+            Require(
+                ThemePixel(image, int32(bounds.X), int32(bounds.Y + bounds.Height / 2), palette.StrongBorderColor)
+                && ThemePixel(image, int32(bounds.X + bounds.Width / 2), int32(bounds.Y + 3), palette.PanelColor),
+                "Selected segment lost its surface or contrasting boundary"
+            )
+        }
         ChoiceKey(window, SDLScancode.Tab)
         Require(FeedbackNode(adapter, AccessibilityRole.Radio, "Radio one").Focused, "Tab did not enter selected radio")
         ChoiceKey(window, SDLScancode.Down)
@@ -260,7 +272,11 @@ func ChoiceInteractions() {
                         Root: gallery,
                         AccessibilityAdapter: semantics,
                     }
-                    Theme.Attach(proof, (dark ? Theme.Ink: Theme.Bone).WithTextScale(size == 2 ? 1.5: 1.0))
+                    gallery.AttachWindow(proof)
+                    Theme.SetMode(proof, dark ? ThemeMode.Dark: ThemeMode.Light)
+                    if size == 2 {
+                        Theme.Attach(proof, Theme.Read(proof).WithTextScale(1.5))
+                    }
                     proof.Open()
                     try {
                         PumpFrames(proof, 20)
