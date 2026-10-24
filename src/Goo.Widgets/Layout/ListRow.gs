@@ -23,7 +23,8 @@ public data struct ListRow {
     var HoverBackgroundColor Color?
     var PressedBackgroundColor Color?
     var Actions Blob?
-    var ShowActionsOnHover bool = true
+    /// Nil shows actions on hover, focus, selection, or touch. False always shows them.
+    var ShowActionsOnHover bool?
     /// Accessible name. Nil resolves to the resolved title.
     var AccessibilityName string?
     /// Row width. Nil resolves to 100%.
@@ -77,7 +78,7 @@ public data struct ListRow {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
-        if Actions != nil && ShowActionsOnHover {
+        if Actions != nil && (ShowActionsOnHover ?? true) {
             return Cell.Mount[ListRow, InteractiveListRow](nil, this)
         }
         return Render()

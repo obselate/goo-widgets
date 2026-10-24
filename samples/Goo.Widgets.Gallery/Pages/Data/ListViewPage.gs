@@ -22,8 +22,7 @@ internal class ListViewExample : Cell {
             Cell.Mount[ListViewInput, ListView](
                 "folders",
                 ListViewInput{
-                    Height: 384,
-                    RowHeight: 48,
+                    Height: 336,
                     Multiple: true,
                     SelectedIds: selected,
                     OnSelectionChange: (ids[]string) -> {

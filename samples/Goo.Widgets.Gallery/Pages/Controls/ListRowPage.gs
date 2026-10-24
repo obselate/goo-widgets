@@ -2,6 +2,7 @@ package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Actions
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
 import Goo.Widgets.Layout
@@ -28,15 +29,14 @@ internal class ListRowExample : Cell {
                     message = "Inbox opened"
                     Rebuild()
                 },
-                Actions: Button{
-                    Padding: theme.Spacing,
+                Actions: ActionButton{
+                    Content: "Pin",
                     OnClick: () -> {
                         message = "Inbox pinned"
                         Rebuild()
                     },
-                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Pin inbox"},
-                    Text{Content: "Pin", Color: theme.TextColor}
-                }
+                    AccessibilityName: "Pin inbox",
+                }.Build()
             }.Build(),
             ListRow{
                 Title: "Selected workspace",
@@ -47,14 +47,13 @@ internal class ListRowExample : Cell {
                     message = "Workspace selected"
                     Rebuild()
                 },
-                Actions: Button{
-                    Padding: theme.Spacing,
+                Actions: ActionButton{
+                    Content: "Save",
                     OnClick: () -> {
                         message = "Workspace saved"
                         Rebuild()
                     },
-                    Text{Content: "Save", Color: theme.TextColor}
-                }
+                }.Build()
             }.Build(),
             ListRow{
                 Title: "Unavailable archive",

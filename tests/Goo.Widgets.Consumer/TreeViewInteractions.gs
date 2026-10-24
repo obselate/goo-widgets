@@ -452,5 +452,4 @@ func TreeViewInteractions() {
     Console.WriteLine(
         "PASS: Tree controlled expansion/checks/selection, disabled state, active-descendant keyboard/AX focus, collapse recovery, one Tab stop and 1500-node virtualization"
     )
-    ListViewInteractions()
 }

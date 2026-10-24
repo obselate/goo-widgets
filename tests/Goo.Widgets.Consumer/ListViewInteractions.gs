@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets.Actions
 import Goo.Widgets.Data
 import Goo.Widgets.Layout
 import Hexa.NET.SDL3
@@ -74,7 +75,10 @@ internal class ListTreeHost : Cell {
                     SelectedIds: Selected,
                     OnSelectionChange: Change,
                     ActiveId: Active,
-                    OnActiveChange: (id string) -> Active = id,
+                    OnActiveChange: (id string) -> {
+                        Active = id
+                        Rebuild()
+                    },
                     OnInvoke: (id string) -> Invoked = id,
                     Sections: []ListViewSection{
                         ListViewSection{
@@ -262,12 +266,16 @@ internal class ListRowHost : Cell {
             OnInvoke: () -> Invokes++,
             CreateRoot: (value ListRow, leading Blob?, content Container, trailing Blob?) ->
             Container{Handle: Row, Height: 60, content},
-            Actions: Button{
-                Handle: ActionHandle,
+            Actions: ActionButton{
+                Content: "Pin",
                 OnClick: () -> Actions++,
-                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row action"},
-                Text{Content: "Pin"}
-            }
+                CreateRoot: (value ActionButton, text Text) -> Button{
+                    Handle: ActionHandle,
+                    OnClick: value.OnClick,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row action"},
+                    text
+                }
+            }.Build()
         }.Build(),
         ListRow{
             Title: "Disabled row",
@@ -295,6 +303,10 @@ func ListRowInteractions() {
     window.Open()
     try {
         PumpFrames(window, 12)
+        host.After.Focus()
+        let outside = host.After.BorderBox
+        MouseMove(OnlyNativeWindow(), float32(outside.X + 3), float32(outside.Y + 3))
+        PumpFrames(window, 8)
         Require(
             FindSemantics(semantics.Tree!!.Root, "Row action") == nil,
             "Row actions were visible without hover or focus"

@@ -98,14 +98,22 @@ public open class ListView : Cell[ListViewInput] {
             }
         }
         let searchable = List[string]()
+        var hasCaption bool
         for index in 0 ... entries.Count {
             let entry = entries[index]
             if entry.Header == nil {
                 indices.Add(entry.Id, index)
+                hasCaption = hasCaption || entry.Item.Caption != nil
                 if !entry.Item.Disabled {
                     searchable.Add(entry.Id)
                 }
             }
+        }
+        if value.RowHeight == nil && hasCaption {
+            input.RowHeight = Math.Max(
+                theme.ControlHeight,
+                (theme.FontSize + theme.CaptionFontSize) * theme.LineHeight + theme.Spacing
+            )
         }
         let removed = List[string]()
         for pair in handles {
