@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.9.0 - 2026-10-24
+
+- BREAKING: Require Goo 0.16.0 or later. Gestures now come from core Goo, so remove any Goo.Gestures reference.
+- DataGrid header focus no longer scrolls the active body row into view.
+- BREAKING: Banner uses Tone instead of Loud and Alert. Add semantic messages (Alert, InlineMessage), shared theme tokens and palettes, high-contrast and text-scale preferences, and shared roving keyboard focus.
+- Add shared type-ahead navigation (TreeView, Menu) and fuzzy match helpers.
+- Add ActionButton slots and states, RadioGroup and choice cards, and ToggleGroup.
+
 ## 0.8.0 - 2026-10-24
 
 - Consume the first Escape when dismissing a visible tooltip, through Goo 0.13.0 Window.PreviewKeyPressed. Dialogs no longer close on the same Escape.
