@@ -299,8 +299,10 @@ func FeedbackGridFit(window Window, adapter SearchListSemantics) {
         PumpFrames(window, 20)
         let fitted = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts").Bounds
+        let action = FeedbackNode(adapter, AccessibilityRole.Button, "Clear selection").Bounds
         Require(fitted.Height > 180 && fitted.Y + fitted.Height < window.Height, "Grid did not fit the gallery height")
         Require(search.X >= fitted.X && search.X + search.Width <= fitted.X + fitted.Width, "Search did not fit the toolbar")
+        Require(fitted.X + fitted.Width <= window.Width - 16 && action.X + action.Width <= window.Width - 16, "Grid or action escaped the gallery viewport")
         CaptureIssueProof(window, "gallery-grid-fit-" + width.ToString())
     }
     let resize = FeedbackNode(adapter, AccessibilityRole.Slider, "Resize Host").Bounds

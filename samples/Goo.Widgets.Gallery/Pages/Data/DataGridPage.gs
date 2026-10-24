@@ -109,6 +109,7 @@ internal class DataGridExample : Cell {
         return Container{
             Width: Percent(100),
             Height: Percent(100),
+            MinWidth: 0,
             MinHeight: 0,
             Gap: 16,
             Container{
