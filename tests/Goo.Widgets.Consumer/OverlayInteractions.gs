@@ -94,6 +94,7 @@ internal class OverlayHost : Cell {
     internal var AnchorY float64 = 430.0
     internal var BackgroundClicks int32
     internal var BackgroundKeys int32
+    internal var BackgroundEscapes int32
     internal var Confirms int32
     internal var Dismisses int32
     internal var LastDismiss PopoverDismissReason
@@ -243,6 +244,9 @@ internal class OverlayHost : Cell {
                 Height: 38.0,
                 BackgroundColor: "#27272a",
                 BorderRadius: 6.0,
+                OnKeyDown: (event KeyEvent) -> {
+                    if event.Key == Key.Escape { BackgroundEscapes++ }
+                },
                 OnClick: () -> {
                     BackgroundClicks++
                 },
@@ -450,6 +454,10 @@ func OverlayInteractions() {
         SendKey(id, SDLScancode.Escape)
         PumpFrames(window, 40)
         Require(!host.TooltipLabel.IsMounted, "Escape did not keep the hovered tooltip dismissed")
+        Require(host.BackgroundEscapes == 0, "Tooltip Escape reached the focused control")
+        SendKey(id, SDLScancode.Escape)
+        PumpFrames(window, 4)
+        Require(host.BackgroundEscapes == 1, "Escape did not reach the focused control after tooltip dismissal")
         MouseMove(id, 4.0F, 4.0F)
         PumpFrames(window, 4)
         MouseMove(id, float32(tooltipBounds.X + tooltipBounds.Width / 2.0), float32(tooltipBounds.Y + tooltipBounds.Height / 2.0))
