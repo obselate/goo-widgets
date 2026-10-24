@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import Goo.Widgets.Inputs
 import System.Collections.Generic
@@ -10,6 +11,24 @@ internal class SearchListSemantics : AccessibilityAdapter {
     public func Update(tree AccessibilityTree) {
         Tree = tree
     }
+}
+
+func FuzzyMatchContracts() {
+    let ranked = FuzzyMatch.Rank[string](
+        []string{"format", "foo bar", "far", "fr", "FR", "other"}, "fr", (item string) -> item)
+    Require(ranked.Length == 5 && ranked[0].Item == "fr" && ranked[1].Item == "FR",
+        "Fuzzy ranking lost exact matches or stable ties")
+    Require(ranked[2].Item == "format" && ranked[3].Item == "far" && ranked[4].Item == "foo bar",
+        "Fuzzy ranking lost gap ordering or stable ties")
+    let match = FuzzyMatch.Match("fb", "Foo Bar")!!
+    Require(match.Ranges.Length == 2 && match.Ranges[0].Start == 0 && match.Ranges[0].Length == 1
+        && match.Ranges[1].Start == 4 && match.Ranges[1].Length == 1,
+        "Fuzzy matching lost original highlight ranges")
+    Require(FuzzyMatch.Match("ff", "f") == nil && FuzzyMatch.Match("z", "Foo") == nil,
+        "Fuzzy matching accepted missing or repeated letters")
+    let empty = FuzzyMatch.Rank[string]([]string{"b", "a"}, "", (item string) -> item)
+    Require(empty.Length == 2 && empty[0].Item == "b" && empty[1].Item == "a"
+        && empty[0].Match.Ranges.Length == 0, "Empty fuzzy query changed source order")
 }
 
 internal class SearchListHost : Cell {

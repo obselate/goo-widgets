@@ -436,6 +436,7 @@ func Main() {
             GridChartContracts()
             TimeAxisContracts()
             TreeViewContracts()
+            FuzzyMatchContracts()
             DataGridContracts()
             VirtualContracts()
             SliderInteractions()

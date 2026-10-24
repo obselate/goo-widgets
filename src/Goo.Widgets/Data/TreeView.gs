@@ -112,6 +112,7 @@ public open class TreeView : Cell[TreeViewInput] {
     private var nodes Dictionary[string, TreeViewRow] = Dictionary[string, TreeViewRow](StringComparer.Ordinal)
     private var indices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
     private var rows List[TreeViewRow] = List[TreeViewRow]()
+    private let typeAhead TypeAhead = TypeAhead()
     private var input TreeViewInput
     private var theme Theme
     private var pointerFocus bool
@@ -141,6 +142,7 @@ public open class TreeView : Cell[TreeViewInput] {
         nodes = Dictionary[string, TreeViewRow](StringComparer.Ordinal)
         indices = Dictionary[string, int32](StringComparer.Ordinal)
         rows = List[TreeViewRow]()
+        let searchable = List[string]()
         let expanded = HashSet[string](input.ExpandedIds ?? []string{}, StringComparer.Ordinal)
         let stack = Stack[TreeWalk]()
         Push(stack, input.Nodes ?? []TreeNode{}, nil, 0, true, input.Disabled)
@@ -171,6 +173,9 @@ public open class TreeView : Cell[TreeViewInput] {
             if walk.Visible {
                 indices.Add(node.Id!!, rows.Count)
                 rows.Add(row)
+                if !row.Disabled {
+                    searchable.Add(node.Id!!)
+                }
             }
             Push(stack, children, node.Id, walk.Depth + 1, walk.Visible && row.Expanded, row.Disabled)
         }
@@ -187,6 +192,9 @@ public open class TreeView : Cell[TreeViewInput] {
         for index in 0 ... rows.Count {
             rows[index] = rows[index]with{Active = rows[index].Node.Id == activeId}
         }
+        typeAhead.Items = searchable
+        typeAhead.TextForId = (id string) -> nodes[id].Node.Label ?? id
+        typeAhead.OnMatch = Activate
         let removed = List[string]()
         for pair in handles {
             if !nodes.ContainsKey(pair.Key) {
@@ -271,6 +279,7 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         root.OnBlur = (e FocusEvent) -> {
             hasFocus = false
+            typeAhead.Reset()
         }
         var activeHandle ElementHandle?
         if let id = activeId {
@@ -565,6 +574,10 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let index = Index(activeId)
         if index < 0 {
+            return
+        }
+        typeAhead.ActiveId = activeId
+        if typeAhead.HandleKey(e) {
             return
         }
         let row = rows[index]
