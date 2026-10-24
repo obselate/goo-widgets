@@ -10,7 +10,7 @@ Install the optional [Goo DevTools](https://github.com/obselate/goo/blob/main/do
 dotnet tool install --global Goo.DevTools --version 0.6.7
 dotnet build samples/Goo.Widgets.Gallery -c Release
 dotnet run --project samples/Goo.Widgets.Gallery -c Release --no-build -- --screenshots samples/screenshots
-python3 scripts/verify-screenshots.py
+dotnet run --project tools/Goo.Widgets.Checks -c Release -- screenshots
 ```
 
 In a Wayland session, set `SDL_VIDEODRIVER=wayland` to select the native display driver.
