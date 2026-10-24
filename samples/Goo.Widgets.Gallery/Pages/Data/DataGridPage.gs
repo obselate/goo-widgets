@@ -108,9 +108,12 @@ internal class DataGridExample : Cell {
         }
         return Container{
             Width: Percent(100),
+            Height: Percent(100),
+            MinHeight: 0,
             Gap: 16,
             Container{
                 Key: "toolbar",
+                FlexShrink: 0,
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: 12,
@@ -149,7 +152,7 @@ internal class DataGridExample : Cell {
             Cell.Mount[DataGridInput, DataGrid](
                 "inventory",
                 DataGridInput{
-                    Height: 390,
+                    Height: Length.Auto,
                     RowHeight: 40,
                     HeaderHeight: 40,
                     ScrollbarVisibilityY: ScrollbarVisibility.Always,
@@ -212,6 +215,11 @@ internal class DataGridExample : Cell {
                     OnSelectionChange: Select,
                     ExpandedIds: expanded,
                     OnExpandedChange: Expand,
+                    CreateRoot: (input DataGridInput, root Container) -> {
+                        root.FlexGrow = 1
+                        root.FlexBasis = 0
+                        return root
+                    },
                     CreateDetail: Detail
                 }
             )

@@ -218,6 +218,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
     private var beforeColumns float64
     private var afterColumns float64
     private var activeId string?
+    private var hoveredId string?
     private var anchorId string?
     private var anchorSelection HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var hasFocus bool
@@ -1175,8 +1176,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
             OutlineWidth: activeId == id && hasFocus && !pointerFocus ? 2.0: 0.0,
-            BorderWidth: Edges{Bottom: 1},
-            BorderColor: theme.BorderColor,
             OutlineColor: snapshot.FocusColor!!,
             OutlineOffset: -2
         }
@@ -1301,7 +1300,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
                         ZIndex: index < pinnedCount ? 1: 0,
                         BackgroundColor: index < pinnedCount ? (
-                            isSelected ? snapshot.SelectedColor!!: snapshot.BackgroundColor!!
+                            isSelected ? snapshot.SelectedColor!!: hoveredId == id ? theme.HoverColor: snapshot.BackgroundColor!!
                         ): Color.Transparent,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.GridCell,
@@ -1320,6 +1319,16 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!: theme.HoverColor},
             Opacity: row.Disabled ? .45: 1.0
+        }
+        if pinnedCount > 0 {
+            root.OnPointerEnter = (e PointerEvent) -> {
+                hoveredId = id
+                Rebuild()
+            }
+            root.OnPointerLeave = (e PointerEvent) -> {
+                hoveredId = nil
+                Rebuild()
+            }
         }
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)

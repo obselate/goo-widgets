@@ -273,6 +273,16 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
     Require(empty.X >= grid.X && empty.Y >= grid.Y && empty.X + empty.Width <= grid.X + grid.Width, "Grid empty state escaped its frame")
     CaptureIssueProof(window, "gallery-grid-empty")
     FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "")
+    for width in []int32{960, 1280} {
+        window.Width = width
+        window.Height = width == 960 ? 640: 800
+        PumpFrames(window, 20)
+        let fitted = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
+        let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts").Bounds
+        Require(fitted.Height > 180 && fitted.Y + fitted.Height < window.Height, "Grid did not fit the gallery height")
+        Require(search.X >= fitted.X && search.X + search.Width <= fitted.X + fitted.Width, "Search did not fit the toolbar")
+        CaptureIssueProof(window, "gallery-grid-fit-" + width.ToString())
+    }
 }
 
 func FeedbackTree(window Window, adapter SearchListSemantics) {
