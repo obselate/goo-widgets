@@ -44,7 +44,13 @@ class ActionButtonDemo : Cell {
                 FlexDirection: FlexDirection.Row,
                 FlexWrap: FlexWrap.Wrap,
                 Gap: 12,
-                (theme.Button with{Content = "Saving changes", Loading = true}).Build(),
+                (
+                    theme.Button with{
+                        Content = "Saving changes",
+                        Leading = MaterialIcons.Create("save", size: 18),
+                        Loading = true,
+                    }
+                ).Build(),
                 (theme.Button with{Content = "Disabled", Disabled = true}).Build(),
                 (
                     theme.Button with{

@@ -2,6 +2,7 @@ package Goo.Widgets.Actions
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Feedback
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
 public data struct ActionButton {
@@ -19,7 +20,7 @@ public data struct ActionButton {
     var Trailing Blob?
     /// Display-only keyboard shortcut hint.
     var Shortcut string?
-    /// Shows progress without changing width and rejects input.
+    /// Shows a spinner beside the dimmed label, preserves width and rejects input.
     var Loading bool
     /// Controlled toggle state. Nil keeps ordinary button semantics.
     var Pressed bool?
@@ -162,7 +163,7 @@ public data struct ActionButton {
             Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: 2.0, OutlineOffset: 2.0},
             DisabledStyle: Style{
                 BackgroundColor: resolved.DisabledBackgroundColor!!,
-                Color: resolved.DisabledTextColor!!,
+                Color: Loading ? resolved.TextColor!!: resolved.DisabledTextColor!!,
             },
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
@@ -176,10 +177,14 @@ public data struct ActionButton {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
-            Opacity: Loading ? 0.0: 1.0,
         }
+        if Loading {
+            text.Opacity = 0.6
+        }
+        var leadingSlot Container?
         if let leading = Leading {
-            contents.Children.Add(leading)
+            leadingSlot = Container{Position: PositionType.Relative, Container{Opacity: Loading ? 0.0: 1.0, leading},}
+            contents.Children.Add(leadingSlot)
         }
         contents.Children.Add(text)
         if let trailing = Trailing {
@@ -192,18 +197,24 @@ public data struct ActionButton {
         }
         root.Children.Add(contents)
         if Loading {
-            root.Children.Add(
-                Container{
-                    Position: PositionType.Absolute,
-                    Left: 0,
-                    Right: 0,
-                    Top: 0,
-                    Bottom: 0,
-                    AlignItems: AlignItems.Center,
-                    JustifyContent: JustifyContent.Center,
-                    Text{Content: "...", FontSize: resolved.FontSize!!},
-                }
-            )
+            let size = Leading != nil ? resolved.FontSize!!:
+            Math.Min(resolved.FontSize!!, Math.Max(6.0, resolved.PaddingHorizontal!!- 2.0))
+            let indicator = Container{
+                Position: PositionType.Absolute,
+                Left: 0,
+                Top: 0,
+                Bottom: 0,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                Cell.Mount[SpinnerInput, Spinner]("loading", SpinnerInput{Size: size, Color: theme.AccentColor}),
+            }
+            if let slot = leadingSlot {
+                indicator.Right = 0
+                slot.Children.Add(indicator)
+            } else {
+                indicator.Width = resolved.PaddingHorizontal!!
+                root.Children.Add(indicator)
+            }
         }
         WidgetKeyBindings.BindActivation(root)
         return root
