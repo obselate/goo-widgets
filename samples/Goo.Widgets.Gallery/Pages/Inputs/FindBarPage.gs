@@ -10,7 +10,7 @@ import System.Text.RegularExpressions
 internal class FindBarExample : Cell {
     private var query string = "widget"
     private var replacement string = "control"
-    private var options FindOptions
+    private var options FindOptions = FindOptions{WholeWord: true}
     private var active int32 = 1
     private var content string = "A widget can find a Widget, replace a widget, or match widgets as a whole word."
     private var isOpen bool = true
@@ -34,66 +34,69 @@ internal class FindBarExample : Cell {
         }
         let count = matches?.Count ?? 0
         active = count == 0 ? 0: Math.Clamp(active, 1, count)
-        return Container{
+        let bar = FindBar{
+            Query: query,
+            Options: options,
+            MatchCount: count,
+            ActiveMatch: active,
+            Issue: issue,
+            OnQueryChange: value -> {
+                query = value
+                active = 1
+                Rebuild()
+            },
+            OnOptionsChange: value -> {
+                options = value
+                Rebuild()
+            },
+            OnReplacementChange: value -> {
+                replacement = value
+                Rebuild()
+            },
+            OnNext: () -> {
+                active = active % count + 1
+                Rebuild()
+            },
+            OnPrevious: () -> {
+                active = (active + count - 2) % count + 1
+                Rebuild()
+            },
+            OnClose: () -> {
+                isOpen = false
+                Rebuild()
+            },
+            OnReplace: () -> {
+                content = expression!!.Replace(content, replacement, 1, matches!![active - 1].Index)
+                Rebuild()
+            },
+            OnReplaceAll: () -> {
+                content = expression!!.Replace(content, replacement)
+                Rebuild()
+            },
+        }
+        let root = Container{
             Width: Percent(100),
             MaxWidth: 680,
             MinWidth: 0,
             Gap: theme.ControlGap,
-            isOpen ? FindBar{
-                Query: query,
-                Options: options,
-                MatchCount: count,
-                ActiveMatch: active,
-                Issue: issue,
-                Replacement: replacement,
-                OnQueryChange: value -> {
-                    query = value
-                    active = 1
-                    Rebuild()
-                },
-                OnOptionsChange: value -> {
-                    options = value
-                    Rebuild()
-                },
-                OnReplacementChange: value -> {
-                    replacement = value
-                    Rebuild()
-                },
-                OnNext: () -> {
-                    active = active % count + 1
-                    Rebuild()
-                },
-                OnPrevious: () -> {
-                    active = (active + count - 2) % count + 1
-                    Rebuild()
-                },
-                OnClose: () -> {
-                    isOpen = false
-                    Rebuild()
-                },
-                OnReplace: () -> {
-                    content = expression!!.Replace(content, replacement, 1, matches!![active - 1].Index)
-                    Rebuild()
-                },
-                OnReplaceAll: () -> {
-                    content = expression!!.Replace(content, replacement)
-                    Rebuild()
-                },
-            }.Build(): ActionButton{
-                Content: "Open find",
-                OnClick: () -> {
-                    isOpen = true
-                    Rebuild()
-                }
-            }.Build(),
             Text{Content: content, Color: theme.TextColor, TextWrap: TextWrap.Wrap},
-            Text{
-                Content: "Enter finds next. Shift+Enter finds previous. Escape closes.",
-                Color: theme.MutedTextColor,
-                TextWrap: TextWrap.Wrap
-            },
-            FindBar{Query: query, Options: options, MatchCount: count, ActiveMatch: active, Disabled: true}.Build(),
         }
+        if isOpen {
+            root.Children.Insert(0, bar.Build())
+            root.Children.Insert(1, (bar with{Replacement = replacement}).Build())
+        } else {
+            root.Children.Insert(
+                0,
+                ActionButton{
+                    Content: "Open find",
+                    OnClick: () -> {
+                        isOpen = true
+                        Rebuild()
+                    }
+                }.Build()
+            )
+        }
+        return root
     }
 }
 

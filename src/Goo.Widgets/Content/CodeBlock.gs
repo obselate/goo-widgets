@@ -3,6 +3,7 @@ package Goo.Widgets.Content
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Actions
+import Goo.Widgets.Icons
 import System
 
 /// Selectable code with host-supplied syntax styles and controlled folding.
@@ -67,14 +68,19 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
         let lines = controller!!.Document.LineCount
         let folded = input.CollapsedLines > 0 && lines > input.CollapsedLines
         let header = Container{
-            Padding: theme.ControlPadding,
+            Padding: Edges{
+                Top: theme.ControlGap / 2.0,
+                Bottom: theme.ControlGap / 2.0,
+                Left: theme.ControlPadding,
+                Right: theme.ControlGap / 2.0
+            },
             FlexDirection: FlexDirection.Row,
             FlexWrap: FlexWrap.Wrap,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
             Text{Content: input.Language ?? "Code", Color: theme.MutedTextColor, FlexGrow: 1},
-            ActionButton{
-                Content: "Copy",
+            IconButton{
+                Icon: MaterialIcons.Create("content_copy", 16, theme.MutedTextColor),
                 AccessibilityName: "Copy code",
                 Disabled: input.Window == nil && input.OnCopy == nil,
                 OnClick: () -> {
@@ -145,14 +151,27 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             },
         }
         if folded {
-            root.Children.Add(
-                ActionButton{
-                    Content: input.Expanded ? "Show less": "Show all " + lines.ToString() + " lines",
-                    Pressed: input.Expanded,
-                    Disabled: input.OnExpandedChange == nil,
-                    OnClick: () -> input.OnExpandedChange?.Invoke(!input.Expanded),
-                }.Build()
-            )
+            let label = input.Expanded ? "Show less": "Show all " + lines.ToString() + " lines"
+            let fold = Button{
+                Width: Percent(100),
+                Height: theme.ControlHeight,
+                FlexShrink: 0,
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                JustifyContent: JustifyContent.Center,
+                Gap: theme.ControlGap / 2.0,
+                BackgroundColor: Color.Transparent,
+                Hover: Style{BackgroundColor: theme.HoverColor},
+                Focus: Style{OutlineColor: theme.FocusColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
+                Cursor: Cursor.Pointer,
+                Disabled: input.OnExpandedChange == nil,
+                OnClick: () -> input.OnExpandedChange?.Invoke(!input.Expanded),
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: label, Expanded: input.Expanded},
+                MaterialIcons.Create(input.Expanded ? "expand_less": "expand_more", 16, theme.MutedTextColor),
+                Text{Content: label, Color: theme.MutedTextColor},
+            }
+            WidgetKeyBindings.BindActivation(fold)
+            root.Children.Add(fold)
         }
         return root
     }

@@ -8,14 +8,12 @@ import Goo.Widgets.Gallery
 internal class CodeBlockExample : Cell {
     internal var Window Window?
     private var expanded bool
-    private var copied bool
     private let code string = "package Example\n\nimport Goo\n\nfunc Main() {\n    let message = \"Hello, Goo\"\n    Console.WriteLine(message)\n}"
 
     public override func Build() Blob -> Container{
         Width: Percent(100),
         MaxWidth: 680,
         MinWidth: 0,
-        Gap: 16,
         Cell.Mount[CodeBlockInput, CodeBlock](
             "code",
             CodeBlockInput{
@@ -29,11 +27,6 @@ internal class CodeBlockExample : Cell {
                     expanded = value
                     Rebuild()
                 },
-                OnCopy: value -> {
-                    Window?.SetClipboardText(value)
-                    copied = true
-                    Rebuild()
-                },
                 Highlight: (layer, palette) -> {
                     layer.SetStyle("package", TextRange(0, 7), Style{Color: palette.Keyword})
                     layer.SetStyle("import", TextRange(17, 6), Style{Color: palette.Keyword})
@@ -42,10 +35,6 @@ internal class CodeBlockExample : Cell {
                 },
             }
         ),
-        Text{
-            Content: copied ? "Copied to clipboard": "Select text or copy the full code while folded.",
-            Color: Theme.Read().MutedTextColor
-        },
     }
 }
 

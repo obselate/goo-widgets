@@ -2,7 +2,7 @@ package Goo.Widgets.Inputs
 
 import Goo
 import Goo.Widgets
-import Goo.Widgets.Actions
+import Goo.Widgets.Icons
 import System
 
 /// Host-owned search options. Matching stays with the host document.
@@ -50,11 +50,12 @@ public data struct FindBar {
         }
         let count = Math.Max(0, MatchCount)
         let status = Math.Clamp(ActiveMatch, 0, count).ToString() + " of " + count.ToString()
+        let size = theme.ControlHeight
         let root = Container{
             Width: Width ?? Percent(100),
             MinWidth: 0,
-            Gap: theme.ControlGap,
-            Padding: theme.ControlPadding,
+            Gap: theme.ControlGap / 2.0,
+            Padding: theme.ControlGap / 2.0,
             BackgroundColor: theme.PanelColor,
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.BorderColor,
@@ -74,86 +75,132 @@ public data struct FindBar {
                 },
             },
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Find and replace"},
-            TextField{
-                Value: Query,
-                Controlled: true,
-                Placeholder: "Find",
-                AccessibilityName: "Find",
-                Width: Percent(100),
-                Disabled: Disabled,
-                Invalid: Issue != nil,
-                IssueText: Issue,
-                OnChange: OnQueryChange,
-                CreateEntry: CreateEntry,
-            }.Build(),
-            Container{
-                FlexDirection: FlexDirection.Row,
-                FlexWrap: FlexWrap.Wrap,
-                AlignItems: AlignItems.Center,
-                Gap: theme.ControlGap,
-                ActionButton{
-                    Content: "Aa",
-                    AccessibilityName: "Match case",
-                    Pressed: Options.MatchCase,
+            Row(
+                TextField{
+                    Value: Query,
+                    Controlled: true,
+                    Placeholder: "Find",
+                    AccessibilityName: "Find",
+                    Width: Percent(100),
                     Disabled: Disabled,
-                    OnClick: () -> snapshot.OnOptionsChange?.Invoke(
-                        snapshot.Options with{MatchCase = !snapshot.Options.MatchCase}
-                    )
+                    Invalid: Issue != nil,
+                    IssueText: Issue,
+                    OnChange: OnQueryChange,
+                    CreateEntry: CreateEntry,
+                    Trailing: Container{
+                        FlexDirection: FlexDirection.Row,
+                        Gap: 2,
+                        Icon(
+                            "Match case",
+                            "match_case",
+                            size - 8.0,
+                            Disabled,
+                            () -> snapshot.OnOptionsChange?.Invoke(
+                                snapshot.Options with{MatchCase = !snapshot.Options.MatchCase}
+                            ),
+                            Options.MatchCase
+                        ),
+                        Icon(
+                            "Whole word",
+                            "match_word",
+                            size - 8.0,
+                            Disabled,
+                            () -> snapshot.OnOptionsChange?.Invoke(
+                                snapshot.Options with{WholeWord = !snapshot.Options.WholeWord}
+                            ),
+                            Options.WholeWord
+                        ),
+                        Icon(
+                            "Regular expression",
+                            "regular_expression",
+                            size - 8.0,
+                            Disabled,
+                            () -> snapshot.OnOptionsChange?.Invoke(
+                                snapshot.Options with{Regex = !snapshot.Options.Regex}
+                            ),
+                            Options.Regex
+                        ),
+                    },
                 }.Build(),
-                ActionButton{
-                    Content: "Word",
-                    AccessibilityName: "Whole word",
-                    Pressed: Options.WholeWord,
-                    Disabled: Disabled,
-                    OnClick: () -> snapshot.OnOptionsChange?.Invoke(
-                        snapshot.Options with{WholeWord = !snapshot.Options.WholeWord}
-                    )
-                }.Build(),
-                ActionButton{
-                    Content: ".*",
-                    AccessibilityName: "Regular expression",
-                    Pressed: Options.Regex,
-                    Disabled: Disabled,
-                    OnClick: () -> snapshot.OnOptionsChange?.Invoke(
-                        snapshot.Options with{Regex = !snapshot.Options.Regex}
-                    )
-                }.Build(),
-                Text{
-                    Content: status,
-                    Color: theme.MutedTextColor,
-                    Accessibility: Accessibility{
-                        Role: AccessibilityRole.Text,
-                        Name: status,
-                        Live: AccessibilityLive.Polite
-                    }
-                },
-                ActionButton{Content: "Previous", Disabled: !ready, OnClick: previous}.Build(),
-                ActionButton{Content: "Next", Disabled: !ready, OnClick: next}.Build(),
-                ActionButton{Content: "Close", Disabled: Disabled, OnClick: OnClose}.Build(),
-            },
+                Container{
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    Height: size,
+                    Text{
+                        Content: status,
+                        MinWidth: size * 2.0,
+                        TextAlign: TextAlign.Center,
+                        Color: !String.IsNullOrEmpty(Query) && count == 0 ? theme.DangerColor: theme.MutedTextColor,
+                        Accessibility: Accessibility{
+                            Role: AccessibilityRole.Text,
+                            Name: status,
+                            Live: AccessibilityLive.Polite
+                        }
+                    },
+                    Icon("Previous", "arrow_upward", size, !ready, previous),
+                    Icon("Next", "arrow_downward", size, !ready, next),
+                    Icon("Close", "close", size, Disabled, OnClose),
+                }
+            ),
         }
         if let replacement = Replacement {
             root.Children.Add(
-                TextField{
-                    Value: replacement,
-                    Controlled: true,
-                    Placeholder: "Replace",
-                    AccessibilityName: "Replacement",
-                    Width: Percent(100),
-                    Disabled: Disabled,
-                    OnChange: OnReplacementChange,
-                }.Build()
-            )
-            root.Children.Add(
-                Container{
-                    FlexDirection: FlexDirection.Row,
-                    FlexWrap: FlexWrap.Wrap,
-                    Gap: theme.ControlGap,
-                    ActionButton{Content: "Replace", Disabled: !ready, OnClick: OnReplace}.Build(),
-                    ActionButton{Content: "Replace all", Disabled: !ready, OnClick: OnReplaceAll}.Build(),
-                }
+                Row(
+                    TextField{
+                        Value: replacement,
+                        Controlled: true,
+                        Placeholder: "Replace",
+                        AccessibilityName: "Replacement",
+                        Width: Percent(100),
+                        Disabled: Disabled,
+                        OnChange: OnReplacementChange,
+                    }.Build(),
+                    Container{
+                        FlexDirection: FlexDirection.Row,
+                        MinWidth: size * 5.0,
+                        Icon("Replace", "find_replace", size, !ready, OnReplace),
+                        Icon("Replace all", "done_all", size, !ready, OnReplaceAll),
+                    }
+                )
             )
         }
         return root
+    }
+
+    private func Row(field Blob, actions Container) Container -> Container{
+        FlexDirection: FlexDirection.Row,
+        FlexWrap: FlexWrap.Wrap,
+        AlignItems: AlignItems.FlexStart,
+        Gap: Theme.Read().ControlGap / 2.0,
+        Container{FlexGrow: 1, FlexBasis: Theme.Read().ControlHeight * 6.0, MinWidth: 0, field},
+        actions,
+    }
+
+    private func Icon(name string, icon string, size float64, disabled bool, action Action?, on bool? = nil) Blob {
+        let theme = Theme.Read()
+        let button = Button{
+            Width: size,
+            Height: size,
+            Padding: 0,
+            BorderRadius: theme.ControlRadius,
+            AlignItems: AlignItems.Center,
+            JustifyContent: JustifyContent.Center,
+            Cursor: Cursor.Pointer,
+            Disabled: disabled,
+            Opacity: disabled ? 0.4: 1.0,
+            BackgroundColor: on == true ? theme.AccentColor: Color.Transparent,
+            Hover: Style{BackgroundColor: on == true ? theme.AccentHoverColor: theme.HoverColor},
+            Focus: theme.FocusStyle,
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.Button,
+                Name: name,
+                Checked: on == nil ? AccessibilityChecked.Unspecified:
+                on == true ? AccessibilityChecked.True: AccessibilityChecked.False,
+            },
+            OnClick: action,
+            MaterialIcons.Create(icon, 16, on == true ? theme.OnAccentColor: theme.MutedTextColor),
+        }
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 }
