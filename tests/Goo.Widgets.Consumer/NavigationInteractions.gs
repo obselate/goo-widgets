@@ -3,6 +3,7 @@ package Goo.Widgets.Consumer
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Actions
+import Goo.Widgets.Icons
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
 import System.Collections.Generic
@@ -20,6 +21,7 @@ internal class NavigationHost : Cell {
     internal let Launch ElementHandle = ElementHandle()
     internal var RailSelected string = "files"
     internal var GroupCollapsed bool
+    internal var RailExpanded bool = true
 
     public override func Build() Blob {
         let theme = Theme.Read()
@@ -94,7 +96,7 @@ internal class NavigationHost : Cell {
             Cell.Mount[NavigationRailInput, NavigationRail](
                 "rail",
                 NavigationRailInput{
-                    Expanded: true,
+                    Expanded: RailExpanded,
                     Height: 210,
                     SelectedId: RailSelected,
                     Groups: []NavigationGroup{
@@ -102,8 +104,8 @@ internal class NavigationHost : Cell {
                             Id: "workspace",
                             Label: "Workspace",
                             Items: []NavigationItem{
-                                NavigationItem{Id: "files", Label: "Files"},
-                                NavigationItem{Id: "search", Label: "Search"},
+                                NavigationItem{Id: "files", Label: "Files", Content: MaterialIcons.Create("folder")},
+                                NavigationItem{Id: "search", Label: "Search", Content: MaterialIcons.Create("search")},
                             }
                         }
                     },
@@ -117,7 +119,9 @@ internal class NavigationHost : Cell {
                         RailSelected = id
                         Rebuild()
                     },
-                    BottomItems: []NavigationItem{NavigationItem{Id: "settings", Label: "Settings"}},
+                    BottomItems: []NavigationItem{
+                        NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")}
+                    },
                 }
             ),
             ActionButton{
@@ -186,10 +190,14 @@ func NavigationInteractions() {
         let native = OnlyNativeWindow()
         let trigger = FindSemantics(semantics.Tree?.Root, "File actions")!!
         Require(trigger.HasPopup == true && trigger.Expanded == false, "Menu trigger omitted popup or collapsed state")
+        host.Launch.Focus()
         Require(
-            window.PerformAccessibilityAction(trigger.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
-            "Menu trigger did not focus"
+            window.PerformAccessibilityAction(trigger.Id, AccessibilityActionRequest(AccessibilityAction.Activate)),
+            "Menu trigger did not activate"
         )
+        PumpFrames(window, 12)
+        ChoiceKey(window, SDLScancode.Escape)
+        Require(OverlayFocus(semantics, "File actions"), "Accessibility activation did not restore trigger focus")
         ChoiceKey(window, SDLScancode.Up)
         Require(
             host.MenuOpen && FindSemantics(semantics.Tree?.Root, "File actions")!!.Expanded == true,
@@ -220,20 +228,32 @@ func NavigationInteractions() {
         )
         let overflow = FindSemantics(semantics.Tree?.Root, "All tabs")!!
         Require(
+            overflow.Bounds.X + overflow.Bounds.Width <= host.Viewport.BorderBox.X + 420,
+            "Tab overflow trigger exceeded the controlled width"
+        )
+        Require(
             window.PerformAccessibilityAction(overflow.Id, AccessibilityActionRequest(AccessibilityAction.Activate)),
             "Overflow menu did not activate"
         )
         PumpFrames(window, 12)
         Require(FindSemantics(semantics.Tree?.Root, "All tabs")!!.Expanded == true, "Overflow menu did not expand")
         ChoiceKey(window, SDLScancode.End)
-        ChoiceKey(window, SDLScancode.Enter)
+        ChoiceKey(window, SDLScancode.Return)
         Require(host.Selected == "eight", "Overflow menu did not select a tab")
         for mode in[]ThemeMode{ThemeMode.Light, ThemeMode.Dark} {
             Theme.SetMode(window, mode)
             PumpFrames(window, 10)
             CaptureIssueProof(window, "navigation-" + mode.ToString())
+            host.RailExpanded = false
+            host.Rebuild()
+            PumpFrames(window, 6)
+            Require(FindSemantics(semantics.Tree?.Root, "Files, 12") != nil, "Activity bar lost its label or count")
+            CaptureIssueProof(window, "activity-" + mode.ToString())
+            host.RailExpanded = true
+            host.Rebuild()
+            PumpFrames(window, 6)
             host.Launch.Focus()
-            ChoiceKey(window, SDLScancode.Enter)
+            ChoiceKey(window, SDLScancode.Return)
             Require(
                 host.PaletteOpen && OverlayFocus(semantics, "Search commands"),
                 "Palette did not open with query focus"
@@ -265,17 +285,28 @@ func NavigationInteractions() {
                 "Palette Up did not restore previous command"
             )
             CaptureIssueProof(window, "palette-filter-" + mode.ToString())
-            ChoiceKey(window, SDLScancode.Enter)
+            ChoiceKey(window, SDLScancode.Return)
             Require(
                 !host.PaletteOpen && host.Invoked == "find" && OverlayFocus(semantics, "Open palette"),
                 "Palette Enter did not activate and restore focus"
             )
-            ChoiceKey(window, SDLScancode.Enter)
+            ChoiceKey(window, SDLScancode.Return)
             ChoiceKey(window, SDLScancode.Escape)
             Require(
                 !host.PaletteOpen && OverlayFocus(semantics, "Open palette"),
                 "Palette Escape did not dismiss and restore focus"
             )
+            ChoiceKey(window, SDLScancode.Return)
+            window.Width = 390
+            window.Height = 420
+            PumpFrames(window, 14)
+            let entry = FindSemantics(semantics.Tree?.Root, "Search commands")!!.Bounds
+            Require(entry.X >= 0 && entry.X + entry.Width <= 390, "Palette search clipped at the minimum window width")
+            CaptureIssueProof(window, "palette-narrow-" + mode.ToString())
+            ChoiceKey(window, SDLScancode.Escape)
+            window.Width = 800
+            window.Height = 650
+            PumpFrames(window, 8)
         }
         Console.WriteLine(
             "PASS: menu expanded/first/last/focus, editor tab close and overflow, palette open/filter/rank/arrows/Enter/Escape in light and dark"

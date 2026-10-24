@@ -1,7 +1,9 @@
 package Goo.Widgets.Navigation
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Actions
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import System
 
@@ -24,7 +26,19 @@ public open class MenuButton : Cell[MenuButtonInput] {
 
     protected override func Build(input MenuButtonInput) Blob {
         current = input
-        let button = ((input.Button with{OnClick = () -> Change(!current.Open, false)}).Build() as Button)!!
+        let theme = Theme.Read()
+        let button = (
+            (
+                input.Button with{
+                    OnClick = () -> Change(!current.Open, false),
+                    Trailing = input.Button.Trailing ?? MaterialIcons.Create(
+                        "expand_more",
+                        16,
+                        input.Button.Disabled ? theme.FaintTextColor: theme.MutedTextColor
+                    ),
+                }
+            ).Build() as Button
+        )!!
         button.Handle = trigger
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.Button,
@@ -76,6 +90,9 @@ public open class MenuButton : Cell[MenuButtonInput] {
                 }
             }
         }
+        if isOpen {
+            trigger.Focus()
+        }
         current.OnOpenChange?.Invoke(isOpen)
     }
 }
@@ -89,7 +106,7 @@ public data struct SplitButton {
     /// Builds the primary action and its menu arrow.
     public func Build() Blob {
         let arrow = Menu.Button with{
-            Content = "▾",
+            Content = "",
             AccessibilityName = ArrowAccessibilityName ?? "More actions",
             MinWidth = 0.0,
             Disabled = Button.Disabled || Button.Loading || Menu.Button.Disabled,

@@ -29,7 +29,7 @@ internal class MenuButtonExample : Cell {
             Cell.Mount[MenuButtonInput, MenuButton](
                 "trigger",
                 MenuButtonInput{
-                    Button: ActionButton{Content: "File actions ▾"},
+                    Button: ActionButton{Content: "File actions"},
                     Items: items,
                     Open: menuOpen,
                     OnActivate: Activate,
@@ -41,7 +41,7 @@ internal class MenuButtonExample : Cell {
             ),
             Cell.Mount[MenuButtonInput, MenuButton](
                 "disabled",
-                MenuButtonInput{Button: ActionButton{Content: "Disabled menu ▾", Disabled: true}, Items: items,}
+                MenuButtonInput{Button: ActionButton{Content: "Disabled menu", Disabled: true}, Items: items,}
             ),
             Text{Content: result},
         }

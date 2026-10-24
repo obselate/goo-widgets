@@ -237,19 +237,21 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             }
             if input.Counts != nil && input.Counts!!.TryGetValue(id, out var count) {
                 item = item with{AccessibilityName = item.AccessibilityName!!+ ", " + count.ToString()}
-                button.Children.Add(
-                    Text{
-                        Content: count.ToString(),
-                        FontSize: theme.CaptionFontSize,
-                        Position: resolved.Expanded ? PositionType.Relative: PositionType.Absolute,
-                        Top: resolved.Expanded ? Length.Auto: 2,
-                        Right: resolved.Expanded ? Length.Auto: 2,
-                        Margin: Edges{Left: resolved.Expanded ? theme.ControlGap: 0},
-                        BackgroundColor: resolved.Expanded ? Color.Transparent: theme.PanelColor,
-                        Color: resolved.Expanded ? button.Color: theme.TextColor,
-                        BorderRadius: theme.RadiusSm,
-                    }
-                )
+                let badge = Text{
+                    Content: count.ToString(),
+                    FontSize: theme.CaptionFontSize,
+                    Margin: Edges{Left: resolved.Expanded ? theme.ControlGap: 0},
+                    BackgroundColor: resolved.Expanded ? Color.Transparent: theme.PanelColor,
+                    Color: !resolved.Expanded ? theme.TextColor:
+                    id == resolved.SelectedId ? resolved.SelectedTextColor!!: resolved.TextColor!!,
+                    BorderRadius: theme.RadiusSm,
+                }
+                if !resolved.Expanded {
+                    badge.Position = PositionType.Absolute
+                    badge.Top = 2
+                    badge.Right = 2
+                }
+                button.Children.Add(badge)
             }
             if id == input.SelectedId && (input.ActiveMarker ?? true) {
                 button.Children.Add(
@@ -267,6 +269,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled
+            button.Opacity = item.Disabled ? .45: 1
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)

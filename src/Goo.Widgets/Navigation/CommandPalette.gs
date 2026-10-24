@@ -37,6 +37,7 @@ public data struct CommandPaletteInput {
     var AccessibilityName string?
     var Placeholder string?
     var Width float64?
+    /// Maximum height. Short result lists use their natural height.
     var Height float64?
     var CreateItem Func[CommandItem, FuzzyMatchResult, Button, Blob]?
 }
@@ -138,7 +139,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             SelectedId: activeId,
             OnSelect: Activate,
             Width: input.Width ?? 560,
-            Height: input.Height ?? 360,
+            Height: Math.Min(input.Height ?? 360, theme.ControlHeight + Math.Max(1, ordered.Count) * 48 + 2),
             RowHeight: 48,
             AccessibilityName: "Commands",
             Placeholder: input.Placeholder ?? "Search commands",

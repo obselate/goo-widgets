@@ -174,19 +174,31 @@ public open class TabBar : Cell[TabBarInput] {
             }
             button.Accessibility!!.Name = name + (dirty ? ", unsaved": "") + (pinned ? ", pinned": "")
             if active && (input.ShowIndicator ?? true) {
-                button.Children.Add(
-                    Container{
-                        Position: PositionType.Absolute,
-                        Left: input.Vertical && input.Placement == TabPlacement.Left ? Length.Auto: 0,
-                        Right: input.Vertical && input.Placement != TabPlacement.Left ? Length.Auto: 0,
-                        Top: input.Vertical || input.Placement == TabPlacement.Bottom ? 0: Length.Auto,
-                        Bottom: input.Vertical || input.Placement == TabPlacement.Top ? 0: Length.Auto,
-                        Width: input.Vertical ? 2: Length.Auto,
-                        Height: input.Vertical ? Length.Auto: 2,
-                        BackgroundColor: theme.AccentColor,
-                        HitTestSelf: false,
+                let marker = Container{
+                    Position: PositionType.Absolute,
+                    BackgroundColor: theme.AccentColor,
+                    HitTestSelf: false
+                }
+                if input.Vertical {
+                    marker.Width = 2
+                    marker.Top = 0
+                    marker.Bottom = 0
+                    if input.Placement == TabPlacement.Left {
+                        marker.Right = 0
+                    } else {
+                        marker.Left = 0
                     }
-                )
+                } else {
+                    marker.Height = 2
+                    marker.Left = 0
+                    marker.Right = 0
+                    if input.Placement == TabPlacement.Bottom {
+                        marker.Top = 0
+                    } else {
+                        marker.Bottom = 0
+                    }
+                }
+                button.Children.Add(marker)
             }
             if input.OnClose != nil && !pinned {
                 let tab = Container{
@@ -242,8 +254,10 @@ public open class TabBar : Cell[TabBarInput] {
         if !input.OverflowMenu && input.OnAdd == nil {
             return root
         }
-        root.Width = Percent(100)
+        root.Width = input.Vertical ? Percent(100): Length.Auto
         root.FlexGrow = 1
+        root.FlexShrink = 1
+        root.FlexBasis = 0
         let outer = Container{
             Width: input.Width!!,
             Height: input.Height ?? Length.Auto,
@@ -270,7 +284,7 @@ public open class TabBar : Cell[TabBarInput] {
                 Cell.Mount[MenuButtonInput, MenuButton](
                     "overflow",
                     MenuButtonInput{
-                        Button: ActionButton{Content: "▾", AccessibilityName: "All tabs", MinWidth: 32},
+                        Button: ActionButton{AccessibilityName: "All tabs", MinWidth: 32},
                         Open: overflowOpen,
                         Items: entries,
                         OnActivate: Select,
