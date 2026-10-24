@@ -115,7 +115,7 @@ public open class Menu : Cell[MenuInput] {
         }
         var selected = active.TryGetValue(depth, out var prior) ? prior: ""
         if !Eligible(source, selected) {
-            selected = First(source, false)
+            selected = First(source)
         }
         active[depth] = selected
         let rows = Container{Gap: theme.Spacing / 2.0, Accessibility: Accessibility{Role: AccessibilityRole.None}}
@@ -280,9 +280,9 @@ public open class Menu : Cell[MenuInput] {
         return false
     }
 
-    private func First(source[]MenuItem, last bool) string {
+    private func First(source[]MenuItem) string {
         let next = RovingFocus.Next[MenuItem](
-            source, -1, last ? Key.End: Key.Home, AccessibilityOrientation.Vertical, true,
+            source, -1, Key.Home, AccessibilityOrientation.Vertical, true,
             (item MenuItem) -> item.Disabled || item.Separator)
         return next < 0 ? "": source[next].Id!!
     }
@@ -328,7 +328,7 @@ public open class Menu : Cell[MenuInput] {
         }
         Truncate(depth)
         path.Add(id)
-        active[depth + 1] = First(children, false)
+        active[depth + 1] = First(children)
         Rebuild()
     }
 

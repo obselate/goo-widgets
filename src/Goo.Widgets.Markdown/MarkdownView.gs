@@ -41,7 +41,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             CodeFontFamily = input.CodeFontFamily ?? theme.MonoFontFamily,
             Color = input.Color ?? theme.TextColor,
             MutedColor = input.MutedColor ?? theme.MutedTextColor,
-            LinkColor = input.LinkColor ?? theme.AccentColor,
+            LinkColor = input.LinkColor ?? theme.LinkColor,
             CodeBackground = input.CodeBackground ?? theme.FieldColor,
             SelectionColor = input.SelectionColor ?? theme.AccentColor.WithAlpha(0.35),
             BlockGap = input.BlockGap ?? theme.Spacing * 3.0,

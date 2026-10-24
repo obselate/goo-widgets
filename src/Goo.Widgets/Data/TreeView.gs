@@ -182,7 +182,7 @@ public open class TreeView : Cell[TreeViewInput] {
                     break
                 }
             }
-            activeId = Index(ancestor) >= 0 ? ancestor: Index(input.SelectedId) >= 0 ? input.SelectedId: First(false)
+            activeId = Index(ancestor) >= 0 ? ancestor: Index(input.SelectedId) >= 0 ? input.SelectedId: First()
         }
         for index in 0 ... rows.Count {
             rows[index] = rows[index]with{Active = rows[index].Node.Id == activeId}
@@ -323,14 +323,11 @@ public open class TreeView : Cell[TreeViewInput] {
         return rows[index].Disabled ? -1: index
     }
 
-    private func First(last bool) string? {
-        for step in 0 ... rows.Count {
-            let index = last ? rows.Count - step - 1: step
-            if !rows[index].Disabled {
-                return rows[index].Node.Id
-            }
-        }
-        return nil
+    private func First() string? {
+        let index = RovingFocus.Next[TreeViewRow](
+            rows, -1, Key.Home, AccessibilityOrientation.Vertical, false,
+            (row TreeViewRow) -> row.Disabled)
+        return index < 0 ? nil: rows[index].Node.Id
     }
 
     private func Activate(id string) {
