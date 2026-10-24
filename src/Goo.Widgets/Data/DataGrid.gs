@@ -50,6 +50,8 @@ public data struct DataGridColumn {
     var Minimum float64?
     var Maximum float64?
     var Sortable bool
+    /// Aligns default header and cell text. Defaults to left.
+    var Alignment TextAlign
     /// Nil resolves to true; resizing requires the callback for the selected sizing mode.
     var Resizable bool?
     /// Arbitrary header and filter content. Filtering stays in the application.
@@ -294,12 +296,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             SelectionColumnWidth = value.SelectionColumnWidth ?? theme.ControlHeight,
             ExpandColumnWidth = value.ExpandColumnWidth ?? theme.ControlHeight,
             DetailPadding = value.DetailPadding ?? theme.ControlPadding,
-            DetailBackground = value.DetailBackground ?? theme.FieldColor,
+            DetailBackground = value.DetailBackground ?? theme.SunkenColor,
             AccessibilityName = value.AccessibilityName ?? "Data grid",
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
-            SelectedColor = value.SelectedColor ?? theme.AccentColor.WithAlpha(0.15),
-            FocusColor = value.FocusColor ?? theme.AccentColor,
+            SelectedColor = value.SelectedColor ?? theme.ActiveColor,
+            FocusColor = value.FocusColor ?? theme.FocusColor,
             ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
         }
@@ -484,10 +486,22 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         ResolveWidths(verticalGutter)
         ResolveVisibleColumns()
         let snapshot = input
-        var body Blob = if RowCount == 0 && input.EmptyContent != nil {
+        var body Blob = if RowCount == 0 {
             Container{
                 OverflowY: Overflow.Scroll,
-                Container{Width: tableWidth, FlexGrow: 1, MinHeight: 0, input.EmptyContent!!}
+                Container{
+                    Width: tableWidth,
+                    FlexGrow: 1,
+                    MinHeight: 0,
+                    Container{
+                        Width: Math.Max(0, Math.Min(tableWidth, available - verticalGutter)),
+                        FlexGrow: 1,
+                        Transform: PanelTransform{TranslateX: horizontalOffset},
+                        AlignItems: AlignItems.Center,
+                        JustifyContent: JustifyContent.Center,
+                        input.EmptyContent ?? Text{Content: "No rows", Color: theme.MutedTextColor, FontSize: theme.FontSize}
+                    }
+                }
             }
         } else {
             let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
@@ -555,7 +569,10 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
-            BorderRadius: theme.PanelRadius
+            BorderWidth: 1,
+            BorderColor: theme.BorderColor,
+            BorderRadius: theme.PanelRadius,
+            Overflow: Overflow.Hidden
         }
         if let create = input.CreateRoot {
             root = create(input, root)
@@ -629,7 +646,17 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Children.Add(headers)
         root.Children.Add(body)
         if let footer = input.Footer {
-            root.Children.Add(footer)
+            root.Children.Add(
+                Container{
+                    Key: "footer",
+                    FlexShrink: 0,
+                    Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding, Top: theme.Spacing * 2, Bottom: theme.Spacing * 2},
+                    BorderWidth: Edges{Top: 1},
+                    BorderColor: theme.BorderColor,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Grid summary"},
+                    footer
+                }
+            )
         }
         return root
     }
@@ -973,7 +1000,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Height: filter ? snapshot.FilterHeight!!: snapshot.HeaderHeight!!,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
-            BackgroundColor: theme.FieldColor,
+            BackgroundColor: theme.RaisedColor,
+            BorderWidth: Edges{Bottom: 1},
+            BorderColor: theme.BorderColor,
             BasedOn: snapshot.HeaderStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Row}
         }
@@ -1000,7 +1029,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                             id
                         ) == DataGridSort.Descending ? " ↓": ""
                     ),
-                    Color: snapshot.TextColor!!,
+                    Color: theme.MutedTextColor,
                     TextWrap: TextWrap.NoWrap,
                     FontFamily: theme.FontFamily,
                     FontSize: theme.LabelFontSize,
@@ -1038,7 +1067,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     FlexGrow: 1,
                     MinWidth: 0,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-                    Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+                    AlignItems: column.Alignment == TextAlign.Right ? AlignItems.FlexEnd: column.Alignment == TextAlign.Center ? AlignItems.Center: AlignItems.FlexStart,
+                    TextAlign: column.Alignment,
+                    Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
                     BackgroundColor: Color.Transparent,
                     Focusable: column.Sortable &&
                         (snapshot.OnSort != nil || snapshot.OnSortsChange != nil) &&
@@ -1074,9 +1105,11 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && CanResize(index) {
                     var handle = Container{
-                        BackgroundColor: theme.BorderColor,
-                        Hover: Style{BackgroundColor: theme.AccentColor},
-                        Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+                        BackgroundColor: Color.Transparent,
+                        BorderWidth: Edges{Right: 1},
+                        BorderColor: resizeId == id ? theme.FocusColor: Color.Transparent,
+                        Hover: Style{BorderColor: theme.FocusColor},
+                        Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
                         BasedOn: snapshot.ResizeHandleStyle
                     }
                     if let create = snapshot.CreateResizeHandle {
@@ -1118,7 +1151,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             if index < pinnedCount {
                 slot.Transform = PanelTransform{TranslateX: horizontalOffset}
                 slot.ZIndex = 1
-                slot.BackgroundColor = snapshot.BackgroundColor!!
+                slot.BackgroundColor = theme.RaisedColor
             }
             row.Children.Add(slot)
         }
@@ -1142,6 +1175,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
             OutlineWidth: activeId == id && hasFocus && !pointerFocus ? 2.0: 0.0,
+            BorderWidth: Edges{Bottom: 1},
+            BorderColor: theme.BorderColor,
             OutlineColor: snapshot.FocusColor!!,
             OutlineOffset: -2
         }
@@ -1260,6 +1295,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         MinWidth: 0,
                         Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                         JustifyContent: JustifyContent.Center,
+                        TextAlign: column.Alignment,
                         Overflow: Overflow.Hidden,
                         OnKeyDown: stopGridKeys,
                         Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
@@ -1282,7 +1318,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
-            Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
+            Hover: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!: theme.HoverColor},
             Opacity: row.Disabled ? .45: 1.0
         }
         if let create = snapshot.CreateRow {
@@ -1360,7 +1396,12 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 Container{
                     Key: "detail",
                     Width: tableWidth,
-                    Padding: snapshot.DetailPadding!!,
+                    Padding: Edges{
+                        Left: leading + snapshot.DetailPadding!!,
+                        Right: snapshot.DetailPadding!!,
+                        Top: snapshot.DetailPadding!!,
+                        Bottom: snapshot.DetailPadding!!
+                    },
                     BackgroundColor: snapshot.DetailBackground!!,
                     OnKeyDown: stopGridKeys,
                     Accessibility: Accessibility{
@@ -1794,6 +1835,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         e.PreventDefault()
         e.StopPropagation()
         Handle(resizeHandles, id).Focus()
+        Rebuild()
     }
 
     private func MoveResize(e PointerEvent) {
@@ -1821,6 +1863,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         }
         resizeId = nil
         lastFittedWidths = nil
+        Rebuild()
     }
 
     private func CancelResize(e PointerEvent) {
@@ -1829,6 +1872,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             pointer = -1L
             resizeId = nil
             lastFittedWidths = nil
+            Rebuild()
         }
     }
 

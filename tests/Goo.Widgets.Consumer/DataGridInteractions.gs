@@ -23,6 +23,7 @@ internal class DataGridHeightHost : Cell {
     internal var VirtualColumns bool
     internal var SourceWidth bool
     internal var Empty bool
+    internal var Loading bool
     internal var Version int64
     private let wideColumns[]DataGridColumn = [12]DataGridColumn
     internal let Cells Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
@@ -109,7 +110,7 @@ internal class DataGridHeightHost : Cell {
                 }
             },
             Rows: Empty ? []DataGridRow{}: Rows,
-            EmptyContent: Empty ? Text{Content: "No rows"}: nil,
+            EmptyContent: Empty ? Text{Content: Loading ? "Loading rows...": "No rows"}: nil,
             RowAt: Indexed ? At: nil,
             RowIndex: Indexed ? Index: nil,
             RowCount: Indexed ? 2000000: 0,
@@ -167,7 +168,7 @@ func DataGridHeightInteractions() {
     window.Open()
     try {
         PumpFrames(window, 12)
-        Require(Math.Abs(host.Viewport.ScrollRange.Y - 6000.0) < .1, "Mixed heights did not seed the full extent")
+        Require(Math.Abs(host.Viewport.ScrollRange.Y + host.Viewport.ContentBox.Height - 6200.0) < .1, "Mixed heights did not seed the full extent")
         Require(host.FullWidthIds.Count < 12, "Full-width factory ran for off-screen rows")
         Require(host.Viewport.JumpTo(0.0, 3100.0), "Mixed heights rejected scrolling")
         PumpFrames(window, 8)
@@ -311,7 +312,7 @@ func DataGridHeightInteractions() {
         Require(!host.Cells.ContainsKey("1:11"), "Grid built an offscreen column")
         let horizontal = host.Viewport
         let headers = ((host.Root!!.Children[0] as Container)!!).Handle!!
-        let grid = host.Root!!.Handle!!.BorderBox
+        let grid = host.Root!!.Handle!!.ContentBox
         let thumb = host.VerticalThumb.BorderBox
         Require(
             horizontal.ScrollRange.Y > 0.0 && host.VerticalThumb.IsMounted &&
@@ -358,6 +359,12 @@ func DataGridHeightInteractions() {
             headers.ScrollOffset.X == extent && horizontal.ScrollOffset.X == extent,
             "Empty grid header did not follow horizontal scrolling"
         )
+        CaptureIssueProof(window, "datagrid-empty")
+        host.Loading = true
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(horizontal.ScrollRange.Y == 0, "Loading content created vertical overflow")
+        CaptureIssueProof(window, "datagrid-loading")
         host.Empty = false
         host.VirtualColumns = false
         window.Width = 1000
@@ -366,7 +373,7 @@ func DataGridHeightInteractions() {
         PumpFrames(window, 12)
         let headerPadding = 2.0 * Theme.Read(window).ControlPadding
         Require(
-            Math.Abs(host.WidthA.BorderBox.Width + headerPadding - 700.0) < .1 &&
+            Math.Abs(host.WidthA.BorderBox.Width + headerPadding - (host.Root!!.Handle!!.ContentBox.Width - 100.0)) < .1 &&
                 Math.Abs(host.WidthB.BorderBox.Width + headerPadding - 100.0) < .1,
             "Mixed star bounds left unused viewport space"
         )
@@ -375,7 +382,7 @@ func DataGridHeightInteractions() {
         PumpFrames(window, 12)
         Require(
             Math.Abs(host.WidthA.BorderBox.Width + headerPadding - 500.0) < .1 &&
-                Math.Abs(host.WidthB.BorderBox.Width + headerPadding - 200.0) < .1,
+                Math.Abs(host.WidthB.BorderBox.Width + headerPadding - (host.Root!!.Handle!!.ContentBox.Width - 500.0)) < .1,
             "Mixed star bounds overflowed the viewport"
         )
     } finally {
@@ -535,7 +542,7 @@ func DataGridContracts() {
     )
     Require(
         HasKeyBinding(custom, Key.F2) && body.Handle == viewport &&
-            ((body.Children[0] as Container)!!).Children[0] == empty,
+            ((((body.Children[0] as Container)!!).Children[0] as Container)!!).Children[0] == empty,
         "Grid lost host bindings or empty viewport"
     )
     Require(
@@ -984,6 +991,7 @@ func DataGridInteractions() {
                 .ActiveDescendant == FindSemantics(semantics.Tree!!.Root, "Host delta")!!.Id,
             "Host keyboard focus did not control the active grid row"
         )
+        CaptureIssueProof(window, "datagrid-focus")
         GridModifiedClick(window, host.Cells["echo:name"], SDLKeymod.Shift)
         Require(
             host.Selected.Length == 2 && Array.IndexOf(host.Selected, "delta") >= 0 && Array.IndexOf(
@@ -1136,6 +1144,7 @@ func DataGridInteractions() {
         host.Disabled = true
         host.Rebuild()
         PumpFrames(window, 8)
+        CaptureIssueProof(window, "datagrid-disabled")
         Require(
             !window.PerformAccessibilityAction(last.Id, AccessibilityActionRequest(AccessibilityAction.Select)),
             "Disabled grid accepted accessible selection"

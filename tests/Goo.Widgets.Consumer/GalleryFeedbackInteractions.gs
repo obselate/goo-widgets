@@ -143,7 +143,7 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
             WindowID: OnlyNativeWindow(),
             Which: 1u,
             MouseX: float32(bounds.X + bounds.Width / 2.0),
-            MouseY: float32(bounds.Y + bounds.Height - 30.0),
+            MouseY: float32(bounds.Y + bounds.Height / 2.0),
             Y: direction,
         }
     }
@@ -181,7 +181,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
     }
     FeedbackWheel(window, sequenceGrid, 20.0F)
     let beforeFilter = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
-    let filter = FeedbackNode(adapter, AccessibilityRole.TextInput, "")
+    let filter = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts")
     Require(
         window.PerformAccessibilityAction(filter.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
         "Grid filter focus failed"
@@ -192,7 +192,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         "Focusing a grid filter changed the body scroll position"
     )
     let grid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
-    FeedbackWheel(window, grid, -0.02F)
+    FeedbackWheel(window, grid, -0.3F)
     let clicked = FeedbackNode(adapter, AccessibilityRole.Row, "fjord").Bounds
     CaptureIssueProof(window, "gallery-grid-scrolled-before-check")
     FeedbackClick(window, ElementRect{X: clicked.X + 8.0, Y: clicked.Y + 8.0, Width: 20, Height: 20})
@@ -211,8 +211,9 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         "Focusing a scrolled grid moved the checkbox under the pointer or selected a different row"
     )
     let partial = FeedbackNode(adapter, AccessibilityRole.Row, "grove").Bounds
+    let footer = FeedbackNode(adapter, AccessibilityRole.Group, "Grid summary").Bounds
     Require(
-        partial.Y < grid.Y + grid.Height && partial.Y + partial.Height > grid.Y + grid.Height,
+        partial.Y < footer.Y && partial.Y + partial.Height > footer.Y,
         "Expected a partially visible row for the edge-click regression"
     )
     FeedbackClick(window, ElementRect{X: partial.X + 8.0, Y: partial.Y + 10.0, Width: 20, Height: 4})
@@ -253,7 +254,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         FeedbackNode(adapter, AccessibilityRole.Row, "borealis").Selected == true,
         "Filtering lost selected identity"
     )
-    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, ""), "")
+    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "")
     let ember = FeedbackNode(adapter, AccessibilityRole.Row, "ember")
     Require(
         window.PerformAccessibilityAction(ember.Id, AccessibilityActionRequest(AccessibilityAction.Expand)),
@@ -267,6 +268,11 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
             "Filtering or detail expansion transferred selected identity: " + name
         )
     }
+    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "no-matching-host")
+    let empty = FeedbackNode(adapter, AccessibilityRole.Text, "No hosts found").Bounds
+    Require(empty.X >= grid.X && empty.Y >= grid.Y && empty.X + empty.Width <= grid.X + grid.Width, "Grid empty state escaped its frame")
+    CaptureIssueProof(window, "gallery-grid-empty")
+    FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts"), "")
 }
 
 func FeedbackTree(window Window, adapter SearchListSemantics) {
