@@ -3,6 +3,7 @@ package Goo.Widgets.Consumer
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Gallery
+import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Hexa.NET.SDL3
 import System
@@ -302,36 +303,58 @@ internal class AddonFrameHost : Cell {
     internal var Invalid bool
     internal let Frame ElementHandle = ElementHandle()
     internal let Other ElementHandle = ElementHandle()
+    internal let SearchFrame ElementHandle = ElementHandle()
+    internal let Leading ElementHandle = ElementHandle()
+    internal let Trailing ElementHandle = ElementHandle()
 
-    public override func Build() Blob -> Container{
-        Width: Percent(100),
-        Height: Percent(100),
-        Padding: 20,
-        Gap: 16,
-        Container{
-            Handle: Frame,
-            Width: 280,
-            Height: 48,
-            TextField{
-                Value: "team",
-                AccessibilityName: "Addon field",
-                Width: Percent(100),
-                EntryHeight: 48,
-                BorderWidth: 4,
-                BorderRadius: 12,
-                Invalid: Invalid,
-                PrefixAddon: Text{Content: "https://"},
-                SuffixAddon: Text{Content: ".dev"},
-            }.Build(),
-        },
-        Button{Handle: Other, Width: 60, Height: 24},
+    public override func Build() Blob {
+        let leading = MaterialIcons.Create("search", 16, Theme.Read().MutedTextColor)
+        leading.Handle = Leading
+        let trailing = MaterialIcons.Create("close", 16, Theme.Read().MutedTextColor)
+        trailing.Handle = Trailing
+        return Container{
+            Width: Percent(100),
+            Height: Percent(100),
+            Padding: 20,
+            Gap: 16,
+            Container{
+                Handle: Frame,
+                Width: 280,
+                Height: 48,
+                TextField{
+                    Value: "team",
+                    AccessibilityName: "Addon field",
+                    Width: Percent(100),
+                    EntryHeight: 48,
+                    BorderWidth: 4,
+                    BorderRadius: 12,
+                    Invalid: Invalid,
+                    PrefixAddon: Text{Content: "https://"},
+                    SuffixAddon: Text{Content: ".dev"},
+                }.Build(),
+            },
+            Container{
+                Handle: SearchFrame,
+                Width: 280,
+                Height: 48,
+                TextField{
+                    Value: "Search widgets",
+                    AccessibilityName: "Search",
+                    Width: Percent(100),
+                    EntryHeight: 48,
+                    Leading: leading,
+                    Trailing: trailing,
+                }.Build(),
+            },
+            Button{Handle: Other, Width: 60, Height: 24},
+        }
     }
 }
 
 func AddonFramePixels() {
     let host = AddonFrameHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 360, Height: 160, AccessibilityAdapter: semantics}.Open()
+    let window = Window{Root: host, Width: 360, Height: 240, AccessibilityAdapter: semantics}.Open()
     try {
         for palette in[]Theme{Theme.Bone, Theme.Ink} {
             Theme.Attach(window, palette)
@@ -377,6 +400,19 @@ func AddonFramePixels() {
                     )
                 }
             }
+            let search = host.SearchFrame.BorderBox
+            let leading = host.Leading.BorderBox
+            let trailing = host.Trailing.BorderBox
+            CaptureIssueProof(
+                window,
+                "textfield-leading-" + (palette.CanvasColor == Theme.Bone.CanvasColor ? "light": "dark")
+            )
+            Require(
+                Math.Abs(leading.X - search.X - 13) < 0.1
+                && Math.Abs(search.X + search.Width - trailing.X - trailing.Width - 13) < 0.1
+                && leading.Width == 16 && trailing.Width == 16,
+                "TextField adornment slots lost their horizontal inset or fixed width"
+            )
         }
     } finally {
         window.RequestClose()

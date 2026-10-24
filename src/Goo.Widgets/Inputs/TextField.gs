@@ -319,11 +319,29 @@ public data struct TextField {
                 content.Children.Add(Addon(addon, resolved))
             }
             if let leading = resolved.Leading {
-                content.Children.Add(leading)
+                content.Children.Add(
+                    Container{
+                        Height: Percent(100),
+                        Padding: Edges{Left: resolved.PaddingHorizontal!!},
+                        AlignItems: AlignItems.Center,
+                        JustifyContent: JustifyContent.Center,
+                        FlexShrink: 0,
+                        leading,
+                    }
+                )
             }
             content.Children.Add(entry!!)
             if let trailing = resolved.Trailing {
-                content.Children.Add(trailing)
+                content.Children.Add(
+                    Container{
+                        Height: Percent(100),
+                        Padding: Edges{Right: resolved.PaddingHorizontal!!},
+                        AlignItems: AlignItems.Center,
+                        JustifyContent: JustifyContent.Center,
+                        FlexShrink: 0,
+                        trailing,
+                    }
+                )
             }
             if resolved.Clearable && !resolved.Disabled && !readOnly && value.Length > 0 && state != nil {
                 content.Children.Add(state.ActionButton("Clear " + resolved.AccessibilityName!!, "close", state.Clear))
