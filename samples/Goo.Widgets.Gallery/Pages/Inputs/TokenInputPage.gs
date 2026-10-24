@@ -14,10 +14,6 @@ internal class TokenInputExample : Cell {
             Width: 560,
             Gap: 16,
             Text{Content: "Recipients", FontSize: theme.HeadingFontSize, Color: theme.TextColor},
-            Text{
-                Content: "Enter or comma adds a token. Backspace selects, then removes the last token.",
-                Color: theme.MutedTextColor
-            },
             Cell.Mount[TokenInputInput, TokenInput](
                 "recipients",
                 TokenInputInput{

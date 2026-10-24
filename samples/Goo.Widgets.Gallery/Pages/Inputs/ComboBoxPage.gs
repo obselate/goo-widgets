@@ -56,6 +56,7 @@ internal class ComboBoxExample : Cell {
         Width: 720.0,
         Height: 430.0,
         Gap: 12.0,
+
         Container{
             Key: "fields",
             FlexDirection: FlexDirection.Row,
