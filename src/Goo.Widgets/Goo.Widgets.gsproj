@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Goo.Widgets</RootNamespace>
     <AssemblyName>Goo.Widgets</AssemblyName>
-    <Version>0.8.0</Version>
+    <Version>0.9.0</Version>
     <PackageId>Goo.Widgets</PackageId>
     <Title>Goo Widgets</Title>
     <Authors>obselate</Authors>
@@ -20,8 +20,7 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo" Version="0.13.0" />
-    <PackageReference Include="Goo.Gestures" Version="0.10.0" />
+    <PackageReference Include="Goo" Version="0.16.0" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
     <EmbeddedResource Include="Shaders/touch_magnifier.goo-effect" LogicalName="Goo.Widgets.TouchMagnifier" />
     <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
