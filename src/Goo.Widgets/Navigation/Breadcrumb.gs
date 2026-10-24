@@ -16,8 +16,8 @@ public data struct BreadcrumbItem {
 public data struct BreadcrumbInput {
     var Items[]?BreadcrumbItem
     var OnSelect Action[string]?
-    var KeepStart int32 = 1
-    var KeepEnd int32 = 1
+    var KeepStart int32
+    var KeepEnd int32
     var SiblingItems Func[string, []BreadcrumbItem]?
     var AccessibilityName string?
     var CreateItem Func[BreadcrumbInput, BreadcrumbItem, Blob, Blob]?
@@ -63,7 +63,10 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
             nextTheme.FontFamily != theme.FontFamily ||
             nextTheme.ControlHeight != theme.ControlHeight ||
             !Object.Equals(input.CreateItem, value.CreateItem)
-        input = value
+        input = value with{
+            KeepStart = value.KeepStart == 0 ? 1: value.KeepStart,
+            KeepEnd = value.KeepEnd == 0 ? 1: value.KeepEnd
+        }
         theme = nextTheme
         let next = value.Items ?? []BreadcrumbItem{}
         if !Object.ReferenceEquals(items, next) || remeasure {
@@ -162,7 +165,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
             if let icon = item.Icon {
                 label.Children.Insert(0, icon)
             }
-            let content = value.CreateItem?.Invoke(value, item, label) ?? label
+            let content = input.CreateItem?.Invoke(input, item, label) ?? label
             if current {
                 root.Children.Add(
                     Container{

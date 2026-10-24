@@ -34,7 +34,17 @@ internal class PathActionsHost : Cell {
             Width: Narrow ? 260: 700,
             Cell.Mount[BreadcrumbInput, Breadcrumb](
                 "path",
-                BreadcrumbInput{Items: Items, OnSelect: (id string) -> Selected = id}
+                BreadcrumbInput{
+                    Items: Items,
+                    OnSelect: (id string) -> Selected = id,
+                    CreateItem: (input BreadcrumbInput, item BreadcrumbItem, content Blob) -> {
+                        Require(
+                            input.KeepStart == 1 && input.KeepEnd == 1,
+                            "Cross-assembly breadcrumb defaults were not resolved"
+                        )
+                        return content
+                    }
+                }
             )
         },
         Cell.Mount[DataGridInput, DataGrid](
