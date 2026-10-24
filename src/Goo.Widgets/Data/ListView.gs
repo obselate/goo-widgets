@@ -68,6 +68,9 @@ public open class ListView : Cell[ListViewInput] {
     private var activeId string?
     private var anchorId string?
     private var focused bool
+    private var modifiers KeyModifiers
+    private var fromChild bool
+    private var presses int32
 
     protected override func Build(value ListViewInput) Blob {
         theme = Theme.Read()
@@ -311,9 +314,6 @@ public open class ListView : Cell[ListViewInput] {
         root.OutlineWidth = activeId == id && focused ? 2: 0
         root.OutlineColor = theme.FocusColor
         root.OutlineOffset = -2
-        var modifiers KeyModifiers
-        var fromChild bool
-        var presses int32
         root.OnPointerDown = (e PointerEvent) -> {
             modifiers = e.Modifiers
             fromChild = e.IsFromInteractiveChild

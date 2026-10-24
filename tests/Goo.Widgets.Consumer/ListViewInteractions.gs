@@ -132,6 +132,18 @@ func ListKey(window Window, key SDLScancode, modifiers SDLKeymod = SDLKeymod.Non
     PumpFrames(window, 8)
 }
 
+func ListHeldClick(window Window, handle ElementHandle) {
+    let box = handle.BorderBox
+    let id = OnlyNativeWindow()
+    let x = float32(box.X + box.Width / 2)
+    let y = float32(box.Y + box.Height / 2)
+    MouseMove(id, x, y)
+    MouseButton(id, x, y, true)
+    PumpFrames(window, 4)
+    MouseButton(id, x, y, false)
+    PumpFrames(window, 8)
+}
+
 func ListViewInteractions() {
     let host = ListTreeHost()
     let root = ApplicationRoot(host)
@@ -174,7 +186,9 @@ func ListViewInteractions() {
         CompositeClick(window, host.Rows["delta"].Handle!!)
         CompositeClick(window, host.Rows["delta"].Handle!!)
         Require(host.Invoked == "delta", "List double press did not invoke")
-        GridModifiedClick(window, host.Rows["alpha"].Handle!!, SDLKeymod.Ctrl)
+        GridModifierKey(SDLScancode.Lctrl, SDLKeymod.Ctrl, true)
+        ListHeldClick(window, host.Rows["alpha"].Handle!!)
+        GridModifierKey(SDLScancode.Lctrl, SDLKeymod.None, false)
         Require(host.Selected.Length == 2, "List Ctrl-click did not add a row")
         host.Multiple = false
         host.Rebuild()
@@ -316,7 +330,7 @@ func ListRowInteractions() {
         Require(FindSemantics(semantics.Tree!!.Root, "Row action") != nil, "Focused row did not reveal actions")
         ListKey(window, SDLScancode.Return)
         Require(host.Invokes == 1 && host.Clicks == 0, "Row Enter did not invoke exactly once")
-        CompositeClick(window, host.ActionHandle)
+        ListHeldClick(window, host.ActionHandle)
         Require(host.Actions == 1 && host.Clicks == 0, "Row action also triggered the row")
         ListKey(window, SDLScancode.Return)
         Require(host.Actions == 2 && host.Invokes == 1, "Action keyboard input bubbled into row invocation")

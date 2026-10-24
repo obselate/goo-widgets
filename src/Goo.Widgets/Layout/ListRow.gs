@@ -224,7 +224,7 @@ public data struct ListRow {
             root.Focusable = !resolved.Disabled
             var fromChild bool
             var presses int32
-            root.OnPointerDown = (e PointerEvent) -> {
+            root.OnPointerUp = (e PointerEvent) -> {
                 fromChild = e.IsFromInteractiveChild
                 presses = e.ClickCount
             }
