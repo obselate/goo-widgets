@@ -18,6 +18,7 @@ internal class ChoiceHost : Cell {
     internal var Clicks int32
     internal var Check AccessibilityChecked
     internal var ActionHandle ElementHandle = ElementHandle()
+    internal var PlainHandle ElementHandle = ElementHandle()
     internal var RadioRoot Container?
     internal var SingleRoot Container?
     internal var MultiRoot Container?
@@ -38,6 +39,9 @@ internal class ChoiceHost : Cell {
         }.Build()
         ActionHandle = action.Handle ?? ActionHandle
         action.Handle = ActionHandle
+        let plain = ActionButton{Content: "Save without an icon", Loading: Busy, OnClick: () -> Clicks++,}.Build()
+        PlainHandle = plain.Handle ?? PlainHandle
+        plain.Handle = PlainHandle
         return Container{
             Padding: 24,
             Gap: 16,
@@ -116,6 +120,7 @@ internal class ChoiceHost : Cell {
                 }
             }.Build(),
             action,
+            plain,
         }
     }
 }
@@ -240,10 +245,12 @@ func ChoiceInteractions() {
             "Action pressed state did not follow activation"
         )
         let width = host.ActionHandle.BorderBox.Width
+        let plainWidth = host.PlainHandle.BorderBox.Width
         host.Busy = true
         host.Rebuild()
         PumpFrames(window, 8)
         Require(Math.Abs(width - host.ActionHandle.BorderBox.Width) < 0.1, "Loading changed button width")
+        Require(Math.Abs(plainWidth - host.PlainHandle.BorderBox.Width) < 0.1, "Loading changed plain button width")
         Require(
             FeedbackNode(adapter, AccessibilityRole.Button, "Save changes").Busy == true,
             "Loading busy state missing"
@@ -251,6 +258,7 @@ func ChoiceInteractions() {
         ChoiceKey(window, SDLScancode.Return)
         ChoiceKey(window, SDLScancode.Space)
         CompositeClick(window, host.ActionHandle)
+        CompositeClick(window, host.PlainHandle)
         Require(host.Clicks == 1, "Busy action accepted input")
     } finally {
         window.RequestClose()
