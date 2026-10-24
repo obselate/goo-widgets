@@ -39,7 +39,7 @@ internal class TextAreaExample : Cell {
                 Value: "Build 4182 passed in 3m 12s.\nArtifacts uploaded at 14:05.",
                 Width: Percent(100),
                 ReadOnly: true,
-                MinimumRows: 3,
+                MinimumRows: 2,
                 MaximumRows: 2,
                 Wrap: TextWrap.NoWrap
             }
