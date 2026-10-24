@@ -2,6 +2,7 @@ package Goo.Widgets.Inputs
 
 import Goo
 import Goo.Widgets
+import System
 
 /// A semantic single-line text field with label, issue, and primitive factories.
 public data struct TextField {
@@ -285,35 +286,50 @@ public data struct TextField {
             let frame = Container{
                 Width: Percent(100),
                 Height: resolved.EntryHeight!!,
-                FlexDirection: FlexDirection.Row,
-                AlignItems: AlignItems.Center,
+                FlexDirection: FlexDirection.Column,
                 BackgroundColor: resolved.Disabled ? resolved.DisabledBackgroundColor!!: resolved.BackgroundColor!!,
                 BorderColor: resolved.Invalid ? resolved.InvalidColor!!: resolved.BorderColor!!,
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
             }
+            let content = Container{
+                FlexGrow: 1,
+                MinHeight: 0,
+                MinWidth: 0,
+                FlexDirection: FlexDirection.Row,
+                AlignItems: AlignItems.Center,
+                BorderRadius: Math.Max(0, resolved.BorderRadius!!- resolved.BorderWidth!!),
+                Overflow: Overflow.Hidden,
+            }
+            frame.Children.Add(content)
             entry!!.Width = Length.Auto
+            entry!!.Height = Percent(100)
             entry!!.FlexGrow = 1
             entry!!.MinWidth = 0
             entry!!.BorderWidth = 0
             entry!!.BorderRadius = 0
             entry!!.BackgroundColor = Color.Transparent
             entry!!.DisabledStyle = Style{Color: resolved.DisabledTextColor!!}
+            entry!!.Focus = Style{
+                OutlineColor: accent,
+                OutlineWidth: resolved.FocusRingWidth!!,
+                OutlineOffset: -resolved.FocusRingWidth!!
+            }
             if let addon = resolved.PrefixAddon {
-                frame.Children.Add(Addon(addon, resolved))
+                content.Children.Add(Addon(addon, resolved))
             }
             if let leading = resolved.Leading {
-                frame.Children.Add(leading)
+                content.Children.Add(leading)
             }
-            frame.Children.Add(entry!!)
+            content.Children.Add(entry!!)
             if let trailing = resolved.Trailing {
-                frame.Children.Add(trailing)
+                content.Children.Add(trailing)
             }
             if resolved.Clearable && !resolved.Disabled && !readOnly && value.Length > 0 && state != nil {
-                frame.Children.Add(state.ActionButton("Clear " + resolved.AccessibilityName!!, "close", state.Clear))
+                content.Children.Add(state.ActionButton("Clear " + resolved.AccessibilityName!!, "close", state.Clear))
             }
             if (resolved.Password || state?.Revealed == true) && resolved.RevealButton && state != nil {
-                frame.Children.Add(
+                content.Children.Add(
                     state.ActionButton(
                         state.Revealed ? "Hide password": "Show password",
                         state.Revealed ? "visibility_off": "visibility",
@@ -322,7 +338,7 @@ public data struct TextField {
                 )
             }
             if let addon = resolved.SuffixAddon {
-                frame.Children.Add(Addon(addon, resolved))
+                content.Children.Add(Addon(addon, resolved))
             }
             root.Children.Add(frame)
         } else {
