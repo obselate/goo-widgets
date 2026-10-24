@@ -27,6 +27,8 @@ public data struct MenuInput {
     var Items[]?MenuItem
     var OnActivate Action[string]?
     var OnDismiss Action?
+    /// Enabled root item focused when the menu opens. Nil selects the first item.
+    var InitialFocusId string?
     /// Nil resolves to true; false keeps the menu open after leaf activation.
     var DismissOnActivate bool?
     var Viewport ElementRect?
@@ -118,7 +120,8 @@ public open class Menu : Cell[MenuInput] {
         }
         var selected = active.TryGetValue(depth, out var prior) ? prior: ""
         if !Eligible(source, selected) {
-            selected = First(source)
+            selected = depth == 0 &&
+                Eligible(source, current.InitialFocusId ?? "") ? current.InitialFocusId!!: First(source)
         }
         active[depth] = selected
         if !typeAhead.ContainsKey(depth) {

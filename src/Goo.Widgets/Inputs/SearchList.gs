@@ -132,12 +132,11 @@ public data struct SearchList {
             entry = customize(entry)
         }
 
-        let list = VirtualItems(
+        let list = VirtualRows(
             filtered,
-            width - 2.0,
             rowHeight,
-            (row SearchListRow) -> row.Item.Id ?? "",
-            (row SearchListRow) -> row.Build()
+            (row SearchListRow) -> "item:" + (row.Item.Id ?? ""),
+            buildSearchListRow
         ){
             Key = "items",
             FlexGrow = 1,
@@ -185,6 +184,8 @@ public data struct SearchList {
         return root
     }
 }
+
+internal func buildSearchListRow(row SearchListRow) Blob -> row.Build()
 
 // Virtual retains a row while this value compares equal, including every render input.
 internal struct SearchListRow : IEquatable[SearchListRow] {

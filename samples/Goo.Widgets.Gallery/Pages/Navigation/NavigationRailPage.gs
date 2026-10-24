@@ -5,6 +5,7 @@ import Goo.Widgets.Actions
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
 import Goo.Widgets.Navigation
+import System.Collections.Generic
 
 internal open class NavigationRailExample : Cell {
     private var expanded bool = true
@@ -17,6 +18,11 @@ internal open class NavigationRailExample : Cell {
         Cell.Mount[NavigationRailInput, NavigationRail](
             "rail",
             NavigationRailInput{
+                Height: 300,
+                Counts: Dictionary[string, int32](){["files"] = 12, ["jobs"] = 3},
+                BottomItems: []NavigationItem{
+                    NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
+                },
                 Expanded: expanded,
                 SelectedId: selected,
                 AccessibilityName: "Example sections",
@@ -26,7 +32,9 @@ internal open class NavigationRailExample : Cell {
                 Items: []NavigationItem{
                     NavigationItem{Id: "home", Label: "Home", Content: MaterialIcons.Create("home")},
                     NavigationItem{Id: "jobs", Label: "Jobs", Content: MaterialIcons.Create("work")},
-                    NavigationItem{Id: "settings", Label: "Settings", Content: MaterialIcons.Create("settings")},
+                    NavigationItem{Id: "files", Label: "Files", Content: MaterialIcons.Create("folder")},
+                    NavigationItem{Id: "search", Label: "Search", Content: MaterialIcons.Create("search")},
+                    NavigationItem{Id: "locked", Label: "Unavailable", Disabled: true},
                 },
             }
         ),

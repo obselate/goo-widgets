@@ -5,6 +5,13 @@ import Goo.Widgets
 import System
 import System.Collections.Generic
 
+/// A named, optionally collapsed section in a navigation rail.
+public data struct NavigationGroup {
+    var Id string
+    var Label string
+    var Items[]?NavigationItem
+}
+
 /// A controlled vertical navigation rail that can show compact or expanded items.
 public data struct NavigationRailInput {
     /// Ordered navigation entries with unique, nonempty IDs. Nil resolves to an empty list.
@@ -15,6 +22,12 @@ public data struct NavigationRailInput {
     var Expanded bool
     /// Called with an enabled item's ID when it is activated.
     var OnSelect Action[string]?
+    var Groups[]?NavigationGroup
+    var CollapsedGroups[]?string
+    var OnGroupToggle Action[string]?
+    var Counts Dictionary[string, int32]?
+    var BottomItems[]?NavigationItem
+    var ActiveMarker bool?
     /// Accessible tab-list name. Nil resolves to "Navigation".
     var AccessibilityName string?
     /// Width while collapsed. Zero resolves to 64.
@@ -62,6 +75,9 @@ public data struct NavigationRailInput {
 
     internal func Resolve(theme Theme) NavigationRailInput -> this with{
         Items = Items ?? []NavigationItem{},
+        Groups = Groups ?? []NavigationGroup{},
+        CollapsedGroups = CollapsedGroups ?? []string{},
+        BottomItems = BottomItems ?? []NavigationItem{},
         AccessibilityName = AccessibilityName ?? "Navigation",
         CollapsedWidth = if CollapsedWidth == 0.0 {
             64.0
@@ -122,6 +138,20 @@ public open class NavigationRail : Cell[NavigationRailInput] {
         let createItem = value.CreateItem
         let createRoot = value.CreateRoot
         items = input.Items!!
+        if input.Groups!!.Length > 0 || input.BottomItems!!.Length > 0 {
+            let visible = List[NavigationItem](items)
+            let groupIds = HashSet[string](StringComparer.Ordinal)
+            for group in input.Groups!! {
+                if String.IsNullOrEmpty(group.Id) || !groupIds.Add(group.Id) {
+                    throw ArgumentException("Rail group IDs must be nonempty and unique")
+                }
+                if Array.IndexOf(input.CollapsedGroups!!, group.Id) < 0 {
+                    visible.AddRange(group.Items ?? []NavigationItem{})
+                }
+            }
+            visible.AddRange(input.BottomItems!!)
+            items = visible.ToArray()
+        }
         let ids = HashSet[string](StringComparer.Ordinal)
         var first string?
         for item in items {
@@ -151,7 +181,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             let source = items[index]
             let id = source.Id ?? ""
             let label = source.Label ?? id
-            let item = source with{Id = id, Label = label, AccessibilityName = source.AccessibilityName ?? label,}
+            var item = source with{Id = id, Label = label, AccessibilityName = source.AccessibilityName ?? label,}
             var button Button
             if let createItem = createItem {
                 button = createItem(resolved, item)
@@ -205,9 +235,41 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     button.Children.Add(text)
                 }
             }
+            if input.Counts != nil && input.Counts!!.TryGetValue(id, out var count) {
+                item = item with{AccessibilityName = item.AccessibilityName!!+ ", " + count.ToString()}
+                let badge = Text{
+                    Content: count.ToString(),
+                    FontSize: theme.CaptionFontSize,
+                    Margin: Edges{Left: resolved.Expanded ? theme.ControlGap: 0},
+                    BackgroundColor: resolved.Expanded ? Color.Transparent: theme.PanelColor,
+                    Color: !resolved.Expanded ? theme.TextColor:
+                    id == resolved.SelectedId ? resolved.SelectedTextColor!!: resolved.TextColor!!,
+                    BorderRadius: theme.RadiusSm,
+                }
+                if !resolved.Expanded {
+                    badge.Position = PositionType.Absolute
+                    badge.Top = 2
+                    badge.Right = 2
+                }
+                button.Children.Add(badge)
+            }
+            if id == input.SelectedId && (input.ActiveMarker ?? true) {
+                button.Children.Add(
+                    Container{
+                        Position: PositionType.Absolute,
+                        Left: 0,
+                        Top: 6,
+                        Bottom: 6,
+                        Width: 3,
+                        BackgroundColor: resolved.SelectedTextColor!!,
+                        HitTestSelf: false,
+                    }
+                )
+            }
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled
+            button.Opacity = item.Disabled ? .45: 1
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
@@ -252,8 +314,45 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Orientation: AccessibilityOrientation.Vertical,
             },
         }
-        for button in buttons {
-            root.Children.Add(button)
+        if input.Groups!!.Length == 0 && input.BottomItems!!.Length == 0 {
+            for button in buttons {
+                root.Children.Add(button)
+            }
+            return root
+        }
+        let byId = Dictionary[string, Button](StringComparer.Ordinal)
+        for index in 0 ... items.Length {
+            byId.Add(items[index].Id!!, buttons[index])
+        }
+        for item in input.Items!! {
+            root.Children.Add(byId[item.Id!!])
+        }
+        for group in input.Groups!! {
+            let collapsed = Array.IndexOf(input.CollapsedGroups!!, group.Id) >= 0
+            let heading = Button{
+                Key: "group-" + group.Id,
+                MinHeight: resolved.ItemHeight,
+                Padding: theme.ControlPadding,
+                Color: theme.MutedTextColor,
+                Focusable: input.OnGroupToggle != nil,
+                OnClick: () -> input.OnGroupToggle?.Invoke(group.Id),
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: group.Label, Expanded: !collapsed},
+                Focus: theme.FocusStyle,
+                Text{Content: resolved.Expanded ? group.Label: collapsed ? "›": "⌄", FontSize: theme.CaptionFontSize},
+            }
+            WidgetKeyBindings.BindActivation(heading)
+            root.Children.Add(heading)
+            if !collapsed {
+                for item in group.Items ?? []NavigationItem{} {
+                    root.Children.Add(byId[item.Id!!])
+                }
+            }
+        }
+        if (input.BottomItems ?? []NavigationItem{}).Length > 0 {
+            root.Children.Add(Container{FlexGrow: 1, MinHeight: theme.Spacing})
+            for item in input.BottomItems!! {
+                root.Children.Add(byId[item.Id!!])
+            }
         }
         return root
     }
@@ -285,8 +384,13 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             }
         }
         let next = RovingFocus.Next[NavigationItem](
-            items, index, e.Key, AccessibilityOrientation.Vertical, true,
-            (item NavigationItem) -> item.Disabled)
+            items,
+            index,
+            e.Key,
+            AccessibilityOrientation.Vertical,
+            true,
+            (item NavigationItem) -> item.Disabled
+        )
         if next < 0 {
             return
         }

@@ -432,7 +432,10 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         NavigationRailPage{DisplayTitle: "Navigation rail"},
         TabBarPage{DisplayTitle: "Tab bar"},
         MenuPage{DisplayTitle: "Menu"},
-        BreadcrumbPage{DisplayTitle: "Breadcrumb"}
+        BreadcrumbPage{DisplayTitle: "Breadcrumb"},
+        MenuButtonPage{DisplayTitle: "Menu button"},
+        SplitButtonPage{DisplayTitle: "Split button"},
+        CommandPalettePage{DisplayTitle: "Command palette"}
     }),
     GalleryCategory("Media", "image", []GalleryPage{
         AsyncImagePage{DisplayTitle: "Async image"},

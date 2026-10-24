@@ -371,6 +371,10 @@ func Main() {
         TokenInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_NAVIGATION") == "1" {
+        NavigationInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_CHOICES") == "1" {
         ChoiceInteractions()
         return
