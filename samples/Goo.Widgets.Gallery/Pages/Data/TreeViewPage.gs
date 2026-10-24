@@ -6,7 +6,8 @@ import Goo.Widgets.Gallery
 import System.Collections.Generic
 
 internal class TreeViewExample : Cell {
-    private var selected string = "guide"
+    private var selected[]string = []string{"guide"}
+    private var editing string = "Shift selects a span. F2 requests rename."
     private var expanded[]string = []string{"docs", "groups"}
     private var workstations bool = true
     private var servers bool
@@ -24,8 +25,8 @@ internal class TreeViewExample : Cell {
         Rebuild()
     }
 
-    private func Select(id string) {
-        selected = id
+    private func Select(ids[]string) {
+        selected = ids
         Rebuild()
     }
 
@@ -45,23 +46,31 @@ internal class TreeViewExample : Cell {
     ): AccessibilityChecked.Mixed
 
     public override func Build() Blob -> Container{
-        Width: 660,
+        Width: Percent(100),
+        MaxWidth: 720,
         FlexDirection: FlexDirection.Row,
         Gap: 24,
         Container{
-            Width: 300,
+            FlexGrow: 1,
+            FlexBasis: 0,
+            MinWidth: 0,
             Gap: 12,
-            Text{Key: "label", Content: "Single selection", FontSize: 18},
-            Text{Content: "Type a label to move focus.", FontSize: 12},
+            Text{Key: "label", Content: "Multiple selection", FontSize: 18},
+            Text{Content: editing, FontSize: 12},
             Cell.Mount[TreeViewInput, TreeView](
                 "simple",
                 TreeViewInput{
                     Height: 245,
                     ExpandOnActivate: true,
-                    SelectedId: selected,
+                    SelectedIds: selected,
+                    Multiple: true,
+                    OnRename: (id string) -> {
+                        editing = "Rename requested: " + id
+                        Rebuild()
+                    },
                     ExpandedIds: expanded,
                     OnExpandedChange: Expand,
-                    OnSelect: Select,
+                    OnSelectionChange: Select,
                     Nodes: []TreeNode{
                         TreeNode{
                             Id: "docs",
@@ -82,7 +91,9 @@ internal class TreeViewExample : Cell {
             )
         },
         Container{
-            Width: 330,
+            FlexGrow: 1,
+            FlexBasis: 0,
+            MinWidth: 0,
             Gap: 12,
             Text{Key: "label", Content: "Host-owned check policy", FontSize: 18},
             Cell.Mount[TreeViewInput, TreeView](
