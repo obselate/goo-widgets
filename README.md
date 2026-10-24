@@ -2,14 +2,13 @@
 
 Reusable G# widgets for [Goo](https://github.com/obselate/goo) desktop applications.
 
-The package provides actions, inputs, feedback, layout, navigation, data views,
-charts, themes, and embedded Material Symbols. Import the categories you use and
-compose them with ordinary Goo content.
+Includes actions, inputs, feedback, layout, navigation, data views, charts, themes,
+and embedded Material Symbols. Import the categories you use.
 
 ## Install
 
-Goo Widgets `0.9.0` targets .NET 10 and requires Goo `0.16.0` or later. Use
-`Gsharp.NET.Sdk/0.4.1150` and install the package from NuGet.org:
+Goo Widgets `0.9.0` requires Goo `0.16.0` or later, .NET 10, and
+`Gsharp.NET.Sdk/0.4.1150`. Install from NuGet.org:
 
 ```sh
 dotnet add YourApp.gsproj package Goo.Widgets --version 0.9.0
@@ -29,13 +28,12 @@ let content = Container{
 }
 ```
 
-Value widgets return a Goo `Blob` from `Build()`. Stateful widgets use
-`Cell.Mount[Input, Widget]` with a stable key. The
+Value widgets return a Goo `Blob` from `Build()`. Mount stateful widgets with
+`Cell.Mount[Input, Widget]` and a stable key. See the
 [usage guide](https://github.com/obselate/goo-widgets/blob/main/docs/usage.md)
-covers input policy, controlled state, overlays, customization, and complex widgets.
+for input policy, controlled state, overlays, customization, and complex widgets.
 
-To include only the Material Symbols your executable uses, list their names in
-its project file:
+To embed only the Material Symbols your executable uses, list them in its project:
 
 ```xml
 <ItemGroup>
@@ -56,7 +54,7 @@ Complete examples:
 
 ## Build
 
-The repository requires .NET SDK `10.0.401` and uses locked dependencies.
+Requires .NET SDK `10.0.401`. Dependencies are locked.
 
 ```sh
 bash scripts/verify.sh
