@@ -18,7 +18,7 @@ public data struct Banner {
     var Actions Blob?
     var OnDismiss Action?
     var DismissAccessibilityName string?
-    var Live bool = true
+    var Live bool?
     var Variant MessageVariant
     /// Background override. Nil uses the tone's quiet fill.
     var BackgroundColor Color?
@@ -70,6 +70,7 @@ public data struct Banner {
         let resolved = this with{
             Content = content,
             AccessibilityName = AccessibilityName ?? content,
+            Live = Live ?? true,
             BackgroundColor = BackgroundColor ?? background,
             TextColor = TextColor ?? textColor,
             BorderColor = BorderColor ?? border,
@@ -145,7 +146,7 @@ public data struct Banner {
             AlignItems: AlignItems.Center,
             Accessibility: Accessibility{
                 Role: role,
-                Live: Live ? live: AccessibilityLive.Off,
+                Live: resolved.Live!! ? live: AccessibilityLive.Off,
                 Name: resolved.AccessibilityName!!
             },
         }
@@ -270,7 +271,7 @@ public data struct Alert {
     var Actions Blob?
     var OnDismiss Action?
     var DismissAccessibilityName string?
-    var Live bool = true
+    var Live bool?
 
     /// Builds an alert using the shared semantic message renderer.
     public func Build() Blob -> Banner{
@@ -292,7 +293,7 @@ public data struct InlineMessage {
     var Content string?
     var Tone Tone
     var Icon Blob?
-    var Live bool = true
+    var Live bool?
 
     /// Builds a single-line message without a border or outer padding.
     public func Build() Blob -> Banner{

@@ -15,6 +15,37 @@ internal class SliderProbe : Slider {
     internal func Render(input SliderInput) Blob -> base.Build(input)
 }
 
+internal class RadioDefaultsProbe : RadioGroup {
+    internal func Render(input RadioGroupInput) Blob -> base.Build(input)
+}
+
+internal class ToggleDefaultsProbe : ToggleGroup {
+    internal func Render(input ToggleGroupInput) Blob -> base.Build(input)
+}
+
+func StructDefaultContracts() {
+    var moved string?
+    let focus = RovingFocus{
+        Ids: []string{"first", "last"},
+        ActiveId: "last",
+        OnMove: (id string) -> { moved = id },
+    }
+    Require(focus.Handle(KeyEvent{Key: Key.Right}) && moved == "first", "Omitted roving defaults did not wrap horizontally.")
+    Require(!focus.Handle(KeyEvent{Key: Key.Down}), "Default horizontal focus accepted a vertical key.")
+    Require(!(focus with{Wrap = false}).Handle(KeyEvent{Key: Key.Right}), "Explicit false wrap was lost.")
+    Require((focus with{Orientation = AccessibilityOrientation.Unspecified}).Handle(KeyEvent{Key: Key.Down}),
+        "Explicit unspecified orientation was lost.")
+    let radio = RadioDefaultsProbe{}.Render(RadioGroupInput{})
+    let toggle = ToggleDefaultsProbe{}.Render(ToggleGroupInput{})
+    Require(radio.Accessibility!!.Orientation == AccessibilityOrientation.Vertical, "Omitted radio orientation was lost.")
+    Require(toggle.Accessibility!!.Orientation == AccessibilityOrientation.Horizontal, "Omitted toggle orientation was lost.")
+    Require(Banner{}.Build().Accessibility!!.Live == AccessibilityLive.Polite, "Omitted banner live default was lost.")
+    Require(Alert{}.Build().Accessibility!!.Live == AccessibilityLive.Polite, "Omitted alert live default was lost.")
+    Require(InlineMessage{}.Build().Accessibility!!.Live == AccessibilityLive.Polite, "Omitted inline live default was lost.")
+    Require(Banner{Live: false}.Build().Accessibility!!.Live == AccessibilityLive.Off, "Explicit false live was lost.")
+    Require((Grid{}.Build() as Container)!!.Children.Count == 0, "Omitted grid arrays did not resolve to empty.")
+}
+
 func Require(condition bool, message string) {
     if !condition {
         throw InvalidOperationException(message)
@@ -446,6 +477,7 @@ func Main() {
             ComboBoxContracts()
             OverlayContracts()
             PackageComposition()
+            StructDefaultContracts()
             NumericAndIdentityRegressions()
             MaterialIconRegressions()
             TextAreaOwnership()

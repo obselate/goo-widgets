@@ -19,7 +19,7 @@ public data struct RadioGroupInput {
     var Items[]?RadioOption
     var SelectedId string?
     var OnSelect Action[string]?
-    var Orientation AccessibilityOrientation = AccessibilityOrientation.Vertical
+    var Orientation AccessibilityOrientation?
     var Card bool
     var Disabled bool
     var AccessibilityName string?
@@ -34,7 +34,10 @@ public open class RadioGroup : Cell[RadioGroupInput] {
 
     protected override func Build(value RadioGroupInput) Blob {
         let theme = Theme.Read()
-        input = value with{Items = value.Items ?? []RadioOption{}}
+        input = value with{
+            Items = value.Items ?? []RadioOption{},
+            Orientation = value.Orientation ?? AccessibilityOrientation.Vertical,
+        }
         let ids = HashSet[string](StringComparer.Ordinal)
         var tabStop string?
         for item in input.Items!! {
@@ -62,7 +65,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
             Name: input.AccessibilityName ?? "Choices",
-            Orientation: input.Orientation,
+            Orientation: input.Orientation!!,
         }
         root.Children.Clear()
         for item in input.Items!! {
@@ -171,7 +174,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             items,
             current,
             e.Key,
-            input.Orientation,
+            input.Orientation!!,
             true,
             (item RadioOption) -> item.Disabled
         )
