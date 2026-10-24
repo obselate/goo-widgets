@@ -284,31 +284,16 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 break
             }
         }
-        var direction int32
-        if e.Key == Key.Down {
-            direction = 1
-        } else if e.Key == Key.Up {
-            direction = -1
-        } else if e.Key == Key.Home {
-            direction = 1
-            index = -1
-        } else if e.Key == Key.End {
-            direction = -1
-            index = items.Length
-        } else {
+        let next = RovingFocus.Next[NavigationItem](
+            items, index, e.Key, AccessibilityOrientation.Vertical, true,
+            (item NavigationItem) -> item.Disabled)
+        if next < 0 {
             return
         }
         e.PreventDefault()
         e.StopPropagation()
-        for attempt in 0 ... items.Length {
-            index = (index + direction + items.Length) % items.Length
-            let item = items[index]
-            if !item.Disabled {
-                let handle = handles[item.Id!!]
-                handle.Focus()
-                handle.ScrollIntoView()
-                return
-            }
-        }
+        let handle = handles[items[next].Id!!]
+        handle.Focus()
+        handle.ScrollIntoView()
     }
 }

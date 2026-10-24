@@ -133,7 +133,7 @@ func CaptureWindow(window Window, path string) {
     }
 }
 
-func CaptureGallery(registry GalleryRegistry, directory string, requestedPage string?) {
+func CaptureGallery(registry GalleryRegistry, directory string, requestedPage string?, mode ThemeMode) {
     Directory.CreateDirectory(directory)
     let first = if requestedPage != nil {
         registry.IndexOf(requestedPage)
@@ -148,6 +148,7 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
     let gallery = Gallery(registry, first)
     let window = Window{Title: "Goo Widgets gallery screenshots", Width: 1100, Height: 800, Root: gallery}
     gallery.AttachWindow(window)
+    Theme.SetMode(window, mode)
     window.Open()
     try {
         using let diagnostics = DevTools.Attach(window)
@@ -257,7 +258,9 @@ func Main(args[]string) {
     }
     if let screenshotDirectory = RequestedValue(args, "--screenshots") {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
-        CaptureGallery(registry, screenshotDirectory, requestedPage)
+        let appearance = RequestedValue(args, "--theme")
+        let mode = appearance == "light" ? ThemeMode.Light: appearance == "dark" ? ThemeMode.Dark: ThemeMode.System
+        CaptureGallery(registry, screenshotDirectory, requestedPage, mode)
         return
     }
     var initialIndex int32

@@ -376,6 +376,12 @@ func CompositeInteractions() {
         SendKey(id, SDLScancode.Return)
         PumpFrames(window, 8)
         Require(host.Selected == "six", "Manual tab activation failed")
+        SendKey(id, SDLScancode.Home)
+        PumpFrames(window, 8)
+        Require(
+            host.Selected == "six" && FindSemantics(semantics.Tree!!.Root, "Overview")!!.Focused,
+            "Tab Home failed to move focus without selecting in manual mode"
+        )
         host.Tabs["locked"].Handle!!.ScrollIntoView()
         PumpFrames(window, 8)
         CompositeClick(window, host.Tabs["locked"].Handle!!)

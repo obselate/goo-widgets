@@ -54,7 +54,7 @@ public data struct IconButton {
             BackgroundColor = BackgroundColor ?? Color.Transparent,
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
-            FocusOutlineColor = FocusOutlineColor ?? theme.AccentColor,
+            FocusOutlineColor = FocusOutlineColor ?? theme.FocusColor,
             DisabledOpacity = DisabledOpacity ?? 0.4,
             CreateRoot = nil,
         }

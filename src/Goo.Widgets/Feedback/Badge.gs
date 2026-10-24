@@ -8,6 +8,7 @@ import Goo.Widgets
 public data struct Badge {
     /// Badge text. Nil selects dot mode; an empty string remains content mode.
     var Content string?
+    var Tone Tone
     /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Text color. Nil uses the nearest theme.
@@ -66,9 +67,9 @@ public data struct Badge {
             resolvedName = Content
         }
         let resolved = this with{
-            BackgroundColor = BackgroundColor ?? theme.PanelColor,
-            TextColor = TextColor ?? theme.TextColor,
-            BorderColor = BorderColor ?? theme.BorderColor,
+            BackgroundColor = BackgroundColor ?? (isDot ? theme.ToneColor(Tone): theme.ToneFill(Tone)),
+            TextColor = TextColor ?? theme.ToneColor(Tone),
+            BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone)),
             FontFamily = FontFamily ?? theme.FontFamily,
             DotSize = dotSize,
             Height = height,

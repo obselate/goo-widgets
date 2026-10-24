@@ -360,7 +360,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Hover: Style{BackgroundColor: theme.HoverColor},
             BorderWidth: day.Today ? theme.BorderWidth: 0.0,
             BorderColor: theme.AccentColor,
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+            Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
             Opacity: day.Disabled ? .35: 1.0
         }
         if let create = current.CreateDay {
@@ -489,18 +489,10 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             return
         }
         let origin = active ?? month
-        var step = 0
+        var step = RovingFocus.Step(event.Key, AccessibilityOrientation.Unspecified, 7)
         var number = origin.DayNumber
         var attempts = 42
-        if event.Key == Key.Left {
-            step = -1
-        } else if event.Key == Key.Right {
-            step = 1
-        } else if event.Key == Key.Up {
-            step = -7
-        } else if event.Key == Key.Down {
-            step = 7
-        } else if event.Key == Key.Home || event.Key == Key.End {
+        if step == 0 && (event.Key == Key.Home || event.Key == Key.End) {
             let offset = (int32(origin.DayOfWeek) - int32(current.FirstDayOfWeek!!) + 7) % 7
             number -= offset
             if event.Key == Key.End {
@@ -509,7 +501,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             step = event.Key == Key.Home ? 1: -1
             number -= step
             attempts = 7
-        } else {
+        } else if step == 0 {
             return
         }
         event.PreventDefault()

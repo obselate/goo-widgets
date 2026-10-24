@@ -155,7 +155,7 @@ public open class Menu : Cell[MenuInput] {
                 Gap: theme.ControlGap,
                 BackgroundColor: selected == id ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
                 BorderRadius: theme.ControlRadius,
-                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
             let row = if let create = current.CreateItem {
@@ -281,29 +281,24 @@ public open class Menu : Cell[MenuInput] {
     }
 
     private func First(source[]MenuItem, last bool) string {
-        for step in 0 ... source.Length {
-            let index = last ? source.Length - 1 - step: step
-            let item = source[index]
-            if !item.Disabled && !item.Separator {
-                return item.Id!!
-            }
-        }
-        return ""
+        let next = RovingFocus.Next[MenuItem](
+            source, -1, last ? Key.End: Key.Home, AccessibilityOrientation.Vertical, true,
+            (item MenuItem) -> item.Disabled || item.Separator)
+        return next < 0 ? "": source[next].Id!!
     }
 
-    private func Move(source[]MenuItem, depth int32, id string, direction int32) {
+    private func Move(source[]MenuItem, depth int32, id string, key Key) {
         var index = 0
         for i in 0 ... source.Length {
             if source[i].Id == id {
                 index = i
             }
         }
-        for step in 1 ... source.Length + 1 {
-            let next = (index + direction * step + source.Length) % source.Length
-            if !source[next].Disabled && !source[next].Separator {
-                Focus(depth, source[next].Id!!)
-                return
-            }
+        let next = RovingFocus.Next[MenuItem](
+            source, index, key, AccessibilityOrientation.Vertical, true,
+            (item MenuItem) -> item.Disabled || item.Separator)
+        if next >= 0 {
+            Focus(depth, source[next].Id!!)
         }
     }
 
@@ -382,14 +377,10 @@ public open class Menu : Cell[MenuInput] {
     private func OpensLeft() bool -> current.SubmenuPlacement == PopoverPlacement.LeftStart
 
     private func KeyDown(source[]MenuItem, depth int32, id string, event KeyEvent) {
-        if event.Key == Key.Up || event.Key == Key.Down {
+        if event.Key == Key.Up || event.Key == Key.Down || event.Key == Key.Home || event.Key == Key.End {
             event.PreventDefault()
             event.StopPropagation()
-            Move(source, depth, id, event.Key == Key.Down ? 1: -1)
-        } else if event.Key == Key.Home || event.Key == Key.End {
-            event.PreventDefault()
-            event.StopPropagation()
-            Focus(depth, First(source, event.Key == Key.End))
+            Move(source, depth, id, event.Key)
         } else if event.Key == (OpensLeft() ? Key.Left: Key.Right) {
             event.PreventDefault()
             event.StopPropagation()

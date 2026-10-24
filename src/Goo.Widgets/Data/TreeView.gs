@@ -473,7 +473,7 @@ public open class TreeView : Cell[TreeViewInput] {
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
             OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
-            OutlineColor: theme.AccentColor,
+            OutlineColor: theme.FocusColor,
             OutlineOffset: -2.0,
             Opacity: row.Disabled ? .45: 1.0,
             Overflow: Overflow.Hidden
@@ -572,16 +572,10 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let row = rows[index]
         var next = index
-        if e.Key == Key.Up || e.Key == Key.Down {
-            let direction = e.Key == Key.Up ? -1: 1
-            next += direction
-            while next >= 0 && next < rows.Count && rows[next].Disabled {
-                next += direction
-            }
-        } else if e.Key == Key.Home {
-            next = Index(First(false))
-        } else if e.Key == Key.End {
-            next = Index(First(true))
+        if e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End {
+            next = RovingFocus.Next[TreeViewRow](
+                rows, index, e.Key, AccessibilityOrientation.Vertical, false,
+                (item TreeViewRow) -> item.Disabled)
         } else if e.Key == Key.Left {
             if row.Expanded {
                 Expand(row.Node.Id!!, false)

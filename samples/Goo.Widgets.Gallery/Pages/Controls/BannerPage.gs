@@ -1,6 +1,9 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
+import Goo.Widgets.Actions
+import Goo.Widgets.Data
 import Goo.Widgets.Feedback
 import Goo.Widgets.Gallery
 
@@ -8,36 +11,29 @@ class BannerPage : GalleryPage {
     public override func Title() string -> "Banner"
 
     public override func Build() Blob {
-        let baseBanner = Banner{MinHeight: 40.0, PaddingVertical: 8.0, FontWeight: 600,}
-
-        let calmStatus = baseBanner with{Content = "All systems operational", AccessibilityName = "Calm status",}
-        let loudStatus = baseBanner with{
-            Content = "Maintenance starts in 10 minutes",
-            Loud = true,
-            AccessibilityName = "Loud status",
+        let root = Container{Width: Percent(100), MaxWidth: 760.0, Gap: 8.0}
+        for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
+            root.Children.Add(Banner{
+                Tone: tone,
+                Title: tone.ToString(),
+                Content: "A semantic message with actions.",
+                TransitionMs: 200.0,
+                Action: ActionButton{Content: "Review"}.Build(),
+                OnDismiss: () -> Console.WriteLine("Dismissed " + tone.ToString()),
+                DismissAccessibilityName: "Dismiss " + tone.ToString(),
+            }.Build())
         }
-        let alertBanner = baseBanner with{
-            Content = "Connection lost. Retry now.",
-            Alert = true,
-            AccessibilityName = "Alert",
+        let badges = Container{FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap, Gap: 8.0}
+        for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
+            badges.Children.Add(Badge{Tone: tone, Content: tone.ToString()}.Build())
+            badges.Children.Add(Chip{Tone: tone, Label: tone.ToString()}.Build())
         }
-        let customPalette = baseBanner with{
-            Content = "Custom palette preview",
-            AccessibilityName = "Custom palette",
-            BackgroundColor = Color.Parse("#052e16"),
-            TextColor = Color.Parse("#bbf7d0"),
-            BorderColor = Color.Parse("#166534"),
-        }
-
-        return Container{
-            Width: 620.0,
-            FlexDirection: FlexDirection.Column,
-            AlignItems: AlignItems.Center,
-            Gap: 10,
-            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, calmStatus.Build(),},
-            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, loudStatus.Build(),},
-            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, alertBanner.Build(),},
-            Container{Width: Percent(100), FlexDirection: FlexDirection.Column, customPalette.Build(),},
-        }
+        root.Children.Add(badges)
+        root.Children.Add(Alert{
+            Tone: Tone.Info, Variant: AlertVariant.Rule, Title: "Rule",
+            Description: "Static callout", Live: false
+        }.Build())
+        root.Children.Add(InlineMessage{Tone: Tone.Success, Content: "Inline message"}.Build())
+        return root
     }
 }

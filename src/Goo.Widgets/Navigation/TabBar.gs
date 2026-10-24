@@ -95,7 +95,7 @@ public open class TabBar : Cell[TabBarInput] {
                 Color: active ? theme.OnAccentColor: theme.MutedTextColor,
                 BackgroundColor: active ? theme.AccentColor: theme.PanelColor,
                 Hover: Style{BackgroundColor: theme.HoverColor},
-                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
                 item.Content ??
                 Text{
                     Content: item.Label!!,
@@ -187,35 +187,20 @@ public open class TabBar : Cell[TabBarInput] {
                 break
             }
         }
-        var direction int32
-        if e.Key == Key.Right {
-            direction = 1
-        } else if e.Key == Key.Left {
-            direction = -1
-        } else if e.Key == Key.Home {
-            direction = 1
-            index = -1
-        } else if e.Key == Key.End {
-            direction = -1
-            index = items.Length
-        } else {
+        let next = RovingFocus.Next[NavigationItem](
+            items, index, e.Key, AccessibilityOrientation.Horizontal, true,
+            (item NavigationItem) -> item.Disabled)
+        if next < 0 {
             return
         }
         e.PreventDefault()
         e.StopPropagation()
-        for attempt in 0 ... items.Length {
-            index = (index + direction + items.Length) % items.Length
-            let item = items[index]
-            if item.Disabled {
-                continue
-            }
-            let handle = handles[item.Id!!]
-            handle.Focus()
-            handle.ScrollIntoView()
-            if input.Activation == TabActivation.Automatic {
-                Select(item.Id!!)
-            }
-            return
+        let item = items[next]
+        let handle = handles[item.Id!!]
+        handle.Focus()
+        handle.ScrollIntoView()
+        if input.Activation == TabActivation.Automatic {
+            Select(item.Id!!)
         }
     }
 }

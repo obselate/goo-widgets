@@ -75,7 +75,7 @@ public data struct ActionButton {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
-            FocusBorderColor = FocusBorderColor ?? theme.AccentColor,
+            FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             DisabledBackgroundColor = DisabledBackgroundColor ?? theme.PanelColor,
             DisabledTextColor = DisabledTextColor ?? theme.FaintTextColor,
             Height = Height ?? theme.ControlHeight,

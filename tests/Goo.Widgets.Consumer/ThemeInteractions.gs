@@ -282,6 +282,29 @@ func ThemePolicyContracts() {
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, ReducedMotion: false})
     ThemeFrames(first)
     Require(inside.Snapshot.Scrollbar.FadeMs == 250.0, "Scrollbar fade did not recover after reduced motion.")
+    first.UpdatePreferences(PlatformPreferences{
+        Theme: SystemTheme.Dark, HighContrast: true, TextScaleFactor: 1.5F
+    })
+    ThemeFrames(first)
+    Require(
+        outside.Snapshot.BorderColor == outside.Snapshot.TextColor
+        && inside.Snapshot.BorderColor == inside.Snapshot.TextColor
+        && outside.Snapshot.FontSize == Theme.Default.FontSize * 1.5
+        && inside.Snapshot.FontSize == root.Value.FontSize * 1.5
+        && inside.Snapshot.ControlHeight == root.Value.ControlHeight * 1.5,
+        "High contrast or text scale did not reach the window and fixed scope."
+    )
+    root.Rebuild()
+    ThemeFrames(first)
+    Require(inside.Snapshot.FontSize == root.Value.FontSize * 1.5, "Text scale compounded on rebuild.")
+    first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
+    ThemeFrames(first)
+    Require(
+        outside.Snapshot.FontSize == Theme.Default.FontSize
+        && inside.Snapshot.FontSize == root.Value.FontSize
+        && inside.Snapshot.BorderColor == root.Value.BorderColor,
+        "Preference removal did not restore authored theme values."
+    )
     root.Value = Theme.Bone with{ControlHeight = 23.0, AccentColor = Theme.Bone.DangerColor, TransitionMs = 77.0}
     root.Rebuild()
     ThemeFrames(first)
@@ -613,8 +636,8 @@ func ThemeDensityContracts() {
         let focused = ThemeCapture(window)
         let check = root.CheckHandle.BorderBox
         Require(
-            ThemePixel(focused, int32(check.X) - 3, int32(check.Y + check.Height / 2), Theme.Read(window).AccentColor),
-            "Real Tab traversal did not paint the default Accent ring."
+            ThemePixel(focused, int32(check.X) - 3, int32(check.Y + check.Height / 2), Theme.Read(window).FocusColor),
+            "Real Tab traversal did not paint the theme focus ring."
         )
         Console.WriteLine(
             "PASS theme density, explicit zero/font overrides, pointer modality and captured keyboard focus"
@@ -677,6 +700,21 @@ func ThemeCatalogContracts() {
                     FeedbackTree(window, adapter)
                 } else if title == "Menu" {
                     FeedbackMenu(window, adapter)
+                } else if title == "Banner" {
+                    let dismiss = FeedbackNode(adapter, AccessibilityRole.Button, "Dismiss Info")
+                    Require(
+                        window.PerformAccessibilityAction(dismiss.Id, AccessibilityActionRequest(AccessibilityAction.Activate)),
+                        "Banner dismiss action was not available."
+                    )
+                    Require(
+                        FindSemantics(adapter.Tree?.Root, "Dismiss Info") != nil,
+                        "Banner was removed before its close animation."
+                    )
+                    PumpFrames(window, 30)
+                    Require(
+                        FindSemantics(adapter.Tree?.Root, "Dismiss Info") == nil,
+                        "Banner did not close after its millisecond transition."
+                    )
                 }
                 if title == "Managed dialog" || title == "Modal dialog" || title == "Popover"
                 || title == "Date picker" || title == "Combo box" || title == "Menu" || title == "Tooltip" {

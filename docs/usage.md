@@ -30,7 +30,7 @@ separately mounted child that change parent state must call the parent's `Rebuil
 | --- | --- |
 | `Goo.Widgets.Actions` | ActionButton, IconButton |
 | `Goo.Widgets.Inputs` | TextField, TextArea, ToggleSwitch, Checkbox, Slider, SearchList, ComboBox, ComboBoxOption, Calendar, DatePicker, Stepper, UploadTile |
-| `Goo.Widgets.Feedback` | Badge, Banner, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
+| `Goo.Widgets.Feedback` | Badge, Banner, Alert, InlineMessage, DismissibleContextBar, EmptyState, ProgressBar, ProgressSummary |
 | `Goo.Widgets.Layout` | AppBar, Drawer, SectionHeader, ListRow, WindowChrome, MasterDetail, ModalDialog, ModalDialogHost, Popover, Disclosure, SplitPane, Grid, GridTrack, GridItem |
 | `Goo.Widgets.Media` | AsyncImage, Avatar, MediaCard, MediaTransport |
 | `Goo.Widgets.Data` | Chip, SelectionItem, DataGrid, DataGridColumn, DataGridRow, TimeAxis, TimeAxisEvent, TreeView, TreeNode, VirtualItems, VirtualRows |
@@ -349,6 +349,14 @@ their branded typography and metrics.
 Motion defaults to zero. `TransitionMs` opts into motion unless reduced motion
 is active. Window reduced-motion policy also applies inside fixed scopes, including
 scrollbar fades, and restores authored transition durations when disabled.
+High contrast strengthens text, borders and focus. Text scale adjusts all type
+sizes and minimum control sizes, including fixed scopes. `WithHighContrast()`
+and `WithTextScale(scale)` apply the same policy to an authored theme.
+
+Use `LinkColor` for links and `FocusColor` for keyboard focus. Theme also supplies
+quiet tone fills, sunken and active surfaces, strong borders, subtle and disabled
+text, four radii, three elevations, type sizes and motion durations. `Syntax`,
+`Diff`, `Ansi`, `SeriesPalette` and `ColorBlindPalette` provide shared palettes.
 
 Read `Theme.Read()` during an owned Cell build or virtual callback.
 `Theme.Read(window)` reads only the window snapshot on its owner thread.
@@ -379,6 +387,34 @@ Run the [complete sample](../samples/Goo.Widgets.Theme/Program.gs):
 ```sh
 dotnet run --project samples/Goo.Widgets.Theme/Goo.Widgets.Theme.gsproj
 ```
+
+## Semantic messages
+
+```gsharp
+Banner{
+    Tone: Tone.Warning,
+    Title: "Maintenance",
+    Content: "Save your work.",
+    Action: ActionButton{Content: "Save", OnClick: Save}.Build(),
+    OnDismiss: Dismiss,
+}.Build()
+```
+
+`Tone` is Neutral, Info, Success, Warning or Danger. It is also available on
+Badge and Chip. Banner replaces `Loud = true` with `Tone.Warning` and
+`Alert = true` with `Tone.Danger`. All repository callers use the new API.
+Danger uses an assertive alert. Other tones use a polite status.
+Set `Live = false` for static messages.
+
+Banner supports a title, icon, trailing action, actions below its body and a
+content slot. `OnDismiss` runs after its closing animation. Reduced motion
+closes it at once. Escape does not dismiss it.
+`Alert` supplies a description or content slot and a Filled or Rule variant.
+`InlineMessage` supplies a compact icon and text.
+
+`RovingFocus` shares disabled-aware arrow, Home and End navigation. Its
+`RightToLeft` option reverses horizontal movement. Existing tab, rail, menu,
+calendar and tree key policies stay unchanged.
 
 ## Compose and customize
 
