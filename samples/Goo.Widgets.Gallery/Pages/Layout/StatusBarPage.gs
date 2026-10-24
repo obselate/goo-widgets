@@ -7,8 +7,6 @@ import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 
 internal class StatusBarExample(HostWindow Window?) : Cell {
-    private var last string = "Ready"
-
     public override func Build() Blob -> Container{
         Width: Percent(100),
         MinWidth: 0,
@@ -23,9 +21,7 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
                         Text: "main",
                         Priority: 10,
                         Tooltip: "Current branch",
-                        OnActivate: () -> {
-                            last = "Branch selected"
-                        }
+                        OnActivate: () -> { }
                     },
                     StatusBarItem{Id: "busy", Text: "Indexing", Busy: true, Priority: 20},
                     StatusBarItem{Id: "sync", Text: "Up to date", Priority: 0}
@@ -40,9 +36,7 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
                             MenuItem{Id: "gsharp", Label: "G#"},
                             MenuItem{Id: "plain", Label: "Plain text"}
                         },
-                        OnMenuActivate: id -> {
-                            last = id
-                        }
+                        OnMenuActivate: id -> { }
                     },
                     StatusBarItem{Id: "disabled", Text: "Offline", Disabled: true, OnActivate: () -> { }}
                 }
@@ -60,8 +54,7 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
                     End: []StatusBarItem{StatusBarItem{Id: "encoding", Text: "UTF-8", Priority: 2}}
                 }
             )
-        },
-        Text{Content: last, Color: Theme.Read().TextColor}
+        }
     }
 }
 

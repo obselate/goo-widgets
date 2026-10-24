@@ -171,7 +171,11 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
             }
             if rows.Children.Count > 0 {
                 content.Children.Add(
-                    FormSection{Legend: section.Title, Description: section.Description, Children: []Blob{rows}}.Build()
+                    FormSection{
+                        Legend: query.Length > 0 ? section.Title: nil,
+                        Description: query.Length > 0 ? section.Description: nil,
+                        Children: []Blob{rows}
+                    }.Build()
                 )
             }
         }
