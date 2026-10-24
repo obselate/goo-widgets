@@ -1,41 +1,62 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Actions
 import Goo.Widgets.Gallery
+import Goo.Widgets.Icons
 
 class ActionButtonPage : GalleryPage {
     public override func Title() string -> "ActionButton"
 
+    public override func Build() Blob -> Cell.Mount[ActionButtonDemo]("action-buttons")
+}
+
+class ActionButtonDemo : Cell {
+    private var pressed bool
+
     public override func Build() Blob {
-        let baseButton = ActionButton{Height: 38.0, MinWidth: 112.0, OnClick: () -> { },}
-
-        let primaryButton = baseButton with{Content = "Primary",}
-        let successButton = baseButton with{
-            Content = "Success",
-            BackgroundColor = Color.Parse("#166534"),
-            TextColor = Color.Parse("#fafafa"),
-            HoverBackgroundColor = Color.Parse("#15803d"),
-            ActiveBackgroundColor = Color.Parse("#14532d"),
-        }
-        let dangerButton = baseButton with{
-            Content = "Danger",
-            BackgroundColor = Color.Parse("#991b1b"),
-            TextColor = Color.Parse("#fafafa"),
-            HoverBackgroundColor = Color.Parse("#b91c1c"),
-            ActiveBackgroundColor = Color.Parse("#7f1d1d"),
-        }
-        let disabledButton = baseButton with{Content = "Disabled", Disabled = true,}
-
+        let theme = Theme.Read()
         return Container{
-            FlexDirection: FlexDirection.Row,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
             Gap: 16,
-            primaryButton.Build(),
-            successButton.Build(),
-            dangerButton.Build(),
-            disabledButton.Build(),
+            Text{Content: "Actions", FontSize: theme.HeadingFontSize, Color: theme.TextColor},
+            Container{
+                FlexDirection: FlexDirection.Row,
+                FlexWrap: FlexWrap.Wrap,
+                Gap: 12,
+                (
+                    theme.PrimaryButton with{
+                        Content = "Save",
+                        Leading = MaterialIcons.Create("save", size: 18),
+                        Shortcut = "Ctrl S"
+                    }
+                ).Build(),
+                (
+                    theme.OutlineButton with{
+                        Content = "Next",
+                        Trailing = MaterialIcons.Create("arrow_forward", size: 18)
+                    }
+                ).Build(),
+                (theme.SubtleButton with{Content = "Subtle"}).Build(),
+                (theme.LinkButton with{Content = "Learn more"}).Build(),
+            },
+            Container{
+                FlexDirection: FlexDirection.Row,
+                FlexWrap: FlexWrap.Wrap,
+                Gap: 12,
+                (theme.Button with{Content = "Saving changes", Loading = true}).Build(),
+                (theme.Button with{Content = "Disabled", Disabled = true}).Build(),
+                (
+                    theme.Button with{
+                        Content = "Pinned",
+                        Pressed = pressed,
+                        OnClick = () -> {
+                            pressed = !pressed
+                            Rebuild()
+                        }
+                    }
+                ).Build(),
+            },
         }
     }
 }

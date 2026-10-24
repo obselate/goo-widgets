@@ -16,6 +16,8 @@ public data struct Checkbox {
     var OnChange Action[AccessibilityChecked]?
     /// Optional text rendered beside the checkbox mark as one interactive row.
     var Label string?
+    var Description string?
+    var Card bool
     /// Label text color. Nil resolves to the theme text color.
     var LabelColor Color?
     /// Label font size. Zero uses the nearest theme font size.
@@ -169,7 +171,7 @@ public data struct Checkbox {
             let root = Button{
                 LineHeight: theme.LineHeight,
                 Width: Length.Auto,
-                Height: resolved.HitSize!!,
+                MinHeight: resolved.HitSize!!,
                 Gap: resolved.LabelGap!!,
                 Cursor: if resolved.Disabled {
                     Cursor.Default
@@ -190,6 +192,7 @@ public data struct Checkbox {
                     Role: AccessibilityRole.Checkbox,
                     Name: resolved.AccessibilityName!!,
                     Checked: state,
+                    Description: resolved.Description ?? "",
                 },
                 markBox,
                 Text{
@@ -199,6 +202,21 @@ public data struct Checkbox {
                     FontSize: resolved.LabelFontSize,
                     FontWeight: resolved.LabelFontWeight,
                 },
+            }
+            if let description = resolved.Description {
+                let labelText = root.Children[1]
+                root.Children[1] = Container{
+                    Gap: theme.Spacing,
+                    labelText,
+                    Text{Content: description, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize},
+                }
+            }
+            if resolved.Card {
+                root.Padding = theme.ControlPadding
+                root.BorderWidth = resolved.BorderWidth!!
+                root.BorderRadius = theme.ControlRadius
+                root.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
+                root.BackgroundColor = active ? theme.ActiveColor: theme.PanelColor
             }
             if resolved.Disabled {
                 root.Opacity = resolved.DisabledOpacity!!
