@@ -96,10 +96,16 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 FlexGrow: input.Stretch ? 1: 0,
                 FlexDirection: FlexDirection.Row,
                 Gap: theme.ControlGap,
-                BorderWidth: input.Look == ToggleGroupLook.Chips ? theme.BorderWidth: 0,
-                BorderColor: active ? theme.AccentColor: theme.InputBorderColor,
+                BorderWidth: input.Look == ToggleGroupLook.Segmented ? Math.Max(2.0, theme.BorderWidth):
+                input.Look == ToggleGroupLook.Chips ? theme.BorderWidth: 0,
+                BorderColor: input.Look == ToggleGroupLook.Segmented
+                ? active ? theme.StrongBorderColor: Color.Transparent
+                : active ? theme.AccentColor: theme.InputBorderColor,
                 BorderRadius: input.Look == ToggleGroupLook.Chips ? theme.ControlHeight / 2: theme.ControlRadius,
-                BackgroundColor: active ? theme.ActiveColor: Color.Transparent,
+                BackgroundColor: active
+                ? input.Look == ToggleGroupLook.Segmented ? theme.PanelColor: theme.ActiveColor
+                : Color.Transparent,
+                BoxShadow: active && input.Look == ToggleGroupLook.Segmented ? theme.ElevationSm: BoxShadow{},
                 Color: active ? theme.TextColor: theme.MutedTextColor,
                 Hover: Style{BackgroundColor: theme.HoverColor},
                 Active: Style{BackgroundColor: theme.PressedColor},
