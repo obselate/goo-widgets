@@ -8,6 +8,7 @@ import Goo.Widgets.Inputs
 internal class NumberInputExample : Cell {
     private var quantity float64 = 4
     private var price float64 = 12.5
+    private var width float64 = 80
     private var unit string = "px"
     private var committed string = "Enter or leave the field to commit."
 
@@ -56,9 +57,12 @@ internal class NumberInputExample : Cell {
             "units",
             NumberInputInput{
                 Label: "Width",
-                Value: 80,
+                Value: width,
                 Width: Percent(100),
-                Disabled: true,
+                OnChange: value -> {
+                    width = value
+                    Rebuild()
+                },
                 Units: []ComboBoxOption{ComboBoxOption{Id: "px", Label: "px"}, ComboBoxOption{Id: "rem", Label: "rem"}},
                 Unit: unit,
                 OnUnitChange: value -> {

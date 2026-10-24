@@ -79,7 +79,7 @@ public class NumberInput : Cell[NumberInputInput] {
                 Text{
                     Content: label,
                     Color: theme.MutedTextColor,
-                    Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
+                    Padding: Edges{Left: theme.ControlPadding},
                     Cursor: Cursor.ResizeHorizontal,
                     OnPointerDown: ScrubStart,
                     OnPointerMove: ScrubMove,
@@ -133,6 +133,17 @@ public class NumberInput : Cell[NumberInputInput] {
                         Disabled: input.Disabled,
                         AccessibilityName: "Unit",
                         Width: 90,
+                        CreateTrigger: (props, button) -> {
+                            button.Height = Percent(100)
+                            button.BorderWidth = 0
+                            button.BorderRadius = 0
+                            button.BackgroundColor = theme.SunkenColor
+                            return button
+                        },
+                        CreateRoot: (props, root) -> {
+                            root.Height = Percent(100)
+                            return root
+                        },
                     }
                 )
             )

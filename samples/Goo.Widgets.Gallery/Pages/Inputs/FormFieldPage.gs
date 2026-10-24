@@ -16,12 +16,30 @@ internal class FormFieldPage : GalleryPage {
                 Label: "Display name",
                 Required: true,
                 Description: "Visible to your team.",
-                Content: TextEntry{Height: 36, Value: "Alex", Padding: 8}
+                CreateContent: relations -> TextField{
+                    Value: "Alex",
+                    AccessibilityName: "Display name",
+                    Width: Percent(100),
+                    CreateRoot: (input, label, entry, issue) -> {
+                        entry.Accessibility!!.Relationships = relations
+                        entry.Accessibility!!.Required = true
+                        return Container{Width: Percent(100), entry}
+                    },
+                }.Build(),
             }.Build(),
             FormField{
                 Label: "Email",
                 Issue: "Enter a valid email address.",
-                Content: TextEntry{Height: 36, Value: "alex@", Padding: 8}
+                CreateContent: relations -> TextField{
+                    Value: "alex@",
+                    AccessibilityName: "Email",
+                    Invalid: true,
+                    Width: Percent(100),
+                    CreateRoot: (input, label, entry, issue) -> {
+                        entry.Accessibility!!.Relationships = relations
+                        return Container{Width: Percent(100), entry}
+                    },
+                }.Build(),
             }.Build(),
             FormField{
                 Label: "Notifications",

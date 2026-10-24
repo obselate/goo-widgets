@@ -15,6 +15,7 @@ internal class FieldHost : Cell {
     internal var Text string = "secret"
     internal var TextCommit string?
     internal var Disabled bool
+    internal var ReadOnly bool
     internal var Reject bool
     internal var Entry TextEntry?
     internal var PasswordEntry TextEntry?
@@ -77,6 +78,7 @@ internal class FieldHost : Cell {
                     Password: input.Password,
                     OnChange: input.OnChange,
                     OnSubmit: input.OnSubmit,
+                    Accessibility: Accessibility{ReadOnly: ReadOnly},
                     Height: 36,
                     Width: Percent(100)
                 }
@@ -219,10 +221,17 @@ func FieldInteractions() {
         )
         PumpFrames(window, 5)
         Require(host.Number == 2, "Accessibility input did not commit")
+        host.Text = "Read only"
+        host.ReadOnly = true
+        host.Rebuild()
+        PumpFrames(window, 5)
+        Require(FindSemantics(semantics.Tree?.Root, "Clear Password") == nil, "Read-only field exposed a clear button")
+        host.ReadOnly = false
         host.Disabled = true
         host.Rebuild()
         PumpFrames(window, 5)
         Require(!host.NumberHandle.Focus(), "Disabled NumberInput accepted focus")
+        Require(FindSemantics(semantics.Tree?.Root, "Clear Password") == nil, "Disabled field exposed a clear button")
     } finally {
         window.RequestClose()
         PumpFrames(window, 3)

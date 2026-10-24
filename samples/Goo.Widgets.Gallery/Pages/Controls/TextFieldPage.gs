@@ -52,16 +52,16 @@ class TextFieldPage : GalleryPage {
             Value = "correct horse",
             Password = true,
             RevealButton = true,
-            Width = 220,
+            Width = 280,
         }
         let address = baseField with{
             Label = "Site address",
-            Value = "workspace",
+            Value = "team",
             Clearable = true,
             MaxLength = 20,
-            Width = 380,
+            Width = 280,
             PrefixAddon = Text{Content: "https://", Color: Theme.Read().MutedTextColor},
-            SuffixAddon = Text{Content: ".example", Color: Theme.Read().MutedTextColor},
+            SuffixAddon = Text{Content: ".dev", Color: Theme.Read().MutedTextColor},
             Leading = MaterialIcons.Create("link", 16, Theme.Read().MutedTextColor),
         }
 
@@ -114,7 +114,8 @@ class TextFieldPage : GalleryPage {
             Container{
                 Width: Percent(100),
                 FlexDirection: FlexDirection.Row,
-                Gap: 20,
+                Gap: 24,
+                JustifyContent: JustifyContent.Center,
                 password.Build(),
                 address.Build()
             },

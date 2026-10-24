@@ -124,8 +124,8 @@ public data struct TextField {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             FocusColor = FocusColor ?? theme.AccentColor,
             InvalidColor = InvalidColor ?? theme.DangerColor,
-            DisabledBackgroundColor = DisabledBackgroundColor ?? theme.PanelColor,
-            DisabledTextColor = DisabledTextColor ?? theme.FaintTextColor,
+            DisabledBackgroundColor = DisabledBackgroundColor ?? theme.SunkenColor,
+            DisabledTextColor = DisabledTextColor ?? theme.DisabledTextColor,
             FontFamily = FontFamily ?? theme.FontFamily,
             Width = Width ?? defaultWidth,
             EntryHeight = EntryHeight ?? controlHeight,
@@ -243,6 +243,7 @@ public data struct TextField {
                 issue.FontFamily = resolved.FontFamily!!
             }
         }
+        let readOnly = entry!!.Accessibility?.ReadOnly ?? false
         entry!!.Key = "entry"
         entry!!.Disabled = resolved.Disabled
         entry!!.Focusable = !resolved.Disabled
@@ -250,6 +251,7 @@ public data struct TextField {
             Role: AccessibilityRole.TextInput,
             Name: resolved.AccessibilityName!!,
             Invalid: resolved.Invalid,
+            ReadOnly: readOnly,
             Relationships: AccessibilityRelationships{
                 LabelledBy: label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
                 DescribedBy: issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
@@ -307,7 +309,7 @@ public data struct TextField {
             if let trailing = resolved.Trailing {
                 frame.Children.Add(trailing)
             }
-            if resolved.Clearable && value.Length > 0 && state != nil {
+            if resolved.Clearable && !resolved.Disabled && !readOnly && value.Length > 0 && state != nil {
                 frame.Children.Add(state.ActionButton("Clear " + resolved.AccessibilityName!!, "close", state.Clear))
             }
             if (resolved.Password || state?.Revealed == true) && resolved.RevealButton && state != nil {
