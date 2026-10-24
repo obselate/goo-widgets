@@ -235,6 +235,14 @@ func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualP
     Require(!window.IsOpen, name + " window did not close.")
 }
 
+func WaitVirtual(window Window, ready Func[bool]) {
+    let waiting = Stopwatch.StartNew()
+    while !ready() && window.IsOpen && waiting.Elapsed.TotalSeconds < 10.0 {
+        window.Pump(0.016)
+    }
+    Require(ready(), "Virtual layout did not publish the expected mount or scroll metrics.")
+}
+
 func VirtualInteractions() {
     VirtualRollbackInteractions()
     let list = VirtualProbeHost(VirtualProbeKind.List, 1000)
@@ -288,9 +296,18 @@ func VirtualInteractions() {
                 && grid.Handle.ScrollRange.Y == 3940.0,
                 "The grid did not bound its mounted items."
             )
-            Require(grid.Handle.JumpTo(0.0, 2000.0), "The grid rejected a jump.")
-            grid.Builds.Clear()
-            PumpFrames(window, 2)
+            var mounted = false
+            let onMounted Action[ElementMetrics] = metrics -> {
+                mounted = metrics.IsMounted
+            }
+            grid.Handles[500].MetricsChanged += onMounted
+            try {
+                Require(grid.Handle.JumpTo(0.0, 2000.0), "The grid rejected a jump.")
+                grid.Builds.Clear()
+                WaitVirtual(window, () -> mounted)
+            } finally {
+                grid.Handles[500].MetricsChanged -= onMounted
+            }
             Require(
                 grid.Mounted() > 0 && grid.Mounted() <= 25 && grid.Builds.Count <= 25 && grid.Handles[500].IsMounted,
                 "A scroll did not move the mounted grid items."
@@ -367,46 +384,46 @@ func VirtualInteractions() {
                 pin.Items.Add(VirtualProbeItem{Id: id})
             }
             pin.Rebuild()
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> pin.Handles[1009].IsMounted)
             Require(
                 pin.Handle.ScrollOffset.Y == 19940.0 && pin.Handles[1009].IsMounted,
                 "A pinned list did not follow new rows."
             )
             // A reader who scrolls back stays on their rows while the list changes.
             Require(pin.Handle.ScrollTo(0.0, 5000.0), "The rows rejected a scroll.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> !pin.Pin && pin.Handle.ScrollOffset.Y == 5000.0)
             Require(pin.Handle.ScrollOffset.Y == 5000.0, "The reader's scroll did not apply.")
             pin.Items.RemoveRange(0, 10)
             for id in 1010 ... 1020 {
                 pin.Items.Add(VirtualProbeItem{Id: id})
             }
             pin.Rebuild()
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> pin.Handle.ScrollOffset.Y == 4800.0)
             Require(pin.Handle.ScrollOffset.Y == 4800.0, "A reader who scrolled back did not stay on their rows.")
             // Returning to the end pins the list again.
             Require(pin.Handle.JumpTo(0.0, 19940.0), "The rows rejected a jump.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> pin.Pin && pin.Handles[1019].IsMounted)
             pin.Items.RemoveRange(0, 10)
             for id in 1020 ... 1030 {
                 pin.Items.Add(VirtualProbeItem{Id: id})
             }
             pin.Rebuild()
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> pin.Handles[1029].IsMounted)
             Require(
                 pin.Handle.ScrollOffset.Y == 19940.0 && pin.Handles[1029].IsMounted,
                 "A return to the end did not pin the list."
             )
             // A list that empties after the reader scrolled back follows its new rows.
             Require(pin.Handle.JumpTo(0.0, 0.0), "The rows rejected a jump.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> !pin.Pin && pin.Handle.ScrollOffset.Y == 0.0)
             pin.Items.Clear()
             pin.Rebuild()
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> pin.Pin && pin.Handle.ScrollRange.Y == 0.0)
             for id in 1030 ... 1100 {
                 pin.Items.Add(VirtualProbeItem{Id: id})
             }
             pin.Rebuild()
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> pin.Handles[1099].IsMounted)
             Require(
                 pin.Handle.ScrollOffset.Y == 1340.0 && pin.Handles[1099].IsMounted,
                 "An emptied list did not follow its new rows."
