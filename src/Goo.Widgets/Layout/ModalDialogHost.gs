@@ -59,7 +59,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         }
         backdrop.Key = "backdrop"
         backdrop.Focusable = false
-        backdrop.OnClick = current.OnClose
+        backdrop.OnClick = resolved.OnClose
         panel.Key = "dialog"
         panel.Focusable = false
         panel.TabStop = false
@@ -87,7 +87,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
             event.PreventDefault()
             event.StopPropagation()
             let callback = current.OnCancel ?? current.OnClose
-            if !event.Repeat {
+            if !event.Repeat && current.CanEscape {
                 callback?.Invoke()
             }
             return
@@ -106,7 +106,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         if activeScope != nil {
             return
         }
-        activeScope = rootHandle.BeginFocusScope(FocusScopeOptions{Modal: true})
+        activeScope = rootHandle.BeginFocusScope(FocusScopeOptions{Modal: true, InitialFocus: current.InitialFocus})
         Rebuild()
     }
 

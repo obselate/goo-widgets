@@ -421,6 +421,10 @@ func Main() {
         ComboBoxInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_LAYOUT") == "1" {
+        LayoutInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_OVERLAYS") == "1" {
         OverlayInteractions()
         return

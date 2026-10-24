@@ -1,17 +1,20 @@
 package Goo.Widgets.Gallery.Pages.Layout
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Actions
 import Goo.Widgets.Gallery
+import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 
 internal open class ModalDialogExample : Cell {
     private var dialogOpen bool = true
     private var result string = "No action"
+    private var preset ModalDialogPreset = ModalDialogPreset.Confirm
 
     /// Builds the interactive modal-dialog example.
     public override func Build() Blob -> Container{
-        Width: 720.0,
+        Width: Percent(100),
         Height: 360.0,
         Position: PositionType.Relative,
         Gap: 12.0,
@@ -22,23 +25,47 @@ internal open class ModalDialogExample : Cell {
             }
         }.Build(),
         Text{Content: result},
-        ModalDialog{
-            Open: dialogOpen,
-            AccessibilityName: "Confirm change",
-            Header: Text{Content: "Confirm change", FontSize: 18.0, FontWeight: 700},
-            Content: Text{Content: "Apply this change to the selected items?"},
-            OnClose: () -> {
-                dialogOpen = false
-            },
-            OnCancel: () -> {
-                result = "Canceled"
-                dialogOpen = false
-            },
-            OnConfirm: () -> {
-                result = "Confirmed"
-                dialogOpen = false
-            },
-        }.Build(),
+        Container{
+            FlexDirection: FlexDirection.Row,
+            Gap: 12,
+            ActionButton{
+                Content: "Destructive",
+                OnClick: () -> {
+                    preset = ModalDialogPreset.Destructive
+                    dialogOpen = true
+                }
+            }.Build(),
+            ActionButton{
+                Content: "Form",
+                OnClick: () -> {
+                    preset = ModalDialogPreset.Form
+                    dialogOpen = true
+                }
+            }.Build()
+        },
+        Cell.Mount[ModalDialog, ModalDialogHost](
+            "preset-dialog",
+            ModalDialog{
+                Open: dialogOpen,
+                Preset: preset,
+                AccessibilityName: "Confirm change",
+                Header: Text{Content: "Confirm change", FontSize: 18.0, FontWeight: 700},
+                Content: preset == ModalDialogPreset.Form ?
+                TextField{Label: "Project name", Value: "Studio"}.Build():
+                Text{Content: "Apply this change to the selected items?", Color: Theme.Read().TextColor},
+                OnClose: () -> {
+                    dialogOpen = false
+                },
+                OnCancel: () -> {
+                    result = "Canceled"
+                    dialogOpen = false
+                },
+                OnConfirm: () -> {
+                    result = "Confirmed"
+                    dialogOpen = false
+                },
+            }
+        ),
     }
 }
 
