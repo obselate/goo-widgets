@@ -218,6 +218,7 @@ public data struct Chip {
             return button
         }
         let theme = Theme.Read()
+        let color = input.Selected ? input.SelectedTextColor!!: input.TextColor!!
         let action = Button{
             Key: "remove",
             Width: input.Height!! - 8.0,
@@ -227,7 +228,7 @@ public data struct Chip {
             Focusable: !input.Disabled,
             Disabled: input.Disabled,
             BorderRadius: (input.Height!! - 8.0) / 2.0,
-            Color: button.Color,
+            Color: color,
             Hover: Style{BackgroundColor: theme.HoverColor},
             Focus: theme.FocusStyle,
             DisabledStyle: Style{Opacity: input.DisabledOpacity!!},
@@ -238,25 +239,24 @@ public data struct Chip {
             OnClick: remove,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("close", 14, button.Color),
+            MaterialIcons.Create("close", 14, color),
         }
         WidgetKeyBindings.BindActivation(action)
-        let border = button.BorderWidth
-        let container = Container{
-            Height: button.Height,
+        button.Height = input.Height!! - 2.0 * input.BorderWidth!!
+        button.BorderWidth = 0.0
+        button.BackgroundColor = Color.Transparent
+        button.Hover = Style{}
+        button.Padding = Edges{Left: input.PaddingHorizontal!!, Right: input.Gap!!}
+        return Container{
+            Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: button.BackgroundColor,
-            BorderColor: button.BorderColor,
-            BorderWidth: border,
-            BorderRadius: button.BorderRadius,
+            BackgroundColor: input.Selected ? input.SelectedBackgroundColor!!: input.BackgroundColor!!,
+            BorderColor: input.Selected ? input.SelectedBorderColor!!: input.BorderColor!!,
+            BorderWidth: input.BorderWidth!!,
+            BorderRadius: input.BorderRadius!!,
             button,
             action,
         }
-        button.Height = button.Height - 2.0 * border
-        button.BorderWidth = 0.0
-        button.Hover = Style{}
-        button.Padding = Edges{Left: button.Padding.Left, Right: input.Gap!!}
-        return container
     }
 }

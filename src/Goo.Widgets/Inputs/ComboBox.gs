@@ -198,7 +198,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         for i in 0 ... rows.Count {
             let active = rows[i].Item.Id == activeId
-            rows[i] = rows[i]with{Active = active, KeyboardActive = active && !pointerFocus}
+            rows[i] = rows[i]with{
+                Active = active,
+                KeyboardActive = active && !pointerFocus && !input.Searchable && !input.AllowFreeText
+            }
         }
         let label = input.Multiple
         ? (labels!!.Count == 0 ? current.Placeholder!!: String.Join(", ", labels!!))
@@ -389,6 +392,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             BorderRadius: theme.ControlRadius,
             BackgroundColor: row.Active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Opacity: item.Disabled ? .45: 1.0,
+            OutlineWidth: row.KeyboardActive ? 2.0: 0.0,
+            OutlineColor: theme.AccentColor,
+            OutlineOffset: -2.0,
         }
         if let create = row.Input.CreateRow {
             result = create(row.Input, item, result)
