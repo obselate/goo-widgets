@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.10.1 - 2026-10-25
+
+- Command palette match highlights meet 4.5:1 text contrast in Ink, Bone and high-contrast themes.
+- Fixed the FindBar match count sitting above the arrows when the bar first lays out narrow, such as inside a SplitPane.
+
 ## 0.10.0 - 2026-10-24
 
 - Add field adornments, numeric input and shared form frames.
