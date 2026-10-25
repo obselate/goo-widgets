@@ -295,38 +295,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             button.Children.Add(leading)
         }
         let match = FuzzyMatch.Match(snapshot.Query ?? "", command.Label)!!
-        let label = Container{FlexDirection: FlexDirection.Row, MinWidth: 0, FlexShrink: 1}
-        var position = 0
-        for span in match.Ranges {
-            if span.Start > position {
-                label.Children.Add(
-                    Text{
-                        Content: command.Label.Substring(position, span.Start - position),
-                        TextWrap: TextWrap.NoWrap,
-                        FlexShrink: 0,
-                    }
-                )
-            }
-            label.Children.Add(
-                Text{
-                    Content: command.Label.Substring(span.Start, span.Length),
-                    FontWeight: theme.HeadingFontWeight,
-                    Color: theme.LinkColor,
-                    TextWrap: TextWrap.NoWrap,
-                    FlexShrink: 0,
-                }
-            )
-            position = span.Start + span.Length
-        }
-        if position < command.Label.Length {
-            label.Children.Add(Text{Content: command.Label.Substring(position), TextWrap: TextWrap.NoWrap})
-        }
-        if label.Children.Count > 0 {
-            let tail = (label.Children[label.Children.Count - 1] as Text)!!
-            tail.MinWidth = 0
-            tail.FlexShrink = 1
-            tail.TextTrimming = TextTrimming.Ellipsis
-        }
+        let label = FuzzyMatch.Label(command.Label, match, theme)
         let content = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

@@ -34,6 +34,7 @@ Each image links to its page source. New pages need a registration, a matching P
 | [![Stepper](Stepper.png)](../Goo.Widgets.Gallery/Pages/Controls/StepperPage.gs)<br>Stepper | [![Upload tile](UploadTile.png)](../Goo.Widgets.Gallery/Pages/Controls/UploadTilePage.gs)<br>Upload tile | [![Search list](SearchList.png)](../Goo.Widgets.Gallery/Pages/Inputs/SearchListPage.gs)<br>Search list |
 | [![Combo box](ComboBox.png)](../Goo.Widgets.Gallery/Pages/Inputs/ComboBoxPage.gs)<br>Combo box | [![Calendar](Calendar.png)](../Goo.Widgets.Gallery/Pages/Inputs/CalendarPage.gs)<br>Calendar | [![Date picker](DatePicker.png)](../Goo.Widgets.Gallery/Pages/Inputs/DatePickerPage.gs)<br>Date picker |
 | [![Slider](Slider.png)](../Goo.Widgets.Gallery/Pages/Inputs/SliderPage.gs)<br>Slider | [![Find bar](FindBar.png)](../Goo.Widgets.Gallery/Pages/Inputs/FindBarPage.gs)<br>Find bar | [![Token input](TokenInput.png)](../Goo.Widgets.Gallery/Pages/Inputs/TokenInputPage.gs)<br>Token input |
+| [![Trigger menu](TriggerMenu.png)](../Goo.Widgets.Gallery/Pages/Inputs/TriggerMenuPage.gs)<br>Trigger menu | | |
 
 ## Data
 

@@ -437,6 +437,10 @@ func Main() {
         PathActionsInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_POPUPS") == "1" {
+        PopupInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_DATA_GRID") == "1" {
         DataGridInteractions()
         return
