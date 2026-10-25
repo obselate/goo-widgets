@@ -155,6 +155,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Color = input.TextColor!!,
             CaretColor = input.TextColor!!,
             SelectionColor = theme.AccentColor.WithAlpha(0.35),
+            PlaceholderColor = theme.MutedTextColor,
             Cursor = Cursor.Text,
             BorderWidth = theme.BorderWidth,
             BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,

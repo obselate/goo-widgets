@@ -318,6 +318,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
                 SelectionColor: theme.AccentColor.WithAlpha(0.35),
+                PlaceholderColor: theme.MutedTextColor,
                 Cursor: Cursor.Text,
             }
             if let create = current.CreateSearch {
