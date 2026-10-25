@@ -41,6 +41,8 @@ public data struct TextField {
     /// Masks text until the optional reveal action is pressed.
     var Password bool
     var RevealButton bool
+    /// Direction of the value and its addons. Nil inherits. Use LeftToRight for emails, URLs and passwords.
+    var ContentDirection Direction?
     /// Soft character limit. Input is retained when the count exceeds it.
     var MaxLength int32?
     var CounterText string?
@@ -225,6 +227,10 @@ public data struct TextField {
             }
         }
 
+        if let direction = resolved.ContentDirection {
+            entry!!.Direction = direction
+            entry!!.TextAlign = theme.RightToLeft ? TextAlign.Right: TextAlign.Left
+        }
         var issue Text? = nil
         if resolved.IssueText != nil {
             issue = Text{
@@ -302,6 +308,9 @@ public data struct TextField {
                 Overflow: Overflow.Hidden,
             }
             frame.Children.Add(content)
+            if let direction = resolved.ContentDirection {
+                content.Direction = direction
+            }
             entry!!.Width = Length.Auto
             entry!!.Height = Percent(100)
             entry!!.FlexGrow = 1
@@ -322,7 +331,7 @@ public data struct TextField {
                 content.Children.Add(
                     Container{
                         Height: Percent(100),
-                        Padding: Edges{Left: resolved.PaddingHorizontal!!},
+                        PaddingStart: resolved.PaddingHorizontal!!,
                         AlignItems: AlignItems.Center,
                         JustifyContent: JustifyContent.Center,
                         FlexShrink: 0,
@@ -335,7 +344,7 @@ public data struct TextField {
                 content.Children.Add(
                     Container{
                         Height: Percent(100),
-                        Padding: Edges{Right: resolved.PaddingHorizontal!!},
+                        PaddingEnd: resolved.PaddingHorizontal!!,
                         AlignItems: AlignItems.Center,
                         JustifyContent: JustifyContent.Center,
                         FlexShrink: 0,

@@ -3,15 +3,15 @@ package Goo.Widgets.Layout
 import Goo
 import Goo.Widgets
 
-/// An animated slide-over container panel docked to the left or right edge of its viewport.
+/// An animated slide-over container panel docked to the start or end edge of its viewport.
 /// Supports caller-owned content, custom container factories, and direction-aware transitions.
 public data struct Drawer {
     /// Hosted child element placed directly in the drawer container when non-nil.
     var Content Blob?
     /// Whether the drawer is visible and expanded. Build does not invert or mutate this state.
     var Open bool
-    /// Whether the drawer docks to and slides from the right viewport edge instead of the left.
-    var FromRight bool
+    /// Whether the drawer docks to and slides from the end edge instead of the start edge.
+    var FromEnd bool
     /// Accessible name for the group container. Nil resolves to "Drawer".
     var AccessibilityName string?
     /// Drawer width in logical pixels. Zero or default resolves to 320.0.
@@ -51,7 +51,7 @@ public data struct Drawer {
     public func Build() Blob {
         let theme = Theme.Read()
         let createRoot = CreateRoot
-        let defaultClosedTransform = if FromRight {
+        let defaultClosedTransform = if FromEnd != theme.RightToLeft {
             PanelTransform{TranslateX: Percent(100.0)}
         } else {
             PanelTransform{TranslateX: Percent(-100.0)}
@@ -99,6 +99,7 @@ public data struct Drawer {
         let root = Container{
             Position: PositionType.Absolute,
             Top: 0.0,
+            Direction: theme.Direction,
             Width: resolved.Width,
             Height: resolved.Height!!,
             Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
@@ -120,10 +121,10 @@ public data struct Drawer {
             },
         }
 
-        if resolved.FromRight {
-            root.Right = 0.0
+        if resolved.FromEnd {
+            root.End = 0.0
         } else {
-            root.Left = 0.0
+            root.Start = 0.0
         }
 
         if let content = Content {

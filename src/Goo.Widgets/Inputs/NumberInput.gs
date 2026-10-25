@@ -44,6 +44,7 @@ public class NumberInput : Cell[NumberInputInput] {
     private var scrubbing bool
     private var scrubX float64
     private var scrubValue float64
+    private var rightToLeft bool
     private let handle ElementHandle = ElementHandle()
 
     protected override func Build(input NumberInputInput) Blob {
@@ -63,7 +64,9 @@ public class NumberInput : Cell[NumberInputInput] {
             invalid = false
         }
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         let frame = Container{
+            Direction: theme.Direction,
             Width: Percent(100),
             MinWidth: 0,
             Height: theme.ControlHeight,
@@ -79,7 +82,7 @@ public class NumberInput : Cell[NumberInputInput] {
                 Text{
                     Content: label,
                     Color: theme.MutedTextColor,
-                    Padding: Edges{Left: theme.ControlPadding},
+                    PaddingStart: theme.ControlPadding,
                     Cursor: Cursor.ResizeHorizontal,
                     OnPointerDown: ScrubStart,
                     OnPointerMove: ScrubMove,
@@ -321,7 +324,8 @@ public class NumberInput : Cell[NumberInputInput] {
 
     private func ScrubMove(event PointerEvent) {
         if scrubbing && !current.Disabled {
-            SetValue(scrubValue + Math.Truncate((event.WindowPosition.X - scrubX) / 8) * (current.Step ?? 1))
+            let moved = (event.WindowPosition.X - scrubX) * (rightToLeft ? -1.0: 1.0)
+            SetValue(scrubValue + Math.Truncate(moved / 8) * (current.Step ?? 1))
         }
     }
 

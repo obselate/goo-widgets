@@ -355,12 +355,16 @@ internal class ContractHost : Cell {
     }
 }
 
-func RunContracts(action Action) {
+func RunContracts(action Action, theme Theme? = nil) {
     using let embedded = ThemePreferenceHost()
     embedded.Resize(320, 240, 320, 240)
     let host = ContractHost(action)
     let window = Window{Root: host}
-    Theme.Attach(window)
+    if let value = theme {
+        Theme.Attach(window, value)
+    } else {
+        Theme.Attach(window)
+    }
     window.Attach(embedded)
     embedded.RenderFrame(0.016)
     Require(host.Complete, "Retained contract build did not run.")
@@ -516,6 +520,7 @@ func Main() {
             WidgetErgonomics()
         }
     )
+    RunContracts(MirroredSliderKeys, Theme.Default with{Direction = Direction.RightToLeft})
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" {
         WindowInteractions()
     }
@@ -551,4 +556,17 @@ func SliderInteractions() {
     let disabled = slider.Render(input with{Disabled = true})
     Require(InvokeKeyBinding(disabled, Key.End), "Disabled slider did not retain its explicit key policy.")
     Require(Math.Abs(committed - 0.6) < 0.000001, "A disabled slider handled a key.")
+}
+
+func MirroredSliderKeys() {
+    var committed float64 = -1.0
+    let root = SliderProbe{}.Render(SliderInput{
+        Value: 0.5,
+        Step: 0.1,
+        OnValueCommitted: (value float64) -> {
+            committed = value
+        },
+    })
+    Require(InvokeKeyBinding(root, Key.Left) && Math.Abs(committed - 0.6) < 0.000001,
+        "Left did not increase a right-to-left slider.")
 }

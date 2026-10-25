@@ -97,7 +97,12 @@ public class FuzzyMatch {
         }
 
         internal func Label(text string, match FuzzyMatchResult, theme Theme) Container {
-            let label = Container{FlexDirection: FlexDirection.Row, MinWidth: 0, FlexShrink: 1}
+            let label = Container{
+                Direction: RightToLeftText(text) ? Direction.RightToLeft: Direction.LeftToRight,
+                FlexDirection: FlexDirection.Row,
+                MinWidth: 0,
+                FlexShrink: 1
+            }
             var position = 0
             for span in match.Ranges {
                 if span.Start > position {
@@ -126,6 +131,18 @@ public class FuzzyMatch {
                 tail.TextTrimming = TextTrimming.Ellipsis
             }
             return label
+        }
+
+        private func RightToLeftText(text string) bool {
+            for c in text {
+                if (c >= '\u0590' && c <= '\u08FF') || (c >= '\uFB1D' && c <= '\uFDFF') || (c >= '\uFE70' && c <= '\uFEFF') {
+                    return true
+                }
+                if Char.IsLetter(c) {
+                    return false
+                }
+            }
+            return false
         }
     }
 }

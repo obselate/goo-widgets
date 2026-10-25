@@ -98,7 +98,7 @@ public data struct ToggleSwitch {
             0.0,
             resolved.Width - 2.0 * (resolved.Padding!!+ resolved.BorderWidth!!) - resolved.ThumbSize
         )
-        let marginLeft = if resolved.Checked {
+        let offset = if resolved.Checked {
             travel
         } else {
             0.0
@@ -120,7 +120,7 @@ public data struct ToggleSwitch {
                 BorderRadius: resolved.ThumbRadius!!,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
-                Margin: Edges{Left: marginLeft},
+                MarginStart: offset,
             }
         }
         if let createRoot = createRoot {

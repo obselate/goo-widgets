@@ -11,14 +11,15 @@ class TextFieldPage : GalleryPage {
 
     public override func Build() Blob {
         let baseField = TextField{EntryHeight: 44.0, Gap: 7.0, BorderRadius: 8.0, Width: 280.0}
+        let ltrField = baseField with{ContentDirection = Direction.LeftToRight}
 
-        let defaultField = baseField with{
+        let defaultField = ltrField with{
             Label = "Email address",
             Value = "alex@example.com",
             Placeholder = "you@example.com",
             AccessibilityName = "Email address",
         }
-        let invalidField = baseField with{
+        let invalidField = ltrField with{
             Label = "Email address",
             Value = "alex@",
             Placeholder = "you@example.com",
@@ -26,7 +27,7 @@ class TextFieldPage : GalleryPage {
             IssueText = "Enter a valid email address.",
             AccessibilityName = "Email address",
         }
-        let disabledField = baseField with{
+        let disabledField = ltrField with{
             Label = "Email address",
             Value = "locked@example.com",
             Placeholder = "you@example.com",
@@ -47,13 +48,13 @@ class TextFieldPage : GalleryPage {
             BorderRadius = 12.0,
             FocusRingWidth = 3.0,
         }
-        let password = baseField with{
+        let password = ltrField with{
             Label = "Password",
             Value = "correct horse",
             Password = true,
             RevealButton = true,
         }
-        let address = baseField with{
+        let address = ltrField with{
             Label = "Site address",
             Value = "team",
             Clearable = true,

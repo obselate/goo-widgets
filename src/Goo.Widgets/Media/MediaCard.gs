@@ -152,7 +152,7 @@ public data struct MediaCard {
             Cursor: Cursor.Pointer,
             Disabled: resolved.Disabled,
             AlignItems: AlignItems.Stretch,
-            TextAlign: TextAlign.Left,
+            TextAlign: TextAlign.Start,
             OverflowX: Overflow.Hidden,
             OverflowY: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,

@@ -30,10 +30,12 @@ public data struct RadioGroupInput {
 /// One tab stop with arrow-key selection and radio accessibility.
 public open class RadioGroup : Cell[RadioGroupInput] {
     private var input RadioGroupInput
+    private var rightToLeft bool
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
 
     protected override func Build(value RadioGroupInput) Blob {
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         input = value with{
             Items = value.Items ?? []RadioOption{},
             Orientation = value.Orientation ?? AccessibilityOrientation.Vertical,
@@ -61,6 +63,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
         if let create = input.CreateRoot {
             root = create(input, root)
         }
+        root.Direction = theme.Direction
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
@@ -176,7 +179,8 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             e.Key,
             input.Orientation!!,
             true,
-            (item RadioOption) -> item.Disabled
+            (item RadioOption) -> item.Disabled,
+            rightToLeft
         )
         if next < 0 {
             return

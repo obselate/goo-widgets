@@ -262,6 +262,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             root = create(current, root)
         }
         root.Handle = current.Handle ?? rootHandle
+        root.Direction = theme.Direction
         root.Focusable = !current.Disabled
         root.TabStop = active == nil && !current.Disabled
         root.Disabled = current.Disabled
@@ -489,7 +490,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             return
         }
         let origin = active ?? month
-        var step = RovingFocus.Step(event.Key, AccessibilityOrientation.Unspecified, 7)
+        var step = RovingFocus.Step(event.Key, AccessibilityOrientation.Unspecified, 7, theme.RightToLeft)
         var number = origin.DayNumber
         var attempts = 42
         if step == 0 && (event.Key == Key.Home || event.Key == Key.End) {

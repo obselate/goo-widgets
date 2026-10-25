@@ -16,6 +16,9 @@ public data struct ThemeScope {
         let inherited = Theme.Read()
         var value = Value?.ResolveDefaults() ?? inherited
         value.ReducedMotion = inherited.ReducedMotion
+        if value.Direction == Direction.Auto {
+            value.Direction = inherited.Direction
+        }
         if let density = Density {
             value = value.WithDensity(density)
         }

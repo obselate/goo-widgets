@@ -6,7 +6,7 @@ import Goo.Widgets.Icons
 
 func Main() {
     let expected = []string{
-        "arrow_downward", "arrow_upward", "calendar_month", "check", "chevron_right", "close",
+        "arrow_downward", "arrow_upward", "calendar_month", "check", "chevron_left", "chevron_right", "close",
         "content_copy", "create_new_folder", "crop_square", "done_all", "expand_less", "expand_more",
         "filter_none", "find_replace", "match_case", "match_word", "pause", "play_arrow",
         "regular_expression", "remove", "skip_next", "skip_previous"

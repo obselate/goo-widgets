@@ -94,7 +94,7 @@ public data struct PropertyGrid {
                         Gap: theme.Spacing,
                         Color: theme.TextColor,
                         Focus: theme.FocusStyle,
-                        MaterialIcons.Create(collapsed ? "chevron_right": "expand_more", 16, theme.MutedTextColor),
+                        MaterialIcons.Create(collapsed ? (theme.RightToLeft ? "chevron_left": "chevron_right"): "expand_more", 16, theme.MutedTextColor),
                         Text{Content: name, FontWeight: theme.HeadingFontWeight}
                     }
                     WidgetKeyBindings.BindActivation(heading)

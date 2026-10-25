@@ -88,7 +88,7 @@ internal class TabBarExample : Cell {
                 Cell.Mount[TabBarInput, TabBar](
                     "vertical",
                     TabBarInput{
-                        Placement: TabPlacement.Left,
+                        Placement: TabPlacement.Start,
                         Width: 180,
                         Height: 136,
                         Items: items.ToArray(),

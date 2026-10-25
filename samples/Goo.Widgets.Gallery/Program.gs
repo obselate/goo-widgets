@@ -133,7 +133,7 @@ func CaptureWindow(window Window, path string) {
     }
 }
 
-func CaptureGallery(registry GalleryRegistry, directory string, requestedPage string?, mode ThemeMode, fullShell bool = false) {
+func CaptureGallery(registry GalleryRegistry, directory string, requestedPage string?, mode ThemeMode, fullShell bool, rightToLeft bool) {
     Directory.CreateDirectory(directory)
     let first = if requestedPage != nil {
         registry.IndexOf(requestedPage)
@@ -146,6 +146,7 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
         registry.Count()
     }
     let gallery = Gallery(registry, first, !fullShell)
+    gallery.RightToLeft = rightToLeft
     let window = Window{
         Title: "Goo Widgets gallery screenshots",
         Width: fullShell ? 1440: 1100,
@@ -268,9 +269,10 @@ func Main(args[]string) {
     let requestedPage = RequestedValue(args, "--page")
     let appearance = RequestedValue(args, "--theme")
     let mode = appearance == "light" ? ThemeMode.Light: ThemeMode.Dark
+    let rightToLeft = Array.IndexOf(args, "--rtl") >= 0
     if let directory = RequestedValue(args, "--shell-screenshots") {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
-        CaptureGallery(registry, directory, requestedPage, mode, true)
+        CaptureGallery(registry, directory, requestedPage, mode, true, rightToLeft)
         return
     }
     if let spotlightDirectory = RequestedValue(args, "--spotlight") {
@@ -283,7 +285,7 @@ func Main(args[]string) {
     }
     if let screenshotDirectory = RequestedValue(args, "--screenshots") {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
-        CaptureGallery(registry, screenshotDirectory, requestedPage, mode)
+        CaptureGallery(registry, screenshotDirectory, requestedPage, mode, false, rightToLeft)
         return
     }
     var initialIndex int32
@@ -292,6 +294,7 @@ func Main(args[]string) {
     }
     Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
     let gallery = Gallery(registry, initialIndex)
+    gallery.RightToLeft = rightToLeft
     let window = Window{Title: "Goo Widgets Gallery", Width: 1440, Height: 900, MinWidth: 960, MinHeight: 640, Root: gallery}
     gallery.AttachWindow(window)
     Theme.SetMode(window, mode)

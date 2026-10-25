@@ -240,7 +240,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 let badge = Text{
                     Content: count.ToString(),
                     FontSize: theme.CaptionFontSize,
-                    Margin: Edges{Left: resolved.Expanded ? theme.ControlGap: 0},
+                    MarginStart: resolved.Expanded ? theme.ControlGap: 0,
                     BackgroundColor: resolved.Expanded ? Color.Transparent: theme.PanelColor,
                     Color: !resolved.Expanded ? theme.TextColor:
                     id == resolved.SelectedId ? resolved.SelectedTextColor!!: resolved.TextColor!!,
@@ -249,7 +249,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 if !resolved.Expanded {
                     badge.Position = PositionType.Absolute
                     badge.Top = 2
-                    badge.Right = 2
+                    badge.End = 2
                 }
                 button.Children.Add(badge)
             }
@@ -257,7 +257,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 button.Children.Add(
                     Container{
                         Position: PositionType.Absolute,
-                        Left: 0,
+                        Start: 0,
                         Top: 6,
                         Bottom: 6,
                         Width: 3,

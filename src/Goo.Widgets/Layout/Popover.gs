@@ -4,7 +4,7 @@ import Goo
 import Goo.Widgets
 import System
 
-/// Preferred anchor edge and alignment before viewport collision handling.
+/// Preferred anchor edge and alignment before viewport collision handling. Start and End follow the theme direction.
 public enum PopoverPlacement {
     BottomStart;
     BottomEnd;
@@ -90,6 +90,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private var previewWindow Window?
     private let previewKey Func[Key, KeyModifiers, bool]
     private var disposed bool
+    private var rightToLeft bool
 
     public init() {
         rootHandle.MetricsChanged += RootMetrics
@@ -120,6 +121,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
 
     protected override func Build(input PopoverInput) Blob {
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         let previous = current
         current = Resolve(input, theme)
         BindAnchor(input.Open ? input.Anchor: nil)
@@ -333,7 +335,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let gap = current.Gap!!
         var x = target.X
         var y = target.Y + target.Height + gap
-        if current.Placement == PopoverPlacement.BottomEnd || current.Placement == PopoverPlacement.TopEnd {
+        if (current.Placement == PopoverPlacement.BottomEnd || current.Placement == PopoverPlacement.TopEnd) != rightToLeft {
             x = target.X + target.Width - width
         }
         if current.Placement == PopoverPlacement.TopStart || current.Placement == PopoverPlacement.TopEnd {
