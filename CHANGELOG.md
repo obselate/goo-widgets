@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.11.0 - 2026-10-25
+
+- Spinner and Toast exit animate through Goo 0.17.0 paint slots and no longer rebuild every frame. Requires Goo 0.17.0.
+
 ## 0.10.1 - 2026-10-25
 
 - Command palette match highlights meet 4.5:1 text contrast in Ink, Bone and high-contrast themes.
