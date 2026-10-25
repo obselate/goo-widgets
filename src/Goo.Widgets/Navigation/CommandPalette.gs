@@ -311,7 +311,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 Text{
                     Content: command.Label.Substring(span.Start, span.Length),
                     FontWeight: theme.HeadingFontWeight,
-                    Color: theme.AccentColor,
+                    Color: theme.LinkColor,
                     TextWrap: TextWrap.NoWrap,
                     FlexShrink: 0,
                 }
