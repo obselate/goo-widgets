@@ -384,6 +384,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         FormFieldPage{DisplayTitle: "Form field"},
         TextAreaPage{DisplayTitle: "Text area"},
         FindBarPage{DisplayTitle: "Find bar"},
+        TriggerMenuPage{DisplayTitle: "Trigger menu"},
         TouchTextEditingPage{DisplayTitle: "Touch text editing"},
         ToggleSwitchPage{DisplayTitle: "Toggle switch"},
         StepperPage{DisplayTitle: "Stepper"},

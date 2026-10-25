@@ -27,6 +27,8 @@ public data struct PopoverInput {
     /// Supply exactly one anchor or window point when open.
     var Anchor ElementHandle?
     var WindowPoint Point?
+    /// Part of Anchor to place against, in Anchor border-box coordinates. Placement follows Anchor scroll and layout.
+    var AnchorRect ElementRect?
     var Content Blob?
     /// Additional keyed overlays above this panel, used by nested menus.
     var Overlays[]?Blob
@@ -49,6 +51,8 @@ public data struct PopoverInput {
     /// Base layer defaults to 20; mounted scopes add their opening order.
     var ZIndex int32
     var InitialFocus ElementHandle?
+    /// False keeps focus where it is and starts no focus scope. Escape still dismisses. Defaults to true.
+    var TakeFocus bool?
     var AccessibilityName string?
     var Role AccessibilityRole
     var BackgroundColor Color?
@@ -64,6 +68,7 @@ public data struct PopoverInput {
 }
 
 /// Anchors content, flips/clamps placement, contains Tab, and restores prior focus except on outside clicks.
+/// With TakeFocus false, focus stays outside the panel.
 public open class Popover : Cell[PopoverInput], IDisposable {
     private let rootHandle ElementHandle = ElementHandle()
     private let panelHandle ElementHandle = ElementHandle()
@@ -82,12 +87,21 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private var anchorDismissed bool
     private var presented bool
     private var rootKeyHandler Action[KeyEvent]?
+    private var previewWindow Window?
+    private let previewKey Func[Key, KeyModifiers, bool]
     private var disposed bool
 
     public init() {
         rootHandle.MetricsChanged += RootMetrics
         panelHandle.MetricsChanged += PanelMetrics
         measurementRootHandle.MetricsChanged += MeasurementRootMetrics
+        previewKey = (key Key, modifiers KeyModifiers) -> {
+            if key != Key.Escape {
+                return false
+            }
+            Dismiss(PopoverDismissReason.Escape)
+            return true
+        }
     }
 
     /// Releases geometry subscriptions and the mounted focus scope.
@@ -100,6 +114,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         panelHandle.MetricsChanged -= PanelMetrics
         measurementRootHandle.MetricsChanged -= MeasurementRootMetrics
         BindAnchor(nil)
+        BindPreview(nil)
         CloseScope()
     }
 
@@ -108,6 +123,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let previous = current
         current = Resolve(input, theme)
         BindAnchor(input.Open ? input.Anchor: nil)
+        let preview Window? = input.Open && input.TakeFocus == false ? Theme.Key.Window: nil
+        BindPreview(preview)
         if !input.Open {
             anchorWasMounted = false
             anchorDismissed = false
@@ -128,6 +145,11 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 anchorBox = handle.BorderBox
                 anchorWasMounted = true
             }
+        }
+        let target = if let rect = current.AnchorRect {
+            ElementRect{X: anchorBox.X + rect.X, Y: anchorBox.Y + rect.Y, Width: rect.Width, Height: rect.Height}
+        } else {
+            anchorBox
         }
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
@@ -158,12 +180,12 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         ) {
             let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
             let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
-            let above = Math.Max(0.0, anchorBox.Y - current.Gap!!- top)
-            let below = Math.Max(0.0, bottom - anchorBox.Y - anchorBox.Height - current.Gap!!)
+            let above = Math.Max(0.0, target.Y - current.Gap!!- top)
+            let below = Math.Max(0.0, bottom - target.Y - target.Height - current.Gap!!)
             heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
             height = Math.Min(height, heightLimit)
         }
-        let origin = Place(viewport, width, height)
+        let origin = Place(viewport, width, height, target)
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
         let content = current.Content ?? Container{HitTestSelf: false}
         let panel = if let create = current.CreatePanel {
@@ -219,7 +241,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         rootKeyHandler = root.OnKeyDown
         root.Handle = presented ? rootHandle: measurementRootHandle
         root.Visibility = presented ? Visibility.Visible: Visibility.Hidden
-        root.Focusable = true
+        root.Focusable = current.TakeFocus != false
         root.HitTestSelf = false
         root.TabStop = false
         root.Disabled = false
@@ -280,6 +302,13 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 throw ArgumentOutOfRangeException("WindowPoint")
             }
         }
+        if let rect = result.AnchorRect {
+            if !Double.IsFinite(rect.X) || !Double.IsFinite(rect.Y)
+            || !Double.IsFinite(rect.Width) || !Double.IsFinite(rect.Height)
+            || rect.Width < 0.0 || rect.Height < 0.0 {
+                throw ArgumentOutOfRangeException("AnchorRect")
+            }
+        }
         if !Enum.IsDefined(result.Placement) {
             throw ArgumentOutOfRangeException("Placement")
         }
@@ -289,7 +318,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private func MeasurementValid(width float64) bool ->
     hasPanelMeasurement && Math.Abs(measuredWidth - width) <= 0.01
 
-    private func Place(viewport ElementRect, width float64, height float64) Point {
+    private func Place(viewport ElementRect, width float64, height float64, target ElementRect) Point {
         let margin = current.ViewportMargin!!
         let left = viewport.X + Math.Min(margin, viewport.Width * 0.5)
         let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
@@ -302,35 +331,48 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             }
         }
         let gap = current.Gap!!
-        var x = anchorBox.X
-        var y = anchorBox.Y + anchorBox.Height + gap
+        var x = target.X
+        var y = target.Y + target.Height + gap
         if current.Placement == PopoverPlacement.BottomEnd || current.Placement == PopoverPlacement.TopEnd {
-            x = anchorBox.X + anchorBox.Width - width
+            x = target.X + target.Width - width
         }
         if current.Placement == PopoverPlacement.TopStart || current.Placement == PopoverPlacement.TopEnd {
-            y = anchorBox.Y - height - gap
-            if y < top && anchorBox.Y + anchorBox.Height + gap + height <= bottom {
-                y = anchorBox.Y + anchorBox.Height + gap
+            y = target.Y - height - gap
+            if y < top && target.Y + target.Height + gap + height <= bottom {
+                y = target.Y + target.Height + gap
             }
         } else if current.Placement == PopoverPlacement.RightStart || current.Placement == PopoverPlacement.LeftStart {
-            y = anchorBox.Y
+            y = target.Y
             if current.Placement == PopoverPlacement.RightStart {
-                x = anchorBox.X + anchorBox.Width + gap
-                if x + width > right && anchorBox.X - gap - width >= left {
-                    x = anchorBox.X - gap - width
+                x = target.X + target.Width + gap
+                if x + width > right && target.X - gap - width >= left {
+                    x = target.X - gap - width
                 }
             } else {
-                x = anchorBox.X - width - gap
-                if x < left && anchorBox.X + anchorBox.Width + gap + width <= right {
-                    x = anchorBox.X + anchorBox.Width + gap
+                x = target.X - width - gap
+                if x < left && target.X + target.Width + gap + width <= right {
+                    x = target.X + target.Width + gap
                 }
             }
-        } else if y + height > bottom && anchorBox.Y - height - gap >= top {
-            y = anchorBox.Y - height - gap
+        } else if y + height > bottom && target.Y - height - gap >= top {
+            y = target.Y - height - gap
         }
         return Point{
             X: Math.Clamp(x, left, Math.Max(left, right - width)),
             Y: Math.Clamp(y, top, Math.Max(top, bottom - height))
+        }
+    }
+
+    private func BindPreview(next Window?) {
+        if previewWindow == next {
+            return
+        }
+        if let previous = previewWindow {
+            previous.PreviewKeyPressed -= previewKey
+        }
+        previewWindow = next
+        if let window = next {
+            window.PreviewKeyPressed += previewKey
         }
     }
 
@@ -380,7 +422,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             rootBox = metrics.BorderBox
             Rebuild()
         }
-        if activeScope == nil && !anchorDismissed {
+        if activeScope == nil && !anchorDismissed && current.TakeFocus != false {
             activeScope = rootHandle.BeginFocusScope(FocusScopeOptions{InitialFocus: current.InitialFocus})
             Rebuild()
         }
