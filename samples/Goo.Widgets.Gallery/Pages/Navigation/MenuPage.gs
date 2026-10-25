@@ -32,10 +32,11 @@ internal class MenuExample : Cell {
 
     public override func Build() Blob {
         let theme = Theme.Read()
+        let left = openLeft != (theme.Direction == Direction.RightToLeft)
         var menu = MenuInput{
             Open: isOpen,
             Placement: openUp ? PopoverPlacement.TopStart: PopoverPlacement.BottomStart,
-            SubmenuPlacement: openLeft ? PopoverPlacement.LeftStart: PopoverPlacement.RightStart,
+            SubmenuPlacement: left ? PopoverPlacement.LeftStart: PopoverPlacement.RightStart,
             Width: 240.0,
             AccessibilityName: "Project actions",
             OnDismiss: Dismiss,
@@ -103,7 +104,7 @@ internal class MenuExample : Cell {
                         isOpen = false
                         Rebuild()
                     },
-                    Text{Content: openLeft ? "Submenus: left": "Submenus: right"}
+                    Text{Content: left ? "Submenus: left": "Submenus: right"}
                 }
             },
             Button{
