@@ -7,6 +7,7 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
 import Hexa.NET.SDL3
 import System
+import System.Linq
 
 internal class TextSurfaceHost : Cell {
     internal var Window Window?
@@ -26,6 +27,9 @@ internal class TextSurfaceHost : Cell {
     internal var Area TextEditor?
     internal var Code TextEditor?
     internal var HighlightColor Color
+    internal var Highlights int32
+    internal var CodeBuilds int32
+    internal var Highlighter Action[TextPresentationLayer, SyntaxPalette]?
     internal let QueryHandle ElementHandle = ElementHandle()
     internal let AreaHandle ElementHandle = ElementHandle()
     internal let CodeHandle ElementHandle = ElementHandle()
@@ -102,13 +106,32 @@ internal class TextSurfaceHost : Cell {
                     Expanded = value
                     Rebuild()
                 },
-                Highlight: (layer, palette) -> {
-                    HighlightColor = palette.Keyword
-                    layer.SetStyle("keyword", TextRange(0, 3), Style{Color: palette.Keyword})
-                },
+                Highlight: Highlighter,
                 CreateEditor: (input, editor) -> {
                     editor.Handle = CodeHandle
                     Code = editor
+                    CodeBuilds++
+                    return editor
+                },
+            }
+        ),
+    }
+}
+
+internal class TextSurfaceLongCode : Cell {
+    internal let Handle ElementHandle = ElementHandle()
+    internal let Source string = String.Join("\n", Enumerable.Range(0, 5000).Select(i -> "line " + i.ToString()))
+
+    public override func Build() Blob -> Container{
+        Width: Percent(100),
+        Padding: 16,
+        Cell.Mount[CodeBlockInput, CodeBlock](
+            "long",
+            CodeBlockInput{
+                Code: Source,
+                MaxHeight: 240,
+                CreateEditor: (input, editor) -> {
+                    editor.Handle = Handle
                     return editor
                 },
             }
@@ -131,6 +154,11 @@ func TextSurfaceInteractions() {
     let root = ApplicationRoot(host)
     let window = Window{Root: root, Width: 760, Height: 800, AccessibilityAdapter: semantics, Title: "Text surfaces"}
     host.Window = window
+    host.Highlighter = (layer, palette) -> {
+        host.Highlights++
+        host.HighlightColor = palette.Keyword
+        layer.SetStyle("keyword", TextRange(0, 3), Style{Color: palette.Keyword})
+    }
     BindApplicationInput(root, window)
     window.Open()
     try {
@@ -234,7 +262,29 @@ func TextSurfaceInteractions() {
             host.HighlightColor == Theme.Read(window).Syntax.Keyword,
             "CodeBlock highlight did not use Theme syntax palette"
         )
+        let highlights = host.Highlights
+        let codeBuilds = host.CodeBuilds
+        host.Rebuild()
+        PumpFrames(window, 4)
+        Require(
+            host.CodeBuilds > codeBuilds && host.Highlights == highlights,
+            "CodeBlock highlighted unchanged code again"
+        )
+        let previous = host.Highlighter!!
+        host.Highlighter = (layer, palette) -> previous(layer, palette)
+        host.Rebuild()
+        PumpFrames(window, 4)
+        Require(host.Highlights == highlights + 1, "CodeBlock kept styles from a replaced Highlight")
         let foldedHeight = host.CodeHandle.BorderBox.Height
+        Require(
+            host.CodeHandle.TryGetTextCaretRect(
+                TextPosition{Offset: 0, Affinity: TextAffinity.Downstream},
+                TextCoordinateSpace.Element,
+                out var line
+            ) &&
+                Math.Abs(foldedHeight - 2 * line.Height - 2 * Theme.Read(window).ControlPadding) < 1,
+            "Folded CodeBlock did not show exactly two lines"
+        )
         TextSurfaceActivate(window, semantics, "Copy code")
         Require(window.GetClipboardText() == host.Source, "CodeBlock copy omitted folded lines")
         TextSurfaceActivate(window, semantics, "Show all 6 lines")
@@ -265,10 +315,51 @@ func TextSurfaceInteractions() {
         window.RequestClose()
         PumpFrames(window, 3)
     }
+    TextSurfaceLongCodeProof()
     TextSurfaceGalleryProof()
     Console.WriteLine(
-        "PASS: FindBar keys and options, CodeBlock copy and folding, TextArea submit, IME, counter and growth"
+        "PASS: FindBar keys and options, CodeBlock copy, folding, highlight cache and MaxHeight, TextArea submit, IME, counter and growth"
     )
+}
+
+func TextSurfaceLongCodeProof() {
+    let host = TextSurfaceLongCode()
+    let window = Window{Root: ApplicationRoot(host), Width: 760, Height: 600, Title: "Long code"}
+    window.Open()
+    try {
+        PumpFrames(window, 8)
+        let first = TextPosition{Offset: 0, Affinity: TextAffinity.Downstream}
+        let last = TextPosition{Offset: host.Source.Length, Affinity: TextAffinity.Downstream}
+        Require(host.Handle.BorderBox.Height <= 240.5, "Long CodeBlock exceeded MaxHeight")
+        Require(host.Handle.ScrollRange.Y > 0, "Long CodeBlock did not scroll")
+        Require(
+            host.Handle.TryCopyTextRangeRects(
+                TextRange(0, host.Source.Length),
+                TextCoordinateSpace.Element,
+                Span[ElementRect].Empty,
+                out var retained
+            ) &&
+                retained > 0 &&
+                retained < 30,
+            "Long CodeBlock laid out lines outside the viewport"
+        )
+        Require(
+            host.Handle.TryGetTextCaretRect(first, TextCoordinateSpace.Element, out var top) &&
+                !host
+                .Handle
+                .TryGetTextCaretRect(last, TextCoordinateSpace.Element, out var bottom),
+            "Long CodeBlock retained the wrong lines"
+        )
+        Require(host.Handle.JumpTo(0, host.Handle.ScrollRange.Y), "Long CodeBlock did not accept scrolling")
+        PumpFrames(window, 4)
+        Require(
+            host.Handle.TryGetTextCaretRect(last, TextCoordinateSpace.Element, out var end),
+            "Long CodeBlock did not lay out scrolled lines"
+        )
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 3)
+    }
 }
 
 func TextSurfaceGalleryProof() {
