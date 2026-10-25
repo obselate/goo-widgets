@@ -117,7 +117,7 @@ public class ShortcutList : Cell[ShortcutListInput] {
             root.Children.Add(
                 TextField{
                     Value: input.Query ?? "",
-                    Placeholder: "Find a shortcut",
+                    Placeholder: theme.Text("Find a shortcut"),
                     OnChange: input.OnQueryChange
                 }.Build()
             )

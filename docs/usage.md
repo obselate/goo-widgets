@@ -357,6 +357,18 @@ Theme.Attach(window, Theme.Default with{Direction = Direction.RightToLeft})
 Widgets then mirror layout, horizontal arrow keys, slider drag and drawer and tab edges.
 A `ThemeScope` with `Direction` Auto keeps the outer direction.
 
+`Theme.Culture` formats numbers and dates in Slider, NumberInput, Calendar, DatePicker,
+TimeAxis and chart summaries. Nil follows `CultureInfo.CurrentCulture`. `Theme.Translate`
+receives each English default label, with `{0}` and `{1}` for inserted values, and
+returns the translation or nil:
+
+```gsharp
+Theme.Attach(window, Theme.Default with{Translate = (text string) -> german.GetValueOrDefault(text)})
+```
+
+Explicit labels and `Culture` inputs always win. A `ThemeScope` keeps the outer
+culture and translation unless its theme sets its own.
+
 Use `LinkColor` for links and `FocusColor` for keyboard focus. Theme also supplies
 quiet tone fills, sunken and active surfaces, strong borders, subtle and disabled
 text, four radii, three elevations, type sizes and motion durations. `Syntax`,

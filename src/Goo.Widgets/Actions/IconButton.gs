@@ -46,7 +46,7 @@ public data struct IconButton {
         let width = Width ?? theme.ControlHeight
         let height = Height ?? width
         let resolved = this with{
-            AccessibilityName = AccessibilityName ?? "Icon action",
+            AccessibilityName = AccessibilityName ?? theme.Text("Icon action"),
             Width = width,
             Height = height,
             Padding = Padding ?? 0.0,

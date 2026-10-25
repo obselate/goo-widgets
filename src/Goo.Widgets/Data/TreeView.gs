@@ -155,7 +155,7 @@ public open class TreeView : Cell[TreeViewInput] {
             Height = value.Height ?? defaultHeight,
             RowHeight = value.RowHeight ?? theme.ControlHeight,
             Indent = value.Indent ?? theme.Spacing * 5.0,
-            AccessibilityName = value.AccessibilityName ?? "Tree",
+            AccessibilityName = value.AccessibilityName ?? theme.Text("Tree"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
             SelectedColor = value.SelectedColor ?? theme.AccentColor.WithAlpha(0.15),
@@ -211,7 +211,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 if row.Expanded && loading.Contains(node.Id!!) {
                     rows.Add(
                         TreeViewRow{
-                            Node: TreeNode{Id: node.Id + "\0loading", Label: "Loading…"},
+                            Node: TreeNode{Id: node.Id + "\0loading", Label: theme.Text("Loading…")},
                             ParentId: node.Id,
                             Depth: row.Depth + 1,
                             Disabled: true,
@@ -492,8 +492,8 @@ public open class TreeView : Cell[TreeViewInput] {
                 Key: id,
                 Height: snapshot.RowHeight!!,
                 PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
-                Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: "Loading children", Busy: true},
-                Text{Content: "Loading…", Color: theme.MutedTextColor}
+                Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: theme.Text("Loading children"), Busy: true},
+                Text{Content: theme.Text("Loading…"), Color: theme.MutedTextColor}
             }
         }
         let branch = (row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren

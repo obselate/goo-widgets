@@ -299,7 +299,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             ExpandColumnWidth = value.ExpandColumnWidth ?? theme.ControlHeight,
             DetailPadding = value.DetailPadding ?? theme.ControlPadding,
             DetailBackground = value.DetailBackground ?? theme.SunkenColor,
-            AccessibilityName = value.AccessibilityName ?? "Data grid",
+            AccessibilityName = value.AccessibilityName ?? theme.Text("Data grid"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
             SelectedColor = value.SelectedColor ?? theme.ActiveColor,
@@ -502,7 +502,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         Transform: PanelTransform{TranslateX: horizontalOffset},
                         AlignItems: AlignItems.Center,
                         JustifyContent: JustifyContent.Center,
-                        input.EmptyContent ?? Text{Content: "No rows", Color: theme.MutedTextColor, FontSize: theme.FontSize}
+                        input.EmptyContent ?? Text{Content: theme.Text("No rows"), Color: theme.MutedTextColor, FontSize: theme.FontSize}
                     }
                 }
             }
@@ -642,7 +642,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Grid,
             Name: input.AccessibilityName!!,
-            Description: RowCount.ToString() + " rows, " + columns.Length.ToString() + " columns",
+            Description: theme.Text("{0} rows, {1} columns", RowCount, columns.Length),
             MultiSelectable: input.Selection == DataGridSelection.Multiple,
             Relationships: AccessibilityRelationships{ActiveDescendant: active}
         }
@@ -657,7 +657,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding, Top: theme.Spacing * 2, Bottom: theme.Spacing * 2},
                     BorderWidth: Edges{Top: 1},
                     BorderColor: theme.BorderColor,
-                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Grid summary"},
+                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Grid summary")},
                     footer
                 }
             )
@@ -1016,7 +1016,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Key: "leading",
                     Width: leading,
                     FlexShrink: 0,
-                    Accessibility: Accessibility{Role: AccessibilityRole.ColumnHeader, Name: "Row controls"}
+                    Accessibility: Accessibility{Role: AccessibilityRole.ColumnHeader, Name: theme.Text("Row controls")}
                 }
             )
         }
@@ -1068,7 +1068,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             }
             if filter {
                 slot.Padding = theme.Spacing
-                slot.Accessibility = Accessibility{Role: AccessibilityRole.GridCell, Name: "Filter " + label}
+                slot.Accessibility = Accessibility{Role: AccessibilityRole.GridCell, Name: theme.Text("Filter {0}", label)}
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
                 let sort = Button{
@@ -1140,7 +1140,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     handle.OnKeyDown = (e KeyEvent) -> ResizeKey(id, e)
                     handle.Accessibility = Accessibility{
                         Role: AccessibilityRole.Slider,
-                        Name: "Resize " + label,
+                        Name: theme.Text("Resize {0}", label),
                         Orientation: AccessibilityOrientation.Horizontal,
                         Range: AccessibilityValue{
                             Minimum: ResizeMinimum(index),
@@ -1206,7 +1206,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     FlexShrink: 0,
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
-                    Accessibility: Accessibility{Role: AccessibilityRole.GridCell, Name: "Row controls"}
+                    Accessibility: Accessibility{Role: AccessibilityRole.GridCell, Name: theme.Text("Row controls")}
                 }
                 if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
                     var check = (
@@ -1423,7 +1423,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     OnKeyDown: stopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
-                        Name: "Details for " + (row.Label ?? id)
+                        Name: theme.Text("Details for {0}", row.Label ?? id)
                     },
                     detail
                 }

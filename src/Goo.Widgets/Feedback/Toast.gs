@@ -145,7 +145,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         if let label = input.Item.ActionLabel {
             actions.Children.Add(ActionButton{Content: label, OnClick: action}.Build())
         }
-        actions.Children.Add(ActionButton{Content: "Dismiss", OnClick: dismiss}.Build())
+        actions.Children.Add(ActionButton{Content: theme.Text("Dismiss"), OnClick: dismiss}.Build())
         root.Children.Add(actions)
         return input.CreateRoot?.Invoke(input, root) ?? root
     }

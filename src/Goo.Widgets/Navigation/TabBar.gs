@@ -75,7 +75,7 @@ public open class TabBar : Cell[TabBarInput] {
             Vertical = value.Vertical || value.Placement == TabPlacement.Start || value.Placement == TabPlacement.End,
             PinnedIds = value.PinnedIds ?? []string{},
             DirtyIds = value.DirtyIds ?? []string{},
-            AccessibilityName = value.AccessibilityName ?? "Tabs",
+            AccessibilityName = value.AccessibilityName ?? theme.Text("Tabs"),
             Width = value.Width ?? Percent(100),
             ItemHeight = value.ItemHeight ?? theme.ControlHeight
         }
@@ -231,7 +231,7 @@ public open class TabBar : Cell[TabBarInput] {
                     Focusable: !item.Disabled,
                     TabStop: false,
                     OnClick: () -> input.OnClose?.Invoke(id),
-                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Close " + item.Label!!},
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Close {0}", item.Label!!)},
                     Focus: theme.FocusStyle,
                     Text{Content: "×", FontSize: theme.FontSize},
                 }
@@ -300,7 +300,7 @@ public open class TabBar : Cell[TabBarInput] {
         }
         if input.OnAdd != nil {
             outer.Children.Add(
-                ActionButton{Content: "+", AccessibilityName: "Add tab", MinWidth: 32, OnClick: input.OnAdd}.Build()
+                ActionButton{Content: "+", AccessibilityName: theme.Text("Add tab"), MinWidth: 32, OnClick: input.OnAdd}.Build()
             )
         }
         if input.OverflowMenu {
@@ -316,7 +316,7 @@ public open class TabBar : Cell[TabBarInput] {
                 Cell.Mount[MenuButtonInput, MenuButton](
                     "overflow",
                     MenuButtonInput{
-                        Button: ActionButton{AccessibilityName: "All tabs", MinWidth: 32},
+                        Button: ActionButton{AccessibilityName: theme.Text("All tabs"), MinWidth: 32},
                         Open: overflowOpen,
                         Items: entries,
                         OnActivate: Select,

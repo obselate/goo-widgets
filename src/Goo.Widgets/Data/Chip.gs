@@ -234,7 +234,7 @@ public data struct Chip {
             DisabledStyle: Style{Opacity: input.DisabledOpacity!!},
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
-                Name: input.RemoveAccessibilityName ?? "Remove " + input.Label!!,
+                Name: input.RemoveAccessibilityName ?? theme.Text("Remove {0}", input.Label!!),
             },
             OnClick: remove,
             AlignItems: AlignItems.Center,

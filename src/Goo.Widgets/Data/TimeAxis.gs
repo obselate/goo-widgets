@@ -151,10 +151,10 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             LaneHeight = value.LaneHeight ?? theme.ControlHeight,
             LaneGap = value.LaneGap ?? theme.ControlGap,
             MinimumEventWidth = value.MinimumEventWidth ?? 6.0,
-            MarkerLabel = value.MarkerLabel ?? "Now",
+            MarkerLabel = value.MarkerLabel ?? theme.Text("Now"),
             MarkerColor = value.MarkerColor ?? theme.DangerColor,
             Width = value.Width ?? Percent(100),
-            AccessibilityName = value.AccessibilityName ?? "Timeline"
+            AccessibilityName = value.AccessibilityName ?? theme.Text("Timeline")
         }
         let duration = input.End - input.Start
         if duration.Ticks <= 0 || input.TickInterval!!.Ticks <= 0 {
@@ -233,7 +233,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             let tick = TimeAxisTick{
                 Time: time,
                 X: X(time),
-                Label: input.FormatTick == nil ? time.ToString("HH:mm", CultureInfo.CurrentCulture): input.FormatTick!!(
+                Label: input.FormatTick == nil ? time.ToString("HH:mm", theme.Locale): input.FormatTick!!(
                     time
                 )
             }
@@ -298,7 +298,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             WidgetKeyBindings.BindActivation(blob)
             blob.Accessibility = Accessibility{
                 Role: AccessibilityRole.Button,
-                Name: EventName(item),
+                Name: EventName(item, theme.Locale),
                 Selected: selected
             }
             canvas.Children.Add(blob)
@@ -318,7 +318,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 Focus: theme.FocusStyle,
                 Overflow: Overflow.Hidden,
                 Text{
-                    Content: "+" + hidden.Length.ToString() + " more",
+                    Content: theme.Text("+{0} more", hidden.Length),
                     FontFamily: theme.FontFamily,
                     FontSize: theme.CaptionFontSize,
                     FontWeight: theme.CaptionFontWeight,
@@ -335,11 +335,11 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             WidgetKeyBindings.BindActivation(blob)
             let names = List[string]()
             for item in hidden {
-                names.Add(EventName(item))
+                names.Add(EventName(item, theme.Locale))
             }
             blob.Accessibility = Accessibility{
                 Role: AccessibilityRole.Button,
-                Name: hidden.Length.ToString() + " overlapping events",
+                Name: theme.Text("{0} overlapping events", hidden.Length),
                 Description: String.Join("; ", names)
             }
             canvas.Children.Add(blob)
@@ -413,14 +413,8 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
 
     private func X(time DateTimeOffset) float64 -> (time - input.Start).TotalHours * input.PixelsPerHour!!
 
-    private func EventName(item TimeAxisEvent) string -> item.Label + ", " + item.Start.ToString(
-        "g",
-        CultureInfo.CurrentCulture
-    ) +
-        " – " +
-        item
-        .End
-        .ToString("g", CultureInfo.CurrentCulture)
+    private func EventName(item TimeAxisEvent, culture CultureInfo) string ->
+        item.Label + ", " + item.Start.ToString("g", culture) + " – " + item.End.ToString("g", culture)
 
     private func At(x float64) DateTimeOffset {
         let ticks = (input.End - input.Start).Ticks

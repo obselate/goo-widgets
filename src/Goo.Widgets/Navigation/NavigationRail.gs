@@ -78,7 +78,7 @@ public data struct NavigationRailInput {
         Groups = Groups ?? []NavigationGroup{},
         CollapsedGroups = CollapsedGroups ?? []string{},
         BottomItems = BottomItems ?? []NavigationItem{},
-        AccessibilityName = AccessibilityName ?? "Navigation",
+        AccessibilityName = AccessibilityName ?? theme.Text("Navigation"),
         CollapsedWidth = if CollapsedWidth == 0.0 {
             64.0
         } else {

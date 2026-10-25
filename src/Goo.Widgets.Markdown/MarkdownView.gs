@@ -224,7 +224,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         let table = Column()
         table.Width = Percent(100)
         table.MinWidth = current.MinimumTableColumnWidth * float64(columns)
-        table.Accessibility = Accessibility{Role: AccessibilityRole.Grid, Name: "Table"}
+        table.Accessibility = Accessibility{Role: AccessibilityRole.Grid, Name: theme.Text("Table")}
         for row in model.Children {
             let line = Container{
                 Key: row.Block.Id,

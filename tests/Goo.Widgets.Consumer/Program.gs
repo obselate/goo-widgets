@@ -521,6 +521,7 @@ func Main() {
         }
     )
     RunContracts(MirroredSliderKeys, Theme.Default with{Direction = Direction.RightToLeft})
+    RunContracts(LocalizedSliderValue, Theme.Default with{Culture = System.Globalization.CultureInfo.GetCultureInfo("de-DE")})
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_WINDOW") == "1" {
         WindowInteractions()
     }
@@ -569,4 +570,9 @@ func MirroredSliderKeys() {
     })
     Require(InvokeKeyBinding(root, Key.Left) && Math.Abs(committed - 0.6) < 0.000001,
         "Left did not increase a right-to-left slider.")
+}
+
+func LocalizedSliderValue() {
+    let root = SliderProbe{}.Render(SliderInput{Value: 0.5})
+    Require(root.Accessibility!!.Range?.Text == "0,5", "Slider value ignored Theme.Culture.")
 }

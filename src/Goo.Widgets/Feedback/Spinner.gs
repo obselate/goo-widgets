@@ -73,7 +73,7 @@ public open class Spinner : Cell[SpinnerInput] {
             Position: PositionType.Relative,
             Width: size,
             Height: size,
-            Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: input.Label ?? "Loading", Busy: true},
+            Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: input.Label ?? theme.Text("Loading"), Busy: true},
         }
         let radius = (size - stroke) / 2.0
         let width = ring ? stroke: size / 5.0

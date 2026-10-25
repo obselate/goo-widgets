@@ -40,7 +40,7 @@ public data struct DonutChart {
             Size = Size ?? 160.0,
             Thickness = Thickness ?? 24.0,
             TrackColor = TrackColor ?? theme.BorderColor,
-            AccessibilityName = AccessibilityName ?? "Chart"
+            AccessibilityName = AccessibilityName ?? theme.Text("Chart")
         }
         let size = resolved.Size!!
         let thickness = resolved.Thickness!!
@@ -116,7 +116,7 @@ public data struct DonutChart {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
             Name: resolved.AccessibilityName!!,
-            Description: ChartParts.Summary(segments)
+            Description: ChartParts.Summary(segments, theme)
         }
         root.Children.Clear()
         root.Children.Add(plot)

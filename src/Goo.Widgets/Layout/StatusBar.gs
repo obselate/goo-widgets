@@ -127,7 +127,7 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
             BorderColor: theme.BorderColor,
             BorderRadius: theme.ControlRadius,
             Color: theme.TextColor,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Status bar"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Status bar")},
             start,
             Container{FlexGrow: 1, MinWidth: 0},
             end

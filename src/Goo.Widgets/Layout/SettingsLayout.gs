@@ -78,13 +78,13 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Settings"}
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Settings")}
         }
         if value.OnQueryChange != nil {
             root.Children.Add(
                 TextField{
-                    Placeholder: "Search",
-                    AccessibilityName: "Search settings",
+                    Placeholder: theme.Text("Search"),
+                    AccessibilityName: theme.Text("Search settings"),
                     Leading: MaterialIcons.Create("search", 16, theme.MutedTextColor),
                     Value: value.Query,
                     Controlled: true,
@@ -102,7 +102,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
             Gap: 2,
             FlexDirection: narrow ? FlexDirection.Row: FlexDirection.Column,
             FlexWrap: FlexWrap.Wrap,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Settings sections"}
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Settings sections")}
         }
         let content = Container{Key: "content", FlexGrow: 1, MinWidth: 0, Gap: theme.ControlGap * 2}
         let selected = value.SelectedId ?? (sections.Length > 0 ? sections[0].Id: "")
@@ -182,11 +182,11 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
         if !found {
             content.Children.Add(
                 Text{
-                    Content: "No matching settings",
+                    Content: theme.Text("No matching settings"),
                     Color: theme.MutedTextColor,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Status,
-                        Name: "No matching settings",
+                        Name: theme.Text("No matching settings"),
                         Live: AccessibilityLive.Polite
                     }
                 }

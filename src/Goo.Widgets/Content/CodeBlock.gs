@@ -127,10 +127,10 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             FlexWrap: FlexWrap.Wrap,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
-            Text{Content: input.Language ?? "Code", Color: theme.MutedTextColor, FlexGrow: 1},
+            Text{Content: input.Language ?? theme.Text("Code"), Color: theme.MutedTextColor, FlexGrow: 1},
             IconButton{
                 Icon: MaterialIcons.Create("content_copy", 16, theme.MutedTextColor),
-                AccessibilityName: "Copy code",
+                AccessibilityName: theme.Text("Copy code"),
                 Disabled: input.Window == nil && input.OnCopy == nil,
                 OnClick: () -> {
                     if let copy = input.OnCopy {
@@ -167,7 +167,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             ScrollbarY = theme.Scrollbar,
             Accessibility = Accessibility{
                 Role: AccessibilityRole.TextEditor,
-                Name: input.Language ?? "Code",
+                Name: input.Language ?? theme.Text("Code"),
                 Multiline: true
             },
         }
@@ -209,7 +209,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             body,
         }
         if folded {
-            let label = input.Expanded ? "Show less": "Show all " + lines.ToString() + " lines"
+            let label = input.Expanded ? theme.Text("Show less"): theme.Text("Show all {0} lines", lines)
             let fold = Button{
                 Width: Percent(100),
                 Height: theme.ControlHeight,

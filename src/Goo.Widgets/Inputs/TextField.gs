@@ -353,12 +353,12 @@ public data struct TextField {
                 )
             }
             if resolved.Clearable && !resolved.Disabled && !readOnly && value.Length > 0 && state != nil {
-                content.Children.Add(state.ActionButton("Clear " + resolved.AccessibilityName!!, "close", state.Clear))
+                content.Children.Add(state.ActionButton(theme.Text("Clear {0}", resolved.AccessibilityName!!), "close", state.Clear))
             }
             if (resolved.Password || state?.Revealed == true) && resolved.RevealButton && state != nil {
                 content.Children.Add(
                     state.ActionButton(
-                        state.Revealed ? "Hide password": "Show password",
+                        theme.Text(state.Revealed ? "Hide password": "Show password"),
                         state.Revealed ? "visibility_off": "visibility",
                         state.Reveal
                     )

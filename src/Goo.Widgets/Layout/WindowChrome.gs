@@ -249,7 +249,7 @@ public data struct WindowChrome {
         }
         control.Disabled = action == nil
         control.Focusable = action != nil
-        control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: Name(command)}
+        control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(Name(command))}
         control.OnClick = action
         WidgetKeyBindings.BindActivation(control)
         control.Children.Clear()

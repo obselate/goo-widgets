@@ -212,7 +212,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
                 Hide()
             },
             Accessibility: Accessibility{
-                Role: AccessibilityRole.Slider, Name: anchor ? "Selection start" : "Selection end",
+                Role: AccessibilityRole.Slider, Name: theme.Text(anchor ? "Selection start" : "Selection end"),
                 Actions: []AccessibilityAction{AccessibilityAction.Increment, AccessibilityAction.Decrement},
                 OnAction: (request AccessibilityActionRequest) -> AdjustEndpoint(request, anchor),
             },
@@ -308,7 +308,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
             Top: Math.Clamp(preferredTop, viewport.Y, Math.Max(viewport.Y, viewport.Y + viewport.Height - height)),
             Width: width, FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap,
             Padding: 4, Gap: 2, BackgroundColor: theme.PanelColor, BorderRadius: 6,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Edit text"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Edit text")},
         }
         let selected = editor.SelectionStart != editor.SelectionEnd
         if selected && !editor.IsPassword {
@@ -355,8 +355,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
             OnPointerCancel: (event PointerEvent) -> { pressedCommand = nil
                 pressedPointer = -1 },
             OnClick: activate,
-            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: label},
-            Text{Content: label, Color: theme.TextColor, FontSize: theme.FontSize},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(label)},
+            Text{Content: theme.Text(label), Color: theme.TextColor, FontSize: theme.FontSize},
         }
     }
 

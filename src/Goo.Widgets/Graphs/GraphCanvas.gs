@@ -103,7 +103,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             Focusable: true,
             Focus: theme.FocusStyle,
             BasedOn: resolved.RootStyle,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Graph canvas"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Graph canvas")},
             Gestures: navigation,
             OnPointerDown: (e PointerEvent) -> BeginCanvasPointer(e),
             OnPointerMove: (e PointerEvent) -> MovePointer(e),

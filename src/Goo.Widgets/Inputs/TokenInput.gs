@@ -52,7 +52,7 @@ public open class TokenInput : Cell[TokenInputInput] {
             BorderRadius: theme.ControlRadius,
             BorderColor: theme.InputBorderColor,
             BackgroundColor: input.Disabled ? theme.SunkenColor: theme.FieldColor,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: input.AccessibilityName ?? "Tokens"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: input.AccessibilityName ?? theme.Text("Tokens")},
         }
         for index in 0 ... values.Length {
             frame.Children.Add(
@@ -73,8 +73,8 @@ public open class TokenInput : Cell[TokenInputInput] {
             TextField{
                 Value: draft,
                 Controlled: true,
-                Placeholder: input.Placeholder ?? "Add a token",
-                AccessibilityName: input.AccessibilityName ?? "Tokens",
+                Placeholder: input.Placeholder ?? theme.Text("Add a token"),
+                AccessibilityName: input.AccessibilityName ?? theme.Text("Tokens"),
                 Disabled: input.Disabled,
                 Width: Length.Auto,
                 BorderWidth: 0,
@@ -123,7 +123,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                 let action = Button{
                     Padding: 6,
                     Focus: theme.FocusStyle,
-                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Add " + value},
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Add {0}", value)},
                     OnClick: () -> {
                         Commit(value)
                         editor.Focus()

@@ -86,7 +86,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
-            Name: input.AccessibilityName ?? "Options",
+            Name: input.AccessibilityName ?? theme.Text("Options"),
             Orientation: input.Orientation!!,
         }
         root.Children.Clear()

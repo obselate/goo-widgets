@@ -68,8 +68,8 @@ public data struct AsyncImage {
         let createPlaceholder = CreatePlaceholder
         let createError = CreateError
         let createRoot = CreateRoot
-        let placeholderText = PlaceholderText ?? "Loading"
-        let errorText = ErrorText ?? "Image unavailable"
+        let placeholderText = PlaceholderText ?? theme.Text("Loading")
+        let errorText = ErrorText ?? theme.Text("Image unavailable")
         let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
             PlaceholderText = placeholderText,

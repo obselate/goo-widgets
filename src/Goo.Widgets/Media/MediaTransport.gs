@@ -148,7 +148,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                             },
                             Step: 1.0,
                             Disabled: !resolved.CanSeek!!,
-                            AccessibilityName: "Media position",
+                            AccessibilityName: theme.Text("Media position"),
                             FormatValue: (value float64) -> FormatTime(value),
                             OnValueChanged: resolved.OnSeekChanged,
                             OnValueCommitted: resolved.OnSeekCommitted,
@@ -181,7 +181,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     JustifyContent: JustifyContent.FlexEnd,
                     Gap: theme.ControlGap,
                     Text{
-                        Content: "Volume",
+                        Content: theme.Text("Volume"),
                         FontFamily: theme.FontFamily,
                         FontSize: theme.CaptionFontSize,
                         FontWeight: theme.CaptionFontWeight,
@@ -198,7 +198,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                                 Maximum: 1.0,
                                 Step: 0.05,
                                 Disabled: !resolved.CanSetVolume!!,
-                                AccessibilityName: "Volume",
+                                AccessibilityName: theme.Text("Volume"),
                                 FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
                                 OnValueChanged: resolved.OnVolumeChanged,
                                 OnValueCommitted: resolved.OnVolumeCommitted,
@@ -343,7 +343,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     input.ActionStyle
                 },
-                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: ActionName(slot)},
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(ActionName(slot))},
                 OnClick: if disabled {
                     nil
                 } else {
