@@ -427,6 +427,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         SettingsLayoutPage{DisplayTitle: "Settings layout"},
         PopoverPage{DisplayTitle: "Popover"},
         TooltipPage{DisplayTitle: "Tooltip"},
+        HoverCardPage{DisplayTitle: "Hover card"},
         DisclosurePage{DisplayTitle: "Disclosure"},
         SplitPanePage{DisplayTitle: "Split pane"},
         GridPage{DisplayTitle: "Grid"},
