@@ -87,7 +87,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                         Value: props.Value!!,
                         Controlled: true,
                         Placeholder: props.Placeholder!!,
-                        PlaceholderColor: theme.MutedTextColor,
+                        PlaceholderColor: theme.PlaceholderColor,
                         Height: props.EntryHeight!!,
                         Padding: 4,
                         BackgroundColor: Color.Transparent,

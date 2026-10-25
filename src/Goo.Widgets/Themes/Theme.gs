@@ -47,6 +47,8 @@ public data struct Theme {
     var TextColor Color
     /// Secondary text.
     var MutedTextColor Color
+    /// Entry placeholder text. Zero resolves to MutedTextColor. WithHighContrast keeps it weaker than TextColor.
+    var PlaceholderColor Color
     /// Help text and disabled text.
     var FaintTextColor Color
     /// Primary action and selected control fill.
@@ -190,6 +192,7 @@ public data struct Theme {
             InputBorderColor = InputBorderColor == Color{} ? defaults.InputBorderColor: InputBorderColor,
             TextColor = TextColor == Color{} ? defaults.TextColor: TextColor,
             MutedTextColor = MutedTextColor == Color{} ? defaults.MutedTextColor: MutedTextColor,
+            PlaceholderColor = PlaceholderColor != Color{} ? PlaceholderColor: MutedTextColor != Color{} ? MutedTextColor: defaults.PlaceholderColor,
             FaintTextColor = FaintTextColor == Color{} ? defaults.FaintTextColor: FaintTextColor,
             AccentColor = AccentColor == Color{} ? defaults.AccentColor: AccentColor,
             OnAccentColor = OnAccentColor == Color{} ? defaults.OnAccentColor: OnAccentColor,
@@ -342,6 +345,7 @@ public data struct Theme {
                 InputBorderColor = "#89929b",
                 TextColor = "#ecf2f8",
                 MutedTextColor = "#c6cdd5",
+                PlaceholderColor = "#c6cdd5",
                 FaintTextColor = "#89929b",
                 AccentColor = "#77bdfb",
                 OnAccentColor = "#0d1117",
@@ -381,6 +385,7 @@ public data struct Theme {
                 InputBorderColor: "#6b7282",
                 TextColor: "#ececf1",
                 MutedTextColor: "#b4b9c4",
+                PlaceholderColor: "#b4b9c4",
                 FaintTextColor: "#8e95a3",
                 AccentColor: "#2f67e0",
                 OnAccentColor: "#ffffff",
@@ -449,6 +454,7 @@ public data struct Theme {
                 InputBorderColor = "#83868d",
                 TextColor = "#17181c",
                 MutedTextColor = "#4b4e57",
+                PlaceholderColor = "#4b4e57",
                 FaintTextColor = "#61646d",
                 AccentHoverColor = "#2a5dcc",
                 AccentPressedColor = "#244fae",
@@ -791,6 +797,7 @@ internal sealed class ThemeAttachment {
                 InputBorderColor = palette.InputBorderColor,
                 TextColor = palette.TextColor,
                 MutedTextColor = palette.MutedTextColor,
+                PlaceholderColor = palette.PlaceholderColor,
                 FaintTextColor = palette.FaintTextColor,
                 AccentColor = palette.AccentColor,
                 OnAccentColor = palette.OnAccentColor,

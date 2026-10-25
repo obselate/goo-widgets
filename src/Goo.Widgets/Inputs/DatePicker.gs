@@ -115,7 +115,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             FontSize: theme.FontSize,
             FontWeight: theme.FontWeight,
             SelectionColor: theme.AccentColor.WithAlpha(0.35),
-            PlaceholderColor: theme.MutedTextColor,
+            PlaceholderColor: theme.PlaceholderColor,
             Cursor: Cursor.Text,
             Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
         }

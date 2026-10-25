@@ -211,7 +211,7 @@ public data struct TextField {
                 Value: resolved.Value!!,
                 Controlled: resolved.Controlled,
                 Placeholder: resolved.Placeholder!!,
-                PlaceholderColor: theme.MutedTextColor,
+                PlaceholderColor: theme.PlaceholderColor,
                 OnChange: resolved.OnChange,
                 OnSubmit: resolved.OnSubmit,
                 Password: resolved.Password,
