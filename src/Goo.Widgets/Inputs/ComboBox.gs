@@ -77,7 +77,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private var overlay ElementHandle?
     private var overlayBox ElementRect
-    private var rows List[ComboBoxRow] = List[ComboBoxRow]()
+    private let rows List[int32] = List[int32]()
+    private var created ComboBoxOption
+    private let ids HashSet[string] = HashSet[string](StringComparer.Ordinal)
+    private let priorIds List[string] = List[string]()
     private var activeId string = ""
     private var pointerFocus bool
     private var ownedOpen bool
@@ -121,7 +124,26 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         let query = input.Query ?? ownedQuery
         let creation = input.AllowFreeText ? query.Trim(): ""
-        let ids = HashSet[string](StringComparer.Ordinal)
+        let items = input.Items ?? []ComboBoxOption{}
+        var changedIds = priorIds.Count != items.Length
+        if !changedIds {
+            for i in 0 ... items.Length {
+                if priorIds[i] != items[i].Id {
+                    changedIds = true
+                    break
+                }
+            }
+        }
+        if changedIds {
+            ids.Clear()
+            priorIds.Clear()
+            for item in items {
+                if String.IsNullOrEmpty(item.Id) || !ids.Add(item.Id!!) {
+                    throw ArgumentException("ComboBox option IDs must be nonempty and unique")
+                }
+                priorIds.Add(item.Id!!)
+            }
+        }
         var selected ComboBoxOption?
         let selectedIds HashSet[string]? = input.Multiple ? HashSet[string](
             input.SelectedIds ?? []string{},
@@ -129,11 +151,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         ): nil
         let labels List[string]? = input.Multiple ? List[string](): nil
         var exact bool
-        rows = List[ComboBoxRow]()
-        for item in input.Items ?? []ComboBoxOption{} {
-            if String.IsNullOrEmpty(item.Id) || !ids.Add(item.Id!!) {
-                throw ArgumentException("ComboBox option IDs must be nonempty and unique")
-            }
+        rows.Clear()
+        for index in 0 ... items.Length {
+            let item = items[index]
             if item.Id == input.SelectedId {
                 selected = item
             }
@@ -151,13 +171,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 query,
                 StringComparison.OrdinalIgnoreCase
             ) >= 0 {
-                rows.Add(
-                    ComboBoxRow{
-                        Item: item,
-                        Selected: input.Multiple ? selectedIds!!.Contains(item.Id!!): item.Id == input.SelectedId,
-                        Input: current,
-                    }
-                )
+                rows.Add(index)
             }
         }
         createId = ""
@@ -166,20 +180,15 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             while ids.Contains(createId) {
                 createId += "-"
             }
-            ids.Add(createId)
-            rows.Add(
-                ComboBoxRow{
-                    Item: ComboBoxOption{
-                        Id: createId,
-                        Label: input.CreateText?.Invoke(creation) ?? "Create “" + creation + "”",
-                    },
-                    Input: current,
-                }
-            )
+            created = ComboBoxOption{
+                Id: createId,
+                Label: input.CreateText?.Invoke(creation) ?? "Create “" + creation + "”",
+            }
+            rows.Add(-1)
         }
         let removed = List[string]()
         for id in handles.Keys {
-            if !ids.Contains(id) {
+            if id != createId && !ids.Contains(id) {
                 removed.Add(id)
             }
         }
@@ -195,13 +204,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         if Index(activeId) < 0 {
             activeId = First(false)
-        }
-        for i in 0 ... rows.Count {
-            let active = rows[i].Item.Id == activeId
-            rows[i] = rows[i]with{
-                Active = active,
-                KeyboardActive = active && !pointerFocus && !input.Searchable && !input.AllowFreeText
-            }
         }
         let label = input.Multiple
         ? (labels!!.Count == 0 ? current.Placeholder!!: String.Join(", ", labels!!))
@@ -338,7 +340,46 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             content.Children.Add(entry)
             content.Children.Add(Container{Height: 1.0, FlexShrink: 0.0, BackgroundColor: theme.BorderColor})
         }
-        let virtualRows = VirtualRows(rows, current.RowHeight, (row ComboBoxRow) -> row.Item.Id!!, BuildRow)
+        let snapshot = current
+        let selected = activeId
+        let keyboard = !pointerFocus && !current.Searchable && !current.AllowFreeText
+        let indices = rows.ToArray()
+        let items = current.Items ?? []ComboBoxOption{}
+        let creation = created
+        let key((ComboBoxRow) -> string) = (row ComboBoxRow) -> row.Item.Id!!
+        let build((ComboBoxRow) -> Blob) = BuildRow
+        let source = VirtualRowsSource[ComboBoxRow](
+            []ComboBoxRow{},
+            virtualItemExtent(current.RowHeight, "RowHeight"),
+            key,
+            build,
+            nil
+        ){
+            Count = rows.Count,
+            Get = (index int32) -> {
+                let item = indices[index] < 0 ? creation: items[indices[index]]
+                return ComboBoxRow{
+                    Item: item,
+                    Selected: indices[index] >= 0 && (snapshot.Multiple
+                    ? Array.IndexOf(snapshot.SelectedIds ?? []string{}, item.Id!!) >= 0
+                    : item.Id == snapshot.SelectedId),
+                    Active: item.Id == selected,
+                    KeyboardActive: item.Id == selected && keyboard,
+                    Input: snapshot,
+                }
+            },
+            Index = (id string) -> {
+                for index in 0 ... indices.Length {
+                    let item = indices[index] < 0 ? creation: items[indices[index]]
+                    if item.Id == id {
+                        return index
+                    }
+                }
+                return -1
+            },
+        }
+        let virtualRows Virtual = Virtual(source)
+        virtualRows.ScrollbarY = theme.Scrollbar
         virtualRows.Key = "rows"
         virtualRows.Handle = viewport
         virtualRows.FlexGrow = 1.0
@@ -470,9 +511,11 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         return handles[id]
     }
 
+    private func Option(index int32) ComboBoxOption -> rows[index] < 0 ? created: current.Items!![rows[index]]
+
     private func Index(id string) int32 {
         for i in 0 ... rows.Count {
-            if rows[i].Item.Id == id && !rows[i].Item.Disabled {
+            if Option(i).Id == id && !Option(i).Disabled {
                 return i
             }
         }
@@ -482,8 +525,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private func First(last bool) string {
         for step in 0 ... rows.Count {
             let i = last ? rows.Count - 1 - step: step
-            if !rows[i].Item.Disabled {
-                return rows[i].Item.Id!!
+            if !Option(i).Disabled {
+                return Option(i).Id!!
             }
         }
         return ""
@@ -583,8 +626,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             let start = Index(activeId)
             for step in 1 ... rows.Count + 1 {
                 let index = (Math.Max(0, start) + direction * step + rows.Count) % rows.Count
-                if !rows[index].Item.Disabled {
-                    activeId = rows[index].Item.Id!!
+                if !Option(index).Disabled {
+                    activeId = Option(index).Id!!
                     break
                 }
             }

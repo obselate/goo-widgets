@@ -50,6 +50,8 @@ public data struct SearchList {
     var CustomizeRow Func[SelectionItem, Button, Blob]?
     /// Final root customization. Preserve the virtual viewport dimensions when resizing.
     var CustomizeRoot Func[Container, Blob]?
+    internal var ItemAt Func[int32, SelectionItem]?
+    internal var ItemCount int32
 
     /// Builds a fresh list and rejects duplicate identifiers or invalid geometry.
     public func Build() Blob {
@@ -85,28 +87,26 @@ public data struct SearchList {
             OnSelect: onSelect,
             Customize: customizeRow,
         }
-        let filtered = List[SearchListRow](
-            if query.Length == 0 {
-                items.Length
-            } else {
-                0
-            }
-        )
+        let filtered = List[int32]()
         let identifiers = HashSet[string](StringComparer.Ordinal)
-        for item in items {
-            let id = item.Id ?? ""
-            if !identifiers.Add(id) {
-                throw ArgumentException("SearchList item identifiers must be unique: " + id)
-            }
-            if query.Length == 0 || ((item.Label ?? "") + " " + (item.Detail ?? "")).IndexOf(
-                query,
-                StringComparison.OrdinalIgnoreCase
-            ) >= 0 {
-                filtered.Add(
-                    SearchListRow{Item: item, Selected: selectedId != nil && selectedId == id, Options: rowOptions,}
-                )
+        if ItemAt == nil {
+            for index in 0 ... items.Length {
+                let item = items[index]
+                let id = item.Id ?? ""
+                if !identifiers.Add(id) {
+                    throw ArgumentException("SearchList item identifiers must be unique: " + id)
+                }
+                if query.Length == 0 || ((item.Label ?? "") + " " + (item.Detail ?? "")).IndexOf(
+                    query,
+                    StringComparison.OrdinalIgnoreCase
+                ) >= 0 {
+                    filtered.Add(index)
+                }
             }
         }
+        let indices = filtered.ToArray()
+        let prepared = ItemAt
+        let count = prepared == nil ? indices.Length: ItemCount
 
         var entry = TextEntry{
             Key: "search",
@@ -132,12 +132,37 @@ public data struct SearchList {
             entry = customize(entry)
         }
 
-        let list = VirtualRows(
-            filtered,
-            rowHeight,
-            (row SearchListRow) -> "item:" + (row.Item.Id ?? ""),
-            buildSearchListRow
+        let key((SearchListRow) -> string) = (row SearchListRow) -> "item:" + (row.Item.Id ?? "")
+        let build((SearchListRow) -> Blob) = buildSearchListRow
+        let source = VirtualRowsSource[SearchListRow](
+            []SearchListRow{},
+            virtualItemExtent(rowHeight, "RowHeight"),
+            key,
+            build,
+            nil
         ){
+            Count = count,
+            Get = (index int32) -> {
+                let item = prepared == nil ? items[indices[index]]: prepared!!(index)
+                return SearchListRow{
+                    Item: item,
+                    Selected: selectedId != nil && selectedId == item.Id,
+                    Options: rowOptions,
+                }
+            },
+            Index = (key string) -> {
+                for index in 0 ... count {
+                    let item = prepared == nil ? items[indices[index]]: prepared!!(index)
+                    let id = item.Id ?? ""
+                    if key.Length == id.Length + 5 && key.StartsWith("item:", StringComparison.Ordinal)
+                    && key.EndsWith(id, StringComparison.Ordinal) {
+                        return index
+                    }
+                }
+                return -1
+            },
+        }
+        let list Virtual = Virtual(source){
             Key = "items",
             FlexGrow = 1,
             FlexBasis = 0,
@@ -163,7 +188,7 @@ public data struct SearchList {
             Overflow: Overflow.Hidden,
             entry,
         }
-        if filtered.Count == 0 {
+        if count == 0 {
             root.Children.Add(
                 Text{
                     Key: "empty",
