@@ -3,10 +3,31 @@ package Goo.Widgets.Layout
 import Goo
 import Goo.Widgets
 
+/// Selects the standard dialog action and focus policy.
+public enum ModalDialogPreset {
+    Custom;
+    Confirm;
+    Destructive;
+    Form
+}
+
+/// Controls user dismissal without confirming.
+public enum DialogDismissPolicy {
+    Default;
+    EscapeAndBackdrop;
+    EscapeOnly;
+    Explicit
+}
+
 /// A composable in-parent modal overlay with host-owned close, cancel, and confirm actions.
 public data struct ModalDialog {
     /// Whether the overlay is rendered.
     var Open bool
+    var Preset ModalDialogPreset
+    var Tone Tone
+    var Fullscreen bool
+    var DismissPolicy DialogDismissPolicy
+    var InitialFocus ElementHandle?
     /// Dialog header content.
     var Header Blob?
     /// Dialog body content.
@@ -60,6 +81,14 @@ public data struct ModalDialog {
     /// Creates the final overlay from resolved values, backdrop, and dialog panel.
     var CreateRoot Func[ModalDialog, Button, Container, Container]?
 
+    internal prop CanEscape bool {
+        get -> DismissPolicy != DialogDismissPolicy.Explicit
+    }
+
+    internal prop CanDismissBackdrop bool {
+        get -> DismissPolicy == DialogDismissPolicy.EscapeAndBackdrop ||
+            (DismissPolicy == DialogDismissPolicy.Default && Preset == ModalDialogPreset.Custom)
+    }
     /// Builds a fresh in-parent overlay tree.
     public func Build() Blob {
         if !Open {
@@ -74,11 +103,14 @@ public data struct ModalDialog {
         let createConfirm = CreateConfirm
         let createRoot = CreateRoot
         let cancelText = CancelText ?? "Cancel"
-        let confirmText = ConfirmText ?? "Confirm"
+        let confirmText = ConfirmText ??
+            (Preset == ModalDialogPreset.Destructive ? "Delete": Preset == ModalDialogPreset.Form ? "Save": "Confirm")
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "Dialog",
             CancelText = cancelText,
             ConfirmText = confirmText,
+            Tone = Preset == ModalDialogPreset.Destructive ? Tone.Danger: Tone,
+            OnClose = CanDismissBackdrop ? OnClose: nil,
             Width = if Width == 0.0 {
                 560.0
             } else {
@@ -118,9 +150,14 @@ public data struct ModalDialog {
         var actions = Footer
         if actions == nil {
             let cancelContent = CancelContent ??
-            Text{Content: cancelText, FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight,}
+                Text{
+                Content: cancelText,
+                FontFamily: theme.FontFamily,
+                FontSize: theme.FontSize,
+                FontWeight: theme.FontWeight,
+            }
             let confirmContent = ConfirmContent ??
-            Text{
+                Text{
                 Content: confirmText,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
@@ -152,7 +189,7 @@ public data struct ModalDialog {
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     BorderRadius: theme.ControlRadius,
-                    BackgroundColor: theme.AccentColor,
+                    BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor,
                     Color: theme.OnAccentColor,
                     Focus: theme.FocusStyle,
                     Cursor: if resolved.ConfirmDisabled {
@@ -169,6 +206,8 @@ public data struct ModalDialog {
             }
 
             cancel.OnClick = resolved.OnCancel
+            cancel.AutoFocus = InitialFocus == nil &&
+                (Preset == ModalDialogPreset.Confirm || Preset == ModalDialogPreset.Destructive)
             WidgetKeyBindings.BindActivation(cancel)
             confirm.OnClick = resolved.OnConfirm
             WidgetKeyBindings.BindActivation(confirm)
@@ -186,8 +225,10 @@ public data struct ModalDialog {
         let dialog = Container{
             LineHeight: theme.LineHeight,
             Position: PositionType.Relative,
-            Width: resolved.Width,
-            MaxHeight: resolved.MaxHeight!!,
+            Width: resolved.Fullscreen ? Percent(100): resolved.Width,
+            MaxWidth: Percent(100),
+            Height: resolved.Fullscreen ? Percent(100): Length.Auto,
+            MaxHeight: resolved.Fullscreen ? Percent(100): resolved.MaxHeight!!,
             MinHeight: 0.0,
             Padding: resolved.Padding!!,
             Gap: resolved.Gap!!,
@@ -203,9 +244,9 @@ public data struct ModalDialog {
                 Modal: true,
             },
         }
-        if let onCancel = resolved.OnCancel {
+        if let onCancel = resolved.OnCancel ?? resolved.OnClose {
             dialog.OnKeyDown = (event KeyEvent) -> {
-                if event.Key == Key.Escape {
+                if event.Key == Key.Escape && resolved.CanEscape {
                     event.PreventDefault()
                     event.StopPropagation()
                     if !event.Repeat {
