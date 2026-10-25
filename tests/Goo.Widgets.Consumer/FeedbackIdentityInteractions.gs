@@ -20,7 +20,7 @@ internal class FeedbackIdentityHost : Cell {
     internal let Panel ElementHandle = ElementHandle()
     internal var SpinnerRoot Container?
     internal var SpinnerBuilds int32
-    internal let SpinnerBar ElementHandle = ElementHandle()
+    internal let SpinnerFrame ElementHandle = ElementHandle()
     internal let AvatarFrames[]ElementHandle = []ElementHandle{
         ElementHandle(),
         ElementHandle(),
@@ -63,7 +63,7 @@ internal class FeedbackIdentityHost : Cell {
                     CreateRoot: (input SpinnerInput, visual Container) -> {
                         SpinnerBuilds++
                         SpinnerRoot = visual
-                        visual.Children[0].Handle = SpinnerBar
+                        visual.Handle = SpinnerFrame
                         return visual
                     }
                 }
@@ -126,6 +126,32 @@ func FeedbackWait(window Window, milliseconds int32) {
     }
 }
 
+func SpinnerBarHeight(window Window, frame ElementRect) float64 {
+    Require(window.RequestCapture() == WindowCaptureRequestStatus.Accepted, "Spinner capture was rejected")
+    var capture = window.PollCapture()
+    while capture == nil {
+        Thread.Sleep(1)
+        window.Pump(0.0)
+        capture = window.PollCapture()
+    }
+    let image = capture!!
+    let scale = float64(image.Width) / float64(window.Width)
+    let bar = int32((frame.X + frame.Width * 0.1) * scale)
+    let gap = int32((frame.X + frame.Width * 0.3) * scale)
+    var total = 0.0
+    var peak = 0.0
+    for y in int32(frame.Y * scale) ... int32((frame.Y + frame.Height) * scale) {
+        var ink = 0.0
+        for channel in 0 ... 3 {
+            let row = y * int32(image.RowBytes) + channel
+            ink += Math.Abs(float64(image.Pixels[row + bar * 4]) - float64(image.Pixels[row + gap * 4]))
+        }
+        total += ink
+        peak = Math.Max(peak, ink)
+    }
+    return total / peak / scale / frame.Height
+}
+
 func FeedbackIdentityInteractions() {
     let host = FeedbackIdentityHost()
     let semantics = SearchListSemantics()
@@ -163,8 +189,7 @@ func FeedbackIdentityInteractions() {
         let pulses = List[float64]()
         for tick in 0 ... 90 {
             window.Pump(1.0 / 60.0)
-            Thread.Sleep(10)
-            pulses.Add((host.SpinnerBar.BorderBox.Height / 24.0 - 0.35) / 0.65)
+            pulses.Add((SpinnerBarHeight(window, host.SpinnerFrame.BorderBox) - 0.35) / 0.65)
         }
         var low = 1.0
         var high = 0.0
@@ -174,7 +199,7 @@ func FeedbackIdentityInteractions() {
             high = Math.Max(high, pulses[tick])
         }
         Require(low < 0.05 && high > 0.95, "Spinner phase did not cover its range")
-        Require(host.SpinnerBuilds - builds <= 90, "Spinner built more than once per tick")
+        Require(host.SpinnerBuilds == builds, "Spinner rebuilt while animating")
         host.Before.Focus()
         host.Show("auto")
         PumpFrames(window, 4)
@@ -265,6 +290,6 @@ func FeedbackIdentityInteractions() {
         PumpFrames(proof, 4)
     }
     Console.WriteLine(
-        "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner animation and reduced-motion still frame"
+        "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner period and range without rebuilds, reduced-motion still frame"
     )
 }

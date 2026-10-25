@@ -50,7 +50,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
     private var duration float64
 
     public init() {
-        opacity = Animate(1.0)
+        opacity = AnimateValue(1.0)
         opacity.Completed += (reason MotionCompletionReason) -> Finish()
         pointerEnter = (event PointerEvent) -> {
             hovered = true
@@ -125,7 +125,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.ToneColor(input.Item.Tone),
             BackgroundColor: theme.PanelColor,
-            Opacity: opacity.Value,
+            OpacityAnim: opacity,
             OnPointerEnter: pointerEnter,
             OnPointerLeave: pointerLeave,
             OnFocus: focus,
