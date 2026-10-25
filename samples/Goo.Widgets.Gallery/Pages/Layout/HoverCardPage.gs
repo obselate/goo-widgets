@@ -26,7 +26,7 @@ internal class HoverCardExample : Cell {
                         BorderRadius: theme.ControlRadius,
                         Focus: theme.FocusStyle,
                         Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "@grace"},
-                        Text{Content: "@grace", Color: theme.LinkColor, FontWeight: theme.HeadingFontWeight},
+                        Text{Content: "@grace", Direction: Direction.LeftToRight, Color: theme.LinkColor, FontWeight: theme.HeadingFontWeight},
                     },
                     Content: Container{
                         FlexDirection: FlexDirection.Row,
