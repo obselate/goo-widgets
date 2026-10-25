@@ -34,20 +34,11 @@ public data struct FindBar {
     var CreateEntry Func[TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.
-    public func Build() Blob {
+    public func Build() Blob -> Cell.Mount[FindBar, FindBarState](nil, this)
+
+    internal func BuildContent(state FindBarState) Blob {
         let theme = Theme.Read()
-        let snapshot = this
         let ready = !Disabled && Issue == nil && !String.IsNullOrEmpty(Query) && MatchCount > 0
-        let next Action = () -> {
-            if ready {
-                snapshot.OnNext?.Invoke()
-            }
-        }
-        let previous Action = () -> {
-            if ready {
-                snapshot.OnPrevious?.Invoke()
-            }
-        }
         let count = Math.Max(0, MatchCount)
         let status = Math.Clamp(ActiveMatch, 0, count).ToString() + " of " + count.ToString()
         let size = theme.ControlHeight
@@ -60,68 +51,10 @@ public data struct FindBar {
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.BorderColor,
             BorderRadius: theme.ControlRadius,
-            KeyBindings: []KeyBinding{
-                KeyBinding{Key: Key.Enter, Action: next},
-                KeyBinding{Key: Key.Enter, Modifiers: KeyModifiers{Shift: true}, Action: previous},
-                KeyBinding{Key: Key.KeypadEnter, Action: next},
-                KeyBinding{Key: Key.KeypadEnter, Modifiers: KeyModifiers{Shift: true}, Action: previous},
-                KeyBinding{
-                    Key: Key.Escape,
-                    Action: () -> {
-                        if !snapshot.Disabled {
-                            snapshot.OnClose?.Invoke()
-                        }
-                    }
-                },
-            },
+            KeyBindings: state.Bindings,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Find and replace"},
             Row(
-                TextField{
-                    Value: Query,
-                    Controlled: true,
-                    Placeholder: "Find",
-                    AccessibilityName: "Find",
-                    Width: Percent(100),
-                    Disabled: Disabled,
-                    Invalid: Issue != nil,
-                    IssueText: Issue,
-                    OnChange: OnQueryChange,
-                    CreateEntry: CreateEntry,
-                    Trailing: Container{
-                        FlexDirection: FlexDirection.Row,
-                        Gap: 2,
-                        Icon(
-                            "Match case",
-                            "match_case",
-                            size - 8.0,
-                            Disabled,
-                            () -> snapshot.OnOptionsChange?.Invoke(
-                                snapshot.Options with{MatchCase = !snapshot.Options.MatchCase}
-                            ),
-                            Options.MatchCase
-                        ),
-                        Icon(
-                            "Whole word",
-                            "match_word",
-                            size - 8.0,
-                            Disabled,
-                            () -> snapshot.OnOptionsChange?.Invoke(
-                                snapshot.Options with{WholeWord = !snapshot.Options.WholeWord}
-                            ),
-                            Options.WholeWord
-                        ),
-                        Icon(
-                            "Regular expression",
-                            "regular_expression",
-                            size - 8.0,
-                            Disabled,
-                            () -> snapshot.OnOptionsChange?.Invoke(
-                                snapshot.Options with{Regex = !snapshot.Options.Regex}
-                            ),
-                            Options.Regex
-                        ),
-                    },
-                }.Build(),
+                state.QueryField!!,
                 Container{
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
@@ -137,9 +70,9 @@ public data struct FindBar {
                             Live: AccessibilityLive.Polite
                         }
                     },
-                    Icon("Previous", "arrow_upward", size, !ready, previous),
-                    Icon("Next", "arrow_downward", size, !ready, next),
-                    Icon("Close", "close", size, Disabled, OnClose),
+                    state.PreviousButton!!,
+                    state.NextButton!!,
+                    state.CloseButton!!,
                 }
             ),
         }
@@ -176,7 +109,140 @@ public data struct FindBar {
         actions,
     }
 
-    private func Icon(name string, icon string, size float64, disabled bool, action Action?, on bool? = nil) Blob {
+    internal func Icon(name string, icon string, size float64, disabled bool, action Action?, on bool? = nil) Blob ->
+    Cell.Mount[FindBarIconInput, FindBarIcon](
+        name,
+        FindBarIconInput{Name: name, Icon: icon, Size: size, Disabled: disabled, Action: action, On: on,}
+    )
+}
+
+internal class FindBarState : Cell[FindBar] {
+    private var current FindBar
+    internal let Next Action
+    internal let Previous Action
+    internal let Close Action
+    internal let Bindings[]KeyBinding
+    internal var QueryField Blob?
+    internal var PreviousButton Blob?
+    internal var NextButton Blob?
+    internal var CloseButton Blob?
+    private var size float64
+
+    public init() {
+        Next = () -> {
+            if Ready() {
+                current.OnNext?.Invoke()
+            }
+        }
+        Previous = () -> {
+            if Ready() {
+                current.OnPrevious?.Invoke()
+            }
+        }
+        Close = () -> {
+            if !current.Disabled {
+                current.OnClose?.Invoke()
+            }
+        }
+        Bindings = []KeyBinding{
+            KeyBinding{Key: Key.Enter, Action: Next},
+            KeyBinding{Key: Key.Enter, Modifiers: KeyModifiers{Shift: true}, Action: Previous},
+            KeyBinding{Key: Key.KeypadEnter, Action: Next},
+            KeyBinding{Key: Key.KeypadEnter, Modifiers: KeyModifiers{Shift: true}, Action: Previous},
+            KeyBinding{Key: Key.Escape, Action: Close},
+        }
+    }
+
+    private func Ready() bool ->
+    !current.Disabled && current.Issue == nil && !String.IsNullOrEmpty(current.Query) && current.MatchCount > 0
+
+    protected override func Build(input FindBar) Blob {
+        let previousReady = Ready()
+        let previous = current
+        current = input
+        let nextSize = Theme.Read().ControlHeight
+        if QueryField == nil || previous.Query != input.Query || previous.Options != input.Options
+        || previous.Issue != input.Issue || previous.Disabled != input.Disabled
+        || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange
+        || previous.CreateEntry != input.CreateEntry {
+            QueryField = Cell.Mount[FindBar, FindBarField]("query", input)
+        }
+        if NextButton == nil || previousReady != Ready() || size != nextSize {
+            PreviousButton = input.Icon("Previous", "arrow_upward", nextSize, !Ready(), Previous)
+            NextButton = input.Icon("Next", "arrow_downward", nextSize, !Ready(), Next)
+        }
+        if CloseButton == nil ||
+            previous.Disabled != input.Disabled ||
+            previous.OnClose != input.OnClose ||
+            size != nextSize {
+            CloseButton = input.Icon("Close", "close", nextSize, input.Disabled, input.OnClose)
+        }
+        size = nextSize
+        return input.BuildContent(this)
+    }
+}
+
+internal class FindBarField : Cell[FindBar] {
+    private var current FindBar
+    private let matchCase Action
+    private let wholeWord Action
+    private let regex Action
+
+    public init() {
+        matchCase = () -> current.OnOptionsChange?.Invoke(current.Options with{MatchCase = !current.Options.MatchCase})
+        wholeWord = () -> current.OnOptionsChange?.Invoke(current.Options with{WholeWord = !current.Options.WholeWord})
+        regex = () -> current.OnOptionsChange?.Invoke(current.Options with{Regex = !current.Options.Regex})
+    }
+
+    protected override func Build(input FindBar) Blob {
+        current = input
+        let size = Theme.Read().ControlHeight - 8.0
+        return TextField{
+            Value: input.Query,
+            Controlled: true,
+            Placeholder: "Find",
+            AccessibilityName: "Find",
+            Width: Percent(100),
+            Disabled: input.Disabled,
+            Invalid: input.Issue != nil,
+            IssueText: input.Issue,
+            OnChange: input.OnQueryChange,
+            CreateEntry: input.CreateEntry,
+            Trailing: Container{
+                FlexDirection: FlexDirection.Row,
+                Gap: 2,
+                input.Icon("Match case", "match_case", size, input.Disabled, matchCase, input.Options.MatchCase),
+                input.Icon("Whole word", "match_word", size, input.Disabled, wholeWord, input.Options.WholeWord),
+                input.Icon(
+                    "Regular expression",
+                    "regular_expression",
+                    size,
+                    input.Disabled,
+                    regex,
+                    input.Options.Regex
+                ),
+            },
+        }.Build()
+    }
+}
+
+internal data struct FindBarIconInput {
+    internal var Name string
+    internal var Icon string
+    internal var Size float64
+    internal var Disabled bool
+    internal var Action Action?
+    internal var On bool?
+}
+
+internal class FindBarIcon : Cell[FindBarIconInput] {
+    protected override func Build(input FindBarIconInput) Blob {
+        let name = input.Name
+        let icon = input.Icon
+        let size = input.Size
+        let disabled = input.Disabled
+        let action = input.Action
+        let on = input.On
         let theme = Theme.Read()
         let button = Button{
             Width: size,

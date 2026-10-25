@@ -55,23 +55,19 @@ public open class TokenInput : Cell[TokenInputInput] {
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: input.AccessibilityName ?? "Tokens"},
         }
         for index in 0 ... values.Length {
-            let position = index
-            let chip = Chip{
-                Label: values[index],
-                Selected: selected == index,
-                Invalid: !(input.Validate?.Invoke(values[index]) ?? true),
-                Disabled: input.Disabled,
-                Height: theme.ControlHeight - 8,
-                PaddingHorizontal: 8,
-                OnClick: () -> {
-                    selected = position
-                    editor.Focus()
-                    Rebuild()
-                },
-                OnRemove: () -> Remove(position),
-            }.Build()
-            chip.Key = "token-" + index.ToString()
-            frame.Children.Add(chip)
+            frame.Children.Add(
+                Cell.Mount[TokenChipInput, TokenChip](
+                    "token-" + index.ToString(),
+                    TokenChipInput{
+                        Owner: this,
+                        Position: index,
+                        Label: values[index],
+                        Selected: selected == index,
+                        Invalid: !(input.Validate?.Invoke(values[index]) ?? true),
+                        Disabled: input.Disabled,
+                    }
+                )
+            )
         }
         frame.Children.Add(
             TextField{
@@ -175,7 +171,13 @@ public open class TokenInput : Cell[TokenInputInput] {
         Rebuild()
     }
 
-    private func Remove(index int32) {
+    internal func Select(index int32) {
+        selected = index
+        editor.Focus()
+        Rebuild()
+    }
+
+    internal func Remove(index int32) {
         if current.Disabled {
             return
         }
@@ -207,5 +209,39 @@ public open class TokenInput : Cell[TokenInputInput] {
             selected = -1
             Rebuild()
         }
+    }
+}
+
+internal data struct TokenChipInput {
+    internal var Owner TokenInput
+    internal var Position int32
+    internal var Label string
+    internal var Selected bool
+    internal var Invalid bool
+    internal var Disabled bool
+}
+
+internal class TokenChip : Cell[TokenChipInput] {
+    private var current TokenChipInput
+    private let activate Action
+    private let remove Action
+
+    public init() {
+        activate = () -> current.Owner.Select(current.Position)
+        remove = () -> current.Owner.Remove(current.Position)
+    }
+
+    protected override func Build(input TokenChipInput) Blob {
+        current = input
+        return Chip{
+            Label: input.Label,
+            Selected: input.Selected,
+            Invalid: input.Invalid,
+            Disabled: input.Disabled,
+            Height: Theme.Read().ControlHeight - 8,
+            PaddingHorizontal: 8,
+            OnClick: activate,
+            OnRemove: remove,
+        }.Build()
     }
 }
