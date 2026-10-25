@@ -124,6 +124,7 @@ public data struct SearchList {
             Value: query,
             Controlled: true,
             Placeholder: Placeholder ?? theme.Text("Search"),
+            PlaceholderColor: theme.PlaceholderColor,
             OnChange: OnQueryChange,
             Focus: Style{OutlineWidth: 2.0, OutlineColor: focus, OutlineOffset: -2.0},
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
