@@ -22,9 +22,11 @@ public data struct FuzzyMatchItem[T] {
 public class FuzzyMatch {
     shared {
         /// Returns nil when the query is not a subsequence. Empty queries match every item.
-        public func Match(query string, text string) FuzzyMatchResult? {
+        public func Match(query string, text string) FuzzyMatchResult? -> Match(query, text, true)
+
+        internal func Match(query string, text string, highlights bool) FuzzyMatchResult? {
             if query.Length == 0 {
-                return FuzzyMatchResult{Ranges: []TextRange{}}
+                return FuzzyMatchResult{Ranges: Array.Empty[TextRange]()}
             }
             if query.Length > text.Length {
                 return nil
@@ -34,10 +36,11 @@ public class FuzzyMatch {
                 let score = text.Length == query.Length ? 100000: contiguous == 0 ? 50000: 25000
                 return FuzzyMatchResult{
                     Score: score,
-                    Ranges: []TextRange{TextRange{Start: contiguous, Length: query.Length}}
+                    Ranges: highlights ? []TextRange{TextRange{Start: contiguous, Length: query.Length}}
+                    : Array.Empty[TextRange]()
                 }
             }
-            let ranges = List[TextRange]()
+            let ranges List[TextRange]? = highlights ? List[TextRange](): nil
             var position = 0
             var score = 0
             var start = -1
@@ -61,7 +64,7 @@ public class FuzzyMatch {
                     score += 20
                 } else {
                     if start >= 0 {
-                        ranges.Add(TextRange{Start: start, Length: end - start})
+                        ranges?.Add(TextRange{Start: start, Length: end - start})
                     }
                     start = index
                 }
@@ -72,8 +75,8 @@ public class FuzzyMatch {
                 end = index + 1
                 position = end
             }
-            ranges.Add(TextRange{Start: start, Length: end - start})
-            return FuzzyMatchResult{Score: score, Ranges: ranges.ToArray()}
+            ranges?.Add(TextRange{Start: start, Length: end - start})
+            return FuzzyMatchResult{Score: score, Ranges: ranges?.ToArray() ?? Array.Empty[TextRange]()}
         }
 
         /// Removes nonmatches and retains source order when scores are equal.

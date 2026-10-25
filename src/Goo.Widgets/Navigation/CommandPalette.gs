@@ -47,11 +47,11 @@ public data struct CommandPaletteInput {
 public open class CommandPalette : Cell[CommandPaletteInput] {
     private let viewport ElementHandle = ElementHandle()
     private let commands Dictionary[string, CommandItem] = Dictionary[string, CommandItem](StringComparer.Ordinal)
-    private let matches Dictionary[string, FuzzyMatchResult] = Dictionary[string, FuzzyMatchResult](
-        StringComparer.Ordinal
-    )
+    private let ranked List[FuzzyMatchItem[int32]] = List[FuzzyMatchItem[int32]]()
+    private let indices List[int32] = List[int32]()
+    private let priorIds List[string] = List[string]()
     private let headers Dictionary[string, string] = Dictionary[string, string](StringComparer.Ordinal)
-    private var ordered List[SelectionItem] = List[SelectionItem]()
+    private let ordered List[string] = List[string]()
     private var current CommandPaletteInput
     private var activeId string?
     private var priorQuery string?
@@ -65,22 +65,45 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         }
         let theme = Theme.Read()
         let query = input.Query ?? ""
-        commands.Clear()
-        matches.Clear()
-        headers.Clear()
-        ordered = List[SelectionItem]()
-        for item in input.Items ?? []CommandItem{} {
-            if String.IsNullOrEmpty(item.Id) || item.Id.Contains('\0') || !commands.TryAdd(item.Id, item) {
-                throw ArgumentException("Command IDs must be nonempty and unique")
+        let items = input.Items ?? []CommandItem{}
+        var changedIds = priorIds.Count != items.Length
+        if !changedIds {
+            for index in 0 ... items.Length {
+                if priorIds[index] != items[index].Id {
+                    changedIds = true
+                    break
+                }
             }
         }
-        let ranked = FuzzyMatch.Rank[CommandItem](
-            input.Items ?? []CommandItem{},
-            query,
-            (item CommandItem) -> item.Label
-        )
+        if changedIds {
+            commands.Clear()
+            priorIds.Clear()
+            for item in items {
+                if String.IsNullOrEmpty(item.Id) || item.Id.Contains('\0') || !commands.TryAdd(item.Id, item) {
+                    throw ArgumentException("Command IDs must be nonempty and unique")
+                }
+                priorIds.Add(item.Id)
+            }
+        } else {
+            for item in items {
+                commands[item.Id] = item
+            }
+        }
+        headers.Clear()
+        ordered.Clear()
+        ranked.Clear()
+        indices.Clear()
+        for index in 0 ... items.Length {
+            if let match = FuzzyMatch.Match(query, items[index].Label, false) {
+                ranked.Add(FuzzyMatchItem[int32]{Item: index, Match: match, Order: index})
+            }
+        }
+        ranked.Sort((a FuzzyMatchItem[int32], b FuzzyMatchItem[int32]) -> {
+            let score = b.Match.Score.CompareTo(a.Match.Score)
+            return score == 0 ? a.Order.CompareTo(b.Order): score
+        })
         for match in ranked {
-            matches.Add(match.Item.Id, match.Match)
+            indices.Add(match.Item)
         }
         if query.Length == 0 {
             let seen = HashSet[string](StringComparer.Ordinal)
@@ -98,8 +121,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 }
                 AddHeader("group-" + group.Id, group.Label)
                 for match in ranked {
-                    if match.Item.GroupId == group.Id && seen.Add(match.Item.Id) {
-                        AddCommand(match.Item)
+                    if items[match.Item].GroupId == group.Id && seen.Add(items[match.Item].Id) {
+                        AddCommand(items[match.Item])
                     }
                 }
                 RemoveEmptyHeader()
@@ -108,38 +131,58 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 AddHeader("commands", "Commands")
             }
             for match in ranked {
-                if seen.Add(match.Item.Id) {
-                    AddCommand(match.Item)
+                if seen.Add(items[match.Item].Id) {
+                    AddCommand(items[match.Item])
                 }
             }
             RemoveEmptyHeader()
         } else {
             for match in ranked {
-                AddCommand(match.Item)
+                AddCommand(items[match.Item])
             }
         }
         var active = -1
         for index in 0 ... ordered.Count {
-            if ordered[index].Id == activeId && !ordered[index].Disabled {
+            let id = ordered[index]
+            if id == activeId && !headers.ContainsKey(id) && !commands[id].Disabled {
                 active = index
             }
         }
         if !wasOpen || priorQuery != query || active < 0 {
-            active = RovingFocus.Next[SelectionItem](
+            active = RovingFocus.Next[string](
                 ordered,
                 -1,
                 Key.Home,
                 AccessibilityOrientation.Vertical,
                 false,
-                (item SelectionItem) -> item.Disabled
+                (id string) -> headers.ContainsKey(id) || commands[id].Disabled
             )
-            activeId = active < 0 ? nil: ordered[active].Id
+            activeId = active < 0 ? nil: ordered[active]
         }
         priorQuery = query
         wasOpen = true
         let inputHeight = theme.ControlHeight + theme.Spacing * 2
+        let resultIndices = indices.ToArray()
+        let grouped = List[SelectionItem]()
+        if query.Length == 0 {
+            for id in ordered {
+                let header = headers.TryGetValue(id, out var label)
+                grouped.Add(SelectionItem{
+                    Id: id,
+                    Label: header ? label: commands[id].Label,
+                    Disabled: header || commands[id].Disabled,
+                })
+            }
+        }
         let search = SearchList{
-            Items: ordered.ToArray(),
+            ItemCount: ordered.Count,
+            ItemAt: (index int32) -> {
+                if query.Length == 0 {
+                    return grouped[index]
+                }
+                let item = items[resultIndices[index]]
+                return SelectionItem{Id: item.Id, Label: item.Label, Disabled: item.Disabled}
+            },
             SelectedId: activeId,
             OnSelect: Activate,
             Width: input.Width ?? 560,
@@ -219,18 +262,16 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
     private func AddHeader(id string, label string) {
         let key = "\0" + id
         headers.Add(key, label)
-        ordered.Add(SelectionItem{Id: key, Label: label, Disabled: true})
+        ordered.Add(key)
     }
 
     private func RemoveEmptyHeader() {
-        if ordered.Count > 0 && headers.ContainsKey(ordered[ordered.Count - 1].Id!!) {
+        if ordered.Count > 0 && headers.ContainsKey(ordered[ordered.Count - 1]) {
             ordered.RemoveAt(ordered.Count - 1)
         }
     }
 
-    private func AddCommand(item CommandItem) -> ordered.Add(
-        SelectionItem{Id: item.Id, Label: item.Label, Disabled: item.Disabled}
-    )
+    private func AddCommand(item CommandItem) -> ordered.Add(item.Id)
 
     private func Row(snapshot CommandPaletteInput, item SelectionItem, button Button) Blob {
         let theme = Theme.Read()
@@ -253,9 +294,10 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         if let leading = command.Leading {
             button.Children.Add(leading)
         }
+        let match = FuzzyMatch.Match(snapshot.Query ?? "", command.Label)!!
         let label = Container{FlexDirection: FlexDirection.Row, MinWidth: 0, FlexShrink: 1}
         var position = 0
-        for span in matches[id].Ranges {
+        for span in match.Ranges {
             if span.Start > position {
                 label.Children.Add(
                     Text{
@@ -313,7 +355,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             button.Children.Add(keys)
         }
         if let create = snapshot.CreateItem {
-            return create(command, matches[id], button)
+            return create(command, match, button)
         }
         return button
     }
@@ -339,23 +381,23 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         }
         var index = -1
         for i in 0 ... ordered.Count {
-            if ordered[i].Id == activeId {
+            if ordered[i] == activeId {
                 index = i
                 break
             }
         }
-        let next = RovingFocus.Next[SelectionItem](
+        let next = RovingFocus.Next[string](
             ordered,
             index,
             event.Key,
             AccessibilityOrientation.Vertical,
             true,
-            (item SelectionItem) -> item.Disabled
+            (id string) -> headers.ContainsKey(id) || commands[id].Disabled
         )
         event.PreventDefault()
         event.StopPropagation()
         if next >= 0 {
-            activeId = ordered[next].Id
+            activeId = ordered[next]
             viewport.ScrollToItem(activeId!!)
             Rebuild()
         }
