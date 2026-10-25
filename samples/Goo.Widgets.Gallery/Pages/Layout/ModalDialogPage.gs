@@ -55,14 +55,17 @@ internal open class ModalDialogExample : Cell {
                 Text{Content: "Apply this change to the selected items?", Color: Theme.Read().TextColor},
                 OnClose: () -> {
                     dialogOpen = false
+                    Rebuild()
                 },
                 OnCancel: () -> {
                     result = "Canceled"
                     dialogOpen = false
+                    Rebuild()
                 },
                 OnConfirm: () -> {
                     result = "Confirmed"
                     dialogOpen = false
+                    Rebuild()
                 },
             }
         ),
