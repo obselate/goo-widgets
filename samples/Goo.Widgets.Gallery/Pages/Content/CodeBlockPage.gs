@@ -13,9 +13,14 @@ internal class CodeBlockExample : Cell {
     private let code string = "package Example\n\nimport Log\n\nfunc Main() {\n    let message = \"Hello, you\"\n    Console.WriteLine(message)\n}"
     private let steps string = String.Join(
         "\n",
-        Enumerable.Range(1, 400).Select(i -> "let step" + i.ToString() + " = step" + (i - 1).ToString() + " + " + i.ToString())
+        Enumerable.Range(1, 400).Select(
+            i -> "let step" + i.ToString() + " = step" + (i - 1).ToString() + " + " + i.ToString()
+        )
     )
-    private let highlightSteps Action[TextPresentationLayer, SyntaxPalette] = (layer TextPresentationLayer, palette SyntaxPalette) -> {
+    private let highlightSteps Action[TextPresentationLayer, SyntaxPalette] = (
+        layer TextPresentationLayer,
+        palette SyntaxPalette
+    ) -> {
         let text = layer.Document.GetText()
         var index = text.IndexOf("let ", StringComparison.Ordinal)
         while index >= 0 {

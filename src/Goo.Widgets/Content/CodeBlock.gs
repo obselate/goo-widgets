@@ -82,11 +82,12 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             )
         }
         source = code
-        if edited ||
-            language != input.Language ||
-            palette != theme.Syntax ||
-            !Object.ReferenceEquals(highlight, input.Highlight) ||
-            !Object.ReferenceEquals(styleSpans, input.StyleSpans) {
+        if edited || language != input.Language || palette != theme.Syntax || !Object.ReferenceEquals(
+            highlight,
+            input.Highlight
+        ) ||
+            !Object
+            .ReferenceEquals(styleSpans, input.StyleSpans) {
             layer!!.Clear()
             if let spans = input.StyleSpans {
                 layer!!.ReplaceStyles(spans)

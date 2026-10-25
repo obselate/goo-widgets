@@ -345,7 +345,9 @@ func TextSurfaceLongCodeProof() {
         )
         Require(
             host.Handle.TryGetTextCaretRect(first, TextCoordinateSpace.Element, out var top) &&
-                !host.Handle.TryGetTextCaretRect(last, TextCoordinateSpace.Element, out var bottom),
+                !host
+                .Handle
+                .TryGetTextCaretRect(last, TextCoordinateSpace.Element, out var bottom),
             "Long CodeBlock retained the wrong lines"
         )
         Require(host.Handle.JumpTo(0, host.Handle.ScrollRange.Y), "Long CodeBlock did not accept scrolling")
