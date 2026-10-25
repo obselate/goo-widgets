@@ -248,7 +248,7 @@ internal sealed class BannerState : Cell[Banner] {
             current.OnDismiss?.Invoke()
         } else {
             height.Snap(handle.BorderBox.Height)
-            height.To(0.0, Motion.Tween(duration / 1000.0, current.TransitionEasing ?? Easing.EaseOut))
+            height.To(0.0, Motion.Tween(duration, current.TransitionEasing ?? Easing.EaseOut))
         }
         Rebuild()
     }

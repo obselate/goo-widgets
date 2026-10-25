@@ -7,6 +7,7 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Media
 import Hexa.NET.SDL3
 import System
+import System.Collections.Generic
 import System.Diagnostics
 import System.Threading
 
@@ -19,6 +20,7 @@ internal class FeedbackIdentityHost : Cell {
     internal let Panel ElementHandle = ElementHandle()
     internal var SpinnerRoot Container?
     internal var SpinnerBuilds int32
+    internal let SpinnerBar ElementHandle = ElementHandle()
     internal let AvatarFrames[]ElementHandle = []ElementHandle{
         ElementHandle(),
         ElementHandle(),
@@ -57,9 +59,11 @@ internal class FeedbackIdentityHost : Cell {
             Cell.Mount[SpinnerInput, Spinner](
                 "spinner",
                 SpinnerInput{
+                    Variant: SpinnerVariant.Bars,
                     CreateRoot: (input SpinnerInput, visual Container) -> {
                         SpinnerBuilds++
                         SpinnerRoot = visual
+                        visual.Children[0].Handle = SpinnerBar
                         return visual
                     }
                 }
@@ -113,8 +117,11 @@ internal class FeedbackIdentityHost : Cell {
 
 func FeedbackWait(window Window, milliseconds int32) {
     let clock = Stopwatch.StartNew()
+    var previous = 0.0
     while clock.ElapsedMilliseconds < milliseconds {
-        window.Pump(0.01)
+        let now = clock.Elapsed.TotalSeconds
+        window.Pump(now - previous)
+        previous = now
         Thread.Sleep(10)
     }
 }
@@ -152,6 +159,22 @@ func FeedbackIdentityInteractions() {
                 "Avatar presence dot escapes its rendered bounds"
             )
         }
+        let builds = host.SpinnerBuilds
+        let pulses = List[float64]()
+        for tick in 0 ... 90 {
+            window.Pump(1.0 / 60.0)
+            Thread.Sleep(10)
+            pulses.Add((host.SpinnerBar.BorderBox.Height / 24.0 - 0.35) / 0.65)
+        }
+        var low = 1.0
+        var high = 0.0
+        for tick in 0 ... 60 {
+            Require(Math.Abs(pulses[tick] + pulses[tick + 30] - 1.0) < 0.1, "Spinner phase does not follow its period")
+            low = Math.Min(low, pulses[tick])
+            high = Math.Max(high, pulses[tick])
+        }
+        Require(low < 0.05 && high > 0.95, "Spinner phase did not cover its range")
+        Require(host.SpinnerBuilds - builds <= 90, "Spinner built more than once per tick")
         host.Before.Focus()
         host.Show("auto")
         PumpFrames(window, 4)
@@ -202,9 +225,10 @@ func FeedbackIdentityInteractions() {
         host.Rebuild()
         PumpFrames(window, 1)
         Require(host.Panel.IsMounted, "Host dropped a departing toast before its exit")
+        window.Pump(0.1)
+        Require(host.Dismisses == 4, "Toast exit ended before its duration")
         FeedbackWait(window, 300)
         Require(!host.Panel.IsMounted && host.Dismisses == 5, "Externally removed toast did not finish its exit")
-        Require(host.SpinnerBuilds > 1, "Spinner did not animate")
     } finally {
         window.RequestClose()
         PumpFrames(window, 4)

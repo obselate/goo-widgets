@@ -178,7 +178,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         if reduced || duration <= 0.0 {
             Finish()
         } else {
-            opacity.To(0.0, Motion.Tween(duration / 1000.0, Easing.EaseOut))
+            opacity.To(0.0, Motion.Tween(duration, Easing.EaseOut))
         }
         Rebuild()
     }
