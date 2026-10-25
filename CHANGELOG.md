@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+## 0.10.0 - 2026-10-24
+
+- Add field adornments, numeric input and shared form frames.
+- Add selectable sectioned lists, interactive list rows, and tree selection and editing hooks.
+- Add typography, keyboard hints, breadcrumb paths, and DataGrid table actions.
+- Refine Ink and Bone colors, surfaces and typography. Default follows refined Bone. Add RaisedColor and OverlayColor tokens.
+- Add toast stacks, loading spinners, status badges and avatar presence groups.
+- Keep TextField addon fills inside the rounded field border and align leading and trailing slots.
+- Resolve zero public widget struct fields to their documented defaults when consumers build them in another assembly.
+- Use a spinner and visible dimmed label for ActionButton loading.
+- Resolve zero theme colors from consumer-built themes to their defaults at Theme.Attach and ThemeScope.
+- Add FindBar and CodeBlock, and TextArea submit, counter and auto-growth.
+- Redesign the gallery with search, sidebar navigation, theme controls and framed examples.
+- Add attachment chips, removable invalid chips, token input, and multiple creatable combo boxes.
+- Polish DataGrid: thin column edges, toolbar filter above the header, structured detail rows, footer outside the scroll area, column alignment, and nearest-edge reveal for unrealized rows.
+- Add menu triggers and a command palette, plus editor tabs and grouped activity navigation.
+- Add dialog presets, card surfaces, status bars, property grids and responsive settings layouts.
+- Reduce allocations while filtering command palettes and combo boxes.
+- Retain token and find controls and make toast reconciliation linear.
+- CodeBlock caches highlighting, adds `StyleSpans` and `MaxHeight`, and stops laying out the full text on every rebuild.
+- Fix Spinner, StatusIndicator, Toast exit and Banner close passing seconds to millisecond motion durations.
+
 ## 0.9.0 - 2026-10-24
 
 - BREAKING: Require Goo 0.16.0 or later. Gestures now come from core Goo, so remove any Goo.Gestures reference.
