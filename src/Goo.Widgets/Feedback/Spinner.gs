@@ -25,13 +25,14 @@ public data struct SpinnerInput {
 public open class Spinner : Cell[SpinnerInput] {
     private let phase Anim[float64]
     private var reduced bool
+    private var period float64
 
     public init() {
         phase = Animate(0.0)
         phase.Completed += (reason MotionCompletionReason) -> {
             if !reduced && reason == MotionCompletionReason.Finished {
                 phase.Snap(0.0)
-                phase.To(1.0, Motion.Tween(1.0))
+                phase.To(1.0, Motion.Tween(period))
             }
         }
     }
@@ -44,10 +45,11 @@ public open class Spinner : Cell[SpinnerInput] {
             throw ArgumentOutOfRangeException("Size")
         }
         reduced = theme.ReducedMotion
+        period = theme.SpinnerPeriodMs
         if reduced {
             phase.Snap(0.0)
         } else if !phase.Running {
-            phase.To(1.0, Motion.Tween(1.0))
+            phase.To(1.0, Motion.Tween(period))
         }
         let resolved = input with{Size = size, Color = input.Color ?? theme.AccentColor, StrokeWidth = stroke}
         let root = Container{
