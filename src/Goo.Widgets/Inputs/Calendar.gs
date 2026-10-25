@@ -80,16 +80,16 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
     protected override func Build(input CalendarInput) Blob {
         theme = Theme.Read()
         let width Length = 280.0
-        let culture = input.Culture ?? CultureInfo.CurrentCulture
+        let culture = input.Culture ?? theme.Locale
         current = input with{
             Culture = culture,
             FirstDayOfWeek = input.FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
             Width = input.Width ?? width,
             DayHeight = input.DayHeight == 0.0 ? theme.ControlHeight: input.DayHeight,
             Today = input.Today ?? DateOnly.FromDateTime(DateTime.Today),
-            AccessibilityName = input.AccessibilityName ?? "Calendar",
-            PreviousMonthLabel = input.PreviousMonthLabel ?? "Previous month",
-            NextMonthLabel = input.NextMonthLabel ?? "Next month"
+            AccessibilityName = input.AccessibilityName ?? theme.Text("Calendar"),
+            PreviousMonthLabel = input.PreviousMonthLabel ?? theme.Text("Previous month"),
+            NextMonthLabel = input.NextMonthLabel ?? theme.Text("Next month")
         }
         if !Double.IsFinite(current.DayHeight) || current.DayHeight <= 0.0 {
             throw ArgumentOutOfRangeException("DayHeight")
@@ -393,7 +393,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Role: AccessibilityRole.GridCell,
             Name: date.ToString("D", current.Culture!!),
             Selected: day.Selected,
-            Description: day.Today ? "Today": ""
+            Description: day.Today ? theme.Text("Today"): ""
         }
         button.Children.Clear()
         button.Children.Add(

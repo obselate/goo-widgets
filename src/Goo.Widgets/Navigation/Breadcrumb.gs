@@ -112,7 +112,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
             AlignItems: AlignItems.Center,
             Gap: theme.Spacing,
             Overflow: Overflow.Hidden,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: value.AccessibilityName ?? "Breadcrumb"}
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: value.AccessibilityName ?? theme.Text("Breadcrumb")}
         }
         for index in 0 ... items.Length {
             if index == firstHidden {
@@ -135,7 +135,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.Button,
-                            Name: "Show hidden path",
+                            Name: theme.Text("Show hidden path"),
                             Expanded: menuOpen
                         },
                         Text{Content: "…", Color: theme.MutedTextColor}
@@ -177,7 +177,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.Text,
                             Name: item.Label ?? id,
-                            Description: "Current location"
+                            Description: theme.Text("Current location")
                         },
                         content
                     }
@@ -213,7 +213,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,
-                        Name: "Locations in " + (item.Label ?? id)
+                        Name: theme.Text("Locations in {0}", item.Label ?? id)
                     },
                     OnClick: () -> OpenSiblings(id),
                     Text{Content: "›", Color: theme.MutedTextColor}
@@ -234,7 +234,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Open: menuOpen,
                     Anchor: menuAnchor,
                     Items: menuItems,
-                    AccessibilityName: "Path locations",
+                    AccessibilityName: theme.Text("Path locations"),
                     OnActivate: (id string) -> input.OnSelect?.Invoke(id),
                     OnDismiss: () -> {
                         menuOpen = false
@@ -339,6 +339,6 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
 /// A breadcrumb for file paths with optional sibling location menus.
 public class PathBar : Breadcrumb {
     protected override func Build(input BreadcrumbInput) Blob -> base.Build(
-        input with{AccessibilityName = input.AccessibilityName ?? "Path"}
+        input with{AccessibilityName = input.AccessibilityName ?? Theme.Read().Text("Path")}
     )
 }

@@ -123,10 +123,10 @@ public data struct SearchList {
             Focusable: true,
             Value: query,
             Controlled: true,
-            Placeholder: Placeholder ?? "Search",
+            Placeholder: Placeholder ?? theme.Text("Search"),
             OnChange: OnQueryChange,
             Focus: Style{OutlineWidth: 2.0, OutlineColor: focus, OutlineOffset: -2.0},
-            Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? "Search"},
+            Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
         }
         if let customize = CustomizeEntry {
             entry = customize(entry)
@@ -171,7 +171,7 @@ public data struct SearchList {
             OverflowY = Overflow.Scroll,
             ScrollbarY = ScrollbarY ?? theme.Scrollbar,
             ScrollbarVisibilityY = ScrollbarVisibilityY ?? Goo.ScrollbarVisibility.Auto,
-            Accessibility = Accessibility{Role: AccessibilityRole.List, Name: AccessibilityName ?? "Choose an item"},
+            Accessibility = Accessibility{Role: AccessibilityRole.List, Name: AccessibilityName ?? theme.Text("Choose an item")},
         }
 
         let root = Container{
@@ -192,7 +192,7 @@ public data struct SearchList {
             root.Children.Add(
                 Text{
                     Key: "empty",
-                    Content: EmptyText ?? "No matches",
+                    Content: EmptyText ?? theme.Text("No matches"),
                     Color: muted,
                     Padding: theme.ControlPadding,
                     FontFamily: theme.FontFamily,

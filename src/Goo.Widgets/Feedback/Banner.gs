@@ -186,7 +186,7 @@ public data struct Banner {
                 Focusable: true, Cursor: Cursor.Pointer,
                 BackgroundColor: Color.Transparent, Focus: theme.FocusStyle,
                 Accessibility: Accessibility{
-                    Role: AccessibilityRole.Button, Name: DismissAccessibilityName ?? "Dismiss"
+                    Role: AccessibilityRole.Button, Name: DismissAccessibilityName ?? theme.Text("Dismiss")
                 },
                 MaterialIcons.Create("close", resolved.FontSize + 4.0, theme.TextColor)
             }

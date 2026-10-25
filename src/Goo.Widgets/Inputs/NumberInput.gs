@@ -45,10 +45,13 @@ public class NumberInput : Cell[NumberInputInput] {
     private var scrubX float64
     private var scrubValue float64
     private var rightToLeft bool
+    private var locale CultureInfo = CultureInfo.CurrentCulture
     private let handle ElementHandle = ElementHandle()
 
     protected override func Build(input NumberInputInput) Blob {
         current = input
+        let theme = Theme.Read()
+        locale = theme.Locale
         if !Double.IsFinite(input.Value) || (input.Minimum != nil && !Double.IsFinite(input.Minimum!!))
         || (input.Maximum != nil && !Double.IsFinite(input.Maximum!!))
         || (input.Minimum != nil && input.Maximum != nil && input.Minimum!!> input.Maximum!!)
@@ -63,7 +66,6 @@ public class NumberInput : Cell[NumberInputInput] {
             draft = Format(value)
             invalid = false
         }
-        let theme = Theme.Read()
         rightToLeft = theme.RightToLeft
         let frame = Container{
             Direction: theme.Direction,
@@ -134,7 +136,7 @@ public class NumberInput : Cell[NumberInputInput] {
                         SelectedId: input.Unit,
                         OnSelect: input.OnUnitChange,
                         Disabled: input.Disabled,
-                        AccessibilityName: "Unit",
+                        AccessibilityName: theme.Text("Unit"),
                         Width: 90,
                         CreateTrigger: (props, button) -> {
                             button.Height = Percent(100)
@@ -156,8 +158,8 @@ public class NumberInput : Cell[NumberInputInput] {
                 Container{
                     Height: Percent(100),
                     FlexDirection: FlexDirection.Column,
-                    SpinButton("Increase", "expand_less", 1),
-                    SpinButton("Decrease", "expand_more", -1)
+                    SpinButton(theme.Text("Increase"), "expand_less", 1),
+                    SpinButton(theme.Text("Decrease"), "expand_more", -1)
                 }
             )
         }
@@ -172,7 +174,7 @@ public class NumberInput : Cell[NumberInputInput] {
             CreateContent: (relations AccessibilityRelationships) -> {
                 entry.Accessibility = Accessibility{
                     Role: AccessibilityRole.SpinButton,
-                    Name: input.AccessibilityName ?? input.Label ?? "Number",
+                    Name: input.AccessibilityName ?? input.Label ?? theme.Text("Number"),
                     Value: draft,
                     Invalid: invalid || input.Issue != nil,
                     Relationships: relations,
@@ -209,7 +211,7 @@ public class NumberInput : Cell[NumberInputInput] {
     }
 
     private func Format(number float64) string -> current.Format?.Invoke(number)
-    ?? number.ToString(CultureInfo.CurrentCulture)
+    ?? number.ToString(locale)
 
     private func Parsed() float64? {
         if let parse = current.Parse {
@@ -218,7 +220,7 @@ public class NumberInput : Cell[NumberInputInput] {
         return Double.TryParse(
             draft,
             NumberStyles.Float | NumberStyles.AllowThousands,
-            CultureInfo.CurrentCulture,
+            locale,
             out var result
         ) ? result: nil
     }

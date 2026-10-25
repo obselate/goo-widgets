@@ -73,12 +73,12 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         theme = Theme.Read()
         current = input with{
             AllowEmpty = input.AllowEmpty ?? true,
-            Culture = input.Culture ?? CultureInfo.CurrentCulture,
+            Culture = input.Culture ?? theme.Locale,
             Width = input.Width == 0.0 ? 280.0: input.Width,
             PopupWidth = input.PopupWidth == 0.0 ? 300.0: input.PopupWidth,
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,
-            AccessibilityName = input.AccessibilityName ?? "Date",
-            Placeholder = input.Placeholder ?? "Choose a date"
+            AccessibilityName = input.AccessibilityName ?? theme.Text("Date"),
+            Placeholder = input.Placeholder ?? theme.Text("Choose a date")
         }
         if !Double.IsFinite(current.Width) || current.Width <= 40.0 || !Double.IsFinite(current.PopupWidth) ||
             current.PopupWidth <= 40.0 {

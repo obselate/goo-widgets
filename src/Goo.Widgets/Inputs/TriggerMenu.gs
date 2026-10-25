@@ -116,7 +116,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
                     Content: list,
                     MaxHeight: height + 8.0,
                     Padding: 4.0,
-                    AccessibilityName: "Suggestions",
+                    AccessibilityName: theme.Text("Suggestions"),
                     OnDismiss: Dismiss,
                 }
             ),

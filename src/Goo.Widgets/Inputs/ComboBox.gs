@@ -110,8 +110,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Width = input.Width == 0.0 ? 280.0: input.Width,
             PopupHeight = input.PopupHeight == 0.0 ? 260.0: input.PopupHeight,
             RowHeight = input.RowHeight == 0.0 ? theme.ControlHeight: input.RowHeight,
-            Placeholder = input.Placeholder ?? "Choose an option",
-            AccessibilityName = input.AccessibilityName ?? "Choose an option",
+            Placeholder = input.Placeholder ?? theme.Text("Choose an option"),
+            AccessibilityName = input.AccessibilityName ?? theme.Text("Choose an option"),
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex
         }
         if !Double.IsFinite(current.Width) || current.Width <= 2.0
@@ -327,14 +327,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             entry.Handle = searchHandle
             entry.Value = query
             entry.Controlled = true
-            entry.Placeholder = current.SearchPlaceholder ?? "Search options"
+            entry.Placeholder = current.SearchPlaceholder ?? theme.Text("Search options")
             entry.Focusable = true
             entry.OnChange = QueryChanged
             entry.OnKeyDown = ListKey
             entry.OnFocus = (event FocusEvent) -> Reveal()
             entry.Accessibility = Accessibility{
                 Role: AccessibilityRole.SearchBox,
-                Name: current.SearchPlaceholder ?? "Search options",
+                Name: current.SearchPlaceholder ?? theme.Text("Search options"),
                 Relationships: relationships
             }
             content.Children.Add(entry)
@@ -407,7 +407,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if rows.Count == 0 {
             list.Children.Add(
                 Text{
-                    Content: current.EmptyText ?? "No matches",
+                    Content: current.EmptyText ?? theme.Text("No matches"),
                     Padding: theme.ControlPadding,
                     Color: theme.MutedTextColor,
                     FontFamily: theme.FontFamily,

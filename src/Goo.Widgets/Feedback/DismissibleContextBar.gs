@@ -88,10 +88,10 @@ public data struct DismissibleContextBar {
     public func Build() Blob {
         let createDismiss = CreateDismiss
         let createRoot = CreateRoot
-        let dismissText = DismissText ?? "Dismiss"
         let theme = Theme.Read()
+        let dismissText = DismissText ?? theme.Text("Dismiss")
         let resolved = this with{
-            AccessibilityName = AccessibilityName ?? "Context",
+            AccessibilityName = AccessibilityName ?? theme.Text("Context"),
             DismissText = dismissText,
             DismissAccessibilityName = DismissAccessibilityName ?? dismissText,
             Width = Width ?? Percent(100.0),

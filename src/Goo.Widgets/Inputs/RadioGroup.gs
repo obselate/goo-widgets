@@ -67,7 +67,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
-            Name: input.AccessibilityName ?? "Choices",
+            Name: input.AccessibilityName ?? theme.Text("Choices"),
             Orientation: input.Orientation!!,
         }
         root.Children.Clear()

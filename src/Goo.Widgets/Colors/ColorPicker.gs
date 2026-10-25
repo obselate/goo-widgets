@@ -112,9 +112,9 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Maximum: 1.0,
                 Step: 0.01,
                 AccessibilityName: if currentMode == ColorMode.Hsv {
-                    "Color value"
+                    theme.Text("Color value")
                 } else {
-                    "Color lightness"
+                    theme.Text("Color lightness")
                 },
                 OnValueChanged: (value float64) -> ToneChanged(value),
                 OnValueCommitted: (value float64) -> ToneCommitted(value),
@@ -179,7 +179,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             throw ArgumentOutOfRangeException("ToneSliderHeight")
         }
         return input with{
-            AccessibilityName = input.AccessibilityName ?? "Color picker",
+            AccessibilityName = input.AccessibilityName ?? theme.Text("Color picker"),
             WheelSize = wheelSize,
             ToneSliderHeight = sliderHeight,
             Gap = input.Gap ?? theme.ControlGap,
@@ -319,7 +319,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Focusable: !resolved.Disabled,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
-                Name: "Use " + label + " color model",
+                Name: theme.Text("Use {0} color model", label),
                 Selected: currentMode == mode,
             },
             OnClick: () -> SelectMode(mode),
@@ -352,7 +352,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             BackgroundColor: ColorMath.GooColor(currentRgb),
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Image,
-                Name: "Selected color #" + ColorMath.Hex(currentRgb),
+                Name: theme.Text("Selected color #{0}", ColorMath.Hex(currentRgb)),
             },
         },
         Text{

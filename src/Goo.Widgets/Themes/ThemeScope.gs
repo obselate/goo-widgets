@@ -19,6 +19,8 @@ public data struct ThemeScope {
         if value.Direction == Direction.Auto {
             value.Direction = inherited.Direction
         }
+        value.Culture ??= inherited.Culture
+        value.Translate ??= inherited.Translate
         if let density = Density {
             value = value.WithDensity(density)
         }

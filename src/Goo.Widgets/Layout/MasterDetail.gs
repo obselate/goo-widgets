@@ -44,8 +44,8 @@ public data struct MasterDetail {
         let createBack = CreateBack
         let createRoot = CreateRoot
         let resolved = this with{
-            BackLabel = BackLabel ?? "Back",
-            AccessibilityName = AccessibilityName ?? "Master detail",
+            BackLabel = BackLabel ?? theme.Text("Back"),
+            AccessibilityName = AccessibilityName ?? theme.Text("Master detail"),
             MasterWidth = if MasterWidth == 0.0 {
                 320.0
             } else {

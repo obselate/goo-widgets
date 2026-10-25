@@ -77,7 +77,7 @@ public open class Menu : Cell[MenuInput] {
             active.Clear()
             wasOpen = true
         }
-        return Level(input.Items ?? []MenuItem{}, 0, input.Anchor, input.WindowPoint, input.AccessibilityName ?? "Menu")
+        return Level(input.Items ?? []MenuItem{}, 0, input.Anchor, input.WindowPoint, input.AccessibilityName ?? theme.Text("Menu"))
     }
 
     private func Validate(source[]MenuItem) {

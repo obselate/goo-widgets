@@ -49,24 +49,24 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             let items = []MenuItem{
                 MenuItem{
                     Id: "restore",
-                    Label: "Restore",
+                    Label: theme.Text("Restore"),
                     Disabled: !maximized || current.OnRestore == nil,
                     OnActivate: current.OnRestore
                 },
                 MenuItem{
                     Id: "minimize",
-                    Label: "Minimize",
+                    Label: theme.Text("Minimize"),
                     Disabled: current.OnMinimize == nil || host?.State == WindowState.Minimized,
                     OnActivate: current.OnMinimize
                 },
                 MenuItem{
                     Id: "maximize",
-                    Label: "Maximize",
+                    Label: theme.Text("Maximize"),
                     Disabled: maximized || current.OnMaximize == nil,
                     OnActivate: current.OnMaximize
                 },
                 MenuItem{Id: "separator", Separator: true},
-                MenuItem{Id: "close", Label: "Close", Disabled: current.OnClose == nil, OnActivate: current.OnClose},
+                MenuItem{Id: "close", Label: theme.Text("Close"), Disabled: current.OnClose == nil, OnActivate: current.OnClose},
             }
             var prepared = MenuInput{
                 Open: menuOpen,
@@ -75,7 +75,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
                 WindowPoint: menuPoint,
                 Width: 200.0,
                 MaxHeight: 240.0,
-                AccessibilityName: "Window commands"
+                AccessibilityName: theme.Text("Window commands")
             }
             if menuOpen && (overlay?.IsMounted ?? false) {
                 prepared.Viewport = overlayBox

@@ -58,9 +58,9 @@ internal class ChartParts {
                     Series: item,
                     Fraction: fraction,
                     Index: index,
-                    Summary: item.Label + ": " + item.Value.ToString("G6", CultureInfo.InvariantCulture) +
+                    Summary: item.Label + ": " + item.Value.ToString("G6", theme.Locale) +
                         " (" +
-                        (fraction * 100.0).ToString("0.#", CultureInfo.InvariantCulture) + "%)"
+                        (fraction * 100.0).ToString("0.#", theme.Locale) + "%)"
                 }
             }
             return result
@@ -118,12 +118,12 @@ internal class ChartParts {
             return root
         }
 
-        internal func Summary(segments[]ChartSegment) string {
+        internal func Summary(segments[]ChartSegment, theme Theme) string {
             let labels = List[string]()
             for segment in segments {
                 labels.Add(segment.Summary!!)
             }
-            return labels.Count == 0 ? "No data": String.Join("; ", labels)
+            return labels.Count == 0 ? theme.Text("No data"): String.Join("; ", labels)
         }
     }
 }

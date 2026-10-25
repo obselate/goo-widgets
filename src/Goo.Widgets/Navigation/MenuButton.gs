@@ -42,7 +42,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
         button.Handle = trigger
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.Button,
-            Name: input.Button.AccessibilityName ?? input.Button.Content ?? "Menu",
+            Name: input.Button.AccessibilityName ?? input.Button.Content ?? theme.Text("Menu"),
             HasPopup: true,
             Expanded: input.Open,
         }
@@ -111,7 +111,7 @@ public data struct SplitButton {
         SquareCorners(primary, theme.RightToLeft)
         let arrow = Menu.Button with{
             Content = "",
-            AccessibilityName = ArrowAccessibilityName ?? "More actions",
+            AccessibilityName = ArrowAccessibilityName ?? theme.Text("More actions"),
             MinWidth = 0.0,
             PaddingHorizontal = theme.Spacing,
             Disabled = Button.Disabled || Button.Loading || Menu.Button.Disabled,

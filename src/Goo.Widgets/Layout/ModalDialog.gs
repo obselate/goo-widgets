@@ -102,11 +102,11 @@ public data struct ModalDialog {
         let createCancel = CreateCancel
         let createConfirm = CreateConfirm
         let createRoot = CreateRoot
-        let cancelText = CancelText ?? "Cancel"
+        let cancelText = CancelText ?? theme.Text("Cancel")
         let confirmText = ConfirmText ??
-            (Preset == ModalDialogPreset.Destructive ? "Delete": Preset == ModalDialogPreset.Form ? "Save": "Confirm")
+            theme.Text(Preset == ModalDialogPreset.Destructive ? "Delete": Preset == ModalDialogPreset.Form ? "Save": "Confirm")
         let resolved = this with{
-            AccessibilityName = AccessibilityName ?? "Dialog",
+            AccessibilityName = AccessibilityName ?? theme.Text("Dialog"),
             CancelText = cancelText,
             ConfirmText = confirmText,
             Tone = Preset == ModalDialogPreset.Destructive ? Tone.Danger: Tone,

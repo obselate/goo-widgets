@@ -5,6 +5,7 @@ import Goo.Widgets.Actions
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 import System
+import System.Globalization
 import System.Runtime.CompilerServices
 
 /// Selects the built-in window appearance policy.
@@ -161,6 +162,21 @@ public data struct Theme {
     var Direction Direction
 
     internal prop RightToLeft bool { get -> Direction == Goo.Direction.RightToLeft }
+
+    /// Number and date culture. Nil follows CultureInfo.CurrentCulture.
+    var Culture CultureInfo?
+    /// Translates default widget text. Receives the English text, where {0} and {1} mark inserted values. Nil keeps English.
+    var Translate Func[string, string?]?
+
+    internal prop Locale CultureInfo { get -> Culture ?? CultureInfo.CurrentCulture }
+
+    /// Default widget text through Translate.
+    public func Text(english string) string -> Translate?.Invoke(english) ?? english
+
+    internal func Text(english string, value object) string -> String.Format(Locale, Text(english), value)
+
+    internal func Text(english string, first object, second object) string ->
+        String.Format(Locale, Text(english), first, second)
 
     internal func ResolveDefaults() Theme {
         let defaults = Default

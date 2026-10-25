@@ -40,7 +40,7 @@ public data struct FindBar {
         let theme = Theme.Read()
         let ready = !Disabled && Issue == nil && !String.IsNullOrEmpty(Query) && MatchCount > 0
         let count = Math.Max(0, MatchCount)
-        let status = Math.Clamp(ActiveMatch, 0, count).ToString() + " of " + count.ToString()
+        let status = theme.Text("{0} of {1}", Math.Clamp(ActiveMatch, 0, count), count)
         let size = theme.ControlHeight
         let root = Container{
             Width: Width ?? Percent(100),
@@ -52,7 +52,7 @@ public data struct FindBar {
             BorderColor: theme.BorderColor,
             BorderRadius: theme.ControlRadius,
             KeyBindings: state.Bindings,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: "Find and replace"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Find and replace")},
             Row(
                 state.QueryField!!,
                 Container{
@@ -83,8 +83,8 @@ public data struct FindBar {
                     TextField{
                         Value: replacement,
                         Controlled: true,
-                        Placeholder: "Replace",
-                        AccessibilityName: "Replacement",
+                        Placeholder: theme.Text("Replace"),
+                        AccessibilityName: theme.Text("Replacement"),
                         Width: Percent(100),
                         Disabled: Disabled,
                         OnChange: OnReplacementChange,
@@ -197,12 +197,13 @@ internal class FindBarField : Cell[FindBar] {
 
     protected override func Build(input FindBar) Blob {
         current = input
-        let size = Theme.Read().ControlHeight - 8.0
+        let theme = Theme.Read()
+        let size = theme.ControlHeight - 8.0
         return TextField{
             Value: input.Query,
             Controlled: true,
-            Placeholder: "Find",
-            AccessibilityName: "Find",
+            Placeholder: theme.Text("Find"),
+            AccessibilityName: theme.Text("Find"),
             Width: Percent(100),
             Disabled: input.Disabled,
             Invalid: input.Issue != nil,
@@ -260,7 +261,7 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
             Focus: theme.FocusStyle,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
-                Name: name,
+                Name: theme.Text(name),
                 Checked: on == nil ? AccessibilityChecked.Unspecified:
                 on == true ? AccessibilityChecked.True: AccessibilityChecked.False,
             },

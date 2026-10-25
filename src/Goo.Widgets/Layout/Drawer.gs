@@ -58,7 +58,7 @@ public data struct Drawer {
         }
 
         let resolved = this with{
-            AccessibilityName = AccessibilityName ?? "Drawer",
+            AccessibilityName = AccessibilityName ?? theme.Text("Drawer"),
             Width = if Width == 0.0 {
                 320.0
             } else {

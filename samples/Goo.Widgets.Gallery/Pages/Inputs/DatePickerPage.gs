@@ -51,7 +51,6 @@ internal class DatePickerExample : Cell {
             OnOpenChange: Open,
             OnChange: Select,
             Today: DateOnly(2026, 9, 15),
-            Culture: System.Globalization.CultureInfo.GetCultureInfo("en-US"),
             AccessibilityName: "Deployment date",
             Minimum: DateOnly(2026, 9, 1),
             Maximum: DateOnly(2026, 10, 31),

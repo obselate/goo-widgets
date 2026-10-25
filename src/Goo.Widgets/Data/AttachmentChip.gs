@@ -24,7 +24,7 @@ public data struct AttachmentChip {
     public func Build() Blob {
         let defaultWidth Length = 280
         let theme = Theme.Read()
-        let name = Name ?? "Attachment"
+        let name = Name ?? theme.Text("Attachment")
         let extension = name.LastIndexOf('.')
         var suffix = extension > 0 ? Math.Max(name.Length - extension, Math.Min(8, name.Length / 2)): Math.Min(
             8,
@@ -62,7 +62,7 @@ public data struct AttachmentChip {
                 },
             },
             Text{
-                Content: Failed ? "Failed" + (Detail == nil ? "": " · " + Detail!!): Detail ?? "",
+                Content: Failed ? theme.Text("Failed") + (Detail == nil ? "": " · " + Detail!!): Detail ?? "",
                 FontSize: theme.CaptionFontSize,
                 Color: Failed ? theme.DangerColor: theme.MutedTextColor,
             },
@@ -96,7 +96,7 @@ public data struct AttachmentChip {
             body.Children.Add(
                 IconButton{
                     Icon: MaterialIcons.Create("close", 16, theme.MutedTextColor),
-                    AccessibilityName: "Remove " + name,
+                    AccessibilityName: theme.Text("Remove {0}", name),
                     Disabled: Disabled,
                     OnClick: remove,
                 }.Build()
@@ -105,7 +105,7 @@ public data struct AttachmentChip {
             body.Children.Add(
                 IconButton{
                     Icon: MaterialIcons.Create("download", 16, theme.MutedTextColor),
-                    AccessibilityName: "Download " + name,
+                    AccessibilityName: theme.Text("Download {0}", name),
                     Disabled: Disabled,
                     OnClick: download,
                 }.Build()
@@ -133,7 +133,7 @@ public data struct AttachmentChip {
                         BackgroundColor: Failed ? theme.DangerColor: theme.AccentColor,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.ProgressBar,
-                            Name: "Transfer " + name,
+                            Name: theme.Text("Transfer {0}", name),
                             Range: AccessibilityValue{
                                 Minimum: 0,
                                 Maximum: 1,

@@ -102,7 +102,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             HandleSize = size,
             Width = value.Width ?? Percent(100),
             Height = value.Height ?? Percent(100),
-            AccessibilityName = value.AccessibilityName ?? "Resize panes"
+            AccessibilityName = value.AccessibilityName ?? theme.Text("Resize panes")
         }
         if input.Disabled {
             pointer = -1L

@@ -79,7 +79,7 @@ public open class ListView : Cell[ListViewInput] {
             Width = value.Width ?? Percent(100),
             Height = value.Height ?? height,
             RowHeight = value.RowHeight ?? theme.ControlHeight,
-            AccessibilityName = value.AccessibilityName ?? "List"
+            AccessibilityName = value.AccessibilityName ?? theme.Text("List")
         }
         if !Double.IsFinite(input.RowHeight!!) || input.RowHeight!!<= 0 {
             throw ArgumentOutOfRangeException("RowHeight")

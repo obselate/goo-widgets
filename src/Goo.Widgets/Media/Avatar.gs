@@ -212,7 +212,7 @@ public data struct AvatarGroup {
             Overflow: Overflow.Visible,
             Width: displayed == 0 ? 0.0: size * float64(displayed) - overlap * float64(displayed - 1),
             Height: size,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: AccessibilityName ?? "People"},
+            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: AccessibilityName ?? theme.Text("People")},
         }
         for index in 0 ... count {
             let avatar = (
@@ -234,7 +234,7 @@ public data struct AvatarGroup {
                     OnClick: () -> activate(itemIndex),
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,
-                        Name: items[index].AccessibilityName ?? items[index].FallbackText ?? "Person"
+                        Name: items[index].AccessibilityName ?? items[index].FallbackText ?? theme.Text("Person")
                     },
                     avatar,
                 }

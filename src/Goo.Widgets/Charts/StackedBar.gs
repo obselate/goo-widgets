@@ -41,7 +41,7 @@ public data struct StackedBar {
             Height = Height ?? 16.0,
             BorderRadius = BorderRadius ?? theme.ControlRadius,
             TrackColor = TrackColor ?? theme.BorderColor,
-            AccessibilityName = AccessibilityName ?? "Chart"
+            AccessibilityName = AccessibilityName ?? theme.Text("Chart")
         }
         if !Double.IsFinite(resolved.Height!!) || resolved.Height!!<= 0.0 || !Double.IsFinite(
             resolved.BorderRadius!!
@@ -86,7 +86,7 @@ public data struct StackedBar {
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
             Name: resolved.AccessibilityName!!,
-            Description: ChartParts.Summary(segments)
+            Description: ChartParts.Summary(segments, theme)
         }
         root.Children.Clear()
         root.Children.Add(plot)

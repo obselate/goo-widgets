@@ -107,7 +107,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         }
         if query.Length == 0 {
             let seen = HashSet[string](StringComparer.Ordinal)
-            AddHeader("recent", "Recent")
+            AddHeader("recent", theme.Text("Recent"))
             for id in input.RecentIds ?? []string{} {
                 if commands.ContainsKey(id) && seen.Add(id) {
                     AddCommand(commands[id])
@@ -128,7 +128,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 RemoveEmptyHeader()
             }
             if ordered.Count > 0 {
-                AddHeader("commands", "Commands")
+                AddHeader("commands", theme.Text("Commands"))
             }
             for match in ranked {
                 if seen.Add(items[match.Item].Id) {
@@ -191,8 +191,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
             ),
             RowHeight: theme.ControlHeight,
-            AccessibilityName: "Commands",
-            Placeholder: input.Placeholder ?? "Search commands",
+            AccessibilityName: theme.Text("Commands"),
+            Placeholder: input.Placeholder ?? theme.Text("Search commands"),
             OnQueryChange: input.OnQueryChange,
             CustomizeEntry: (entry TextEntry) -> {
                 entry.Value = query
@@ -235,7 +235,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             "dialog",
             ModalDialog{
                 Open: true,
-                AccessibilityName: input.AccessibilityName ?? "Command palette",
+                AccessibilityName: input.AccessibilityName ?? theme.Text("Command palette"),
                 Width: input.Width ?? 560,
                 Padding: 0,
                 Gap: 0,

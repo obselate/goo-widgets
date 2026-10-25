@@ -52,8 +52,8 @@ public data struct PropertyGrid {
                 Container{
                     Key: "search",
                     TextField{
-                        Placeholder: "Search",
-                        AccessibilityName: "Search properties",
+                        Placeholder: theme.Text("Search"),
+                        AccessibilityName: theme.Text("Search properties"),
                         Leading: MaterialIcons.Create("search", 16, theme.MutedTextColor),
                         Value: query,
                         Controlled: true,
@@ -126,11 +126,11 @@ public data struct PropertyGrid {
             root.Children.Add(
                 Text{
                     Key: "empty",
-                    Content: "No matching properties",
+                    Content: theme.Text("No matching properties"),
                     Color: theme.MutedTextColor,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Status,
-                        Name: "No matching properties",
+                        Name: theme.Text("No matching properties"),
                         Live: AccessibilityLive.Polite
                     }
                 }
@@ -160,7 +160,7 @@ public data struct PropertyGrid {
                 JustifyContent: JustifyContent.Center,
                 Disabled: item.Disabled,
                 OnClick: item.OnReset,
-                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Reset " + item.Label},
+                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Reset {0}", item.Label)},
                 Hover: Style{BackgroundColor: theme.HoverColor},
                 Focus: theme.FocusStyle,
                 MaterialIcons.Create("restart_alt", 16, theme.MutedTextColor)
@@ -219,7 +219,7 @@ public data struct PropertyGrid {
             field
         }
         if item.Modified && item.OnReset == nil {
-            row.Children.Add(Text{Content: "Modified", Color: theme.WarningColor, FontSize: theme.CaptionFontSize})
+            row.Children.Add(Text{Content: theme.Text("Modified"), Color: theme.WarningColor, FontSize: theme.CaptionFontSize})
         }
         return row
     }

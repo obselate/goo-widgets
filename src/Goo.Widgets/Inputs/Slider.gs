@@ -37,7 +37,7 @@ public data struct SliderInput {
     var LabelFontSize float64
     /// Displayed value font size. Zero uses the nearest theme caption font size.
     var ValueFontSize float64
-    /// Formats the accessible range value and optional visible value.
+    /// Formats the accessible range value and optional visible value. Nil formats with the theme Culture.
     var FormatValue Func[float64, string]?
     /// Receives pointer and keyboard preview values.
     var OnValueChanged Action[float64]?
@@ -109,7 +109,7 @@ public open class Slider : Cell[SliderInput] {
         let fraction = (current - resolved.Minimum!!) / (resolved.Maximum!!- resolved.Minimum!!)
         let horizontal = resolved.Orientation == SliderOrientation.Horizontal
         let hasHeader = resolved.Label != nil || resolved.ShowValue
-        let formattedValue = Format(current)
+        let formattedValue = resolved.FormatValue?.Invoke(current) ?? current.ToString("G", theme.Locale)
         let track = Container{
             Position: PositionType.Absolute,
             Start: if horizontal {
@@ -380,7 +380,7 @@ public open class Slider : Cell[SliderInput] {
             Minimum = minimum,
             Maximum = maximum,
             Step = step,
-            AccessibilityName = input.AccessibilityName ?? input.Label ?? "Slider",
+            AccessibilityName = input.AccessibilityName ?? input.Label ?? theme.Text("Slider"),
             LabelColor = input.LabelColor ?? theme.TextColor,
             ValueColor = input.ValueColor ?? theme.MutedTextColor,
             Width = input.Width ?? Percent(100.0),
@@ -534,12 +534,5 @@ public open class Slider : Cell[SliderInput] {
         Commit()
         Rebuild()
         return true
-    }
-
-    private func Format(value float64) string {
-        if let formatValue = resolved.FormatValue {
-            return formatValue(value)
-        }
-        return value.ToString("G", CultureInfo.InvariantCulture)
     }
 }
