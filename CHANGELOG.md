@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.12.0 - 2026-10-25
+
+- Add `Popover.AnchorRect` and `TakeFocus`, and the `TriggerMenu` mention picker.
+- Add `HoverCard` for interactive hover, focus and press cards.
+- BREAKING: Widgets mirror under `Theme.Direction` RightToLeft. `Drawer.FromRight` is now `Drawer.FromEnd` and `TabPlacement.Left/Right` are now `Start/End`. Add `TextField.ContentDirection` for LTR content such as email and URLs.
+- Add `Theme.Culture` and `Theme.Translate` to localize number and date formatting and default labels. Slider value text follows the culture instead of InvariantCulture.
+
 ## 0.11.0 - 2026-10-25
 
 - Spinner and Toast exit animate through Goo 0.17.0 paint slots and no longer rebuild every frame. Requires Goo 0.17.0.
