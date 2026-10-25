@@ -87,6 +87,8 @@ public data struct Disclosure {
             MaterialIcons.Create(
                 if resolved.Expanded {
                     "expand_more"
+                } else if theme.RightToLeft {
+                    "chevron_left"
                 } else {
                     "chevron_right"
                 },

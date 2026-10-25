@@ -310,6 +310,14 @@ func NavigationInteractions() {
             window.Height = 650
             PumpFrames(window, 8)
         }
+        Theme.Attach(window, Theme.Default with{Direction = Direction.RightToLeft})
+        PumpFrames(window, 8)
+        host.Tabs["four"].Handle!!.Focus()
+        ChoiceKey(window, SDLScancode.Left)
+        Require(
+            host.Selected == "five" && host.Tabs["five"].Handle!!.BorderBox.X < host.Tabs["four"].Handle!!.BorderBox.X,
+            "Right-to-left tabs did not mirror their order or the Left arrow"
+        )
         Console.WriteLine(
             "PASS: menu expanded/first/last/focus, editor tab close and overflow, palette open/filter/rank/arrows/Enter/Escape in light and dark"
         )

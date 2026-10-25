@@ -66,6 +66,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
     private var originSize float64
     private var lastRequest float64
     private var disposed bool
+    private var rightToLeft bool
 
     /// Creates the stable geometry subscription for this mounted splitter.
     public init() {
@@ -84,6 +85,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
 
     protected override func Build(value SplitPaneInput) Blob {
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         if !Double.IsFinite(value.Value) || !Double.IsFinite(value.MinimumFirst) || !Double.IsFinite(
             value.MinimumSecond
         )
@@ -183,6 +185,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             root = create(input, root)
         }
         root.Handle = rootHandle
+        root.Direction = theme.Direction
         root.FlexDirection = horizontal ? FlexDirection.Row: FlexDirection.Column
         root.Children.Clear()
         root.Children.Add(first)
@@ -221,11 +224,8 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         available > 0.0 ? pixels / available: 0.0
     ): pixels
 
-    private func Coordinate(e PointerEvent) float64 -> input.Orientation == SplitOrientation.Horizontal ? e
-        .WindowPosition
-        .X: e
-        .WindowPosition
-        .Y
+    private func Coordinate(e PointerEvent) float64 -> input.Orientation == SplitOrientation.Vertical ? e.WindowPosition.Y:
+        rightToLeft ? -e.WindowPosition.X: e.WindowPosition.X
 
     private func Request(pixels float64) {
         let next = ToValue(Clamp(pixels))
@@ -275,8 +275,8 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             return
         }
         let horizontal = input.Orientation == SplitOrientation.Horizontal
-        let decrease = key == (horizontal ? Key.Left: Key.Up)
-        let increase = key == (horizontal ? Key.Right: Key.Down)
+        let decrease = key == (horizontal ? (rightToLeft ? Key.Right: Key.Left): Key.Up)
+        let increase = key == (horizontal ? (rightToLeft ? Key.Left: Key.Right): Key.Down)
         if !decrease && !increase && key != Key.Home && key != Key.End {
             return
         }

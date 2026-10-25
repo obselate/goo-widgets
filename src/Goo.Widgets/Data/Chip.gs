@@ -223,7 +223,7 @@ public data struct Chip {
             Key: "remove",
             Width: input.Height!! - 8.0,
             Height: input.Height!! - 8.0,
-            Margin: Edges{Right: 4.0},
+            MarginEnd: 4.0,
             Padding: 0,
             Focusable: !input.Disabled,
             Disabled: input.Disabled,
@@ -246,7 +246,9 @@ public data struct Chip {
         button.BorderWidth = 0.0
         button.BackgroundColor = Color.Transparent
         button.Hover = Style{}
-        button.Padding = Edges{Left: input.PaddingHorizontal!!, Right: input.Gap!!}
+        button.Padding = 0
+        button.PaddingStart = input.PaddingHorizontal!!
+        button.PaddingEnd = input.Gap!!
         return Container{
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,

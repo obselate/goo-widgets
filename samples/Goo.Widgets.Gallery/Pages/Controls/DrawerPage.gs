@@ -29,7 +29,7 @@ class DrawerPage : GalleryPage {
         }
         let openRightDrawer = Drawer{
             Open: true,
-            FromRight: true,
+            FromEnd: true,
             Width: 150.0,
             Content: rightDetailContent,
             AccessibilityName: "Open right inspector drawer",
@@ -42,7 +42,7 @@ class DrawerPage : GalleryPage {
         }
         let customDrawer = Drawer{
             Open: true,
-            FromRight: true,
+            FromEnd: true,
             Width: 170.0,
             BackgroundColor: Color.Parse("#052e16"),
             BorderColor: Color.Parse("#166534"),

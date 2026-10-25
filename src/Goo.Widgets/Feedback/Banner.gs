@@ -136,8 +136,8 @@ public data struct Banner {
             Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             BackgroundColor: resolved.BackgroundColor!!,
             BorderColor: resolved.BorderColor!!,
-            BorderWidth: Variant == MessageVariant.Inline ? Edges(0.0):
-                Variant == MessageVariant.Rule ? Edges{Left: 3.0}: Edges(resolved.BorderWidth!!),
+            BorderWidth: Variant == MessageVariant.Inline || Variant == MessageVariant.Rule ? Edges(0.0):
+                Edges(resolved.BorderWidth!!),
             BorderRadius: resolved.BorderRadius!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
@@ -149,6 +149,9 @@ public data struct Banner {
                 Live: resolved.Live!! ? live: AccessibilityLive.Off,
                 Name: resolved.AccessibilityName!!
             },
+        }
+        if Variant == MessageVariant.Rule {
+            root.BorderStartWidth = 3.0
         }
         if let icon = Icon {
             root.Children.Add(icon)

@@ -304,6 +304,7 @@ public open class TreeView : Cell[TreeViewInput] {
             root = create(input, root)
         }
         root.Handle = rootHandle
+        root.Direction = theme.Direction
         root.Focusable = !input.Disabled
         root.Disabled = input.Disabled
         root.OnPointerDown = (e PointerEvent) -> pointerFocus = true
@@ -490,7 +491,7 @@ public open class TreeView : Cell[TreeViewInput] {
             return Container{
                 Key: id,
                 Height: snapshot.RowHeight!!,
-                Padding: Edges{Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!},
+                PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
                 Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: "Loading children", Busy: true},
                 Text{Content: "Loading…", Color: theme.MutedTextColor}
             }
@@ -502,7 +503,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
                 BackgroundColor: Color.Transparent,
                 Padding: theme.Spacing / 2.0,
-                MaterialIcons.Create(row.Expanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
+                MaterialIcons.Create(row.Expanded ? "expand_more": theme.RightToLeft ? "chevron_left": "chevron_right", 16, snapshot.TextColor)
             }
             if let create = snapshot.CreateExpander {
                 expander = create(snapshot, row, expander)
@@ -562,10 +563,8 @@ public open class TreeView : Cell[TreeViewInput] {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
-            Padding: Edges{
-                Right: theme.ControlPadding,
-                Left: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!
-            },
+            Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+            PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
             OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
@@ -756,13 +755,13 @@ public open class TreeView : Cell[TreeViewInput] {
                 false,
                 (item TreeViewRow) -> item.Disabled
             )
-        } else if e.Key == Key.Left {
+        } else if e.Key == (theme.RightToLeft ? Key.Right: Key.Left) {
             if row.Expanded {
                 Expand(row.Node.Id!!, false)
             } else {
                 next = Index(row.ParentId)
             }
-        } else if e.Key == Key.Right {
+        } else if e.Key == (theme.RightToLeft ? Key.Left: Key.Right) {
             if (row.Node.Children ?? []TreeNode{}).Length > 0 || row.Node.HasChildren {
                 if !row.Expanded {
                     Expand(row.Node.Id!!, true)

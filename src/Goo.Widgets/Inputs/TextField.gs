@@ -322,7 +322,7 @@ public data struct TextField {
                 content.Children.Add(
                     Container{
                         Height: Percent(100),
-                        Padding: Edges{Left: resolved.PaddingHorizontal!!},
+                        PaddingStart: resolved.PaddingHorizontal!!,
                         AlignItems: AlignItems.Center,
                         JustifyContent: JustifyContent.Center,
                         FlexShrink: 0,
@@ -335,7 +335,7 @@ public data struct TextField {
                 content.Children.Add(
                     Container{
                         Height: Percent(100),
-                        Padding: Edges{Right: resolved.PaddingHorizontal!!},
+                        PaddingEnd: resolved.PaddingHorizontal!!,
                         AlignItems: AlignItems.Center,
                         JustifyContent: JustifyContent.Center,
                         FlexShrink: 0,

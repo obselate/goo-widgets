@@ -144,7 +144,7 @@ public data struct Avatar {
         }
         if let presence = Presence {
             let marker = BuildPresence(theme, size)!!
-            marker.Right = 0.0
+            marker.End = 0.0
             if let name = resolved.AccessibilityName {
                 semantics = Accessibility{Role: AccessibilityRole.Image, Name: name + ", " + presence.ToString()}
             }
@@ -230,7 +230,7 @@ public data struct AvatarGroup {
             if let activate = OnActivate {
                 let itemIndex = index
                 let button = Button{
-                    Margin: Edges{Left: offset},
+                    MarginStart: offset,
                     OnClick: () -> activate(itemIndex),
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,
@@ -241,7 +241,7 @@ public data struct AvatarGroup {
                 WidgetKeyBindings.BindActivation(button)
                 root.Children.Add(button)
             } else {
-                avatar.Margin = Edges{Left: offset}
+                avatar.MarginStart = offset
                 root.Children.Add(avatar)
             }
         }
@@ -254,12 +254,12 @@ public data struct AvatarGroup {
                 BorderWidth: theme.BorderWidth * 2.0,
             }.Build()
             more.FlexShrink = 0.0
-            more.Margin = Edges{Left: count == 0 ? 0.0: -overlap}
+            more.MarginStart = count == 0 ? 0.0: -overlap
             root.Children.Add(more)
         }
         for index in 0 ... count {
             if let marker = items[index].BuildPresence(theme, size) {
-                marker.Left = float64(index) * (size - overlap) + size * 0.75
+                marker.Start = float64(index) * (size - overlap) + size * 0.75
                 root.Children.Add(marker)
             }
         }

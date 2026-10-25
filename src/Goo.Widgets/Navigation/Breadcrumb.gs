@@ -102,9 +102,10 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                 visible.Add(items[index].Id!!)
             }
         }
-        let focus = RovingFocus{Ids: visible.ToArray(), ActiveId: active, OnMove: Move}
+        let focus = RovingFocus{Ids: visible.ToArray(), ActiveId: active, RightToLeft: theme.RightToLeft, OnMove: Move}
         let root = Container{
             Handle: rootHandle,
+            Direction: theme.Direction,
             Width: Percent(100),
             MinWidth: 0,
             FlexDirection: FlexDirection.Row,

@@ -91,11 +91,13 @@ public open class Slider : Cell[SliderInput] {
     private var current float64
     private var dragging bool
     private var pointerId int64 = -1L
+    private var rightToLeft bool
     private var resolved SliderInput
 
     protected override func Build(input SliderInput) Blob {
         let createRoot = input.CreateRoot
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         resolved = Resolve(input, theme)
         if resolved.Disabled && dragging {
             dragging = false
@@ -110,7 +112,7 @@ public open class Slider : Cell[SliderInput] {
         let formattedValue = Format(current)
         let track = Container{
             Position: PositionType.Absolute,
-            Left: if horizontal {
+            Start: if horizontal {
                 0.0
             } else {
                 (resolved.ThumbSize - resolved.TrackThickness) / 2.0
@@ -137,7 +139,7 @@ public open class Slider : Cell[SliderInput] {
         }
         let fill = Container{
             Position: PositionType.Absolute,
-            Left: if horizontal {
+            Start: if horizontal {
                 0.0
             } else {
                 (resolved.ThumbSize - resolved.TrackThickness) / 2.0
@@ -164,7 +166,7 @@ public open class Slider : Cell[SliderInput] {
         }
         let thumb = Container{
             Position: PositionType.Absolute,
-            Left: if horizontal {
+            Start: if horizontal {
                 Percent(fraction * 100.0)
             } else {
                 0.0
@@ -174,10 +176,8 @@ public open class Slider : Cell[SliderInput] {
             } else {
                 Percent((1.0 - fraction) * 100.0)
             },
-            Margin: Edges{
-                Top: horizontal ? 0.0: -resolved.ThumbSize / 2.0,
-                Left: horizontal ? -resolved.ThumbSize / 2.0: 0.0
-            },
+            Margin: Edges{Top: horizontal ? 0.0: -resolved.ThumbSize / 2.0},
+            MarginStart: horizontal ? -resolved.ThumbSize / 2.0: 0.0,
             Width: resolved.ThumbSize,
             Height: resolved.ThumbSize,
             BorderRadius: resolved.ThumbRadius!!,
@@ -231,6 +231,7 @@ public open class Slider : Cell[SliderInput] {
         }
         let root = Container{
             Handle: handle,
+            Direction: theme.Direction,
             BackgroundColor: resolved.BackgroundColor!!,
             Width: if horizontal {
                 if hasHeader {
@@ -320,6 +321,7 @@ public open class Slider : Cell[SliderInput] {
         }
         content.Key ??= "slider-control"
         return Container{
+            Direction: theme.Direction,
             LineHeight: theme.LineHeight,
             FontFamily: theme.FontFamily,
             FontWeight: theme.FontWeight,
@@ -446,7 +448,8 @@ public open class Slider : Cell[SliderInput] {
             if box.Width <= 0.0 {
                 return current
             }
-            return resolved.Minimum!!+ Math.Clamp((e.WindowPosition.X - box.X) / box.Width, 0.0, 1.0) * (
+            let fraction = Math.Clamp((e.WindowPosition.X - box.X) / box.Width, 0.0, 1.0)
+            return resolved.Minimum!!+ (rightToLeft ? 1.0 - fraction: fraction) * (
                 resolved.Maximum!!- resolved.Minimum!!
             )
         }
@@ -500,7 +503,7 @@ public open class Slider : Cell[SliderInput] {
             next = resolved.Minimum!!
         } else if key == Key.End {
             next = resolved.Maximum!!
-        } else if key == Key.Right || key == Key.Up {
+        } else if key == Key.Up || key == (rightToLeft ? Key.Left: Key.Right) {
             next += resolved.Step!!
         } else {
             next -= resolved.Step!!

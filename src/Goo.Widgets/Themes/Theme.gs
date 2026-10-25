@@ -157,6 +157,10 @@ public data struct Theme {
     var PanelPadding float64 = 16.0
     /// Modal backdrop paint.
     var BackdropColor Color = Color.Rgba(0, 0, 0, 204)
+    /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
+    var Direction Direction
+
+    internal prop RightToLeft bool { get -> Direction == Goo.Direction.RightToLeft }
 
     internal func ResolveDefaults() Theme {
         let defaults = Default

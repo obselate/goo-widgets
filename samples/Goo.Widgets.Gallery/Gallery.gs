@@ -72,6 +72,7 @@ class Gallery : Cell, IDisposable {
     private let Registry GalleryRegistry
     private let PageOnly bool
     private var currentIndex int32
+    internal var RightToLeft bool
     private var query string = ""
     private var platformInput PlatformInput?
     private var owningWindow Window?
@@ -98,7 +99,10 @@ class Gallery : Cell, IDisposable {
     }
 
     internal func AttachWindow(window Window) {
-        Theme.Attach(window, Theme.Default with{FontFamily = "Vend Sans", HeadingFontFamily = "Vend Sans"})
+        Theme.Attach(window, Theme.Default with{
+            FontFamily = "Vend Sans", HeadingFontFamily = "Vend Sans",
+            Direction = RightToLeft ? Direction.RightToLeft: Direction.Auto
+        })
         Theme.SetMode(window, ThemeMode.Dark)
         platformInput = window.PlatformInput
         if let previous = owningWindow { previous.PreviewKeyPressed -= PreviewKey }
@@ -207,8 +211,8 @@ class Gallery : Cell, IDisposable {
                     Text{Content: group.Name, FontSize: 13, FontWeight: 600, Color: theme.TextColor}
                 },
                 Container{
-                    Margin: Edges{Left: 15}, BorderWidth: Edges{Left: 1}, BorderColor: theme.BorderColor,
-                    Padding: Edges{Left: 6},
+                    MarginStart: 15, BorderStartWidth: 1, BorderColor: theme.BorderColor,
+                    PaddingStart: 6,
                     Cell.Mount[NavigationRailInput, NavigationRail](group.Name, NavigationRailInput{
                         Items: items.ToArray(), SelectedId: Registry.CurrentPage(currentIndex).Name(),
                         AccessibilityName: group.Name, Expanded: true, ExpandedWidth: 202,
@@ -326,13 +330,13 @@ class Gallery : Cell, IDisposable {
         page.PlatformInput = platformInput
         page.OwningWindow = owningWindow
         let root = Container{
-            BasedOn: theme.CanvasStyle, KeyBindings: WidgetKeyBindings.Editing(platformInput), Width: Percent(100), Height: Percent(100),
+            BasedOn: theme.CanvasStyle, Direction: theme.Direction, KeyBindings: WidgetKeyBindings.Editing(platformInput), Width: Percent(100), Height: Percent(100),
             FlexDirection: FlexDirection.Row
         }
         if !PageOnly { root.Children.Add(Sidebar()) }
         root.Children.Add(Container{
             Key: "page", Handle: panelHandle, FlexGrow: 1, FlexBasis: 0, MinWidth: 0, MinHeight: 0,
-            Margin: Edges{Top: 8, Right: 8, Bottom: 8, Left: PageOnly ? 8: 0},
+            Margin: 8, MarginStart: PageOnly ? 8: 0,
             BackgroundColor: theme.PanelColor, BorderColor: theme.BorderColor, BorderWidth: 1,
             BorderRadius: theme.PanelRadius, BoxShadow: theme.ElevationSm, Overflow: Overflow.Hidden,
             Padding: Edges{Top: 26, Left: sidePadding, Right: sidePadding, Bottom: 32}, Gap: 20,

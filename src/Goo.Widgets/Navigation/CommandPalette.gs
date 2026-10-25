@@ -199,7 +199,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 entry.Controlled = true
                 entry.OnKeyDown = KeyDown
                 entry.FlexGrow = 1
-                entry.Padding = Edges{Right: theme.ControlPadding}
+                entry.Padding = 0
+                entry.PaddingEnd = theme.ControlPadding
                 entry.BackgroundColor = Color.Transparent
                 entry.Focus = Style{}
                 return entry
@@ -212,7 +213,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
                     Gap: theme.ControlGap,
-                    Padding: Edges{Left: theme.ControlPadding},
+                    PaddingStart: theme.ControlPadding,
                     MaterialIcons.Create("search", 18, theme.MutedTextColor),
                     root.Children[0],
                 }

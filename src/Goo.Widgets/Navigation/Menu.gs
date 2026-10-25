@@ -34,7 +34,7 @@ public data struct MenuInput {
     var Viewport ElementRect?
     /// Preferred root placement; defaults to BottomStart. The viewport may flip or clamp it.
     var Placement PopoverPlacement
-    /// Preferred submenu side; LeftStart or RightStart. Nil resolves to RightStart.
+    /// Preferred submenu side; LeftStart or RightStart. Nil opens toward the end edge of the theme direction.
     var SubmenuPlacement PopoverPlacement?
     var Width float64
     var MaxHeight float64
@@ -137,7 +137,11 @@ public open class Menu : Cell[MenuInput] {
         search.Items = searchable
         search.TextForId = (id string) -> items[id].Label ?? id
         search.OnMatch = (id string) -> Focus(depth, id)
-        let rows = Container{Gap: theme.Spacing / 2.0, Accessibility: Accessibility{Role: AccessibilityRole.None}}
+        let rows = Container{
+            Direction: theme.Direction,
+            Gap: theme.Spacing / 2.0,
+            Accessibility: Accessibility{Role: AccessibilityRole.None}
+        }
         for item in source {
             let id = item.Id!!
             if item.Separator {
@@ -210,7 +214,7 @@ public open class Menu : Cell[MenuInput] {
                 row.Children.Add(
                     Text{
                         Key: "arrow",
-                        Content: OpensLeft() ? "‹": "›",
+                        Content: OpensLeft() == theme.RightToLeft ? "›": "‹",
                         FontFamily: theme.FontFamily,
                         FontSize: theme.HeadingFontSize,
                         Color: theme.MutedTextColor,
@@ -243,7 +247,7 @@ public open class Menu : Cell[MenuInput] {
             AccessibilityName: name,
             MaxHeight: current.MaxHeight,
             ZIndex: current.ZIndex,
-            Placement: depth == 0 ? current.Placement: current.SubmenuPlacement ?? PopoverPlacement.RightStart,
+            Placement: depth == 0 ? current.Placement: SubmenuPlacement(),
             Padding: theme.Spacing,
             DismissOnOutsideClick: depth == 0,
             OnDismiss: (reason PopoverDismissReason) -> CloseLevel(depth),
@@ -396,7 +400,10 @@ public open class Menu : Cell[MenuInput] {
         Rebuild()
     }
 
-    private func OpensLeft() bool -> current.SubmenuPlacement == PopoverPlacement.LeftStart
+    private func SubmenuPlacement() PopoverPlacement -> current.SubmenuPlacement ??
+        (theme.RightToLeft ? PopoverPlacement.LeftStart: PopoverPlacement.RightStart)
+
+    private func OpensLeft() bool -> SubmenuPlacement() == PopoverPlacement.LeftStart
 
     private func KeyDown(source[]MenuItem, depth int32, id string, event KeyEvent) {
         let search = typeAhead[depth]

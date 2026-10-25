@@ -223,12 +223,12 @@ customize the panel/root while placement, handles, input, and content stay wired
 
 `Menu` takes `MenuInput` with an Anchor or WindowPoint for a context menu.
 `Placement` selects the preferred root position (default BottomStart);
-`SubmenuPlacement` accepts LeftStart or RightStart (default RightStart). Popover
-still flips/clamps at viewport edges. Left opens and Right closes when the preferred
-submenu side is left; the default uses Right to open and Left to close. Items
+`SubmenuPlacement` accepts LeftStart or RightStart (default: the end side of
+`Theme.Direction`). Popover still flips/clamps at viewport edges. The arrow toward
+the submenu side opens it and the other arrow closes it. Items
 have globally unique IDs, labels/custom content, disabled/separator state, optional
 children, and an optional per-item action overriding the shared OnActivate(id).
-Up/Down/Home/End navigate; Right/Left open and close submenus; Enter/Space activate;
+Up/Down/Home/End navigate; the arrows open and close submenus; Enter/Space activate;
 Escape closes the active level. Pointer hover also opens submenus. DismissOnActivate
 defaults to true. CreateItem, CreateSeparator, CreatePanel, and CreateRoot retain
 navigation, identity, and accessibility wiring. `SubmenuArrowStyle` styles the
@@ -346,6 +346,16 @@ scrollbar fades, and restores authored transition durations when disabled.
 High contrast strengthens text, borders and focus. Text scale adjusts all type
 sizes and minimum control sizes, including fixed scopes. `WithHighContrast()`
 and `WithTextScale(scale)` apply the same policy to an authored theme.
+
+For right-to-left apps, set `Direction = Direction.RightToLeft` on the attached
+theme and on the app root:
+
+```gsharp
+Theme.Attach(window, Theme.Default with{Direction = Direction.RightToLeft})
+```
+
+Widgets then mirror layout, horizontal arrow keys, slider drag and drawer and tab edges.
+A `ThemeScope` with `Direction` Auto keeps the outer direction.
 
 Use `LinkColor` for links and `FocusColor` for keyboard focus. Theme also supplies
 quiet tone fills, sunken and active surfaces, strong borders, subtle and disabled

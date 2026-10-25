@@ -44,7 +44,7 @@ internal class NumberInputExample : Cell {
                 Minimum: 0,
                 Step: 0.25,
                 Width: Percent(100),
-                Prefix: Text{Content: "$", Padding: Edges{Left: 12}},
+                Prefix: Text{Content: "$", PaddingStart: 12},
                 Format: value -> value.ToString("F2"),
                 OnChange: value -> {
                     price = value

@@ -38,12 +38,14 @@ public data struct ToggleGroupInput {
 /// A roving group that selects one choice or toggles several choices.
 public open class ToggleGroup : Cell[ToggleGroupInput] {
     private var input ToggleGroupInput
+    private var rightToLeft bool
     private var focusedId string?
     private var hasFocus bool
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
 
     protected override func Build(value ToggleGroupInput) Blob {
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         input = value with{
             Items = value.Items ?? []ToggleOption{},
             SelectedIds = value.SelectedIds ?? []string{},
@@ -80,6 +82,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
         if let create = input.CreateRoot {
             root = create(input, root)
         }
+        root.Direction = theme.Direction
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
@@ -204,7 +207,8 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             e.Key,
             input.Orientation!!,
             true,
-            (item ToggleOption) -> item.Disabled
+            (item ToggleOption) -> item.Disabled,
+            rightToLeft
         )
         if next < 0 {
             return

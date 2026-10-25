@@ -12,12 +12,12 @@ public enum TabActivation {
     Manual
 }
 
-/// Panel edge that contains the tabs. The indicator faces the panel.
+/// Panel edge that contains the tabs. Start and End follow the theme direction. The indicator faces the panel.
 public enum TabPlacement {
     Top;
     Bottom;
-    Left;
-    Right
+    Start;
+    End
 }
 
 /// Controlled peer navigation. The host owns panel content and lifetime.
@@ -64,13 +64,15 @@ public open class TabBar : Cell[TabBarInput] {
     private var focusedId string?
     private var hasFocus bool
     private var overflowOpen bool
+    private var rightToLeft bool
 
     protected override func Build(value TabBarInput) Blob {
         let theme = Theme.Read()
+        rightToLeft = theme.RightToLeft
         items = value.Items ?? []NavigationItem{}
         input = value with{
             Items = items,
-            Vertical = value.Vertical || value.Placement == TabPlacement.Left || value.Placement == TabPlacement.Right,
+            Vertical = value.Vertical || value.Placement == TabPlacement.Start || value.Placement == TabPlacement.End,
             PinnedIds = value.PinnedIds ?? []string{},
             DirtyIds = value.DirtyIds ?? []string{},
             AccessibilityName = value.AccessibilityName ?? "Tabs",
@@ -185,10 +187,10 @@ public open class TabBar : Cell[TabBarInput] {
                     marker.Width = 2
                     marker.Top = 0
                     marker.Bottom = 0
-                    if input.Placement == TabPlacement.Left {
-                        marker.Right = 0
+                    if input.Placement == TabPlacement.Start {
+                        marker.End = 0
                     } else {
-                        marker.Left = 0
+                        marker.Start = 0
                     }
                 } else {
                     marker.Height = 2
@@ -203,7 +205,7 @@ public open class TabBar : Cell[TabBarInput] {
                 indicator = marker
             }
             if input.OnClose != nil && !pinned {
-                button.Padding = Edges{Left: theme.ControlPadding, Right: 0}
+                button.PaddingEnd = 0
                 button.BackgroundColor = Color.Transparent
                 button.Hover = Style{}
                 let tab = Container{
@@ -211,7 +213,7 @@ public open class TabBar : Cell[TabBarInput] {
                     FlexDirection: FlexDirection.Row,
                     FlexShrink: 0,
                     AlignItems: AlignItems.Center,
-                    Padding: Edges{Right: theme.Spacing * 2},
+                    PaddingEnd: theme.Spacing * 2,
                     BackgroundColor: active ? theme.ActiveColor: theme.PanelColor,
                     Hover: Style{BackgroundColor: theme.HoverColor},
                     button
@@ -256,6 +258,7 @@ public open class TabBar : Cell[TabBarInput] {
         if let create = input.CreateRoot {
             root = create(input, root)
         }
+        root.Direction = theme.Direction
         root.FlexDirection = input.Vertical ? FlexDirection.Column: FlexDirection.Row
         root.OverflowX = input.Vertical || input.OverflowMenu ? Overflow.Hidden: Overflow.Scroll
         root.OverflowY = input.Vertical ? Overflow.Scroll: Overflow.Hidden
@@ -267,7 +270,7 @@ public open class TabBar : Cell[TabBarInput] {
                     visible = index
                 }
             }
-            root.Layout = WholeTabsLayout(visible, theme.Spacing / 2.0)
+            root.Layout = WholeTabsLayout(visible, theme.Spacing / 2.0, rightToLeft)
         }
         root.ScrollbarY = theme.Scrollbar
         root.Accessibility = Accessibility{
@@ -287,6 +290,7 @@ public open class TabBar : Cell[TabBarInput] {
         root.FlexShrink = 1
         root.FlexBasis = 0
         let outer = Container{
+            Direction: theme.Direction,
             Width: input.Width!!,
             Height: input.Height ?? Length.Auto,
             MinHeight: 0,
@@ -373,7 +377,8 @@ public open class TabBar : Cell[TabBarInput] {
             e.Key,
             input.Vertical ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal,
             true,
-            (item NavigationItem) -> item.Disabled
+            (item NavigationItem) -> item.Disabled,
+            rightToLeft
         )
         if next < 0 {
             return
@@ -396,7 +401,7 @@ public open class TabBar : Cell[TabBarInput] {
     }
 }
 
-internal class WholeTabsLayout(Visible int32, Gap float64) : LayoutAlgorithm {
+internal class WholeTabsLayout(Visible int32, Gap float64, RightToLeft bool) : LayoutAlgorithm {
     public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
         var width = 0.0
         var height = 0.0
@@ -425,12 +430,17 @@ internal class WholeTabsLayout(Visible int32, Gap float64) : LayoutAlgorithm {
         var x = 0.0
         for index in 0 ... widths.Length {
             if index >= start && index < end {
-                context.ArrangeChild(index, ElementRect{X: x, Width: widths[index], Height: finalSize.Height})
+                let x0 = RightToLeft ? finalSize.Width - x - widths[index]: x
+                context.ArrangeChild(index, ElementRect{X: x0, Width: widths[index], Height: finalSize.Height})
                 x += widths[index] + Gap
             } else {
                 context.ArrangeChild(
                     index,
-                    ElementRect{X: finalSize.Width + Gap, Width: widths[index], Height: finalSize.Height}
+                    ElementRect{
+                        X: RightToLeft ? -widths[index] - Gap: finalSize.Width + Gap,
+                        Width: widths[index],
+                        Height: finalSize.Height
+                    }
                 )
             }
         }
