@@ -63,6 +63,7 @@ public data struct FindBar {
                         Content: status,
                         MinWidth: size * 2.0,
                         TextAlign: TextAlign.Center,
+                        TextWrap: TextWrap.NoWrap,
                         Color: !String.IsNullOrEmpty(Query) && count == 0 ? theme.DangerColor: theme.MutedTextColor,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.Text,
