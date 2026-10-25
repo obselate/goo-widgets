@@ -86,6 +86,7 @@ internal class TokenHost : Cell {
 }
 
 func TokenInteractions() {
+    RetainedAllocationContracts()
     let host = TokenHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)

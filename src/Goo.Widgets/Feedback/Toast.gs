@@ -216,26 +216,34 @@ public data struct ToastHostInput {
 public open class ToastHost : Cell[ToastHostInput] {
     private let retained List[ToastItem] = List[ToastItem]()
     private let dismissed HashSet[string] = HashSet[string]()
+    private let incoming HashSet[string] = HashSet[string](StringComparer.Ordinal)
+    private let positions Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
+    private let finished Action[string]
     private var current ToastHostInput
+
+    public init() {
+        finished = Finished
+    }
 
     protected override func Build(input ToastHostInput) Blob {
         current = input
         let theme = Theme.Read()
         let items = input.Items ?? []ToastItem{}
+        incoming.Clear()
+        positions.Clear()
+        for index in 0 ... retained.Count {
+            positions[retained[index].Id] = index
+        }
         for item in items {
-            var found = false
-            for index in 0 ... retained.Count {
-                if retained[index].Id == item.Id {
-                    retained[index] = item
-                    found = true
-                    break
-                }
-            }
-            if !found && !dismissed.Contains(item.Id) {
+            incoming.Add(item.Id)
+            if positions.TryGetValue(item.Id, out var index) {
+                retained[index] = item
+            } else if !dismissed.Contains(item.Id) {
+                positions[item.Id] = retained.Count
                 retained.Add(item)
             }
         }
-        dismissed.RemoveWhere((id string) -> !Contains(items, id))
+        dismissed.RemoveWhere(id -> !incoming.Contains(id))
         let stack = Container{
             Position: PositionType.Absolute,
             Width: input.Width ?? 360.0,
@@ -261,23 +269,14 @@ public open class ToastHost : Cell[ToastHostInput] {
                     ToastInput{
                         Window: input.Window,
                         Item: item,
-                        Open: Contains(items, item.Id),
-                        OnDismiss: Finished,
+                        Open: incoming.Contains(item.Id),
+                        OnDismiss: finished,
                         CreateRoot: input.CreateToast,
                     }
                 )
             )
         }
         return Portal{Width: Percent(100), Height: Percent(100), ZIndex: 30, stack}
-    }
-
-    private func Contains(items[]ToastItem, id string) bool {
-        for item in items {
-            if item.Id == id {
-                return true
-            }
-        }
-        return false
     }
 
     private func Finished(id string) {
