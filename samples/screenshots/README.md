@@ -59,7 +59,7 @@ Each image links to its page source. New pages need a registration, a matching P
 | [![List row](ListRow.png)](../Goo.Widgets.Gallery/Pages/Controls/ListRowPage.gs)<br>List row | [![Master detail](MasterDetail.png)](../Goo.Widgets.Gallery/Pages/Layout/MasterDetailPage.gs)<br>Master detail | [![Modal dialog](ModalDialog.png)](../Goo.Widgets.Gallery/Pages/Layout/ModalDialogPage.gs)<br>Modal dialog |
 | [![Modal dialog host](ModalDialogHost.png)](../Goo.Widgets.Gallery/Pages/Layout/ModalDialogHostPage.gs)<br>Modal dialog host | [![Popover](Popover.png)](../Goo.Widgets.Gallery/Pages/Layout/PopoverPage.gs)<br>Popover | [![Tooltip](Tooltip.png)](../Goo.Widgets.Gallery/Pages/Layout/TooltipPage.gs)<br>Tooltip |
 | [![Disclosure](Disclosure.png)](../Goo.Widgets.Gallery/Pages/Layout/DisclosurePage.gs)<br>Disclosure | [![Split pane](SplitPane.png)](../Goo.Widgets.Gallery/Pages/Layout/SplitPanePage.gs)<br>Split pane | [![Grid](Grid.png)](../Goo.Widgets.Gallery/Pages/Layout/GridPage.gs)<br>Grid |
-| [![Window chrome](WindowChrome.png)](../Goo.Widgets.Gallery/Pages/Layout/WindowChromePage.gs)<br>Window chrome | [![Theme scope](ThemeScope.png)](../Goo.Widgets.Gallery/Pages/Layout/ThemeScopePage.gs)<br>Theme scope | |
+| [![Window chrome](WindowChrome.png)](../Goo.Widgets.Gallery/Pages/Layout/WindowChromePage.gs)<br>Window chrome | [![Theme scope](ThemeScope.png)](../Goo.Widgets.Gallery/Pages/Layout/ThemeScopePage.gs)<br>Theme scope | [![Hover card](HoverCard.png)](../Goo.Widgets.Gallery/Pages/Layout/HoverCardPage.gs)<br>Hover card |
 
 ## Navigation
 

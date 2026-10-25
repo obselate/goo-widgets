@@ -3,8 +3,10 @@ package Goo.Widgets.Consumer
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Inputs
+import Goo.Widgets.Layout
 import Hexa.NET.SDL3
 import System
+import System.Threading
 
 internal class TriggerHost : Cell {
     internal let Editor ElementHandle = ElementHandle()
@@ -36,6 +38,30 @@ internal class TriggerHost : Cell {
                         },
                     }
                 ),
+            }
+        ),
+    }
+}
+
+internal class HoverHost : Cell {
+    internal let Before ElementHandle = ElementHandle()
+    internal let Target ElementHandle = ElementHandle()
+    internal let Action ElementHandle = ElementHandle()
+
+    public override func Build() Blob -> Container{
+        Width: Percent(100),
+        Height: Percent(100),
+        Padding: 24,
+        Gap: 24,
+        Button{Handle: Before, Width: 120, Height: 32, OnClick: () -> { }, Accessibility: Accessibility{Name: "Before"},},
+        Cell.Mount[HoverCardInput, HoverCard](
+            "card",
+            HoverCardInput{
+                OpenDelayMs: 600,
+                CloseDelayMs: 600,
+                AccessibilityName: "Profile",
+                Target: Button{Handle: Target, Width: 120, Height: 32, OnClick: () -> { }, Accessibility: Accessibility{Name: "Target"},},
+                Content: Button{Handle: Action, Width: 160, Height: 32, OnClick: () -> { }, Accessibility: Accessibility{Name: "Message"},},
             }
         ),
     }
@@ -98,6 +124,68 @@ func PopupInteractions() {
             "Pointer pick did not replace the trigger range in the focused editor"
         )
         Console.WriteLine("PASS: trigger menu focus, placement, keyboard and pointer picks, Escape")
+    } finally {
+        window.RequestClose()
+        window.Pump(0)
+    }
+    HoverCardInteractions()
+}
+
+func HoverCardInteractions() {
+    let host = HoverHost()
+    let semantics = SearchListSemantics()
+    let root = ApplicationRoot(host)
+    let window = Window{Title: "Hover card verification", Width: 640, Height: 420, Root: root, AccessibilityAdapter: semantics}
+    BindApplicationInput(root, window)
+    window.Open()
+    try {
+        PumpFrames(window, 12)
+        let id = OnlyNativeWindow()
+        let target = host.Target.BorderBox
+        let x = float32(target.X + target.Width / 2.0)
+        let y = float32(target.Y + target.Height / 2.0)
+        MouseMove(id, x, y)
+        PumpFrames(window, 3)
+        Require(!host.Action.IsMounted, "Hover card opened before its delay")
+        Thread.Sleep(700)
+        PumpFrames(window, 4)
+        Require(host.Action.IsMounted, "Hover card did not open after its delay")
+        let card = host.Action.BorderBox
+        MouseMove(id, float32(card.X + card.Width / 2.0), float32(card.Y + card.Height / 2.0))
+        Thread.Sleep(700)
+        PumpFrames(window, 4)
+        Require(host.Action.IsMounted, "Hover card closed while the pointer was on it")
+        MouseMove(id, 600.0F, 400.0F)
+        PumpFrames(window, 3)
+        Require(host.Action.IsMounted, "Hover card closed before its delay")
+        Thread.Sleep(700)
+        PumpFrames(window, 4)
+        Require(!host.Action.IsMounted, "Hover card did not close after the pointer left")
+        MouseMove(id, x, y)
+        MouseButton(id, x, y, true)
+        MouseButton(id, x, y, false)
+        PumpFrames(window, 3)
+        Require(host.Action.IsMounted, "Press did not open the hover card at once")
+        MouseMove(id, 600.0F, 400.0F)
+        Thread.Sleep(700)
+        PumpFrames(window, 4)
+        Require(host.Action.IsMounted, "Hover card closed while its target had focus")
+        SendKey(id, SDLScancode.Escape)
+        PumpFrames(window, 4)
+        Require(!host.Action.IsMounted && OverlayFocus(semantics, "Target"), "Escape did not close the card and keep focus")
+        host.Before.Focus()
+        PumpFrames(window, 2)
+        host.Target.Focus()
+        PumpFrames(window, 3)
+        Require(
+            FindSemantics(semantics.Tree?.Root, "Profile")?.Role == AccessibilityRole.Group && OverlayFocus(semantics, "Target"),
+            "Focus did not open a Group card at once without moving focus"
+        )
+        SendKey(id, SDLScancode.Tab)
+        Thread.Sleep(700)
+        PumpFrames(window, 4)
+        Require(host.Action.IsMounted && OverlayFocus(semantics, "Message"), "Tab did not reach the open card content")
+        Console.WriteLine("PASS: hover card delays, pointer on card, press, focus, Tab and Escape")
     } finally {
         window.RequestClose()
         window.Pump(0)
