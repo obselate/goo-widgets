@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.13.0 - 2026-10-25
+
+- Placeholders use the new `Theme.PlaceholderColor` and meet 4.5:1 contrast in Ink, Bone and high contrast, while staying distinct from typed text. Requires Goo 0.18.0.
+
 ## 0.12.0 - 2026-10-25
 
 - Add `Popover.AnchorRect` and `TakeFocus`, and the `TriggerMenu` mention picker.
