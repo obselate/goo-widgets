@@ -202,8 +202,8 @@ func ThemeBackgroundContracts() {
     let dark = Theme.Read(native)
     Require(
         light.CanvasColor == Theme.Native.CanvasColor && dark.CanvasColor != light.CanvasColor
-        && dark.AccentColor == accent && dark.FontFamily == light.FontFamily,
-        "Native did not follow the system appearance and accent."
+        && dark.AccentColor == accent && dark.OnAccentColor == Color.Black && dark.FontFamily == light.FontFamily,
+        "Native did not follow the system appearance and accent with readable accent text."
     )
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"

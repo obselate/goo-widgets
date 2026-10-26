@@ -192,11 +192,16 @@ public data struct Theme {
 
     internal func SelectedFill(tint Color) Color -> switch Selection {
         case SelectionStyle.Indicator: HoverColor
-        case SelectionStyle.Filled: AccentColor
+        case SelectionStyle.Filled: Legible(AccentColor, Color.Black, Color.White, 4.5)
         default: tint
     }
 
-    internal func SelectedText(text Color) Color -> Selection == SelectionStyle.Filled ? OnAccentColor: text
+    internal func SelectedText(text Color) Color -> Selection == SelectionStyle.Filled ? Color.White: text
+
+    /// Accent for the Indicator pill and rail marker, kept at 3:1 against the selected row.
+    internal prop IndicatorColor Color {
+        get -> Legible(AccentColor, TextColor, HoverColor, 3.0)
+    }
 
     /// Accent bar for an Indicator row. Add it to the selected row only.
     internal func SelectionBar() Container -> Container{
@@ -207,7 +212,7 @@ public data struct Theme {
         Bottom: 0,
         JustifyContent: JustifyContent.Center,
         HitTestSelf: false,
-        Container{Width: 3, Height: 16, BorderRadius: 1.5, BackgroundColor: AccentColor},
+        Container{Width: 3, Height: 16, BorderRadius: 1.5, BackgroundColor: IndicatorColor},
     }
 
     /// Number and date culture. Nil follows CultureInfo.CurrentCulture.
@@ -627,8 +632,8 @@ public data struct Theme {
                         SuccessFillColor = "#dff6dd",
                         WarningFillColor = "#fff4ce",
                         DangerQuietColor = "#fde7e9",
-                        FontFamily = "Segoe UI Variable",
-                        HeadingFontFamily = "Segoe UI Variable",
+                        FontFamily = "Segoe UI",
+                        HeadingFontFamily = "Segoe UI",
                         LineHeight = 20.0 / 14.0,
                         LabelFontSize = 14.0,
                         LabelFontWeight = 400,
@@ -767,6 +772,30 @@ public data struct Theme {
 
     private func Luminance(red float64, green float64, blue float64) float64 ->
     0.2126 * LinearSrgb(red) + 0.7152 * LinearSrgb(green) + 0.0722 * LinearSrgb(blue)
+
+    internal func Contrast(first Color, second Color) float64 {
+        let x = Luminance(first.R, first.G, first.B) + 0.05
+        let y = Luminance(second.R, second.G, second.B) + 0.05
+        return Math.Max(x, y) / Math.Min(x, y)
+    }
+
+    internal func Mix(color Color, target Color, amount float32) Color -> Color.FromNormalized(
+        color.R + (target.R - color.R) * amount,
+        color.G + (target.G - color.G) * amount,
+        color.B + (target.B - color.B) * amount,
+        color.A
+    )
+
+    /// Moves color toward target in 1% steps until it reaches ratio against other.
+    internal func Legible(color Color, target Color, other Color, ratio float64) Color {
+        for percent in 0 ... 100 {
+            let value = Mix(color, target, float32(percent) / 100.0F)
+            if Contrast(value, other) >= ratio {
+                return value
+            }
+        }
+        return target
+    }
 
     internal prop FrameTheme SystemTheme {
         get -> Luminance(TextColor.R, TextColor.G, TextColor.B) > Luminance(CanvasColor.R, CanvasColor.G, CanvasColor.B)
@@ -1093,7 +1122,12 @@ internal sealed class ThemeAttachment {
             }
             if Mode == ThemeMode.System {
                 if let accent = preferences.AccentColor {
+                    let white = value.Contrast(Color.White, accent) >= value.Contrast(Color.Black, accent)
+                    let away = white ? Color.Black: Color.White
                     value.AccentColor = accent
+                    value.OnAccentColor = white ? Color.White: Color.Black
+                    value.AccentHoverColor = value.Mix(accent, away, 0.1F)
+                    value.AccentPressedColor = value.Mix(accent, away, 0.2F)
                 }
             }
         }

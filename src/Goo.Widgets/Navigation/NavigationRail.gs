@@ -262,7 +262,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                         Top: 6,
                         Bottom: 6,
                         Width: 3,
-                        BackgroundColor: theme.Selection == SelectionStyle.Indicator ? theme.AccentColor: resolved.SelectedTextColor!!,
+                        BackgroundColor: theme.Selection == SelectionStyle.Indicator ? theme.IndicatorColor: resolved.SelectedTextColor!!,
                         HitTestSelf: false,
                     }
                 )
