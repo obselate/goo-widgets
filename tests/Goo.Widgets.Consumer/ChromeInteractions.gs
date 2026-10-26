@@ -74,28 +74,34 @@ internal class ChromePaintHost : Cell {
                 BackgroundColor: Color.Rgb(32, 32, 32),
                 ControlColor: Color.White,
                 CloseHoverBackgroundColor: Color.Rgb(255, 128, 192),
+                CreateRoot: (input WindowChrome, children []Blob) -> Container{
+                    Handle: custom ? Custom: Stock,
+                    Height: input.Height,
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    BackgroundColor: input.BackgroundColor!!,
+                },
             }
             if custom {
                 chrome.CreateControlContent = (input WindowChrome, command WindowChromeAction) ->
                     MaterialIcons.Create("close", 18.0, Color.Rgb(0, 128, 255))
             }
-            let row = (chrome.Build() as Container)!!
-            row.Children[1].Handle = custom ? Custom: Stock
-            root.Children.Add(row)
+            root.Children.Add(chrome.Build())
         }
         return root
     }
 }
 
-func ChromePaint(window Window, control ElementHandle, foreground Color, background Color) {
+func ChromePaint(window Window, row ElementHandle, foreground Color, background Color) {
     let image = ThemeCapture(window)
-    let box = control.BorderBox
+    let box = row.BorderBox
+    let closeX = box.X + box.Width - 48.0
     let scaleX = float64(image.Width) / float64(window.Width)
     let scaleY = float64(image.Height) / float64(window.Height)
     Require(
-        ThemePixel(image, int32((box.X + box.Width / 2.0) * scaleX),
+        ThemePixel(image, int32((closeX + 24.0) * scaleX),
             int32((box.Y + box.Height / 2.0) * scaleY), foreground)
-        && ThemePixel(image, int32((box.X + 3.0) * scaleX), int32((box.Y + 3.0) * scaleY), background),
+        && ThemePixel(image, int32((closeX + 3.0) * scaleX), int32((box.Y + 3.0) * scaleY), background),
         "Chrome painted the wrong icon foreground or control background."
     )
 }
@@ -115,15 +121,15 @@ func ChromePaintInteractions() {
         PumpFrames(window, 3)
         ChromePaint(window, host.Stock, Color.White, normal)
         ChromePaint(window, host.Custom, custom, normal)
-        for control in []ElementHandle{host.Stock, host.Custom} {
-            let box = control.BorderBox
-            MouseMove(id, float32(box.X + 3.0), float32(box.Y + 3.0))
+        for row in []ElementHandle{host.Stock, host.Custom} {
+            let box = row.BorderBox
+            MouseMove(id, float32(box.X + box.Width - 45.0), float32(box.Y + 3.0))
             PumpFrames(window, 3)
-            ChromePaint(window, control, control == host.Stock ? Color.Black: custom, hover)
-            CaptureIssueProof(window, control == host.Stock ? "chrome-stock-hover": "chrome-custom-hover")
+            ChromePaint(window, row, row == host.Stock ? Color.Black: custom, hover)
+            CaptureIssueProof(window, row == host.Stock ? "chrome-stock-hover": "chrome-custom-hover")
             MouseMove(id, 5.0F, 150.0F)
             PumpFrames(window, 3)
-            ChromePaint(window, control, control == host.Stock ? Color.White: custom, normal)
+            ChromePaint(window, row, row == host.Stock ? Color.White: custom, normal)
         }
         CaptureIssueProof(window, "chrome-hover-reset")
         Console.WriteLine("PASS captured chrome normal tint, black close icon on pink, hover reset and custom tint")
