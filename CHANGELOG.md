@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.15.0 - 2026-10-26
+
+- Theme.Native follows the operating system look, colours, accent and font
+- Theme.Selection picks tint, indicator or filled selection
+- Glass themes drop the flared tab
+- Crisper glass themes with window edges, overlay blur and legible secondary text
+- Accent fills pick black or white text by contrast
+
 ## 0.14.1 - 2026-10-26
 
 - DataGrid row comparison no longer allocates during realize
