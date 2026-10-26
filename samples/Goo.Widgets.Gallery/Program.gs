@@ -273,7 +273,9 @@ func Main(args[]string) {
     let rightToLeft = Array.IndexOf(args, "--rtl") >= 0
     if Array.IndexOf(args, "--glass") >= 0 {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
-        let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Root: GlassShell()}
+        let shell = GlassShell()
+        let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Decorated: false, Root: shell}
+        shell.Host = window
         Theme.Attach(window, mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass)
         window.Run()
         return

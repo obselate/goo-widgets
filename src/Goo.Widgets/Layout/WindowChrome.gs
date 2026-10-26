@@ -100,7 +100,7 @@ public data struct WindowChrome {
                 ControlWidth
             },
             BackgroundColor = BackgroundColor ?? theme.ChromeColor,
-            BorderColor = BorderColor ?? theme.BorderColor,
+            BorderColor = BorderColor ?? (theme.GlassColor == nil ? theme.BorderColor: Color.Transparent),
             ControlColor = ControlColor ?? theme.ChromeTextColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? theme.DangerHoverColor,

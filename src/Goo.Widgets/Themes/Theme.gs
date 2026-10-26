@@ -543,7 +543,7 @@ public data struct Theme {
         return value with{GlassColor = value.CanvasColor.WithAlpha(alpha), RowInset = value.Spacing}
     }
 
-    /// Lowest tint alpha that keeps TextColor at 4.5:1 over black or white, blended in linear or sRGB space.
+    /// Lowest tint alpha that keeps TextColor at 4.5:1 over black or white. Compositors such as KWin blend in sRGB.
     private func GlassAlpha() float64 {
         let text = Luminance(TextColor.R, TextColor.G, TextColor.B)
         let tint = CanvasColor
@@ -552,11 +552,8 @@ public data struct Theme {
             var legible = true
             for backdrop in []float64{0.0, 1.0} {
                 let rest = (1.0 - alpha) * backdrop
-                let linear = alpha * Luminance(tint.R, tint.G, tint.B) + rest
-                let encoded = Luminance(alpha * tint.R + rest, alpha * tint.G + rest, alpha * tint.B + rest)
-                for surface in []float64{linear, encoded} {
-                    legible = legible && (Math.Max(text, surface) + 0.05) / (Math.Min(text, surface) + 0.05) >= 4.5
-                }
+                let surface = Luminance(alpha * tint.R + rest, alpha * tint.G + rest, alpha * tint.B + rest)
+                legible = legible && (Math.Max(text, surface) + 0.05) / (Math.Min(text, surface) + 0.05) >= 4.5
             }
             if legible {
                 return alpha
@@ -816,6 +813,10 @@ public data struct Theme {
 internal sealed class ThemeAttachment {
     private let window Window
     private var lastBackground Color = Color.White
+    private var appBackdrop WindowBackdrop?
+    private var appFallback Color
+    private var glassFallback Color
+    private var setTransparent bool
     internal var Value Theme = Theme.Default
     internal var Mode ThemeMode
     internal var Fixed bool
@@ -903,14 +904,32 @@ internal sealed class ThemeAttachment {
             lastBackground = background
         }
         if value.GlassColor != nil {
-            if !window.IsOpen {
+            if appBackdrop == nil {
+                appBackdrop = window.Backdrop
+                appFallback = window.BackdropFallbackColor
+                setTransparent = !window.IsOpen && !window.Transparent
+            }
+            if setTransparent {
                 window.Transparent = true
             }
+            glassFallback = value.CanvasColor.WithAlpha(1.0)
             window.WindowsBackdrop = WindowsBackdropOptions{Material: WindowsBackdropMaterial.MicaAlt}
             window.MacOSBackdrop = MacOSBackdropOptions{Material: MacOSBackdropMaterial.Sidebar}
             window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius}
-            window.BackdropFallbackColor = value.CanvasColor.WithAlpha(1.0)
+            window.BackdropFallbackColor = glassFallback
             window.Backdrop = WindowBackdrop.Blur
+        } else if let backdrop = appBackdrop {
+            if window.Backdrop == WindowBackdrop.Blur {
+                window.Backdrop = backdrop
+            }
+            if window.BackdropFallbackColor == glassFallback {
+                window.BackdropFallbackColor = appFallback
+            }
+            if setTransparent {
+                window.Transparent = false
+            }
+            appBackdrop = nil
+            setTransparent = false
         }
         window.SetColors(background, value.TextColor)
     }

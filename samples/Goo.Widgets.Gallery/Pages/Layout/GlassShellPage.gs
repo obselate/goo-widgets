@@ -5,10 +5,12 @@ import Goo.Widgets
 import Goo.Widgets.Data
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
+import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import System.Collections.Generic
 
 internal class GlassShell : Cell {
+    internal var Host Window?
     private let railWidth float64 = 56.0
     private var tab string = "documents"
     private var section string = "files"
@@ -24,28 +26,38 @@ internal class GlassShell : Cell {
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
-            Container{
-                ZIndex: 1,
-                Padding: Edges{Top: theme.Spacing * 2.0},
-                PaddingStart: railWidth + theme.PanelRadius * 2.0,
-                Cell.Mount[TabBarInput, TabBar](
-                    "tabs",
-                    TabBarInput{
-                        ItemHeight: 36.0,
-                        SelectedId: tab,
-                        OnSelect: (id string) -> {
-                            tab = id
-                            Rebuild()
+            Window.DragRegion(
+                Container{
+                    ZIndex: 1,
+                    Padding: Edges{Top: theme.Spacing * 2.0},
+                    WindowChrome{
+                        Host: Host,
+                        EnableDoubleClick: true,
+                        Height: 36.0,
+                        LeadingContent: Container{
+                            PaddingStart: railWidth + theme.PanelRadius * 2.0,
+                            Cell.Mount[TabBarInput, TabBar](
+                                "tabs",
+                                TabBarInput{
+                                    Width: Length.Auto,
+                                    ItemHeight: 36.0,
+                                    SelectedId: tab,
+                                    OnSelect: (id string) -> {
+                                        tab = id
+                                        Rebuild()
+                                    },
+                                    Items: []NavigationItem{
+                                        NavigationItem{Id: "documents", Label: "Documents"},
+                                        NavigationItem{Id: "pictures", Label: "Pictures"},
+                                        NavigationItem{Id: "music", Label: "Music"},
+                                        NavigationItem{Id: "recent", Label: "Recent"},
+                                    },
+                                }
+                            ),
                         },
-                        Items: []NavigationItem{
-                            NavigationItem{Id: "documents", Label: "Documents"},
-                            NavigationItem{Id: "pictures", Label: "Pictures"},
-                            NavigationItem{Id: "music", Label: "Music"},
-                            NavigationItem{Id: "recent", Label: "Recent"},
-                        },
-                    }
-                ),
-            },
+                    }.Build(),
+                }
+            ),
             Container{
                 FlexGrow: 1,
                 FlexBasis: 0,
