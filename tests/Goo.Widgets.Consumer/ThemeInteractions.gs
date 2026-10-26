@@ -696,8 +696,7 @@ func ThemeDensityContracts() {
             "PASS theme density, explicit zero/font overrides, pointer modality and captured keyboard focus"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }
 
@@ -749,8 +748,7 @@ func GalleryStageContracts() {
             let compact = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
             Require(compact.Y + compact.Height < 400, "A small demo card grew to fill the page: " + compact.ToString())
         } finally {
-            window.RequestClose()
-            PumpFrames(window, 5)
+            CloseNativeWindow(window)
         }
     }
 }
@@ -965,8 +963,7 @@ func ThemeCatalogContracts() {
             }
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }
 
@@ -1231,7 +1228,6 @@ func ThemeScrollbarContracts() {
             "PASS captured default scrollbar, expanded hit drag, overlay layout, Auto configuration, explicit Always/Hidden/blank/custom parts and unstyled core scroller"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }
