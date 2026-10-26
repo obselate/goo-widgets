@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.14.0 - 2026-10-26
+
+- Glass themes with WithGlass, InkGlass and BoneGlass presets and native window materials
+- WindowChrome.ReplaceTitlebar puts the chrome in the title area and keeps native macOS window controls
+- Requires Goo 0.19.0
+
 ## 0.13.0 - 2026-10-25
 
 - Placeholders use the new `Theme.PlaceholderColor` and meet 4.5:1 contrast in Ink, Bone and high contrast, while staying distinct from typed text. Requires Goo 0.18.0.
