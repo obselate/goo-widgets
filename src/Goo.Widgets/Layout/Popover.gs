@@ -194,6 +194,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             create(current, bounds, content)
         } else {
             Container{
+                BasedOn: theme.OverlayStyle,
                 Padding: current.Padding!!,
                 BackgroundColor: current.BackgroundColor!!,
                 BorderColor: current.BorderColor!!,

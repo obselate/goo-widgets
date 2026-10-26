@@ -1201,7 +1201,8 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             FlexDirection: FlexDirection.Row,
             OutlineWidth: activeId == id && hasFocus && !pointerFocus ? 2.0: 0.0,
             OutlineColor: snapshot.FocusColor!!,
-            OutlineOffset: -2
+            OutlineOffset: -2,
+            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
         }
         if snapshot.AutoRowHeight {
             cells.Height = Length.Auto

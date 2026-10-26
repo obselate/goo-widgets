@@ -232,6 +232,7 @@ public data struct ModalDialog {
             MinHeight: 0.0,
             Padding: resolved.Padding!!,
             Gap: resolved.Gap!!,
+            BasedOn: theme.OverlayStyle,
             BackgroundColor: resolved.BackgroundColor!!,
             BorderWidth: resolved.BorderWidth!!,
             BorderColor: resolved.BorderColor!!,
