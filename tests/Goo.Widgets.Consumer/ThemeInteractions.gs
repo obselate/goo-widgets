@@ -138,6 +138,51 @@ func ThemeFrames(host EmbeddedWindowHost) {
 }
 
 func ThemeBackgroundContracts() {
+    for background in[]Color{Color.Transparent, Color.White, Color.Black} {
+        using let host = ThemePreferenceHost()
+        host.Resize(360, 280, 360, 280)
+        host.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+        let window = Window{Root: ThemeProbe(), Background: background}
+        Theme.Attach(window, Theme.Bone)
+        Require(
+            window.Background == (background == Color.Transparent ? background: Theme.Bone.CanvasColor),
+            "Initial fixed attachment overwrote transparency or missed an opaque host."
+        )
+        window.Attach(host)
+        for theme in[]Theme{Theme.Ink, Theme.Bone} {
+            Theme.Attach(window, theme)
+            let expected = background == Color.Transparent ? background: theme.CanvasColor
+            Require(window.Background == expected, "Repeated fixed attachment lost background ownership.")
+            host.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, ReducedMotion: true})
+            ThemeFrames(host)
+            Require(
+                window.Background == expected && window.Foreground == theme.TextColor,
+                "Fixed appearance updates overwrote transparency or lost the palette colors."
+            )
+            host.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+            ThemeFrames(host)
+        }
+    }
+    let opened = Window{
+        Root: ThemeProbe(), Width: 360, Height: 280,
+        Background: Color.Transparent, Transparent: true, Decorated: false,
+    }
+    Theme.Attach(opened, Theme.Bone)
+    try {
+        opened.Open()
+        PumpFrames(opened, 5)
+        Require(opened.Background == Color.Transparent, "Opening a fixed-theme window overwrote its transparent clear.")
+        Theme.Attach(opened, Theme.Ink)
+        Theme.SetMode(opened, ThemeMode.Light)
+        PumpFrames(opened, 5)
+        Require(
+            opened.Background == Color.Transparent && opened.Foreground == Theme.Bone.TextColor,
+            "Applying a palette to an open window overwrote its transparent clear or missed its text color."
+        )
+    } finally {
+        opened.RequestClose()
+        PumpFrames(opened, 3)
+    }
     using let glassHost = ThemePreferenceHost()
     using let defaultHost = ThemePreferenceHost()
     glassHost.Resize(360, 280, 360, 280)
@@ -175,17 +220,19 @@ func ThemeBackgroundContracts() {
     glassHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
     ThemeFrames(glassHost)
     Require(
-        glass.Background == Theme.Bone.CanvasColor && glass.Foreground == Theme.Bone.TextColor,
-        "An explicit palette did not replace the app background and text color."
+        glass.Background == Color.Transparent && glass.Foreground == Theme.Bone.TextColor,
+        "An explicit palette overwrote the app's transparent background or missed its text color."
     )
-    let shell = Window{Root: ThemeProbe()}
+    let shell = Window{Root: ThemeProbe(), Decorated: false}
     shell.BackdropFallbackColor = Color.White
     Theme.Attach(shell, Theme.InkGlass)
-    let glassSet = shell.Transparent && shell.Backdrop == WindowBackdrop.Blur && shell.FrameTheme == SystemTheme.Dark
+    let glassSet = shell.Transparent && shell.Backdrop == WindowBackdrop.Blur
+        && shell.FrameTheme == SystemTheme.Dark && shell.Background == Color.Transparent
     Theme.Attach(shell, Theme.Ink)
     Require(
         glassSet && !shell.Transparent && shell.Backdrop == WindowBackdrop.None
-        && shell.BackdropFallbackColor == Color.White && shell.FrameTheme == SystemTheme.Unknown,
+        && shell.BackdropFallbackColor == Color.White && shell.FrameTheme == SystemTheme.Unknown
+        && shell.Background == Theme.Ink.CanvasColor,
         "An opaque palette did not undo the glass window settings."
     )
     using let nativeHost = ThemePreferenceHost()
