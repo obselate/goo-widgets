@@ -81,6 +81,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     internal var ContentWidth float64?
     internal var FollowEnd bool
     internal var Current VirtualRowsState[T]?
+    internal var Equality IEqualityComparer[T] = EqualityComparer[T].Default
 
     internal init(
         items IReadOnlyList[T],
@@ -99,6 +100,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     public func State(current VirtualState?) VirtualState {
         let state = (current as VirtualRowsState[T]) ?? VirtualRowsState[T]()
         Current = state
+        state.Equality = Equality
         state.Pending = this
         return state
     }
@@ -112,7 +114,7 @@ internal data struct VirtualRowsWindow {
 }
 
 internal class VirtualRowsState[T] : VirtualState {
-    private let equality EqualityComparer[T] = EqualityComparer[T].Default
+    internal var Equality IEqualityComparer[T] = EqualityComparer[T].Default
     private var current Dictionary[string, T] = Dictionary[string, T](StringComparer.Ordinal)
     private var next Dictionary[string, T] = Dictionary[string, T](StringComparer.Ordinal)
     private let measurements List[VirtualRowMeasurement] = List[VirtualRowMeasurement](128)
@@ -369,7 +371,7 @@ internal class VirtualRowsState[T] : VirtualState {
         var unchanged = false
         if sameBuilder {
             if current.TryGetValue(row.Key, out var previous) {
-                unchanged = equality.Equals(previous, row.Item)
+                unchanged = Equality.Equals(previous, row.Item)
             }
         }
         if !unchanged {
@@ -414,7 +416,7 @@ internal class VirtualRowsState[T] : VirtualState {
             let previous = old!!
             for i in 0 ... items.Count {
                 let row = previous.Row(i)
-                if !equality.Equals(row.Item, items[i]) || row.Key != key(items[i]) {
+                if !Equality.Equals(row.Item, items[i]) || row.Key != key(items[i]) {
                     unchanged = false
                     break
                 }
@@ -444,7 +446,7 @@ internal class VirtualRowsState[T] : VirtualState {
                         (input.Height == nil || sameBuilder) {
                         row.Height = retained.Height
                     }
-                    row.Measured = retained.Measured && previous.Width == width && sameBuilder && equality.Equals(
+                    row.Measured = retained.Measured && previous.Width == width && sameBuilder && Equality.Equals(
                         retained.Item,
                         item
                     )
@@ -475,7 +477,7 @@ internal class VirtualRowsState[T] : VirtualState {
             return nil
         }
         var dropped = 0
-        while dropped < data.Count && !equality.Equals(data.Row(dropped).Item, items[0]) {
+        while dropped < data.Count && !Equality.Equals(data.Row(dropped).Item, items[0]) {
             dropped++
         }
         let first = data.Count - dropped
@@ -483,7 +485,7 @@ internal class VirtualRowsState[T] : VirtualState {
             return nil
         }
         for i in 1 ... first {
-            if !equality.Equals(data.Row(dropped + i).Item, items[i]) {
+            if !Equality.Equals(data.Row(dropped + i).Item, items[i]) {
                 return nil
             }
         }
