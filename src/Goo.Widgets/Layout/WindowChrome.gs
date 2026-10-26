@@ -236,7 +236,7 @@ public data struct WindowChrome {
         let content = if let createContent = createContent {
             createContent(resolved, command)
         } else {
-            MaterialIcons.Create(IconName(command), 18.0, resolved.ControlColor)
+            MaterialIcons.Create(IconName(command), 18.0, resolved.ControlColor, useCurrentColor: true)
         }
         let prepared = Button{
             Width: resolved.ControlWidth,
@@ -290,3 +290,4 @@ public data struct WindowChrome {
         default: "close"
     }
 }
+

@@ -1,6 +1,8 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
@@ -53,6 +55,85 @@ func WindowChromeContracts() {
                 "A custom chrome control bypassed the content factory"
             )
         }
+    }
+}
+
+internal class ChromePaintHost : Cell {
+    internal let Stock ElementHandle = ElementHandle()
+    internal let Custom ElementHandle = ElementHandle()
+
+    public override func Build() Blob {
+        let root = Container{Width: Percent(100), Height: Percent(100)}
+        for custom in []bool{false, true} {
+            var chrome = WindowChrome{
+                ShowMinimize: false,
+                ShowMaximize: false,
+                OnClose: () -> { },
+                Height: 40.0,
+                ControlWidth: 48.0,
+                BackgroundColor: Color.Rgb(32, 32, 32),
+                ControlColor: Color.White,
+                CloseHoverBackgroundColor: Color.Rgb(255, 128, 192),
+            }
+            if custom {
+                chrome.CreateControlContent = (input WindowChrome, command WindowChromeAction) ->
+                    MaterialIcons.Create("close", 18.0, Color.Rgb(0, 128, 255))
+            }
+            let row = (chrome.Build() as Container)!!
+            row.Children[1].Handle = custom ? Custom: Stock
+            root.Children.Add(row)
+        }
+        return root
+    }
+}
+
+func ChromePaint(window Window, control ElementHandle, foreground Color, background Color) {
+    let image = ThemeCapture(window)
+    let box = control.BorderBox
+    let scaleX = float64(image.Width) / float64(window.Width)
+    let scaleY = float64(image.Height) / float64(window.Height)
+    Require(
+        ThemePixel(image, int32((box.X + box.Width / 2.0) * scaleX),
+            int32((box.Y + box.Height / 2.0) * scaleY), foreground)
+        && ThemePixel(image, int32((box.X + 3.0) * scaleX), int32((box.Y + 3.0) * scaleY), background),
+        "Chrome painted the wrong icon foreground or control background."
+    )
+}
+
+func ChromePaintInteractions() {
+    let host = ChromePaintHost()
+    let window = Window{Title: "Chrome icon paint verification", Width: 320, Height: 200, Root: host}
+    Theme.Attach(window, Theme.Ink with{OnAccentColor = Color.Black})
+    window.Open()
+    try {
+        PumpFrames(window, 15)
+        let id = OnlyNativeWindow()
+        let normal = Color.Rgb(32, 32, 32)
+        let hover = Color.Rgb(255, 128, 192)
+        let custom = Color.Rgb(0, 128, 255)
+        MouseMove(id, 5.0F, 150.0F)
+        PumpFrames(window, 3)
+        ChromePaint(window, host.Stock, Color.White, normal)
+        ChromePaint(window, host.Custom, custom, normal)
+        for control in []ElementHandle{host.Stock, host.Custom} {
+            let box = control.BorderBox
+            MouseMove(id, float32(box.X + 3.0), float32(box.Y + 3.0))
+            PumpFrames(window, 3)
+            ChromePaint(window, control, control == host.Stock ? Color.Black: custom, hover)
+            CaptureIssueProof(window, control == host.Stock ? "chrome-stock-hover": "chrome-custom-hover")
+            MouseMove(id, 5.0F, 150.0F)
+            PumpFrames(window, 3)
+            ChromePaint(window, control, control == host.Stock ? Color.White: custom, normal)
+        }
+        CaptureIssueProof(window, "chrome-hover-reset")
+        Console.WriteLine("PASS captured chrome normal tint, black close icon on pink, hover reset and custom tint")
+    } finally {
+        window.RequestClose()
+        let deadline = Environment.TickCount64 + 10000
+        while window.IsOpen && Environment.TickCount64 < deadline {
+            window.Pump(0.016)
+        }
+        Require(!window.IsOpen, "The chrome paint fixture window did not close.")
     }
 }
 
@@ -403,6 +484,7 @@ func ChromeInteractions() {
         PumpFrames(window, 5)
     }
     ChromeCallbackInteractions()
+    ChromePaintInteractions()
     Console.WriteLine(
         "PASS: native titlebar double-click/default/override, custom controls, embedded input, native pointer and keyboard menus, state transitions, focus restoration and removal"
     )
@@ -447,3 +529,4 @@ func ChromeCallbackInteractions() {
         PumpFrames(window, 5)
     }
 }
+
