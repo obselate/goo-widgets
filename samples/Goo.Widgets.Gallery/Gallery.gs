@@ -436,7 +436,8 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         SplitPanePage{DisplayTitle: "Split pane"},
         GridPage{DisplayTitle: "Grid"},
         WindowChromePage{DisplayTitle: "Window chrome"},
-        ThemeScopePage{DisplayTitle: "Theme scope"}
+        ThemeScopePage{DisplayTitle: "Theme scope"},
+        GlassShellPage{DisplayTitle: "Glass shell"}
     }),
     GalleryCategory("Navigation", "explore", []GalleryPage{
         NavigationRailPage{DisplayTitle: "Navigation rail"},

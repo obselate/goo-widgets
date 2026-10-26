@@ -99,9 +99,9 @@ public data struct WindowChrome {
             } else {
                 ControlWidth
             },
-            BackgroundColor = BackgroundColor ?? theme.PanelColor,
+            BackgroundColor = BackgroundColor ?? theme.ChromeColor,
             BorderColor = BorderColor ?? theme.BorderColor,
-            ControlColor = ControlColor ?? theme.MutedTextColor,
+            ControlColor = ControlColor ?? theme.ChromeTextColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? theme.DangerHoverColor,
         }

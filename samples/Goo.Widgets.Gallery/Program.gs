@@ -2,6 +2,7 @@ package Goo.Widgets.Gallery
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Gallery.Pages.Layout
 import System.Diagnostics
 import System.IO
 import System.Threading
@@ -270,6 +271,13 @@ func Main(args[]string) {
     let appearance = RequestedValue(args, "--theme")
     let mode = appearance == "light" ? ThemeMode.Light: ThemeMode.Dark
     let rightToLeft = Array.IndexOf(args, "--rtl") >= 0
+    if Array.IndexOf(args, "--glass") >= 0 {
+        Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+        let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Root: GlassShell()}
+        Theme.Attach(window, mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass)
+        window.Run()
+        return
+    }
     if let directory = RequestedValue(args, "--shell-screenshots") {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
         CaptureGallery(registry, directory, requestedPage, mode, true, rightToLeft)
