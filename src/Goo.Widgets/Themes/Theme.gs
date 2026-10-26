@@ -574,6 +574,11 @@ public data struct Theme {
     private func Luminance(red float64, green float64, blue float64) float64 ->
     0.2126 * LinearSrgb(red) + 0.7152 * LinearSrgb(green) + 0.0722 * LinearSrgb(blue)
 
+    internal prop FrameTheme SystemTheme {
+        get -> Luminance(TextColor.R, TextColor.G, TextColor.B) > Luminance(CanvasColor.R, CanvasColor.G, CanvasColor.B)
+        ? SystemTheme.Dark: SystemTheme.Light
+    }
+
     /// Sets absolute text and minimum-control scale without compounding.
     public func WithTextScale(scale float64) Theme {
         if !Double.IsFinite(scale) || scale <= 0.0 {
@@ -824,7 +829,9 @@ internal sealed class ThemeAttachment {
     private var lastBackground Color = Color.White
     private var appBackdrop WindowBackdrop?
     private var appFallback Color
+    private var appFrame SystemTheme
     private var glassFallback Color
+    private var glassFrame SystemTheme
     private var setTransparent bool
     internal var Value Theme = Theme.Default
     internal var Mode ThemeMode
@@ -919,12 +926,15 @@ internal sealed class ThemeAttachment {
             if appBackdrop == nil {
                 appBackdrop = window.Backdrop
                 appFallback = window.BackdropFallbackColor
+                appFrame = window.FrameTheme
                 setTransparent = !window.IsOpen && !window.Transparent
             }
             if setTransparent {
                 window.Transparent = true
             }
             glassFallback = value.CanvasColor.WithAlpha(1.0)
+            glassFrame = value.FrameTheme
+            window.FrameTheme = glassFrame
             window.WindowsBackdrop = WindowsBackdropOptions{Material: WindowsBackdropMaterial.MicaAlt}
             window.MacOSBackdrop = MacOSBackdropOptions{Material: MacOSBackdropMaterial.Sidebar}
             window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius}
@@ -936,6 +946,9 @@ internal sealed class ThemeAttachment {
             }
             if window.BackdropFallbackColor == glassFallback {
                 window.BackdropFallbackColor = appFallback
+            }
+            if window.FrameTheme == glassFrame {
+                window.FrameTheme = appFrame
             }
             if setTransparent {
                 window.Transparent = false

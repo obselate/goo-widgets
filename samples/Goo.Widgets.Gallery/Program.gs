@@ -3,6 +3,7 @@ package Goo.Widgets.Gallery
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Gallery.Pages.Layout
+import Goo.Widgets.Layout
 import System.Diagnostics
 import System.IO
 import System.Threading
@@ -274,8 +275,9 @@ func Main(args[]string) {
     if Array.IndexOf(args, "--glass") >= 0 {
         Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
         let shell = GlassShell()
-        let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Decorated: false, Root: shell}
+        let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Root: shell}
         shell.Host = window
+        WindowChrome.ReplaceTitlebar(window)
         Theme.Attach(window, mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass)
         window.Run()
         return

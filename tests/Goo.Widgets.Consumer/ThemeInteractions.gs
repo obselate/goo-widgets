@@ -181,11 +181,11 @@ func ThemeBackgroundContracts() {
     let shell = Window{Root: ThemeProbe()}
     shell.BackdropFallbackColor = Color.White
     Theme.Attach(shell, Theme.InkGlass)
-    let glassSet = shell.Transparent && shell.Backdrop == WindowBackdrop.Blur
+    let glassSet = shell.Transparent && shell.Backdrop == WindowBackdrop.Blur && shell.FrameTheme == SystemTheme.Dark
     Theme.Attach(shell, Theme.Ink)
     Require(
         glassSet && !shell.Transparent && shell.Backdrop == WindowBackdrop.None
-        && shell.BackdropFallbackColor == Color.White,
+        && shell.BackdropFallbackColor == Color.White && shell.FrameTheme == SystemTheme.Unknown,
         "An opaque palette did not undo the glass window settings."
     )
     Console.WriteLine(
