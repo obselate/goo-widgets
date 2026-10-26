@@ -549,15 +549,12 @@ func ThemeVirtualContracts() {
 
 func ThemeCapture(window Window) WindowCapture {
     let deadline = Environment.TickCount64 + 20000
-    var previous = Environment.TickCount64
     var accepted = false
     while Environment.TickCount64 < deadline {
         if !accepted {
             accepted = window.RequestCapture() == WindowCaptureRequestStatus.Accepted
         }
-        let now = Environment.TickCount64
-        window.Pump(float64(now - previous) / 1000.0)
-        previous = now
+        window.Pump(0.0)
         if accepted {
             if let image = window.PollCapture() {
                 return image
