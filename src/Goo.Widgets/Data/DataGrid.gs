@@ -186,9 +186,21 @@ public data struct DataGridInput {
     var CreateRoot Func[DataGridInput, Container, Container]?
 }
 
+internal class DataGridRowComparer : IEqualityComparer[DataGridRow] {
+    public func Equals(a DataGridRow, b DataGridRow) bool ->
+        Object.Equals(a.Id, b.Id) && Object.Equals(a.Label, b.Label) &&
+        Object.Equals(a.Tag, b.Tag) && a.SourceIndex == b.SourceIndex &&
+        a.Disabled == b.Disabled && a.IsGroup == b.IsGroup &&
+        Object.Equals(a.Values, b.Values) && a.HasDetail == b.HasDetail &&
+        Object.Equals(a.Detail, b.Detail)
+
+    public func GetHashCode(row DataGridRow) int32 -> row.GetHashCode()
+}
+
 /// Shared column sizing, captured resizing, controlled sorting/selection, and measured virtual detail rows.
 /// Positions use float32. Whole-pixel placement is exact up to 16,777,216 px of content and drifts beyond it.
 public open class DataGrid : Cell[DataGridInput], IDisposable {
+    private let rowEquality IEqualityComparer[DataGridRow] = DataGridRowComparer()
     private let defaultRootHandle ElementHandle = ElementHandle()
     private let defaultViewport ElementHandle = ElementHandle()
     private let horizontalViewport ElementHandle = ElementHandle()
@@ -516,6 +528,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 build,
                 snapshot.RowHeightProvider
             ){
+                Equality = rowEquality,
                 Get = input.RowAt == nil ? nil: Row,
                 Index = RawIndex,
                 Count = RowCount,
