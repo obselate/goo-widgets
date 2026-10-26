@@ -529,4 +529,3 @@ func ChromeCallbackInteractions() {
         PumpFrames(window, 5)
     }
 }
-

@@ -290,4 +290,3 @@ public data struct WindowChrome {
         default: "close"
     }
 }
-
