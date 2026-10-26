@@ -102,10 +102,11 @@ public data struct NavigationRailInput {
         BackgroundColor = BackgroundColor ?? theme.ChromeColor,
         FontFamily = FontFamily ?? theme.FontFamily,
         ItemBackgroundColor = ItemBackgroundColor ?? Color.Transparent,
-        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
+        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.AccentColor),
         HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
         TextColor = TextColor ?? theme.ChromeTextColor,
-        SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
+        SelectedTextColor = SelectedTextColor ??
+            (theme.Selection == SelectionStyle.Indicator ? theme.TextColor: theme.OnAccentColor),
         FontSize = if FontSize == 0.0 {
             theme.FontSize
         } else {
@@ -219,6 +220,9 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     },
                 }
                 if let content = item.Content {
+                    if selected && content is Shape icon {
+                        icon.BackgroundColor = resolved.SelectedTextColor!!
+                    }
                     button.Children.Add(content)
                 }
                 if resolved.Expanded || item.Content == nil {
@@ -253,7 +257,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 }
                 button.Children.Add(badge)
             }
-            if id == input.SelectedId && (input.ActiveMarker ?? true) {
+            if id == input.SelectedId && (input.ActiveMarker ?? !theme.NativeLook) {
                 button.Children.Add(
                     Container{
                         Position: PositionType.Absolute,

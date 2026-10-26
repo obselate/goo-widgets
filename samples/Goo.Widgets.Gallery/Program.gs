@@ -278,7 +278,8 @@ func Main(args[]string) {
         let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Root: shell}
         shell.Host = window
         WindowChrome.ReplaceTitlebar(window)
-        Theme.Attach(window, mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass)
+        let glass = mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass
+        Theme.Attach(window, appearance == "native" ? Theme.Native: glass)
         window.Run()
         return
     }

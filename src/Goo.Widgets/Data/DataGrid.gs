@@ -314,7 +314,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             AccessibilityName = value.AccessibilityName ?? theme.Text("Data grid"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
-            SelectedColor = value.SelectedColor ?? theme.ActiveColor,
+            SelectedColor = value.SelectedColor ?? theme.SelectedFill(
+                theme.NativeLook ? theme.AccentColor.WithAlpha(0.15): theme.ActiveColor
+            ),
             FocusColor = value.FocusColor ?? theme.FocusColor,
             ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
@@ -1295,7 +1297,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                 } else {
                     Text{
                         Content: text,
-                        Color: snapshot.TextColor!!,
+                        Color: isSelected ? theme.SelectedText(snapshot.TextColor!!): snapshot.TextColor!!,
                         TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
                         FontFamily: theme.FontFamily,
                         FontSize: theme.FontSize,
@@ -1418,6 +1420,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         root.Accessibility = semantics
         root.Children.Clear()
         root.Children.Add(cells)
+        if isSelected && theme.Selection == SelectionStyle.Indicator {
+            root.Children.Add(theme.SelectionBar())
+        }
         if isExpanded {
             let detail = if snapshot.CreateDetail != nil {
                 snapshot.CreateDetail!!(snapshot, row)

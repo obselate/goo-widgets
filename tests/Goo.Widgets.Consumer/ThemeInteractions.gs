@@ -188,8 +188,25 @@ func ThemeBackgroundContracts() {
         && shell.BackdropFallbackColor == Color.White && shell.FrameTheme == SystemTheme.Unknown,
         "An opaque palette did not undo the glass window settings."
     )
+    using let nativeHost = ThemePreferenceHost()
+    nativeHost.Resize(360, 280, 360, 280)
+    nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light})
+    let native = Window{Root: ThemeProbe()}
+    native.Attach(nativeHost)
+    Theme.Attach(native, Theme.Native)
+    ThemeFrames(nativeHost)
+    let light = Theme.Read(native)
+    let accent = Color.Rgb(0, 140, 120)
+    nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark, AccentColor: accent})
+    ThemeFrames(nativeHost)
+    let dark = Theme.Read(native)
+    Require(
+        light.CanvasColor == Theme.Native.CanvasColor && dark.CanvasColor != light.CanvasColor
+        && dark.AccentColor == accent && dark.OnAccentColor == Color.Black && dark.FontFamily == light.FontFamily,
+        "Native did not follow the system appearance and accent with readable accent text."
+    )
     Console.WriteLine(
-        "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo"
+        "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )
 }
 
