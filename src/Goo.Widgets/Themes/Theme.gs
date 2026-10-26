@@ -173,12 +173,16 @@ public data struct Theme {
     /// Modal backdrop paint.
     var BackdropColor Color = Color.Rgba(0, 0, 0, 204)
     /// Window tint behind tab strips, rails and title areas. Nil keeps an opaque window. Set by WithGlass.
-    /// Undecorated windows clear to transparent, so paint it on the root with PanelRadius corners.
+    /// Undecorated windows clear to transparent, so paint GlassStyle on the root.
     var GlassColor Color?
     /// Horizontal inset of list, tree and grid rows. Nonzero also rounds tree and grid rows.
     var RowInset float64
     /// Selected-row look in lists, trees, grids and rails.
     var Selection SelectionStyle
+    /// Light 1 px top edge of glass, panels and overlays. Set by WithGlass.
+    var HighlightColor Color
+    /// Dark 1 px outline that separates glass and panels from any wallpaper. Set by WithGlass.
+    var HairlineColor Color
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
 
@@ -744,16 +748,24 @@ public data struct Theme {
     }
 
     /// Makes chrome translucent over the native window material. Content panels stay opaque.
+    /// Overlays turn translucent and blur what is behind them through OverlayStyle.
     /// Hosts without blur or with reduced transparency show CanvasColor.
     public func WithGlass() Theme {
         let value = ResolveDefaults()
         let alpha = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? 0.0: value.GlassAlpha()
-        return value with{GlassColor = value.CanvasColor.WithAlpha(alpha), RowInset = value.Spacing}
+        let dark = value.FrameTheme == SystemTheme.Dark
+        return value with{
+            GlassColor = value.CanvasColor.WithAlpha(alpha),
+            RowInset = value.Spacing,
+            OverlayColor = value.OverlayColor.WithAlpha(0.88),
+            HighlightColor = Color.White.WithAlpha(dark ? 0.1: 0.6),
+            HairlineColor = Color.Black.WithAlpha(dark ? 0.55: 0.14),
+        }
     }
 
-    /// Lowest tint alpha that keeps TextColor at 4.5:1 over black or white. Compositors such as KWin blend in sRGB.
+    /// Lowest tint alpha that keeps MutedTextColor at 4.5:1 over black or white. Compositors such as KWin blend in sRGB.
     private func GlassAlpha() float64 {
-        let text = Luminance(TextColor.R, TextColor.G, TextColor.B)
+        let text = Luminance(MutedTextColor.R, MutedTextColor.G, MutedTextColor.B)
         let tint = CanvasColor
         for percent in 0 ... 100 {
             let alpha = float64(percent) / 100.0
@@ -841,15 +853,44 @@ public data struct Theme {
         }
     }
 
-    /// Fresh panel declarations. Glass themes add ElevationMd so the panel floats over the chrome.
+    /// Fresh glass window root: GlassColor in PanelRadius corners with a hairline and a top highlight.
+    /// Drop the radius and border while the window is maximized.
+    public prop GlassStyle Style {
+        get -> Style{
+            BasedOn: CanvasStyle,
+            BackgroundColor: GlassColor ?? CanvasColor,
+            BorderColor: HairlineColor,
+            BorderWidth: BorderWidth,
+            BorderRadius: PanelRadius,
+            BoxShadows: []BoxShadow{Highlight},
+        }
+    }
+
+    /// Fresh panel declarations. WithGlass themes add a hairline, a top highlight and a contact shadow.
+    /// Native themes over a system material float the panel on ElevationMd.
     public prop PanelStyle Style {
         get -> Style{
             BackgroundColor: PanelColor,
-            BorderColor: BorderColor,
+            BorderColor: Glass ? HairlineColor: BorderColor,
             BorderWidth: BorderWidth,
             BorderRadius: PanelRadius,
-            BoxShadows: GlassColor == nil ? []BoxShadow{}: []BoxShadow{ElevationMd},
+            BoxShadows: Glass ? []BoxShadow{ElevationSm, Highlight}:
+                GlassColor == nil ? []BoxShadow{}: []BoxShadow{ElevationMd},
         }
+    }
+
+    /// Fresh menu, popover, tooltip and dialog declarations. WithGlass themes blur what is behind and add depth.
+    public prop OverlayStyle Style {
+        get -> Glass ? Style{
+            BackdropBlur: 24.0,
+            BoxShadows: []BoxShadow{ElevationLg, ElevationSm, Highlight},
+        }: Style{}
+    }
+
+    private prop Glass bool { get -> GlassColor != nil && !NativeLook }
+
+    private prop Highlight BoxShadow {
+        get -> BoxShadow{Inset: true, OffsetY: BorderWidth, Color: HighlightColor}
     }
 
     /// Rounded neutral action with visible keyboard focus.

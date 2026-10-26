@@ -493,6 +493,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
 
     private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
+            BasedOn: theme.OverlayStyle,
             BackgroundColor: theme.OverlayColor,
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,

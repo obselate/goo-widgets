@@ -21,14 +21,10 @@ internal class GlassShell : Cell {
     public override func Build() Blob {
         let theme = Theme.Read()
         return Container{
+            BasedOn: theme.GlassStyle,
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: theme.GlassColor ?? Color.Transparent,
-            BorderRadius: theme.PanelRadius,
             Overflow: Overflow.Hidden,
-            Color: theme.TextColor,
-            FontFamily: theme.FontFamily,
-            FontSize: theme.FontSize,
             Window.DragRegion(
                 Container{
                     ZIndex: 1,

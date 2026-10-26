@@ -276,6 +276,7 @@ public open class Menu : Cell[MenuInput] {
         let prepared = Container{
             LineHeight: theme.LineHeight,
             Padding: theme.Spacing,
+            BasedOn: theme.OverlayStyle,
             BackgroundColor: theme.OverlayColor,
             BorderColor: theme.BorderColor,
             BorderWidth: theme.BorderWidth,
