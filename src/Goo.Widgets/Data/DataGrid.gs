@@ -302,7 +302,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             AccessibilityName = value.AccessibilityName ?? theme.Text("Data grid"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
-            SelectedColor = value.SelectedColor ?? theme.SelectedFill(theme.ActiveColor),
+            SelectedColor = value.SelectedColor ?? theme.SelectedFill(
+                theme.NativeLook ? theme.AccentColor.WithAlpha(0.15): theme.ActiveColor
+            ),
             FocusColor = value.FocusColor ?? theme.FocusColor,
             ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,

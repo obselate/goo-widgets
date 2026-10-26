@@ -136,6 +136,12 @@ public open class NavigationRail : Cell[NavigationRailInput] {
         let theme = Theme.Read()
         input = value.Resolve(theme)
         let resolved = input
+        let surface = resolved.BackgroundColor!!.A == 0.0F ? theme.CanvasColor: resolved.BackgroundColor!!
+        let marker = if theme.NativeLook {
+            theme.Legible(theme.AccentColor, theme.TextColor, surface, 3.0)
+        } else {
+            resolved.SelectedTextColor!!
+        }
         let createItem = value.CreateItem
         let createRoot = value.CreateRoot
         items = input.Items!!
@@ -262,7 +268,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                         Top: 6,
                         Bottom: 6,
                         Width: 3,
-                        BackgroundColor: theme.Selection == SelectionStyle.Indicator ? theme.IndicatorColor: resolved.SelectedTextColor!!,
+                        BackgroundColor: marker,
                         HitTestSelf: false,
                     }
                 )
