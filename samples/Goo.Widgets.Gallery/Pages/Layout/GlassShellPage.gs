@@ -23,6 +23,9 @@ internal class GlassShell : Cell {
         return Container{
             Width: Percent(100),
             Height: Percent(100),
+            BackgroundColor: theme.GlassColor ?? Color.Transparent,
+            BorderRadius: theme.PanelRadius,
+            Overflow: Overflow.Hidden,
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,

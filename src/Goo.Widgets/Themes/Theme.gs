@@ -162,6 +162,7 @@ public data struct Theme {
     /// Modal backdrop paint.
     var BackdropColor Color = Color.Rgba(0, 0, 0, 204)
     /// Window tint behind tab strips, rails and title areas. Nil keeps an opaque window. Set by WithGlass.
+    /// Undecorated windows clear to transparent, so paint it on the root with PanelRadius corners.
     var GlassColor Color?
     /// Horizontal inset of list, tree and grid rows. Nonzero also rounds tree and grid rows.
     var RowInset float64
@@ -169,8 +170,12 @@ public data struct Theme {
     var Direction Direction
 
     internal prop RightToLeft bool { get -> Direction == Goo.Direction.RightToLeft }
-    internal prop ChromeColor Color { get -> GlassColor == nil ? PanelColor: Color.Transparent }
-    internal prop ChromeTextColor Color { get -> GlassColor == nil ? MutedTextColor: TextColor }
+    internal prop ChromeColor Color {
+        get -> GlassColor == nil ? PanelColor: Color.Transparent
+    }
+    internal prop ChromeTextColor Color {
+        get -> GlassColor == nil ? MutedTextColor: TextColor
+    }
 
     /// Number and date culture. Nil follows CultureInfo.CurrentCulture.
     var Culture CultureInfo?
@@ -497,10 +502,14 @@ public data struct Theme {
         }
 
         /// Ink with glass chrome over the native window material.
-        public prop InkGlass Theme { get -> Ink.WithGlass() }
+        public prop InkGlass Theme {
+            get -> Ink.WithGlass()
+        }
 
         /// Bone with glass chrome over the native window material.
-        public prop BoneGlass Theme { get -> Bone.WithGlass() }
+        public prop BoneGlass Theme {
+            get -> Bone.WithGlass()
+        }
     }
 
     /// Resolves semantic foreground paint.
@@ -550,7 +559,7 @@ public data struct Theme {
         for percent in 0 ... 100 {
             let alpha = float64(percent) / 100.0
             var legible = true
-            for backdrop in []float64{0.0, 1.0} {
+            for backdrop in[]float64{0.0, 1.0} {
                 let rest = (1.0 - alpha) * backdrop
                 let surface = Luminance(alpha * tint.R + rest, alpha * tint.G + rest, alpha * tint.B + rest)
                 legible = legible && (Math.Max(text, surface) + 0.05) / (Math.Min(text, surface) + 0.05) >= 4.5
@@ -563,7 +572,7 @@ public data struct Theme {
     }
 
     private func Luminance(red float64, green float64, blue float64) float64 ->
-        0.2126 * LinearSrgb(red) + 0.7152 * LinearSrgb(green) + 0.0722 * LinearSrgb(blue)
+    0.2126 * LinearSrgb(red) + 0.7152 * LinearSrgb(green) + 0.0722 * LinearSrgb(blue)
 
     /// Sets absolute text and minimum-control scale without compounding.
     public func WithTextScale(scale float64) Theme {
@@ -900,7 +909,10 @@ internal sealed class ThemeAttachment {
         Theme.Key.Set(window, value)
         var background = window.Background
         if Fixed || background == lastBackground {
-            background = value.GlassColor ?? value.CanvasColor
+            background = value.CanvasColor
+            if let glass = value.GlassColor {
+                background = window.Decorated ? glass: Color.Transparent
+            }
             lastBackground = background
         }
         if value.GlassColor != nil {
