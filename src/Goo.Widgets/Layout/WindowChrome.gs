@@ -17,7 +17,7 @@ public enum WindowChromeAction {
 
 /// A configurable drag region with optional standard window controls.
 public data struct WindowChrome {
-    /// Window controlled by default actions. Callbacks can replace it.
+    /// Window controlled by default actions. Callbacks can replace it. Native controls that overlap Host pad the chrome.
     var Host Window?
     /// Optional content placed before the flexible drag region.
     var LeadingContent Blob?
@@ -33,11 +33,11 @@ public data struct WindowChrome {
     var OnClose Action?
     /// Explicit maximized state. Nil reads the host state.
     var IsMaximized bool?
-    /// Whether to show the minimize control. Nil resolves to true.
+    /// Whether to show the minimize control. Nil shows it unless Host has native controls in the chrome.
     var ShowMinimize bool?
-    /// Whether to show the maximize or restore control. Nil resolves to true.
+    /// Whether to show the maximize or restore control. Nil shows it unless Host has native controls in the chrome.
     var ShowMaximize bool?
-    /// Whether to show the close control. Nil resolves to true.
+    /// Whether to show the close control. Nil shows it unless Host has native controls in the chrome.
     var ShowClose bool?
     /// Handles a blank titlebar double-click with the resolved maximize/restore action.
     /// Supply Host to intercept native drag-region clicks in an undecorated window.
@@ -72,6 +72,17 @@ public data struct WindowChrome {
     /// Creates the final container; required children and drag/input wiring are reapplied.
     var CreateRoot Func[WindowChrome, []Blob, Container]?
 
+    shared {
+        /// Lets chrome replace the native title bar. Call before Open. macOS keeps its native window controls.
+        public func ReplaceTitlebar(window Window) {
+            if OperatingSystem.IsMacOS() {
+                window.ContentUnderTitlebar = true
+            } else {
+                window.Decorated = false
+            }
+        }
+    }
+
     /// Builds a fresh tree, retaining host-state and menu behavior when needed.
     public func Build() Blob {
         if Host != nil || EnableDoubleClick || EnableContextMenu {
@@ -84,24 +95,28 @@ public data struct WindowChrome {
     internal func Resolve(theme Theme) WindowChrome {
         let host = Host
         let maximized = IsMaximized ?? (host?.State == WindowState.Maximized || host?.State == WindowState.Fullscreen)
+        let controls = host?.TitlebarControlsRect
         var resolved = this with{
             IsMaximized = maximized,
-            ShowMinimize = ShowMinimize ?? true,
-            ShowMaximize = ShowMaximize ?? true,
-            ShowClose = ShowClose ?? true,
-            Height = if Height == 0.0 {
-                theme.ControlHeight
-            } else {
-                Height
-            },
+            ShowMinimize = ShowMinimize ?? controls == nil,
+            ShowMaximize = ShowMaximize ?? controls == nil,
+            ShowClose = ShowClose ?? controls == nil,
+            Height = Math.Max(
+                if Height == 0.0 {
+                    theme.ControlHeight
+                } else {
+                    Height
+                },
+                controls?.Height ?? 0.0
+            ),
             ControlWidth = if ControlWidth == 0.0 {
                 Math.Max(46.0, theme.ControlHeight)
             } else {
                 ControlWidth
             },
-            BackgroundColor = BackgroundColor ?? theme.PanelColor,
-            BorderColor = BorderColor ?? theme.BorderColor,
-            ControlColor = ControlColor ?? theme.MutedTextColor,
+            BackgroundColor = BackgroundColor ?? theme.ChromeColor,
+            BorderColor = BorderColor ?? (theme.GlassColor == nil ? theme.BorderColor: Color.Transparent),
+            ControlColor = ControlColor ?? theme.ChromeTextColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? theme.DangerHoverColor,
         }
@@ -196,6 +211,9 @@ public data struct WindowChrome {
             prepared
         }
         root.Children.Clear()
+        if let controls = resolved.Host?.TitlebarControlsRect {
+            root.PaddingStart = controls.X + controls.Width
+        }
         for child in ordered {
             root.Children.Add(child)
         }

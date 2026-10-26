@@ -2,6 +2,7 @@ package Goo.Widgets
 
 import Goo
 import Goo.Widgets.Actions
+import Goo.Widgets.Colors
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 import System
@@ -160,10 +161,21 @@ public data struct Theme {
     var PanelPadding float64 = 16.0
     /// Modal backdrop paint.
     var BackdropColor Color = Color.Rgba(0, 0, 0, 204)
+    /// Window tint behind tab strips, rails and title areas. Nil keeps an opaque window. Set by WithGlass.
+    /// Undecorated windows clear to transparent, so paint it on the root with PanelRadius corners.
+    var GlassColor Color?
+    /// Horizontal inset of list, tree and grid rows. Nonzero also rounds tree and grid rows.
+    var RowInset float64
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
 
     internal prop RightToLeft bool { get -> Direction == Goo.Direction.RightToLeft }
+    internal prop ChromeColor Color {
+        get -> GlassColor == nil ? PanelColor: Color.Transparent
+    }
+    internal prop ChromeTextColor Color {
+        get -> GlassColor == nil ? MutedTextColor: TextColor
+    }
 
     /// Number and date culture. Nil follows CultureInfo.CurrentCulture.
     var Culture CultureInfo?
@@ -287,6 +299,7 @@ public data struct Theme {
         }
 
         /// Attaches a palette with Default fallbacks for zero metrics, opaque colors and nil fields.
+        /// Glass themes also request native window blur, so attach them before Open.
         public func Attach(window Window, value Theme) {
             let state = attachment(window)
             state.Value = value.ResolveDefaults()
@@ -487,6 +500,16 @@ public data struct Theme {
                 },
             }
         }
+
+        /// Ink with glass chrome over the native window material.
+        public prop InkGlass Theme {
+            get -> Ink.WithGlass()
+        }
+
+        /// Bone with glass chrome over the native window material.
+        public prop BoneGlass Theme {
+            get -> Bone.WithGlass()
+        }
     }
 
     /// Resolves semantic foreground paint.
@@ -519,6 +542,41 @@ public data struct Theme {
         DisabledTextColor = TextColor,
         FocusColor = TextColor,
         BorderWidth = Math.Max(2.0, BorderWidth),
+    }
+
+    /// Makes chrome translucent over the native window material. Content panels stay opaque.
+    /// Hosts without blur or with reduced transparency show CanvasColor.
+    public func WithGlass() Theme {
+        let value = ResolveDefaults()
+        let alpha = OperatingSystem.IsWindows() || OperatingSystem.IsMacOS() ? 0.0: value.GlassAlpha()
+        return value with{GlassColor = value.CanvasColor.WithAlpha(alpha), RowInset = value.Spacing}
+    }
+
+    /// Lowest tint alpha that keeps TextColor at 4.5:1 over black or white. Compositors such as KWin blend in sRGB.
+    private func GlassAlpha() float64 {
+        let text = Luminance(TextColor.R, TextColor.G, TextColor.B)
+        let tint = CanvasColor
+        for percent in 0 ... 100 {
+            let alpha = float64(percent) / 100.0
+            var legible = true
+            for backdrop in[]float64{0.0, 1.0} {
+                let rest = (1.0 - alpha) * backdrop
+                let surface = Luminance(alpha * tint.R + rest, alpha * tint.G + rest, alpha * tint.B + rest)
+                legible = legible && (Math.Max(text, surface) + 0.05) / (Math.Min(text, surface) + 0.05) >= 4.5
+            }
+            if legible {
+                return alpha
+            }
+        }
+        return 1.0
+    }
+
+    private func Luminance(red float64, green float64, blue float64) float64 ->
+    0.2126 * LinearSrgb(red) + 0.7152 * LinearSrgb(green) + 0.0722 * LinearSrgb(blue)
+
+    internal prop FrameTheme SystemTheme {
+        get -> Luminance(TextColor.R, TextColor.G, TextColor.B) > Luminance(CanvasColor.R, CanvasColor.G, CanvasColor.B)
+        ? SystemTheme.Dark: SystemTheme.Light
     }
 
     /// Sets absolute text and minimum-control scale without compounding.
@@ -560,13 +618,14 @@ public data struct Theme {
         }
     }
 
-    /// Fresh panel declarations.
+    /// Fresh panel declarations. Glass themes add ElevationMd so the panel floats over the chrome.
     public prop PanelStyle Style {
         get -> Style{
             BackgroundColor: PanelColor,
             BorderColor: BorderColor,
             BorderWidth: BorderWidth,
-            BorderRadius: PanelRadius
+            BorderRadius: PanelRadius,
+            BoxShadows: GlassColor == nil ? []BoxShadow{}: []BoxShadow{ElevationMd},
         }
     }
 
@@ -768,6 +827,12 @@ public data struct Theme {
 internal sealed class ThemeAttachment {
     private let window Window
     private var lastBackground Color = Color.White
+    private var appBackdrop WindowBackdrop?
+    private var appFallback Color
+    private var appFrame SystemTheme
+    private var glassFallback Color
+    private var glassFrame SystemTheme
+    private var setTransparent bool
     internal var Value Theme = Theme.Default
     internal var Mode ThemeMode
     internal var Fixed bool
@@ -852,7 +917,44 @@ internal sealed class ThemeAttachment {
         var background = window.Background
         if Fixed || background == lastBackground {
             background = value.CanvasColor
+            if let glass = value.GlassColor {
+                background = window.Decorated ? glass: Color.Transparent
+            }
             lastBackground = background
+        }
+        if value.GlassColor != nil {
+            if appBackdrop == nil {
+                appBackdrop = window.Backdrop
+                appFallback = window.BackdropFallbackColor
+                appFrame = window.FrameTheme
+                setTransparent = !window.IsOpen && !window.Transparent
+            }
+            if setTransparent {
+                window.Transparent = true
+            }
+            glassFallback = value.CanvasColor.WithAlpha(1.0)
+            glassFrame = value.FrameTheme
+            window.FrameTheme = glassFrame
+            window.WindowsBackdrop = WindowsBackdropOptions{Material: WindowsBackdropMaterial.MicaAlt}
+            window.MacOSBackdrop = MacOSBackdropOptions{Material: MacOSBackdropMaterial.Sidebar}
+            window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius}
+            window.BackdropFallbackColor = glassFallback
+            window.Backdrop = WindowBackdrop.Blur
+        } else if let backdrop = appBackdrop {
+            if window.Backdrop == WindowBackdrop.Blur {
+                window.Backdrop = backdrop
+            }
+            if window.BackdropFallbackColor == glassFallback {
+                window.BackdropFallbackColor = appFallback
+            }
+            if window.FrameTheme == glassFrame {
+                window.FrameTheme = appFrame
+            }
+            if setTransparent {
+                window.Transparent = false
+            }
+            appBackdrop = nil
+            setTransparent = false
         }
         window.SetColors(background, value.TextColor)
     }

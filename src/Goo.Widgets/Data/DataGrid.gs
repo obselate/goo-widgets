@@ -576,6 +576,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             BorderWidth: 1,
             BorderColor: theme.BorderColor,
             BorderRadius: theme.PanelRadius,
+            Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Overflow: Overflow.Hidden
         }
         if let create = input.CreateRoot {
@@ -1326,6 +1327,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!: theme.HoverColor},
+            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
             Opacity: row.Disabled ? .45: 1.0
         }
         if pinnedCount > 0 {

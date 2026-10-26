@@ -298,6 +298,7 @@ public open class TreeView : Cell[TreeViewInput] {
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
             BorderRadius: theme.PanelRadius,
+            Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Focus: theme.FocusStyle,
         }
         if let create = input.CreateRoot {
@@ -566,6 +567,7 @@ public open class TreeView : Cell[TreeViewInput] {
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
+            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
             Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
             OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
             OutlineColor: theme.FocusColor,

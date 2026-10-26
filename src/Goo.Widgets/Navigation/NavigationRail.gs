@@ -99,12 +99,12 @@ public data struct NavigationRailInput {
         ItemPaddingHorizontal = ItemPaddingHorizontal ?? theme.ControlPadding,
         ItemGap = ItemGap ?? theme.ControlGap,
         ItemBorderRadius = ItemBorderRadius ?? theme.ControlRadius,
-        BackgroundColor = BackgroundColor ?? theme.PanelColor,
+        BackgroundColor = BackgroundColor ?? theme.ChromeColor,
         FontFamily = FontFamily ?? theme.FontFamily,
         ItemBackgroundColor = ItemBackgroundColor ?? Color.Transparent,
         SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
         HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
-        TextColor = TextColor ?? theme.MutedTextColor,
+        TextColor = TextColor ?? theme.ChromeTextColor,
         SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
         FontSize = if FontSize == 0.0 {
             theme.FontSize
@@ -333,7 +333,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Key: "group-" + group.Id,
                 MinHeight: resolved.ItemHeight,
                 Padding: theme.ControlPadding,
-                Color: theme.MutedTextColor,
+                Color: theme.ChromeTextColor,
                 Focusable: input.OnGroupToggle != nil,
                 OnClick: () -> input.OnGroupToggle?.Invoke(group.Id),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: group.Label, Expanded: !collapsed},

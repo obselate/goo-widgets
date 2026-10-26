@@ -165,6 +165,7 @@ public open class ListView : Cell[ListViewInput] {
             MinHeight: 0,
             BackgroundColor: theme.PanelColor,
             BorderRadius: theme.PanelRadius,
+            Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Focus: theme.FocusStyle
         }
         if let create = input.CreateRoot {
