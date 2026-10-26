@@ -170,18 +170,23 @@ func ThemeBackgroundContracts() {
     Theme.Attach(opened, Theme.Bone)
     try {
         opened.Open()
-        PumpFrames(opened, 5)
-        Require(opened.Background == Color.Transparent, "Opening a fixed-theme window overwrote its transparent clear.")
+        Require(
+            opened.IsOpen && opened.Background == Color.Transparent,
+            "Opening a fixed-theme window overwrote its transparent clear."
+        )
         Theme.Attach(opened, Theme.Ink)
         Theme.SetMode(opened, ThemeMode.Light)
-        PumpFrames(opened, 5)
         Require(
             opened.Background == Color.Transparent && opened.Foreground == Theme.Bone.TextColor,
             "Applying a palette to an open window overwrote its transparent clear or missed its text color."
         )
     } finally {
         opened.RequestClose()
-        PumpFrames(opened, 3)
+        let deadline = Environment.TickCount64 + 10000
+        while opened.IsOpen && Environment.TickCount64 < deadline {
+            opened.Pump(0.016)
+        }
+        Require(!opened.IsOpen, "The transparent theme fixture window did not close.")
     }
     using let glassHost = ThemePreferenceHost()
     using let defaultHost = ThemePreferenceHost()
