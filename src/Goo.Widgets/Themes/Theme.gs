@@ -24,6 +24,16 @@ public enum Density {
     Touch
 }
 
+/// Selected-row look in lists, trees, grids and rails.
+public enum SelectionStyle {
+    /// Each widget's default tint.
+    Tint;
+    /// Neutral fill with an accent bar at the start, as in Windows 11.
+    Indicator;
+    /// Accent fill with OnAccentColor text, as in macOS source lists.
+    Filled
+}
+
 /// Rounded widget presets in Ink, Bone, and GitHub Dark palettes. Copy with `with` to customize.
 public data struct Theme {
     /// Window background.
@@ -110,6 +120,7 @@ public data struct Theme {
     var Diff DiffPalette
     var Ansi AnsiPalette
     internal var HighContrast bool
+    internal var NativeLook bool
     /// Current absolute text scale. Use WithTextScale to change it.
     var TextScaleFactor float64 = 1.0
     /// Applied platform scale, preserved by consumer copy-update expressions.
@@ -166,6 +177,8 @@ public data struct Theme {
     var GlassColor Color?
     /// Horizontal inset of list, tree and grid rows. Nonzero also rounds tree and grid rows.
     var RowInset float64
+    /// Selected-row look in lists, trees, grids and rails.
+    var Selection SelectionStyle
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
 
@@ -175,6 +188,26 @@ public data struct Theme {
     }
     internal prop ChromeTextColor Color {
         get -> GlassColor == nil ? MutedTextColor: TextColor
+    }
+
+    internal func SelectedFill(tint Color) Color -> switch Selection {
+        case SelectionStyle.Indicator: HoverColor
+        case SelectionStyle.Filled: AccentColor
+        default: tint
+    }
+
+    internal func SelectedText(text Color) Color -> Selection == SelectionStyle.Filled ? OnAccentColor: text
+
+    /// Accent bar for an Indicator row. Add it to the selected row only.
+    internal func SelectionBar() Container -> Container{
+        Key: "selection-bar",
+        Position: PositionType.Absolute,
+        Start: 0,
+        Top: 0,
+        Bottom: 0,
+        JustifyContent: JustifyContent.Center,
+        HitTestSelf: false,
+        Container{Width: 3, Height: 16, BorderRadius: 1.5, BackgroundColor: AccentColor},
     }
 
     /// Number and date culture. Nil follows CultureInfo.CurrentCulture.
@@ -294,16 +327,21 @@ public data struct Theme {
             let state = attachment(window)
             state.Value = Default
             state.Mode = ThemeMode.System
+            state.Native = false
             state.Fixed = false
             state.Apply(window.Preferences)
         }
 
         /// Attaches a palette with Default fallbacks for zero metrics, opaque colors and nil fields.
-        /// Glass themes also request native window blur, so attach them before Open.
+        /// Native follows the system appearance live. Glass themes also request native window blur, so attach them before Open.
         public func Attach(window Window, value Theme) {
             let state = attachment(window)
             state.Value = value.ResolveDefaults()
-            state.Fixed = true
+            state.Native = value.NativeLook
+            state.Fixed = !value.NativeLook
+            if value.NativeLook {
+                state.Mode = ThemeMode.System
+            }
             state.Apply(window.Preferences)
         }
 
@@ -509,6 +547,162 @@ public data struct Theme {
         /// Bone with glass chrome over the native window material.
         public prop BoneGlass Theme {
             get -> Bone.WithGlass()
+        }
+
+        /// The platform's own look. Follows the system appearance, accent, contrast and text scale.
+        /// Windows uses Fluent over Mica, macOS uses vibrancy, Linux stays opaque.
+        public prop Native Theme {
+            get -> NativePalette(false) with{NativeLook = true}
+        }
+
+        /// Native colors for one appearance, with Native metrics in the light palette.
+        internal func NativePalette(dark bool) Theme {
+            if OperatingSystem.IsWindows() {
+                return if dark {
+                    Ink with{
+                        CanvasColor = "#202020",
+                        PanelColor = "#282828",
+                        RaisedColor = "#2d2d2d",
+                        OverlayColor = "#2c2c2c",
+                        FieldColor = "#1c1c1c",
+                        HoverColor = "#353535",
+                        PressedColor = "#303030",
+                        BorderColor = Color.Parse("#3a3a3a"),
+                        InputBorderColor = "#9d9d9d",
+                        TextColor = "#ffffff",
+                        MutedTextColor = "#cecece",
+                        PlaceholderColor = "#cecece",
+                        FaintTextColor = "#cecece",
+                        AccentColor = "#60cdff",
+                        OnAccentColor = "#000000",
+                        AccentHoverColor = "#5abce9",
+                        AccentPressedColor = "#53aad2",
+                        InfoColor = "#60cdff",
+                        SuccessColor = "#6ccb5f",
+                        WarningColor = "#fce100",
+                        DangerColor = "#ff99a4",
+                        SunkenColor = "#1c1c1c",
+                        ActiveColor = "#353535",
+                        StrongBorderColor = "#9d9d9d",
+                        SubtleTextColor = "#cecece",
+                        DisabledTextColor = "#767676",
+                        LinkColor = "#99ebff",
+                        FocusColor = "#ffffff",
+                        InfoFillColor = "#2e2e2e",
+                        SuccessFillColor = "#393d1b",
+                        WarningFillColor = "#433519",
+                        DangerQuietColor = "#442726",
+                    }
+                } else {
+                    Default with{
+                        CanvasColor = "#f3f3f3",
+                        PanelColor = "#f9f9f9",
+                        RaisedColor = "#fdfdfd",
+                        OverlayColor = "#fcfcfc",
+                        FieldColor = "#ffffff",
+                        HoverColor = "#f0f0f0",
+                        PressedColor = "#f3f3f3",
+                        BorderColor = Color.Parse("#eaeaea"),
+                        InputBorderColor = "#8d8d8d",
+                        TextColor = "#1a1a1a",
+                        MutedTextColor = "#5f5f5f",
+                        PlaceholderColor = "#5f5f5f",
+                        FaintTextColor = "#5f5f5f",
+                        AccentColor = "#005fb8",
+                        AccentHoverColor = "#196fbf",
+                        AccentPressedColor = "#337fc6",
+                        InfoColor = "#005fb7",
+                        SuccessColor = "#0f7b0f",
+                        WarningColor = "#9d5d00",
+                        DangerColor = "#c42b1c",
+                        DangerFillColor = "#c42b1c",
+                        SunkenColor = "#f3f3f3",
+                        ActiveColor = "#f0f0f0",
+                        StrongBorderColor = "#8d8d8d",
+                        SubtleTextColor = "#5f5f5f",
+                        DisabledTextColor = "#9f9f9f",
+                        LinkColor = "#003e92",
+                        FocusColor = "#1a1a1a",
+                        InfoFillColor = "#f6f6f6",
+                        SuccessFillColor = "#dff6dd",
+                        WarningFillColor = "#fff4ce",
+                        DangerQuietColor = "#fde7e9",
+                        FontFamily = "Segoe UI Variable",
+                        HeadingFontFamily = "Segoe UI Variable",
+                        LineHeight = 20.0 / 14.0,
+                        LabelFontSize = 14.0,
+                        LabelFontWeight = 400,
+                        ControlRadius = 4.0,
+                        PanelRadius = 8.0,
+                        RadiusMd = 4.0,
+                        RadiusLg = 8.0,
+                        RadiusXl = 8.0,
+                        GlassColor = Color.Transparent,
+                        RowInset = 4.0,
+                        Selection = SelectionStyle.Indicator,
+                    }
+                }
+            }
+            if OperatingSystem.IsMacOS() {
+                return if dark {
+                    Ink with{
+                        CanvasColor = "#323232",
+                        PanelColor = "#1e1e1e",
+                        RaisedColor = "#3a3a3a",
+                        FieldColor = "#1e1e1e",
+                        HoverColor = "#353535",
+                        PressedColor = "#404040",
+                        BorderColor = Color.Parse("#353535"),
+                        InputBorderColor = "#98989d",
+                        TextColor = "#dddddd",
+                        MutedTextColor = "#9a9a9a",
+                        PlaceholderColor = "#9a9a9a",
+                        FaintTextColor = "#9a9a9a",
+                        AccentColor = "#0a84ff",
+                        AccentHoverColor = "#0a84ff",
+                        AccentPressedColor = "#0a84ff",
+                        SunkenColor = "#1e1e1e",
+                        ActiveColor = "#464646",
+                        StrongBorderColor = "#98989d",
+                        SubtleTextColor = "#9a9a9a",
+                        DisabledTextColor = "#565656",
+                        FocusColor = "#0a84ff",
+                    }
+                } else {
+                    Default with{
+                        CanvasColor = "#ececec",
+                        PanelColor = "#ffffff",
+                        RaisedColor = "#ffffff",
+                        HoverColor = "#e5e5e5",
+                        PressedColor = "#d9d9d9",
+                        BorderColor = Color.Parse("#e5e5e5"),
+                        InputBorderColor = "#8e8e93",
+                        TextColor = "#262626",
+                        MutedTextColor = "#666666",
+                        PlaceholderColor = "#666666",
+                        FaintTextColor = "#666666",
+                        AccentColor = "#007aff",
+                        AccentHoverColor = "#007aff",
+                        AccentPressedColor = "#007aff",
+                        SunkenColor = "#ececec",
+                        ActiveColor = "#ffffff",
+                        StrongBorderColor = "#8e8e93",
+                        SubtleTextColor = "#666666",
+                        DisabledTextColor = "#bfbfbf",
+                        FocusColor = "#007aff",
+                        FontFamily = "system-ui",
+                        HeadingFontFamily = "system-ui",
+                        FontSize = 13.0,
+                        LabelFontSize = 13.0,
+                        LineHeight = 16.0 / 13.0,
+                        ControlHeight = 28.0,
+                        GlassColor = Color.Transparent,
+                        RowInset = 8.0,
+                        Selection = SelectionStyle.Filled,
+                    }
+                }
+            }
+            return dark ? Ink: Default
         }
     }
 
@@ -836,6 +1030,7 @@ internal sealed class ThemeAttachment {
     internal var Value Theme = Theme.Default
     internal var Mode ThemeMode
     internal var Fixed bool
+    internal var Native bool
 
     internal init(owner Window) {
         window = owner
@@ -844,8 +1039,10 @@ internal sealed class ThemeAttachment {
     internal func Apply(preferences PlatformPreferences) {
         var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
         if !Fixed {
-            let palette = if Mode == ThemeMode.Dark
-            || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark) {
+            let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
+            let palette = if Native {
+                Theme.NativePalette(dark)
+            } else if dark {
                 Theme.Ink
             } else {
                 Theme.Bone
@@ -935,7 +1132,9 @@ internal sealed class ThemeAttachment {
             glassFallback = value.CanvasColor.WithAlpha(1.0)
             glassFrame = value.FrameTheme
             window.FrameTheme = glassFrame
-            window.WindowsBackdrop = WindowsBackdropOptions{Material: WindowsBackdropMaterial.MicaAlt}
+            window.WindowsBackdrop = WindowsBackdropOptions{
+                Material: Native ? WindowsBackdropMaterial.Mica: WindowsBackdropMaterial.MicaAlt
+            }
             window.MacOSBackdrop = MacOSBackdropOptions{Material: MacOSBackdropMaterial.Sidebar}
             window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius}
             window.BackdropFallbackColor = glassFallback

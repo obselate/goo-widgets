@@ -90,17 +90,24 @@ public data struct ListRow {
         let createCaption = CreateCaption
         let createRoot = CreateRoot
         let titleText = Title ?? ""
+        let text = TextColor ?? theme.TextColor
+        let captionColor = CaptionColor ?? theme.MutedTextColor
+        let ring = if theme.Selection == SelectionStyle.Tint {
+            BoxShadow{Color: theme.AccentColor, Spread: theme.BorderWidth}
+        } else {
+            BoxShadow{}
+        }
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
             Width = Width ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
-            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor.WithAlpha(0.15),
+            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.AccentColor.WithAlpha(0.15)),
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             PressedBackgroundColor = PressedBackgroundColor ?? theme.PressedColor,
-            TextColor = TextColor ?? theme.TextColor,
-            CaptionColor = CaptionColor ?? theme.MutedTextColor,
-            SelectedBoxShadow = SelectedBoxShadow ?? BoxShadow{Color: theme.AccentColor, Spread: theme.BorderWidth},
+            TextColor = Selected ? theme.SelectedText(text): text,
+            CaptionColor = Selected ? theme.SelectedText(captionColor): captionColor,
+            SelectedBoxShadow = SelectedBoxShadow ?? ring,
             MinHeight = MinHeight ?? theme.ControlHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
@@ -258,6 +265,9 @@ public data struct ListRow {
             root.Children.Add(content)
             if let trailing = Trailing {
                 root.Children.Add(trailing)
+            }
+            if resolved.Selected && theme.Selection == SelectionStyle.Indicator {
+                root.Children.Add(theme.SelectionBar())
             }
         }
         if let actions = resolved.Actions {

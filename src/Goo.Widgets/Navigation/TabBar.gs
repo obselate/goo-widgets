@@ -108,8 +108,6 @@ public open class TabBar : Cell[TabBarInput] {
         let selected = Enabled(input.SelectedId)
         let tabStop = hasFocus && focused ? focusedId: selected ? input.SelectedId: first
         let buttons = List[Blob](items.Length)
-        let glass = theme.GlassColor != nil
-        let flared = glass && !input.Vertical && input.Placement == TabPlacement.Top
         for source in items {
             let id = source.Id!!
             let item = source with{
@@ -117,7 +115,6 @@ public open class TabBar : Cell[TabBarInput] {
                 AccessibilityName = source.AccessibilityName ?? source.Label ?? id
             }
             let active = id == input.SelectedId
-            let fill = active ? (glass ? theme.PanelColor: theme.ActiveColor): theme.ChromeColor
             var button = Button{
                 Opacity: item.Disabled ? .45: 1.0,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
@@ -126,7 +123,7 @@ public open class TabBar : Cell[TabBarInput] {
                 FlexShrink: 0,
                 Color: active ? theme.TextColor: theme.ChromeTextColor,
                 FontStyle: id == input.PreviewId ? FontStyle.Italic: FontStyle.Normal,
-                BackgroundColor: fill,
+                BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
                 Hover: Style{BackgroundColor: theme.HoverColor},
                 Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
                 FlexDirection: FlexDirection.Row,
@@ -179,8 +176,8 @@ public open class TabBar : Cell[TabBarInput] {
                 name += ", " + badge
             }
             button.Accessibility!!.Name = name + (dirty ? ", unsaved": "") + (pinned ? ", pinned": "")
-            let marks = List[Blob]()
-            if active && (input.ShowIndicator ?? !glass) {
+            var indicator Container? = nil
+            if active && (input.ShowIndicator ?? true) {
                 let marker = Container{
                     Position: PositionType.Absolute,
                     BackgroundColor: theme.AccentColor,
@@ -205,11 +202,7 @@ public open class TabBar : Cell[TabBarInput] {
                         marker.Bottom = 0
                     }
                 }
-                marks.Add(marker)
-            }
-            if flared && active {
-                marks.Add(Flare(theme, true))
-                marks.Add(Flare(theme, false))
+                indicator = marker
             }
             if input.OnClose != nil && !pinned {
                 button.PaddingEnd = 0
@@ -221,7 +214,7 @@ public open class TabBar : Cell[TabBarInput] {
                     FlexShrink: 0,
                     AlignItems: AlignItems.Center,
                     PaddingEnd: theme.Spacing * 2,
-                    BackgroundColor: fill,
+                    BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
                     Hover: Style{BackgroundColor: theme.HoverColor},
                     button
                 }
@@ -244,23 +237,12 @@ public open class TabBar : Cell[TabBarInput] {
                 }
                 WidgetKeyBindings.BindActivation(close)
                 tab.Children.Add(close)
-                for mark in marks {
-                    tab.Children.Add(mark)
+                if let marker = indicator {
+                    tab.Children.Add(marker)
                 }
                 buttons[buttons.Count - 1] = tab
-            } else {
-                for mark in marks {
-                    button.Children.Add(mark)
-                }
-            }
-            if flared {
-                let tab = buttons[buttons.Count - 1]
-                tab.BorderTopLeftRadius = theme.PanelRadius
-                tab.BorderTopRightRadius = theme.PanelRadius
-                if active {
-                    tab.ZIndex = 1
-                    tab.Hover = Style{}
-                }
+            } else if let marker = indicator {
+                button.Children.Add(marker)
             }
         }
         var root = Container{
@@ -359,33 +341,6 @@ public open class TabBar : Cell[TabBarInput] {
             }
         }
         return false
-    }
-
-    /// Concave corner that joins the active glass tab to the panel below it.
-    private func Flare(theme Theme, left bool) Container {
-        let x = left ? 1.0: 0.0
-        let radius = theme.PanelRadius
-        let flare = Container{
-            Position: PositionType.Absolute,
-            Bottom: 0,
-            Width: radius,
-            Height: radius,
-            BackgroundColor: theme.PanelColor,
-            HitTestSelf: false,
-            ClipPath: PathBuilder(0.0, 0.0, 1.0, 1.0)
-                .MoveTo(x, 0.0)
-                .LineTo(x, 1.0)
-                .LineTo(1.0 - x, 1.0)
-                .ArcTo(1.0, 1.0, 0.0, false, !left, x, 0.0)
-                .Close()
-                .Build(),
-        }
-        if left {
-            flare.Left = -radius
-        } else {
-            flare.Right = -radius
-        }
-        return flare
     }
 
     private func Select(id string) {

@@ -158,7 +158,7 @@ public open class TreeView : Cell[TreeViewInput] {
             AccessibilityName = value.AccessibilityName ?? theme.Text("Tree"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
-            SelectedColor = value.SelectedColor ?? theme.AccentColor.WithAlpha(0.15),
+            SelectedColor = value.SelectedColor ?? theme.SelectedFill(theme.AccentColor.WithAlpha(0.15)),
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
         }
         if !Double.IsFinite(input.RowHeight!!) || input.RowHeight!!<= 0.0 || !Double.IsFinite(input.Indent!!) ||
@@ -550,7 +550,7 @@ public open class TreeView : Cell[TreeViewInput] {
             .Content ??
             Text{
             Content: row.Node.Label ?? id,
-            Color: snapshot.TextColor!!,
+            Color: row.Selected ? theme.SelectedText(snapshot.TextColor!!): snapshot.TextColor!!,
             TextWrap: TextWrap.NoWrap,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
@@ -560,6 +560,7 @@ public open class TreeView : Cell[TreeViewInput] {
             label = create(snapshot, row, label)
         }
         children.Add(Container{Key: "content", FlexGrow: 1, FlexShrink: 1, MinWidth: 0, label})
+        let tinted = row.Selected || theme.Selection == SelectionStyle.Tint
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -568,7 +569,7 @@ public open class TreeView : Cell[TreeViewInput] {
             PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
-            Hover: Style{BackgroundColor: snapshot.SelectedColor!!},
+            Hover: Style{BackgroundColor: tinted ? snapshot.SelectedColor!!: theme.HoverColor},
             OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
             OutlineColor: theme.FocusColor,
             OutlineOffset: -2.0,
@@ -577,6 +578,9 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         for child in children {
             root.Children.Add(child)
+        }
+        if row.Selected && theme.Selection == SelectionStyle.Indicator {
+            root.Children.Add(theme.SelectionBar())
         }
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)

@@ -102,10 +102,11 @@ public data struct NavigationRailInput {
         BackgroundColor = BackgroundColor ?? theme.ChromeColor,
         FontFamily = FontFamily ?? theme.FontFamily,
         ItemBackgroundColor = ItemBackgroundColor ?? Color.Transparent,
-        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.AccentColor,
+        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.AccentColor),
         HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
         TextColor = TextColor ?? theme.ChromeTextColor,
-        SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
+        SelectedTextColor = SelectedTextColor ??
+            (theme.Selection == SelectionStyle.Indicator ? theme.TextColor: theme.OnAccentColor),
         FontSize = if FontSize == 0.0 {
             theme.FontSize
         } else {
@@ -261,7 +262,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                         Top: 6,
                         Bottom: 6,
                         Width: 3,
-                        BackgroundColor: resolved.SelectedTextColor!!,
+                        BackgroundColor: theme.Selection == SelectionStyle.Indicator ? theme.AccentColor: resolved.SelectedTextColor!!,
                         HitTestSelf: false,
                     }
                 )
