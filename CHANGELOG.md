@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.14.1 - 2026-10-26
+
+- DataGrid row comparison no longer allocates during realize
+
 ## 0.14.0 - 2026-10-26
 
 - Glass themes with WithGlass, InkGlass and BoneGlass presets and native window materials
