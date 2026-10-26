@@ -136,12 +136,6 @@ public open class NavigationRail : Cell[NavigationRailInput] {
         let theme = Theme.Read()
         input = value.Resolve(theme)
         let resolved = input
-        let surface = resolved.BackgroundColor!!.A == 0.0F ? theme.CanvasColor: resolved.BackgroundColor!!
-        let marker = if theme.NativeLook {
-            theme.Legible(theme.AccentColor, theme.TextColor, surface, 3.0)
-        } else {
-            resolved.SelectedTextColor!!
-        }
         let createItem = value.CreateItem
         let createRoot = value.CreateRoot
         items = input.Items!!
@@ -226,6 +220,9 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     },
                 }
                 if let content = item.Content {
+                    if selected && content is Shape icon {
+                        icon.BackgroundColor = resolved.SelectedTextColor!!
+                    }
                     button.Children.Add(content)
                 }
                 if resolved.Expanded || item.Content == nil {
@@ -260,7 +257,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 }
                 button.Children.Add(badge)
             }
-            if id == input.SelectedId && (input.ActiveMarker ?? true) {
+            if id == input.SelectedId && (input.ActiveMarker ?? !theme.NativeLook) {
                 button.Children.Add(
                     Container{
                         Position: PositionType.Absolute,
@@ -268,7 +265,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                         Top: 6,
                         Bottom: 6,
                         Width: 3,
-                        BackgroundColor: marker,
+                        BackgroundColor: resolved.SelectedTextColor!!,
                         HitTestSelf: false,
                     }
                 )
