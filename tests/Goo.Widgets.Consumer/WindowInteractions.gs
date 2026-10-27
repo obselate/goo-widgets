@@ -8,6 +8,7 @@ import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Hexa.NET.SDL3
 import System
+import System.Diagnostics
 import System.Runtime.InteropServices
 import System.Threading
 
@@ -177,6 +178,15 @@ func PumpFrames(window Window, frames int32) {
         window.Pump(0.016)
         Thread.Sleep(10)
     }
+}
+
+func CloseNativeWindow(window Window) {
+    window.RequestClose()
+    let closing = Stopwatch.StartNew()
+    while window.IsOpen && closing.Elapsed.TotalSeconds < 10.0 {
+        window.Pump(0.016)
+    }
+    Require(!window.IsOpen, "The native fixture window did not close.")
 }
 
 func OnlyNativeWindow() uint32 {

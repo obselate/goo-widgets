@@ -134,12 +134,7 @@ func ChromePaintInteractions() {
         CaptureIssueProof(window, "chrome-hover-reset")
         Console.WriteLine("PASS captured chrome normal tint, black close icon on pink, hover reset and custom tint")
     } finally {
-        window.RequestClose()
-        let deadline = Environment.TickCount64 + 10000
-        while window.IsOpen && Environment.TickCount64 < deadline {
-            window.Pump(0.016)
-        }
-        Require(!window.IsOpen, "The chrome paint fixture window did not close.")
+        CloseNativeWindow(window)
     }
 }
 

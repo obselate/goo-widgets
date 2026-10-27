@@ -181,12 +181,7 @@ func ThemeBackgroundContracts() {
             "Applying a palette to an open window overwrote its transparent clear or missed its text color."
         )
     } finally {
-        opened.RequestClose()
-        let deadline = Environment.TickCount64 + 10000
-        while opened.IsOpen && Environment.TickCount64 < deadline {
-            opened.Pump(0.016)
-        }
-        Require(!opened.IsOpen, "The transparent theme fixture window did not close.")
+        CloseNativeWindow(opened)
     }
     using let glassHost = ThemePreferenceHost()
     using let defaultHost = ThemePreferenceHost()
@@ -601,15 +596,12 @@ func ThemeVirtualContracts() {
 
 func ThemeCapture(window Window) WindowCapture {
     let deadline = Environment.TickCount64 + 20000
-    var previous = Environment.TickCount64
     var accepted = false
     while Environment.TickCount64 < deadline {
         if !accepted {
             accepted = window.RequestCapture() == WindowCaptureRequestStatus.Accepted
         }
-        let now = Environment.TickCount64
-        window.Pump(float64(now - previous) / 1000.0)
-        previous = now
+        window.Pump(0.0)
         if accepted {
             if let image = window.PollCapture() {
                 return image
@@ -748,8 +740,7 @@ func ThemeDensityContracts() {
             "PASS theme density, explicit zero/font overrides, pointer modality and captured keyboard focus"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }
 
@@ -801,8 +792,7 @@ func GalleryStageContracts() {
             let compact = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
             Require(compact.Y + compact.Height < 400, "A small demo card grew to fill the page: " + compact.ToString())
         } finally {
-            window.RequestClose()
-            PumpFrames(window, 5)
+            CloseNativeWindow(window)
         }
     }
 }
@@ -1017,8 +1007,7 @@ func ThemeCatalogContracts() {
             }
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }
 
@@ -1283,7 +1272,6 @@ func ThemeScrollbarContracts() {
             "PASS captured default scrollbar, expanded hit drag, overlay layout, Auto configuration, explicit Always/Hidden/blank/custom parts and unstyled core scroller"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }

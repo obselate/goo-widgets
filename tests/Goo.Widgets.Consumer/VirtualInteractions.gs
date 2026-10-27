@@ -226,13 +226,8 @@ func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualP
         body(window, semantics)
         Console.WriteLine("PASS: " + name)
     } finally {
-        window.RequestClose()
-        let closing = Stopwatch.StartNew()
-        while window.IsOpen && closing.Elapsed.TotalSeconds < 10.0 {
-            PumpFrames(window, 1)
-        }
+        CloseNativeWindow(window)
     }
-    Require(!window.IsOpen, name + " window did not close.")
 }
 
 func WaitVirtual(window Window, ready Func[bool]) {
@@ -264,7 +259,7 @@ func VirtualInteractions() {
             PumpFrames(window, 2)
             Require(list.Builds.Count == 0, "A frame without a change built items.")
             Require(list.Handle.JumpTo(0.0, 10000.0), "The list rejected a jump.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> list.Handles[500].IsMounted)
             Require(
                 list.Mounted() > 0 && list.Mounted() <= 5 && list.Builds.Count <= 5
                 && !list.Handles[0].IsMounted && list.Handles[500].IsMounted
@@ -326,7 +321,7 @@ func VirtualInteractions() {
                 "The rows did not bound their mounted items."
             )
             Require(rows.Handle.JumpTo(0.0, 10000.0), "The rows rejected a jump.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> rows.Handles[500].IsMounted)
             Require(
                 rows.Handles[500].IsMounted && !rows.Handles[0].IsMounted,
                 "A scroll did not move the mounted rows."
@@ -353,7 +348,7 @@ func VirtualInteractions() {
         anchor,
         (window Window, semantics VirtualProbeSemantics) -> {
             Require(anchor.Handle.JumpTo(0.0, 10010.0), "The rows rejected a jump.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> anchor.Handles[500].IsMounted)
             Require(anchor.Handles[500].IsMounted, "A scroll did not move the mounted rows.")
             // The reader's row and every row before it leave the list, so the oldest remaining row takes its place.
             anchor.Items.RemoveRange(0, 600)
@@ -437,7 +432,7 @@ func VirtualInteractions() {
         shift,
         (window Window, semantics VirtualProbeSemantics) -> {
             Require(shift.Handle.JumpTo(0.0, 10000.0), "The rows rejected a jump.")
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> shift.Handles[500].IsMounted)
             Require(shift.Handles[500].IsMounted, "A scroll did not move the mounted rows.")
             // Dropping ten entries and adding ten keeps the same rows in view without rebuilding them, and reads
             // keys only for the added entries.
@@ -475,7 +470,7 @@ func VirtualInteractions() {
                 shift.Handle.ScrollRange.Y == 1940.0 && shift.Handle.ScrollToItem("row-1599"),
                 "Appended rows are not reachable by key."
             )
-            PumpFrames(window, 2)
+            WaitVirtual(window, () -> shift.Handles[1599].IsMounted)
             Require(
                 shift.Handles[1599].IsMounted && shift.Handle.ScrollOffset.Y == 1940.0,
                 "ScrollToItem did not show the newest row."
