@@ -360,7 +360,12 @@ func ChromeInteractions() {
         PumpFrames(window, 3)
         ChromeSeat("button 272 0")
         PumpFrames(window, 8)
-        Require(host.EmbeddedClicks == 1 && host.Commands == 0, "Native embedded input triggered the titlebar gesture")
+        Require(
+            host.EmbeddedClicks == 1 && host.Commands == 0,
+            "Native embedded input triggered the titlebar gesture: EmbeddedClicks=" + host.EmbeddedClicks.ToString()
+            + ", Commands=" + host.Commands.ToString() + ", EmbeddedBounds=" + host.Embedded.BorderBox.ToString()
+            + ", RootBounds=" + host.Overlay.BorderBox.ToString()
+        )
         host.EmbeddedClicks = 0
         host.Rebuild()
         PumpFrames(window, 5)
