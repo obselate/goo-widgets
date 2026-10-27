@@ -354,18 +354,24 @@ func ChromeInteractions() {
             "Custom chrome root lost its required children"
         )
         Require(window.State == WindowState.Normal, "Chrome fixture did not start normal")
+        let visibleBeforeInput = window.IsVisible
+        let focusedBeforeInput = window.IsFocused
         ChromeSeat("move 200 20")
         PumpFrames(window, 3)
         ChromeSeat("button 272 1")
         PumpFrames(window, 3)
         ChromeSeat("button 272 0")
         PumpFrames(window, 8)
-        Require(
-            host.EmbeddedClicks == 1 && host.Commands == 0,
-            "Native embedded input triggered the titlebar gesture: EmbeddedClicks=" + host.EmbeddedClicks.ToString()
-            + ", Commands=" + host.Commands.ToString() + ", EmbeddedBounds=" + host.Embedded.BorderBox.ToString()
-            + ", RootBounds=" + host.Overlay.BorderBox.ToString()
-        )
+        if host.EmbeddedClicks != 1 || host.Commands != 0 {
+            throw InvalidOperationException(
+                "Native embedded input triggered the titlebar gesture: EmbeddedClicks=" + host.EmbeddedClicks.ToString()
+                + ", Commands=" + host.Commands.ToString() + ", EmbeddedBounds=" + host.Embedded.BorderBox.ToString()
+                + ", RootBounds=" + host.Overlay.BorderBox.ToString()
+                + ", VisibleBeforeInput=" + visibleBeforeInput.ToString()
+                + ", FocusedBeforeInput=" + focusedBeforeInput.ToString()
+                + ", IsVisible=" + window.IsVisible.ToString() + ", IsFocused=" + window.IsFocused.ToString()
+            )
+        }
         host.EmbeddedClicks = 0
         host.Rebuild()
         PumpFrames(window, 5)
