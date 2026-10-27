@@ -356,8 +356,6 @@ func ChromeInteractions() {
         Require(window.State == WindowState.Normal, "Chrome fixture did not start normal")
         Require(window.RequestActivation() == WindowOperationResult.Accepted, "Chrome activation request failed")
         WaitVirtual(window, () -> window.IsVisible && window.IsFocused)
-        let visibleBeforeInput = window.IsVisible
-        let focusedBeforeInput = window.IsFocused
         ChromeSeat("move 200 20")
         PumpFrames(window, 3)
         ChromeSeat("button 272 1")
@@ -366,11 +364,9 @@ func ChromeInteractions() {
         PumpFrames(window, 8)
         if host.EmbeddedClicks != 1 || host.Commands != 0 {
             throw InvalidOperationException(
-                "Native embedded input triggered the titlebar gesture: EmbeddedClicks=" + host.EmbeddedClicks.ToString()
+                "Native embedded input failed: EmbeddedClicks=" + host.EmbeddedClicks.ToString()
                 + ", Commands=" + host.Commands.ToString() + ", EmbeddedBounds=" + host.Embedded.BorderBox.ToString()
                 + ", RootBounds=" + host.Overlay.BorderBox.ToString()
-                + ", VisibleBeforeInput=" + visibleBeforeInput.ToString()
-                + ", FocusedBeforeInput=" + focusedBeforeInput.ToString()
                 + ", IsVisible=" + window.IsVisible.ToString() + ", IsFocused=" + window.IsFocused.ToString()
             )
         }

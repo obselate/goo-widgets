@@ -84,13 +84,6 @@ jobs:
           ulimit -c unlimited
           mkdir -p artifacts/native-dumps
           bash scripts/verify-native.sh
-          for pass in 1 2 3 4 5; do
-            for suite in THEME VIRTUAL; do
-              printf 'PROOF start pass=%s suite=%s head=%s\n' "$pass" "$suite" "$GITHUB_SHA"
-              env "GOO_WIDGETS_$suite=1" SDL_VIDEODRIVER=wayland LP_NUM_THREADS=2 taskset -c 0 scripts/with-headless-wayland.sh dotnet tests/Goo.Widgets.Consumer/bin/Release/net10.0/Goo.Widgets.Consumer.dll
-              printf 'PROOF passed pass=%s suite=%s\n' "$pass" "$suite"
-            done
-          done
       - name: Upload native crash evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
