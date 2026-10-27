@@ -490,8 +490,7 @@ func ChromeInteractions() {
         PumpFrames(window, 15)
         Require(!host.Blank.IsMounted && host.BodyButton.Focus(), "Chrome removal retained a menu focus scope")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     ChromeCallbackInteractions()
     ChromePaintInteractions()
@@ -535,7 +534,6 @@ func ChromeCallbackInteractions() {
         PumpFrames(window, 10)
         Require(!host.MenuInput.Open, "Callback-only menu did not dismiss")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
 }

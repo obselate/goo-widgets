@@ -192,7 +192,11 @@ func CloseNativeWindow(window Window) {
 func OnlyNativeWindow() uint32 {
     let windows = NativeWindows(out var count)
     try {
-        Require(windows != nint(0) && count == 1, "Expected one native window in the isolated consumer process.")
+        if !(windows != nint(0) && count == 1) {
+            throw InvalidOperationException(
+                "Expected one native window in the isolated consumer process. Actual count: " + count.ToString() + "."
+            )
+        }
         return NativeWindowId(Marshal.ReadIntPtr(windows))
     } finally {
         NativeFree(windows)
