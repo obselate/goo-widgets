@@ -1,6 +1,8 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
@@ -53,6 +55,86 @@ func WindowChromeContracts() {
                 "A custom chrome control bypassed the content factory"
             )
         }
+    }
+}
+
+internal class ChromePaintHost : Cell {
+    internal let Stock ElementHandle = ElementHandle()
+    internal let Custom ElementHandle = ElementHandle()
+
+    public override func Build() Blob {
+        let root = Container{Width: Percent(100), Height: Percent(100)}
+        for custom in []bool{false, true} {
+            var chrome = WindowChrome{
+                ShowMinimize: false,
+                ShowMaximize: false,
+                OnClose: () -> { },
+                Height: 40.0,
+                ControlWidth: 48.0,
+                BackgroundColor: Color.Rgb(32, 32, 32),
+                ControlColor: Color.White,
+                CloseHoverBackgroundColor: Color.Rgb(255, 128, 192),
+                CreateRoot: (input WindowChrome, children []Blob) -> Container{
+                    Handle: custom ? Custom: Stock,
+                    Height: input.Height,
+                    FlexDirection: FlexDirection.Row,
+                    AlignItems: AlignItems.Center,
+                    BackgroundColor: input.BackgroundColor!!,
+                },
+            }
+            if custom {
+                chrome.CreateControlContent = (input WindowChrome, command WindowChromeAction) ->
+                    MaterialIcons.Create("close", 18.0, Color.Rgb(0, 128, 255))
+            }
+            root.Children.Add(chrome.Build())
+        }
+        return root
+    }
+}
+
+func ChromePaint(window Window, row ElementHandle, foreground Color, background Color) {
+    let image = ThemeCapture(window)
+    let box = row.BorderBox
+    let closeX = box.X + box.Width - 48.0
+    let scaleX = float64(image.Width) / float64(window.Width)
+    let scaleY = float64(image.Height) / float64(window.Height)
+    Require(
+        ThemePixel(image, int32((closeX + 24.0) * scaleX),
+            int32((box.Y + box.Height / 2.0) * scaleY), foreground)
+        && ThemePixel(image, int32((closeX + 3.0) * scaleX), int32((box.Y + 3.0) * scaleY), background),
+        "Chrome painted the wrong icon foreground or control background."
+    )
+}
+
+func ChromePaintInteractions() {
+    let host = ChromePaintHost()
+    let window = Window{Title: "Chrome icon paint verification", Width: 320, Height: 200, Root: host}
+    Theme.Attach(window, Theme.Ink with{OnAccentColor = Color.Black})
+    window.Open()
+    try {
+        PumpFrames(window, 15)
+        let id = OnlyNativeWindow()
+        let normal = Color.Rgb(32, 32, 32)
+        let hover = Color.Rgb(255, 128, 192)
+        let custom = Color.Rgb(0, 128, 255)
+        MouseMove(id, 5.0F, 150.0F)
+        PumpFrames(window, 3)
+        ChromePaint(window, host.Stock, Color.White, normal)
+        ChromePaint(window, host.Custom, custom, normal)
+        for row in []ElementHandle{host.Stock, host.Custom} {
+            let box = row.BorderBox
+            MouseMove(id, float32(box.X + box.Width - 45.0), float32(box.Y + 3.0))
+            PumpFrames(window, 3)
+            ChromePaint(window, row, row == host.Stock ? Color.Black: custom, hover)
+            CaptureIssueProof(window, row == host.Stock ? "chrome-stock-hover": "chrome-custom-hover")
+            MouseMove(id, 5.0F, 150.0F)
+            PumpFrames(window, 3)
+            ChromePaint(window, row, row == host.Stock ? Color.White: custom, normal)
+        }
+        CaptureIssueProof(window, "chrome-hover-reset")
+        Console.WriteLine("PASS captured chrome normal tint, black close icon on pink, hover reset and custom tint")
+    } finally {
+        CloseNativeWindow(window)
     }
 }
 
@@ -272,13 +354,22 @@ func ChromeInteractions() {
             "Custom chrome root lost its required children"
         )
         Require(window.State == WindowState.Normal, "Chrome fixture did not start normal")
+        Require(window.RequestActivation() == WindowOperationResult.Accepted, "Chrome activation request failed")
+        WaitVirtual(window, () -> window.IsVisible && window.IsFocused)
         ChromeSeat("move 200 20")
         PumpFrames(window, 3)
         ChromeSeat("button 272 1")
         PumpFrames(window, 3)
         ChromeSeat("button 272 0")
         PumpFrames(window, 8)
-        Require(host.EmbeddedClicks == 1 && host.Commands == 0, "Native embedded input triggered the titlebar gesture")
+        if host.EmbeddedClicks != 1 || host.Commands != 0 {
+            throw InvalidOperationException(
+                "Native embedded input failed: EmbeddedClicks=" + host.EmbeddedClicks.ToString()
+                + ", Commands=" + host.Commands.ToString() + ", EmbeddedBounds=" + host.Embedded.BorderBox.ToString()
+                + ", RootBounds=" + host.Overlay.BorderBox.ToString()
+                + ", IsVisible=" + window.IsVisible.ToString() + ", IsFocused=" + window.IsFocused.ToString()
+            )
+        }
         host.EmbeddedClicks = 0
         host.Rebuild()
         PumpFrames(window, 5)
@@ -403,6 +494,7 @@ func ChromeInteractions() {
         PumpFrames(window, 5)
     }
     ChromeCallbackInteractions()
+    ChromePaintInteractions()
     Console.WriteLine(
         "PASS: native titlebar double-click/default/override, custom controls, embedded input, native pointer and keyboard menus, state transitions, focus restoration and removal"
     )

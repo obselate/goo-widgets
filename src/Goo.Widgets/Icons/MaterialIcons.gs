@@ -31,7 +31,10 @@ public class MaterialIcons {
         }
 
         /// Creates a tinted Material Symbols shape sized to the requested square.
-        public func Create(name string, size float64 = 24.0, color Color? = nil) Shape {
+        public func Create(name string, size float64 = 24.0, color Color? = nil) Shape ->
+            Create(name, size, color, false)
+
+        internal func Create(name string, size float64, color Color?, useCurrentColor bool) Shape {
             if String.IsNullOrWhiteSpace(name) {
                 throw ArgumentException("Icon name is required.")
             }
@@ -50,6 +53,7 @@ public class MaterialIcons {
                     TranslateY: -float64(asset.ViewBoxY) * scale,
                 },
                 BackgroundColor: color ?? Theme.Read().TextColor,
+                UseCurrentColor: useCurrentColor,
                 Accessibility: Accessibility{Hidden: true},
             }
         }

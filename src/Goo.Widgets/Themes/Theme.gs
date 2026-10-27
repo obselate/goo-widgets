@@ -1187,7 +1187,7 @@ internal sealed class ThemeAttachment {
         }
         Theme.Key.Set(window, value)
         var background = window.Background
-        if Fixed || background == lastBackground {
+        if (Fixed && background != Color.Transparent) || background == lastBackground {
             background = value.CanvasColor
             if let glass = value.GlassColor {
                 background = window.Decorated ? glass: Color.Transparent

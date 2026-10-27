@@ -194,7 +194,9 @@ func Isolated(command[]string) int {
             env["AT_SPI_BUS_ADDRESS"].StartsWith("unix:path=" + temporary, StringComparison.Ordinal),
             "Private accessibility bus did not start."
         )
-        registry = Start("/usr/lib/at-spi2-registryd", []string{}, env)
+        let registryPath = File.Exists("/usr/libexec/at-spi2-registryd")
+            ? "/usr/libexec/at-spi2-registryd": "/usr/lib/at-spi2-registryd"
+        registry = Start(registryPath, []string{}, env)
         let registryOutput = registry.StandardOutput.ReadToEndAsync()
         let registryErrors = registry.StandardError.ReadToEndAsync()
         let commandLog = Path.Combine(logs, "command.log")

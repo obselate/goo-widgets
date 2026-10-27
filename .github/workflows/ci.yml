@@ -20,11 +20,12 @@ env:
   WIDGETS_APT_PACKAGES: >-
     fonts-dejavu-core libdecor-0-0 libfontconfig1 libwayland-client0 libwayland-cursor0
     libwayland-egl1 libxkbcommon0 mesa-vulkan-drivers weston
+    at-spi2-core build-essential dbus-daemon kwin-common kwin-wayland libdbus-1-dev libei-dev pkg-config xwayland
 
 jobs:
   verify:
-    runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    runs-on: ubuntu-26.04
+    timeout-minutes: 60
     outputs:
       version: ${{ steps.version.outputs.version }}
     steps:
