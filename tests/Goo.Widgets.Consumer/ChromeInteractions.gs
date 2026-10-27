@@ -354,6 +354,8 @@ func ChromeInteractions() {
             "Custom chrome root lost its required children"
         )
         Require(window.State == WindowState.Normal, "Chrome fixture did not start normal")
+        Require(window.RequestActivation() == WindowOperationResult.Accepted, "Chrome activation request failed")
+        WaitVirtual(window, () -> window.IsVisible && window.IsFocused)
         let visibleBeforeInput = window.IsVisible
         let focusedBeforeInput = window.IsFocused
         ChromeSeat("move 200 20")
