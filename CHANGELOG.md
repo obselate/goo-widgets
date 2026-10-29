@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.16.2 - 2026-10-29
+
+- Build against Goo 0.23.3.
+
 ## 0.15.0 - 2026-10-26
 
 - Theme.Native follows the operating system look, colours, accent and font
