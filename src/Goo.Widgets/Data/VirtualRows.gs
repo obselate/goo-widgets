@@ -221,7 +221,7 @@ internal class VirtualRowsState[T] : VirtualState {
             offset.Y >= float64(window.ContentH - window.ViewportH) - 0.01
         if (Pending != nil && input.FollowEnd) || atEnd {
             scroll = Math.Max(0.0, float64(Window(data, 0.0, height, true).ContentH) - float64(height))
-        } else if anchor != "" && data.Count > 0 {
+        } else if anchor != "" && data.Count > 0 && offset.Y > 0.0 {
             let nextIndex = if data.TryIndex(anchor, out var found) {
                 found
             } else {

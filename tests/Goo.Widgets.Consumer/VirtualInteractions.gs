@@ -364,6 +364,22 @@ func VirtualInteractions() {
         }
     )
 
+    let top = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
+    RunVirtual(
+        "VirtualRows top reorder",
+        top,
+        (window Window, semantics VirtualProbeSemantics) -> {
+            Require(top.Handles[0].IsMounted && top.Handle.ScrollOffset.Y == 0.0, "The rows did not start at the top.")
+            top.Items.Reverse()
+            top.Rebuild()
+            PumpFrames(window, 2)
+            Require(
+                top.Handles[999].IsMounted && !top.Handles[0].IsMounted && top.Handle.ScrollOffset.Y == 0.0,
+                "A reorder at the top moved the list away from the new first row."
+            )
+        }
+    )
+
     let pin = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
     pin.Pin = true
     RunVirtual(
