@@ -86,7 +86,7 @@ internal class FieldHost : Cell {
                 return PasswordEntry!!
             }
         }.Build(),
-        Button{Key: "other", Height: 36, Accessibility: Accessibility{Name: "Other"}},
+        TextField{AccessibilityName: "Other"}.Build(),
     }
 }
 
@@ -99,8 +99,13 @@ func FieldInteractions() {
     window.Open()
     try {
         PumpFrames(window, 10)
-        Require(host.NumberHandle.Focus(), "Number input did not focus")
         let id = OnlyNativeWindow()
+        Require(host.PasswordHandle.Focus(), "Password did not focus before Tab")
+        SendKey(id, SDLScancode.Tab)
+        PumpFrames(window, 5)
+        Require(OverlayFocus(semantics, "Other"), "Tab from password stopped before the next text field")
+        Console.WriteLine("PASS: password Tab skips clear and reveal buttons")
+        Require(host.NumberHandle.Focus(), "Number input did not focus")
         SendKey(id, SDLScancode.Up)
         PumpFrames(window, 5)
         Require(host.Number == 4.5, "Arrow Up did not use the fractional step")
