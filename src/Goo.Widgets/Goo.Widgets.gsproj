@@ -20,7 +20,7 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo" Version="0.23.3" />
+    <PackageReference Include="Goo" Version="0.24.0" />
     <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
     <EmbeddedResource Include="Shaders/touch_magnifier.goo-effect" LogicalName="Goo.Widgets.TouchMagnifier" />
     <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />

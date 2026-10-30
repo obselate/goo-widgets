@@ -722,7 +722,6 @@ func ThemePixel(image WindowCapture, x int32, y int32, color Color) bool {
 
 internal class ThemeDensityHost : Cell {
     internal var DensityValue Density
-    internal var Input PlatformInput?
     internal let ButtonHandle ElementHandle = ElementHandle()
     internal let IconHandle ElementHandle = ElementHandle()
     internal let CheckHandle ElementHandle = ElementHandle()
@@ -749,7 +748,6 @@ internal class ThemeDensityHost : Cell {
             let check = Checkbox{Label: "Checkbox target"}.Build()
             check.Handle = CheckHandle
             return Container{
-                KeyBindings: WidgetKeyBindings.Editing(Input),
                 Padding: 24.0,
                 Gap: 16.0,
                 BasedOn: theme.CanvasStyle,
@@ -777,7 +775,6 @@ func ThemeDensityContracts() {
     let root = ThemeDensityHost()
     let window = Window{Root: root, Width: 360, Height: 340}
     Theme.Attach(window)
-    root.Input = window.PlatformInput
     try {
         window.Open()
         for density in[]Density{Density.Standard, Density.Compact, Density.Comfortable, Density.Touch} {

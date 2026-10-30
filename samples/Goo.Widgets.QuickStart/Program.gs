@@ -9,11 +9,9 @@ class ColorPickerHost : Cell {
     private let initialColor int32 = 0x4F8FEA
     private var liveColor int32 = 0x4F8FEA
     private var committedColor int32 = 0x4F8FEA
-    private var platformInput PlatformInput?
 
     internal func AttachWindow(window Window) {
         Theme.Attach(window)
-        platformInput = window.PlatformInput
         Rebuild()
     }
 
@@ -23,7 +21,6 @@ class ColorPickerHost : Cell {
         reset.Key = "reset"
         return Container{
             BasedOn: theme.CanvasStyle,
-            KeyBindings: WidgetKeyBindings.Editing(platformInput),
             Width: Percent(100.0),
             Height: Percent(100.0),
             Padding: theme.PanelPadding,

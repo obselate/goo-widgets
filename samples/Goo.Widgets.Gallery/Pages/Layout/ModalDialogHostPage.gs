@@ -6,7 +6,6 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Layout
 
 internal class ManagedDialogExample : Cell {
-    internal var PlatformInput PlatformInput?
     private var isOpen bool = true
     private var nested bool
     private var result string = "Ready for review"
@@ -66,7 +65,6 @@ internal class ManagedDialogExample : Cell {
             "dialog",
             ModalDialog{
                 Open: isOpen,
-                KeyBindings: WidgetKeyBindings.Editing(PlatformInput),
                 Width: 500.0,
                 AccessibilityName: "Review deployment",
                 Header: Text{Content: "Review deployment", FontSize: 22.0, FontWeight: 700},
@@ -97,7 +95,6 @@ internal class ManagedDialogExample : Cell {
             "nested",
             ModalDialog{
                 Open: nested,
-                KeyBindings: WidgetKeyBindings.Editing(PlatformInput),
                 Width: 390.0,
                 AccessibilityName: "Nested confirmation",
                 Header: Text{Content: "Nested confirmation", FontSize: 20.0, FontWeight: 700},
@@ -113,15 +110,8 @@ internal class ManagedDialogExample : Cell {
 internal class ModalDialogHostPage : GalleryPage {
     override func Title() string -> "Managed dialog"
 
-    override func Build() Blob {
-        let input = PlatformInput
-        return Cell.Mount[ManagedDialogExample](
-            () -> {
-                let example = ManagedDialogExample{}
-                example.PlatformInput = input
-                return example
-            },
-            "managed-dialog-example"
-        )
-    }
+    override func Build() Blob -> Cell.Mount[ManagedDialogExample](
+        () -> ManagedDialogExample{},
+        "managed-dialog-example"
+    )
 }

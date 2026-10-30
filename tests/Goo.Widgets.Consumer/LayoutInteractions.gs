@@ -191,7 +191,6 @@ func LayoutInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Title: "Layout contracts", Width: 900, Height: 640, Root: root, AccessibilityAdapter: semantics}
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 12)

@@ -20,7 +20,6 @@ import Goo.Widgets.Gallery.Pages.Content
 import System.Collections.Generic
 
 open class GalleryPage {
-    internal var PlatformInput PlatformInput?
     internal var OwningWindow Window?
     var DisplayTitle string?
     func Name() string -> DisplayTitle ?? Title()
@@ -327,10 +326,9 @@ class Gallery : Cell, IDisposable {
     public override func Build() Blob {
         let theme = Theme.Read()
         let page = Registry.CurrentPage(currentIndex)
-        page.PlatformInput = platformInput
         page.OwningWindow = owningWindow
         let root = Container{
-            BasedOn: theme.CanvasStyle, Direction: theme.Direction, KeyBindings: WidgetKeyBindings.Editing(platformInput), Width: Percent(100), Height: Percent(100),
+            BasedOn: theme.CanvasStyle, Direction: theme.Direction, Width: Percent(100), Height: Percent(100),
             FlexDirection: FlexDirection.Row
         }
         if !PageOnly { root.Children.Add(Sidebar()) }

@@ -151,7 +151,6 @@ func ChoiceInteractions() {
         Root: root,
         AccessibilityAdapter: adapter
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 20)

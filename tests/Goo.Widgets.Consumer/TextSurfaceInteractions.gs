@@ -159,7 +159,6 @@ func TextSurfaceInteractions() {
         host.HighlightColor = palette.Keyword
         layer.SetStyle("keyword", TextRange(0, 3), Style{Color: palette.Keyword})
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 12)
@@ -367,12 +366,17 @@ func TextSurfaceGalleryProof() {
         for title in[]string{"Find bar", "Code block", "Text area"} {
             let registry = CreateRegistry()
             let gallery = Gallery(registry, registry.IndexOf(title))
-            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title}
+            let semantics = SearchListSemantics{}
+            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
             window.Open()
             try {
                 PumpFrames(window, 15)
+                if title == "Text area" && mode == ThemeMode.Light {
+                    VerifyEditorKeys(window, semantics, "Notes", true)
+                    Require(FindSemantics(semantics.Tree?.Root, "Submitted") != nil, "Gallery TextArea Enter did not submit")
+                }
                 CaptureIssueProof(
                     window,
                     "gallery-" + title.ToLowerInvariant().Replace(" ", "-") + "-" + mode.ToString().ToLowerInvariant()

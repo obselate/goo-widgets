@@ -88,6 +88,7 @@ public data struct FindBar {
                         Width: Percent(100),
                         Disabled: Disabled,
                         OnChange: OnReplacementChange,
+                        EntryKeyBindings: state.Bindings,
                     }.Build(),
                     Container{
                         FlexDirection: FlexDirection.Row,
@@ -166,7 +167,7 @@ internal class FindBarState : Cell[FindBar] {
         || previous.Issue != input.Issue || previous.Disabled != input.Disabled
         || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange
         || previous.CreateEntry != input.CreateEntry {
-            QueryField = Cell.Mount[FindBar, FindBarField]("query", input)
+            QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{Value: input, Bindings: Bindings})
         }
         if NextButton == nil || previousReady != Ready() || size != nextSize {
             PreviousButton = input.Icon("Previous", ControlIcon.ArrowUpward, nextSize, !Ready(), Previous)
@@ -183,7 +184,12 @@ internal class FindBarState : Cell[FindBar] {
     }
 }
 
-internal class FindBarField : Cell[FindBar] {
+internal data struct FindBarFieldInput {
+    internal var Value FindBar
+    internal var Bindings[]KeyBinding
+}
+
+internal class FindBarField : Cell[FindBarFieldInput] {
     private var current FindBar
     private let matchCase Action
     private let wholeWord Action
@@ -195,7 +201,8 @@ internal class FindBarField : Cell[FindBar] {
         regex = () -> current.OnOptionsChange?.Invoke(current.Options with{Regex = !current.Options.Regex})
     }
 
-    protected override func Build(input FindBar) Blob {
+    protected override func Build(field FindBarFieldInput) Blob {
+        let input = field.Value
         current = input
         let theme = Theme.Read()
         let size = theme.ControlHeight - 8.0
@@ -210,6 +217,7 @@ internal class FindBarField : Cell[FindBar] {
             IssueText: input.Issue,
             OnChange: input.OnQueryChange,
             CreateEntry: input.CreateEntry,
+            EntryKeyBindings: field.Bindings,
             Trailing: Container{
                 FlexDirection: FlexDirection.Row,
                 Gap: 2,

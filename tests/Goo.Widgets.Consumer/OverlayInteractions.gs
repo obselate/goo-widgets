@@ -70,7 +70,6 @@ func OverlayContracts() {
 }
 
 internal class OverlayHost : Cell {
-    private var platformInput PlatformInput?
     internal let Before ElementHandle = ElementHandle()
     private var window Window?
     internal let TooltipTarget ElementHandle = ElementHandle()
@@ -215,7 +214,6 @@ internal class OverlayHost : Cell {
     }
 
     internal func AttachWindow(window Window) {
-        platformInput = window.PlatformInput
         this.window = window
     }
 
@@ -320,7 +318,6 @@ internal class OverlayHost : Cell {
                     "outer",
                     ModalDialog{
                         Open: DialogOpen,
-                        KeyBindings: WidgetKeyBindings.Editing(platformInput),
                         Header: Text{Content: "Review change", FontSize: 21.0, FontWeight: 700},
                         Content: content,
                         AccessibilityName: "Review change",
@@ -339,7 +336,6 @@ internal class OverlayHost : Cell {
                     "top",
                     ModalDialog{
                         Open: TopOpen,
-                        KeyBindings: WidgetKeyBindings.Editing(platformInput),
                         Header: Text{Content: "Nested confirmation", FontSize: 21.0, FontWeight: 700},
                         Width: 370.0,
                         Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
@@ -440,7 +436,6 @@ func OverlayInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     host.AttachWindow(window)
     window.Open()
     try {
@@ -482,6 +477,20 @@ func OverlayInteractions() {
             "Modal exposed background accessibility content"
         )
         CaptureIssueProof(window, "modal-managed")
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorType(window, id, "keyboard")
+        SendKey(id, SDLScancode.Backspace)
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(window.GetClipboardText() == "keyboar", "Modal editor copy or Backspace failed")
+        SendKey(id, SDLScancode.End)
+        SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(FindSemantics(semantics.Tree?.Root, "Dialog editor")!!.Value == "keyboarkeyboar", "Modal editor paste failed")
+        SendKey(id, SDLScancode.Return)
+        SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
+        PumpFrames(window, 4)
         host.ConfirmButton!!.Handle!!.Focus()
         SendKey(id, SDLScancode.Tab)
         PumpFrames(window, 5)

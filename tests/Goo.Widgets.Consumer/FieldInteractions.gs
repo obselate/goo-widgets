@@ -95,7 +95,6 @@ func FieldInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Root: root, Width: 500, Height: 400, AccessibilityAdapter: semantics, Title: "Field contracts"}
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 10)
@@ -254,7 +253,6 @@ func FieldCultureContract() {
     let host = FieldHost()
     let root = ApplicationRoot(host)
     let window = Window{Root: root, Width: 500, Height: 400}
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 8)
@@ -285,12 +283,16 @@ func FieldGalleryProof() {
         for title in[]string{"Text field", "Number input", "Form field"} {
             let registry = CreateRegistry()
             let gallery = Gallery(registry, registry.IndexOf(title))
-            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title}
+            let semantics = SearchListSemantics{}
+            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
             window.Open()
             try {
                 PumpFrames(window, 15)
+                if title == "Text field" && mode == ThemeMode.Light {
+                    VerifyEditorKeys(window, semantics, "Email address", false)
+                }
                 CaptureIssueProof(
                     window,
                     "gallery-" + title.ToLowerInvariant().Replace(" ", "-")
@@ -302,6 +304,45 @@ func FieldGalleryProof() {
             }
         }
     }
+}
+
+func VerifyEditorKeys(window Window, semantics SearchListSemantics, name string, multiline bool) {
+    let role = multiline ? AccessibilityRole.TextEditor: AccessibilityRole.TextInput
+    let editor = FeedbackNode(semantics, role, name)
+    Require(window.PerformAccessibilityAction(editor.Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Editor did not focus: " + name)
+    let id = OnlyNativeWindow()
+    SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+    SelectorType(window, id, "keyboard")
+    SendKey(id, SDLScancode.Backspace)
+    PumpFrames(window, 4)
+    Require(window.PlatformInput.Editor?.Text == "keyboar", "Editor typing or Backspace failed: " + name)
+    SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+    SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+    PumpFrames(window, 4)
+    Require(window.GetClipboardText() == "keyboar", "Editor copy failed: " + name)
+    SendKey(id, SDLScancode.End)
+    SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
+    PumpFrames(window, 4)
+    Require(window.PlatformInput.Editor?.Text == "keyboarkeyboar", "Editor paste failed: " + name)
+    if multiline { SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl) }
+    SendKey(id, SDLScancode.Tab)
+    PumpFrames(window, 4)
+    if multiline {
+        Require(window.PlatformInput.Editor?.Text != "keyboarkeyboar", "Editor Tab did not indent: " + name)
+    } else {
+        Require(!FeedbackNode(semantics, role, name).Focused, "Tab did not leave the editor: " + name)
+    }
+    SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
+    PumpFrames(window, 4)
+    if multiline {
+        Require(window.PlatformInput.Editor?.Text == "keyboarkeyboar", "Editor Tab and Shift+Tab did not indent and outdent: " + name)
+    } else {
+        Require(FeedbackNode(semantics, role, name).Focused, "Shift+Tab did not return to the editor: " + name)
+    }
+    SendKey(id, SDLScancode.Return)
+    SendKey(id, SDLScancode.Escape)
+    PumpFrames(window, 4)
+    Console.WriteLine("PASS: editor typing, Backspace, select all, copy, paste, Enter, Escape, Tab and Shift+Tab: " + name)
 }
 
 internal class AddonFrameHost : Cell {

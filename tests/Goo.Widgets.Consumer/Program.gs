@@ -71,55 +71,17 @@ func HasKeyBinding(blob Blob, key Key, release bool = false) bool {
     return false
 }
 
-func HasEditingNavigation(bindings[]KeyBinding, key Key, shift bool, primary bool) bool {
-    let mac = OperatingSystem.IsMacOS()
-    for binding in bindings {
-        let modifiers = binding.Modifiers
-        if binding.Key == key &&
-            binding.Repeat &&
-            binding.Action != nil &&
-            modifiers.Shift == shift &&
-            modifiers.Ctrl == (primary && !mac) &&
-            modifiers.Super == (primary && mac) &&
-            !modifiers.Alt {
-            return true
-        }
-    }
-    return false
-}
-
-func EditingNavigationContracts() {
-    let window = Window{}
-    let bindings = WidgetKeyBindings.Editing(window.PlatformInput)
-    for shift in[]bool{false, true} {
-        for key in[]Key{Key.Up, Key.Down, Key.PageUp, Key.PageDown} {
-            Require(HasEditingNavigation(bindings, key, shift, false), "Missing repeatable vertical editor binding")
-        }
-        for key in[]Key{Key.Home, Key.End} {
-            Require(HasEditingNavigation(bindings, key, shift, true), "Missing repeatable document editor binding")
-        }
-    }
-    Console.WriteLine("PASS: repeatable vertical and document editor navigation bindings")
-}
-
 func NoModifiers(modifiers KeyModifiers) bool ->
 !modifiers.Alt && !modifiers.Shift && !modifiers.Ctrl && !modifiers.Super
 
 internal class ApplicationHost : Cell {
     private let content Cell
-    private var input PlatformInput?
 
     public init(content Cell) {
         this.content = content
     }
 
-    internal func AttachWindow(window Window) {
-        input = window.PlatformInput
-        Rebuild()
-    }
-
     public override func Build() Blob -> Container{
-        KeyBindings: WidgetKeyBindings.Editing(input),
         Width: Percent(100),
         Height: Percent(100),
         Cell.Mount[Cell](() -> content, "application-host"),
@@ -127,10 +89,6 @@ internal class ApplicationHost : Cell {
 }
 
 func ApplicationRoot(content Cell) ApplicationHost -> ApplicationHost(content)
-
-func BindApplicationInput(root ApplicationHost, window Window) {
-    root.AttachWindow(window)
-}
 
 func PackageComposition() {
     var activations int32 = 0
@@ -163,7 +121,6 @@ func PackageComposition() {
         first.Handle != nil && HasKeyBinding(first, Key.Enter) && HasKeyBinding(first, Key.Space, true),
         "Packaged button did not expose handle-based Enter and Space activation."
     )
-    Require(WidgetKeyBindings.Editing(nil).Length == 0, "Nil platform input produced application bindings.")
     var customBinding bool
     let customButton = Button{
         OnClick: () -> { },
@@ -403,8 +360,7 @@ func Main() {
         TextSurfaceInteractions()
         return
     }
-    if Environment.GetEnvironmentVariable("GOO_WIDGETS_EDITING_BINDINGS") == "1" {
-        EditingNavigationContracts()
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_FIELDS") == "1" {
         TextFieldAccessibility()
         FieldInteractions()
         return

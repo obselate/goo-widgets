@@ -182,7 +182,6 @@ func NavigationInteractions() {
     let root = ApplicationRoot(host)
     let window = Window{Title: "Navigation acceptance", Width: 800, Height: 650, Root: root}
     window.AccessibilityAdapter = semantics
-    BindApplicationInput(root, window)
     Theme.Attach(window)
     window.Open()
     try {

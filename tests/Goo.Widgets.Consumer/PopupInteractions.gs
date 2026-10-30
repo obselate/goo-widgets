@@ -72,7 +72,6 @@ func PopupInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Title: "Popup verification", Width: 720, Height: 520, Root: root, AccessibilityAdapter: semantics}
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 12)
@@ -136,7 +135,6 @@ func HoverCardInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Title: "Hover card verification", Width: 640, Height: 420, Root: root, AccessibilityAdapter: semantics}
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 12)
