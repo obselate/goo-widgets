@@ -89,6 +89,8 @@ public data struct Theme {
     var DisabledTextColor Color
     var LinkColor Color
     var FocusColor Color
+    var FocusRingWidth float64 = 2.0
+    var FocusRingOffset float64 = 2.0
     var InfoFillColor Color
     var SuccessFillColor Color
     var WarningFillColor Color
@@ -1063,7 +1065,11 @@ public data struct Theme {
 
     /// Fresh keyboard focus declarations. Use an inset offset for clipped targets.
     public prop FocusStyle Style {
-        get -> Style{OutlineWidth: 2.0, OutlineColor: FocusColor, OutlineOffset: 2.0}
+        get -> Style{OutlineWidth: FocusRingWidth, OutlineColor: FocusColor, OutlineOffset: FocusRingOffset}
+    }
+
+    public prop InsetFocusStyle Style {
+        get -> Style{OutlineWidth: FocusRingWidth, OutlineColor: FocusColor, OutlineOffset: -FocusRingWidth}
     }
 
     /// Fresh overlay scrollbar with real pointer-controlled track and thumb parts.

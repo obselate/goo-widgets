@@ -66,7 +66,7 @@ public data struct StackedBar {
             }
             var bar = Container{
                 BackgroundColor: segment.Series.Color!!,
-                Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
+                Focus: theme.InsetFocusStyle,
                 Cursor: OnActivate == nil ? Cursor.Default: Cursor.Pointer
             }
             if let create = CreateSegment {

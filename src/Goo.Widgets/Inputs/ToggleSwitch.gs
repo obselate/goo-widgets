@@ -74,7 +74,7 @@ public data struct ToggleSwitch {
             OnThumbColor = OnThumbColor ?? theme.OnAccentColor,
             DisabledThumbColor = DisabledThumbColor ?? theme.FaintTextColor,
             BorderColor = BorderColor ?? theme.InputBorderColor,
-            FocusBorderColor = FocusBorderColor ?? theme.AccentColor,
+            FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             Width = if Width == 0.0 {
                 theme.Spacing * 11.0
             } else {
@@ -150,7 +150,7 @@ public data struct ToggleSwitch {
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             Active: Style{Transform: resolved.ActiveTransform!!},
-            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: 2.0, OutlineOffset: 2.0},
+            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: theme.FocusRingWidth, OutlineOffset: theme.FocusRingOffset},
             DisabledStyle: Style{},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

@@ -312,9 +312,9 @@ public open class ListView : Cell[ListViewInput] {
         root.Disabled = item.Disabled || snapshot.Disabled
         root.Opacity = item.Disabled ? .45: 1
         root.Hover = Style{BackgroundColor: theme.HoverColor}
-        root.OutlineWidth = activeId == id && focused ? 2: 0
+        root.OutlineWidth = activeId == id && focused ? theme.FocusRingWidth: 0.0
         root.OutlineColor = theme.FocusColor
-        root.OutlineOffset = -2
+        root.OutlineOffset = -theme.FocusRingWidth
         root.OnPointerDown = (e PointerEvent) -> {
             modifiers = e.Modifiers
             fromChild = e.IsFromInteractiveChild

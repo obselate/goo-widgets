@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Theme.FocusRingWidth and FocusRingOffset control widget focus outlines. Focus outlines use Theme.FocusColor unless the widget sets a focus color.
+
 ## 0.16.3 - 2026-10-29
 
 - TextField clear and reveal buttons are no longer Tab stops.

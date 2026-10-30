@@ -103,7 +103,7 @@ public data struct DismissibleContextBar {
             DismissTextColor = DismissTextColor ?? theme.MutedTextColor,
             DismissHoverBackgroundColor = DismissHoverBackgroundColor ?? theme.HoverColor,
             DismissActiveBackgroundColor = DismissActiveBackgroundColor ?? theme.BorderColor,
-            DismissFocusBorderColor = DismissFocusBorderColor ?? theme.AccentColor,
+            DismissFocusBorderColor = DismissFocusBorderColor ?? theme.FocusColor,
             DismissDisabledBackgroundColor = DismissDisabledBackgroundColor ?? Color.Transparent,
             DismissDisabledTextColor = DismissDisabledTextColor ?? theme.FaintTextColor,
             MinHeight = MinHeight ?? theme.ControlHeight,
@@ -167,7 +167,7 @@ public data struct DismissibleContextBar {
                     BackgroundColor: resolved.DismissActiveBackgroundColor!!,
                     Transform: resolved.DismissActiveTransform!!
                 },
-                Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.DismissFocusBorderColor!!, OutlineOffset: 2.0},
+                Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.DismissFocusBorderColor!!, OutlineOffset: theme.FocusRingOffset},
                 DisabledStyle: Style{
                     BackgroundColor: resolved.DismissDisabledBackgroundColor!!,
                     Color: resolved.DismissDisabledTextColor!!

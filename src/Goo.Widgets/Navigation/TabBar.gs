@@ -125,7 +125,7 @@ public open class TabBar : Cell[TabBarInput] {
                 FontStyle: id == input.PreviewId ? FontStyle.Italic: FontStyle.Normal,
                 BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
                 Hover: Style{BackgroundColor: theme.HoverColor},
-                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
+                Focus: theme.InsetFocusStyle,
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 JustifyContent: input.Vertical ? JustifyContent.FlexStart: JustifyContent.Center,

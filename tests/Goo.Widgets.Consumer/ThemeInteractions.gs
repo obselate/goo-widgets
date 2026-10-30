@@ -12,6 +12,7 @@ import Hexa.NET.SDL3
 import System
 import System.Collections.Generic
 import System.Runtime.CompilerServices
+import System.Reflection
 import System.Threading
 
 internal class ThemePreferenceHost : EmbeddedWindowHost {
@@ -135,6 +136,106 @@ func ThemeFrames(host EmbeddedWindowHost) {
     for frame in 0 ... 5 {
         host.RenderFrame(0.016)
     }
+}
+
+internal class ThemeFocusHost : Cell {
+    internal var Snapshot Theme
+    internal var GridRoot Container?
+    internal var GridRow Container?
+    internal var Action Button?
+    internal var Tab Button?
+    internal var Value Theme
+    internal let ActionHandle ElementHandle = ElementHandle()
+
+    public override func Build() Blob -> ThemeScope{
+        Value: Value,
+        Content: () -> {
+            Snapshot = Theme.Read()
+            Action = (ActionButton{Content: "Focus action"}.Build() as Button)!!
+            return Container{
+                Width: Percent(100),
+                Container{Handle: ActionHandle, Action},
+                Cell.Mount[TabBarInput, TabBar]("tabs", TabBarInput{
+                    Items: []NavigationItem{NavigationItem{Id: "one", Label: "Focus tab"}},
+                    CreateItem: (input TabBarInput, item NavigationItem, button Button) -> {
+                        Tab = button
+                        return button
+                    },
+                }),
+                Cell.Mount[DataGridInput, DataGrid]("grid", DataGridInput{
+                    Columns: []DataGridColumn{
+                        DataGridColumn{Id: "name", Label: "Name", Sortable: true},
+                        DataGridColumn{Id: "state", Label: "State", Sortable: true},
+                    },
+                    Rows: []DataGridRow{DataGridRow{Id: "one"}},
+                    ActiveRowId: "one",
+                    Height: 120,
+                    OnSort: (id string, direction DataGridSort) -> { },
+                    CreateRoot: (input DataGridInput, root Container) -> {
+                        GridRoot = root
+                        return root
+                    },
+                    CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+                        GridRow = root
+                        return root
+                    },
+                }),
+            }
+        },
+    }.Build()
+}
+
+func RequireFocusOutline(handle ElementHandle, width float64, offset float64, path []int32 = nil) {
+    let flags = BindingFlags.Instance | BindingFlags.NonPublic
+    var node = typeof(ElementHandle).GetField("node", flags)!!.GetValue(handle)!!
+    for index in path ?? []int32{} {
+        node = (node.GetType().GetProperty("Children", flags)!!.GetValue(node) as System.Collections.IList)!![index]!!
+    }
+    let resolvedWidth = (node.GetType().GetProperty("OutlineWidth", flags)!!.GetValue(node) as Length?)!!
+    let resolvedOffset = (node.GetType().GetProperty("OutlineOffset", flags)!!.GetValue(node) as Length?)!!
+    Require(resolvedWidth.HasMagnitude && resolvedWidth.Magnitude == width
+        && resolvedOffset.HasMagnitude && resolvedOffset.Magnitude == offset,
+        "Resolved focus geometry " + resolvedWidth.Magnitude.ToString() + "/" + resolvedOffset.Magnitude.ToString()
+        + " differs from theme " + width.ToString() + "/" + offset.ToString() + ".")
+}
+
+func ThemeFocusContracts() {
+    for width in []float64{2.0, 1.0, 0.0} {
+        using let host = ThemePreferenceHost()
+        host.Resize(480, 320, 480, 320)
+        let theme = Theme{FocusRingWidth: width, FocusRingOffset: width}
+        let root = ThemeFocusHost(){Value = theme}
+        let adapter = SearchListSemantics()
+        let window = Window{Root: root, AccessibilityAdapter: adapter}
+        Theme.Attach(window, theme)
+        window.Attach(host)
+        host.SetFocused(true)
+        window.PlatformInput.KeyPress(Key.Tab, KeyModifiers{})
+        window.PlatformInput.KeyRelease(Key.Tab)
+        ThemeFrames(host)
+        Require(Theme.Read(window).FocusRingWidth == width && root.Snapshot.FocusRingWidth == width
+            && root.Snapshot.FocusRingOffset == width, "Attach, Read or ThemeScope replaced focus geometry.")
+        let action = FeedbackNode(adapter, AccessibilityRole.Button, "Focus action")
+        Require(window.PerformAccessibilityAction(action.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
+            "The action did not accept keyboard focus.")
+        ThemeFrames(host)
+        RequireFocusOutline(root.ActionHandle, width, width, []int32{0})
+        Require(root.Tab!!.Handle!!.Focus(), "The tab did not accept keyboard focus.")
+        ThemeFrames(host)
+        RequireFocusOutline(root.Tab!!.Handle!!, width, -width)
+        for index in 0 ... 2 {
+            let header = FeedbackNode(adapter, AccessibilityRole.ColumnHeader, index == 0 ? "Name": "State")
+            Require(window.PerformAccessibilityAction(header.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
+                "The grid header did not accept keyboard focus.")
+            ThemeFrames(host)
+            RequireFocusOutline(root.GridRoot!!.Handle!!, width, -width, []int32{0, 0, 0, index, 0})
+        }
+        Require(root.GridRoot!!.Handle!!.Focus(), "The grid did not accept keyboard focus.")
+        root.GridRoot!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
+        ThemeFrames(host)
+        RequireFocusOutline(root.GridRow!!.Handle!!, width, -width, []int32{0})
+    }
+    Console.WriteLine("PASS theme focus geometry: default, one pixel, zero, header, active cell, action, tab and scope")
 }
 
 func ThemeBackgroundContracts() {

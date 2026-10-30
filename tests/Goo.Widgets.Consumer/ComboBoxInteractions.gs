@@ -282,10 +282,10 @@ func ComboBoxInteractions() {
             "ComboBox popup remained clipped to its transformed source ancestor"
         )
         Require(FindSemantics(semantics.Tree?.Root, "Beta")!!.Selected == true, "Selected option semantics missing")
-        let accent = Theme.Read(window).AccentColor
+        let focus = Theme.Read(window).FocusColor
         let beta = host.Rows["beta"].Handle!!.BorderBox
         Require(
-            !ThemePixel(ThemeCapture(window), int32(Math.Ceiling(beta.X)), int32(beta.Y + beta.Height / 2), accent),
+            !ThemePixel(ThemeCapture(window), int32(Math.Ceiling(beta.X)), int32(beta.Y + beta.Height / 2), focus),
             "Pointer-opened ComboBox showed the keyboard ring"
         )
         SendKey(id, SDLScancode.Up)
@@ -296,7 +296,7 @@ func ComboBoxInteractions() {
         )
         let alpha = host.Rows["alpha"].Handle!!.BorderBox
         Require(
-            ThemePixel(ThemeCapture(window), int32(Math.Ceiling(alpha.X)), int32(alpha.Y + alpha.Height / 2), accent),
+            ThemePixel(ThemeCapture(window), int32(Math.Ceiling(alpha.X)), int32(alpha.Y + alpha.Height / 2), focus),
             "Keyboard navigation did not show the active option ring"
         )
         SendKey(id, SDLScancode.Escape)

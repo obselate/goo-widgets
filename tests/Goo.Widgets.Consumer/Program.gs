@@ -497,6 +497,7 @@ func Main() {
         DisclosureInteractions()
         return
     }
+    ThemeFocusContracts()
     RunContracts(
         () -> {
             CalendarContracts()

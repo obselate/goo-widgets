@@ -187,7 +187,7 @@ public data struct Chip {
             TransitionEasing: resolved.TransitionEasing!!,
             Hover: Style{BackgroundColor: currentHoverBg},
             Active: Style{BackgroundColor: currentActiveBg, Transform: resolved.ActiveTransform!!},
-            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: 2.0, OutlineOffset: 2.0},
+            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: theme.FocusRingWidth, OutlineOffset: theme.FocusRingOffset},
             DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

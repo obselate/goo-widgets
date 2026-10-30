@@ -132,7 +132,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         OnKeyDown: (e KeyEvent) -> focus.Handle(e),
                         BackgroundColor: Color.Transparent,
                         Hover: Style{BackgroundColor: theme.FieldColor},
-                        Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
+                        Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: theme.FocusColor},
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.Button,
                             Name: theme.Text("Show hidden path"),
@@ -197,7 +197,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         }
                     },
                     OnKeyDown: (e KeyEvent) -> focus.Handle(e),
-                    Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
+                    Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: theme.FocusColor},
                     Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: item.Label ?? id},
                     content
                 }
@@ -210,7 +210,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     FlexShrink: 0,
                     BackgroundColor: Color.Transparent,
                     Hover: Style{BackgroundColor: theme.FieldColor},
-                    Focus: Style{OutlineWidth: 2, OutlineColor: theme.FocusColor},
+                    Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: theme.FocusColor},
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,
                         Name: theme.Text("Locations in {0}", item.Label ?? id)

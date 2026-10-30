@@ -220,7 +220,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Gap: theme.ControlGap / 2.0,
                 BackgroundColor: Color.Transparent,
                 Hover: Style{BackgroundColor: theme.HoverColor},
-                Focus: Style{OutlineColor: theme.FocusColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
+                Focus: theme.InsetFocusStyle,
                 Cursor: Cursor.Pointer,
                 Disabled: input.OnExpandedChange == nil,
                 OnClick: () -> input.OnExpandedChange?.Invoke(!input.Expanded),

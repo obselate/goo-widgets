@@ -178,7 +178,7 @@ public open class Menu : Cell[MenuInput] {
                 Gap: theme.ControlGap,
                 BackgroundColor: selected == id ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
                 BorderRadius: theme.ControlRadius,
-                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
+                Focus: theme.InsetFocusStyle,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
             let row = if let create = current.CreateItem {

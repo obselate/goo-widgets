@@ -258,7 +258,7 @@ public open class Slider : Cell[SliderInput] {
             } else {
                 1.0
             },
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: theme.FocusRingOffset},
             BasedOn: resolved.RootStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
@@ -413,7 +413,7 @@ public open class Slider : Cell[SliderInput] {
             ThumbColor = input.ThumbColor ?? theme.AccentColor,
             ThumbBorderColor = input.ThumbBorderColor ?? theme.OnAccentColor,
             BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
-            FocusOutlineColor = input.FocusOutlineColor ?? theme.AccentColor,
+            FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
             DisabledOpacity = input.DisabledOpacity ?? 0.4,
         }
     }

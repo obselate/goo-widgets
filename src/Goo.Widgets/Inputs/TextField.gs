@@ -84,7 +84,7 @@ public data struct TextField {
     var BorderWidth float64?
     /// Entry border radius. Nil uses the nearest theme radius.
     var BorderRadius float64?
-    /// Focus ring spread. Nil resolves to 2.0.
+    /// Focus ring spread. Nil uses the nearest theme focus width.
     var FocusRingWidth float64?
     /// Entry transition duration. Nil uses theme motion. Explicit zero is preserved.
     var TransitionMs float64?
@@ -125,7 +125,7 @@ public data struct TextField {
             TextColor = TextColor ?? theme.TextColor,
             MutedTextColor = MutedTextColor ?? theme.MutedTextColor,
             BorderColor = BorderColor ?? theme.InputBorderColor,
-            FocusColor = FocusColor ?? theme.AccentColor,
+            FocusColor = FocusColor ?? theme.FocusColor,
             InvalidColor = InvalidColor ?? theme.DangerColor,
             DisabledBackgroundColor = DisabledBackgroundColor ?? theme.SunkenColor,
             DisabledTextColor = DisabledTextColor ?? theme.DisabledTextColor,
@@ -157,7 +157,7 @@ public data struct TextField {
             LabelTextTransform = LabelTextTransform ?? TextTransform.None,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius,
-            FocusRingWidth = FocusRingWidth ?? 2.0,
+            FocusRingWidth = FocusRingWidth ?? theme.FocusRingWidth,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
@@ -217,7 +217,7 @@ public data struct TextField {
                 Password: resolved.Password,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
-                Focus: Style{OutlineColor: accent, OutlineWidth: resolved.FocusRingWidth!!, OutlineOffset: 2.0},
+                Focus: Style{OutlineColor: accent, OutlineWidth: resolved.FocusRingWidth!!, OutlineOffset: theme.FocusRingOffset},
                 DisabledStyle: Style{
                     BackgroundColor: resolved.DisabledBackgroundColor!!,
                     Color: resolved.DisabledTextColor!!

@@ -132,7 +132,7 @@ public data struct Disclosure {
             BorderBottomLeftRadius: resolved.Expanded ? 0.0: headerRadius,
             BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
             Hover: Style{BackgroundColor: resolved.HoverColor!!},
-            Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
+            Focus: theme.InsetFocusStyle,
             Opacity: if resolved.Disabled {
                 resolved.DisabledOpacity!!
             } else {

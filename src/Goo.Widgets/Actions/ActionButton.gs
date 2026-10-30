@@ -160,7 +160,7 @@ public data struct ActionButton {
             TransitionEasing: resolved.TransitionEasing!!,
             Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
             Active: Style{BackgroundColor: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
-            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: 2.0, OutlineOffset: 2.0},
+            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: theme.FocusRingWidth, OutlineOffset: theme.FocusRingOffset},
             DisabledStyle: Style{
                 BackgroundColor: resolved.DisabledBackgroundColor!!,
                 Color: Loading ? resolved.TextColor!!: resolved.DisabledTextColor!!,

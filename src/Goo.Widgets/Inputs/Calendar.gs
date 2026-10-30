@@ -361,7 +361,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Hover: Style{BackgroundColor: theme.HoverColor},
             BorderWidth: day.Today ? theme.BorderWidth: 0.0,
             BorderColor: theme.AccentColor,
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
+            Focus: theme.InsetFocusStyle,
             Opacity: day.Disabled ? .35: 1.0
         }
         if let create = current.CreateDay {
