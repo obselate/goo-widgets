@@ -3,6 +3,7 @@
 ## Unreleased
 
 - TextField clear and reveal buttons are no longer Tab stops.
+- VirtualRows at the top stays at the top when rows are reordered.
 
 ## 0.16.2 - 2026-10-29
 

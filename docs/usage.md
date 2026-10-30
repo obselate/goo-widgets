@@ -659,7 +659,8 @@ previous value is not built again. `VirtualRows` also needs the same builder
 delegate on each build to reuse rows.
 
 `VirtualRows` keeps the first visible row in place when rows above it change
-size or the width changes. A change that only removes rows from the start and adds
+size or the width changes. A list scrolled to the top stays at the top.
+A change that only removes rows from the start and adds
 rows at the end is applied in place: only the added rows are keyed and built.
 `followEnd: true` scrolls to the last row when inputs change. It does not block user scrolling.
 In `viewport.MetricsChanged`, set `follow` to `metrics.ScrollOffset.Y >= metrics.ScrollRange.Y - 0.5`
