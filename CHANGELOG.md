@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- TextField clear and reveal buttons are no longer Tab stops.
+
 ## 0.16.2 - 2026-10-29
 
 - Build against Goo 0.23.3.

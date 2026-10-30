@@ -474,6 +474,7 @@ internal class TextFieldState : Cell[TextField] {
             Padding: 0,
             Disabled: current.Disabled,
             Focusable: !current.Disabled,
+            TabStop: false,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
             OnClick: action,
             Focus: theme.FocusStyle,
