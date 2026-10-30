@@ -274,7 +274,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 BorderColor: theme.AccentColor,
                 Color: selected ? theme.OnAccentColor: theme.TextColor,
                 Hover: Style{Opacity: .85},
-                Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.AccentColor, OutlineOffset: -2.0},
+                Focus: theme.InsetFocusStyle,
                 Overflow: Overflow.Hidden,
                 JustifyContent: JustifyContent.Center,
                 Text{

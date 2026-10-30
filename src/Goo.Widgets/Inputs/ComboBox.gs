@@ -434,9 +434,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             BorderRadius: theme.ControlRadius,
             BackgroundColor: row.Active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Opacity: item.Disabled ? .45: 1.0,
-            OutlineWidth: row.KeyboardActive ? 2.0: 0.0,
-            OutlineColor: theme.AccentColor,
-            OutlineOffset: -2.0,
+            OutlineWidth: row.KeyboardActive ? theme.FocusRingWidth: 0.0,
+            OutlineColor: theme.FocusColor,
+            OutlineOffset: -theme.FocusRingWidth,
         }
         if let create = row.Input.CreateRow {
             result = create(row.Input, item, result)

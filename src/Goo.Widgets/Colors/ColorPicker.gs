@@ -185,7 +185,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Gap = input.Gap ?? theme.ControlGap,
             MarkerSize = markerSize,
             MarkerBorderColor = input.MarkerBorderColor ?? theme.TextColor,
-            FocusOutlineColor = input.FocusOutlineColor ?? theme.AccentColor,
+            FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
         }
     }
 
@@ -247,7 +247,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: theme.FocusRingOffset},
             BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),

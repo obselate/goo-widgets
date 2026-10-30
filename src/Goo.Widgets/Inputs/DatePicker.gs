@@ -117,7 +117,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             SelectionColor: theme.AccentColor.WithAlpha(0.35),
             PlaceholderColor: theme.PlaceholderColor,
             Cursor: Cursor.Text,
-            Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
+            Focus: theme.InsetFocusStyle,
         }
         if let create = current.CreateInput {
             entry = create(current, entry)

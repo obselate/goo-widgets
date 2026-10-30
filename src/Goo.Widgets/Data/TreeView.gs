@@ -570,9 +570,9 @@ public open class TreeView : Cell[TreeViewInput] {
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
             Hover: Style{BackgroundColor: tinted ? snapshot.SelectedColor!!: theme.HoverColor},
-            OutlineWidth: row.Active && hasFocus && !pointerFocus ? 2.0: 0.0,
+            OutlineWidth: row.Active && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
             OutlineColor: theme.FocusColor,
-            OutlineOffset: -2.0,
+            OutlineOffset: -theme.FocusRingWidth,
             Opacity: row.Disabled ? .45: 1.0,
             Overflow: Overflow.Hidden
         }

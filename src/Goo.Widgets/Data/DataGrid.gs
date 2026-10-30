@@ -1094,7 +1094,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     AlignItems: column.Alignment == TextAlign.Right ? AlignItems.FlexEnd: column.Alignment == TextAlign.Center ? AlignItems.Center: AlignItems.FlexStart,
                     TextAlign: column.Alignment,
-                    Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
+                    Focus: theme.InsetFocusStyle,
                     BackgroundColor: Color.Transparent,
                     Focusable: column.Sortable &&
                         (snapshot.OnSort != nil || snapshot.OnSortsChange != nil) &&
@@ -1134,7 +1134,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         BorderWidth: Edges{Right: 1},
                         BorderColor: resizeId == id ? theme.FocusColor: Color.Transparent,
                         Hover: Style{BorderColor: theme.FocusColor},
-                        Focus: Style{OutlineWidth: 2.0, OutlineColor: theme.FocusColor, OutlineOffset: -2.0},
+                        Focus: theme.InsetFocusStyle,
                         BasedOn: snapshot.ResizeHandleStyle
                     }
                     if let create = snapshot.CreateResizeHandle {
@@ -1199,9 +1199,9 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             Height: height,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
-            OutlineWidth: activeId == id && hasFocus && !pointerFocus ? 2.0: 0.0,
+            OutlineWidth: activeId == id && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
             OutlineColor: snapshot.FocusColor!!,
-            OutlineOffset: -2,
+            OutlineOffset: -theme.FocusRingWidth,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
         }
         if snapshot.AutoRowHeight {

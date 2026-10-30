@@ -71,7 +71,7 @@ public data struct SearchList {
         let foreground = TextColor ?? theme.TextColor
         let muted = MutedColor ?? theme.MutedTextColor
         let selection = SelectedColor ?? theme.AccentColor.WithAlpha(0.15)
-        let focus = FocusColor ?? theme.AccentColor
+        let focus = FocusColor ?? theme.FocusColor
         let selectedId = SelectedId
         let onSelect = OnSelect
         let customizeRow = CustomizeRow
@@ -126,7 +126,7 @@ public data struct SearchList {
             Placeholder: Placeholder ?? theme.Text("Search"),
             PlaceholderColor: theme.PlaceholderColor,
             OnChange: OnQueryChange,
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: focus, OutlineOffset: -2.0},
+            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
         }
         if let customize = CustomizeEntry {
@@ -257,7 +257,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
                 options.Background
             },
             Hover: Style{BackgroundColor: options.Selection},
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: options.Focus, OutlineOffset: -2.0},
+            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: options.Focus, OutlineOffset: -theme.FocusRingWidth},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: item.Label ?? "", Selected: Selected},
             OnClick: () -> {
                 if !item.Disabled {

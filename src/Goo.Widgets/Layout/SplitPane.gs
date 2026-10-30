@@ -135,7 +135,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         var divider = Container{
             BackgroundColor: theme.BorderColor,
             Hover: Style{BackgroundColor: theme.HoverColor},
-            Focus: Style{OutlineColor: theme.AccentColor, OutlineWidth: 2.0, OutlineOffset: -2.0},
+            Focus: theme.InsetFocusStyle,
         }
         if let create = input.CreateHandle {
             divider = create(input, divider)

@@ -84,7 +84,7 @@ public data struct IconButton {
                 resolved.BackgroundColor!!
             },
             Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            Focus: Style{OutlineWidth: 2.0, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: 2.0},
+            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: theme.FocusRingOffset},
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,

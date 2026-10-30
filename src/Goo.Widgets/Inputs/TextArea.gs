@@ -128,7 +128,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             BackgroundColor = value.BackgroundColor ?? theme.FieldColor,
             TextColor = value.TextColor ?? theme.TextColor,
             InvalidColor = value.InvalidColor ?? theme.DangerColor,
-            FocusColor = value.FocusColor ?? theme.AccentColor
+            FocusColor = value.FocusColor ?? theme.FocusColor
         }
         if controller == nil {
             external = value.Controller
@@ -160,7 +160,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             BorderWidth = theme.BorderWidth,
             BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,
             BorderRadius = theme.ControlRadius,
-            Focus = Style{OutlineWidth: 2.0, OutlineColor: input.FocusColor!!, OutlineOffset: -2.0},
+            Focus = Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
             DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
             TransitionMs = theme.TransitionMs,
             LineHeight = theme.LineHeight,
