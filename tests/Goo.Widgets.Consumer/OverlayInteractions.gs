@@ -424,6 +424,43 @@ internal class OverlayHost : Cell {
 func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(adapter.Tree?.Root, name)?.Focused ??
 false
 
+func ModalClipboardInteractions() {
+    let host = OverlayHost{DialogOpen: true}
+    let semantics = SearchListSemantics{}
+    let window = Window{
+        Title: "Modal clipboard verification",
+        Width: 860,
+        Height: 560,
+        Root: ApplicationRoot(host),
+        AccessibilityAdapter: semantics,
+    }
+    host.AttachWindow(window)
+    window.Open()
+    try {
+        PumpFrames(window, 16)
+        Require(OverlayFocus(semantics, "Dialog editor"), "Managed dialog did not focus its editor")
+        let id = OnlyNativeWindow()
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorType(window, id, "keyboard")
+        SendKey(id, SDLScancode.Backspace)
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(window.GetClipboardText() == "keyboar", "Modal editor copy or Backspace failed")
+        SendKey(id, SDLScancode.End)
+        SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(FindSemantics(semantics.Tree?.Root, "Dialog editor")!!.Value == "keyboarkeyboar", "Modal editor paste failed")
+        SendKey(id, SDLScancode.Return)
+        SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
+        PumpFrames(window, 4)
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+    Console.WriteLine("PASS: managed modal typing, Backspace, select all, copy, paste, Enter and Shift+Tab without application editing bindings")
+}
+
 func OverlayInteractions() {
     RunContracts(OverlayContracts)
     let host = OverlayHost()
@@ -477,20 +514,6 @@ func OverlayInteractions() {
             "Modal exposed background accessibility content"
         )
         CaptureIssueProof(window, "modal-managed")
-        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
-        SelectorType(window, id, "keyboard")
-        SendKey(id, SDLScancode.Backspace)
-        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
-        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
-        PumpFrames(window, 4)
-        Require(window.GetClipboardText() == "keyboar", "Modal editor copy or Backspace failed")
-        SendKey(id, SDLScancode.End)
-        SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
-        PumpFrames(window, 4)
-        Require(FindSemantics(semantics.Tree?.Root, "Dialog editor")!!.Value == "keyboarkeyboar", "Modal editor paste failed")
-        SendKey(id, SDLScancode.Return)
-        SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
-        PumpFrames(window, 4)
         host.ConfirmButton!!.Handle!!.Focus()
         SendKey(id, SDLScancode.Tab)
         PumpFrames(window, 5)

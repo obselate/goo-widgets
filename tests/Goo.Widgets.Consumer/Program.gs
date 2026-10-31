@@ -389,6 +389,10 @@ func Main() {
         LayoutInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_MODAL_CLIPBOARD") == "1" {
+        ModalClipboardInteractions()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_OVERLAYS") == "1" {
         OverlayInteractions()
         return
