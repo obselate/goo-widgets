@@ -311,8 +311,7 @@ func TextSurfaceInteractions() {
         PumpFrames(window, 5)
         Require(!host.QueryHandle.Focus() && !host.AreaHandle.Focus(), "Disabled text surfaces accepted focus")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     TextSurfaceLongCodeProof()
     TextSurfaceGalleryProof()
@@ -356,8 +355,7 @@ func TextSurfaceLongCodeProof() {
             "Long CodeBlock did not lay out scrolled lines"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }
 
@@ -382,8 +380,7 @@ func TextSurfaceGalleryProof() {
                     "gallery-" + title.ToLowerInvariant().Replace(" ", "-") + "-" + mode.ToString().ToLowerInvariant()
                 )
             } finally {
-                window.RequestClose()
-                PumpFrames(window, 3)
+                CloseNativeWindow(window)
             }
         }
     }

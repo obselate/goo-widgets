@@ -299,8 +299,7 @@ func FieldGalleryProof() {
                     + "-" + mode.ToString().ToLowerInvariant()
                 )
             } finally {
-                window.RequestClose()
-                PumpFrames(window, 3)
+                CloseNativeWindow(window)
             }
         }
     }
