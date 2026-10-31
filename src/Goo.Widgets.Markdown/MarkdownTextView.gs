@@ -222,7 +222,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         if run.Kind == MarkdownInlineKind.Code {
             root.Padding = Edges{Left: theme.Spacing * .75, Right: theme.Spacing * .75}
             root.BackgroundColor = options.CodeBackground!!
-            root.BorderRadius = theme.ControlRadius / 2.0
+            root.BorderRadius = theme.ControlRadius!! / 2.0
         } else {
             root.Accessibility = Accessibility{
                 Role: AccessibilityRole.Image,

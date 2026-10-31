@@ -49,7 +49,7 @@ public open class TokenInput : Cell[TokenInputInput] {
             FlexWrap: FlexWrap.Wrap,
             AlignItems: AlignItems.Center,
             BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BorderColor: theme.InputBorderColor,
             BackgroundColor: input.Disabled ? theme.SunkenColor: theme.FieldColor,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: input.AccessibilityName ?? theme.Text("Tokens")},

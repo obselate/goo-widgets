@@ -76,7 +76,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
         var root = Container{
             Gap: input.Look == ToggleGroupLook.Segmented ? 0: theme.ControlGap,
             Padding: input.Look == ToggleGroupLook.Segmented ? theme.Spacing: 0,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BackgroundColor: input.Look == ToggleGroupLook.Segmented ? theme.SunkenColor: Color.Transparent,
         }
         if let create = input.CreateRoot {
@@ -108,7 +108,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 BorderColor: input.Look == ToggleGroupLook.Segmented
                 ? active ? theme.StrongBorderColor: Color.Transparent
                 : active ? theme.AccentColor: theme.InputBorderColor,
-                BorderRadius: input.Look == ToggleGroupLook.Chips ? theme.ControlHeight / 2: theme.ControlRadius,
+                BorderRadius: input.Look == ToggleGroupLook.Chips ? theme.ControlHeight / 2: theme.ControlRadius!!,
                 BackgroundColor: active
                 ? input.Look == ToggleGroupLook.Segmented ? theme.RaisedColor: theme.ActiveColor
                 : Color.Transparent,

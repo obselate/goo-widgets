@@ -95,10 +95,10 @@ public data struct Theme {
     var SuccessFillColor Color
     var WarningFillColor Color
     var DangerQuietColor Color
-    var RadiusSm float64 = 4.0
-    var RadiusMd float64 = 8.0
-    var RadiusLg float64 = 12.0
-    var RadiusXl float64 = 20.0
+    var RadiusSm float64?
+    var RadiusMd float64?
+    var RadiusLg float64?
+    var RadiusXl float64?
     var ElevationSm BoxShadow
     var ElevationMd BoxShadow
     var ElevationLg BoxShadow
@@ -140,9 +140,9 @@ public data struct Theme {
     /// Control height in logical pixels. Use 28 for compact controls.
     var ControlHeight float64
     /// Control corner radius in logical pixels.
-    var ControlRadius float64
+    var ControlRadius float64?
     /// Panel corner radius in logical pixels.
-    var PanelRadius float64
+    var PanelRadius float64?
     /// Border width in logical pixels.
     var BorderWidth float64
     /// Base spacing unit. Use multiples for 4, 8, 12, 16, and 24 pixel spacing.
@@ -266,10 +266,10 @@ public data struct Theme {
             DisabledTextColor = DisabledTextColor == Color{} ? defaults.DisabledTextColor: DisabledTextColor,
             LinkColor = LinkColor == Color{} ? defaults.LinkColor: LinkColor,
             FocusColor = FocusColor == Color{} ? defaults.FocusColor: FocusColor,
-            RadiusSm = RadiusSm == 0 ? defaults.RadiusSm: RadiusSm,
-            RadiusMd = RadiusMd == 0 ? defaults.RadiusMd: RadiusMd,
-            RadiusLg = RadiusLg == 0 ? defaults.RadiusLg: RadiusLg,
-            RadiusXl = RadiusXl == 0 ? defaults.RadiusXl: RadiusXl,
+            RadiusSm = RadiusSm ?? defaults.RadiusSm,
+            RadiusMd = RadiusMd ?? defaults.RadiusMd,
+            RadiusLg = RadiusLg ?? defaults.RadiusLg,
+            RadiusXl = RadiusXl ?? defaults.RadiusXl,
             DisplayFontSize = DisplayFontSize == 0 ? defaults.DisplayFontSize: DisplayFontSize,
             H1FontSize = H1FontSize == 0 ? defaults.H1FontSize: H1FontSize,
             H2FontSize = H2FontSize == 0 ? defaults.H2FontSize: H2FontSize,
@@ -297,8 +297,8 @@ public data struct Theme {
             FontSize = FontSize == 0 ? defaults.FontSize: FontSize,
             FontWeight = FontWeight == 0 ? defaults.FontWeight: FontWeight,
             ControlHeight = ControlHeight == 0 ? defaults.ControlHeight: ControlHeight,
-            ControlRadius = ControlRadius == 0 ? defaults.ControlRadius: ControlRadius,
-            PanelRadius = PanelRadius == 0 ? defaults.PanelRadius: PanelRadius,
+            ControlRadius = ControlRadius ?? defaults.ControlRadius,
+            PanelRadius = PanelRadius ?? defaults.PanelRadius,
             BorderWidth = BorderWidth == 0 ? defaults.BorderWidth: BorderWidth,
             Spacing = Spacing == 0 ? defaults.Spacing: Spacing,
             LineHeight = LineHeight == 0 ? defaults.LineHeight: LineHeight,
@@ -470,6 +470,7 @@ public data struct Theme {
                 SuccessFillColor: "#11281d",
                 WarningFillColor: "#2b2213",
                 DangerQuietColor: "#33191b",
+                RadiusSm: 4.0,
                 RadiusMd: 6.0,
                 RadiusLg: 10.0,
                 RadiusXl: 14.0,
@@ -863,7 +864,7 @@ public data struct Theme {
             BackgroundColor: GlassColor ?? CanvasColor,
             BorderColor: HairlineColor,
             BorderWidth: BorderWidth,
-            BorderRadius: PanelRadius,
+            BorderRadius: PanelRadius ?? Default.PanelRadius!!,
             BoxShadows: []BoxShadow{Highlight},
         }
     }
@@ -875,7 +876,7 @@ public data struct Theme {
             BackgroundColor: PanelColor,
             BorderColor: Glass ? HairlineColor: BorderColor,
             BorderWidth: BorderWidth,
-            BorderRadius: PanelRadius,
+            BorderRadius: PanelRadius ?? Default.PanelRadius!!,
             BoxShadows: Glass ? []BoxShadow{ElevationSm, Highlight}:
                 GlassColor == nil ? []BoxShadow{}: []BoxShadow{ElevationMd},
         }
@@ -912,7 +913,7 @@ public data struct Theme {
             FontSize: FontSize,
             FontWeight: LabelFontWeight,
             BorderWidth: BorderWidth,
-            BorderRadius: ControlRadius,
+            BorderRadius: ControlRadius ?? Default.ControlRadius!!,
             TransitionMs: TransitionMs,
             ActiveTransform: PanelTransform{},
         }
@@ -978,7 +979,7 @@ public data struct Theme {
             LabelFontWeight: LabelFontWeight,
             LabelTextTransform: TextTransform.None,
             BorderWidth: BorderWidth,
-            BorderRadius: ControlRadius,
+            BorderRadius: ControlRadius ?? Default.ControlRadius!!,
             TransitionMs: TransitionMs,
         }
     }
@@ -998,7 +999,7 @@ public data struct Theme {
             CheckedBorderColor: AccentColor,
             MarkColor: OnAccentColor,
             BorderWidth: BorderWidth,
-            BorderRadius: ControlRadius / 2.0,
+            BorderRadius: (ControlRadius ?? Default.ControlRadius!!) / 2.0,
             TransitionMs: TransitionMs,
         }
     }
@@ -1033,7 +1034,7 @@ public data struct Theme {
             FontSize: FontSize,
             FontWeight: FontWeight,
             BorderWidth: BorderWidth,
-            BorderRadius: ControlRadius,
+            BorderRadius: ControlRadius ?? Default.ControlRadius!!,
             TransitionMs: TransitionMs,
         }
     }
@@ -1217,7 +1218,7 @@ internal sealed class ThemeAttachment {
                 Material: Native ? WindowsBackdropMaterial.Mica: WindowsBackdropMaterial.MicaAlt
             }
             window.MacOSBackdrop = MacOSBackdropOptions{Material: MacOSBackdropMaterial.Sidebar}
-            window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius}
+            window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius!!}
             window.BackdropFallbackColor = glassFallback
             window.Backdrop = WindowBackdrop.Blur
         } else if let backdrop = appBackdrop {

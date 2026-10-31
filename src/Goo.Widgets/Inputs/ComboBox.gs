@@ -226,7 +226,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             BackgroundColor: theme.FieldColor,
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             Focus: theme.FocusStyle,
         }
         if let create = current.CreateTrigger {
@@ -431,7 +431,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Margin: Edges{Right: 4.0, Left: 4.0},
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BackgroundColor: row.Active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Opacity: item.Disabled ? .45: 1.0,
             OutlineWidth: row.KeyboardActive ? theme.FocusRingWidth: 0.0,
@@ -497,7 +497,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             BackgroundColor: theme.OverlayColor,
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
         }
         return if let create = current.CreatePopup {
             create(current, prepared)

@@ -222,7 +222,7 @@ public open class TabBar : Cell[TabBarInput] {
                     Key: "close-" + id,
                     Width: 20,
                     Height: 20,
-                    BorderRadius: theme.RadiusSm,
+                    BorderRadius: theme.RadiusSm!!,
                     AlignItems: AlignItems.Center,
                     JustifyContent: JustifyContent.Center,
                     Color: theme.ChromeTextColor,

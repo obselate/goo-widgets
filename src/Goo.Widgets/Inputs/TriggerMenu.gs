@@ -133,7 +133,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             PaddingEnd: theme.ControlPadding,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BackgroundColor: index == active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,

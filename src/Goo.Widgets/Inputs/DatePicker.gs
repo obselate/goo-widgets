@@ -179,7 +179,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             BackgroundColor: theme.FieldColor,
             BorderColor: invalid ? theme.DangerColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             entry,
             button
         }
@@ -364,7 +364,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             BackgroundColor: theme.PanelColor,
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
         }
         return if let create = current.CreatePopup {
             create(current, prepared)

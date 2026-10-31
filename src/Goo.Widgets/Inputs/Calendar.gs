@@ -255,7 +255,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Padding: theme.ControlPadding,
             Gap: theme.ControlGap,
             BackgroundColor: theme.PanelColor,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
             Color: theme.TextColor,
         }
         if let create = current.CreateRoot {
@@ -323,7 +323,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Height: theme.ControlHeight,
             Padding: 0.0,
             BackgroundColor: theme.PanelColor,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             Focus: theme.FocusStyle,
         }
         if let create = current.CreateNavigation {
@@ -356,7 +356,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         let date = day.Date
         var button = Button{
             Padding: 0.0,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BackgroundColor: day.Selected ? theme.AccentColor: Color.Transparent,
             Hover: Style{BackgroundColor: theme.HoverColor},
             BorderWidth: day.Today ? theme.BorderWidth: 0.0,

@@ -34,7 +34,7 @@ internal class GlassShell : Cell {
                         EnableDoubleClick: true,
                         Height: 36.0,
                         LeadingContent: Container{
-                            PaddingStart: railWidth + theme.PanelRadius * 2.0,
+                            PaddingStart: railWidth + theme.PanelRadius!! * 2.0,
                             Cell.Mount[TabBarInput, TabBar](
                                 "tabs",
                                 TabBarInput{
@@ -221,7 +221,7 @@ internal class GlassShellPage : GalleryPage {
             MaxWidth: 900,
             Height: 520,
             BackgroundColor: Theme.Read().CanvasColor,
-            BorderRadius: Theme.Read().PanelRadius,
+            BorderRadius: Theme.Read().PanelRadius!!,
             Cell.Mount[GlassShell]("glass-shell"),
         },
     }.Build()

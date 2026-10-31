@@ -203,7 +203,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             FlexShrink: 0,
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.BorderColor,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             Overflow: Overflow.Hidden,
             input.CreateHeader?.Invoke(input, header) ?? header,
             body,

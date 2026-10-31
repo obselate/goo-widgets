@@ -110,7 +110,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 Color: theme.TextColor,
                 Focus: theme.FocusStyle,
                 BorderWidth: input.Card ? theme.BorderWidth: 0,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
                 Padding: input.Card ? theme.ControlPadding: 0,
                 BackgroundColor: input.Card ? selected ? theme.ActiveColor: theme.PanelColor: Color.Transparent,

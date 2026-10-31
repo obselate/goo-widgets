@@ -155,7 +155,7 @@ public data struct PropertyGrid {
                 Width: 24,
                 Height: 24,
                 FlexShrink: 0,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
                 Disabled: item.Disabled,

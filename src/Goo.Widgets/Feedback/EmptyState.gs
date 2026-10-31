@@ -94,7 +94,7 @@ public data struct EmptyState {
             Gap = Gap ?? theme.ControlGap,
             TextGap = TextGap ?? theme.ControlGap,
             BorderWidth = BorderWidth ?? 0.0,
-            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,

@@ -348,6 +348,10 @@ func Main() {
         FeedbackIdentityInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_RADIUS") == "1" {
+        ThemeRadiusCapture()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_THEME_CATALOG") == "1" {
         ThemeCatalogContracts()
         return
@@ -458,6 +462,7 @@ func Main() {
         return
     }
     ThemeFocusContracts()
+    ThemeRadiusContracts()
     RunContracts(
         () -> {
             CalendarContracts()

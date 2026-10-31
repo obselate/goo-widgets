@@ -104,7 +104,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         } else if info.Kind == MarkdownBlockKind.Code {
             content = Container{
                 Padding: theme.ControlPadding,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 MinWidth: 0.0,
                 FlexShrink: 0.0,
                 BackgroundColor: current.CodeBackground!!,

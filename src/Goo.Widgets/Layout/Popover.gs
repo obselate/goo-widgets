@@ -199,7 +199,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 BackgroundColor: current.BackgroundColor!!,
                 BorderColor: current.BorderColor!!,
                 BorderWidth: theme.BorderWidth,
-                BorderRadius: theme.PanelRadius,
+                BorderRadius: theme.PanelRadius!!,
                 ScrollbarY: current.ScrollbarY,
                 ScrollbarVisibilityY: current.ScrollbarVisibilityY!!,
             }

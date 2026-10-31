@@ -55,7 +55,7 @@ public data struct MasterDetail {
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             BorderColor = BorderColor ?? theme.BorderColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             BackHeight = BackHeight ?? theme.ControlHeight,
             CreateBack = nil,
             CreateRoot = nil,

@@ -59,7 +59,7 @@ public data struct GraphNodeCard {
             Height
         }
         let padding = Padding ?? theme.ControlPadding
-        let borderRadius = BorderRadius ?? theme.PanelRadius
+        let borderRadius = BorderRadius ?? theme.PanelRadius!!
         let borderWidth = BorderWidth ?? theme.BorderWidth
         let center = Center ?? Node.Position
         if String.IsNullOrWhiteSpace(Node.Id) {

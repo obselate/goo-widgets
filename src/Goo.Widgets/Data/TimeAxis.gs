@@ -269,7 +269,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             var blob = Button{
                 Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                 BackgroundColor: selected ? theme.AccentColor: theme.PressedColor,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 BorderWidth: selected ? theme.BorderWidth: 0.0,
                 BorderColor: theme.AccentColor,
                 Color: selected ? theme.OnAccentColor: theme.TextColor,
@@ -314,7 +314,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                 BackgroundColor: theme.PanelColor,
                 Color: theme.AccentColor,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 Focus: theme.FocusStyle,
                 Overflow: Overflow.Hidden,
                 Text{
@@ -384,7 +384,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             Height: input.Height ?? naturalHeight,
             MinWidth: 0,
             BackgroundColor: theme.CanvasColor,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
             Focus: theme.FocusStyle,
             ScrollbarX: theme.Scrollbar,
         }

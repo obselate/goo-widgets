@@ -248,7 +248,7 @@ public data struct StatusIndicator {
             AlignItems: AlignItems.Center,
             Gap: theme.Spacing,
             Padding: Variant == StatusVariant.Pill ? theme.Spacing: 0.0,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BackgroundColor: Variant == StatusVariant.Pill ? theme.ToneFill(tone): Color.Transparent,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Status,
