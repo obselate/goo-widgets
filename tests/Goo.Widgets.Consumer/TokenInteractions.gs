@@ -97,7 +97,6 @@ func TokenInteractions() {
         AccessibilityAdapter: semantics,
         Title: "Token and multiple selection contracts",
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 12)

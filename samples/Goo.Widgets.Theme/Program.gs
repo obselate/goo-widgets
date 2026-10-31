@@ -15,13 +15,11 @@ class ThemeSample : Cell {
     private var title string = "goo studio"
     private var opacity float64 = 75.0
     private var status string = "Changes saved"
-    private var platformInput PlatformInput?
     private var window Window?
 
     internal func AttachWindow(window Window) {
         this.window = window
         Theme.Attach(window)
-        platformInput = window.PlatformInput
         Rebuild()
     }
 
@@ -54,7 +52,6 @@ class ThemeSample : Cell {
             ).Build()
             return Container{
                 BasedOn: theme.CanvasStyle,
-                KeyBindings: WidgetKeyBindings.Editing(platformInput),
                 Width: Percent(100.0),
                 Height: Percent(100.0),
                 OverflowY: Overflow.Scroll,

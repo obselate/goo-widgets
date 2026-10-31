@@ -70,7 +70,6 @@ func OverlayContracts() {
 }
 
 internal class OverlayHost : Cell {
-    private var platformInput PlatformInput?
     internal let Before ElementHandle = ElementHandle()
     private var window Window?
     internal let TooltipTarget ElementHandle = ElementHandle()
@@ -215,7 +214,6 @@ internal class OverlayHost : Cell {
     }
 
     internal func AttachWindow(window Window) {
-        platformInput = window.PlatformInput
         this.window = window
     }
 
@@ -320,7 +318,6 @@ internal class OverlayHost : Cell {
                     "outer",
                     ModalDialog{
                         Open: DialogOpen,
-                        KeyBindings: WidgetKeyBindings.Editing(platformInput),
                         Header: Text{Content: "Review change", FontSize: 21.0, FontWeight: 700},
                         Content: content,
                         AccessibilityName: "Review change",
@@ -339,7 +336,6 @@ internal class OverlayHost : Cell {
                     "top",
                     ModalDialog{
                         Open: TopOpen,
-                        KeyBindings: WidgetKeyBindings.Editing(platformInput),
                         Header: Text{Content: "Nested confirmation", FontSize: 21.0, FontWeight: 700},
                         Width: 370.0,
                         Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
@@ -428,6 +424,43 @@ internal class OverlayHost : Cell {
 func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(adapter.Tree?.Root, name)?.Focused ??
 false
 
+func ModalClipboardInteractions() {
+    let host = OverlayHost{DialogOpen: true}
+    let semantics = SearchListSemantics{}
+    let window = Window{
+        Title: "Modal clipboard verification",
+        Width: 860,
+        Height: 560,
+        Root: ApplicationRoot(host),
+        AccessibilityAdapter: semantics,
+    }
+    host.AttachWindow(window)
+    window.Open()
+    try {
+        PumpFrames(window, 16)
+        Require(OverlayFocus(semantics, "Dialog editor"), "Managed dialog did not focus its editor")
+        let id = OnlyNativeWindow()
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorType(window, id, "keyboard")
+        SendKey(id, SDLScancode.Backspace)
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(window.GetClipboardText() == "keyboar", "Modal editor copy or Backspace failed")
+        SendKey(id, SDLScancode.End)
+        SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(FindSemantics(semantics.Tree?.Root, "Dialog editor")!!.Value == "keyboarkeyboar", "Modal editor paste failed")
+        SendKey(id, SDLScancode.Return)
+        SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
+        PumpFrames(window, 4)
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+    Console.WriteLine("PASS: managed modal typing, Backspace, select all, copy, paste, Enter and Shift+Tab without application editing bindings")
+}
+
 func OverlayInteractions() {
     RunContracts(OverlayContracts)
     let host = OverlayHost()
@@ -440,7 +473,6 @@ func OverlayInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     host.AttachWindow(window)
     window.Open()
     try {

@@ -155,7 +155,6 @@ func ListViewInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 15)
@@ -313,7 +312,6 @@ func ListRowInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 12)

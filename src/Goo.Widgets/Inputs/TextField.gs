@@ -98,6 +98,7 @@ public data struct TextField {
     var Transform PanelTransform?
     /// Creates the entry from resolved props.
     var CreateEntry Func[TextField, TextEntry]?
+    internal var EntryKeyBindings([]KeyBinding)?
     /// Creates the root from resolved props and selected primitives.
     var CreateRoot Func[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
@@ -225,6 +226,17 @@ public data struct TextField {
             }
             if resolved.FontFamily != nil {
                 entry.FontFamily = resolved.FontFamily!!
+            }
+        }
+        if let bindings = EntryKeyBindings {
+            let existing = entry!!.KeyBindings
+            if existing == nil || existing.Length == 0 {
+                entry!!.KeyBindings = bindings
+            } else {
+                let combined = [existing.Length + bindings.Length]KeyBinding
+                Array.Copy(existing, combined, existing.Length)
+                Array.Copy(bindings, 0, combined, existing.Length, bindings.Length)
+                entry!!.KeyBindings = combined
             }
         }
 

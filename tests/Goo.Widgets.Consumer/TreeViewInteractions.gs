@@ -261,7 +261,6 @@ func TreeViewInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 20)

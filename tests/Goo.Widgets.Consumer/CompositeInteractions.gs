@@ -280,7 +280,6 @@ func RailInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 20)
@@ -351,7 +350,6 @@ func CompositeInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 20)

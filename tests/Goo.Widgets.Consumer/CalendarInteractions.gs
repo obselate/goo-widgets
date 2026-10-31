@@ -314,7 +314,6 @@ func CalendarInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    BindApplicationInput(root, window)
     window.Open()
     try {
         PumpFrames(window, 15)

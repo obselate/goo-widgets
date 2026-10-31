@@ -38,52 +38,16 @@ the parent's `Rebuild()`. See the [complete example](../samples/Goo.Widgets.Quic
 | `Goo.Widgets.Charts` | DonutChart, StackedBar, ChartSeries, ChartSegment |
 | `Goo.Widgets.Icons` | MaterialIcons |
 
-## Application input bindings
+## Keyboard input
 
+Goo 0.24.2 provides text editing, clipboard shortcuts, undo and redo, Enter and
+Escape handling, and Tab focus traversal. No application editing bindings are needed.
 Widget buttons and composite controls supply activation and navigation bindings.
-Attach the shared editing policy to the application root after creating its `Window`:
-
-```gsharp
-import Goo.Widgets
-
-class App : Cell {
-    private var input PlatformInput?
-
-    internal func AttachWindow(window Window) {
-        input = window.PlatformInput
-    }
-
-    override func Build() Blob -> Container{
-        KeyBindings: WidgetKeyBindings.Editing(input),
-        // application content
-    }
-}
-
-let root = App{}
-let window = Window{Root: root}
-Theme.Attach(window)
-root.AttachWindow(window)
-window.Run()
-```
-
-The policy supplies focused text commands, Tab and Shift+Tab focus traversal,
-clipboard shortcuts, Escape cancellation, and repeatable movement and deletion.
-Applications can replace it with their own `KeyBinding` set.
+Applications can add their own `KeyBinding` sets.
+`ModalDialog.KeyBindings` remains available for custom shortcuts inside a dialog.
 Use `WidgetKeyBindings.BindActivation(blob)` for custom interactive primitives.
 It preserves existing bindings, uses `ElementHandle` press/activation for `Button`,
 and adds release activation for other clickable primitives.
-
-Key bindings stop at Goo focus-scope boundaries. Supply the same editing policy
-through `ModalDialog.KeyBindings` so text commands and focus traversal remain
-available inside managed dialogs:
-
-```gsharp
-ModalDialog{
-    Open: dialogOpen,
-    KeyBindings: WidgetKeyBindings.Editing(input),
-    Content: TextEntry{Value: value},
-}
-```
 
 ## Color picker integration
 
@@ -447,8 +411,7 @@ No global theme registration or initialization is required.
 - Return fresh mutable content from factories when building multiple instances.
 - Focus styling uses Goo's keyboard-visible focus modality. Widget buttons and
   composite controls install their own bindings.
-  Apply `WidgetKeyBindings.Editing(window.PlatformInput)`
-  to the application root for editing, focus traversal, clipboard and key repeat.
+  Goo provides text editing, clipboard shortcuts, key repeat and focus traversal.
 - SearchList filters supplied in-memory items and needs unique stable IDs and a
   logical viewport width and height. The host owns remote search and storage.
 - Disclosure owns no expanded state. Build it with `Expanded` and `OnExpandedChange`.

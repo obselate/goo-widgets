@@ -4,6 +4,7 @@
 
 - Theme.FocusRingWidth and FocusRingOffset control widget focus outlines. Focus outlines use Theme.FocusColor unless the widget sets a focus color.
 - Material icon subsets include every icon used by widget controls.
+- BREAKING: Remove `WidgetKeyBindings.Editing` from applications. Goo 0.24.2 provides text editing keys and Tab focus traversal.
 
 ## 0.16.3 - 2026-10-29
 
@@ -179,7 +180,7 @@
 - Limit DataGrid's active-row outline to keyboard navigation and the row's cells.
 - Add `DataGridInput.FocusColor` for the inset focus outline.
 - Center ComboBox's default 16-pixel expansion icon and expose `ComboBoxInput.CreateArrow`.
-- Bind Undo to Ctrl/Cmd+Z and Redo to Ctrl/Cmd+Shift+Z and Ctrl+Y in `WidgetKeyBindings.Editing`.
+- Bind Undo to Ctrl/Cmd+Z and Redo to Ctrl/Cmd+Shift+Z and Ctrl+Y in the shared editing policy.
 - Require released Goo and Goo.Svg 0.7.34 for single-line entry undo and redo.
 
 ## 0.2.17 - 2026-10-13
@@ -246,7 +247,7 @@
 - Use Goo's `Percent` and grouped `Edges` layout APIs throughout widgets,
   Markdown, examples, and packaged consumer checks.
 - Add handle-based Enter activation and held Space press/release bindings to interactive widget buttons.
-- Add `WidgetKeyBindings.Editing` for application-owned text editing, focus
+- Add a shared editing policy for application-owned text editing, focus
   traversal, clipboard, cancellation, and key-repeat policy.
 - Add `ModalDialog.KeyBindings` for application policy inside modal focus scopes
   and preserve multiline Enter behavior in the shared editing policy.

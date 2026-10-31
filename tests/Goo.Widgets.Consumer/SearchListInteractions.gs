@@ -4,6 +4,7 @@ import Goo
 import Goo.Widgets
 import Goo.Widgets.Data
 import Goo.Widgets.Inputs
+import Hexa.NET.SDL3
 import System.Collections.Generic
 
 internal class SearchListSemantics : AccessibilityAdapter {
@@ -217,6 +218,10 @@ func SearchListInteractions() {
         PumpFrames(window, 4)
         Require(FindSemantics(semantics.Tree?.Root, "Search items")!!.Value == "alpha", "Focused search ignored the host query reset.")
         Require(FindSemantics(semantics.Tree?.Root, "Alpha") != nil && FindSemantics(semantics.Tree?.Root, "Beta") == nil, "Search rows ignored the host query reset.")
+        Require(host.Handles["alpha"].Focus(), "Search result did not focus.")
+        SendKey(OnlyNativeWindow(), SDLScancode.Return)
+        PumpFrames(window, 4)
+        Require(host.Selected == "alpha" && host.AlternateActivations == 2, "Enter did not activate the search result.")
         Console.WriteLine(
             "PASS: SearchList retained selection, stable identity, unchanged row reuse, updated colors/height/callback/customization, disabled input."
         )
