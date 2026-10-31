@@ -239,7 +239,7 @@ public data struct Chip {
             OnClick: remove,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("close", 14, color),
+            ControlIcons.Create(ControlIcon.Close, 14, color),
         }
         WidgetKeyBindings.BindActivation(action)
         button.Height = input.Height!! - 2.0 * input.BorderWidth!!

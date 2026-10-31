@@ -252,7 +252,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         button.Children.Add(
             Container{Key: "value", FlexGrow: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
-        var arrow Blob = MaterialIcons.Create("expand_more", 16, theme.MutedTextColor)
+        var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, theme.MutedTextColor)
         if let create = current.CreateArrow {
             arrow = create(current, arrow)
         }
@@ -474,7 +474,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         result.Children.Clear()
         if row.Input.Multiple && id != createId {
             result.Children.Add(
-                MaterialIcons.Create(row.Selected ? "check_box": "check_box_outline_blank", 18, theme.AccentColor)
+                ControlIcons.Create(row.Selected ? ControlIcon.CheckBox: ControlIcon.CheckBoxOutlineBlank, 18, theme.AccentColor)
             )
         }
         result.Children.Add(

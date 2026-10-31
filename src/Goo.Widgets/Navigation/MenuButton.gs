@@ -31,8 +31,8 @@ public open class MenuButton : Cell[MenuButtonInput] {
             (
                 input.Button with{
                     OnClick = () -> Change(!current.Open, false),
-                    Trailing = input.Button.Trailing ?? MaterialIcons.Create(
-                        "expand_more",
+                    Trailing = input.Button.Trailing ?? ControlIcons.Create(
+                        ControlIcon.ExpandMore,
                         16,
                         input.Button.Disabled ? theme.FaintTextColor: theme.MutedTextColor
                     ),

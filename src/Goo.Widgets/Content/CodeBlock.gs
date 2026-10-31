@@ -129,7 +129,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
             Gap: theme.ControlGap,
             Text{Content: input.Language ?? theme.Text("Code"), Color: theme.MutedTextColor, FlexGrow: 1},
             IconButton{
-                Icon: MaterialIcons.Create("content_copy", 16, theme.MutedTextColor),
+                Icon: ControlIcons.Create(ControlIcon.ContentCopy, 16, theme.MutedTextColor),
                 AccessibilityName: theme.Text("Copy code"),
                 Disabled: input.Window == nil && input.OnCopy == nil,
                 OnClick: () -> {
@@ -225,7 +225,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Disabled: input.OnExpandedChange == nil,
                 OnClick: () -> input.OnExpandedChange?.Invoke(!input.Expanded),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: label, Expanded: input.Expanded},
-                MaterialIcons.Create(input.Expanded ? "expand_less": "expand_more", 16, theme.MutedTextColor),
+                ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16, theme.MutedTextColor),
                 Text{Content: label, Color: theme.MutedTextColor},
             }
             WidgetKeyBindings.BindActivation(fold)

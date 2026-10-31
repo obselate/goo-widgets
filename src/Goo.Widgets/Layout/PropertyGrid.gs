@@ -54,7 +54,7 @@ public data struct PropertyGrid {
                     TextField{
                         Placeholder: theme.Text("Search"),
                         AccessibilityName: theme.Text("Search properties"),
-                        Leading: MaterialIcons.Create("search", 16, theme.MutedTextColor),
+                        Leading: ControlIcons.Create(ControlIcon.Search, 16, theme.MutedTextColor),
                         Value: query,
                         Controlled: true,
                         OnChange: OnQueryChange,
@@ -94,7 +94,7 @@ public data struct PropertyGrid {
                         Gap: theme.Spacing,
                         Color: theme.TextColor,
                         Focus: theme.FocusStyle,
-                        MaterialIcons.Create(collapsed ? (theme.RightToLeft ? "chevron_left": "chevron_right"): "expand_more", 16, theme.MutedTextColor),
+                        ControlIcons.Create(collapsed ? (theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight): ControlIcon.ExpandMore, 16, theme.MutedTextColor),
                         Text{Content: name, FontWeight: theme.HeadingFontWeight}
                     }
                     WidgetKeyBindings.BindActivation(heading)
@@ -163,7 +163,7 @@ public data struct PropertyGrid {
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Reset {0}", item.Label)},
                 Hover: Style{BackgroundColor: theme.HoverColor},
                 Focus: theme.FocusStyle,
-                MaterialIcons.Create("restart_alt", 16, theme.MutedTextColor)
+                ControlIcons.Create(ControlIcon.RestartAlt, 16, theme.MutedTextColor)
             }
             WidgetKeyBindings.BindActivation(button)
             button

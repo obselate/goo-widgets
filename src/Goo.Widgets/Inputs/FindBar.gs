@@ -92,8 +92,8 @@ public data struct FindBar {
                     Container{
                         FlexDirection: FlexDirection.Row,
                         MinWidth: size * 5.0,
-                        Icon("Replace", "find_replace", size, !ready, OnReplace),
-                        Icon("Replace all", "done_all", size, !ready, OnReplaceAll),
+                        Icon("Replace", ControlIcon.FindReplace, size, !ready, OnReplace),
+                        Icon("Replace all", ControlIcon.DoneAll, size, !ready, OnReplaceAll),
                     }
                 )
             )
@@ -110,7 +110,7 @@ public data struct FindBar {
         actions,
     }
 
-    internal func Icon(name string, icon string, size float64, disabled bool, action Action?, on bool? = nil) Blob ->
+    internal func Icon(name string, icon ControlIcon, size float64, disabled bool, action Action?, on bool? = nil) Blob ->
     Cell.Mount[FindBarIconInput, FindBarIcon](
         name,
         FindBarIconInput{Name: name, Icon: icon, Size: size, Disabled: disabled, Action: action, On: on,}
@@ -169,14 +169,14 @@ internal class FindBarState : Cell[FindBar] {
             QueryField = Cell.Mount[FindBar, FindBarField]("query", input)
         }
         if NextButton == nil || previousReady != Ready() || size != nextSize {
-            PreviousButton = input.Icon("Previous", "arrow_upward", nextSize, !Ready(), Previous)
-            NextButton = input.Icon("Next", "arrow_downward", nextSize, !Ready(), Next)
+            PreviousButton = input.Icon("Previous", ControlIcon.ArrowUpward, nextSize, !Ready(), Previous)
+            NextButton = input.Icon("Next", ControlIcon.ArrowDownward, nextSize, !Ready(), Next)
         }
         if CloseButton == nil ||
             previous.Disabled != input.Disabled ||
             previous.OnClose != input.OnClose ||
             size != nextSize {
-            CloseButton = input.Icon("Close", "close", nextSize, input.Disabled, input.OnClose)
+            CloseButton = input.Icon("Close", ControlIcon.Close, nextSize, input.Disabled, input.OnClose)
         }
         size = nextSize
         return input.BuildContent(this)
@@ -213,11 +213,11 @@ internal class FindBarField : Cell[FindBar] {
             Trailing: Container{
                 FlexDirection: FlexDirection.Row,
                 Gap: 2,
-                input.Icon("Match case", "match_case", size, input.Disabled, matchCase, input.Options.MatchCase),
-                input.Icon("Whole word", "match_word", size, input.Disabled, wholeWord, input.Options.WholeWord),
+                input.Icon("Match case", ControlIcon.MatchCase, size, input.Disabled, matchCase, input.Options.MatchCase),
+                input.Icon("Whole word", ControlIcon.MatchWord, size, input.Disabled, wholeWord, input.Options.WholeWord),
                 input.Icon(
                     "Regular expression",
-                    "regular_expression",
+                    ControlIcon.RegularExpression,
                     size,
                     input.Disabled,
                     regex,
@@ -230,7 +230,7 @@ internal class FindBarField : Cell[FindBar] {
 
 internal data struct FindBarIconInput {
     internal var Name string
-    internal var Icon string
+    internal var Icon ControlIcon
     internal var Size float64
     internal var Disabled bool
     internal var Action Action?
@@ -266,7 +266,7 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
                 on == true ? AccessibilityChecked.True: AccessibilityChecked.False,
             },
             OnClick: action,
-            MaterialIcons.Create(icon, 16, on == true ? theme.OnAccentColor: theme.MutedTextColor),
+            ControlIcons.Create(icon, 16, on == true ? theme.OnAccentColor: theme.MutedTextColor),
         }
         WidgetKeyBindings.BindActivation(button)
         return button

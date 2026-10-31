@@ -68,6 +68,31 @@ func Symbols(args[]string) {
     } else {
         File.WriteAllText(target, content)
     }
+    let controls = File.ReadAllText(Path.Combine(root, "src/Goo.Widgets/Icons/ControlIcons.gs"))
+    let mappings = Regex.Matches(controls, "case ControlIcon\\.(\\w+): \"(\\w+)\"")
+    let members = Regex.Match(controls, "internal enum ControlIcon \\{([^}]+)\\}").Groups[1].Value
+        .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+    Require(
+        mappings.Select(match -> match.Groups[1].Value).OrderBy(name -> name, StringComparer.Ordinal)
+            .SequenceEqual(members.OrderBy(name -> name, StringComparer.Ordinal)),
+        "Every control icon must have exactly one resource name."
+    )
+    for path in Directory.GetFiles(Path.Combine(root, "src"), "*.gs", SearchOption.AllDirectories) {
+        Require(
+            Path.GetFileName(path) == "ControlIcons.gs" || !Regex.IsMatch(File.ReadAllText(path), "\\bMaterialIcons\\s*\\.\\s*Create\\s*\\("),
+            "Widget controls must use ControlIcons.Create: " + path
+        )
+    }
+    let targets = Path.Combine(root, "buildTransitive/Goo.Widgets.targets")
+    let previous = File.ReadAllText(targets).Replace("\r\n", "\n")
+    Require(Regex.Matches(previous, "<_GooMaterialIcon Include=\"[a-z_;]+\" />").Count == 1, "Control icon resource list is missing.")
+    let selected = String.Join(";", mappings.Select(match -> match.Groups[2].Value).OrderBy(name -> name, StringComparer.Ordinal))
+    let updated = Regex.Replace(previous, "<_GooMaterialIcon Include=\"[a-z_;]+\" />", "<_GooMaterialIcon Include=\"" + selected + "\" />")
+    if args.Length == 1 {
+        Require(previous == updated, "Control icon resources are stale. Run dotnet run --project tools/Goo.Widgets.Checks -- symbols.")
+    } else {
+        File.WriteAllText(targets, updated)
+    }
 }
 
 func IsWidget(path string) bool {

@@ -85,7 +85,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                 TextField{
                     Placeholder: theme.Text("Search"),
                     AccessibilityName: theme.Text("Search settings"),
-                    Leading: MaterialIcons.Create("search", 16, theme.MutedTextColor),
+                    Leading: ControlIcons.Create(ControlIcon.Search, 16, theme.MutedTextColor),
                     Value: value.Query,
                     Controlled: true,
                     OnChange: value.OnQueryChange,

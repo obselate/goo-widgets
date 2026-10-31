@@ -288,7 +288,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         } else if let createActionContent = input.CreateActionContent {
             createActionContent(input, slot)
         } else {
-            MaterialIcons.Create(
+            ControlIcons.Create(
                 ActionIcon(slot),
                 if primary {
                     24.0
@@ -384,12 +384,12 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             return (seconds / 60).ToString() + ":" + (seconds % 60).ToString("D2")
         }
 
-        private func ActionIcon(slot MediaTransportAction) string -> switch slot {
-            case MediaTransportAction.Previous: "skip_previous"
-            case MediaTransportAction.Play: "play_arrow"
-            case MediaTransportAction.Pause: "pause"
-            case MediaTransportAction.Next: "skip_next"
-            default: "play_arrow"
+        private func ActionIcon(slot MediaTransportAction) ControlIcon -> switch slot {
+            case MediaTransportAction.Previous: ControlIcon.SkipPrevious
+            case MediaTransportAction.Play: ControlIcon.PlayArrow
+            case MediaTransportAction.Pause: ControlIcon.Pause
+            case MediaTransportAction.Next: ControlIcon.SkipNext
+            default: ControlIcon.PlayArrow
         }
 
         private func ActionName(slot MediaTransportAction) string -> switch slot {

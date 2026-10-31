@@ -354,13 +354,13 @@ public data struct TextField {
                 )
             }
             if resolved.Clearable && !resolved.Disabled && !readOnly && value.Length > 0 && state != nil {
-                content.Children.Add(state.ActionButton(theme.Text("Clear {0}", resolved.AccessibilityName!!), "close", state.Clear))
+                content.Children.Add(state.ActionButton(theme.Text("Clear {0}", resolved.AccessibilityName!!), ControlIcon.Close, state.Clear))
             }
             if (resolved.Password || state?.Revealed == true) && resolved.RevealButton && state != nil {
                 content.Children.Add(
                     state.ActionButton(
                         theme.Text(state.Revealed ? "Hide password": "Show password"),
-                        state.Revealed ? "visibility_off": "visibility",
+                        state.Revealed ? ControlIcon.VisibilityOff: ControlIcon.Visibility,
                         state.Reveal
                     )
                 )
@@ -466,7 +466,7 @@ internal class TextFieldState : Cell[TextField] {
         Rebuild()
     }
 
-    internal func ActionButton(name string, icon string, action Action) Blob {
+    internal func ActionButton(name string, icon ControlIcon, action Action) Blob {
         let theme = Theme.Read()
         let button = Button{
             Width: theme.ControlHeight,
@@ -480,7 +480,7 @@ internal class TextFieldState : Cell[TextField] {
             Focus: theme.FocusStyle,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create(icon, 16, theme.MutedTextColor),
+            ControlIcons.Create(icon, 16, theme.MutedTextColor),
         }
         WidgetKeyBindings.BindActivation(button)
         return button
