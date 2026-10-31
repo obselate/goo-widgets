@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Theme.FocusRingWidth and FocusRingOffset control widget focus outlines. Focus outlines use Theme.FocusColor unless the widget sets a focus color.
+- Material icon subsets include every icon used by widget controls.
 
 ## 0.16.3 - 2026-10-29
 

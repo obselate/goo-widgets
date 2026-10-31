@@ -157,12 +157,12 @@ public data struct Banner {
             root.Children.Add(icon)
         } else if Tone != Tone.Neutral {
             let name = switch Tone {
-                case Tone.Info: "info"
-                case Tone.Success: "check_circle"
-                case Tone.Warning: "warning"
-                default: "error"
+                case Tone.Info: ControlIcon.Info
+                case Tone.Success: ControlIcon.CheckCircle
+                case Tone.Warning: ControlIcon.Warning
+                default: ControlIcon.Error
             }
-            root.Children.Add(MaterialIcons.Create(name, resolved.FontSize + 4.0, theme.ToneColor(Tone)))
+            root.Children.Add(ControlIcons.Create(name, resolved.FontSize + 4.0, theme.ToneColor(Tone)))
         }
         let body = Container{FlexGrow: 1.0, MinWidth: 0}
         if let title = Title {
@@ -188,7 +188,7 @@ public data struct Banner {
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Button, Name: DismissAccessibilityName ?? theme.Text("Dismiss")
                 },
-                MaterialIcons.Create("close", resolved.FontSize + 4.0, theme.TextColor)
+                ControlIcons.Create(ControlIcon.Close, resolved.FontSize + 4.0, theme.TextColor)
             }
             WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)

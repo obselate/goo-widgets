@@ -84,13 +84,13 @@ public data struct Disclosure {
         let indicator = if let create = createIndicator {
             create(resolved)
         } else {
-            MaterialIcons.Create(
+            ControlIcons.Create(
                 if resolved.Expanded {
-                    "expand_more"
+                    ControlIcon.ExpandMore
                 } else if theme.RightToLeft {
-                    "chevron_left"
+                    ControlIcon.ChevronLeft
                 } else {
-                    "chevron_right"
+                    ControlIcon.ChevronRight
                 },
                 size: 20.0,
                 color: resolved.TextColor!!

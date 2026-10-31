@@ -3,7 +3,7 @@
     <Error Condition="'$(OutputType)' != 'Exe' and '$(OutputType)' != 'WinExe'" Text="GooMaterialIcon items must be declared in an executable project." />
     <ItemGroup>
       <_GooMaterialIcon Include="@(GooMaterialIcon)" />
-      <_GooMaterialIcon Include="arrow_downward;arrow_upward;calendar_month;check;chevron_left;chevron_right;close;content_copy;crop_square;done_all;expand_less;expand_more;filter_none;find_replace;match_case;match_word;pause;play_arrow;regular_expression;remove;skip_next;skip_previous" />
+      <_GooMaterialIcon Include="arrow_downward;arrow_upward;attach_file;calendar_month;check;check_box;check_box_outline_blank;check_circle;chevron_left;chevron_right;close;content_copy;crop_square;done_all;download;error;expand_less;expand_more;filter_none;find_replace;info;match_case;match_word;pause;play_arrow;regular_expression;remove;restart_alt;search;skip_next;skip_previous;visibility;visibility_off;warning" />
     </ItemGroup>
     <RemoveDuplicates Inputs="@(_GooMaterialIcon)">
       <Output TaskParameter="Filtered" ItemName="_GooMaterialIconUnique" />

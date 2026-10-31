@@ -158,8 +158,8 @@ public class NumberInput : Cell[NumberInputInput] {
                 Container{
                     Height: Percent(100),
                     FlexDirection: FlexDirection.Column,
-                    SpinButton(theme.Text("Increase"), "expand_less", 1),
-                    SpinButton(theme.Text("Decrease"), "expand_more", -1)
+                    SpinButton(theme.Text("Increase"), ControlIcon.ExpandLess, 1),
+                    SpinButton(theme.Text("Decrease"), ControlIcon.ExpandMore, -1)
                 }
             )
         }
@@ -293,7 +293,7 @@ public class NumberInput : Cell[NumberInputInput] {
         event.StopPropagation()
     }
 
-    private func SpinButton(name string, icon string, direction float64) Blob {
+    private func SpinButton(name string, icon ControlIcon, direction float64) Blob {
         let theme = Theme.Read()
         let button = Button{
             Width: 26,
@@ -308,7 +308,7 @@ public class NumberInput : Cell[NumberInputInput] {
                 Step(direction)
             },
             Focus: theme.FocusStyle,
-            MaterialIcons.Create(icon, 14, theme.MutedTextColor)
+            ControlIcons.Create(icon, 14, theme.MutedTextColor)
         }
         WidgetKeyBindings.BindActivation(button)
         return button

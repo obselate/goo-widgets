@@ -170,7 +170,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Relationships: AccessibilityRelationships{Controls: []ElementHandle{calendarHandle}}
         }
         button.Children.Clear()
-        button.Children.Add(MaterialIcons.Create("calendar_month", 18.0, theme.AccentColor))
+        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
         let field = Container{
             Key: "field",
             Handle: fieldHandle,

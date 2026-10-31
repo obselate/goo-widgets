@@ -504,7 +504,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
                 BackgroundColor: Color.Transparent,
                 Padding: theme.Spacing / 2.0,
-                MaterialIcons.Create(row.Expanded ? "expand_more": theme.RightToLeft ? "chevron_left": "chevron_right", 16, snapshot.TextColor)
+                ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16, snapshot.TextColor)
             }
             if let create = snapshot.CreateExpander {
                 expander = create(snapshot, row, expander)

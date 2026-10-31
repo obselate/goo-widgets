@@ -214,7 +214,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                     AlignItems: AlignItems.Center,
                     Gap: theme.ControlGap,
                     PaddingStart: theme.ControlPadding,
-                    MaterialIcons.Create("search", 18, theme.MutedTextColor),
+                    ControlIcons.Create(ControlIcon.Search, 18, theme.MutedTextColor),
                     root.Children[0],
                 }
                 root.Children.Insert(

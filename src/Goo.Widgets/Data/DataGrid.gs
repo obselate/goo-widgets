@@ -1058,7 +1058,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                     AlignItems: AlignItems.Center,
                     Gap: theme.Spacing,
                     content,
-                    MaterialIcons.Create(direction == DataGridSort.Ascending ? "arrow_upward": "arrow_downward", 14, theme.MutedTextColor)
+                    ControlIcons.Create(direction == DataGridSort.Ascending ? ControlIcon.ArrowUpward: ControlIcon.ArrowDownward, 14, theme.MutedTextColor)
                 }
             }
             if filter {
@@ -1266,7 +1266,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
                         Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
                         OnClick: () -> Expand(id, !isExpanded, false),
                         Accessibility: Accessibility{Hidden: true},
-                        MaterialIcons.Create(isExpanded ? "expand_more": "chevron_right", 16, snapshot.TextColor)
+                        ControlIcons.Create(isExpanded ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
                     }
                     let slot = Container{
                         Key: "expansion",

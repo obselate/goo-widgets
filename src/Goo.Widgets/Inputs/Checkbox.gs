@@ -118,11 +118,11 @@ public data struct Checkbox {
         }
         if active && content == nil {
             let mark = if state == AccessibilityChecked.Mixed {
-                "remove"
+                ControlIcon.Remove
             } else {
-                "check"
+                ControlIcon.Check
             }
-            content = MaterialIcons.Create(mark, size: resolved.MarkSize, color: resolved.MarkColor!!)
+            content = ControlIcons.Create(mark, size: resolved.MarkSize, color: resolved.MarkColor!!)
         }
 
         if let createRoot = createRoot {

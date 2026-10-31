@@ -81,7 +81,7 @@ public data struct AttachmentChip {
             OnClick: OnOpen,
             Focus: theme.FocusStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
-            Leading ?? MaterialIcons.Create("attach_file", 24, theme.MutedTextColor),
+            Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, theme.MutedTextColor),
             text,
         }
         WidgetKeyBindings.BindActivation(trigger)
@@ -95,7 +95,7 @@ public data struct AttachmentChip {
         if let remove = OnRemove {
             body.Children.Add(
                 IconButton{
-                    Icon: MaterialIcons.Create("close", 16, theme.MutedTextColor),
+                    Icon: ControlIcons.Create(ControlIcon.Close, 16, theme.MutedTextColor),
                     AccessibilityName: theme.Text("Remove {0}", name),
                     Disabled: Disabled,
                     OnClick: remove,
@@ -104,7 +104,7 @@ public data struct AttachmentChip {
         } else if let download = OnDownload {
             body.Children.Add(
                 IconButton{
-                    Icon: MaterialIcons.Create("download", 16, theme.MutedTextColor),
+                    Icon: ControlIcons.Create(ControlIcon.Download, 16, theme.MutedTextColor),
                     AccessibilityName: theme.Text("Download {0}", name),
                     Disabled: Disabled,
                     OnClick: download,

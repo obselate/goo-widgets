@@ -236,7 +236,7 @@ public data struct WindowChrome {
         let content = if let createContent = createContent {
             createContent(resolved, command)
         } else {
-            MaterialIcons.Create(IconName(command), 18.0, resolved.ControlColor, useCurrentColor: true)
+            ControlIcons.Create(IconName(command), 18.0, resolved.ControlColor, useCurrentColor: true)
         }
         let prepared = Button{
             Width: resolved.ControlWidth,
@@ -283,10 +283,10 @@ public data struct WindowChrome {
         default: "Window control"
     }
 
-    private func IconName(command WindowChromeAction) string -> switch command {
-        case WindowChromeAction.Minimize: "remove"
-        case WindowChromeAction.Maximize: "crop_square"
-        case WindowChromeAction.Restore: "filter_none"
-        default: "close"
+    private func IconName(command WindowChromeAction) ControlIcon -> switch command {
+        case WindowChromeAction.Minimize: ControlIcon.Remove
+        case WindowChromeAction.Maximize: ControlIcon.CropSquare
+        case WindowChromeAction.Restore: ControlIcon.FilterNone
+        default: ControlIcon.Close
     }
 }
