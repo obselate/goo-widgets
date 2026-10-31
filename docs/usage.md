@@ -40,7 +40,7 @@ the parent's `Rebuild()`. See the [complete example](../samples/Goo.Widgets.Quic
 
 ## Keyboard input
 
-Goo 0.24.0 provides text editing, clipboard shortcuts, undo and redo, Enter and
+Goo 0.24.2 provides text editing, clipboard shortcuts, undo and redo, Enter and
 Escape handling, and Tab focus traversal. No application editing bindings are needed.
 Widget buttons and composite controls supply activation and navigation bindings.
 Applications can add their own `KeyBinding` sets.

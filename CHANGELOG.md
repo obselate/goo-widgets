@@ -4,7 +4,7 @@
 
 - Theme.FocusRingWidth and FocusRingOffset control widget focus outlines. Focus outlines use Theme.FocusColor unless the widget sets a focus color.
 - Material icon subsets include every icon used by widget controls.
-- BREAKING: Remove `WidgetKeyBindings.Editing` from applications. Goo 0.24.0 provides text editing keys and Tab focus traversal.
+- BREAKING: Remove `WidgetKeyBindings.Editing` from applications. Goo 0.24.2 provides text editing keys and Tab focus traversal.
 
 ## 0.16.3 - 2026-10-29
 
