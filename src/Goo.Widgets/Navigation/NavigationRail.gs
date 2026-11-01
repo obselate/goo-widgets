@@ -98,7 +98,7 @@ public data struct NavigationRailInput {
         Gap = Gap ?? theme.ControlGap,
         ItemPaddingHorizontal = ItemPaddingHorizontal ?? theme.ControlPadding,
         ItemGap = ItemGap ?? theme.ControlGap,
-        ItemBorderRadius = ItemBorderRadius ?? theme.ControlRadius,
+        ItemBorderRadius = ItemBorderRadius ?? theme.ControlRadius!!,
         BackgroundColor = BackgroundColor ?? theme.ChromeColor,
         FontFamily = FontFamily ?? theme.FontFamily,
         ItemBackgroundColor = ItemBackgroundColor ?? Color.Transparent,
@@ -248,7 +248,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     BackgroundColor: resolved.Expanded ? Color.Transparent: theme.PanelColor,
                     Color: !resolved.Expanded ? theme.TextColor:
                     id == resolved.SelectedId ? resolved.SelectedTextColor!!: resolved.TextColor!!,
-                    BorderRadius: theme.RadiusSm,
+                    BorderRadius: theme.RadiusSm!!,
                 }
                 if !resolved.Expanded {
                     badge.Position = PositionType.Absolute

@@ -114,7 +114,7 @@ public data struct AttachmentChip {
         var root = Container{
             Width: Width ?? defaultWidth,
             MinWidth: 0,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BorderWidth: theme.BorderWidth,
             BorderColor: Failed ? theme.DangerColor: theme.InputBorderColor,
             BackgroundColor: theme.FieldColor,

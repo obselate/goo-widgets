@@ -302,7 +302,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Height: theme.ControlHeight,
             FlexGrow: 1.0,
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BackgroundColor: if currentMode == mode {
                 theme.PressedColor
             } else {
@@ -346,7 +346,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Key: "color-preview-swatch",
             Width: 48.0,
             Height: 48.0,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.InputBorderColor,
             BackgroundColor: ColorMath.GooColor(currentRgb),

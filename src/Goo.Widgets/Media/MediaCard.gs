@@ -78,7 +78,7 @@ public data struct MediaCard {
             },
             Padding = Padding ?? theme.PanelPadding,
             Gap = Gap ?? theme.Spacing,
-            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             TitleColor = TitleColor ?? theme.TextColor,

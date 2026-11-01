@@ -23,7 +23,7 @@ internal class HoverCardExample : Cell {
                         AutoFocus: true,
                         AlignSelf: AlignSelf.Center,
                         Padding: Edges(2, 4),
-                        BorderRadius: theme.ControlRadius,
+                        BorderRadius: theme.ControlRadius!!,
                         Focus: theme.FocusStyle,
                         Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "@grace"},
                         Text{Content: "@grace", Direction: Direction.LeftToRight, Color: theme.LinkColor, FontWeight: theme.HeadingFontWeight},

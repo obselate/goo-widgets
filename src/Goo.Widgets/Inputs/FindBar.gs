@@ -50,7 +50,7 @@ public data struct FindBar {
             BackgroundColor: theme.PanelColor,
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.BorderColor,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             KeyBindings: state.Bindings,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Find and replace")},
             Row(
@@ -258,7 +258,7 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
             Width: size,
             Height: size,
             Padding: 0,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Cursor: Cursor.Pointer,

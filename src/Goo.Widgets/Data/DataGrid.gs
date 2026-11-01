@@ -590,7 +590,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             BackgroundColor: input.BackgroundColor!!,
             BorderWidth: 1,
             BorderColor: theme.BorderColor,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Overflow: Overflow.Hidden
         }
@@ -1202,7 +1202,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             OutlineWidth: activeId == id && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
             OutlineColor: snapshot.FocusColor!!,
             OutlineOffset: -theme.FocusRingWidth,
-            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
+            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
         }
         if snapshot.AutoRowHeight {
             cells.Height = Length.Auto
@@ -1343,7 +1343,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
             Hover: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!: theme.HoverColor},
-            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius: 0.0,
+            BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
             Opacity: row.Disabled ? .45: 1.0
         }
         if pinnedCount > 0 {

@@ -39,7 +39,7 @@ public data struct StackedBar {
         let resolved = this with{
             Width = Width ?? Percent(100),
             Height = Height ?? 16.0,
-            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             TrackColor = TrackColor ?? theme.BorderColor,
             AccessibilityName = AccessibilityName ?? theme.Text("Chart")
         }

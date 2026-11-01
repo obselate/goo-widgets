@@ -157,7 +157,7 @@ public data struct TextField {
             },
             LabelTextTransform = LabelTextTransform ?? TextTransform.None,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             FocusRingWidth = FocusRingWidth ?? theme.FocusRingWidth,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,

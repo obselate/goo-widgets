@@ -148,7 +148,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
                     BackgroundColor: theme.OverlayColor,
                     BorderColor: theme.BorderColor,
                     BorderWidth: theme.BorderWidth,
-                    BorderRadius: theme.PanelRadius,
+                    BorderRadius: theme.PanelRadius!!,
                     BasedOn: current.BubbleStyle,
                     content,
                 }

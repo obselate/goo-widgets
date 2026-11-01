@@ -121,7 +121,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
             LineHeight: theme.LineHeight,
             Gap: theme.ControlGap,
             Padding: theme.ControlPadding,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
             BorderWidth: theme.BorderWidth,
             BorderColor: theme.ToneColor(input.Item.Tone),
             BackgroundColor: theme.PanelColor,

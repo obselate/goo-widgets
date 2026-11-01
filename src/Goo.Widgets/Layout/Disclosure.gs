@@ -74,7 +74,7 @@ public data struct Disclosure {
             TextColor = TextColor ?? theme.TextColor,
             BorderColor = BorderColor ?? theme.BorderColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             DisabledOpacity = DisabledOpacity ?? 0.5,
             CreateIndicator = nil,
             CreateHeader = nil,

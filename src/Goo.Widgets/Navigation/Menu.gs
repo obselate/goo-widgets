@@ -177,7 +177,7 @@ public open class Menu : Cell[MenuInput] {
                 AlignItems: AlignItems.Center,
                 Gap: theme.ControlGap,
                 BackgroundColor: selected == id ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 Focus: theme.InsetFocusStyle,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
@@ -280,7 +280,7 @@ public open class Menu : Cell[MenuInput] {
             BackgroundColor: theme.OverlayColor,
             BorderColor: theme.BorderColor,
             BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
         }
         return if let create = current.CreatePanel {
             create(current, prepared)

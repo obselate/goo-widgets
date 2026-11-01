@@ -75,7 +75,7 @@ public data struct Stepper {
             Height = Height ?? theme.ControlHeight,
             Gap = Gap ?? theme.ControlGap,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
-            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             CompletedColor = CompletedColor ?? theme.AccentColor,
             CurrentColor = CurrentColor ?? theme.AccentColor,
             UpcomingColor = UpcomingColor ?? theme.PanelColor,

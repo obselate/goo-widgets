@@ -107,7 +107,7 @@ internal class ChartParts {
                         Container{
                             Width: theme.Spacing * 2.0,
                             Height: theme.Spacing * 2.0,
-                            BorderRadius: theme.ControlRadius / 2.0,
+                            BorderRadius: theme.ControlRadius!! / 2.0,
                             BackgroundColor: segment.Series.Color!!,
                             Accessibility: Accessibility{Hidden: true}
                         },

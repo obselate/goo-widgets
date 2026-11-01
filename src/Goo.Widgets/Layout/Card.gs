@@ -68,7 +68,7 @@ public data struct Card {
             body.Children.Add(footer)
         }
         let background = Variant == CardVariant.Well ? theme.SunkenColor: Variant == CardVariant.Frame ? Color.Transparent: theme.PanelColor
-        let radius = Variant == CardVariant.Panel ? 0: theme.PanelRadius
+        let radius = Variant == CardVariant.Panel ? 0: theme.PanelRadius!!
         body.BackgroundColor = background
         body.BorderColor = theme.BorderColor
         body.BorderWidth = theme.BorderWidth

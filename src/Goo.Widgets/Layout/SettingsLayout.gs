@@ -117,7 +117,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.FlexStart,
                 Gap: theme.Spacing,
-                BorderRadius: theme.ControlRadius,
+                BorderRadius: theme.ControlRadius!!,
                 BackgroundColor: selected == id ? theme.ActiveColor: Color.Transparent,
                 Color: theme.TextColor,
                 OnClick: () -> value.OnSelect?.Invoke(id),

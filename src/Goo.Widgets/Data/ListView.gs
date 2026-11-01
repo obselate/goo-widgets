@@ -164,7 +164,7 @@ public open class ListView : Cell[ListViewInput] {
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: theme.PanelColor,
-            BorderRadius: theme.PanelRadius,
+            BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Focus: theme.FocusStyle
         }

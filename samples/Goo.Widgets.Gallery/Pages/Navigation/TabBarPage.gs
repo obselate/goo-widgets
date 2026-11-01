@@ -82,7 +82,7 @@ internal class TabBarExample : Cell {
                 Padding: 24,
                 MinHeight: 100,
                 BackgroundColor: theme.SunkenColor,
-                BorderRadius: theme.PanelRadius,
+                BorderRadius: theme.PanelRadius!!,
                 FlexDirection: FlexDirection.Row,
                 Gap: 20,
                 Cell.Mount[TabBarInput, TabBar](

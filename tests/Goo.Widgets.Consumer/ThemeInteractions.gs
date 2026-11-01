@@ -238,6 +238,83 @@ func ThemeFocusContracts() {
     Console.WriteLine("PASS theme focus geometry: default, one pixel, zero, header, active cell, action, tab and scope")
 }
 
+internal class ThemeRadiusHost : Cell {
+    internal var Value Theme
+    internal var Snapshot Theme
+
+    public override func Build() Blob -> ThemeScope{
+        Value: Value,
+        Content: () -> {
+            Snapshot = Theme.Read()
+            return Container{
+                BasedOn: Snapshot.CanvasStyle,
+                Padding: 24,
+                Gap: 20,
+                AlignItems: AlignItems.FlexStart,
+                Text{Content: "Theme corner radii", FontSize: 24},
+                ActionButton{Content: "Button"}.Build(),
+                IconButton{AccessibilityName: "Icon button", Icon: Text{Content: "+"}, BackgroundColor: Snapshot.AccentColor}.Build(),
+                Cell.Mount[ToggleGroupInput, ToggleGroup]("radius-toggle", ToggleGroupInput{
+                    Items: []ToggleOption{ToggleOption{Id: "one", Label: "One"}, ToggleOption{Id: "two", Label: "Two"}},
+                    SelectedIds: []string{"one"},
+                }),
+                TextField{Placeholder: "Text field"}.Build(),
+                Cell.Mount[MenuInput, Menu]("radius-menu", MenuInput{
+                    Open: true,
+                    WindowPoint: Point{X: 300, Y: 80},
+                    Items: []MenuItem{MenuItem{Id: "one", Label: "Menu item"}, MenuItem{Id: "two", Label: "Second item"}},
+                }),
+            }
+        },
+    }.Build()
+}
+
+func ThemeRadiusContracts() {
+    for explicit in []bool{false, true} {
+        let theme = explicit ? Theme{
+            ControlRadius: 0, PanelRadius: 0, RadiusSm: 0, RadiusMd: 0, RadiusLg: 0, RadiusXl: 0,
+        }: Theme{}
+        using let host = ThemePreferenceHost()
+        host.Resize(600, 360, 600, 360)
+        let root = ThemeRadiusHost(){Value = theme}
+        let window = Window{Root: root}
+        Theme.Attach(window, theme)
+        window.Attach(host)
+        ThemeFrames(host)
+        for resolved in []Theme{Theme.Read(window), root.Snapshot} {
+            let defaults = Theme.Default
+            Require(resolved.ControlRadius == (explicit ? 0: defaults.ControlRadius)
+                && resolved.PanelRadius == (explicit ? 0: defaults.PanelRadius)
+                && resolved.RadiusSm == (explicit ? 0: defaults.RadiusSm)
+                && resolved.RadiusMd == (explicit ? 0: defaults.RadiusMd)
+                && resolved.RadiusLg == (explicit ? 0: defaults.RadiusLg)
+                && resolved.RadiusXl == (explicit ? 0: defaults.RadiusXl),
+                "Attach, Read or ThemeScope replaced explicit zero radii or missed default radii.")
+        }
+    }
+    Console.WriteLine("PASS theme radii: unset defaults and explicit zero through Attach, Read and ThemeScope")
+}
+
+func ThemeRadiusCapture() {
+    let root = ThemeRadiusHost(){Value = Theme{
+        ControlRadius: 0, PanelRadius: 0, RadiusSm: 0, RadiusMd: 0, RadiusLg: 0, RadiusXl: 0,
+    }}
+    let window = Window{Root: root, Width: 600, Height: 360}
+    Theme.Attach(window, root.Value)
+    try {
+        window.Open()
+        PumpFrames(window, 12)
+        CaptureIssueProof(window, "zero")
+        root.Value = Theme{}
+        Theme.Attach(window, root.Value)
+        root.Rebuild()
+        PumpFrames(window, 12)
+        CaptureIssueProof(window, "default")
+    } finally {
+        CloseNativeWindow(window)
+    }
+}
+
 func ThemeBackgroundContracts() {
     for background in[]Color{Color.Transparent, Color.White, Color.Black} {
         using let host = ThemePreferenceHost()

@@ -99,7 +99,7 @@ public data struct Checkbox {
             MarkColor = MarkColor ?? theme.OnAccentColor,
             DisabledOpacity = DisabledOpacity ?? 0.5,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.ControlRadius / 2.0,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!! / 2.0,
             MarkSize = if MarkSize == 0.0 {
                 theme.Spacing * 3.5
             } else {
@@ -217,7 +217,7 @@ public data struct Checkbox {
             if resolved.Card {
                 root.Padding = theme.ControlPadding
                 root.BorderWidth = resolved.BorderWidth!!
-                root.BorderRadius = theme.ControlRadius
+                root.BorderRadius = theme.ControlRadius!!
                 root.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
                 root.BackgroundColor = active ? theme.ActiveColor: theme.PanelColor
             }

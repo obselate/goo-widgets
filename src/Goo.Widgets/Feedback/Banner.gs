@@ -89,7 +89,7 @@ public data struct Banner {
                 FontWeight
             },
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,

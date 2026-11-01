@@ -217,7 +217,7 @@ class ThemeSample : Cell {
                                 },
                             },
                             Text{
-                                Content: "${theme.ControlHeight}px controls · ${theme.ControlRadius}px corners · ${theme.PanelRadius}px panels",
+                                Content: "${theme.ControlHeight}px controls · ${theme.ControlRadius!!}px corners · ${theme.PanelRadius!!}px panels",
                                 FontFamily: theme.MonoFontFamily,
                                 FontSize: 13.0,
                                 Color: theme.FaintTextColor,

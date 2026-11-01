@@ -159,7 +159,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Cursor = Cursor.Text,
             BorderWidth = theme.BorderWidth,
             BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,
-            BorderRadius = theme.ControlRadius,
+            BorderRadius = theme.ControlRadius!!,
             Focus = Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
             DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
             TransitionMs = theme.TransitionMs,

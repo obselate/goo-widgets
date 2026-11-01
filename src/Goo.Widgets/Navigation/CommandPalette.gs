@@ -225,7 +225,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                     root.Children[2].Handle = viewport
                 }
                 root.BorderColor = Color.Transparent
-                root.BorderRadius = theme.PanelRadius - theme.BorderWidth
+                root.BorderRadius = theme.PanelRadius!! - theme.BorderWidth
                 root.MaxWidth = Percent(100)
                 root.FlexShrink = 1
                 return root

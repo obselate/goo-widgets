@@ -73,7 +73,7 @@ public data struct UploadTile {
             StatusPaddingHorizontal = StatusPaddingHorizontal ?? theme.ControlPadding,
             StatusPaddingVertical = StatusPaddingVertical ?? theme.Spacing * 2.0,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             ActionInset = ActionInset ?? theme.Spacing * 2.0,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,

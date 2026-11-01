@@ -185,7 +185,7 @@ public data struct SearchList {
             BackgroundColor: background,
             BorderWidth: theme.BorderWidth,
             BorderColor: selection,
-            BorderRadius: theme.ControlRadius,
+            BorderRadius: theme.ControlRadius!!,
             Overflow: Overflow.Hidden,
             entry,
         }

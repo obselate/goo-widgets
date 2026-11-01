@@ -70,7 +70,7 @@ public data struct Drawer {
             PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
             PaddingVertical = PaddingVertical ?? theme.PanelPadding,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             OpenOpacity = OpenOpacity ?? 1.0,
             ClosedOpacity = ClosedOpacity ?? 0.0,
             TransitionMs = TransitionMs ?? theme.TransitionMs,

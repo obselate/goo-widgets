@@ -89,7 +89,7 @@ public data struct AsyncImage {
                 Height
             },
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? theme.PanelRadius,
+            BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,

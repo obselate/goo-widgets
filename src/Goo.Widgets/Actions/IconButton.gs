@@ -50,7 +50,7 @@ public data struct IconButton {
             Width = width,
             Height = height,
             Padding = Padding ?? 0.0,
-            BorderRadius = BorderRadius ?? theme.ControlRadius,
+            BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             BackgroundColor = BackgroundColor ?? Color.Transparent,
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,

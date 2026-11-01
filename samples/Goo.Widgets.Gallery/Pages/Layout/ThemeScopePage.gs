@@ -33,7 +33,7 @@ internal class ThemeScopePage : GalleryPage {
         }
         root.Children.Add(surfaces)
         let radii = Container{FlexDirection: FlexDirection.Row, Gap: 12.0}
-        let radius = []float64{theme.RadiusSm, theme.RadiusMd, theme.RadiusLg, theme.RadiusXl}
+        let radius = []float64{theme.RadiusSm!!, theme.RadiusMd!!, theme.RadiusLg!!, theme.RadiusXl!!}
         let shadows = []BoxShadow{theme.ElevationSm, theme.ElevationMd, theme.ElevationLg}
         for index in 0 ... radius.Length {
             radii.Children.Add(Container{

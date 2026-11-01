@@ -46,7 +46,7 @@ public data struct Kbd {
                         Padding: Edges{Left: theme.Spacing, Right: theme.Spacing, Top: 2, Bottom: 2},
                         BorderWidth: theme.BorderWidth,
                         BorderColor: theme.BorderColor,
-                        BorderRadius: theme.ControlRadius / 2,
+                        BorderRadius: theme.ControlRadius!! / 2,
                         BackgroundColor: theme.FieldColor,
                         Text{
                             Content: key,

@@ -336,7 +336,7 @@ class Gallery : Cell, IDisposable {
             Key: "page", Handle: panelHandle, FlexGrow: 1, FlexBasis: 0, MinWidth: 0, MinHeight: 0,
             Margin: 8, MarginStart: PageOnly ? 8: 0,
             BackgroundColor: theme.PanelColor, BorderColor: theme.BorderColor, BorderWidth: 1,
-            BorderRadius: theme.PanelRadius, BoxShadow: theme.ElevationSm, Overflow: Overflow.Hidden,
+            BorderRadius: theme.PanelRadius!!, BoxShadow: theme.ElevationSm, Overflow: Overflow.Hidden,
             Padding: Edges{Top: 26, Left: sidePadding, Right: sidePadding, Bottom: 32}, Gap: 20,
             Text{Content: page.Name(), FontSize: 28, FontWeight: 600, LetterSpacing: -0.4,
                 Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: page.Name(), Level: 1, Live: AccessibilityLive.Polite}},
