@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.18.0 - 2026-10-31
+
+- Breaking: `Theme.ControlRadius`, `PanelRadius` and `RadiusSm` to `RadiusXl` are now `float64?`. Null uses the `Theme.Default` value. An explicit 0 is kept, so a theme can request square corners. Code that reads these fields from a resolved theme uses `!!`. (#153)
+
 ## 0.17.0 - 2026-10-30
 
 - Theme.FocusRingWidth and FocusRingOffset control widget focus outlines. Focus outlines use Theme.FocusColor unless the widget sets a focus color.
