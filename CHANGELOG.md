@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Run package checks and all 28 native capture suites in parallel CI jobs. Cache NuGet packages, the Gsharp compiler and native dependencies.
-- Wait for native fixture windows to close and virtual rows to mount before the next check.
+- Wait for native fixture windows to close, virtual rows to mount and tooltip visibility to change before the next check.
 - Keep clipboard fixtures floating in the private Sway session so requested window sizes are honored.
 
 ## 0.18.0 - 2026-10-31
