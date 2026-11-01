@@ -29,8 +29,9 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ "${GOO_WAYLAND_COMPOSITOR:-}" == sway ]]; then
+  printf '%s\n' 'for_window [app_id=".*"] floating enable' > "$runtime_root/sway.conf"
   WLR_BACKENDS=headless WLR_LIBINPUT_NO_DEVICES=1 WLR_RENDERER=pixman \
-    setsid dbus-run-session -- sway --config /dev/null >"$compositor_log" 2>&1 &
+    setsid dbus-run-session -- sway --config "$runtime_root/sway.conf" >"$compositor_log" 2>&1 &
   compositor_pid=$!
   compositor_target=-$compositor_pid
 elif command -v weston >/dev/null 2>&1; then
