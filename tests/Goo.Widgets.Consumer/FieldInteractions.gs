@@ -238,8 +238,7 @@ func FieldInteractions() {
         Require(!host.NumberHandle.Focus(), "Disabled NumberInput accepted focus")
         Require(FindSemantics(semantics.Tree?.Root, "Clear Password") == nil, "Disabled field exposed a clear button")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     FieldCultureContract()
     AddonFramePixels()
@@ -272,8 +271,7 @@ func FieldCultureContract() {
             "Invalid numeric draft was committed or discarded"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
         CultureInfo.CurrentCulture = previous
     }
 }
@@ -460,8 +458,7 @@ func AddonFramePixels() {
             )
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: addon frame pixels in light, dark, focused and invalid fields")
 }
