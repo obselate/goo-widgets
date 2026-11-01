@@ -174,8 +174,7 @@ func DisclosureInteractions() {
             "PASS: Disclosure pointer/Enter/Space, disabled input, hidden accessibility, retained child state, factories, unmount disposal."
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     Require(!window.IsOpen, "Disclosure verification window did not close.")
 }

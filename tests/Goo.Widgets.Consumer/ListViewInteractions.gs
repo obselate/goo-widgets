@@ -252,8 +252,7 @@ func ListViewInteractions() {
             )
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: List/tree native selection, type-ahead, invoke, lazy loading, rename and drop contracts")
     ListRowInteractions()
@@ -344,8 +343,7 @@ func ListRowInteractions() {
         CompositeClick(window, host.DisabledRow)
         Require(host.Clicks == 0, "Disabled row accepted a click")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: ListRow focus/hover actions, invoke, child action routing and disabled input")
 }

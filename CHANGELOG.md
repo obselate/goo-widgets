@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Run package checks and all 28 native capture suites in parallel CI jobs. Cache NuGet packages, the Gsharp compiler and native dependencies.
-- Wait for field fixture windows to close before the next native keyboard check.
+- Wait for native fixture windows to close and virtual rows to mount before the next check.
 
 ## 0.18.0 - 2026-10-31
 

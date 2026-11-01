@@ -275,8 +275,7 @@ func ErgonomicWindowInteractions() {
             "PASS: native checkbox/switch Space across rebuild and Enter, label click, slider width/focus/value, color modes/preview, disabled input, compact/full transition, color wheel pointer focus."
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     Require(!window.IsOpen, "Ergonomic input window did not close.")
 }

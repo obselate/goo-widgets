@@ -329,8 +329,7 @@ func RailInteractions() {
         PumpFrames(window, 5)
         Require(host.Buttons.Length == 0, "Rail retained removed items")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: rail single Tab stop, disabled skipping, wrap, Home/End, Enter/Space and controlled selection"
@@ -496,8 +495,7 @@ func CompositeInteractions() {
         PumpFrames(window, 8)
         Require(ControllerDisposed(controller), "Mounted TextArea did not dispose its default controller on removal")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Require(!window.IsOpen, "Composite widget window failed to close")
     PointerCommitCancellation()
@@ -580,8 +578,7 @@ func PointerCommitCancellation() {
             Require(host.Commits[index] == 1, "Slider or ColorPicker did not commit the later drag exactly once")
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: mounted Slider and ColorPicker cancel without commit, then drag/up commits once")
 }

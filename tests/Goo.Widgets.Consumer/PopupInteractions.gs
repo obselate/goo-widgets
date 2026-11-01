@@ -124,8 +124,7 @@ func PopupInteractions() {
         )
         Console.WriteLine("PASS: trigger menu focus, placement, keyboard and pointer picks, Escape")
     } finally {
-        window.RequestClose()
-        window.Pump(0)
+        CloseNativeWindow(window)
     }
     HoverCardInteractions()
 }
@@ -185,7 +184,6 @@ func HoverCardInteractions() {
         Require(host.Action.IsMounted && OverlayFocus(semantics, "Message"), "Tab did not reach the open card content")
         Console.WriteLine("PASS: hover card delays, pointer on card, press, focus, Tab and Escape")
     } finally {
-        window.RequestClose()
-        window.Pump(0)
+        CloseNativeWindow(window)
     }
 }
