@@ -23,7 +23,7 @@ env:
     at-spi2-core build-essential dbus-daemon kwin-common kwin-wayland libdbus-1-dev libei-dev pkg-config xwayland
 
 jobs:
-  verify:
+  build:
     runs-on: ubuntu-26.04
     timeout-minutes: 60
     outputs:
@@ -33,6 +33,12 @@ jobs:
       - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
         with:
           global-json-file: global.json
+      - name: Cache NuGet, Gsharp compiler and native payloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('global.json', '**/*.gsproj', '**/packages.lock.json', 'Directory.Build.props', 'NuGet.Config') }}
+          restore-keys: nuget-${{ runner.os }}-${{ runner.arch }}-
       - name: Read package version
         id: version
         run: |
@@ -41,7 +47,81 @@ jobs:
             test "$GITHUB_REF_NAME" = "v$version"
           fi
           printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
-      - run: bash scripts/verify.sh
+      - run: bash scripts/verify.sh build
+      - name: Archive native test payload
+        run: |
+          tar -cf artifacts/native-tests.tar \
+            tests/Goo.Widgets.Consumer/bin/Release/net10.0 \
+            tools/Goo.Widgets.NativeTests/bin/Release/net10.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-tests
+          path: artifacts/native-tests.tar
+          retention-days: 1
+          compression-level: 1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: Goo.Widgets
+          path: artifacts/packages/*
+          if-no-files-found: error
+
+  package:
+    needs: build
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+      - name: Cache NuGet, Gsharp compiler and native payloads
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('global.json', '**/*.gsproj', '**/packages.lock.json', 'Directory.Build.props', 'NuGet.Config') }}
+          restore-keys: nuget-${{ runner.os }}-${{ runner.arch }}-
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: native-tests
+          path: artifacts
+      - run: tar -xf artifacts/native-tests.tar
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: Goo.Widgets
+          path: artifacts/packages
+      - run: bash scripts/verify.sh package
+
+  native:
+    name: Native capture contracts (${{ matrix.group }})
+    needs: build
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: theme
+            suites: THEME
+          - group: virtualization
+            suites: VIRTUAL DATA_GRID TREE LISTS SEARCHLIST
+          - group: overlays
+            suites: COMBOBOX CALENDAR OVERLAYS POPUPS
+          - group: composition
+            suites: PATH_ACTIONS TIME_AXIS GRID_CHARTS COMPOSITES DISCLOSURE WINDOW
+          - group: input
+            suites: FIELDS MODAL_CLIPBOARD TEXT_SURFACES MARKDOWN TOUCH_EDITING GRAPH_TOUCH TOKENS
+          - group: chrome
+            suites: CHROME CHOICES FEEDBACK_IDENTITY NAVIGATION LAYOUT
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: native-tests
+          path: artifacts
+      - run: tar -xf artifacts/native-tests.tar
       - name: Update Linux package lists
         id: linux-apt
         run: |
@@ -79,25 +159,33 @@ jobs:
           DOTNET_DbgEnableMiniDump: 1
           DOTNET_DbgMiniDumpType: 2
           DOTNET_DbgMiniDumpName: ${{ github.workspace }}/artifacts/native-dumps/%e.%p.dmp
+          NATIVE_SUITES: ${{ matrix.suites }}
           DOTNET_EnableCrashReport: 1
         run: |
           ulimit -c unlimited
           mkdir -p artifacts/native-dumps
-          bash scripts/verify-native.sh
+          bash scripts/verify-native.sh $NATIVE_SUITES
       - name: Upload native crash evidence
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: native-crash-evidence
+          name: native-crash-evidence-${{ matrix.group }}
           path: |
             artifacts/native-dumps/*
             artifacts/native-test/*.log
           if-no-files-found: ignore
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        with:
-          name: Goo.Widgets
-          path: artifacts/packages/*
-          if-no-files-found: error
+
+  verify:
+    if: always()
+    needs: [build, package, native]
+    runs-on: ubuntu-26.04
+    outputs:
+      version: ${{ needs.build.outputs.version }}
+    steps:
+      - run: |
+          test '${{ needs.build.result }}' = success
+          test '${{ needs.package.result }}' = success
+          test '${{ needs.native.result }}' = success
 
   release:
     if: github.repository == 'obselate/goo-widgets' && startsWith(github.ref, 'refs/tags/v')
