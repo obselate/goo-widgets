@@ -481,7 +481,7 @@ func OverlayInteractions() {
         host.Before.Focus()
         let tooltipBounds = host.TooltipTarget.BorderBox
         MouseMove(id, float32(tooltipBounds.X + tooltipBounds.Width / 2.0), float32(tooltipBounds.Y + tooltipBounds.Height / 2.0))
-        PumpFrames(window, 4)
+        WaitVirtual(window, () -> host.TooltipLabel.IsMounted)
         Require(host.TooltipLabel.IsMounted, "Hover did not show the tooltip")
         SendKey(id, SDLScancode.Escape)
         PumpFrames(window, 40)
@@ -493,10 +493,10 @@ func OverlayInteractions() {
         MouseMove(id, 4.0F, 4.0F)
         PumpFrames(window, 4)
         MouseMove(id, float32(tooltipBounds.X + tooltipBounds.Width / 2.0), float32(tooltipBounds.Y + tooltipBounds.Height / 2.0))
-        PumpFrames(window, 4)
+        WaitVirtual(window, () -> host.TooltipLabel.IsMounted)
         Require(host.TooltipLabel.IsMounted, "Tooltip did not reopen after leaving and re-entering")
         MouseMove(id, 4.0F, 4.0F)
-        PumpFrames(window, 4)
+        WaitVirtual(window, () -> !host.TooltipLabel.IsMounted)
         let oldBackground = FindSemantics(semantics.Tree?.Root, "Background action")!!.Id
         host.DialogOpen = true
         host.Rebuild()

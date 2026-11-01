@@ -306,8 +306,7 @@ func TextFieldAccessibility() {
             )
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: mounted TextField invalid state and stable relationships with default and custom entries")
 }

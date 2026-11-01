@@ -3,6 +3,10 @@ set -euo pipefail
 
 runtime_root="$(mktemp -d "${RUNNER_TEMP:-/tmp}/goo-xdg-runtime.XXXXXX")"
 export XDG_RUNTIME_DIR="$runtime_root"
+export XDG_CACHE_HOME="$runtime_root/cache"
+export XDG_CONFIG_HOME="$runtime_root/config"
+export XDG_DATA_HOME="$runtime_root/data"
+mkdir -p "$XDG_CACHE_HOME" "$XDG_CONFIG_HOME" "$XDG_DATA_HOME"
 export WAYLAND_DISPLAY="${GOO_WAYLAND_DISPLAY:-goo-wayland}"
 export GOO_HEADLESS_WAYLAND=1
 compositor_log="$runtime_root/compositor.log"
@@ -25,16 +29,17 @@ cleanup() {
 trap cleanup EXIT
 
 if [[ "${GOO_WAYLAND_COMPOSITOR:-}" == sway ]]; then
+  printf '%s\n' 'for_window [app_id=".*"] floating enable' > "$runtime_root/sway.conf"
   WLR_BACKENDS=headless WLR_LIBINPUT_NO_DEVICES=1 WLR_RENDERER=pixman \
-    setsid dbus-run-session -- sway --config /dev/null >"$compositor_log" 2>&1 &
+    setsid dbus-run-session -- sway --config "$runtime_root/sway.conf" >"$compositor_log" 2>&1 &
   compositor_pid=$!
   compositor_target=-$compositor_pid
 elif command -v weston >/dev/null 2>&1; then
-  weston --backend=headless-backend.so --renderer="${GOO_WESTON_RENDERER:-pixman}" \
+  setsid weston --backend=headless-backend.so --renderer="${GOO_WESTON_RENDERER:-pixman}" \
     --width="${GOO_HEADLESS_WIDTH:-1400}" --height="${GOO_HEADLESS_HEIGHT:-900}" \
     --socket="$WAYLAND_DISPLAY" --idle-time=0 >"$compositor_log" 2>&1 &
   compositor_pid=$!
-  compositor_target=$compositor_pid
+  compositor_target=-$compositor_pid
 else
   XDG_CONFIG_HOME="$runtime_root/config" setsid dbus-run-session -- kwin_wayland --virtual \
     --width "${GOO_HEADLESS_WIDTH:-1400}" --height "${GOO_HEADLESS_HEIGHT:-900}" --scale 1 --no-global-shortcuts --no-lockscreen --no-kactivities \

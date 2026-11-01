@@ -267,8 +267,7 @@ func IconButtonInteractions() {
         PumpFrames(window, 3)
         Require(host.Activations == 1, "Native icon button activation did not fire exactly once.")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     Require(!window.IsOpen, "Icon button test window did not close.")
 }
@@ -400,8 +399,7 @@ func WindowInteractions() {
             "PASS: actual window, native keyboard, captured pointer, disabled input, color change, resize, disposal/remount, graph selection/drag."
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     Require(!window.IsOpen, "Widget test window did not close.")
 }

@@ -227,7 +227,7 @@ func DataGridHeightInteractions() {
         Require(host.RowCalls < 200, "Indexed measurement read more than the visible row budget")
         Require(Math.Abs(host.Viewport.ScrollRange.Y - 65999800.0) <= 4.0, "Two-million-row extent exceeded float32 precision")
         Require(host.Viewport.ScrollToItem("1999990"), "Indexed grid could not scroll to an unrealized ID")
-        PumpFrames(window, 8)
+        WaitVirtual(window, () -> host.RowBlobs.ContainsKey("1999990") && host.RowBlobs["1999990"].Handle!!.IsMounted)
         Require(
             host.RowBlobs["1999990"].Handle!!.IsMounted && Math.Abs(host.Viewport.ScrollOffset.Y - 65999670.0) <= 4.0,
             "Indexed grid exceeded float32 distant offset precision"
@@ -401,8 +401,7 @@ func DataGridHeightInteractions() {
             "Mixed star bounds overflowed the viewport"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: DataGrid mixed offsets, bounded visible rows, scroll into view, measured cap and lazy group headers"
@@ -1242,8 +1241,7 @@ func DataGridInteractions() {
             "Fitted grid failed to preserve minimum widths when viewport was too narrow"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: DataGrid shared columns, controlled sort/selection, range/disabled input, captured and fitted resize, measured detail, horizontal overflow and 1500-row virtualization"

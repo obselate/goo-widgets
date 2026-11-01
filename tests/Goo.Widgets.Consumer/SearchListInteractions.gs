@@ -226,8 +226,7 @@ func SearchListInteractions() {
             "PASS: SearchList retained selection, stable identity, unchanged row reuse, updated colors/height/callback/customization, disabled input."
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
     Require(!window.IsOpen, "SearchList verification window did not close.")
 }
