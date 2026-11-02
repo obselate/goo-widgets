@@ -320,10 +320,13 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         root.OnFocus = (e FocusEvent) -> {
             hasFocus = true
-            RevealActive()
+            if !pointerFocus {
+                RevealActive()
+            }
         }
         root.OnBlur = (e FocusEvent) -> {
             hasFocus = false
+            pointerFocus = false
             typeAhead.Reset()
         }
         var activeHandle ElementHandle?

@@ -144,7 +144,7 @@ internal class TreeHost : Cell {
         if id == "alpha" {
             AlphaCheck = state
         }
-        if id == "beta" {
+        if id == "beta" || id == "item-1499" {
             BetaCheck = state
         }
         Rebuild()
@@ -159,7 +159,11 @@ internal class TreeHost : Cell {
         if Large {
             let children = [1500]TreeNode
             for index in 0 ... children.Length {
-                children[index] = TreeNode{Id: "item-" + index.ToString(), Label: "Item " + index.ToString()}
+                children[index] = TreeNode{
+                    Id: "item-" + index.ToString(),
+                    Label: "Item " + index.ToString(),
+                    CheckState: index == 1499 ? BetaCheck: AccessibilityChecked.False
+                }
             }
             return []TreeNode{TreeNode{Id: "mass", Label: "Large collection", Children: children}}
         }
@@ -382,6 +386,39 @@ func TreeViewInteractions() {
         host.Expanded = []string{"mass"}
         host.Rebuild()
         PumpFrames(window, 12)
+        window.SmoothScrolling = false
+        host.After.Focus()
+        PumpFrames(window, 6)
+        let viewport = (host.Root!!.Children[0] as Container)!!.Children[0].Handle!!
+        FeedbackWheel(window, host.Root!!.Handle!!.BorderBox, -10000.0F)
+        Require(host.Checks["item-1499"].Handle!!.IsMounted, "Wheel did not reveal the last tree checkbox")
+        let check = host.Checks["item-1499"].Handle!!.BorderBox
+        let offset = viewport.ScrollOffset.Y
+        let calls = host.CheckCalls
+        let checked = host.BetaCheck
+        CaptureIssueProof(window, "tree-pointer-focus-before")
+        MouseMove(id, float32(check.X + check.Width / 2.0), float32(check.Y + check.Height / 2.0))
+        MouseButton(id, float32(check.X + check.Width / 2.0), float32(check.Y + check.Height / 2.0), true)
+        PumpFrames(window, 4)
+        let pressedOffset = viewport.ScrollOffset.Y
+        MouseButton(id, float32(check.X + check.Width / 2.0), float32(check.Y + check.Height / 2.0), false)
+        PumpFrames(window, 8)
+        Console.WriteLine(
+            "Tree pointer focus: before=" + offset.ToString() + " down=" + pressedOffset.ToString() +
+                " checks=" + (host.CheckCalls - calls).ToString() + " toggled=" + (host.BetaCheck != checked).ToString()
+        )
+        CaptureIssueProof(window, "tree-pointer-focus-after")
+        Require(Math.Abs(pressedOffset - offset) < .1, "Pointer focus scrolled away from the pressed tree checkbox")
+        Require(host.CheckCalls == calls + 1 && host.BetaCheck != checked, "First tree checkbox click did not toggle once")
+        host.After.Focus()
+        PumpFrames(window, 6)
+        FeedbackWheel(window, host.Root!!.Handle!!.BorderBox, 10000.0F)
+        host.Root!!.Handle!!.Focus()
+        PumpFrames(window, 8)
+        Require(
+            TreeActive(semantics, "Item 1499") && viewport.ScrollOffset.Y > offset - 1.0,
+            "Focus after pointer blur did not reveal the active tree row"
+        )
         SendKey(id, SDLScancode.End)
         PumpFrames(window, 18)
         Require(TreeActive(semantics, "Item 1499"), "Tree End failed to reveal a virtual descendant")
