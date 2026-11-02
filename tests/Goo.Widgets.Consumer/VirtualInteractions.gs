@@ -6,9 +6,18 @@ import System
 import System.Collections.Generic
 import System.Diagnostics
 
-internal data struct VirtualProbeItem {
-    var Id int32
-    var Revision int32
+internal struct VirtualProbeItem : IEquatable[VirtualProbeItem] {
+    internal var Id int32
+    internal var Revision int32
+
+    shared {
+        internal var Comparisons int32
+    }
+
+    public func Equals(other VirtualProbeItem) bool {
+        Comparisons++
+        return Id == other.Id && Revision == other.Revision
+    }
 }
 
 internal enum VirtualProbeKind {
@@ -29,13 +38,14 @@ internal class VirtualMountFailure : Cell {
 }
 
 internal class VirtualProbeHost : Cell {
-    internal let Items List[VirtualProbeItem] = List[VirtualProbeItem]()
+    internal var Items List[VirtualProbeItem] = List[VirtualProbeItem]()
     internal let Builds List[int32] = List[int32]()
     internal let Handles List[ElementHandle] = List[ElementHandle]()
     internal let Handle ElementHandle = ElementHandle{}
     internal var KeyCalls int32
     internal var Pin bool
     internal var Failure int32
+    internal var Version int64?
     private let kind VirtualProbeKind
     private let key Func[VirtualProbeItem, string]
     private let build Func[VirtualProbeItem, Blob]
@@ -98,7 +108,7 @@ internal class VirtualProbeHost : Cell {
             13.0
         }
         return Container{
-            Handle: Handles[item.Id],
+            Handle: item.Id < Handles.Count ? Handles[item.Id]: nil,
             Width: width,
             Height: height,
             Text{Content: "row ${item.Id}:${item.Revision}"},
@@ -107,7 +117,7 @@ internal class VirtualProbeHost : Cell {
 
     private func List() Virtual {
         if kind == VirtualProbeKind.Rows {
-            return VirtualRows(Items, 20.0, key, build, followEnd: Pin)
+            return VirtualRows(Items, 20.0, key, build, followEnd: Pin, version: Version)
         }
         if kind == VirtualProbeKind.Grid {
             let grid = VirtualItems(Items, 20.0, 20.0, key, build)
@@ -239,6 +249,52 @@ func WaitVirtual(window Window, ready Func[bool]) {
 }
 
 func VirtualInteractions() {
+    let stable = VirtualProbeHost(VirtualProbeKind.Rows, 100000)
+    RunVirtual("VirtualRows versioned source", stable, (window, semantics) -> {
+        stable.Items[0] = VirtualProbeItem{Id: 0, Revision: 1}
+        stable.Version = 0
+        stable.Builds.Clear()
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(stable.Builds.Count == 1, "Enabling a version missed an in-place edit.")
+        VirtualProbeItem.Comparisons = 0
+        stable.KeyCalls = 0
+        stable.Builds.Clear()
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(
+            VirtualProbeItem.Comparisons < 100 && stable.KeyCalls == 0 && stable.Builds.Count == 0,
+            "An unchanged versioned source scanned or rebuilt its rows."
+        )
+        stable.Items.Add(VirtualProbeItem{Id: 100000})
+        stable.Version = 1
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(stable.KeyCalls == 1 && stable.Handle.ScrollRange.Y == 1999960.0, "Versioned append did not update the row set.")
+        stable.Items.Insert(0, VirtualProbeItem{Id: 100001})
+        stable.Version = 2
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(stable.Builds.Count == 1 && stable.Builds[0] == 100001 && stable.Handle.ScrollRange.Y == 1999980.0, "Versioned prepend did not update the first row.")
+        stable.Builds.Clear()
+        stable.Items[0] = VirtualProbeItem{Id: 100001, Revision: 1}
+        stable.Version = 3
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(stable.Builds.Count == 1 && stable.Builds[0] == 100001, "Versioned replacement did not rebuild its row.")
+        stable.Items = List[VirtualProbeItem](stable.Items)
+        stable.Items[0] = VirtualProbeItem{Id: 100001, Revision: 2}
+        stable.Builds.Clear()
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(stable.Builds.Count == 1, "A new collection with the same version missed an edit.")
+        stable.Version = nil
+        stable.Items[0] = VirtualProbeItem{Id: 100001, Revision: 3}
+        stable.Builds.Clear()
+        stable.Rebuild()
+        PumpFrames(window, 2)
+        Require(stable.Builds.Count == 1, "Omitting the version did not restore in-place edit detection.")
+    })
     VirtualRollbackInteractions()
     let list = VirtualProbeHost(VirtualProbeKind.List, 1000)
     RunVirtual(
