@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep the pressed TreeView checkbox in view when pointer input gives the tree focus.
+
 ## 0.18.2 - 2026-11-02
 
 - Add an optional `version` to `VirtualRows` and `VirtualLists.Rows`. An unchanged list reference and version skip the source scan. Change the version after in-place edits. Omitting it keeps edit detection. (#158)
