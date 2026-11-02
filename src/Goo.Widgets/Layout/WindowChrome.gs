@@ -240,7 +240,7 @@ public data struct WindowChrome {
         }
         let prepared = Button{
             Width: resolved.ControlWidth,
-            Height: resolved.Height,
+            Height: Percent(100),
             Padding: 0.0,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
