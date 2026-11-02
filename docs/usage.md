@@ -620,6 +620,7 @@ Keys must be stable, nonempty, and unique in the collection. Keep item values
 immutable and rebuild the owning Cell after a change. An item that equals its
 previous value is not built again. `VirtualRows` also needs the same builder
 delegate on each build to reuse rows.
+Pass `version: rowsVersion` to skip scans while the list reference and version stay the same. Change the version after each in-place edit. Omit it to keep detecting edits on every rebuild.
 
 `VirtualRows` keeps the first visible row in place when rows above it change
 size or the width changes. A list scrolled to the top stays at the top.

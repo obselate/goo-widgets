@@ -16,6 +16,7 @@ import System.Collections.Generic
 /// @param itemKey Returns a stable, nonempty key, unique in the collection. Equal items have equal keys.
 /// @param itemBuilder Builds one row. Keep the same builder between builds so unchanged rows are reused.
 /// @param followEnd Scrolls to the end when new row inputs are supplied. Does not prevent user scrolling.
+/// @param version Skips unchanged-source scans when set. Change it after any in-place edit.
 /// @typeparam T The immutable row value type.
 /// @returns A Virtual element with two rows of overscan on each side and bounded measurement work.
 public func VirtualRows[T](
@@ -23,7 +24,8 @@ public func VirtualRows[T](
     estimatedItemHeight float64,
     itemKey((T) -> string),
     itemBuilder((T) -> Blob),
-    followEnd bool = false
+    followEnd bool = false,
+    version int64? = nil
 ) Virtual {
     if items == nil {
         throw ArgumentNullException("items")
@@ -37,6 +39,10 @@ public func VirtualRows[T](
     }
     let theme = Theme.Read()
     let source = VirtualRowsSource[T](items, estimate, itemKey, itemBuilder, nil)
+    source.StableItems = version != nil
+    source.Version = version ?? 0
+    let identity Func[T, string] = itemKey
+    source.Identity = identity
     source.FollowEnd = followEnd
     return Virtual(source){
         OverflowX = Overflow.Hidden,
@@ -53,6 +59,7 @@ public class VirtualLists {
         /// @param itemKey Returns a stable, nonempty key, unique in the collection.
         /// @param itemBuilder Builds one row. Keep the same builder between builds to reuse unchanged rows.
         /// @param followEnd Scrolls to the end when new row inputs are supplied.
+        /// @param version Skips unchanged-source scans when set. Change it after any in-place edit.
         /// @typeparam T The immutable row value type.
         /// @returns A vertically scrolling Virtual element with bounded measurement work.
         public func Rows[T](
@@ -60,8 +67,9 @@ public class VirtualLists {
             estimatedItemHeight float64,
             itemKey((T) -> string),
             itemBuilder((T) -> Blob),
-            followEnd bool = false
-        ) Virtual -> VirtualRows[T](items, estimatedItemHeight, itemKey, itemBuilder, followEnd)
+            followEnd bool = false,
+            version int64? = nil
+        ) Virtual -> VirtualRows[T](items, estimatedItemHeight, itemKey, itemBuilder, followEnd, version)
     }
 }
 
@@ -176,7 +184,7 @@ internal class VirtualRowsState[T] : VirtualState {
         var stable = false
         if let previous = source {
             if let previousData = old {
-                stable = input.StableItems && Object.ReferenceEquals(previous.Items, items) && Object.Equals(
+                stable = input.StableItems && previous.StableItems && Object.ReferenceEquals(previous.Items, items) && Object.Equals(
                     previous.Identity,
                     input.Identity
                 ) &&
