@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.3 - 2026-11-02
+
 - Keep the pressed TreeView checkbox in view when pointer input gives the tree focus.
 
 ## 0.18.2 - 2026-11-02
