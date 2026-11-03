@@ -84,6 +84,8 @@ internal class TreeHost : Cell {
     internal var BetaCheck AccessibilityChecked = AccessibilityChecked.False
     internal var CheckCalls int32
     internal var Large bool
+    internal var RowCount int32 = 1500
+    internal var SelectCalls int32
     internal var Virtualize bool = true
     internal var Passive bool
     internal var Root Container?
@@ -151,13 +153,14 @@ internal class TreeHost : Cell {
     }
 
     private func Select(id string) {
+        SelectCalls++
         Selected = id
         Rebuild()
     }
 
     private func Nodes()[]TreeNode {
         if Large {
-            let children = [1500]TreeNode
+            let children = [RowCount]TreeNode
             for index in 0 ... children.Length {
                 children[index] = TreeNode{
                     Id: "item-" + index.ToString(),
@@ -253,8 +256,74 @@ func TreeActive(adapter SearchListSemantics, name string) bool {
     return row != nil && tree.Focused && tree.Relationships.ActiveDescendant == row.Id
 }
 
+func TreeViewControlledReveal() {
+    let host = TreeHost{Large: true, RowCount: 1000, Expanded: []string{}, Selected: "mass"}
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "TreeView controlled reveal",
+        Width: 620,
+        Height: 480,
+        Root: ApplicationRoot(host),
+        AccessibilityAdapter: semantics
+    }
+    window.Open()
+    try {
+        PumpFrames(window, 12)
+        Require(host.After.Focus(), "The control outside the tree did not take focus")
+        let viewport = (host.Root!!.Children[0] as Container)!!.Children[0].Handle!!
+        host.Selected = "item-999"
+        host.Expanded = []string{"mass"}
+        host.Rebuild()
+        WaitVirtual(window, () -> host.Rows.TryGetValue("item-999", out var revealed) && revealed.Handle!!.IsMounted)
+        let mounted = host.Rows.TryGetValue("item-999", out var last) && last.Handle!!.IsMounted
+        Console.WriteLine(
+            "Tree controlled reveal: mounted=" + mounted.ToString() + " scroll=" + viewport.ScrollOffset.Y.ToString()
+        )
+        CaptureIssueProof(window, "tree-controlled-reveal")
+        Require(mounted, "The externally selected child did not mount after expansion")
+        let row = last.Handle!!.BorderBox
+        let view = viewport.ContentBox
+        Require(
+            row.Y >= view.Y - .1 && row.Y + row.Height <= view.Y + view.Height + .1,
+            "The externally selected child stayed outside the tree viewport"
+        )
+        let item = FindSemantics(semantics.Tree!!.Root, "Item 999")!!
+        Require(
+            FindSemantics(semantics.Tree!!.Root, "Files")!!
+                .Relationships
+                .ActiveDescendant == item.Id &&
+                FindSemantics(semantics.Tree!!.Root, "After tree")!!.Focused &&
+                host.SelectCalls == 0,
+            "External selection lost its active row, stole focus or requested selection again"
+        )
+        host.Selected = "item-500"
+        host.Rebuild()
+        WaitVirtual(window, () -> host.Rows.TryGetValue("item-500", out var middle) && middle.Handle!!.IsMounted)
+        let offset = viewport.ScrollOffset.Y
+        host.Selected = "item-501"
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(viewport.ScrollOffset.Y == offset, "Selecting an already visible row scrolled the tree")
+        Require(viewport.JumpTo(0.0, 0.0), "The tree viewport rejected a jump")
+        WaitVirtual(
+            window,
+            () -> viewport.ScrollOffset.Y == 0.0 && host.Rows.TryGetValue("item-0", out var first) &&
+                first.Handle!!.IsMounted
+        )
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(viewport.ScrollOffset.Y == 0.0, "An unchanged controlled selection scrolled the tree again")
+    } finally {
+        CloseNativeWindow(window)
+    }
+    Console.WriteLine(
+        "PASS: Tree external selection and expansion reveal, visible-row stability, unchanged-input stability and focus retention"
+    )
+}
+
 func TreeViewInteractions() {
     RunContracts(TreeViewContracts)
+    TreeViewControlledReveal()
     let host = TreeHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()

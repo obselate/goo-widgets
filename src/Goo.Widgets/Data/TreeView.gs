@@ -53,7 +53,8 @@ public data struct TreeViewInput {
     var ExpandedIds[]?string
     /// Requests expansion changes. The host updates ExpandedIds and rebuilds.
     var OnExpandedChange Action[string, bool]?
-    /// Controlled single row selection.
+    /// Controlled single row selection. External changes activate and reveal the row without taking focus.
+    /// Also drives reveal when SelectedIds owns selection. Expand its ancestors in the same update.
     var SelectedId string?
     /// Requests single row selection.
     var OnSelect Action[string]?
@@ -142,11 +143,16 @@ public open class TreeView : Cell[TreeViewInput] {
     private var activeId string?
     private var hasFocus bool
     private var anchorId string?
+    private var requestedSelection string?
     private var clickModifiers KeyModifiers
     private var clickFromChild bool
     private var selected HashSet[string] = HashSet[string](StringComparer.Ordinal)
 
     protected override func Build(value TreeViewInput) Blob {
+        let revealSelection = rootHandle.IsMounted &&
+            value.SelectedId != input.SelectedId &&
+            value.SelectedId != requestedSelection
+        requestedSelection = nil
         theme = Theme.Read()
         let defaultHeight Length = 280
         input = value with{
@@ -221,6 +227,20 @@ public open class TreeView : Cell[TreeViewInput] {
                 }
             }
             Push(stack, children, node.Id, walk.Depth + 1, walk.Visible && row.Expanded, row.Disabled)
+        }
+        if revealSelection && Index(input.SelectedId) >= 0 {
+            activeId = input.SelectedId
+            let selectedId = activeId
+            Theme
+                .Key
+                .Window
+                .TryPost(
+                () -> {
+                    if activeId == selectedId && input.SelectedId == selectedId {
+                        RevealActive(true)
+                    }
+                }
+            )
         }
         if Index(activeId) < 0 {
             var ancestor = activeId
@@ -401,15 +421,27 @@ public open class TreeView : Cell[TreeViewInput] {
         RevealActive()
     }
 
-    private func RevealActive() {
-        if activeId == nil || Index(activeId) < 0 {
+    private func RevealActive(nearest bool = false) {
+        let index = Index(activeId)
+        if index < 0 {
             return
         }
         let handle = Handle(activeId!!)
         if handle.IsMounted {
             handle.ScrollIntoView()
         } else if input.Virtualize ?? true {
-            viewport.ScrollToItem(activeId!!)
+            if nearest {
+                let top = float64(index) * input.RowHeight!!
+                let offset = viewport.ScrollOffset
+                let height = viewport.ContentBox.Height
+                if top < offset.Y {
+                    viewport.JumpTo(offset.X, top)
+                } else if top + input.RowHeight!!> offset.Y + height {
+                    viewport.JumpTo(offset.X, top + input.RowHeight!!- height)
+                }
+            } else {
+                viewport.ScrollToItem(activeId!!)
+            }
         }
     }
 
@@ -419,6 +451,7 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let previous = activeId
         Activate(id)
+        requestedSelection = id
         if input.OnSelectionChange == nil {
             input.OnSelect?.Invoke(id)
             return

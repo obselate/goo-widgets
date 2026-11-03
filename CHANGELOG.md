@@ -6,6 +6,7 @@
 - Keep retained row content in place when a header moves during a prepend.
 - Support measured item alignment and visible-anchor restore through Goo's `ElementHandle`.
 - Add consumer-owned `VirtualRowsState<T>` to keep measured heights and scroll position across source changes.
+- Reveal a changed external `TreeView.SelectedId` after expansion, without taking focus or scrolling again for selection callbacks.
 
 ## 0.18.4 - 2026-11-03
 
