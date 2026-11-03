@@ -205,7 +205,8 @@ internal class VirtualRowsStorage[T] : VirtualState {
             if !switching && previous.Count > 0 {
                 if Pending != nil && source?.Get == nil && input.Get == nil {
                     if let visible = viewport.VisibleAnchor {
-                        if previous.TryIndex(visible.Key, out var index) {
+                        if previous.TryIndex(visible.Key, out var index) &&
+                            Math.Abs(previous.Prefix(index) - offset.Y - visible.Offset.Y) < 0.01 {
                             oldIndex = index
                             anchor = visible.Key
                             before = offset.Y + visible.Offset.Y
