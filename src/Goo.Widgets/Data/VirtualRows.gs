@@ -229,8 +229,9 @@ internal class VirtualRowsState[T] : VirtualState {
             offset.Y >= float64(window.ContentH - window.ViewportH) - 0.01
         if (Pending != nil && input.FollowEnd) || atEnd {
             scroll = Math.Max(0.0, float64(Window(data, 0.0, height, true).ContentH) - float64(height))
-        } else if anchor != "" && data.Count > 0 && offset.Y > 0.0 {
-            let nextIndex = if data.TryIndex(anchor, out var found) {
+        } else if anchor != "" && data.Count > 0 {
+            let retained = data.TryIndex(anchor, out var found)
+            let nextIndex = if retained {
                 found
             } else {
                 if shifted {
@@ -239,7 +240,19 @@ internal class VirtualRowsState[T] : VirtualState {
                     Math.Min(oldIndex, data.Count - 1)
                 }
             }
-            scroll = Math.Max(0.0, scroll + Prefix(data, nextIndex, true) - before)
+            var preserve = offset.Y > 0.0
+            if !preserve && retained && old != nil && source?.Get == nil && input.Get == nil {
+                preserve = true
+                for index in 0 ... nextIndex {
+                    if old.Contains(data.Row(index).Key) {
+                        preserve = false
+                        break
+                    }
+                }
+            }
+            if preserve {
+                scroll = Math.Max(0.0, scroll + Prefix(data, nextIndex, true) - before)
+            }
         }
         let target = Window(data, scroll, height, true)
         pendingAnchorIndex = input.Get == nil ? -1: Find(data, Math.Max(0.0, scroll), true)

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Keep the visible `VirtualRows` row in place when new keys are prepended at scroll offset zero. Reorders at the top still stay at the top.
+
 ## 0.18.3 - 2026-11-02
 
 - Keep the pressed TreeView checkbox in view when pointer input gives the tree focus.
