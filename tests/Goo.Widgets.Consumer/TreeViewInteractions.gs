@@ -274,7 +274,7 @@ func TreeViewControlledReveal() {
         host.Selected = "item-999"
         host.Expanded = []string{"mass"}
         host.Rebuild()
-        PumpFrames(window, 12)
+        WaitVirtual(window, () -> host.Rows.TryGetValue("item-999", out var revealed) && revealed.Handle!!.IsMounted)
         let mounted = host.Rows.TryGetValue("item-999", out var last) && last.Handle!!.IsMounted
         Console.WriteLine(
             "Tree controlled reveal: mounted=" + mounted.ToString() + " scroll=" + viewport.ScrollOffset.Y.ToString()
@@ -298,11 +298,7 @@ func TreeViewControlledReveal() {
         )
         host.Selected = "item-500"
         host.Rebuild()
-        PumpFrames(window, 8)
-        Require(
-            host.Rows.TryGetValue("item-500", out var middle) && middle.Handle!!.IsMounted,
-            "The middle selection did not mount"
-        )
+        WaitVirtual(window, () -> host.Rows.TryGetValue("item-500", out var middle) && middle.Handle!!.IsMounted)
         let offset = viewport.ScrollOffset.Y
         host.Selected = "item-501"
         host.Rebuild()
