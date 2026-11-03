@@ -1,12 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.18.5 - 2026-11-03
 
 - Hold a pinned `VirtualRows` end through viewport and row size changes.
 - Keep retained row content in place when a header moves during a prepend.
 - Support measured item alignment and visible-anchor restore through Goo's `ElementHandle`.
 - Add consumer-owned `VirtualRowsState<T>` to keep measured heights and scroll position across source changes.
 - Reveal a changed external `TreeView.SelectedId` after expansion, without taking focus or scrolling again for selection callbacks.
+- Require Goo 0.27.5.
 
 ## 0.18.4 - 2026-11-03
 
