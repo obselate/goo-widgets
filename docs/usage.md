@@ -645,6 +645,10 @@ children. Disabling a node disables its descendants. Cycles and shared/duplicate
 identities are rejected. Control expansion with `ExpandedIds`/`OnExpandedChange`
 and single-row selection with `SelectedId`/`OnSelect`. Callbacks must update inputs
 and rebuild the host.
+Changing `SelectedId` from outside the tree activates and reveals that row without
+taking focus. Supply `ExpandedIds` in the same update to open its ancestors.
+`SelectedId` is also the reveal driver when `SelectedIds` controls selection.
+Changing only `SelectedIds` does not choose a reveal target.
 Set `ExpandOnActivate: true` for branch row clicks, Enter, and accessible Activate
 to request selection and expansion/collapse. The host still updates `ExpandedIds`.
 Expander buttons toggle once. Checkbox clicks and Space retain the host's check
