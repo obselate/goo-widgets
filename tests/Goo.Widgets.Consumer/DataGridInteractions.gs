@@ -22,6 +22,8 @@ internal class DataGridHeightHost : Cell {
     internal var AutoColumns bool
     internal var VirtualColumns bool
     internal var SourceWidth bool
+    internal var ShortSourceWidth bool
+    internal var GridBuilds int32
     internal var Empty bool
     internal var Loading bool
     internal var Version int64
@@ -105,7 +107,7 @@ internal class DataGridHeightHost : Cell {
                     Width: AutoColumns ? nil: (Compact ? 100: 200),
                     AutoWidth: AutoColumns,
                     AutoWidthContent: SourceWidth ?
-                    Text{Content: "A much wider value first realized after scrolling", TextWrap: TextWrap.NoWrap}: nil,
+                    Text{Content: ShortSourceWidth ? "x": "A much wider value first realized after scrolling", TextWrap: TextWrap.NoWrap}: nil,
                     Minimum: AutoColumns ? 0: 60,
                     Maximum: 400
                 }
@@ -124,7 +126,7 @@ internal class DataGridHeightHost : Cell {
             RowHeightProvider: Auto || Indexed || AutoColumns ? nil: Height,
             ViewportHandle: Viewport,
             Height: 232,
-            Width: WidthCase > 0 ? (WidthCase == 1 ? 800: 700): (Compact ? 120: 220),
+            Width: WidthCase > 0 ? (WidthCase == 1 ? 800: 700): (SourceWidth ? 1000: Compact ? 120: 220),
             ScrollbarVisibilityY: WidthCase > 0 ? ScrollbarVisibility.Hidden: ScrollbarVisibility.Auto,
             ScrollbarY: VirtualColumns ? Scrollbar{
                 Thickness: 10,
@@ -152,6 +154,7 @@ internal class DataGridHeightHost : Cell {
             CreateCellContent: Wrap ? nil: Content,
             CreateFullWidthRow: FullWidth,
             CreateRoot: (input DataGridInput, root Container) -> {
+                GridBuilds++
                 Root = root
                 return root
             },
@@ -310,6 +313,7 @@ func DataGridHeightInteractions() {
             "Auto columns shrank after scrolling to shorter content"
         )
         host.SourceWidth = true
+        window.Width = 1200
         host.Version++
         host.Rebuild()
         WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
@@ -317,6 +321,23 @@ func DataGridHeightInteractions() {
         Require(
             Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
             "Source width did not resolve before the wide row was realized"
+        )
+        PumpFrames(window, 12)
+        host.GridBuilds = 0
+        host.Version++
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(
+            host.GridBuilds == 1 && Math.Abs(host.Header!!.Handle!!.BorderBox.Width - grownWidth) < .1,
+            "Equal source width caused another grid rebuild or width change"
+        )
+        host.ShortSourceWidth = true
+        host.Version++
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(
+            host.Header!!.Handle!!.BorderBox.Width < grownWidth && host.GridBuilds == 3,
+            "Shorter source width did not apply in one further grid rebuild"
         )
         host.AutoColumns = false
         host.SourceWidth = false

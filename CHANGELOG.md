@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Keep measured `DataGrid.AutoWidthContent` widths across row source changes. Apply new measurements only when the width changes, including smaller widths.
+
 ## 0.18.5 - 2026-11-03
 
 - Hold a pinned `VirtualRows` end through viewport and row size changes.
