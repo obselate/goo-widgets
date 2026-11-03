@@ -391,7 +391,7 @@ func TreeViewInteractions() {
         PumpFrames(window, 6)
         let viewport = (host.Root!!.Children[0] as Container)!!.Children[0].Handle!!
         FeedbackWheel(window, host.Root!!.Handle!!.BorderBox, -10000.0F)
-        Require(host.Checks["item-1499"].Handle!!.IsMounted, "Wheel did not reveal the last tree checkbox")
+        WaitVirtual(window, () -> host.Checks.TryGetValue("item-1499", out var last) && last.Handle!!.IsMounted)
         let check = host.Checks["item-1499"].Handle!!.BorderBox
         let offset = viewport.ScrollOffset.Y
         let calls = host.CheckCalls
