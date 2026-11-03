@@ -623,7 +623,8 @@ delegate on each build to reuse rows.
 Pass `version: rowsVersion` to skip scans while the list reference and version stay the same. Change the version after each in-place edit. Omit it to keep detecting edits on every rebuild.
 
 `VirtualRows` keeps the first visible row in place when rows above it change
-size or the width changes. A list scrolled to the top stays at the top.
+size or the width changes. A list scrolled to the top stays at the top after a reorder.
+Prepending new keys keeps the previous first row in place, including at scroll offset zero.
 A change that only removes rows from the start and adds
 rows at the end is applied in place: only the added rows are keyed and built.
 `followEnd: true` scrolls to the last row when inputs change. It does not block user scrolling.

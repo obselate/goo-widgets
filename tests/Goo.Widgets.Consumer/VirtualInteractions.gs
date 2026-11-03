@@ -436,6 +436,34 @@ func VirtualInteractions() {
         }
     )
 
+    let prepend = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
+    RunVirtual(
+        "VirtualRows prepend at top",
+        prepend,
+        (window Window, semantics VirtualProbeSemantics) -> {
+            Require(prepend.Handle.ScrollOffset.Y == 0.0 && prepend.Handles[0].IsMounted, "The rows did not start at the top.")
+            let before = prepend.Handles[0].BorderBox.Y - prepend.Handle.ContentBox.Y
+            CaptureIssueProof(window, "virtualrows-prepend-before")
+            for index in 0 ... 50 {
+                prepend.Items.Insert(index, VirtualProbeItem{Id: 1000 + index})
+            }
+            prepend.Rebuild()
+            PumpFrames(window, 2)
+            let after = prepend.Handles[0].BorderBox.Y - prepend.Handle.ContentBox.Y
+            Console.WriteLine(
+                "Prepend 50 at zero: key=row-0 mounted=" + prepend.Handles[0].IsMounted.ToString() +
+                    " before-y=" + before.ToString() + " after-y=" + after.ToString() +
+                    " scroll=" + prepend.Handle.ScrollOffset.Y.ToString()
+            )
+            CaptureIssueProof(window, "virtualrows-prepend-after")
+            Require(
+                prepend.Handles[0].IsMounted && Math.Abs(after - before) < .1 &&
+                    prepend.Handle.ScrollOffset.Y == 1000.0 && !prepend.Handles[1000].IsMounted,
+                "Prepending at zero did not keep the first visible row in place."
+            )
+        }
+    )
+
     let pin = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
     pin.Pin = true
     RunVirtual(
