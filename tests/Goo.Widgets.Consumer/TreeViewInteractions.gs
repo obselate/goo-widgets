@@ -296,8 +296,15 @@ func TreeViewControlledReveal() {
                 host.SelectCalls == 0,
             "External selection lost its active row, stole focus or requested selection again"
         )
+        host.Selected = "item-500"
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(
+            host.Rows.TryGetValue("item-500", out var middle) && middle.Handle!!.IsMounted,
+            "The middle selection did not mount"
+        )
         let offset = viewport.ScrollOffset.Y
-        host.Selected = "item-998"
+        host.Selected = "item-501"
         host.Rebuild()
         PumpFrames(window, 8)
         Require(viewport.ScrollOffset.Y == offset, "Selecting an already visible row scrolled the tree")
