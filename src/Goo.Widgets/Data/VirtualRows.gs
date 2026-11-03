@@ -102,8 +102,8 @@ public class VirtualLists {
 internal class VirtualRowsSource[T] : VirtualSource {
     internal let Items IReadOnlyList[T]
     internal let Estimate float32
-    internal let Key((T) -> string)
-    internal let Build((T) -> Blob)
+    internal let Key Func[T, string]
+    internal let Build Func[T, Blob]
     internal let Height Func[T, float64]?
     internal var Get Func[int32, T]?
     internal var Index Func[string, int32]?
