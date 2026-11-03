@@ -350,13 +350,6 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             throw ArgumentOutOfRangeException("Grid selection/sort policy")
         }
         columns = input.Columns ?? []DataGridColumn{}
-        if sourceChanged {
-            for column in columns {
-                if column.AutoWidthContent != nil {
-                    autoWidths?.Remove(column.Id!!)
-                }
-            }
-        }
         let nextRows = input.Rows ?? (input.RowAt != nil ? rows: []DataGridRow{})
         let rowsChanged = !Object.ReferenceEquals(rows, nextRows)
         if input.RowAt != nil && (input.RowIndex == nil || input.RowCount < 0) {
@@ -1975,7 +1968,7 @@ public open class DataGrid : Cell[DataGridInput], IDisposable {
             autoWidths ??= Dictionary[string, float64](StringComparer.Ordinal)
             let values = autoWidths!!
             let previous = values.TryGetValue(id, out var known) ? known: (columns[index].Minimum ?? 60.0)
-            if width > previous + .1 {
+            if width > previous + .1 || measurement != nil && width < previous - .1 {
                 values[id] = width
                 Rebuild()
             }
