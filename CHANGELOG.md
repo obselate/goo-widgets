@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Reveal a changed external `TreeView.SelectedId` after expansion, without taking focus or scrolling again for selection callbacks.
+
 ## 0.18.4 - 2026-11-03
 
 - Keep the visible `VirtualRows` row in place when new keys are prepended at scroll offset zero. Reorders at the top still stay at the top.
