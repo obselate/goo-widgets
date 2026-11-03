@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.18.4 - 2026-11-03
+
 - Keep the visible `VirtualRows` row in place when new keys are prepended at scroll offset zero. Reorders at the top still stay at the top.
 
 ## 0.18.3 - 2026-11-02
