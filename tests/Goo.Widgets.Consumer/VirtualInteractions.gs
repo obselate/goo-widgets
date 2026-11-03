@@ -68,8 +68,8 @@ internal class VirtualProbeHost : Cell {
     internal var HeaderId int32 = -1
     internal let Messages Dictionary[int32, VirtualProbeMessage] = Dictionary[int32, VirtualProbeMessage]()
     private let kind VirtualProbeKind
-    private let key Func[VirtualProbeItem, string]
-    private let build Func[VirtualProbeItem, Blob]
+    private let key((VirtualProbeItem) -> string)
+    private let build((VirtualProbeItem) -> Blob)
 
     internal init(kind VirtualProbeKind, count int32) {
         this.kind = kind

@@ -62,8 +62,8 @@ public func VirtualRows[T](
 public class VirtualRowsState[T] {
     internal var Metadata VirtualRowMetadata[T]?
     internal var Items IReadOnlyList[T]?
-    internal var Builder Func[T, Blob]?
-    internal var Identity Func[T, string]?
+    internal var Builder((T) -> Blob)?
+    internal var Identity((T) -> string)?
     internal var Version int64?
     private var anchor VirtualScrollAnchor?
 
@@ -102,8 +102,8 @@ public class VirtualLists {
 internal class VirtualRowsSource[T] : VirtualSource {
     internal let Items IReadOnlyList[T]
     internal let Estimate float32
-    internal let Key Func[T, string]
-    internal let Build Func[T, Blob]
+    internal let Key((T) -> string)
+    internal let Build((T) -> Blob)
     internal let Height Func[T, float64]?
     internal var Get Func[int32, T]?
     internal var Index Func[string, int32]?
@@ -316,7 +316,9 @@ internal class VirtualRowsStorage[T] : VirtualState {
             }
             if preserve {
                 scroll = Math.Max(0.0, scroll + Prefix(data, nextIndex, true) - before)
-                output.AnchorKey = retained ? anchor: data.Row(nextIndex).Key
+                if sameContext {
+                    output.AnchorKey = retained ? anchor: data.Row(nextIndex).Key
+                }
             }
         }
         let target = Window(data, scroll, height, true)
