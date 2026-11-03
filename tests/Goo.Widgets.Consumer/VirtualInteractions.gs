@@ -37,6 +37,21 @@ internal class VirtualMountFailure : Cell {
     public override func Build() Blob -> throw InvalidOperationException("Virtual row mount failed")
 }
 
+internal class VirtualProbeMessage : Cell {
+    internal var Header bool
+    internal var Height float64 = 20.0
+    internal var Handle ElementHandle = ElementHandle{}
+
+    public override func Build() Blob {
+        let row = Container{}
+        if Header {
+            row.Children.Add(Container{Key: "history-header", Height: 44, FlexShrink: 0})
+        }
+        row.Children.Add(Container{Key: "message", Handle: Handle, Height: Height, FlexShrink: 0})
+        return row
+    }
+}
+
 internal class VirtualProbeHost : Cell {
     internal var Items List[VirtualProbeItem] = List[VirtualProbeItem]()
     internal let Builds List[int32] = List[int32]()
@@ -46,6 +61,12 @@ internal class VirtualProbeHost : Cell {
     internal var Pin bool
     internal var Failure int32
     internal var Version int64?
+    internal var State VirtualRowsState[VirtualProbeItem]?
+    internal var FillHeight bool
+    internal var VariableHeights bool
+    internal var MessageRows bool
+    internal var HeaderId int32 = -1
+    internal let Messages Dictionary[int32, VirtualProbeMessage] = Dictionary[int32, VirtualProbeMessage]()
     private let kind VirtualProbeKind
     private let key Func[VirtualProbeItem, string]
     private let build Func[VirtualProbeItem, Blob]
@@ -89,6 +110,13 @@ internal class VirtualProbeHost : Cell {
 
     private func BuildItem(item VirtualProbeItem) Blob {
         Builds.Add(item.Id)
+        if MessageRows {
+            return Cell.Mount[VirtualProbeMessage]("row-${item.Id}", (row VirtualProbeMessage) -> {
+                row.Header = item.Id == HeaderId
+                row.Handle = Handles[item.Id]
+                Messages[item.Id] = row
+            })
+        }
         if item.Id == 2 {
             if Failure == 1 {
                 throw InvalidOperationException("Virtual row build failed")
@@ -103,7 +131,7 @@ internal class VirtualProbeHost : Cell {
             75.0
         }
         let height float64 = if kind == VirtualProbeKind.Rows {
-            20.0
+            VariableHeights ? 20.0 + float64(item.Id % 3) * 10.0: 20.0
         } else {
             13.0
         }
@@ -117,7 +145,7 @@ internal class VirtualProbeHost : Cell {
 
     private func List() Virtual {
         if kind == VirtualProbeKind.Rows {
-            return VirtualRows(Items, 20.0, key, build, followEnd: Pin, version: Version)
+            return VirtualRows(Items, 20.0, key, build, followEnd: Pin, version: Version, state: State)
         }
         if kind == VirtualProbeKind.Grid {
             let grid = VirtualItems(Items, 20.0, 20.0, key, build)
@@ -132,8 +160,8 @@ internal class VirtualProbeHost : Cell {
         let list = List()
         list.Handle = Handle
         list.Width = 100
-        list.Height = 60
-        let root = Container{}
+        list.Height = FillHeight ? Percent(100): 60
+        let root = Container{Height: FillHeight ? Percent(100): Length.Auto}
         root.Children.Add(list)
         return root
     }
@@ -190,6 +218,7 @@ func VirtualContracts() {
 func VirtualRollbackInteractions() {
     for failure in []int32{1, 2} {
         let host = VirtualProbeHost(VirtualProbeKind.Rows, 2)
+        host.State = VirtualRowsState[VirtualProbeItem]()
         RunVirtual(
             "VirtualRows rollback ${failure}",
             host,
@@ -248,7 +277,135 @@ func WaitVirtual(window Window, ready Func[bool]) {
     Require(ready(), "Virtual layout did not publish the expected mount or scroll metrics.")
 }
 
+
+func VirtualScrollApiInteractions() {
+    let resized = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
+    resized.FillHeight = true
+    resized.Pin = true
+    RunVirtual("VirtualRows pinned viewport resize", resized, (window, semantics) -> {
+        let before = resized.Handle.ScrollOffset.Y
+        window.Height = 200
+        WaitVirtual(window, () -> resized.Handle.BorderBox.Height < 250.0 &&
+            Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
+        Require(resized.Handle.ScrollOffset.Y > before, "A smaller viewport lost the pinned end.")
+        window.Height = 400
+        WaitVirtual(window, () -> resized.Handle.BorderBox.Height > 350.0 &&
+            Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
+        Console.WriteLine("Pinned resize: viewport=" + resized.Handle.ContentBox.Height.ToString() +
+            " offset=" + resized.Handle.ScrollOffset.Y.ToString() + " range=" + resized.Handle.ScrollRange.Y.ToString())
+    })
+
+    let measured = VirtualProbeHost(VirtualProbeKind.Rows, 2)
+    measured.MessageRows = true
+    measured.Pin = true
+    RunVirtual("VirtualRows pinned row measurement", measured, (window, semantics) -> {
+        let before = measured.Handle.ScrollOffset.Y
+        measured.Messages[1].Height = 64.0
+        measured.Messages[1].Rebuild()
+        WaitVirtual(window, () -> measured.Handle.ScrollOffset.Y == 24.0)
+        Require(measured.Handle.ScrollOffset.Y == measured.Handle.ScrollRange.Y, "Row measurement lost the pinned end.")
+        Console.WriteLine("Pinned measurement: before=" + before.ToString() +
+            " after=" + measured.Handle.ScrollOffset.Y.ToString())
+    })
+
+    let header = VirtualProbeHost(VirtualProbeKind.Rows, 100)
+    header.MessageRows = true
+    header.HeaderId = 0
+    RunVirtual("VirtualRows retained message anchor", header, (window, semantics) -> {
+        let before = header.Handles[0].BorderBox.Y - header.Handle.ContentBox.Y
+        header.HeaderId = 100
+        header.Items[0] = VirtualProbeItem{Id: 0, Revision: 1}
+        header.Items.Insert(0, VirtualProbeItem{Id: 100})
+        header.Rebuild()
+        WaitVirtual(window, () -> header.Handles[0].IsMounted &&
+            Math.Abs(header.Handles[0].BorderBox.Y - header.Handle.ContentBox.Y - before) < 0.01 &&
+            header.Handle.ScrollOffset.Y > 0.0)
+        PumpFrames(window, 3)
+        let after = header.Handles[0].BorderBox.Y - header.Handle.ContentBox.Y
+        Console.WriteLine("Retained message: before=" + before.ToString() + " after=" + after.ToString())
+        Require(Math.Abs(after - before) < 0.01, "Moving the history header moved the retained message.")
+    })
+
+    for alignment in []ScrollAlignment{ScrollAlignment.Start, ScrollAlignment.Center, ScrollAlignment.End} {
+        let aligned = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
+        aligned.VariableHeights = true
+        RunVirtual("VirtualRows measured alignment " + alignment.ToString(), aligned, (window, semantics) -> {
+            Require(aligned.Handle.ScrollToItem("row-500", alignment), "The aligned item was not found.")
+            let fraction = alignment == ScrollAlignment.Center ? 0.5: alignment == ScrollAlignment.End ? 1.0: 0.0
+            WaitVirtual(window, () -> aligned.Handles[500].IsMounted &&
+                Math.Abs(aligned.Handles[500].BorderBox.Y - aligned.Handle.ContentBox.Y -
+                    (aligned.Handle.ContentBox.Height - aligned.Handles[500].BorderBox.Height) * fraction) < 0.01)
+            PumpFrames(window, 3)
+            let target = aligned.Handle.ScrollOffsetOf("row-500", alignment)!!
+            Require(!aligned.Handle.IsScrollSettling && Math.Abs(target.Y - aligned.Handle.ScrollOffset.Y) < 0.01,
+                "The measured target did not settle.")
+            Console.WriteLine("Alignment " + alignment.ToString() + ": row-y=" +
+                (aligned.Handles[500].BorderBox.Y - aligned.Handle.ContentBox.Y).ToString() +
+                " target=" + target.Y.ToString() + " settling=" + aligned.Handle.IsScrollSettling.ToString())
+            Require(aligned.Handle.JumpTo(0.0, aligned.Handle.ScrollOffset.Y + 7.0), "The partial-row scroll failed.")
+            PumpFrames(window, 2)
+            let saved = aligned.Handle.VisibleAnchor!!
+            Require(aligned.Handle.ScrollToItem("row-700"), "The second item was not found.")
+            PumpFrames(window, 2)
+            Require(aligned.Handle.RestoreAnchor(saved), "The saved anchor was not found.")
+            WaitVirtual(window, () -> aligned.Handle.VisibleAnchor?.Key == saved.Key &&
+                Math.Abs(aligned.Handle.VisibleAnchor!!.Offset.Y - saved.Offset.Y) < 0.01)
+            PumpFrames(window, 3)
+            Require(aligned.Handle.VisibleAnchor?.Key == saved.Key &&
+                Math.Abs(aligned.Handle.VisibleAnchor!!.Offset.Y - saved.Offset.Y) < 0.01,
+                "The visible anchor did not round-trip.")
+            Console.WriteLine("Anchor restore: key=" + saved.Key + " offset=" + saved.Offset.Y.ToString() +
+                " restored=" + aligned.Handle.VisibleAnchor!!.Offset.Y.ToString())
+            Require(!aligned.Handle.ScrollToItem("missing", alignment) &&
+                aligned.Handle.ScrollOffsetOf("missing", alignment) == nil &&
+                !aligned.Handle.RestoreAnchor(VirtualScrollAnchor{Key: "missing"}),
+                "An unknown item accepted a scroll request.")
+        })
+    }
+}
+
+func VirtualSourceStateInteractions() {
+    let firstState = VirtualRowsState[VirtualProbeItem]()
+    let secondState = VirtualRowsState[VirtualProbeItem]()
+    let host = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
+    host.State = firstState
+    host.Version = 0
+    host.VariableHeights = true
+    let first = host.Items
+    let second = List[VirtualProbeItem]()
+    for index in 1000 ... 2000 { second.Add(VirtualProbeItem{Id: index}) }
+    RunVirtual("VirtualRows cached source and anchor", host, (window, semantics) -> {
+        Require(host.Handle.ScrollToItem("row-500", ScrollAlignment.Center), "Source A did not scroll.")
+        WaitVirtual(window, () -> host.Handles[500].IsMounted && !host.Handle.IsScrollSettling)
+        Require(host.Handle.JumpTo(0.0, host.Handle.ScrollOffset.Y + 7.0), "Source A did not scroll within its row.")
+        PumpFrames(window, 3)
+        let saved = host.Handle.VisibleAnchor!!
+        host.State = secondState
+        host.Items = second
+        host.Rebuild()
+        WaitVirtual(window, () -> host.Handles[1000].IsMounted && host.Handle.ScrollOffset.Y == 0.0)
+        Require(firstState.Anchor?.Key == saved.Key &&
+            Math.Abs(firstState.Anchor!!.Offset.Y - saved.Offset.Y) < 0.01, "Source A did not save its anchor.")
+        VirtualProbeItem.Comparisons = 0
+        host.Builds.Clear()
+        host.State = firstState
+        host.Items = first
+        host.Rebuild()
+        PumpFrames(window, 1)
+        Require(host.Handle.VisibleAnchor?.Key == saved.Key &&
+            Math.Abs(host.Handle.VisibleAnchor!!.Offset.Y - saved.Offset.Y) < 0.01,
+            "Source A did not restore its measured position in one pass.")
+        PumpFrames(window, 3)
+        Require(VirtualProbeItem.Comparisons == 0,
+            "Source A scanned unchanged rows or needed another realization pass.")
+        Console.WriteLine("Source A restore: key=" + saved.Key + " offset=" + saved.Offset.Y.ToString() +
+            " retained-row-comparisons=" + VirtualProbeItem.Comparisons.ToString())
+    })
+}
+
 func VirtualInteractions() {
+    VirtualScrollApiInteractions()
+    VirtualSourceStateInteractions()
     let stable = VirtualProbeHost(VirtualProbeKind.Rows, 100000)
     RunVirtual("VirtualRows versioned source", stable, (window, semantics) -> {
         stable.Items[0] = VirtualProbeItem{Id: 0, Revision: 1}

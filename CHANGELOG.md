@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Hold a pinned `VirtualRows` end through viewport and row size changes.
+- Keep retained row content in place when a header moves during a prepend.
+- Support measured item alignment and visible-anchor restore through Goo's `ElementHandle`.
+- Add consumer-owned `VirtualRowsState<T>` to keep measured heights and scroll position across source changes.
+
 ## 0.18.4 - 2026-11-03
 
 - Keep the visible `VirtualRows` row in place when new keys are prepended at scroll offset zero. Reorders at the top still stay at the top.

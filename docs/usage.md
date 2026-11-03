@@ -622,15 +622,40 @@ previous value is not built again. `VirtualRows` also needs the same builder
 delegate on each build to reuse rows.
 Pass `version: rowsVersion` to skip scans while the list reference and version stay the same. Change the version after each in-place edit. Omit it to keep detecting edits on every rebuild.
 
-`VirtualRows` keeps the first visible row in place when rows above it change
-size or the width changes. A list scrolled to the top stays at the top after a reorder.
+`VirtualRows` keeps the first visible row and its retained content in place after layout.
+A list at the top stays at the top after a reorder.
 Prepending new keys keeps the previous first row in place, including at scroll offset zero.
 A change that only removes rows from the start and adds
 rows at the end is applied in place: only the added rows are keyed and built.
-`followEnd: true` scrolls to the last row when inputs change. It does not block user scrolling.
+`followEnd: true` follows new inputs and holds a pinned end through viewport and row size changes. It does not block user scrolling.
 In `viewport.MetricsChanged`, set `follow` to `metrics.ScrollOffset.Y >= metrics.ScrollRange.Y - 0.5`
 and rebuild when it changes. Start with `follow = true` for a live log.
 `ElementHandle.ScrollToItem(key)` jumps to an item of either function.
+
+```gsharp
+viewport.ScrollToItem(key, ScrollAlignment.Center)
+let target = viewport.ScrollOffsetOf(key, ScrollAlignment.End)
+let saved = viewport.VisibleAnchor
+if let anchor = saved { viewport.RestoreAnchor(anchor) }
+```
+
+Aligned item scrolling and anchor restore settle as visible rows are measured.
+`IsScrollSettling` becomes false when measurement no longer changes the target.
+Pass `settle: false` for one immediate move. Direct scrolling cancels settlement.
+Use `ScrollOffsetOf` with `ScrollTo` or a consumer animation.
+`VisibleAnchor` contains the first visible key and its signed viewport offset.
+
+Keep one `VirtualRowsState[LogLine]` per room outside `Build`:
+
+```gsharp
+let roomState = VirtualRowsState[LogLine]()
+let log = VirtualRows(lines, 20.0, lineKey, BuildLine, version: rowsVersion, state: roomState)
+```
+
+Changing `state` saves the old source's anchor and restores the selected source's measured heights and anchor.
+Use `followEnd: false` to restore the anchor. Set `roomState.Anchor` before selecting it to restore a saved position.
+Changed rows, builders and widths are measured again. The state keeps metadata only for that source's current keys.
+Release the state when the room closes. There is no global cache.
 
 `VirtualRows` mounts at most 4,096 rows and keeps the row that contains keyboard
 focus mounted. Positions use float32. Whole-pixel placement is exact up to
