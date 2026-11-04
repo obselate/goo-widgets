@@ -54,7 +54,7 @@ Complete examples:
 
 ## Build
 
-Requires .NET SDK `10.0.401`. Dependencies are locked.
+Requires .NET SDK `10.0.403`. Dependencies are locked.
 
 ```sh
 bash scripts/verify.sh
