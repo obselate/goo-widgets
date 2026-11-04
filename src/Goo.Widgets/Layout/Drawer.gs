@@ -10,6 +10,10 @@ public data struct Drawer {
     var Content Blob?
     /// Whether the drawer is visible and expanded. Build does not invert or mutate this state.
     var Open bool
+    /// Whether the open drawer isolates input and contains focus in the window overlay.
+    var Modal bool
+    /// Called when Escape or the modal scrim dismisses the drawer.
+    var OnDismiss Action?
     /// Whether the drawer docks to and slides from the end edge instead of the start edge.
     var FromEnd bool
     /// Accessible name for the group container. Nil resolves to "Drawer".
@@ -49,6 +53,43 @@ public data struct Drawer {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
+        if Modal {
+            return Cell.Mount[ModalDialog, ModalDialogHost](
+                nil,
+                ModalDialog{
+                    Open: Open,
+                    AccessibilityName: AccessibilityName ?? Theme.Read().Text("Drawer"),
+                    OnClose: OnDismiss,
+                    Fullscreen: true,
+                    Padding: 0.0,
+                    Gap: 0.0,
+                    BackgroundColor: Color.Transparent,
+                    BorderWidth: 0.0,
+                    BorderRadius: 0.0,
+                    Content: (this with{Modal = false}).Build(),
+                    Footer: Container{},
+                    CreateRoot: (_, _, panel) -> {
+                        panel.Position = PositionType.Absolute
+                        panel.Top = 0.0
+                        panel.Width = Width == 0.0 ? 320.0: Width
+                        panel.Height = Height ?? Percent(100.0)
+                        if FromEnd {
+                            panel.End = 0.0
+                        } else {
+                            panel.Start = 0.0
+                        }
+                        return Container{
+                            Position: PositionType.Absolute,
+                            Left: 0.0,
+                            Right: 0.0,
+                            Top: 0.0,
+                            Bottom: 0.0,
+                            Direction: Theme.Read().Direction,
+                        }
+                    },
+                }
+            )
+        }
         let theme = Theme.Read()
         let createRoot = CreateRoot
         let defaultClosedTransform = if FromEnd != theme.RightToLeft {
