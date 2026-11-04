@@ -76,6 +76,10 @@ enum GraphPointerMode {
 public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     private let handle ElementHandle = ElementHandle{}
     private var resolved GraphCanvasInput
+    private var validated bool
+    private var cachedNodes[]GraphNode
+    private var cachedEdges[]GraphEdge
+    private var nodeIndices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
     private var viewport GraphViewport
     private var pointerMode GraphPointerMode
     private var pointerId int64 = -1L
@@ -202,11 +206,16 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             MarqueeFillColor = input.MarqueeFillColor ?? theme.AccentColor.WithAlpha(0.15),
             MarqueeBorderColor = input.MarqueeBorderColor ?? theme.AccentColor,
         }
-        Validate(value)
+        let graphChanged = !validated || !Object.ReferenceEquals(cachedNodes, input.Nodes)
+            || !Object.ReferenceEquals(cachedEdges, input.Edges)
+        Validate(value, graphChanged)
+        cachedNodes = input.Nodes
+        cachedEdges = input.Edges
+        validated = true
         return value
     }
 
-    private func Validate(value GraphCanvasInput) {
+    private func Validate(value GraphCanvasInput, graphChanged bool) {
         if !Double.IsFinite(value.Width) || value.Width <= 0.0 {
             throw ArgumentOutOfRangeException("Width")
         }
@@ -232,23 +241,27 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         || !Double.IsFinite(value.Viewport.Zoom) {
             throw ArgumentOutOfRangeException("Viewport")
         }
-        let nodeIds = HashSet[string](StringComparer.Ordinal)
-        for node in value.Nodes {
-            if String.IsNullOrWhiteSpace(node.Id) || !nodeIds.Add(node.Id) {
-                throw ArgumentException("Graph node identities must be nonempty and unique.", "Nodes")
+        if graphChanged {
+            let nodes = Dictionary[string, int32](StringComparer.Ordinal)
+            for index in 0 ... value.Nodes.Length {
+                let node = value.Nodes[index]
+                if String.IsNullOrWhiteSpace(node.Id) || !nodes.TryAdd(node.Id, index) {
+                    throw ArgumentException("Graph node identities must be nonempty and unique.", "Nodes")
+                }
+                if String.IsNullOrWhiteSpace(node.Label) {
+                    throw ArgumentException("Graph node labels must be nonempty.", "Nodes")
+                }
+                if !Double.IsFinite(node.Position.X) || !Double.IsFinite(node.Position.Y) {
+                    throw ArgumentException("Graph node positions must be finite.", "Nodes")
+                }
             }
-            if String.IsNullOrWhiteSpace(node.Label) {
-                throw ArgumentException("Graph node labels must be nonempty.", "Nodes")
+            let edgeIds = HashSet[string](StringComparer.Ordinal)
+            for edge in value.Edges {
+                if String.IsNullOrWhiteSpace(edge.Id) || !edgeIds.Add(edge.Id) {
+                    throw ArgumentException("Graph edge identities must be nonempty and unique.", "Edges")
+                }
             }
-            if !Double.IsFinite(node.Position.X) || !Double.IsFinite(node.Position.Y) {
-                throw ArgumentException("Graph node positions must be finite.", "Nodes")
-            }
-        }
-        let edgeIds = HashSet[string](StringComparer.Ordinal)
-        for edge in value.Edges {
-            if String.IsNullOrWhiteSpace(edge.Id) || !edgeIds.Add(edge.Id) {
-                throw ArgumentException("Graph edge identities must be nonempty and unique.", "Edges")
-            }
+            nodeIndices = nodes
         }
         let selectedIds = HashSet[string](StringComparer.Ordinal)
         for id in value.SelectedNodeIds {
@@ -313,16 +326,20 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
 
     private func EdgeLayer() Container {
         let layer = PassiveLayer("graph-edges")
-        let nodes = Dictionary[string, GraphNode](StringComparer.Ordinal)
-        for node in resolved.Nodes {
-            nodes[node.Id] = node
-        }
         for edge in resolved.Edges {
-            if !nodes.TryGetValue(edge.FromId, out var from) || !nodes.TryGetValue(edge.ToId, out var to) {
+            if !nodeIndices.TryGetValue(edge.FromId, out var fromIndex)
+                || !nodeIndices.TryGetValue(edge.ToId, out var toIndex) {
                 continue
             }
-            let fromPosition = ScreenPosition(NodePosition(from))
-            let toPosition = ScreenPosition(NodePosition(to))
+            if resolved.Nodes[fromIndex].Id != edge.FromId || resolved.Nodes[toIndex].Id != edge.ToId {
+                Validate(resolved, true)
+                if !nodeIndices.TryGetValue(edge.FromId, out fromIndex)
+                    || !nodeIndices.TryGetValue(edge.ToId, out toIndex) {
+                    continue
+                }
+            }
+            let fromPosition = ScreenPosition(NodePosition(resolved.Nodes[fromIndex]))
+            let toPosition = ScreenPosition(NodePosition(resolved.Nodes[toIndex]))
             if Math.Max(fromPosition.X, toPosition.X) < 0.0 || Math.Min(fromPosition.X, toPosition.X) > resolved.Width
             || Math.Max(fromPosition.Y, toPosition.Y) < 0.0 || Math.Min(
                 fromPosition.Y,
