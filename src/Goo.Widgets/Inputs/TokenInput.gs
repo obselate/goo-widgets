@@ -122,27 +122,24 @@ public open class TokenInput : Cell[TokenInputInput] {
                     matches.Add(index)
                 }
             }
-            let suggestions = VirtualRows[int32](
-                matches,
-                theme.ControlHeight,
-                (index int32) -> items[index] + "\0" + index.ToString(),
-                (index int32) -> {
-                    let value = items[index]
-                    let action = Button{
-                        Height: theme.ControlHeight,
-                        Padding: 6,
-                        Focus: theme.FocusStyle,
-                        Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Add {0}", value)},
-                        OnClick: () -> {
-                            Commit(value)
-                            editor.Focus()
-                        },
-                        Text{Content: value, Color: theme.TextColor},
-                    }
-                    WidgetKeyBindings.BindActivation(action)
-                    return action
+            let key((int32) -> string) = (index int32) -> items[index] + "\0" + index.ToString()
+            let build((int32) -> Blob) = (index int32) -> {
+                let value = items[index]
+                let action = Button{
+                    Height: theme.ControlHeight,
+                    Padding: 6,
+                    Focus: theme.FocusStyle,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Add {0}", value)},
+                    OnClick: () -> {
+                        Commit(value)
+                        editor.Focus()
+                    },
+                    Text{Content: value, Color: theme.TextColor},
                 }
-            )
+                WidgetKeyBindings.BindActivation(action)
+                return action
+            }
+            let suggestions = VirtualRows[int32](matches, theme.ControlHeight, key, build)
             suggestions.Key = "suggestions"
             suggestions.Gap = 2
             suggestions.Height = Math.Min(240.0, matches.Count * (theme.ControlHeight + 2))

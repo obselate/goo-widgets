@@ -88,11 +88,13 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
         rowHeight = theme.ControlHeight
         let height = input.MaxHeight == 0.0 ? 240.0: input.MaxHeight
         let highlighted = matches.Length > 0 ? matches[active].Order: -1
+        let key((FuzzyMatchItem[string]) -> string) = (match FuzzyMatchItem[string]) -> match.Item + "\0" + match.Order.ToString()
+        let build((FuzzyMatchItem[string]) -> Blob) = (match FuzzyMatchItem[string]) -> Row(match, theme, highlighted)
         let list = VirtualRows[FuzzyMatchItem[string]](
             matches,
             rowHeight,
-            (match FuzzyMatchItem[string]) -> match.Item + "\0" + match.Order.ToString(),
-            (match FuzzyMatchItem[string]) -> Row(match, theme, highlighted)
+            key,
+            build
         )
         list.Handle = listHandle
         list.Height = Math.Min(height, matches.Length * rowHeight)
