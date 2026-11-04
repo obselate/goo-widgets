@@ -63,6 +63,9 @@ public open class ListView : Cell[ListViewInput] {
     private var entries List[ListViewEntry] = List[ListViewEntry]()
     private var indices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
     private var selected HashSet[string] = HashSet[string](StringComparer.Ordinal)
+    private var prepared bool
+    private var hasCaption bool
+    private var searchable List[string] = List[string]()
     private var input ListViewInput
     private var theme Theme
     private var activeId string?
@@ -73,6 +76,8 @@ public open class ListView : Cell[ListViewInput] {
     private var presses int32
 
     protected override func Build(value ListViewInput) Blob {
+        let prepare = !prepared || !Object.ReferenceEquals(input.Items, value.Items) ||
+            !Object.ReferenceEquals(input.Sections, value.Sections) || input.Query != value.Query
         theme = Theme.Read()
         let height Length = 280
         input = value with{
@@ -84,33 +89,47 @@ public open class ListView : Cell[ListViewInput] {
         if !Double.IsFinite(input.RowHeight!!) || input.RowHeight!!<= 0 {
             throw ArgumentOutOfRangeException("RowHeight")
         }
-        entries = List[ListViewEntry]()
-        indices = Dictionary[string, int32](StringComparer.Ordinal)
         selected = HashSet[string](input.SelectedIds ?? []string{}, StringComparer.Ordinal)
-        let ids = HashSet[string](StringComparer.Ordinal)
-        AddItems(input.Items ?? []ListViewItem{}, ids)
-        for section in input.Sections ?? []ListViewSection{} {
-            if String.IsNullOrEmpty(section.Id) || !ids.Add("\0" + section.Id) {
-                throw ArgumentException("List section IDs must be nonempty and unique.")
-            }
-            let header = entries.Count
-            entries.Add(ListViewEntry{Id: "\0" + section.Id, Header: section.Label ?? section.Id})
-            AddItems(section.Items ?? []ListViewItem{}, ids)
-            if entries.Count == header + 1 {
-                entries.RemoveAt(header)
-            }
-        }
-        let searchable = List[string]()
-        var hasCaption bool
-        for index in 0 ... entries.Count {
-            let entry = entries[index]
-            if entry.Header == nil {
-                indices.Add(entry.Id, index)
-                hasCaption = hasCaption || entry.Item.Caption != nil
-                if !entry.Item.Disabled {
-                    searchable.Add(entry.Id)
+        if prepare {
+            prepared = false
+            entries = List[ListViewEntry]()
+            indices = Dictionary[string, int32](StringComparer.Ordinal)
+            searchable = List[string]()
+            hasCaption = false
+            let ids = HashSet[string](StringComparer.Ordinal)
+            AddItems(input.Items ?? []ListViewItem{}, ids)
+            for section in input.Sections ?? []ListViewSection{} {
+                if String.IsNullOrEmpty(section.Id) || !ids.Add("\0" + section.Id) {
+                    throw ArgumentException("List section IDs must be nonempty and unique.")
+                }
+                let header = entries.Count
+                entries.Add(ListViewEntry{Id: "\0" + section.Id, Header: section.Label ?? section.Id})
+                AddItems(section.Items ?? []ListViewItem{}, ids)
+                if entries.Count == header + 1 {
+                    entries.RemoveAt(header)
                 }
             }
+            for index in 0 ... entries.Count {
+                let entry = entries[index]
+                if entry.Header == nil {
+                    indices.Add(entry.Id, index)
+                    hasCaption = hasCaption || entry.Item.Caption != nil
+                    if !entry.Item.Disabled {
+                        searchable.Add(entry.Id)
+                    }
+                }
+            }
+            let removed = List[string]()
+            for pair in handles {
+                if !indices.ContainsKey(pair.Key) {
+                    removed.Add(pair.Key)
+                }
+            }
+            for id in removed {
+                handles.Remove(id)
+            }
+            typeAhead.Items = searchable
+            prepared = true
         }
         if value.RowHeight == nil && hasCaption {
             input.RowHeight = Math.Max(
@@ -118,23 +137,12 @@ public open class ListView : Cell[ListViewInput] {
                 (theme.FontSize + theme.CaptionFontSize) * theme.LineHeight + theme.Spacing
             )
         }
-        let removed = List[string]()
-        for pair in handles {
-            if !indices.ContainsKey(pair.Key) {
-                removed.Add(pair.Key)
-            }
-        }
-        for id in removed {
-            handles.Remove(id)
-        }
         if Index(input.ActiveId) >= 0 {
             activeId = input.ActiveId
         }
         if Index(activeId) < 0 {
-            let first = Next(-1, Key.Home)
-            activeId = first < 0 ? nil: entries[first].Id
+            activeId = searchable.Count == 0 ? nil: searchable[0]
         }
-        typeAhead.Items = searchable
         typeAhead.TextForId = (id string) -> {
             let index = indices[id]
             return entries[index].Item.Label ?? id
@@ -143,15 +151,15 @@ public open class ListView : Cell[ListViewInput] {
         let snapshot = input
         let key((ListViewEntry) -> string) = (entry ListViewEntry) -> entry.Id
         let build((ListViewEntry) -> Blob) = (entry ListViewEntry) -> BuildRow(snapshot, entry)
-        let rows Virtual = Virtual(
-            VirtualRowsSource[ListViewEntry](
-                entries,
-                virtualItemExtent(input.RowHeight!!, "RowHeight"),
-                key,
-                build,
-                nil
-            )
+        let source = VirtualRowsSource[ListViewEntry](
+            entries,
+            virtualItemExtent(input.RowHeight!!, "RowHeight"),
+            key,
+            build,
+            nil
         )
+        source.StableItems = true
+        let rows Virtual = Virtual(source)
         rows.Handle = viewport
         rows.FlexGrow = 1
         rows.MinHeight = 0

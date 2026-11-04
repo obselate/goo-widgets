@@ -22,6 +22,26 @@ internal class ListTreeHost : Cell {
     internal var Root Container?
     internal var DropPosition TreeDropPosition?
     internal let Rows Dictionary[string, Container] = Dictionary[string, Container]()
+    internal var Query string?
+    internal var Sections[]ListViewSection = []ListViewSection{
+        ListViewSection{
+            Id: "first",
+            Label: "First section",
+            Items: []ListViewItem{
+                ListViewItem{Id: "alpha", Label: "Alpha"},
+                ListViewItem{Id: "locked", Label: "Locked", Disabled: true},
+                ListViewItem{Id: "beta", Label: "Beta"}
+            }
+        },
+        ListViewSection{
+            Id: "second",
+            Label: "Second section",
+            Items: []ListViewItem{
+                ListViewItem{Id: "gamma", Label: "Gamma"},
+                ListViewItem{Id: "delta", Label: "Delta"}
+            }
+        }
+    }
 
     private func Change(ids[]string) {
         Selected = ids
@@ -80,25 +100,8 @@ internal class ListTreeHost : Cell {
                         Rebuild()
                     },
                     OnInvoke: (id string) -> Invoked = id,
-                    Sections: []ListViewSection{
-                        ListViewSection{
-                            Id: "first",
-                            Label: "First section",
-                            Items: []ListViewItem{
-                                ListViewItem{Id: "alpha", Label: "Alpha"},
-                                ListViewItem{Id: "locked", Label: "Locked", Disabled: true},
-                                ListViewItem{Id: "beta", Label: "Beta"}
-                            }
-                        },
-                        ListViewSection{
-                            Id: "second",
-                            Label: "Second section",
-                            Items: []ListViewItem{
-                                ListViewItem{Id: "gamma", Label: "Gamma"},
-                                ListViewItem{Id: "delta", Label: "Delta"}
-                            }
-                        }
-                    },
+                    Sections: Sections,
+                    Query: Query,
                     CreateRoot: (input ListViewInput, root Container) -> {
                         Root = root
                         return root
@@ -194,6 +197,25 @@ func ListViewInteractions() {
         PumpFrames(window, 6)
         ListKey(window, SDLScancode.Down, SDLKeymod.Shift)
         Require(host.Selected.Length == 1, "Single-select list retained multiple rows")
+        host.Query = "Delta"
+        host.Rebuild()
+        PumpFrames(window, 6)
+        Require(
+            FindSemantics(semantics.Tree!!.Root, "Delta") != nil &&
+                FindSemantics(semantics.Tree!!.Root, "Alpha") == nil,
+            "List query did not refresh cached sections"
+        )
+        host.Query = nil
+        host.Sections = []ListViewSection{
+            ListViewSection{Id: "replacement", Items: []ListViewItem{ListViewItem{Id: "new", Label: "New row"}}}
+        }
+        host.Rebuild()
+        PumpFrames(window, 6)
+        ListKey(window, SDLScancode.Home)
+        Require(
+            host.Active == "new" && FindSemantics(semantics.Tree!!.Root, "Delta") == nil,
+            "List replacement sections retained cached rows or indices"
+        )
         host.Tree = true
         host.Multiple = true
         host.Selected = []string{"alpha"}
