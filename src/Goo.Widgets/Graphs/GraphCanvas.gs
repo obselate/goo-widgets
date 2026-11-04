@@ -79,7 +79,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     private var validated bool
     private var cachedNodes[]GraphNode
     private var cachedEdges[]GraphEdge
-    private var nodesById Dictionary[string, GraphNode] = Dictionary[string, GraphNode](StringComparer.Ordinal)
+    private var nodeIndices Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
     private var viewport GraphViewport
     private var pointerMode GraphPointerMode
     private var pointerId int64 = -1L
@@ -242,9 +242,10 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             throw ArgumentOutOfRangeException("Viewport")
         }
         if graphChanged {
-            let nodes = Dictionary[string, GraphNode](StringComparer.Ordinal)
-            for node in value.Nodes {
-                if String.IsNullOrWhiteSpace(node.Id) || !nodes.TryAdd(node.Id, node) {
+            let nodes = Dictionary[string, int32](StringComparer.Ordinal)
+            for index in 0 ... value.Nodes.Length {
+                let node = value.Nodes[index]
+                if String.IsNullOrWhiteSpace(node.Id) || !nodes.TryAdd(node.Id, index) {
                     throw ArgumentException("Graph node identities must be nonempty and unique.", "Nodes")
                 }
                 if String.IsNullOrWhiteSpace(node.Label) {
@@ -260,7 +261,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                     throw ArgumentException("Graph edge identities must be nonempty and unique.", "Edges")
                 }
             }
-            nodesById = nodes
+            nodeIndices = nodes
         }
         let selectedIds = HashSet[string](StringComparer.Ordinal)
         for id in value.SelectedNodeIds {
@@ -326,11 +327,19 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     private func EdgeLayer() Container {
         let layer = PassiveLayer("graph-edges")
         for edge in resolved.Edges {
-            if !nodesById.TryGetValue(edge.FromId, out var from) || !nodesById.TryGetValue(edge.ToId, out var to) {
+            if !nodeIndices.TryGetValue(edge.FromId, out var fromIndex)
+                || !nodeIndices.TryGetValue(edge.ToId, out var toIndex) {
                 continue
             }
-            let fromPosition = ScreenPosition(NodePosition(from))
-            let toPosition = ScreenPosition(NodePosition(to))
+            if resolved.Nodes[fromIndex].Id != edge.FromId || resolved.Nodes[toIndex].Id != edge.ToId {
+                Validate(resolved, true)
+                if !nodeIndices.TryGetValue(edge.FromId, out fromIndex)
+                    || !nodeIndices.TryGetValue(edge.ToId, out toIndex) {
+                    continue
+                }
+            }
+            let fromPosition = ScreenPosition(NodePosition(resolved.Nodes[fromIndex]))
+            let toPosition = ScreenPosition(NodePosition(resolved.Nodes[toIndex]))
             if Math.Max(fromPosition.X, toPosition.X) < 0.0 || Math.Min(fromPosition.X, toPosition.X) > resolved.Width
             || Math.Max(fromPosition.Y, toPosition.Y) < 0.0 || Math.Min(
                 fromPosition.Y,
