@@ -2,6 +2,7 @@ package Goo.Widgets.Inputs
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Data
 import Goo.Widgets.Layout
 import System
 
@@ -86,18 +87,16 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
         visible = found && anchorRect != nil
         rowHeight = theme.ControlHeight
         let height = input.MaxHeight == 0.0 ? 240.0: input.MaxHeight
-        let list = Container{
-            Handle: listHandle,
-            MaxHeight: height,
-            OverflowY: Overflow.Scroll,
-            ScrollbarY: theme.Scrollbar,
-            Accessibility: Accessibility{Role: AccessibilityRole.List, SizeOfSet: matches.Length},
-        }
-        if visible {
-            for index in 0 ... matches.Length {
-                list.Children.Add(Row(index, theme))
-            }
-        }
+        let highlighted = matches.Length > 0 ? matches[active].Order: -1
+        let list = VirtualRows[FuzzyMatchItem[string]](
+            matches,
+            rowHeight,
+            (match FuzzyMatchItem[string]) -> match.Item + "\0" + match.Order.ToString(),
+            (match FuzzyMatchItem[string]) -> Row(match, theme, highlighted)
+        )
+        list.Handle = listHandle
+        list.Height = Math.Min(height, matches.Length * rowHeight)
+        list.Accessibility = Accessibility{Role: AccessibilityRole.List, SizeOfSet: matches.Length}
         return Container{
             MinWidth: 0,
             OnKeyDown: KeyDown,
@@ -123,10 +122,9 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
         }
     }
 
-    private func Row(index int32, theme Theme) Container {
-        let match = matches[index]
+    private func Row(match FuzzyMatchItem[string], theme Theme, highlighted int32) Container {
         return Container{
-            Key: index.ToString(),
+            Key: match.Item + "\0" + match.Order.ToString(),
             Height: rowHeight,
             FlexShrink: 0,
             PaddingStart: theme.ControlPadding,
@@ -134,28 +132,28 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BorderRadius: theme.ControlRadius!!,
-            BackgroundColor: index == active ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
+            BackgroundColor: match.Order == highlighted ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             OnPointerEnter: (event PointerEvent) -> {
-                active = index
+                active = Array.IndexOf(matches, match)
                 Rebuild()
             },
             OnPointerDown: (event PointerEvent) -> {
                 event.PreventDefault()
-                Pick(index)
+                Pick(Array.IndexOf(matches, match))
             },
             Accessibility: Accessibility{
                 Role: AccessibilityRole.ListItem,
                 Name: match.Item,
-                Selected: index == active,
+                Selected: match.Order == highlighted,
                 Actions: []AccessibilityAction{AccessibilityAction.Select},
                 OnAction: (request AccessibilityActionRequest) -> {
                     if request.Action != AccessibilityAction.Select {
                         return false
                     }
-                    Pick(index)
+                    Pick(Array.IndexOf(matches, match))
                     return true
                 }
             },
@@ -217,14 +215,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
     }
 
     private func Reveal() {
-        let top = float64(active) * rowHeight
-        let offset = listHandle.ScrollOffset.Y
-        let view = listHandle.ContentBox.Height
-        if top < offset {
-            listHandle.ScrollTo(0.0, top)
-        } else if top + rowHeight > offset + view {
-            listHandle.ScrollTo(0.0, top + rowHeight - view)
-        }
+        listHandle.ScrollToItem(matches[active].Item + "\0" + matches[active].Order.ToString())
     }
 
     private func Pick(index int32) {

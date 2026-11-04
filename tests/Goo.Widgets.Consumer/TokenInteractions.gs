@@ -21,6 +21,7 @@ internal class TokenHost : Cell {
     internal var Query string = ""
     internal var Removed int32
     internal var Disabled bool
+    internal var Suggestions[]string = []string{}
 
     public override func Build() Blob -> Container{
         Width: Percent(100),
@@ -34,6 +35,7 @@ internal class TokenHost : Cell {
                 Width: Percent(100),
                 AccessibilityName: "Recipients",
                 Disabled: Disabled,
+                Suggestions: Suggestions,
                 Validate: value -> value.Contains("@"),
                 OnTokensChange: values -> {
                     Tokens = values
@@ -88,6 +90,11 @@ internal class TokenHost : Cell {
 func TokenInteractions() {
     RetainedAllocationContracts()
     let host = TokenHost()
+    let suggestions = List[string]()
+    for index in 0 ... 1000 {
+        suggestions.Add("invalid-" + index.ToString())
+    }
+    host.Suggestions = suggestions.ToArray()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{
@@ -103,6 +110,8 @@ func TokenInteractions() {
         let id = OnlyNativeWindow()
         Require(host.Entry!!.Handle!!.Focus(), "Token editor did not focus")
         SelectorType(window, id, "invalid")
+        Require(FindSemantics(semantics.Tree?.Root, "Add invalid-0") != nil, "Matching token suggestion did not mount")
+        Require(FindSemantics(semantics.Tree?.Root, "Add invalid-999") == nil, "Off-screen token suggestion mounted")
         SendKey(id, SDLScancode.Return)
         PumpFrames(window, 6)
         Require(host.Tokens.Length == 2 && host.Tokens[1] == "invalid", "Enter did not retain an invalid token")

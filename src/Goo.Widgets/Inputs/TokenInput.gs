@@ -115,25 +115,37 @@ public open class TokenInput : Cell[TokenInputInput] {
         )
         root.Children.Add(frame)
         if !input.Disabled && draft.Length > 0 {
-            let suggestions = Container{Key: "suggestions", Gap: 2}
-            for suggestion in input.Suggestions ?? []string{} {
-                if suggestion.IndexOf(draft, StringComparison.OrdinalIgnoreCase) < 0 {
-                    continue
+            let items = input.Suggestions ?? []string{}
+            let matches = List[int32]()
+            for index in 0 ... items.Length {
+                if items[index].IndexOf(draft, StringComparison.OrdinalIgnoreCase) >= 0 {
+                    matches.Add(index)
                 }
-                let value = suggestion
-                let action = Button{
-                    Padding: 6,
-                    Focus: theme.FocusStyle,
-                    Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Add {0}", value)},
-                    OnClick: () -> {
-                        Commit(value)
-                        editor.Focus()
-                    },
-                    Text{Content: value, Color: theme.TextColor},
-                }
-                WidgetKeyBindings.BindActivation(action)
-                suggestions.Children.Add(action)
             }
+            let suggestions = VirtualRows[int32](
+                matches,
+                theme.ControlHeight,
+                (index int32) -> items[index] + "\0" + index.ToString(),
+                (index int32) -> {
+                    let value = items[index]
+                    let action = Button{
+                        Height: theme.ControlHeight,
+                        Padding: 6,
+                        Focus: theme.FocusStyle,
+                        Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Add {0}", value)},
+                        OnClick: () -> {
+                            Commit(value)
+                            editor.Focus()
+                        },
+                        Text{Content: value, Color: theme.TextColor},
+                    }
+                    WidgetKeyBindings.BindActivation(action)
+                    return action
+                }
+            )
+            suggestions.Key = "suggestions"
+            suggestions.Gap = 2
+            suggestions.Height = Math.Min(240.0, matches.Count * (theme.ControlHeight + 2))
             root.Children.Add(suggestions)
         }
         return root
