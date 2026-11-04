@@ -211,15 +211,18 @@ func NumericAndIdentityRegressions() {
     }
     Require(rejected, "Duplicate virtual-list identifiers reached Goo reconciliation.")
 
-    let empty = (
-        SearchList{
-            Items: []SelectionItem{SelectionItem{Id: "one", Label: "First", Detail: "Document"}},
-            Query: "missing",
-            EmptyText: "Nothing found",
-        }.Build() as Container
-    )!!
+    var empty Container?
+    SearchList{
+        Items: []SelectionItem{SelectionItem{Id: "one", Label: "First", Detail: "Document"}},
+        Query: "missing",
+        EmptyText: "Nothing found",
+        CustomizeRoot: (root Container) -> {
+            empty = root
+            return root
+        },
+    }.Build()
     Require(
-        empty.Children.Count == 2 && (empty.Children[1] as Text)!!.Content == "Nothing found",
+        empty != nil && empty.Children.Count == 2 && (empty.Children[1] as Text)!!.Content == "Nothing found",
         "No-match search did not replace its virtual viewport with the empty state."
     )
 }

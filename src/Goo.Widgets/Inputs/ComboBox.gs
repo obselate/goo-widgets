@@ -77,10 +77,15 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private var overlay ElementHandle?
     private var overlayBox ElementRect
-    private let rows List[int32] = List[int32]()
+    private var rows[]int32 = []int32{}
     private var created ComboBoxOption
-    private let ids HashSet[string] = HashSet[string](StringComparer.Ordinal)
-    private let priorIds List[string] = List[string]()
+    private var ids Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
+    private var positions Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
+    private var prepared bool
+    private var preparedQuery string = ""
+    private var multipleLabel string?
+    private var firstId string = ""
+    private var lastId string = ""
     private var activeId string = ""
     private var pointerFocus bool
     private var ownedOpen bool
@@ -105,6 +110,11 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     }
 
     protected override func Build(input ComboBoxInput) Blob {
+        let itemsChanged = !prepared || !Object.ReferenceEquals(current.Items, input.Items)
+        let optionsChanged = itemsChanged || current.Searchable != input.Searchable ||
+            current.AllowFreeText != input.AllowFreeText || !Object.Equals(current.CreateText, input.CreateText)
+        let selectionChanged = itemsChanged || current.Multiple != input.Multiple ||
+            !Object.ReferenceEquals(current.SelectedIds, input.SelectedIds)
         theme = Theme.Read()
         current = input with{
             Width = input.Width == 0.0 ? 280.0: input.Width,
@@ -117,83 +127,105 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if !Double.IsFinite(current.Width) || current.Width <= 2.0
         || !Double.IsFinite(current.PopupHeight) || current.PopupHeight <= 42.0
         || !Double.IsFinite(current.RowHeight) || current.RowHeight <= 0.0 {
+            prepared = false
             throw ArgumentOutOfRangeException("ComboBox dimensions")
         }
         let requestedOpen = !input.Disabled && (input.Open ?? ownedOpen)
         BindOverlay(input.OverlayHost)
         let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         let query = input.Query ?? ownedQuery
-        let creation = input.AllowFreeText ? query.Trim(): ""
         let items = input.Items ?? []ComboBoxOption{}
-        var changedIds = priorIds.Count != items.Length
-        if !changedIds {
-            for i in 0 ... items.Length {
-                if priorIds[i] != items[i].Id {
-                    changedIds = true
-                    break
+        if optionsChanged || preparedQuery != query {
+            prepared = false
+            if itemsChanged {
+                ids = Dictionary[string, int32](StringComparer.Ordinal)
+                for index in 0 ... items.Length {
+                    let item = items[index]
+                    if String.IsNullOrEmpty(item.Id) || !ids.TryAdd(item.Id!!, index) {
+                        throw ArgumentException("ComboBox option IDs must be nonempty and unique")
+                    }
                 }
             }
-        }
-        if changedIds {
-            ids.Clear()
-            priorIds.Clear()
-            for item in items {
-                if String.IsNullOrEmpty(item.Id) || !ids.Add(item.Id!!) {
-                    throw ArgumentException("ComboBox option IDs must be nonempty and unique")
+            let filtered = List[int32]()
+            positions = Dictionary[string, int32](StringComparer.Ordinal)
+            firstId = ""
+            lastId = ""
+            let creation = input.AllowFreeText ? query.Trim(): ""
+            var exact bool
+            for index in 0 ... items.Length {
+                let item = items[index]
+                if input.AllowFreeText && String.Equals(
+                    item.Label ?? item.Id!!,
+                    creation,
+                    StringComparison.OrdinalIgnoreCase
+                ) {
+                    exact = true
                 }
-                priorIds.Add(item.Id!!)
+                if (!input.Searchable && !input.AllowFreeText) || query.Length == 0 || (item.Label ?? item.Id!!).IndexOf(
+                    query,
+                    StringComparison.OrdinalIgnoreCase
+                ) >= 0 {
+                    positions.Add(item.Id!!, filtered.Count)
+                    filtered.Add(index)
+                    if !item.Disabled {
+                        if firstId == "" {
+                            firstId = item.Id!!
+                        }
+                        lastId = item.Id!!
+                    }
+                }
             }
+            createId = ""
+            if creation.Length > 0 && !exact {
+                createId = "create"
+                while ids.ContainsKey(createId) {
+                    createId += "-"
+                }
+                created = ComboBoxOption{
+                    Id: createId,
+                    Label: input.CreateText?.Invoke(creation) ?? "Create “" + creation + "”",
+                }
+                positions.Add(createId, filtered.Count)
+                filtered.Add(-1)
+                if firstId == "" {
+                    firstId = createId
+                }
+                lastId = createId
+            }
+            rows = filtered.ToArray()
+            let removed = List[string]()
+            for id in handles.Keys {
+                if id != createId && !ids.ContainsKey(id) {
+                    removed.Add(id)
+                }
+            }
+            for id in removed {
+                handles.Remove(id)
+            }
+            preparedQuery = query
+            prepared = true
         }
         var selected ComboBoxOption?
-        let selectedIds HashSet[string]? = input.Multiple ? HashSet[string](
-            input.SelectedIds ?? []string{},
-            StringComparer.Ordinal
-        ): nil
-        let labels List[string]? = input.Multiple ? List[string](): nil
-        var exact bool
-        rows.Clear()
-        for index in 0 ... items.Length {
-            let item = items[index]
-            if item.Id == input.SelectedId {
-                selected = item
-            }
-            if input.Multiple && selectedIds!!.Contains(item.Id!!) {
-                labels!!.Add(item.Label ?? item.Id!!)
-            }
-            if input.AllowFreeText && String.Equals(
-                item.Label ?? item.Id!!,
-                creation,
-                StringComparison.OrdinalIgnoreCase
-            ) {
-                exact = true
-            }
-            if (!input.Searchable && !input.AllowFreeText) || query.Length == 0 || (item.Label ?? item.Id!!).IndexOf(
-                query,
-                StringComparison.OrdinalIgnoreCase
-            ) >= 0 {
-                rows.Add(index)
-            }
+        if input.SelectedId != nil && ids.TryGetValue(input.SelectedId!!, out var selectedIndex) {
+            selected = items[selectedIndex]
         }
-        createId = ""
-        if creation.Length > 0 && !exact {
-            createId = "create"
-            while ids.Contains(createId) {
-                createId += "-"
+        if selectionChanged {
+            multipleLabel = nil
+            if input.Multiple {
+                let selectedIndices = SortedSet[int32]()
+                for id in input.SelectedIds ?? []string{} {
+                    if ids.TryGetValue(id, out var index) {
+                        selectedIndices.Add(index)
+                    }
+                }
+                let labels = List[string]()
+                for index in selectedIndices {
+                    labels.Add(items[index].Label ?? items[index].Id!!)
+                }
+                if labels.Count > 0 {
+                    multipleLabel = String.Join(", ", labels)
+                }
             }
-            created = ComboBoxOption{
-                Id: createId,
-                Label: input.CreateText?.Invoke(creation) ?? "Create “" + creation + "”",
-            }
-            rows.Add(-1)
-        }
-        let removed = List[string]()
-        for id in handles.Keys {
-            if id != createId && !ids.Contains(id) {
-                removed.Add(id)
-            }
-        }
-        for id in removed {
-            handles.Remove(id)
         }
         if !isOpen {
             wasOpen = false
@@ -206,12 +238,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             activeId = First(false)
         }
         let label = input.Multiple
-        ? (labels!!.Count == 0 ? current.Placeholder!!: String.Join(", ", labels!!))
+        ? multipleLabel ?? current.Placeholder!!
         : selected?.Label ?? selected?.Id ?? current.Placeholder!!
         let valueContent = (input.Multiple ? nil: selected?.Content) ??
             Text{
             Content: label,
-            Color: (input.Multiple ? labels!!.Count == 0: selected == nil) ? theme.MutedTextColor: theme.TextColor,
+            Color: (input.Multiple ? multipleLabel == nil: selected == nil) ? theme.MutedTextColor: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.FontWeight,
@@ -273,7 +305,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             current.PopupHeight,
             2.0 + ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) + Math.Max(
                 theme.ControlHeight,
-                float64(rows.Count) * current.RowHeight
+                float64(rows.Length) * current.RowHeight
             )
         )
         var popup = PopoverInput{
@@ -344,7 +376,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let snapshot = current
         let selected = activeId
         let keyboard = !pointerFocus && !current.Searchable && !current.AllowFreeText
-        let indices = rows.ToArray()
+        let indices = rows
+        let lookup = positions
         let items = current.Items ?? []ComboBoxOption{}
         let creation = created
         let key((ComboBoxRow) -> string) = (row ComboBoxRow) -> row.Item.Id!!
@@ -356,7 +389,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             build,
             nil
         ){
-            Count = rows.Count,
+            Count = rows.Length,
             Get = (index int32) -> {
                 let item = indices[index] < 0 ? creation: items[indices[index]]
                 return ComboBoxRow{
@@ -369,15 +402,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                     Input: snapshot,
                 }
             },
-            Index = (id string) -> {
-                for index in 0 ... indices.Length {
-                    let item = indices[index] < 0 ? creation: items[indices[index]]
-                    if item.Id == id {
-                        return index
-                    }
-                }
-                return -1
-            },
+            Index = (id string) -> lookup.TryGetValue(id, out var index) ? index: -1,
         }
         let virtualRows Virtual = Virtual(source)
         virtualRows.ScrollbarY = theme.Scrollbar
@@ -401,11 +426,11 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Accessibility: Accessibility{
                 Role: AccessibilityRole.List,
                 Name: current.AccessibilityName!!,
-                SizeOfSet: rows.Count,
+                SizeOfSet: rows.Length,
                 Relationships: relationships
             }
         }
-        if rows.Count == 0 {
+        if rows.Length == 0 {
             list.Children.Add(
                 Text{
                     Content: current.EmptyText ?? theme.Text("No matches"),
@@ -516,23 +541,13 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private func Option(index int32) ComboBoxOption -> rows[index] < 0 ? created: current.Items!![rows[index]]
 
     private func Index(id string) int32 {
-        for i in 0 ... rows.Count {
-            if Option(i).Id == id && !Option(i).Disabled {
-                return i
-            }
+        if positions.TryGetValue(id, out var index) && !Option(index).Disabled {
+            return index
         }
         return -1
     }
 
-    private func First(last bool) string {
-        for step in 0 ... rows.Count {
-            let i = last ? rows.Count - 1 - step: step
-            if !Option(i).Disabled {
-                return Option(i).Id!!
-            }
-        }
-        return ""
-    }
+    private func First(last bool) string -> last ? lastId: firstId
 
     private func Reveal() {
         if activeId == "" {
@@ -626,8 +641,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         } else {
             let direction = event.Key == Key.Down ? 1: -1
             let start = Index(activeId)
-            for step in 1 ... rows.Count + 1 {
-                let index = (Math.Max(0, start) + direction * step + rows.Count) % rows.Count
+            for step in 1 ... rows.Length + 1 {
+                let index = (Math.Max(0, start) + direction * step + rows.Length) % rows.Length
                 if !Option(index).Disabled {
                     activeId = Option(index).Id!!
                     break
