@@ -262,7 +262,6 @@ internal class VirtualItemsState[T] : VirtualState {
         } else {
             rows = count
         }
-        // Lines stack on the cross axis when wrapped, and on the main axis when not.
         let vertical = rowFlow == wrapped
         let lineCount = if !wrapped {
             count

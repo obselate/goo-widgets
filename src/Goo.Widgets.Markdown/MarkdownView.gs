@@ -216,7 +216,6 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
     }
 
     private func Table(model MarkdownModel) Blob {
-        // Markdig may retain a trailing definition without a cell after a closing pipe.
         var columns = 0
         for row in model.Children {
             columns = Math.Max(columns, row.Children.Length)

@@ -86,7 +86,6 @@ public data struct DonutChart {
             shape.Left = 0
             shape.Top = 0
             ChartParts.Wire(shape, segment, OnActivate, OnHover)
-            // Internal keys occupy a separate namespace from host series IDs.
             shape.Key = "series:" + segment.Series.Id!!
             plot.Children.Add(shape)
             angle += segment.Fraction * Math.PI * 2.0
