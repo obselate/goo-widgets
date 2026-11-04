@@ -14,7 +14,7 @@ public data struct ChartSeries {
     var Label string?
     /// Finite, nonnegative quantity.
     var Value float64
-    /// Series fill. Nil resolves to the theme accent.
+    /// Series fill. Nil resolves to the indexed theme series palette, or accent when empty.
     var Color Color?
 }
 
@@ -52,7 +52,10 @@ internal class ChartParts {
             }
             let result = [series.Length]ChartSegment
             for index in 0 ... series.Length {
-                let item = series[index]with{Color = series[index].Color ?? theme.AccentColor}
+                let item = series[index]with{
+                    Color = series[index].Color ?? (theme.SeriesPalette.Length > 0
+                        ? theme.SeriesPalette[index % theme.SeriesPalette.Length]: theme.AccentColor)
+                }
                 let fraction = total > 0.0 ? (item.Value / scale) / total: 0.0
                 result[index] = ChartSegment{
                     Series: item,
