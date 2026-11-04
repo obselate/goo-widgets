@@ -646,7 +646,6 @@ internal class VirtualRowsStorage[T] : VirtualState {
     }
 
     private func AnchorIndex(data VirtualRowMetadata[T], scroll float32) int32 {
-        // Match the float32 coordinates used by layout and ScrollToItem at exact row boundaries.
         var low = 0
         var high = data.Count - 1
         while low < high {

@@ -104,7 +104,7 @@ public data struct Grid {
     }
 }
 
-// The policy owns defensive copies: later host edits to its input arrays cannot change an in-flight layout.
+/// Owns defensive copies so host edits cannot change an in-flight layout.
 internal class GridPolicy : LayoutAlgorithm {
     private let columns[]GridTrack
     private let rows[]GridTrack
@@ -211,7 +211,6 @@ internal class GridPolicy : LayoutAlgorithm {
 
     private func MeasureColumns(context LayoutContext, available float64)[]float64 {
         let sizes = Initial(columns)
-        // Short spans establish intrinsic sizes before larger spans distribute a remaining deficit.
         for index in columnOrder {
             let item = items[index]
             if Double.IsFinite(available) && HasFraction(columns, item.Column, item.ColumnSpan ?? 1) {
