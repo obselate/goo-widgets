@@ -213,7 +213,7 @@ public data struct SearchList {
 
 internal func buildSearchListRow(row SearchListRow) Blob -> row.Build()
 
-// Virtual retains a row while this value compares equal, including every render input.
+/// Retains a virtual row while all render inputs compare equal.
 internal struct SearchListRow : IEquatable[SearchListRow] {
     internal var Item SelectionItem
     internal var Selected bool
@@ -290,7 +290,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
     }
 }
 
-// One snapshot per Build avoids duplicating colors and callbacks in every filtered row.
+/// One Build snapshot sharing colors and callbacks across filtered rows.
 internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     internal var RowHeight float64
     internal var Background Color

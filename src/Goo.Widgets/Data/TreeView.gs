@@ -294,7 +294,6 @@ public open class TreeView : Cell[TreeViewInput] {
         } else {
             nil
         }
-        // A full-height provider realizes every row without replacing its retained subtree when the mode changes.
         let scroll = Container{
             FlexGrow: 1,
             FlexBasis: 0,

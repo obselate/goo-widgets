@@ -13,8 +13,7 @@ internal data struct MarkdownLeafInput {
     var Alignment TextAlign
 }
 
-// A leaf always starts from a fresh document. Changed text receives a new mount key,
-// so content refresh does not accumulate undo history or invalidate an attached controller.
+/// A leaf starts from a fresh document and mount key, preserving attached controllers and avoiding accumulated undo history.
 internal class MarkdownTextView : Cell, IDisposable {
     private var controller TextEditorController?
     private var layer TextPresentationLayer?
@@ -248,8 +247,7 @@ internal class MarkdownTextView : Cell, IDisposable {
     }
 }
 
-// Asking the real editor for unbounded height shapes every wrapped line. No font
-// estimates, oversized hidden editor, or end-caret retry loop is required.
+/// Measures wrapped lines through the editor with unbounded height.
 internal class MarkdownIntrinsicLayout : LayoutAlgorithm {
     public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
         let size = context.MeasureChild(0, LayoutSize{Width: available.Width, Height: Double.PositiveInfinity})
