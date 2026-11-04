@@ -78,6 +78,7 @@ internal class OverlayHost : Cell {
     internal let Edit ElementHandle = ElementHandle()
     internal let Nested ElementHandle = ElementHandle()
     internal let PopupAction ElementHandle = ElementHandle()
+    internal let DrawerAction ElementHandle = ElementHandle()
     internal var DialogOpen bool
     internal var DrawerOpen bool
     internal var TopOpen bool
@@ -295,6 +296,7 @@ internal class OverlayHost : Cell {
                     Rebuild()
                 },
                 Content: Button{
+                    Handle: DrawerAction,
                     Accessibility: Accessibility{Name: "Drawer action"},
                     Text{Content: "Drawer action"},
                 },
@@ -570,6 +572,10 @@ func OverlayInteractions() {
         host.DrawerOpen = true
         host.Rebuild()
         PumpFrames(window, 12)
+        Require(
+            host.DrawerAction.IsMounted && host.DrawerAction.BorderBox.Width > 0.0 && host.DrawerAction.BorderBox.Height > 0.0,
+            "Modal drawer content was not mounted and visible"
+        )
         Require(OverlayFocus(semantics, "Drawer action"), "Modal drawer did not set initial focus")
         Require(!host.Before.Focus(), "Modal drawer allowed background focus")
         SendKey(id, SDLScancode.Tab)

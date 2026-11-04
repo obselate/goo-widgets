@@ -53,43 +53,6 @@ public data struct Drawer {
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
-        if Modal {
-            return Cell.Mount[ModalDialog, ModalDialogHost](
-                nil,
-                ModalDialog{
-                    Open: Open,
-                    AccessibilityName: AccessibilityName ?? Theme.Read().Text("Drawer"),
-                    OnClose: OnDismiss,
-                    Fullscreen: true,
-                    Padding: 0.0,
-                    Gap: 0.0,
-                    BackgroundColor: Color.Transparent,
-                    BorderWidth: 0.0,
-                    BorderRadius: 0.0,
-                    Content: (this with{Modal = false}).Build(),
-                    Footer: Container{},
-                    CreateRoot: (_, _, panel) -> {
-                        panel.Position = PositionType.Absolute
-                        panel.Top = 0.0
-                        panel.Width = Width == 0.0 ? 320.0: Width
-                        panel.Height = Height ?? Percent(100.0)
-                        if FromEnd {
-                            panel.End = 0.0
-                        } else {
-                            panel.Start = 0.0
-                        }
-                        return Container{
-                            Position: PositionType.Absolute,
-                            Left: 0.0,
-                            Right: 0.0,
-                            Top: 0.0,
-                            Bottom: 0.0,
-                            Direction: Theme.Read().Direction,
-                        }
-                    },
-                }
-            )
-        }
         let theme = Theme.Read()
         let createRoot = CreateRoot
         let defaultClosedTransform = if FromEnd != theme.RightToLeft {
@@ -122,10 +85,6 @@ public data struct Drawer {
             CreateRoot = nil,
         }
 
-        if let createRoot = createRoot {
-            return createRoot(resolved, Content)
-        }
-
         let opacity = if resolved.Open {
             resolved.OpenOpacity!!
         } else {
@@ -137,39 +96,85 @@ public data struct Drawer {
             resolved.ClosedTransform!!
         }
 
-        let root = Container{
-            Position: PositionType.Absolute,
-            Top: 0.0,
-            Direction: theme.Direction,
-            Width: resolved.Width,
-            Height: resolved.Height!!,
-            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
-            BackgroundColor: resolved.BackgroundColor!!,
-            BorderColor: resolved.BorderColor!!,
-            BorderWidth: resolved.BorderWidth!!,
-            BorderRadius: resolved.BorderRadius!!,
-            BoxShadow: resolved.BoxShadow!!,
-            Opacity: opacity,
-            Transform: transform,
-            TransitionMs: resolved.TransitionMs!!,
-            TransitionEasing: resolved.TransitionEasing!!,
-            Overflow: Overflow.Hidden,
-            Disabled: !resolved.Open,
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Group,
-                Name: resolved.AccessibilityName!!,
-                Hidden: !resolved.Open,
-            },
+        let root = if let createRoot = createRoot {
+            createRoot(resolved, Content)
+        } else {
+            Container{
+                Position: PositionType.Absolute,
+                Top: 0.0,
+                Direction: theme.Direction,
+                Width: resolved.Width,
+                Height: resolved.Height!!,
+                Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
+                BackgroundColor: resolved.BackgroundColor!!,
+                BorderColor: resolved.BorderColor!!,
+                BorderWidth: resolved.BorderWidth!!,
+                BorderRadius: resolved.BorderRadius!!,
+                BoxShadow: resolved.BoxShadow!!,
+                Opacity: opacity,
+                Transform: transform,
+                TransitionMs: resolved.TransitionMs!!,
+                TransitionEasing: resolved.TransitionEasing!!,
+                Overflow: Overflow.Hidden,
+                Disabled: !resolved.Open,
+                Accessibility: Accessibility{
+                    Role: AccessibilityRole.Group,
+                    Name: resolved.AccessibilityName!!,
+                    Hidden: !resolved.Open,
+                },
+            }
         }
 
-        if resolved.FromEnd {
+        if createRoot == nil && resolved.FromEnd {
             root.End = 0.0
-        } else {
+        } else if createRoot == nil {
             root.Start = 0.0
         }
 
-        if let content = Content {
-            root.Children.Add(content)
+        if createRoot == nil {
+            if let content = Content {
+                root.Children.Add(content)
+            }
+        }
+        if Modal {
+            return Cell.Mount[ModalDialog, ModalDialogHost](
+                nil,
+                ModalDialog{
+                    Open: Open,
+                    AccessibilityName: resolved.AccessibilityName,
+                    OnClose: OnDismiss,
+                    Fullscreen: true,
+                    Padding: 0.0,
+                    Gap: 0.0,
+                    BackgroundColor: Color.Transparent,
+                    BorderWidth: 0.0,
+                    BorderRadius: 0.0,
+                    Content: root,
+                    Footer: Container{},
+                    CreateRoot: (dialog, backdrop, panel) -> {
+                        panel.Position = PositionType.Absolute
+                        panel.Top = 0.0
+                        panel.Width = resolved.Width
+                        panel.Height = resolved.Height!!
+                        if resolved.FromEnd {
+                            panel.End = 0.0
+                        } else {
+                            panel.Start = 0.0
+                        }
+                        return Container{
+                            Position: PositionType.Absolute,
+                            Left: 0.0,
+                            Right: 0.0,
+                            Top: 0.0,
+                            Bottom: 0.0,
+                            Direction: theme.Direction,
+                            ZIndex: dialog.ZIndex,
+                            backdrop,
+                            panel,
+                        }
+                    },
+                }
+            )
         }
 
         return root
