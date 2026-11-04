@@ -5,6 +5,7 @@ import Goo.Widgets.Markdown
 import Hexa.NET.SDL3
 import System
 import System.Collections.Generic
+import System.Text
 
 internal class MarkdownProbe : MarkdownView {
     internal func Render(input MarkdownViewInput) Blob -> base.Build(input)
@@ -47,12 +48,20 @@ func MarkdownContracts() {
     } {
         Require(kinds.Contains(kind), "Markdown failed to parse " + kind.ToString())
     }
+    kinds.Clear()
+    let bounded = (probe.Render(input with{Height = 240.0}) as Container)!!
+    Require(bounded.Children.Count == 1 && bounded.Children[0] is Virtual && kinds.Count == 0,
+        "Bounded Markdown built blocks before virtual realization")
     probe.Render(MarkdownViewInput{Text: "", OnHeadings: input.OnHeadings})
     Require(headings!!.Count == 0, "Empty Markdown retained old headings")
 }
 
 internal class MarkdownHost : Cell {
     internal let Viewport ElementHandle = ElementHandle()
+    internal let State MarkdownViewState = MarkdownViewState()
+    internal var Bounded bool
+    internal var ExtraText string = ""
+    internal var BlockCalls int32
     internal let Before ElementHandle = ElementHandle()
     internal let Editors Dictionary[string, TextEditor] = Dictionary[string, TextEditor](StringComparer.Ordinal)
     internal var Headings IReadOnlyList[MarkdownHeading] = []MarkdownHeading{}
@@ -76,6 +85,11 @@ internal class MarkdownHost : Cell {
     private func HeadingsChanged(value IReadOnlyList[MarkdownHeading]) {
         Headings = value
         HeadingCalls++
+    }
+
+    private func Block(block MarkdownBlock, prepared Blob) Blob {
+        BlockCalls++
+        return prepared
     }
 
     private func Editor(block MarkdownBlock, prepared TextEditor) TextEditor {
@@ -152,18 +166,21 @@ internal class MarkdownHost : Cell {
                     FlexGrow: 1.0,
                     FlexBasis: 0.0,
                     MinHeight: 0.0,
-                    OverflowY: Overflow.Scroll,
+                    OverflowY: Bounded ? Overflow.Hidden: Overflow.Scroll,
                     Cell.Mount[MarkdownViewInput, MarkdownView](
                         "view",
                         MarkdownViewInput{
-                            Text: Text(),
+                            Text: Text() + ExtraText,
+                            Height: Bounded ? Percent(100): nil,
+                            State: State,
                             FontSize: FontSize,
                             OnLink: Open,
                             ResolveImage: Resolve,
                             OnHeadings: HeadingsChanged,
                             CreateEditor: Editor,
                             CreateInline: Inline,
-                            CreateInlineStyle: Style
+                            CreateInlineStyle: Style,
+                            CreateBlock: Block
                         }
                     )
                 }
@@ -296,8 +313,8 @@ func MarkdownInteractions() {
         )
         CaptureIssueProof(window, "markdown-narrow")
         Require(
-            host.Headings[3].Handle!!.ScrollIntoView(),
-            "Markdown heading handle failed table-of-contents navigation"
+            host.State.ScrollToHeading(host.Headings[3].Id!!),
+            "Markdown navigation state failed table-of-contents navigation"
         )
         PumpFrames(window, 12)
         Require(host.Viewport.ScrollOffset.Y > 0.0, "Markdown table-of-contents navigation did not scroll the article")
@@ -350,7 +367,59 @@ func MarkdownInteractions() {
             "Wrapped link overlapped the following text"
         )
         CaptureIssueProof(window, "markdown-long-link")
-        let lastController = longEditor.Controller
+        host.Before.Focus()
+        host.Show = false
+        host.Rebuild()
+        PumpFrames(window, 8)
+        let extra = StringBuilder()
+        for index in 0 ... 200 {
+            extra.Append("\n\nParagraph ").Append(index).Append(" with selectable text.")
+        }
+        extra.Append("\n\n## Final section\n\n")
+        for index in 0 ... 20 {
+            extra.Append("\n\nFollowing paragraph ").Append(index).Append(".")
+        }
+        host.ExtraText = extra.ToString()
+        host.Bounded = true
+        host.Show = true
+        host.Rebuild()
+        PumpFrames(window, 30)
+        let finalHeading = host.Headings[4]
+        Require(host.Headings.Count == 5 && finalHeading.Id == "final-section" && !finalHeading.Handle!!.IsMounted,
+            "Virtual Markdown did not retain the off-screen heading registry")
+        var mounted = 0
+        for editor in host.Editors.Values {
+            if editor.Handle!!.IsMounted {
+                mounted++
+            }
+        }
+        Require(mounted > 0 && mounted < 30, "Bounded Markdown mounted the whole document")
+        let blockCalls = host.BlockCalls
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(host.BlockCalls == blockCalls, "Unchanged virtual Markdown rebuilt its blocks")
+        let virtualEditor = host.Editors["root/1"]
+        Require(virtualEditor.Handle!!.Focus(), "Virtual Markdown text could not receive focus")
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        PumpFrames(window, 5)
+        let selection = virtualEditor.Controller.Selection
+        host.Before.Focus()
+        Require(host.State.ScrollToHeading(finalHeading.Id!!), "Virtual Markdown could not navigate to an off-screen heading")
+        PumpFrames(window, 30)
+        Require(finalHeading.Handle!!.IsMounted && finalHeading.Handle!!.ScrollIntoView(),
+            "Virtual Markdown did not mount the requested heading")
+        Require(ControllerDisposed(virtualEditor.Controller), "Virtual Markdown retained an off-screen text controller")
+        Require(!host.State.ScrollToHeading("missing-heading"), "Markdown accepted an unknown heading ID")
+        Require(host.State.ScrollToHeading(host.Headings[0].Id!!), "Virtual Markdown could not return to the first heading")
+        PumpFrames(window, 30)
+        let restored = host.Editors["root/1"]
+        Require(restored.Handle!!.IsMounted && restored.Controller.Selection.Equals(selection),
+            "Virtual Markdown lost per-block selection after remounting")
+        let links = host.Links
+        CompositeClick(window, host.LinkContent!!)
+        PumpFrames(window, 8)
+        Require(host.Links == links + 1 && host.LastLink == "app:guide", "Virtual Markdown lost link activation")
+        let lastController = host.Editors["root/1"].Controller
         host.Show = false
         host.Rebuild()
         PumpFrames(window, 8)
@@ -360,6 +429,6 @@ func MarkdownInteractions() {
         PumpFrames(window, 5)
     }
     Console.WriteLine(
-        "PASS: native Markdown parsing, intrinsic resize/font measurement, keyboard copy/read-only selection, accessible links/headings, host images, ToC, content refresh and disposal"
+        "PASS: native Markdown parsing, intrinsic resize/font measurement, keyboard copy/read-only selection, accessible links/headings, host images, ToC, content refresh, virtual block mounting/navigation/selection and disposal"
     )
 }

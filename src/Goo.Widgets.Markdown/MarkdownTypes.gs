@@ -58,10 +58,34 @@ public data struct MarkdownHeading {
     var Handle ElementHandle?
 }
 
+/// Navigation for one mounted Markdown view. Pass the same state on each rebuild.
+public class MarkdownViewState {
+    internal let Viewport ElementHandle = ElementHandle()
+    internal let Headings Dictionary[string, MarkdownHeadingHandle] = Dictionary[string, MarkdownHeadingHandle](
+        StringComparer.Ordinal
+    )
+    internal var Virtualized bool
+
+    /// Reveals a heading by ID, including headings outside the mounted virtual rows.
+    /// Returns false when the heading or mounted view is unavailable.
+    public func ScrollToHeading(id string) bool {
+        if !Headings.TryGetValue(id, out var heading) {
+            return false
+        }
+        return Virtualized ? Viewport.ScrollToItem(heading.BlockKey, ScrollAlignment.Start):
+            heading.Handle.ScrollIntoView()
+    }
+}
+
 /// Optional-parser rich content. Links and images are resolved only through host callbacks.
 public data struct MarkdownViewInput {
     var Text string?
     var Width Length?
+    /// A bounded viewport height enables virtual rows. Percent heights need a sized parent.
+    /// Leave nil or Auto in a content-sized container to render all blocks without an inner scroller.
+    var Height Length?
+    /// Optional navigation state for this mounted view.
+    var State MarkdownViewState?
     var FontSize float64
     var FontFamily string?
     var CodeFontFamily string?
@@ -84,12 +108,14 @@ public data struct MarkdownViewInput {
     /// Customizes a prepared read-only editor; it must retain its supplied controller.
     var CreateEditor Func[MarkdownBlock, TextEditor, TextEditor]?
     var CreateRoot Func[MarkdownViewInput, Container, Container]?
-    /// Runs when the heading list or this callback changes. Handles become mounted after reconciliation.
+    /// Runs when the heading list or this callback changes. Only mounted headings have mounted handles.
+    /// Use State.ScrollToHeading to reach an off-screen heading in a bounded view.
     var OnHeadings Action[IReadOnlyList[MarkdownHeading]]?
 }
 
 internal class MarkdownModel {
     internal var Path string = ""
+    internal var Key string = ""
     internal var Block MarkdownBlock
     internal var Runs[]MarkdownInline = []MarkdownInline{}
     internal var Captions Dictionary[int32, IReadOnlyList[MarkdownInline]]?

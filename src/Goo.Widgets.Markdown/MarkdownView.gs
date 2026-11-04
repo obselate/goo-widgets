@@ -2,16 +2,19 @@ package Goo.Widgets.Markdown
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Data
 import System
 import System.Collections.Generic
 
 internal class MarkdownLeafStamp {
     internal var Text string = ""
     internal var Revision int64
+    internal var Selection TextSelection
 }
 
 internal class MarkdownHeadingHandle {
     internal var Parent string = ""
+    internal var BlockKey string = ""
     internal let Handle ElementHandle = ElementHandle()
 }
 
@@ -21,9 +24,8 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
     private let leaves Dictionary[string, MarkdownLeafStamp] = Dictionary[string, MarkdownLeafStamp](
         StringComparer.Ordinal
     )
-    private let handles Dictionary[string, MarkdownHeadingHandle] = Dictionary[string, MarkdownHeadingHandle](
-        StringComparer.Ordinal
-    )
+    private let defaultState MarkdownViewState = MarkdownViewState()
+    private var state MarkdownViewState
     private let usedLeaves HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private let usedHeadings HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private let headings List[MarkdownHeading] = List[MarkdownHeading]()
@@ -32,21 +34,28 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
     private var current MarkdownViewInput
     private var theme Theme
     private var headingCallback Action[IReadOnlyList[MarkdownHeading]]?
+    private var headingList IReadOnlyList[MarkdownHeading] = []MarkdownHeading{}
+    private var buildRow Func[MarkdownModel, Blob]?
 
     protected override func Build(input MarkdownViewInput) Blob {
-        theme = Theme.Read()
-        current = input with{
-            FontSize = input.FontSize == 0.0 ? theme.FontSize: input.FontSize,
-            FontFamily = input.FontFamily ?? theme.FontFamily,
-            CodeFontFamily = input.CodeFontFamily ?? theme.MonoFontFamily,
-            Color = input.Color ?? theme.TextColor,
-            MutedColor = input.MutedColor ?? theme.MutedTextColor,
-            LinkColor = input.LinkColor ?? theme.LinkColor,
-            CodeBackground = input.CodeBackground ?? theme.FieldColor,
-            SelectionColor = input.SelectionColor ?? theme.AccentColor.WithAlpha(0.35),
-            BlockGap = input.BlockGap ?? theme.Spacing * 3.0,
+        let nextTheme = Theme.Read()
+        let options = input with{
+            FontSize = input.FontSize == 0.0 ? nextTheme.FontSize: input.FontSize,
+            FontFamily = input.FontFamily ?? nextTheme.FontFamily,
+            CodeFontFamily = input.CodeFontFamily ?? nextTheme.MonoFontFamily,
+            Color = input.Color ?? nextTheme.TextColor,
+            MutedColor = input.MutedColor ?? nextTheme.MutedTextColor,
+            LinkColor = input.LinkColor ?? nextTheme.LinkColor,
+            CodeBackground = input.CodeBackground ?? nextTheme.FieldColor,
+            SelectionColor = input.SelectionColor ?? nextTheme.AccentColor.WithAlpha(0.35),
+            BlockGap = input.BlockGap ?? nextTheme.Spacing * 3.0,
             MinimumTableColumnWidth = input.MinimumTableColumnWidth == 0.0 ? 100.0: input.MinimumTableColumnWidth
         }
+        if buildRow == nil || current != options || theme != nextTheme {
+            buildRow = (model MarkdownModel) -> Block(model, 400.0, TextAlign.Left, options, nextTheme)
+        }
+        current = options
+        theme = nextTheme
         if !Double.IsFinite(current.FontSize) || current.FontSize <= 0.0 || !Double.IsFinite(current.BlockGap!!) ||
             current.BlockGap!!< 0.0
         || !Double.IsFinite(current.MinimumTableColumnWidth) || current.MinimumTableColumnWidth <= 0.0 {
@@ -58,49 +67,87 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             models = parser.Parse(text)
             source = text
         }
-        usedLeaves.Clear()
-        usedHeadings.Clear()
-        headings.Clear()
-        let children = List[Blob]()
-        for model in models {
-            children.Add(Block(model, 400.0, TextAlign.Left))
+        let nextState = input.State ?? defaultState
+        let registryChanged = changed || state != nextState
+        state = nextState
+        if registryChanged {
+            usedLeaves.Clear()
+            usedHeadings.Clear()
+            headings.Clear()
+            for model in models {
+                Register(model, model.Key)
+            }
+            for key in List[string](leaves.Keys) {
+                if !usedLeaves.Contains(key) {
+                    leaves.Remove(key)
+                }
+            }
+            for key in List[string](state.Headings.Keys) {
+                if !usedHeadings.Contains(key) {
+                    state.Headings.Remove(key)
+                }
+            }
+            headingList = Array.AsReadOnly(headings.ToArray())
         }
-        var root = Column(current.BlockGap!!)
+        state.Virtualized = input.Height?.HasMagnitude ?? false
+        var root = Column(state.Virtualized ? 0.0: current.BlockGap!!)
         root.Width = input.Width ?? Percent(100)
+        root.Height = input.Height ?? Length.Auto
         if let create = input.CreateRoot {
             root = create(current, root)
         }
         root.Children.Clear()
-        for child in children {
-            root.Children.Add(child)
-        }
-        for key in List[string](leaves.Keys) {
-            if !usedLeaves.Contains(key) {
-                leaves.Remove(key)
+        if state.Virtualized {
+            let rows = VirtualRows(models, current.FontSize * theme.LineHeight, BlockKey, buildRow!!, version: 0)
+            rows.Handle = state.Viewport
+            rows.Gap = current.BlockGap!!
+            rows.FlexGrow = 1.0
+            rows.FlexBasis = 0.0
+            rows.MinHeight = 0.0
+            root.Children.Add(rows)
+        } else {
+            for model in models {
+                root.Children.Add(buildRow!!(model))
             }
         }
-        for key in List[string](handles.Keys) {
-            if !usedHeadings.Contains(key) {
-                handles.Remove(key)
-            }
-        }
-        if changed || headingCallback != input.OnHeadings {
+        if registryChanged || headingCallback != input.OnHeadings {
             headingCallback = input.OnHeadings
-            headingCallback?.Invoke(Array.AsReadOnly(headings.ToArray()))
+            headingCallback?.Invoke(headingList)
         }
         return root
     }
 
     private func Column(gap float64 = 0.0) Container -> Container{Gap: gap, MinWidth: 0.0, FlexShrink: 0.0}
 
-    private func Block(model MarkdownModel, weight float64, alignment TextAlign) Blob {
+    private func BlockKey(model MarkdownModel) string -> model.Key
+
+    private func Register(model MarkdownModel, blockKey string) {
+        usedLeaves.Add(model.Path)
+        let info = model.Block
+        if info.Kind == MarkdownBlockKind.Heading {
+            let id = info.Id!!
+            let parent = model.Path.Substring(0, model.Path.LastIndexOf('/'))
+            if !state.Headings.TryGetValue(id, out var entry) || entry.Parent != parent {
+                entry = MarkdownHeadingHandle{Parent: parent}
+                state.Headings[id] = entry
+            }
+            entry.BlockKey = blockKey
+            usedHeadings.Add(id)
+            headings.Add(MarkdownHeading{Id: id, Text: info.Text, Level: info.HeadingLevel, Handle: entry.Handle})
+        }
+        for child in model.Children {
+            Register(child, blockKey)
+        }
+    }
+
+    private func Block(model MarkdownModel, weight float64, alignment TextAlign, current MarkdownViewInput, theme Theme) Blob {
         let info = model.Block
         var content Blob
         if info.Kind == MarkdownBlockKind.Heading {
             let scale = []float64{2.0, 1.7, 1.4, 1.2, 1.1, 1.0}
-            content = Leaf(model, current.FontSize * scale[Math.Clamp(info.HeadingLevel, 1, 6) - 1], 700.0, alignment)
+            content = Leaf(model, current.FontSize * scale[Math.Clamp(info.HeadingLevel, 1, 6) - 1], 700.0, alignment, current, theme)
         } else if info.Kind == MarkdownBlockKind.Paragraph {
-            content = Leaf(model, current.FontSize, weight, alignment)
+            content = Leaf(model, current.FontSize, weight, alignment, current, theme)
         } else if info.Kind == MarkdownBlockKind.Code {
             content = Container{
                 Padding: theme.ControlPadding,
@@ -108,18 +155,18 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 MinWidth: 0.0,
                 FlexShrink: 0.0,
                 BackgroundColor: current.CodeBackground!!,
-                Leaf(model, current.FontSize * .93, 400.0, TextAlign.Left)
+                Leaf(model, current.FontSize * .93, 400.0, TextAlign.Left, current, theme)
             }
         } else if info.Kind == MarkdownBlockKind.Rule {
             content = Container{Height: 1.0, FlexShrink: 0.0, BackgroundColor: current.MutedColor!!}
         } else if info.Kind == MarkdownBlockKind.Table {
-            content = Table(model)
+            content = Table(model, current, theme)
         } else if info.Kind == MarkdownBlockKind.List {
-            content = ListBlockView(model)
+            content = ListBlockView(model, current, theme)
         } else {
             let box = Column(current.BlockGap!!* .6)
             for child in model.Children {
-                box.Children.Add(Block(child, weight, alignment))
+                box.Children.Add(Block(child, weight, alignment, current, theme))
             }
             if info.Kind == MarkdownBlockKind.Quote || info.Kind == MarkdownBlockKind.Alert {
                 box.Padding = Edges{Left: theme.ControlPadding}
@@ -146,43 +193,34 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         }
         let root = Container{Key: info.Id, MinWidth: 0.0, FlexShrink: 0.0, content}
         if info.Kind == MarkdownBlockKind.Heading {
-            let id = info.Id!!
-            let parent = model.Path.Substring(0, model.Path.LastIndexOf('/'))
-            if !handles.TryGetValue(id, out var entry) || entry.Parent != parent {
-                entry = MarkdownHeadingHandle{Parent: parent}
-                handles[id] = entry
-            }
-            usedHeadings.Add(id)
-            root.Handle = entry.Handle
+            root.Handle = state.Headings[info.Id!!].Handle
             root.Accessibility = Accessibility{
                 Role: AccessibilityRole.Heading,
                 Name: info.Text ?? "",
                 Level: info.HeadingLevel
             }
-            headings.Add(MarkdownHeading{Id: id, Text: info.Text, Level: info.HeadingLevel, Handle: entry.Handle})
         }
         return root
     }
 
-    private func Leaf(model MarkdownModel, size float64, weight float64, alignment TextAlign) Blob {
+    private func Leaf(model MarkdownModel, size float64, weight float64, alignment TextAlign, current MarkdownViewInput, theme Theme) Blob {
         let path = model.Path
         let text = model.Block.Text ?? ""
         if !leaves.TryGetValue(path, out var stamp) {
             stamp = MarkdownLeafStamp{Text: text}
             leaves.Add(path, stamp)
         } else if stamp.Text != text {
-            stamp.Text = text
-            stamp.Revision++
+            stamp = MarkdownLeafStamp{Text: text, Revision: stamp.Revision + 1}
+            leaves[path] = stamp
         }
-        usedLeaves.Add(path)
-        let input = MarkdownLeafInput{Model: model, Options: current, Size: size, Weight: weight, Alignment: alignment}
+        let input = MarkdownLeafInput{Model: model, Options: current, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp}
         return Cell.Mount[MarkdownTextView](
             path + "@" + stamp.Revision.ToString(),
             (cell MarkdownTextView) -> cell.Configure(input, theme)
         )
     }
 
-    private func ListBlockView(model MarkdownModel) Blob {
+    private func ListBlockView(model MarkdownModel, current MarkdownViewInput, theme Theme) Blob {
         let list = Column(theme.Spacing)
         list.Accessibility = Accessibility{Role: AccessibilityRole.List}
         var index = model.Start
@@ -205,7 +243,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                     Color: current.MutedColor!!
                 }
             )
-            let body = Block(item, 400.0, TextAlign.Left)
+            let body = Block(item, 400.0, TextAlign.Left, current, theme)
             body.FlexGrow = 1.0
             body.FlexBasis = 0.0
             row.Children.Add(body)
@@ -215,7 +253,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         return list
     }
 
-    private func Table(model MarkdownModel) Blob {
+    private func Table(model MarkdownModel, current MarkdownViewInput, theme Theme) Blob {
         var columns = 0
         for row in model.Children {
             columns = Math.Max(columns, row.Children.Length)
@@ -250,7 +288,9 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                         Block(
                             row.Children[column],
                             row.Header ? 700.0: 400.0,
-                            column < model.Alignments.Length ? model.Alignments[column]: TextAlign.Left
+                            column < model.Alignments.Length ? model.Alignments[column]: TextAlign.Left,
+                            current,
+                            theme
                         )
                     )
                 }

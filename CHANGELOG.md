@@ -9,6 +9,7 @@
 - Raise high-contrast accent and semantic colors to 7:1 against their surfaces and focus rings to 3:1.
 - Virtualize TriggerMenu and TokenInput suggestions in bounded lists.
 - Cache `ComboBox` and `SearchList` rows and lookups until their source or query inputs change.
+- Virtualize Markdown blocks when `MarkdownViewInput.Height` is bounded. Leave it unset for content-sized views. Use `MarkdownViewState.ScrollToHeading(id)` instead of `MarkdownHeading.Handle.ScrollIntoView()` for off-screen headings.
 
 ## 0.18.6 - 2026-11-03
 

@@ -11,6 +11,7 @@ internal data struct MarkdownLeafInput {
     var Size float64
     var Weight float64
     var Alignment TextAlign
+    var Stamp MarkdownLeafStamp?
 }
 
 /// A leaf starts from a fresh document and mount key, preserving attached controllers and avoiding accumulated undo history.
@@ -32,6 +33,9 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
         disposed = true
         handle.MetricsChanged -= Metrics
+        if let owned = controller {
+            current.Stamp!!.Selection = owned.Selection
+        }
         layer?.Dispose()
         controller?.Dispose()
     }
@@ -45,6 +49,7 @@ internal class MarkdownTextView : Cell, IDisposable {
         if controller == nil {
             let document = TextDocument(input.Model!!.Block.Text ?? "")
             controller = TextEditorController(document)
+            controller!!.Selection = input.Stamp!!.Selection
             layer = TextPresentationLayer(document)
         }
         UpdatePresentation(theme)
