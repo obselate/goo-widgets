@@ -4,7 +4,7 @@ import Goo
 import System
 import System.Collections.Generic
 
-// Prefix sums of row extents over a fixed number of slots, stored as a Fenwick tree.
+/// Prefix sums of row extents over fixed slots, stored as a Fenwick tree.
 internal class VirtualRowIndex {
     private var sums[]float64 = []float64{}
     private let capacity int32
@@ -122,9 +122,7 @@ internal data struct VirtualRow[T] {
     internal var Measured bool
 }
 
-// The rows of a vertical virtual list with their keys and measured heights. Rows can be dropped from the
-// start and appended at the end in time proportional to the change; the slot buffer is compacted or grown
-// when the end reaches its capacity.
+/// Keyed rows and measured heights with incremental removal, append, and slot buffer compaction.
 internal class VirtualRowMetadata[T] {
     private var rows[]VirtualRow[T] = []VirtualRow[T]{}
     private var slots Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
@@ -150,7 +148,7 @@ internal class VirtualRowMetadata[T] {
         index = VirtualRowIndex(count, float64(Estimate) + float64(gap))
     }
 
-    // Throws when keys are empty or repeated.
+    /// Throws when keys are empty or repeated.
     internal init(values[]VirtualRow[T], width float32, gap float32, estimate float32) {
         Width = width
         Gap = gap
@@ -198,7 +196,7 @@ internal class VirtualRowMetadata[T] {
 
     internal func Contains(key string) bool -> slots.ContainsKey(key)
 
-    // The row values in order.
+    /// The row values in order.
     internal func Items()[]T {
         let result = [count]T
         for i in 0 ... count {
@@ -207,12 +205,12 @@ internal class VirtualRowMetadata[T] {
         return result
     }
 
-    // The total extent of the first `rowCount` rows, including the gap after each.
+    /// The total extent of the first rowCount rows, including the gap after each.
     internal func Prefix(rowCount int32) float64 -> index.Prefix(head + Math.Clamp(rowCount, 0, count)) - index.Prefix(
         head
     )
 
-    // The row containing `offset`, clamped to the rows.
+    /// The row containing the offset, clamped to the rows.
     internal func Find(offset float64) int32 {
         if count == 0 {
             return 0
@@ -261,7 +259,7 @@ internal class VirtualRowMetadata[T] {
         }
     }
 
-    // Appends a row whose key the caller has checked is new.
+    /// Appends a row whose key the caller has checked is new.
     internal func Append(row VirtualRow[T]) {
         if head + count == rows.Length {
             Compact(

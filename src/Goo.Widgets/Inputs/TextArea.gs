@@ -351,7 +351,6 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                     Active: TextPosition{Offset: active, Affinity: selection.Active.Affinity}
                 }
             } catch (error ArgumentException) {
-                // The controller's rebased selection already snaps positions that ceased to be grapheme boundaries.
 
             }
         } finally {

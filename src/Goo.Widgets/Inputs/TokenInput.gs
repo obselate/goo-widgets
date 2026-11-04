@@ -36,15 +36,15 @@ public open class TokenInput : Cell[TokenInputInput] {
         if selected >= values.Length {
             selected = -1
         }
-        var root = Container{Width: input.Width ?? defaultWidth, MinWidth: 0, Gap: 4,}
+        var root = Container{Width: input.Width ?? defaultWidth, MinWidth: 0, Gap: theme.ControlGap / 2,}
         if let create = input.CreateRoot {
             root = create(input, root)
         }
         let frame = Container{
             Key: "frame",
             MinWidth: 0,
-            Padding: 4,
-            Gap: 4,
+            Padding: theme.ControlPadding / 3,
+            Gap: theme.ControlGap / 2,
             FlexDirection: FlexDirection.Row,
             FlexWrap: FlexWrap.Wrap,
             AlignItems: AlignItems.Center,
