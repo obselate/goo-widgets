@@ -6,6 +6,7 @@
 - Cache graph validation and node lookup until the node or edge array changes.
 - Add modal drawers with a scrim, focus containment and focus restoration. Escape and scrim clicks request closure through `OnOpenChange(false)`.
 - Use the theme series palette in order for chart series without an explicit color, with the accent as the empty-palette fallback.
+- Raise high-contrast accent and semantic colors to 7:1 against their surfaces and focus rings to 3:1.
 
 ## 0.18.6 - 2026-11-03
 
