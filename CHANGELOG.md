@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Use theme spacing and padding for attachment chips, token inputs, and radio group marks.
+- Cache graph validation and node lookup until the node or edge array changes.
 
 ## 0.18.6 - 2026-11-03
 
