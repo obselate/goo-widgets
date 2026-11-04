@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Use theme spacing and padding for attachment chips, token inputs, and radio group marks.
+
 ## 0.18.6 - 2026-11-03
 
 - Keep measured `DataGrid.AutoWidthContent` widths across row source changes. Apply new measurements only when the width changes, including smaller widths.

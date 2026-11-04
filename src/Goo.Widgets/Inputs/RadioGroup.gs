@@ -80,10 +80,10 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             let label = item.Label ?? id
             let enabled = !input.Disabled && !item.Disabled
             let mark = Container{
-                Width: 18,
-                Height: 18,
+                Width: theme.Spacing * 4.5,
+                Height: theme.Spacing * 4.5,
                 FlexShrink: 0,
-                BorderRadius: 9,
+                BorderRadius: theme.Spacing * 2.25,
                 BorderWidth: theme.BorderWidth,
                 BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
                 BackgroundColor: theme.FieldColor,
@@ -91,7 +91,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 JustifyContent: JustifyContent.Center,
             }
             if selected {
-                mark.Children.Add(Container{Width: 10, Height: 10, BorderRadius: 5, BackgroundColor: theme.AccentColor})
+                mark.Children.Add(Container{Width: theme.Spacing * 2.5, Height: theme.Spacing * 2.5, BorderRadius: theme.Spacing * 1.25, BackgroundColor: theme.AccentColor})
             }
             let text = Container{
                 Gap: theme.Spacing,

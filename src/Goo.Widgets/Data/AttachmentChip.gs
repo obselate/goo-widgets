@@ -37,7 +37,7 @@ public data struct AttachmentChip {
             FlexGrow: 1,
             FlexBasis: 0,
             MinWidth: 0,
-            Gap: 2,
+            Gap: theme.Spacing / 2,
             Container{
                 Width: Percent(100),
                 MinWidth: 0,
@@ -72,7 +72,7 @@ public data struct AttachmentChip {
             FlexGrow: 1,
             FlexBasis: 0,
             MinWidth: 0,
-            Padding: 8,
+            Padding: theme.ControlGap,
             Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
