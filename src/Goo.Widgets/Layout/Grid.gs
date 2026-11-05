@@ -67,10 +67,10 @@ public data struct Grid {
     var Rows[]GridTrack = []GridTrack{}
     /// Explicitly placed, uniquely keyed slots; overlap is allowed in declaration paint order.
     var Items[]GridItem = []GridItem{}
-    /// Horizontal gap in logical pixels.
-    var ColumnGap float64
-    /// Vertical gap in logical pixels.
-    var RowGap float64
+    /// Horizontal gap in logical pixels. Nil uses zero.
+    var ColumnGap float64?
+    /// Vertical gap in logical pixels. Nil uses zero.
+    var RowGap float64?
     /// Root width. Nil resolves to 100%.
     var Width Length?
     /// Root height. Nil resolves to intrinsic height.
@@ -88,6 +88,8 @@ public data struct Grid {
             Items = Items ?? []GridItem{},
             Width = Width ?? Percent(100),
             Height = Height ?? Length.Auto,
+            ColumnGap = ColumnGap ?? 0.0,
+            RowGap = RowGap ?? 0.0,
         }
         let policy = GridPolicy(resolved)
         var root = Container{Width: resolved.Width!!, Height: resolved.Height!!, MinWidth: 0, MinHeight: 0}
@@ -122,8 +124,8 @@ internal class GridPolicy : LayoutAlgorithm {
         rows = CopyTracks(input.Rows)
         items = [input.Items.Length]GridItem
         Array.Copy(input.Items, items, items.Length)
-        columnGap = input.ColumnGap
-        rowGap = input.RowGap
+        columnGap = input.ColumnGap!!
+        rowGap = input.RowGap!!
         if !Double.IsFinite(columnGap) || columnGap < 0.0 || !Double.IsFinite(rowGap) || rowGap < 0.0 {
             throw ArgumentOutOfRangeException("Grid gaps")
         }

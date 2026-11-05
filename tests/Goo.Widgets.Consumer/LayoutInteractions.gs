@@ -158,8 +158,8 @@ internal class LayoutHost : Cell {
                     DialogOpen = false
                     Rebuild()
                 },
-                OnClose: () -> {
-                    DialogOpen = false
+                OnOpenChange: (isOpen bool) -> {
+                    DialogOpen = isOpen
                     Rebuild()
                 },
                 OnConfirm: () -> {
@@ -177,6 +177,22 @@ func LayoutInteractions() {
         () -> {
             let empty = (PropertyGrid{}.Build() as Container)!!
             Require(empty.Children.Count == 1, "Default property grid did not resolve nil items and query")
+            for collapsed in []bool{false, true} {
+                var requested bool?
+                let grid = (PropertyGrid{
+                    Items: []PropertyGridItem{PropertyGridItem{Id: "value", Section: "General"}},
+                    ExpandedSectionIds: collapsed ? []string{}: nil,
+                    OnSectionExpandedChange: (id string, expanded bool) -> {
+                        Require(id == "General", "Property grid changed the section identity")
+                        requested = expanded
+                    }
+                }.Build() as Container)!!
+                let section = (grid.Children[0] as Container)!!
+                let heading = (section.Children[1] as Button)!!
+                heading.OnClick!!.Invoke()
+                Require(requested == collapsed, "Property grid did not emit the new expanded state")
+                Require(section.Children.Count == (collapsed ? 2: 3), "Property grid did not apply the expanded set")
+            }
             Require(Card{}.Build().Accessibility?.Role == AccessibilityRole.Group, "Passive card was not a group")
             var rejected bool
             try {

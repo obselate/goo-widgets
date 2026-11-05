@@ -20,7 +20,7 @@ public data struct AppBar {
     /// Bar width. Nil resolves to Percent(100.0).
     var Width Length?
     /// Bar height. Nil uses the nearest theme spacing.
-    var Height float64?
+    var Height Length?
     /// Bar background color. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Inherited title and content text color. Nil uses the nearest theme.
@@ -35,14 +35,14 @@ public data struct AppBar {
     var Gap float64?
     /// Spacing between title and subtitle inside the content stack. Nil uses the nearest theme spacing; explicit zero is preserved.
     var TitleGap float64?
-    /// Title text font size. Zero uses the nearest theme heading font size.
-    var TitleFontSize float64
-    /// Title text font weight. Zero uses the nearest theme heading font weight.
-    var TitleFontWeight int32
-    /// Subtitle text font size. Zero uses the nearest theme caption font size.
-    var SubtitleFontSize float64
-    /// Subtitle text font weight. Zero uses the nearest theme caption font weight.
-    var SubtitleFontWeight int32
+    /// Title text font size. Nil uses the nearest theme heading font size.
+    var TitleFontSize float64?
+    /// Title text font weight. Nil uses the nearest theme heading font weight.
+    var TitleFontWeight int32?
+    /// Subtitle text font size. Nil uses the nearest theme caption font size.
+    var SubtitleFontSize float64?
+    /// Subtitle text font weight. Nil uses the nearest theme caption font weight.
+    var SubtitleFontWeight int32?
     /// Bottom border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
     /// Optional authored shadow. Nil leaves the bar unshadowed.
@@ -67,6 +67,7 @@ public data struct AppBar {
         let createSubtitle = CreateSubtitle
         let createRoot = CreateRoot
         let titleText = Title ?? ""
+        let defaultHeight Length = theme.Spacing * 14.0
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
@@ -76,7 +77,7 @@ public data struct AppBar {
                 HeadingLevel
             },
             Width = Width ?? Percent(100.0),
-            Height = Height ?? theme.Spacing * 14.0,
+            Height = Height ?? defaultHeight,
             BackgroundColor = BackgroundColor ?? theme.CanvasColor,
             TextColor = TextColor ?? theme.TextColor,
             SubtitleColor = SubtitleColor ?? theme.MutedTextColor,
@@ -85,26 +86,10 @@ public data struct AppBar {
             Gap = Gap ?? theme.ControlGap,
             TitleGap = TitleGap ?? theme.Spacing / 2.0,
             FontFamily = FontFamily ?? theme.FontFamily,
-            TitleFontSize = if TitleFontSize == 0.0 {
-                theme.HeadingFontSize
-            } else {
-                TitleFontSize
-            },
-            TitleFontWeight = if TitleFontWeight == 0 {
-                theme.HeadingFontWeight
-            } else {
-                TitleFontWeight
-            },
-            SubtitleFontSize = if SubtitleFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                SubtitleFontSize
-            },
-            SubtitleFontWeight = if SubtitleFontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                SubtitleFontWeight
-            },
+            TitleFontSize = TitleFontSize ?? theme.HeadingFontSize,
+            TitleFontWeight = TitleFontWeight ?? theme.HeadingFontWeight,
+            SubtitleFontSize = SubtitleFontSize ?? theme.CaptionFontSize,
+            SubtitleFontWeight = SubtitleFontWeight ?? theme.CaptionFontWeight,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BoxShadow = BoxShadow ?? Goo.BoxShadow{},
             Opacity = Opacity ?? 1.0,
@@ -124,8 +109,8 @@ public data struct AppBar {
             }
             let value = Text{
                 Content: resolved.Title!!,
-                FontSize: resolved.TitleFontSize,
-                FontWeight: resolved.TitleFontWeight,
+                FontSize: resolved.TitleFontSize!!,
+                FontWeight: resolved.TitleFontWeight!!,
                 Accessibility: titleAccessibility
             }
             if let fontFamily = resolved.FontFamily {
@@ -141,8 +126,8 @@ public data struct AppBar {
                 let value = Text{
                     Content: subtitleText,
                     Color: resolved.SubtitleColor!!,
-                    FontSize: resolved.SubtitleFontSize,
-                    FontWeight: resolved.SubtitleFontWeight
+                    FontSize: resolved.SubtitleFontSize!!,
+                    FontWeight: resolved.SubtitleFontWeight!!
                 }
                 if let fontFamily = resolved.FontFamily {
                     value.FontFamily = fontFamily

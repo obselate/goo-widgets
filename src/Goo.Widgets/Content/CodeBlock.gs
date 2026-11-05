@@ -36,8 +36,8 @@ public data struct CodeBlockInput {
     /// Precomputed styles for Code. They can be built on any thread. When set, Highlight is not called.
     /// Applied again only when Code, Language, the theme syntax palette or this list reference changes.
     var StyleSpans IReadOnlyList[TextStyleSpan]?
-    /// Maximum height of the code area. Zero shows all lines. Taller code scrolls and lays out only the visible lines.
-    var MaxHeight float64
+    /// Maximum height of the code area. Nil shows all lines. Taller code scrolls and lays out only the visible lines.
+    var MaxHeight Length?
     /// Root layout width. Nil fills the available width.
     var Width Length?
     /// Code font family. Nil uses monospace.
@@ -49,7 +49,7 @@ public data struct CodeBlockInput {
 }
 
 /// Owns one read-only core editor and one syntax presentation layer.
-public class CodeBlock : Cell[CodeBlockInput], IDisposable {
+public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
     private var controller TextEditorController?
     private var probe TextEditorController?
     private var layer TextPresentationLayer?
@@ -79,7 +79,7 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
         if input.CollapsedLines < 0 {
             throw ArgumentOutOfRangeException("CollapsedLines")
         }
-        if input.MaxHeight < 0 {
+        if input.MaxHeight != nil && input.MaxHeight!!.HasMagnitude && input.MaxHeight!!.Magnitude < 0 {
             throw ArgumentOutOfRangeException("MaxHeight")
         }
         let theme = Theme.Read()
@@ -114,9 +114,9 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
         let lines = controller!!.Document.LineCount
         let folded = input.CollapsedLines > 0 && lines > input.CollapsedLines
         let collapsed = folded && !input.Expanded
-        let scrolls = input.MaxHeight > 0 && !collapsed
+        let scrolls = input.MaxHeight != nil && !collapsed
         let shortest = float64(lines) * theme.FontSize * theme.PlatformTextScaleFactor * theme.LineHeight
-        let next = CodeBlockLayout(collapsed, shortest + theme.ControlPadding * 2.0, scrolls ? input.MaxHeight: 0)
+        let next = CodeBlockLayout(collapsed, shortest + theme.ControlPadding * 2.0, scrolls ? input.MaxHeight: nil)
         if edited || layout != next {
             layout = next
         }
@@ -247,9 +247,10 @@ public class CodeBlock : Cell[CodeBlockInput], IDisposable {
     }
 }
 
-internal data class CodeBlockLayout(Folded bool, Shortest float64, Limit float64) : LayoutAlgorithm {
+internal data class CodeBlockLayout(Folded bool, Shortest float64, Limit Length?) : LayoutAlgorithm {
     public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
-        let limit = Limit > 0 ? Math.Min(Limit, available.Height): available.Height
+        let limit = Limit == nil || !Limit!!.HasMagnitude ? available.Height:
+            Math.Min(Limit!!.IsPercent ? available.Height * Limit!!.Magnitude / 100.0: Limit!!.Magnitude, available.Height)
         let overflows = !Folded && Shortest > limit
         let size = context.MeasureChild(
             Folded ? 1: 0,

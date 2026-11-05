@@ -170,7 +170,7 @@ source references. Its application source also works with the NuGet package.
 `ModalDialogHost` accepts the existing `ModalDialog` value and its factories. On
 open it focuses an AutoFocus element, the first eligible child, or the dialog
 root if no child accepts focus. Tab wraps within the active dialog. Escape calls
-OnCancel (falling back to OnClose); the backdrop calls OnClose. Closing or removing
+OnCancel (falling back to `OnOpenChange(false)`). The backdrop requests `OnOpenChange(false)`. Closing or removing
 the host restores the previous eligible target. Nested dialogs suspend underlying
 input and accessibility until the top dialog closes. Custom cancel/confirm
 buttons keep their action callbacks and confirmation-disabled state.
@@ -179,8 +179,9 @@ buttons keep their action callbacks and confirmation-disabled state.
 one Anchor handle or WindowPoint. It uses measured bounds, flips to the opposite
 side when it fits better, and clamps to Viewport (window coordinates), or the
 Window bounds by default. Its first visible frame waits for the panel measurement,
-so wrapped content is already aligned. It tracks anchor movement and resize. OnDismiss
-reports Escape, OutsideClick, or AnchorRemoved; update Open and rebuild the host.
+so wrapped content is already aligned. It tracks anchor movement and resize.
+`OnOpenChange(false)` runs before OnDismiss reports Escape, OutsideClick, or AnchorRemoved.
+Apply the requested Open state and rebuild the host.
 Tab stays in the popup. Closing restores eligible prior focus except on outside
 pointer clicks. Factories
 customize the panel/root while placement, handles, input, and content stay wired.

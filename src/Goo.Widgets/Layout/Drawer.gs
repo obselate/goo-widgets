@@ -18,8 +18,8 @@ public data struct Drawer {
     var FromEnd bool
     /// Accessible name for the group container. Nil resolves to "Drawer".
     var AccessibilityName string?
-    /// Drawer width in logical pixels. Zero or default resolves to 320.0.
-    var Width float64
+    /// Drawer width. Nil resolves to 320.0.
+    var Width Length?
     /// Drawer height. Nil resolves to Percent(100.0).
     var Height Length?
     /// Background color of the drawer panel. Nil uses the nearest theme.
@@ -61,13 +61,10 @@ public data struct Drawer {
             PanelTransform{TranslateX: Percent(-100.0)}
         }
 
+        let defaultWidth Length = 320.0
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? theme.Text("Drawer"),
-            Width = if Width == 0.0 {
-                320.0
-            } else {
-                Width
-            },
+            Width = Width ?? defaultWidth,
             Height = Height ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             BorderColor = BorderColor ?? theme.BorderColor,
@@ -103,7 +100,7 @@ public data struct Drawer {
                 Position: PositionType.Absolute,
                 Top: 0.0,
                 Direction: theme.Direction,
-                Width: resolved.Width,
+                Width: resolved.Width!!,
                 Height: resolved.Height!!,
                 Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
                 BackgroundColor: resolved.BackgroundColor!!,
@@ -139,7 +136,7 @@ public data struct Drawer {
                 ModalDialog{
                     Open: Open,
                     AccessibilityName: resolved.AccessibilityName,
-                    OnClose: () -> OnOpenChange?.Invoke(false),
+                    OnOpenChange: OnOpenChange,
                     Fullscreen: true,
                     Padding: 0.0,
                     Gap: 0.0,
@@ -151,7 +148,7 @@ public data struct Drawer {
                     CreateRoot: (dialog, backdrop, panel) -> {
                         panel.Position = PositionType.Absolute
                         panel.Top = 0.0
-                        panel.Width = resolved.Width
+                        panel.Width = resolved.Width!!
                         panel.Height = resolved.Height!!
                         if resolved.FromEnd {
                             panel.End = 0.0

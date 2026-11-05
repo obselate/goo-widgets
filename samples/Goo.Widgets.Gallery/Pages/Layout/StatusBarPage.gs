@@ -21,7 +21,7 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
                         Text: "main",
                         Priority: 10,
                         Tooltip: "Current branch",
-                        OnActivate: () -> { }
+                        OnClick: () -> { }
                     },
                     StatusBarItem{Id: "busy", Text: "Indexing", Busy: true, Priority: 20},
                     StatusBarItem{Id: "sync", Text: "Up to date", Priority: 0}
@@ -36,9 +36,9 @@ internal class StatusBarExample(HostWindow Window?) : Cell {
                             MenuItem{Id: "gsharp", Label: "G#"},
                             MenuItem{Id: "plain", Label: "Plain text"}
                         },
-                        OnMenuActivate: id -> { }
+                        OnMenuClick: id -> { }
                     },
-                    StatusBarItem{Id: "disabled", Text: "Offline", Disabled: true, OnActivate: () -> { }}
+                    StatusBarItem{Id: "disabled", Text: "Offline", Disabled: true, OnClick: () -> { }}
                 }
             }
         ),

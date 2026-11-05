@@ -98,6 +98,7 @@ internal class OverlayHost : Cell {
     internal var BackgroundEscapes int32
     internal var Confirms int32
     internal var Dismisses int32
+    internal var OpenChanges int32
     internal var LastDismiss PopoverDismissReason
     internal var Activated string = ""
     internal var OuterRoot Container?
@@ -125,7 +126,14 @@ internal class OverlayHost : Cell {
         Rebuild()
     }
 
+    private func PopupOpenChange(isOpen bool) {
+        Require(!isOpen && PopupOpen, "Popover did not request the new closed state")
+        OpenChanges++
+        PopupOpen = isOpen
+    }
+
     private func PopupDismiss(reason PopoverDismissReason) {
+        Require(!PopupOpen && OpenChanges == Dismisses + 1, "Popover state request did not precede dismissal")
         LastDismiss = reason
         Dismisses++
         PopupOpen = false
@@ -340,7 +348,7 @@ internal class OverlayHost : Cell {
                         Content: content,
                         AccessibilityName: "Review change",
                         Width: 440.0,
-                        OnClose: CloseOuter,
+                        OnOpenChange: (isOpen bool) -> CloseOuter(),
                         OnCancel: CloseOuter,
                         OnConfirm: Confirm,
                         CreateRoot: Outer,
@@ -358,7 +366,7 @@ internal class OverlayHost : Cell {
                         Width: 370.0,
                         Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
                         AccessibilityName: "Nested confirmation",
-                        OnClose: CloseTop,
+                        OnOpenChange: (isOpen bool) -> CloseTop(),
                         OnCancel: CloseTop,
                         OnConfirm: CloseTop,
                         CreateRoot: Top
@@ -383,6 +391,7 @@ internal class OverlayHost : Cell {
                     Accessibility: Accessibility{Name: "Popup action"}
                 }
             },
+            OnOpenChange: PopupOpenChange,
             OnDismiss: PopupDismiss,
             CreatePanel: CapturePanel,
             CreateRoot: CapturePopup

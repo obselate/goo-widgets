@@ -51,8 +51,8 @@ public data struct ModalDialog {
     var CancelContent Blob?
     /// Optional custom confirm-button content.
     var ConfirmContent Blob?
-    /// Called when the backdrop is activated.
-    var OnClose Action?
+    /// Requests false on backdrop dismissal or Escape when OnCancel is nil. OnCancel and OnConfirm remain separate actions.
+    var OnOpenChange Action[bool]?
     /// Called by the cancel button and Escape key.
     var OnCancel Action?
     /// Called by the confirm button.
@@ -67,8 +67,8 @@ public data struct ModalDialog {
     var ConfirmText string?
     /// Base overlay layer. Zero resolves to 20; mounted hosts add their opening order.
     var ZIndex int32
-    /// Dialog width. Zero resolves to 560.
-    var Width float64
+    /// Dialog width. Nil resolves to 560.
+    var Width Length?
     /// Maximum dialog height. Nil resolves to 90%.
     var MaxHeight Length?
     /// Dialog padding. Nil resolves to 20 and preserves explicit zero.
@@ -118,17 +118,13 @@ public data struct ModalDialog {
         let cancelText = CancelText ?? theme.Text("Cancel")
         let confirmText = ConfirmText ??
             theme.Text(Preset == ModalDialogPreset.Destructive ? "Delete": Preset == ModalDialogPreset.Form ? "Save": "Confirm")
+        let defaultWidth Length = 560.0
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? theme.Text("Dialog"),
             CancelText = cancelText,
             ConfirmText = confirmText,
             Tone = Preset == ModalDialogPreset.Destructive ? Tone.Danger: Tone,
-            OnClose = CanDismissBackdrop ? OnClose: nil,
-            Width = if Width == 0.0 {
-                560.0
-            } else {
-                Width
-            },
+            Width = Width ?? defaultWidth,
             ZIndex = if ZIndex == 0 {
                 20
             } else {
@@ -156,7 +152,7 @@ public data struct ModalDialog {
             BackgroundColor: resolved.BackdropColor!!,
             Cursor: Cursor.Pointer,
             Focusable: false,
-            OnClick: resolved.OnClose,
+            OnClick: resolved.CanDismissBackdrop ? () -> resolved.OnOpenChange?.Invoke(false): nil,
             Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
         }
 
@@ -238,7 +234,7 @@ public data struct ModalDialog {
         let dialog = Container{
             LineHeight: theme.LineHeight,
             Position: PositionType.Relative,
-            Width: resolved.Fullscreen ? Percent(100): resolved.Width,
+            Width: resolved.Fullscreen ? Percent(100): resolved.Width!!,
             MaxWidth: Percent(100),
             Height: resolved.Fullscreen ? Percent(100): Length.Auto,
             MaxHeight: resolved.Fullscreen ? Percent(100): resolved.MaxHeight!!,
@@ -258,13 +254,17 @@ public data struct ModalDialog {
                 Modal: true,
             },
         }
-        if let onCancel = resolved.OnCancel ?? resolved.OnClose {
+        if resolved.OnCancel != nil || resolved.OnOpenChange != nil {
             dialog.OnKeyDown = (event KeyEvent) -> {
                 if event.Key == Key.Escape && resolved.CanEscape {
                     event.PreventDefault()
                     event.StopPropagation()
                     if !event.Repeat {
-                        onCancel()
+                        if let cancel = resolved.OnCancel {
+                            cancel()
+                        } else {
+                            resolved.OnOpenChange?.Invoke(false)
+                        }
                     }
                 }
             }

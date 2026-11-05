@@ -13,6 +13,37 @@
 - Virtualize Markdown blocks when `MarkdownViewInput.Height` is bounded. Leave it unset for content-sized views. Use `MarkdownViewState.ScrollToHeading(id)` instead of `MarkdownHeading.Handle.ScrollIntoView()` for off-screen headings.
 - Cache prepared `ListView` rows until the items, sections or query change.
 - Link over-limit text area errors and correct virtual row positions and set sizes for lists, trees, combo boxes, and search lists.
+- Apply the API shape to Layout, Feedback, and Content (breaking).
+
+### API migration
+
+| Widget | Old | New |
+| --- | --- | --- |
+| AppBar | `Height float64?`, numeric font overrides | `Height Length?`, nullable font overrides |
+| Badge | Numeric `Height` and `MinWidth`, numeric token overrides | `Height Length?`, `MinWidth Length?`, nullable token overrides |
+| Banner | `MinHeight float64?`, numeric font overrides | `MinHeight Length?`, nullable font overrides |
+| CodeBlock | Sealed class, `MaxHeight float64` | Open class, `MaxHeight Length?` |
+| DismissibleContextBar | `MinHeight float64?`, numeric dismiss font overrides | `MinHeight Length?`, nullable dismiss font overrides |
+| Drawer | `Width float64` | `Width Length?` |
+| EmptyState | `MinHeight float64?`, numeric font overrides | `MinHeight Length?`, nullable font overrides |
+| Grid | Numeric `ColumnGap` and `RowGap` | Nullable `ColumnGap` and `RowGap` |
+| ListRow | `MinHeight float64?`, numeric font overrides | `MinHeight Length?`, nullable font overrides |
+| MasterDetail | `MasterWidth float64` | `MasterWidth float64?` |
+| ModalDialog | `OnClose Action?`, `Width float64` | `OnOpenChange Action[bool]?`, `Width Length?` |
+| Popover | Numeric `MinWidth`, `MaxWidth`, and `MaxHeight` | `Length?` constraints, `OnOpenChange Action[bool]?` |
+| ProgressBar | Numeric `Width`, `Height`, and `BorderWidth` | `Width Length?`, `Height Length?`, `BorderWidth float64?` |
+| ProgressSummary | Numeric font overrides | Nullable font overrides |
+| PropertyGrid | `CollapsedSections`, `OnSectionToggle` | `ExpandedSectionIds`, `OnSectionExpandedChange Action[string, bool]?` |
+| PropertyGrid | `LabelWidth float64`, `CreateRow(item, content)` | `LabelWidth float64?`, `CreateRow(grid, item, content)` |
+| PropertyGridItem | `Issue` | `Error` |
+| SectionHeader | Numeric font overrides | Nullable font overrides |
+| SettingsLayout | Sealed class, numeric width metrics | Open class, nullable width metrics |
+| Spinner | `Size float64` | `Size float64?` |
+| StatusBar | Sealed class | Open class |
+| StatusBarItem | `OnActivate`, `OnMenuActivate` | `OnClick`, `OnMenuClick` |
+| Toast | No open-state callback | `OnOpenChange Action[bool]?` |
+| ToastHost | `Width float64?`, `CreateToast(toast, root)` | `Width Length?`, `CreateToast(host, toast, root)` |
+| WindowChrome | `Height float64`, `ControlWidth float64` | `Height Length?`, `ControlWidth float64?` |
 
 ## 0.18.6 - 2026-11-03
 

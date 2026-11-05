@@ -27,12 +27,12 @@ public data struct ProgressSummary {
     var LabelColor Color?
     /// Detail color. Nil uses the nearest theme.
     var DetailColor Color?
-    /// Label font size. Zero uses the nearest theme font size.
-    var LabelFontSize float64
-    /// Label font weight. Zero uses the nearest theme label font weight.
-    var LabelFontWeight int32
-    /// Detail font size. Zero uses the nearest theme caption font size.
-    var DetailFontSize float64
+    /// Label font size. Nil uses the nearest theme font size.
+    var LabelFontSize float64?
+    /// Label font weight. Nil uses the nearest theme label font weight.
+    var LabelFontWeight int32?
+    /// Detail font size. Nil uses the nearest theme caption font size.
+    var DetailFontSize float64?
     /// Optional font family for default text.
     var FontFamily string?
     /// Creates the progress element from resolved values.
@@ -55,21 +55,9 @@ public data struct ProgressSummary {
             LabelColor = LabelColor ?? theme.TextColor,
             DetailColor = DetailColor ?? theme.MutedTextColor,
             FontFamily = FontFamily ?? theme.FontFamily,
-            LabelFontSize = if LabelFontSize == 0.0 {
-                theme.FontSize
-            } else {
-                LabelFontSize
-            },
-            LabelFontWeight = if LabelFontWeight == 0 {
-                theme.LabelFontWeight
-            } else {
-                LabelFontWeight
-            },
-            DetailFontSize = if DetailFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                DetailFontSize
-            },
+            LabelFontSize = LabelFontSize ?? theme.FontSize,
+            LabelFontWeight = LabelFontWeight ?? theme.LabelFontWeight,
+            DetailFontSize = DetailFontSize ?? theme.CaptionFontSize,
             CreateProgress = nil,
             CreateRoot = nil,
         }
@@ -77,8 +65,8 @@ public data struct ProgressSummary {
         let labelText = Text{
             Content: label,
             Color: resolved.LabelColor!!,
-            FontSize: resolved.LabelFontSize,
-            FontWeight: resolved.LabelFontWeight,
+            FontSize: resolved.LabelFontSize!!,
+            FontWeight: resolved.LabelFontWeight!!,
         }
         if resolved.FontFamily != nil {
             labelText.FontFamily = resolved.FontFamily!!
@@ -95,7 +83,7 @@ public data struct ProgressSummary {
         header.Children.Add(labelText)
         header.Children.Add(Container{FlexGrow: 1.0})
         if Detail != nil {
-            let detailText = Text{Content: Detail!!, Color: resolved.DetailColor!!, FontSize: resolved.DetailFontSize,}
+            let detailText = Text{Content: Detail!!, Color: resolved.DetailColor!!, FontSize: resolved.DetailFontSize!!,}
             if resolved.FontFamily != nil {
                 detailText.FontFamily = resolved.FontFamily!!
             }

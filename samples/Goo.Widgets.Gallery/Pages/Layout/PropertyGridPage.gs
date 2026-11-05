@@ -4,13 +4,14 @@ import Goo
 import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
+import System.Collections.Generic
 
 internal class PropertyGridExample : Cell {
     private var query string = ""
     private var name string = "Studio"
     private var enabled bool = true
     private var compact bool = true
-    private var collapsed[]string = []string{}
+    private var expanded[]string = []string{"Workspace", "Storage"}
 
     public override func Build() Blob -> Container{
         Width: Percent(100),
@@ -29,9 +30,18 @@ internal class PropertyGridExample : Cell {
             OnQueryChange: value -> {
                 query = value
             },
-            CollapsedSections: collapsed,
-            OnSectionToggle: section -> {
-                collapsed = collapsed.Length == 0 ? []string{section}: []string{}
+            ExpandedSectionIds: expanded,
+            OnSectionExpandedChange: (section string, isOpen bool) -> {
+                let next = List[string]()
+                for name in expanded {
+                    if name != section {
+                        next.Add(name)
+                    }
+                }
+                if isOpen {
+                    next.Add(section)
+                }
+                expanded = next.ToArray()
             },
             Items: []PropertyGridItem{
                 PropertyGridItem{

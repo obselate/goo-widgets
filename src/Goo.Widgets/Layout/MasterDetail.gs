@@ -19,8 +19,8 @@ public data struct MasterDetail {
     var BackLabel string?
     /// Accessible group name. Nil resolves to "Master detail".
     var AccessibilityName string?
-    /// Master width in the two-pane layout. Zero resolves to 320.
-    var MasterWidth float64
+    /// Master width in the two-pane layout. Nil resolves to 320.
+    var MasterWidth float64?
     /// Gap between panes. Nil resolves to 12 and preserves explicit zero.
     var Gap float64?
     /// Pane background. Nil uses the nearest theme.
@@ -46,11 +46,7 @@ public data struct MasterDetail {
         let resolved = this with{
             BackLabel = BackLabel ?? theme.Text("Back"),
             AccessibilityName = AccessibilityName ?? theme.Text("Master detail"),
-            MasterWidth = if MasterWidth == 0.0 {
-                320.0
-            } else {
-                MasterWidth
-            },
+            MasterWidth = MasterWidth ?? 320.0,
             Gap = Gap ?? theme.ControlGap,
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             BorderColor = BorderColor ?? theme.BorderColor,
@@ -67,7 +63,7 @@ public data struct MasterDetail {
                 Width: if resolved.Narrow {
                     Percent(100.0)
                 } else {
-                    resolved.MasterWidth
+                    resolved.MasterWidth!!
                 },
                 Height: Percent(100.0),
                 MinWidth: 0.0,

@@ -69,8 +69,8 @@ internal class ControlStateHost : Cell {
             case 11: Disclosure{Label: "Subset section", Expanded: Expanded, Content: Text{Content: "Detail"}}.Build()
             case 12: PropertyGrid{
                 Items: []PropertyGridItem{PropertyGridItem{Id: "value", Label: "Value", Section: "Section", Modified: true, OnReset: () -> {}}},
-                OnQueryChange: (query string) -> {}, OnSectionToggle: (section string) -> {},
-                CollapsedSections: Expanded ? []string{}: []string{"Section"},
+                OnQueryChange: (query string) -> {}, OnSectionExpandedChange: (section string, expanded bool) -> {},
+                ExpandedSectionIds: Expanded ? []string{"Section"}: []string{},
             }.Build()
             case 13: Cell.Mount[SettingsLayoutInput, SettingsLayout]("settings", SettingsLayoutInput{
                 OnQueryChange: (query string) -> {},

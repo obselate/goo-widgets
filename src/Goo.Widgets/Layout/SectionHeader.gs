@@ -35,14 +35,14 @@ public data struct SectionHeader {
     var RuleHeight float64?
     /// Root opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Label font size. Zero uses the nearest theme label font size.
-    var LabelFontSize float64
-    /// Label font weight. Zero uses the nearest theme label font weight.
-    var LabelFontWeight int32
-    /// Meta text font size. Zero uses the nearest theme caption font size.
-    var MetaFontSize float64
-    /// Meta text font weight. Zero uses the nearest theme caption font weight.
-    var MetaFontWeight int32
+    /// Label font size. Nil uses the nearest theme label font size.
+    var LabelFontSize float64?
+    /// Label font weight. Nil uses the nearest theme label font weight.
+    var LabelFontWeight int32?
+    /// Meta text font size. Nil uses the nearest theme caption font size.
+    var MetaFontSize float64?
+    /// Meta text font weight. Nil uses the nearest theme caption font weight.
+    var MetaFontWeight int32?
     /// Optional font family applied to default label and meta text elements.
     var FontFamily string?
     /// Transform applied to the root container. Nil resolves to the identity transform.
@@ -79,26 +79,10 @@ public data struct SectionHeader {
             RuleHeight = RuleHeight ?? theme.BorderWidth,
             FontFamily = FontFamily ?? theme.FontFamily,
             Opacity = Opacity ?? 1.0,
-            LabelFontSize = if LabelFontSize == 0.0 {
-                theme.LabelFontSize
-            } else {
-                LabelFontSize
-            },
-            LabelFontWeight = if LabelFontWeight == 0 {
-                theme.LabelFontWeight
-            } else {
-                LabelFontWeight
-            },
-            MetaFontSize = if MetaFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                MetaFontSize
-            },
-            MetaFontWeight = if MetaFontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                MetaFontWeight
-            },
+            LabelFontSize = LabelFontSize ?? theme.LabelFontSize,
+            LabelFontWeight = LabelFontWeight ?? theme.LabelFontWeight,
+            MetaFontSize = MetaFontSize ?? theme.CaptionFontSize,
+            MetaFontWeight = MetaFontWeight ?? theme.CaptionFontWeight,
             Transform = Transform ?? PanelTransform{},
             CreateLabel = nil,
             CreateMeta = nil,
@@ -122,8 +106,8 @@ public data struct SectionHeader {
             let value = Text{
                 Content: resolved.Label!!,
                 Color: resolved.LabelColor!!,
-                FontSize: resolved.LabelFontSize,
-                FontWeight: resolved.LabelFontWeight,
+                FontSize: resolved.LabelFontSize!!,
+                FontWeight: resolved.LabelFontWeight!!,
                 TextTransform: TextTransform.Uppercase
             }
             if let fontFamily = resolved.FontFamily {
@@ -141,8 +125,8 @@ public data struct SectionHeader {
                 let value = Text{
                     Content: metaText,
                     Color: resolved.MetaColor!!,
-                    FontSize: resolved.MetaFontSize,
-                    FontWeight: resolved.MetaFontWeight
+                    FontSize: resolved.MetaFontSize!!,
+                    FontWeight: resolved.MetaFontWeight!!
                 }
                 if let fontFamily = resolved.FontFamily {
                     value.FontFamily = fontFamily

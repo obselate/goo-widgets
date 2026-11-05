@@ -24,16 +24,16 @@ public data struct Badge {
     var TextColor Color?
     /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Dot diameter. Zero uses the nearest theme spacing.
-    var DotSize float64
+    /// Dot diameter. Nil uses the nearest theme spacing.
+    var DotSize float64?
     /// Content height. Nil uses caption size plus two spacing units.
-    var Height float64?
+    var Height Length?
     /// Minimum width. Nil uses the resolved height.
-    var MinWidth float64?
+    var MinWidth Length?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Border width. Zero leaves the border unpainted.
-    var BorderWidth float64
+    /// Border width. Nil leaves the border unpainted.
+    var BorderWidth float64?
     /// Radius. Nil uses half the active height. Explicit zero is preserved.
     var BorderRadius float64?
     /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
@@ -42,10 +42,10 @@ public data struct Badge {
     var TransitionEasing Easing?
     /// Font family. Nil inherits Goo's font choice.
     var FontFamily string?
-    /// Font size. Zero uses the nearest theme caption font size.
-    var FontSize float64
-    /// Font weight. Zero uses the nearest theme caption font weight.
-    var FontWeight int32
+    /// Font size. Nil uses the nearest theme caption font size.
+    var FontSize float64?
+    /// Font weight. Nil uses the nearest theme caption font weight.
+    var FontWeight int32?
     /// Accessible name. Content is the content-mode fallback; a nameless dot is decorative.
     var AccessibilityName string?
     /// Root opacity. Nil resolves to 1.
@@ -75,12 +75,9 @@ public data struct Badge {
             Content
         }
         let isDot = content == nil
-        let dotSize = if DotSize == 0.0 {
-            theme.Spacing * 2.0
-        } else {
-            DotSize
-        }
-        let height = Height ?? theme.CaptionFontSize + theme.Spacing * 2.0
+        let dotSize = DotSize ?? theme.Spacing * 2.0
+        let defaultHeight Length = theme.CaptionFontSize + theme.Spacing * 2.0
+        let height = Height ?? defaultHeight
         let minWidth = MinWidth ?? height
         let padding = PaddingHorizontal ?? theme.Spacing * 1.5
         var resolvedName string? = AccessibilityName
@@ -98,6 +95,7 @@ public data struct Badge {
             BorderColor = BorderColor ?? (Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone)),
             FontFamily = FontFamily ?? theme.FontFamily,
             DotSize = dotSize,
+            BorderWidth = BorderWidth ?? 0.0,
             Height = height,
             MinWidth = minWidth,
             PaddingHorizontal = padding,
@@ -106,21 +104,13 @@ public data struct Badge {
                 if isDot {
                     dotSize / 2.0
                 } else {
-                    height / 2.0
+                    height.HasMagnitude ? height.Magnitude / 2.0: (theme.CaptionFontSize + theme.Spacing * 2.0) / 2.0
                 }
             ),
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
-            FontSize = if FontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                FontSize
-            },
-            FontWeight = if FontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                FontWeight
-            },
+            FontSize = FontSize ?? theme.CaptionFontSize,
+            FontWeight = FontWeight ?? theme.CaptionFontWeight,
             AccessibilityName = resolvedName,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -136,8 +126,8 @@ public data struct Badge {
                 text = Text{
                     Content: resolved.Content!!,
                     Color: resolved.TextColor!!,
-                    FontSize: resolved.FontSize,
-                    FontWeight: resolved.FontWeight,
+                    FontSize: resolved.FontSize!!,
+                    FontWeight: resolved.FontWeight!!,
                 }
                 if let fontFamily = resolved.FontFamily {
                     text.FontFamily = fontFamily
@@ -158,10 +148,10 @@ public data struct Badge {
         }
         if isDot {
             return Container{
-                Width: resolved.DotSize,
-                Height: resolved.DotSize,
+                Width: resolved.DotSize!!,
+                Height: resolved.DotSize!!,
                 BorderRadius: resolved.BorderRadius!!,
-                BorderWidth: resolved.BorderWidth,
+                BorderWidth: resolved.BorderWidth!!,
                 BorderColor: resolved.BorderColor!!,
                 BackgroundColor: resolved.BackgroundColor!!,
                 Opacity: resolved.Opacity!!,
@@ -177,7 +167,7 @@ public data struct Badge {
             MinWidth: resolved.MinWidth!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
             BorderRadius: resolved.BorderRadius!!,
-            BorderWidth: resolved.BorderWidth,
+            BorderWidth: resolved.BorderWidth!!,
             BorderColor: resolved.BorderColor!!,
             BackgroundColor: resolved.BackgroundColor!!,
             Opacity: resolved.Opacity!!,
