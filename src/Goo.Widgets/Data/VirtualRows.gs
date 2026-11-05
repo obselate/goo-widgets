@@ -315,7 +315,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
                 }
             }
             var preserve = offset.Y > 0.0
-            if !preserve && retained && old != nil && source?.Get == nil && input.Get == nil {
+            if !preserve && retained && nextIndex > 0 && old != nil && source?.Get == nil && input.Get == nil {
                 preserve = true
                 for index in 0 ... nextIndex {
                     if old.Contains(data.Row(index).Key) {

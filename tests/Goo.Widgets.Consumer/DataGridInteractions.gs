@@ -264,7 +264,83 @@ internal class DataGridHeightHost : Cell {
     }
 }
 
+internal class DataGridInitialHost : Cell {
+    internal let Viewport ElementHandle = ElementHandle()
+    internal let Header ElementHandle = ElementHandle()
+    internal var First Container?
+    internal var Rows[]DataGridRow = [100]DataGridRow
+    internal var ContentInset float64
+    private let columns[]DataGridColumn = [5]DataGridColumn
+
+    internal init() {
+        let names = []string{"Memory", "Initial", "Final", "Delta", "Peak"}
+        for index in 0 ... columns.Length {
+            columns[index] = DataGridColumn{
+                Id: "c" + index.ToString(), Label: names[index], Minimum: index == 0 ? 120: 56,
+                Sortable: true, Alignment: index == 0 ? TextAlign.Left: TextAlign.Right,
+                Flex: index == 0 ? 1.0: nil, Width: index == 0 ? nil: 96.0
+            }
+        }
+        for index in 0 ... Rows.Length {
+            let values = Dictionary[string, string]()
+            values.Add("c0", index == 0 ? "Allocator blocks": "Driver heap budget " + index.ToString())
+            for column in 1 ... 5 { values.Add("c" + column.ToString(), "2.5 MiB") }
+            Rows[index] = DataGridRow{Id: "summary-row-" + index.ToString(), Values: values}
+        }
+    }
+
+    public override func Build() Blob -> Container{
+        Height: Percent(100), FlexDirection: FlexDirection.Column,
+        Container{Height: 526, FlexShrink: 0},
+        Cell.Mount[DataGridInput, DataGrid]("Memory", DataGridInput{
+            Columns: columns, Rows: Rows, SortColumnId: "c0", SortDirection: DataGridSort.Ascending,
+            Selection: DataGridSelection.Single, FitColumnsToViewport: true,
+            Density: Density.Compact, Height: Length.Auto, AccessibilityName: "Memory",
+            ViewportHandle: Viewport,
+            CreateHeader: (input DataGridInput, column DataGridColumn, content Blob) ->
+                Container{Handle: column.Id == "c0" ? Header: nil, content},
+            CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) ->
+                Container{Padding: Edges{Top: row.Id == "summary-row-0" ? ContentInset: 0}, content},
+            CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+                if row.Id == "summary-row-0" { First = root }
+                return root
+            },
+            CreateRoot: (input DataGridInput, root Container) -> {
+                root.FlexGrow = 1
+                root.FlexBasis = 0
+                return root
+            }
+        })
+    }
+}
+
 func DataGridHeightInteractions() {
+    let measured = DataGridInitialHost()
+    let initial = Window{Title: "DataGrid initial measurement", Width: 1540, Height: 960, Root: measured, SmoothScrolling: false}
+    Theme.Attach(initial, Theme.Default)
+    initial.Open()
+    try {
+        WaitVirtual(initial, () -> measured.Header.IsMounted && measured.First?.Handle?.IsMounted == true)
+        PumpFrames(initial, 12)
+        Require(measured.Viewport.ScrollOffset.Y == 0.0 &&
+            measured.First!!.Handle!!.BorderBox.Y == measured.Viewport.ContentBox.Y,
+            "DataGrid did not mount at the body top")
+        measured.Rows = (measured.Rows.Clone() as []DataGridRow)!!
+        measured.ContentInset = 6.0
+        measured.Rows[0] = measured.Rows[0] with{Values = Dictionary[string, string](measured.Rows[0].Values!!)}
+        measured.Rebuild()
+        PumpFrames(initial, 12)
+        let first = measured.First!!.Handle!!.BorderBox
+        let body = measured.Viewport.ContentBox
+        Require(
+            measured.Viewport.ScrollOffset.Y == 0.0 && first.Y == body.Y,
+            "DataGrid initial measurement moved the top: scroll=" + measured.Viewport.ScrollOffset.Y.ToString() +
+                " row=" + first.Y.ToString() + " body=" + body.Y.ToString()
+        )
+        Console.WriteLine("PASS: DataGrid initial measured rows stay at zero with the first row at the body top")
+    } finally {
+        CloseNativeWindow(initial)
+    }
     let host = DataGridHeightHost()
     let window = Window{Title: "DataGrid mixed heights", Width: 400, Height: 300, Root: host, SmoothScrolling: false}
     Theme.Attach(window, Theme.Default)
