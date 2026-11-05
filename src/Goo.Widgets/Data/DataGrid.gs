@@ -64,6 +64,14 @@ public data struct DataGridColumn {
     var Header Blob?
     /// Caller-built filter content below this column header. Nil omits the filter.
     var Filter Blob?
+    /// Enables editing unless the row or CanEdit overrides it. False is the default.
+    var Editable bool
+    /// Uses a native multiline editor. False uses a single-line field.
+    var Multiline bool
+    /// Editor placement. Inline preserves the row height.
+    var EditPresentation DataGridEditPresentation
+    /// Receives this column, the edit context and the prepared editor. Preserve its handle, draft binding and lifecycle routing.
+    var CreateEditor Func[DataGridColumn, DataGridEditContext, Blob, Blob]?
 }
 
 /// A stable row. Applications may use Id to look up domain objects in cell/detail factories.
@@ -78,6 +86,8 @@ public data struct DataGridRow {
     var SourceIndex int32
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Optional row-wide editing override. Nil uses each column's Editable value.
+    var Editable bool?
     /// Excludes this row from selection. Navigation requires OnGroupExpandedChange.
     var IsGroup bool
     /// Text values indexed by column ID. Nil supplies empty cell text.
@@ -267,13 +277,33 @@ public data struct DataGridInput {
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
     /// Receives the resolved input and prepared root, and returns the root container. Grid identity, focus, input routing, and accessibility are reapplied. Nil keeps the default root.
     var CreateRoot Func[DataGridInput, Container, Container]?
+    /// Raw cell text getter. Nil reads Values by column ID, with empty text for missing values.
+    var GetCellValue Func[DataGridRow, DataGridColumn, string]?
+    /// Required editing setter, called after validation. Replace host rows/maps or increment RowVersion.
+    var SetCellValue Action[DataGridEdit]?
+    /// Overrides row and column editing defaults. Disabled, group and full-width cells always reject editing.
+    var CanEdit Func[DataGridRow, DataGridColumn, bool]?
+    /// Overrides a column's editor placement for one cell. Nil uses the column's EditPresentation.
+    var GetEditPresentation Func[DataGridRow, DataGridColumn, DataGridEditPresentation]?
+    /// Runs once before mounting an editor. Nil permits editing. False refuses without lifecycle events.
+    var OnEditBegin Func[DataGridEdit, bool]?
+    /// Validates each commit attempt. Nil accepts. A nonempty ErrorMessage retains the editor and draft.
+    var OnEditCommit Func[DataGridEdit, DataGridEditResult]?
+    /// Reports a discarded draft before the editor closes. Nil ignores cancellation.
+    var OnEditCancel Action[DataGridEdit, DataGridEditCancelReason]?
+    /// Reports one closed session after its setter or cancellation callback. Nil ignores closure.
+    var OnEditEnd Action[DataGridEdit, DataGridEditOutcome]?
+    /// Exact begin chords. Nil uses Enter and, outside Multiple selection, Space. An empty array disables key entry.
+    var BeginEditKeys[]?DataGridEditKey
+    /// Exact commit chord. Nil uses unmodified Enter. Escape and Tab retain their lifecycle roles.
+    var CommitEditKey DataGridEditKey?
 }
 
 internal class DataGridRowComparer : IEqualityComparer[DataGridRow] {
     public func Equals(a DataGridRow, b DataGridRow) bool ->
         Object.Equals(a.Id, b.Id) && Object.Equals(a.Label, b.Label) &&
         Object.Equals(a.Tag, b.Tag) && a.SourceIndex == b.SourceIndex &&
-        a.Disabled == b.Disabled && a.IsGroup == b.IsGroup &&
+        a.Disabled == b.Disabled && a.IsGroup == b.IsGroup && a.Editable == b.Editable &&
         Object.Equals(a.Values, b.Values) && a.HasDetail == b.HasDetail &&
         Object.Equals(a.Detail, b.Detail)
 
@@ -375,6 +405,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         if disposed {
             return
         }
+        if editSession != nil { CancelEdit(DataGridEditCancelReason.Unavailable, false) }
         disposed = true
         reorderScroll?.Dispose()
         pointer = -1L
@@ -564,6 +595,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             activeColumn = ColumnIndex(input.ActiveColumnId)
         }
         activeColumn = Math.Clamp(activeColumn, 0, Math.Max(0, columns.Length - 1))
+        SynchronizeEdit(true)
         Prune(resizeHandles, columnIds)
         if input.Disabled || !CanResize(ColumnIndex(resizeId))
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
@@ -648,6 +680,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                 Context = rowContext,
                 Get = input.RowAt == nil ? nil: Row,
                 Index = RawIndex,
+                RetainedKey = editSession?.Value.RowId,
                 Count = RowCount,
                 AutoHeight = input.AutoRowHeight,
                 Version = input.RowVersion,
@@ -726,6 +759,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         root.FlexDirection = FlexDirection.Column
         root.Disabled = input.Disabled
         root.Focusable = !input.Disabled
+        root.TabStop = editSession == nil
         root.OnKeyDown = (e KeyEvent) -> {
             if input.UseDefaultKeyboard ?? true {
                 pointerFocus = false
@@ -751,10 +785,14 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             pointerFocus = true
             hostPointer?.Invoke(e)
         }
-        if hostText != nil || input.OnTextInput != nil {
-            root.OnTextInput = (value string) -> {
-                hostText?.Invoke(value)
-                input.OnTextInput?.Invoke(value)
+        if input.SetCellValue != nil || hostText != nil || input.OnTextInput != nil {
+            root.OnTextInput = (text string) -> {
+                if editSession == nil && (input.UseDefaultKeyboard ?? true) && activeId != nil &&
+                    text.Length > 0 && !Char.IsControl(text[0]) {
+                    BeginEdit(activeId!!, activeColumn, text)
+                }
+                hostText?.Invoke(text)
+                input.OnTextInput?.Invoke(text)
             }
         }
         root.OnFocus = (e FocusEvent) -> {
@@ -770,8 +808,9 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             hostBlur?.Invoke(e)
         }
         var active ElementHandle?
-        if let id = activeId {
-            active = Handle(rowHandles, id)
+        if editSession == nil && activeId != nil {
+            active = columns.Length == 0 || NavigationIndex(activeId) < 0 || Row(NavigationIndex(activeId)).IsGroup ?
+                Handle(rowHandles, activeId!!): CellHandle(activeId!!, columns[activeColumn].Id!!)
         }
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Grid,
@@ -785,6 +824,13 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         root.Children.Clear()
         root.Children.Add(headers)
         root.Children.Add(body)
+        if let session = editSession {
+            if session.Presentation == DataGridEditPresentation.Popover {
+                root.Children.Add(BuildEditPopover(session))
+            } else if session.Error != nil {
+                root.Children.Add(EditError(session))
+            }
+        }
         if let footer = input.Footer {
             root.Children.Add(
                 Container{

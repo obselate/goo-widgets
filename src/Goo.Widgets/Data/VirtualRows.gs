@@ -125,6 +125,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     internal var Current VirtualRowsStorage[T]?
     internal var Equality IEqualityComparer[T] = EqualityComparer[T].Default
     internal var Context Func[T, VirtualRowContext]?
+    internal var RetainedKey string?
 
     internal init(
         items IReadOnlyList[T],
@@ -335,7 +336,8 @@ internal class VirtualRowsStorage[T] : VirtualState {
         if target.Count > 4096 {
             throw InvalidOperationException("VirtualRows viewport exceeds the 4096-row realization budget")
         }
-        let focused = FocusedIndex(viewport, data)
+        let focused = input.RetainedKey != nil && data.TryIndex(input.RetainedKey!!, out var retained) ?
+            retained: FocusedIndex(viewport, data)
         if focused >= 0 && focused < target.Start {
             AddRow(focused, data, input, sameBuilder && sameContext && !switching, output)
         }
