@@ -342,6 +342,7 @@ class Gallery : Cell, IDisposable {
                 Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: page.Name(), Level: 1, Live: AccessibilityLive.Polite}},
             Container{
                 Handle: CardHandle, FlexShrink: 1, MinHeight: 180, BorderWidth: 1, BorderColor: theme.BorderColor, BorderRadius: 10, Overflow: Overflow.Hidden,
+                Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: page.Name()},
                 Container{
                     FlexGrow: 1, FlexShrink: 1, MinHeight: 0, MinWidth: 0, Padding: 32, BackgroundColor: theme.CanvasColor,
                     Container{

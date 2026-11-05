@@ -263,56 +263,55 @@ func ChoiceInteractions() {
         window.RequestClose()
         PumpFrames(window, 5)
     }
-    if !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("GOO_WIDGETS_PROOF_DIR")) {
-        for page in[]string{"Action button", "Radio group", "Toggle group"} {
-            for dark in[]bool{false, true} {
-                for size in 0 ... 3 {
-                    let width = size == 1 ? 900: size == 2 ? 2560: 1100
-                    let height = size == 1 ? 720: size == 2 ? 1440: 800
-                    let registry = CreateRegistry()
-                    let gallery = Gallery(registry, registry.IndexOf(page))
-                    let semantics = SearchListSemantics()
-                    let proof = Window{
-                        Title: page,
-                        Width: width,
-                        Height: height,
-                        Root: gallery,
-                        AccessibilityAdapter: semantics,
+    for page in[]string{"Action button", "Radio group", "Toggle group"} {
+        for dark in[]bool{false, true} {
+            for size in 0 ... 3 {
+                let width = size == 1 ? 900: size == 2 ? 2560: 1100
+                let height = size == 1 ? 720: size == 2 ? 1440: 800
+                let registry = CreateRegistry()
+                let gallery = Gallery(registry, registry.IndexOf(page))
+                let semantics = SearchListSemantics()
+                let proof = Window{
+                    Title: page,
+                    Width: width,
+                    Height: height,
+                    Root: gallery,
+                    AccessibilityAdapter: semantics,
+                }
+                gallery.AttachWindow(proof)
+                Theme.SetMode(proof, dark ? ThemeMode.Dark: ThemeMode.Light)
+                if size == 2 {
+                    Theme.Attach(proof, Theme.Read(proof).WithTextScale(1.5))
+                }
+                proof.Open()
+                try {
+                    PumpFrames(proof, 20)
+                    let content = FeedbackNode(semantics, AccessibilityRole.Group, page)
+                    let nodes = List[AccessibilityNode]()
+                    for role in[]AccessibilityRole{
+                        AccessibilityRole.Text,
+                        AccessibilityRole.Button,
+                        AccessibilityRole.Radio,
+                        AccessibilityRole.Checkbox,
+                    } {
+                        FeedbackNodes(content, role, "", nodes)
                     }
-                    gallery.AttachWindow(proof)
-                    Theme.SetMode(proof, dark ? ThemeMode.Dark: ThemeMode.Light)
-                    if size == 2 {
-                        Theme.Attach(proof, Theme.Read(proof).WithTextScale(1.5))
-                    }
-                    proof.Open()
-                    try {
-                        PumpFrames(proof, 20)
-                        let nodes = List[AccessibilityNode]()
-                        for role in[]AccessibilityRole{
-                            AccessibilityRole.Text,
-                            AccessibilityRole.Button,
-                            AccessibilityRole.Radio,
-                            AccessibilityRole.Checkbox,
-                        } {
-                            FeedbackNodes(semantics.Tree?.Root, role, "", nodes)
-                        }
-                        for node in nodes {
-                            let bounds = node.Bounds
-                            Require(
-                                bounds.X >= 0 && bounds.Y >= 0 && bounds.X + bounds.Width <= width + 1
-                                && bounds.Y + bounds.Height <= height + 1,
-                                "Gallery content did not fit: " + page
-                            )
-                        }
-                        CaptureIssueProof(
-                            proof,
-                            page.Replace(' ', '-') + (dark ? "-dark": "-light")
-                            + (size == 0 ? "": size == 1 ? "-compact": "-150pct")
+                    for node in nodes {
+                        let bounds = node.Bounds
+                        Require(
+                            bounds.X >= 0 && bounds.Y >= 0 && bounds.X + bounds.Width <= width + 1
+                            && bounds.Y + bounds.Height <= height + 1,
+                            "Gallery content did not fit: " + page
                         )
-                    } finally {
-                        proof.RequestClose()
-                        PumpFrames(proof, 5)
                     }
+                    CaptureIssueProof(
+                        proof,
+                        page.Replace(' ', '-') + (dark ? "-dark": "-light")
+                        + (size == 0 ? "": size == 1 ? "-compact": "-150pct")
+                    )
+                } finally {
+                    proof.RequestClose()
+                    PumpFrames(proof, 5)
                 }
             }
         }
