@@ -94,7 +94,10 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             matches,
             rowHeight,
             key,
-            build
+            build,
+            followEnd: false,
+            version: nil,
+            state: nil
         )
         list.Handle = listHandle
         list.Height = Math.Min(height, matches.Length * rowHeight)

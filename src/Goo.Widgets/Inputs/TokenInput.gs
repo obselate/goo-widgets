@@ -139,7 +139,9 @@ public open class TokenInput : Cell[TokenInputInput] {
                 WidgetKeyBindings.BindActivation(action)
                 return action
             }
-            let suggestions = VirtualRows[int32](matches, theme.ControlHeight, key, build)
+            let suggestions = VirtualRows[int32](
+                matches, theme.ControlHeight, key, build, followEnd: false, version: nil, state: nil
+            )
             suggestions.Key = "suggestions"
             suggestions.Gap = 2
             suggestions.Height = Math.Min(240.0, matches.Count * (theme.ControlHeight + 2))
