@@ -396,6 +396,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         ComboBoxPage{DisplayTitle: "Combo box"},
         CalendarPage{DisplayTitle: "Calendar"},
         DatePickerPage{DisplayTitle: "Date picker"},
+        TimePickerPage{DisplayTitle: "Time picker"},
         SliderPage{DisplayTitle: "Slider"}
     }),
     GalleryCategory("Data", "table_chart", []GalleryPage{
