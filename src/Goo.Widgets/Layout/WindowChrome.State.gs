@@ -51,27 +51,27 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
                     Id: "restore",
                     Label: theme.Text("Restore"),
                     Disabled: !maximized || current.OnRestore == nil,
-                    OnActivate: current.OnRestore
+                    OnClick: current.OnRestore
                 },
                 MenuItem{
                     Id: "minimize",
                     Label: theme.Text("Minimize"),
                     Disabled: current.OnMinimize == nil || host?.State == WindowState.Minimized,
-                    OnActivate: current.OnMinimize
+                    OnClick: current.OnMinimize
                 },
                 MenuItem{
                     Id: "maximize",
                     Label: theme.Text("Maximize"),
                     Disabled: maximized || current.OnMaximize == nil,
-                    OnActivate: current.OnMaximize
+                    OnClick: current.OnMaximize
                 },
                 MenuItem{Id: "separator", Separator: true},
-                MenuItem{Id: "close", Label: theme.Text("Close"), Disabled: current.OnClose == nil, OnActivate: current.OnClose},
+                MenuItem{Id: "close", Label: theme.Text("Close"), Disabled: current.OnClose == nil, OnClick: current.OnClose},
             }
             var prepared = MenuInput{
                 Open: menuOpen,
                 Items: items,
-                OnDismiss: Dismiss,
+                OnOpenChange: (isOpen bool) -> Dismiss(),
                 WindowPoint: menuPoint,
                 Width: 200.0,
                 MaxHeight: 240.0,
@@ -93,7 +93,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             menu.Anchor = prepared.Anchor
             menu.WindowPoint = menuPoint
             menu.Viewport = prepared.Viewport
-            menu.OnDismiss = Dismiss
+            menu.OnOpenChange = (isOpen bool) -> Dismiss()
             menu.DismissOnActivate = true
             root.Children.Add(Cell.Mount[MenuInput, Menu]("menu", menu))
         }

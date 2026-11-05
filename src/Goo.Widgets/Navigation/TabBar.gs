@@ -335,7 +335,7 @@ public open class TabBar : Cell[TabBarInput] {
                         Button: ActionButton{AccessibilityName: theme.Text("All tabs"), MinWidth: 32},
                         Open: overflowOpen,
                         Items: entries,
-                        OnActivate: Select,
+                        OnClick: Select,
                         OnOpenChange: (isOpen bool) -> {
                             overflowOpen = isOpen
                             Rebuild()

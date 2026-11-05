@@ -12,21 +12,21 @@ public data struct GraphCanvasInput {
     /// Edges in the graph.
     var Edges[]GraphEdge
     /// Controlled selected node identities.
-    var SelectedNodeIds[]string
+    var SelectedIds[]string
     /// Controlled viewport transform.
     var Viewport GraphViewport
-    /// Canvas width in logical pixels. Zero resolves to 800.0.
-    var Width float64
-    /// Canvas height in logical pixels. Zero resolves to 480.0.
-    var Height float64
-    /// Node width in logical pixels. Zero resolves to 160.0.
-    var NodeWidth float64
-    /// Node height in logical pixels. Zero resolves to 64.0.
-    var NodeHeight float64
-    /// Grid spacing in world coordinates. Zero resolves to 48.0.
-    var GridSpacing float64
-    /// Minimum visible grid spacing in screen pixels. Zero resolves to 18.0.
-    var MinimumGridScreenSpacing float64
+    /// Canvas width in logical pixels. Nil resolves to 800.0.
+    var Width float64?
+    /// Canvas height in logical pixels. Nil resolves to 480.0.
+    var Height float64?
+    /// Node width in logical pixels. Nil resolves to 160.0.
+    var NodeWidth float64?
+    /// Node height in logical pixels. Nil resolves to 64.0.
+    var NodeHeight float64?
+    /// Grid spacing in world coordinates. Nil resolves to 48.0.
+    var GridSpacing float64?
+    /// Minimum visible grid spacing in screen pixels. Nil resolves to 18.0.
+    var MinimumGridScreenSpacing float64?
     /// Minimum permitted zoom. Zero resolves to 0.1.
     var MinimumZoom float64
     /// Maximum permitted zoom. Zero resolves to 4.0.
@@ -39,8 +39,8 @@ public data struct GraphCanvasInput {
     var EdgeColor Color?
     /// Color of edges connected to selected nodes. Nil uses the nearest theme.
     var SelectedEdgeColor Color?
-    /// Edge width in logical pixels. Zero resolves to 2.0.
-    var EdgeWidth float64
+    /// Edge width in logical pixels. Nil resolves to 2.0.
+    var EdgeWidth float64?
     /// Marquee fill color. Nil uses the theme accent with 15% opacity.
     var MarqueeFillColor Color?
     /// Marquee border color. Nil uses the nearest theme.
@@ -51,21 +51,21 @@ public data struct GraphCanvasInput {
     var NodeStyle Style?
     /// Optional base style for edge strokes.
     var EdgeStyle Style?
-    /// Creates content for a node. The node Content value is used when nil.
-    var CreateNodeContent Func[GraphNode, Blob]?
-    /// Customizes a built interactive node card or replaces it with another blob.
-    var CustomizeNode Func[GraphNode, Container, Blob]?
-    /// Customizes a built edge stroke or replaces it with another blob.
-    var CustomizeEdge Func[GraphEdge, Container, Blob]?
+    /// Receives the resolved input and node to create its content. Nil uses the node Content.
+    var CreateNodeContent Func[GraphCanvasInput, GraphNode, Blob]?
+    /// Receives the resolved input, node, and prepared interactive card, and returns its replacement.
+    var CreateNode Func[GraphCanvasInput, GraphNode, Container, Blob]?
+    /// Receives the resolved input, edge, and prepared stroke, and returns its replacement.
+    var CreateEdge Func[GraphCanvasInput, GraphEdge, Container, Blob]?
     /// Receives requested controlled selection updates.
-    var OnSelectionChanged Action[[]string]?
+    var OnSelectionChange Action[[]string]?
     /// Receives requested controlled node position updates.
-    var OnNodePositionChanged Action[GraphNodePositionChange]?
+    var OnNodePositionChange Action[GraphNodePositionChange]?
     /// Receives requested controlled viewport updates.
-    var OnViewportChanged Action[GraphViewport]?
+    var OnViewportChange Action[GraphViewport]?
 }
 
-enum GraphPointerMode {
+internal enum GraphPointerMode {
     None;
     Pan;
     Marquee;
@@ -100,8 +100,8 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             Key: "graph-canvas",
             Handle: handle,
             Position: PositionType.Relative,
-            Width: resolved.Width,
-            Height: resolved.Height,
+            Width: resolved.Width!!,
+            Height: resolved.Height!!,
             Overflow: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
             Focusable: true,
@@ -148,7 +148,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         let value = input with{
             Nodes = input.Nodes ?? []GraphNode{},
             Edges = input.Edges ?? []GraphEdge{},
-            SelectedNodeIds = input.SelectedNodeIds ?? []string{},
+            SelectedIds = input.SelectedIds ?? []string{},
             Viewport = GraphViewport{
                 PanX: input.Viewport.PanX,
                 PanY: input.Viewport.PanY,
@@ -162,43 +162,15 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                     maximumZoom
                 ),
             },
-            Width = if input.Width == 0.0 {
-                800.0
-            } else {
-                input.Width
-            },
-            Height = if input.Height == 0.0 {
-                480.0
-            } else {
-                input.Height
-            },
-            NodeWidth = if input.NodeWidth == 0.0 {
-                160.0
-            } else {
-                input.NodeWidth
-            },
-            NodeHeight = if input.NodeHeight == 0.0 {
-                64.0
-            } else {
-                input.NodeHeight
-            },
-            GridSpacing = if input.GridSpacing == 0.0 {
-                48.0
-            } else {
-                input.GridSpacing
-            },
-            MinimumGridScreenSpacing = if input.MinimumGridScreenSpacing == 0.0 {
-                18.0
-            } else {
-                input.MinimumGridScreenSpacing
-            },
+            Width = input.Width ?? 800.0,
+            Height = input.Height ?? 480.0,
+            NodeWidth = input.NodeWidth ?? 160.0,
+            NodeHeight = input.NodeHeight ?? 64.0,
+            GridSpacing = input.GridSpacing ?? 48.0,
+            MinimumGridScreenSpacing = input.MinimumGridScreenSpacing ?? 18.0,
             MinimumZoom = minimumZoom,
             MaximumZoom = maximumZoom,
-            EdgeWidth = if input.EdgeWidth == 0.0 {
-                2.0
-            } else {
-                input.EdgeWidth
-            },
+            EdgeWidth = input.EdgeWidth ?? 2.0,
             BackgroundColor = input.BackgroundColor ?? theme.CanvasColor,
             GridColor = input.GridColor ?? theme.BorderColor,
             EdgeColor = input.EdgeColor ?? theme.MutedTextColor,
@@ -216,25 +188,25 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func Validate(value GraphCanvasInput, graphChanged bool) {
-        if !Double.IsFinite(value.Width) || value.Width <= 0.0 {
+        if !Double.IsFinite(value.Width!!) || value.Width!! <= 0.0 {
             throw ArgumentOutOfRangeException("Width")
         }
-        if !Double.IsFinite(value.Height) || value.Height <= 0.0 {
+        if !Double.IsFinite(value.Height!!) || value.Height!! <= 0.0 {
             throw ArgumentOutOfRangeException("Height")
         }
-        if !Double.IsFinite(value.NodeWidth) || value.NodeWidth <= 0.0 {
+        if !Double.IsFinite(value.NodeWidth!!) || value.NodeWidth!! <= 0.0 {
             throw ArgumentOutOfRangeException("NodeWidth")
         }
-        if !Double.IsFinite(value.NodeHeight) || value.NodeHeight <= 0.0 {
+        if !Double.IsFinite(value.NodeHeight!!) || value.NodeHeight!! <= 0.0 {
             throw ArgumentOutOfRangeException("NodeHeight")
         }
-        if !Double.IsFinite(value.GridSpacing) || value.GridSpacing <= 0.0 {
+        if !Double.IsFinite(value.GridSpacing!!) || value.GridSpacing!! <= 0.0 {
             throw ArgumentOutOfRangeException("GridSpacing")
         }
-        if !Double.IsFinite(value.MinimumGridScreenSpacing) || value.MinimumGridScreenSpacing <= 0.0 {
+        if !Double.IsFinite(value.MinimumGridScreenSpacing!!) || value.MinimumGridScreenSpacing!! <= 0.0 {
             throw ArgumentOutOfRangeException("MinimumGridScreenSpacing")
         }
-        if !Double.IsFinite(value.EdgeWidth) || value.EdgeWidth <= 0.0 {
+        if !Double.IsFinite(value.EdgeWidth!!) || value.EdgeWidth!! <= 0.0 {
             throw ArgumentOutOfRangeException("EdgeWidth")
         }
         if !Double.IsFinite(value.Viewport.PanX) || !Double.IsFinite(value.Viewport.PanY)
@@ -264,17 +236,17 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             nodeIndices = nodes
         }
         let selectedIds = HashSet[string](StringComparer.Ordinal)
-        for id in value.SelectedNodeIds {
+        for id in value.SelectedIds {
             if String.IsNullOrWhiteSpace(id) || !selectedIds.Add(id) {
-                throw ArgumentException("Selected node identities must be nonempty and unique.", "SelectedNodeIds")
+                throw ArgumentException("Selected node identities must be nonempty and unique.", "SelectedIds")
             }
         }
     }
 
     private func GridLayer() Container {
         let layer = PassiveLayer("graph-grid")
-        var spacing = resolved.GridSpacing * viewport.Zoom
-        while spacing < resolved.MinimumGridScreenSpacing {
+        var spacing = resolved.GridSpacing!! * viewport.Zoom
+        while spacing < resolved.MinimumGridScreenSpacing!! {
             spacing *= 2.0
         }
         var offsetX = viewport.PanX % spacing
@@ -287,7 +259,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         }
         var index int32
         var x = offsetX
-        while x <= resolved.Width {
+        while x <= resolved.Width!! {
             layer.Children.Add(
                 Container{
                     Key: "grid-x-" + index.ToString(),
@@ -295,7 +267,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                     Left: x,
                     Top: 0.0,
                     Width: 1.0,
-                    Height: resolved.Height,
+                    Height: resolved.Height!!,
                     BackgroundColor: resolved.GridColor!!,
                     HitTestSelf: false,
                 }
@@ -305,14 +277,14 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         }
         index = 0
         var y = offsetY
-        while y <= resolved.Height {
+        while y <= resolved.Height!! {
             layer.Children.Add(
                 Container{
                     Key: "grid-y-" + index.ToString(),
                     Position: PositionType.Absolute,
                     Left: 0.0,
                     Top: y,
-                    Width: resolved.Width,
+                    Width: resolved.Width!!,
                     Height: 1.0,
                     BackgroundColor: resolved.GridColor!!,
                     HitTestSelf: false,
@@ -340,11 +312,11 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             }
             let fromPosition = ScreenPosition(NodePosition(resolved.Nodes[fromIndex]))
             let toPosition = ScreenPosition(NodePosition(resolved.Nodes[toIndex]))
-            if Math.Max(fromPosition.X, toPosition.X) < 0.0 || Math.Min(fromPosition.X, toPosition.X) > resolved.Width
+            if Math.Max(fromPosition.X, toPosition.X) < 0.0 || Math.Min(fromPosition.X, toPosition.X) > resolved.Width!!
             || Math.Max(fromPosition.Y, toPosition.Y) < 0.0 || Math.Min(
                 fromPosition.Y,
                 toPosition.Y
-            ) > resolved.Height {
+            ) > resolved.Height!! {
                 continue
             }
             let dx = toPosition.X - fromPosition.X
@@ -355,9 +327,9 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                 Key: "graph-edge-" + edge.Id,
                 Position: PositionType.Absolute,
                 Left: fromPosition.X,
-                Top: fromPosition.Y - resolved.EdgeWidth * 0.5,
+                Top: fromPosition.Y - resolved.EdgeWidth!! * 0.5,
                 Width: length,
-                Height: resolved.EdgeWidth,
+                Height: resolved.EdgeWidth!!,
                 BackgroundColor: if selected {
                     resolved.SelectedEdgeColor!!
                 } else {
@@ -365,7 +337,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                 },
                 Opacity: if selected {
                     1.0
-                } else if resolved.SelectedNodeIds.Length > 0 {
+                } else if resolved.SelectedIds.Length > 0 {
                     0.25
                 } else {
                     0.7
@@ -377,8 +349,8 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                 HitTestSelf: false,
             }
             layer.Children.Add(
-                if let customizeEdge = resolved.CustomizeEdge {
-                    customizeEdge(edge, stroke)
+                if let customizeEdge = resolved.CreateEdge {
+                    customizeEdge(resolved, edge, stroke)
                 } else {
                     stroke
                 }
@@ -392,15 +364,15 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         Position: PositionType.Absolute,
         Left: 0.0,
         Top: 0.0,
-        Width: resolved.Width,
-        Height: resolved.Height,
+        Width: resolved.Width!!,
+        Height: resolved.Height!!,
         HitTestSelf: false,
     }
 
     private func NodeCard(node GraphNode) Blob {
         let position = ScreenPosition(NodePosition(node))
         let displayNode = if let createNodeContent = resolved.CreateNodeContent {
-            node with{Content = createNodeContent(node)}
+            node with{Content = createNodeContent(resolved, node)}
         } else {
             node
         }
@@ -408,10 +380,10 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             Node: displayNode,
             Selected: IsSelected(node.Id),
             Center: position,
-            Width: resolved.NodeWidth,
-            Height: resolved.NodeHeight,
+            Width: resolved.NodeWidth!!,
+            Height: resolved.NodeHeight!!,
             RootStyle: resolved.NodeStyle,
-            OnActivate: () -> {
+            OnClick: () -> {
                 EmitNodeSelection(node.Id, KeyModifiers{})
             },
             OnPointerDown: (e PointerEvent) -> BeginNodePointer(node, e),
@@ -419,8 +391,8 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             OnPointerCancel: (e PointerEvent) -> CancelPointer(e),
         }.Build()
         card.Gestures = NodeGestures(node.Id)
-        return if let customizeNode = resolved.CustomizeNode {
-            customizeNode(node, card)
+        return if let customizeNode = resolved.CreateNode {
+            customizeNode(resolved, node, card)
         } else {
             card
         }
@@ -501,7 +473,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         }
         if pointerMode == GraphPointerMode.Pan {
             viewport = viewport with{PanX = viewport.PanX + e.Delta.X, PanY = viewport.PanY + e.Delta.Y}
-            resolved.OnViewportChanged?.Invoke(viewport)
+            resolved.OnViewportChange?.Invoke(viewport)
             Rebuild()
         } else if pointerMode == GraphPointerMode.Marquee {
             marqueeEnd = e.Position
@@ -516,7 +488,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                 Y: draggedNodePosition.Y + world.Y - dragPointerWorld.Y,
             }
             dragPointerWorld = world
-            resolved.OnNodePositionChanged?.Invoke(
+            resolved.OnNodePositionChange?.Invoke(
                 GraphNodePositionChange{NodeId: draggedNodeId, Position: draggedNodePosition,}
             )
             Rebuild()
@@ -556,16 +528,16 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         let right = Math.Max(marqueeStart.X, marqueeEnd.X)
         let bottom = Math.Max(marqueeStart.Y, marqueeEnd.Y)
         let next = if marqueeAdd || marqueeToggle {
-            List[string](resolved.SelectedNodeIds)
+            List[string](resolved.SelectedIds)
         } else {
             List[string]()
         }
         for node in resolved.Nodes {
             let center = ScreenPosition(NodePosition(node))
-            let intersects = center.X + resolved.NodeWidth * 0.5 >= left
-            && center.X - resolved.NodeWidth * 0.5 <= right
-            && center.Y + resolved.NodeHeight * 0.5 >= top
-            && center.Y - resolved.NodeHeight * 0.5 <= bottom
+            let intersects = center.X + resolved.NodeWidth!! * 0.5 >= left
+            && center.X - resolved.NodeWidth!! * 0.5 <= right
+            && center.Y + resolved.NodeHeight!! * 0.5 >= top
+            && center.Y - resolved.NodeHeight!! * 0.5 <= bottom
             if !intersects {
                 continue
             }
@@ -579,7 +551,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func EmitNodeSelection(id string, modifiers KeyModifiers) bool {
-        let next = List[string](resolved.SelectedNodeIds)
+        let next = List[string](resolved.SelectedIds)
         if modifiers.Ctrl {
             if !next.Remove(id) {
                 next.Add(id)
@@ -597,7 +569,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func EmitSelection(ids[]string) {
-        resolved.OnSelectionChanged?.Invoke(ids)
+        resolved.OnSelectionChange?.Invoke(ids)
     }
 
     private func Zoom(e WheelEvent) {
@@ -615,12 +587,12 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             PanY: e.Position.Y - world.Y * nextZoom,
             Zoom: nextZoom,
         }
-        resolved.OnViewportChanged?.Invoke(viewport)
+        resolved.OnViewportChange?.Invoke(viewport)
         e.PreventDefault()
         Rebuild()
     }
 
-    private func IsSelected(id string) bool -> Array.IndexOf(resolved.SelectedNodeIds, id) >= 0
+    private func IsSelected(id string) bool -> Array.IndexOf(resolved.SelectedIds, id) >= 0
 
     private func NodePosition(node GraphNode) Point {
         if draggedNodeId == node.Id {
@@ -646,9 +618,9 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
 
     private func NodeVisible(node GraphNode) bool {
         let point = ScreenPosition(NodePosition(node))
-        return point.X + resolved.NodeWidth * 0.5 >= 0.0
-        && point.X - resolved.NodeWidth * 0.5 <= resolved.Width
-        && point.Y + resolved.NodeHeight * 0.5 >= 0.0
-        && point.Y - resolved.NodeHeight * 0.5 <= resolved.Height
+        return point.X + resolved.NodeWidth!! * 0.5 >= 0.0
+        && point.X - resolved.NodeWidth!! * 0.5 <= resolved.Width!!
+        && point.Y + resolved.NodeHeight!! * 0.5 >= 0.0
+        && point.Y - resolved.NodeHeight!! * 0.5 <= resolved.Height!!
     }
 }

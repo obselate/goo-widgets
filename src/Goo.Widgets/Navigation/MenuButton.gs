@@ -18,11 +18,11 @@ public data struct MenuButtonInput {
     /// Receives the requested open state after user interaction. Nil ignores the request.
     var OnOpenChange Action[bool]?
     /// Receives the activated item ID. Nil ignores activation.
-    var OnActivate Action[string]?
+    var OnClick Action[string]?
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
     /// Transforms the prepared menu input and returns its replacement. Open state, anchor, items, initial focus, and callbacks are reapplied. Nil keeps the default input.
-    var CreateMenu Func[MenuInput, MenuInput]?
+    var CreateMenu Func[MenuButtonInput, MenuInput, MenuInput]?
 }
 
 /// Opens a Menu with Enter, Space or Down at the first item, or Up at the last.
@@ -68,17 +68,17 @@ public open class MenuButton : Cell[MenuButtonInput] {
             Items: input.Items,
             InitialFocusId: initialId,
             Placement: input.Placement,
-            OnActivate: input.OnActivate,
-            OnDismiss: () -> Change(false, false),
+            OnClick: input.OnClick,
+            OnOpenChange: (isOpen bool) -> Change(isOpen, false),
         }
         if let create = input.CreateMenu {
-            menu = create(menu) with{
+            menu = create(input, menu) with{
                 Open = input.Open,
                 Anchor = trigger,
                 Items = input.Items,
                 InitialFocusId = initialId,
-                OnActivate = input.OnActivate,
-                OnDismiss = () -> Change(false, false)
+                OnClick = input.OnClick,
+                OnOpenChange = (isOpen bool) -> Change(isOpen, false)
             }
         }
         return Container{FlexDirection: FlexDirection.Row, button, Cell.Mount[MenuInput, Menu]("menu", menu),}

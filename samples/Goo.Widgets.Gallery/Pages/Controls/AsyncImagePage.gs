@@ -28,8 +28,8 @@ class AsyncImagePage : GalleryPage {
                 Text{
                     Content: "Custom",
                     Color: resolved.PlaceholderTextColor!!,
-                    FontSize: resolved.FontSize,
-                    FontWeight: resolved.FontWeight,
+                    FontSize: resolved.FontSize!!,
+                    FontWeight: resolved.FontWeight!!,
                 },
             }
         }

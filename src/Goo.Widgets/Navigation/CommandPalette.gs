@@ -48,20 +48,20 @@ public data struct CommandPaletteInput {
     var RecentIds[]?string
     /// Controlled visibility. False hides the popup.
     var Open bool
-    /// Requests dismissal after a user dismissal action. Nil ignores the request.
-    var OnDismiss Action?
+    /// Requests visibility changes after user dismissal or activation. Nil ignores the request.
+    var OnOpenChange Action[bool]?
     /// Receives the activated item ID. Nil ignores activation.
-    var OnActivate Action[string]?
+    var OnClick Action[string]?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
-    /// Dialog width in logical pixels. Nil uses 560.
-    var Width float64?
+    /// Dialog width. Nil uses 560 logical pixels.
+    var Width Length?
     /// Maximum height. Short result lists use their natural height.
-    var Height float64?
-    /// Receives the command descriptor, the match score and highlight ranges, and the prepared button, and returns the replacement content. Nil uses the default composition.
-    var CreateItem Func[CommandItem, FuzzyMatchResult, Button, Blob]?
+    var Height Length?
+    /// Receives the widget input, command descriptor, match score and highlight ranges, and prepared button, and returns the replacement content. Nil uses the default composition.
+    var CreateItem Func[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button, Blob]?
 }
 
 /// Fuzzy-ranked command search with recent groups and keyboard activation.
@@ -195,6 +195,9 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 })
             }
         }
+        let defaultWidth Length = 560.0
+        let defaultHeight Length = 360.0
+        let height = input.Height ?? defaultHeight
         let search = SearchList{
             ItemCount: ordered.Count,
             ItemAt: (index int32) -> {
@@ -206,11 +209,11 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             },
             SelectedId: activeId,
             OnSelect: Activate,
-            Width: input.Width ?? 560,
-            Height: Math.Min(
-                input.Height ?? 360,
+            Width: Percent(100),
+            Height: height.HasMagnitude && !height.IsPercent ? Math.Min(
+                height.Magnitude,
                 inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
-            ),
+            ): height,
             RowHeight: theme.ControlHeight,
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
@@ -257,11 +260,11 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             ModalDialog{
                 Open: true,
                 AccessibilityName: input.AccessibilityName ?? theme.Text("Command palette"),
-                Width: input.Width ?? 560,
+                Width: input.Width ?? defaultWidth,
                 Padding: 0,
                 Gap: 0,
-                OnOpenChange: (isOpen bool) -> input.OnDismiss?.Invoke(),
-                OnCancel: input.OnDismiss,
+                OnOpenChange: input.OnOpenChange,
+                OnCancel: () -> input.OnOpenChange?.Invoke(false),
                 Content: search,
                 Footer: Container{Height: 0, HitTestSelf: false},
                 CreateRoot: (dialog ModalDialog, backdrop Button, panel Container) -> {
@@ -346,15 +349,15 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             button.Children.Add(keys)
         }
         if let create = snapshot.CreateItem {
-            return create(command, match, button)
+            return create(snapshot, command, match, button)
         }
         return button
     }
 
     private func Activate(id string) {
         if commands.ContainsKey(id) && !commands[id].Disabled {
-            current.OnActivate?.Invoke(id)
-            current.OnDismiss?.Invoke()
+            current.OnClick?.Invoke(id)
+            current.OnOpenChange?.Invoke(false)
         }
     }
 

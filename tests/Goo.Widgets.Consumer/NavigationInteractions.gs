@@ -109,9 +109,9 @@ internal class NavigationHost : Cell {
                             }
                         }
                     },
-                    CollapsedGroups: GroupCollapsed ? []string{"workspace"}: []string{},
-                    OnGroupToggle: (id string) -> {
-                        GroupCollapsed = !GroupCollapsed
+                    ExpandedGroupIds: GroupCollapsed ? []string{}: []string{"workspace"},
+                    OnGroupExpandedChange: (id string, expanded bool) -> {
+                        GroupCollapsed = !expanded
                         Rebuild()
                     },
                     Counts: Dictionary[string, int32](){["files"] = 12},
@@ -148,12 +148,12 @@ internal class NavigationHost : Cell {
                         Query = value
                         Rebuild()
                     },
-                    OnDismiss: () -> {
-                        PaletteOpen = false
+                    OnOpenChange: (isOpen bool) -> {
+                        PaletteOpen = isOpen
                         Rebuild()
                     },
-                    OnActivate: (id string) -> Invoked = id,
-                    CreateItem: (item CommandItem, match FuzzyMatchResult, button Button) -> {
+                    OnClick: (id string) -> Invoked = id,
+                    CreateItem: (input CommandPaletteInput, item CommandItem, match FuzzyMatchResult, button Button) -> {
                         Highlights[item.Id] = match
                         return button
                     },

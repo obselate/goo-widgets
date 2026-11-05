@@ -12,10 +12,10 @@ public data struct GraphNodeCard {
     var Selected bool
     /// Card center in screen coordinates. Nil resolves to Node.Position.
     var Center Point?
-    /// Card width in logical pixels. Zero resolves to 160.0.
-    var Width float64
-    /// Card height in logical pixels. Zero resolves to 64.0.
-    var Height float64
+    /// Card width in logical pixels. Nil resolves to 160.0.
+    var Width float64?
+    /// Card height in logical pixels. Nil resolves to 64.0.
+    var Height float64?
     /// Card padding. Nil uses the theme's control padding.
     var Padding float64?
     /// Card corner radius. Nil uses the theme's panel radius.
@@ -35,7 +35,7 @@ public data struct GraphNodeCard {
     /// Optional base style for the card root.
     var RootStyle Style?
     /// Receives keyboard and accessibility activation requests.
-    var OnActivate Action?
+    var OnClick Action?
     /// Receives pointer presses on the card.
     var OnPointerDown Action[PointerEvent]?
     /// Receives pointer movement captured by the card.
@@ -48,16 +48,8 @@ public data struct GraphNodeCard {
     /// Builds the graph node card.
     public func Build() Container {
         let theme = Theme.Read()
-        let width = if Width == 0.0 {
-            160.0
-        } else {
-            Width
-        }
-        let height = if Height == 0.0 {
-            64.0
-        } else {
-            Height
-        }
+        let width = Width ?? 160.0
+        let height = Height ?? 64.0
         let padding = Padding ?? theme.ControlPadding
         let borderRadius = BorderRadius ?? theme.PanelRadius!!
         let borderWidth = BorderWidth ?? theme.BorderWidth
@@ -126,7 +118,7 @@ public data struct GraphNodeCard {
             BasedOn: RootStyle,
             Cursor: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
-            OnClick: OnActivate,
+            OnClick: OnClick,
             OnPointerDown: OnPointerDown,
             OnPointerMove: OnPointerMove,
             OnPointerUp: OnPointerUp,

@@ -43,22 +43,22 @@ internal open class MediaTransportExample : Cell {
                     status = "Next"
                     Rebuild()
                 },
-                OnSeekChanged: (value float64) -> {
+                OnPositionChange: (value float64) -> {
                     position = value
                     status = "Seeking"
                     Rebuild()
                 },
-                OnSeekCommitted: (value float64) -> {
+                OnPositionCommit: (value float64) -> {
                     position = value
                     status = "Seek committed"
                     Rebuild()
                 },
-                OnVolumeChanged: (value float64) -> {
+                OnVolumeChange: (value float64) -> {
                     volume = value
                     status = "Volume preview"
                     Rebuild()
                 },
-                OnVolumeCommitted: (value float64) -> {
+                OnVolumeCommit: (value float64) -> {
                     volume = value
                     status = "Volume committed"
                     Rebuild()

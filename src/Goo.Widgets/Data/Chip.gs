@@ -49,15 +49,15 @@ public data struct Chip {
     /// Focus outline border color. Nil uses the nearest theme.
     var FocusBorderColor Color?
     /// Fixed height. Nil uses the theme control height.
-    var Height float64?
+    var Height Length?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
     /// Content gap. Explicit zero is preserved.
     var Gap float64?
-    /// Font size of the text label. Zero uses the nearest theme caption font size.
-    var FontSize float64
-    /// Font weight of the text label. Zero uses the nearest theme caption font weight.
-    var FontWeight int32
+    /// Font size of the text label. Nil uses the nearest theme caption font size.
+    var FontSize float64?
+    /// Font weight of the text label. Nil uses the nearest theme caption font weight.
+    var FontWeight int32?
     /// Border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
     /// Corner border radius. Nil uses the nearest theme radius; explicit zero is preserved.
@@ -89,6 +89,7 @@ public data struct Chip {
         let originalLeading = Leading
         let label = Label ?? ""
         let tone = Invalid ? Tone.Danger: Tone
+        let defaultHeight Length = theme.ControlHeight
         let resolved = this with{
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
@@ -104,20 +105,12 @@ public data struct Chip {
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             SelectedActiveBackgroundColor = SelectedActiveBackgroundColor ?? theme.AccentPressedColor,
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
-            Height = Height ?? theme.ControlHeight,
+            Height = Height ?? defaultHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             Gap = Gap ?? theme.ControlGap,
             FontFamily = FontFamily ?? theme.FontFamily,
-            FontSize = if FontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                FontSize
-            },
-            FontWeight = if FontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                FontWeight
-            },
+            FontSize = FontSize ?? theme.CaptionFontSize,
+            FontWeight = FontWeight ?? theme.CaptionFontWeight,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
@@ -133,7 +126,7 @@ public data struct Chip {
         let text = if let createText = createText {
             createText(resolved)
         } else {
-            let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight}
+            let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize!!, FontWeight: resolved.FontWeight!!}
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
             }
@@ -223,15 +216,16 @@ public data struct Chip {
         }
         let theme = Theme.Read()
         let color = input.Selected ? input.SelectedTextColor!!: input.TextColor!!
+        let height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent ? input.Height!!.Magnitude: theme.ControlHeight
         let action = Button{
             Key: "remove",
-            Width: input.Height!! - 8.0,
-            Height: input.Height!! - 8.0,
+            Width: height - 8.0,
+            Height: height - 8.0,
             MarginEnd: 4.0,
             Padding: 0,
             Focusable: !input.Disabled,
             Disabled: input.Disabled,
-            BorderRadius: (input.Height!! - 8.0) / 2.0,
+            BorderRadius: (height - 8.0) / 2.0,
             Color: color,
             Hover: Style{BackgroundColor: theme.HoverColor},
             Focus: theme.FocusStyle,
@@ -246,7 +240,8 @@ public data struct Chip {
             ControlIcons.Create(ControlIcon.Close, 14, color),
         }
         WidgetKeyBindings.BindActivation(action)
-        button.Height = input.Height!! - 2.0 * input.BorderWidth!!
+        button.Height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent
+            ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0
         button.BackgroundColor = Color.Transparent
         button.Hover = Style{}

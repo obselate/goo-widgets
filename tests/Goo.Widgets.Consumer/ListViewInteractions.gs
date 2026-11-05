@@ -68,7 +68,7 @@ internal class ListTreeHost : Cell {
                         Expanded = value ? []string{id}: []string{}
                         Rebuild()
                     },
-                    LoadChildren: (id string) -> {
+                    OnLoadChildren: (id string) -> {
                         Loads++
                         Loading = []string{id}
                         Rebuild()
@@ -99,7 +99,7 @@ internal class ListTreeHost : Cell {
                         Active = id
                         Rebuild()
                     },
-                    OnInvoke: (id string) -> Invoked = id,
+                    OnClick: (id string) -> Invoked = id,
                     Sections: Sections,
                     Query: Query,
                     CreateRoot: (input ListViewInput, root Container) -> {

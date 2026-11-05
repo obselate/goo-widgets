@@ -27,7 +27,7 @@ internal class ListViewExample : Cell {
                         selected = ids
                         Rebuild()
                     },
-                    OnInvoke: (id string) -> {
+                    OnClick: (id string) -> {
                         invoked = id
                         Rebuild()
                     },

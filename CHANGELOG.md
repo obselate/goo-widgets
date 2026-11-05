@@ -6,6 +6,7 @@
 - Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.
 - Align DataGrid navigation, additive selection, sorting and column reordering with desktop grids. Plain header clicks replace the sort. Shift-click adds a sort. Retain unchanged visible rows during navigation and support indexed select-all requests.
+- Apply the API shape to Navigation, Media, Graphs, Charts and Data except DataGrid (breaking).
 - Use theme spacing and padding for attachment chips, token inputs, and radio group marks.
 - Cache graph validation and node lookup until the node or edge array changes.
 - Add modal drawers with a scrim, focus containment and focus restoration. Escape and scrim clicks request closure through `OnOpenChange(false)`.
@@ -83,6 +84,43 @@
 | TokenInput | `Tokens`, `OnTokensChange` | `Value`, `OnChange` |
 | TriggerMenu | `MaxHeight`: `float64` | `Length?`. Nil selects default. |
 | WindowChrome | `Height float64`, `ControlWidth float64` | `Height Length?`, `ControlWidth float64?` |
+| AttachmentChip | `OnOpen` | `OnClick` |
+| Chip | `Height float64?` | `Height Length?` |
+| Chip | `FontSize float64`, `FontWeight int32` | `FontSize float64?`, `FontWeight int32?` |
+| ListView | `OnInvoke` | `OnClick` |
+| TimeAxis | `OnViewportChanged` | `OnViewportChange` |
+| TreeView | `LoadChildren` | `OnLoadChildren` |
+| DonutChart, StackedBar | `OnActivate` | `OnClick` |
+| DonutChart, StackedBar | `CreateLabel(segment, text)` | `CreateLabel(owner, segment, text)` |
+| StackedBar | `Height float64?` | `Height Length?` |
+| GraphCanvas | `SelectedNodeIds` | `SelectedIds` |
+| GraphCanvas | `OnSelectionChanged`, `OnNodePositionChanged`, `OnViewportChanged` | `OnSelectionChange`, `OnNodePositionChange`, `OnViewportChange` |
+| GraphCanvas | `CustomizeNode`, `CustomizeEdge` | `CreateNode`, `CreateEdge`, with owner first |
+| GraphCanvas | `CreateNodeContent(node)` | `CreateNodeContent(input, node)` |
+| GraphCanvas | `Width`, `Height`, `NodeWidth`, `NodeHeight`, `GridSpacing`, `MinimumGridScreenSpacing`, `EdgeWidth` as `float64` | Same fields as `float64?` |
+| GraphNodeCard | `OnActivate` | `OnClick` |
+| GraphNodeCard | `Width float64`, `Height float64` | `Width float64?`, `Height float64?` |
+| GraphCanvas | Public `GraphPointerMode` | Internal implementation type |
+| AsyncImage | `Width float64`, `Height float64` | `Width Length?`, `Height Length?` |
+| AsyncImage | `FontSize float64`, `FontWeight int32` | `FontSize float64?`, `FontWeight int32?` |
+| Avatar | `Size`, `BorderWidth`, `FontSize` as `float64`, `FontWeight int32` | Same fields as `float64?` and `int32?` |
+| AvatarGroup | `OnActivate`, `Size float64` | `OnClick`, `Size float64?` |
+| MediaCard | `Width float64` | `Width Length?` |
+| MediaCard | `ThumbnailHeight`, `ContentHeight`, `TitleFontSize`, `SupportingFontSize` as `float64` | Same fields as `float64?` |
+| MediaTransport | `OnSeekChanged`, `OnSeekCommitted` | `OnPositionChange`, `OnPositionCommit` |
+| MediaTransport | `OnVolumeChanged`, `OnVolumeCommitted` | `OnVolumeChange`, `OnVolumeCommit` |
+| MediaTransport | `ActionSize float64`, `PrimaryActionSize float64` | `ActionSize float64?`, `PrimaryActionSize float64?` |
+| CommandPalette | `OnActivate`, `OnDismiss()` | `OnClick`, `OnOpenChange(false)` |
+| CommandPalette | `Width float64?`, `Height float64?` | `Width Length?`, `Height Length?` |
+| CommandPalette | `CreateItem(item, match, button)` | `CreateItem(input, item, match, button)` |
+| Menu | `OnActivate`, `OnDismiss()` | `OnClick`, `OnOpenChange(false)` |
+| MenuItem, MenuButton | `OnActivate` | `OnClick` |
+| Menu | `Width float64`, `MaxHeight float64` | `Width Length?`, `MaxHeight Length?` |
+| MenuButton | `CreateMenu(menu)` | `CreateMenu(input, menu)` |
+| NavigationRail | `CollapsedGroups` | `ExpandedGroupIds`. Use the complement. Nil expands all groups |
+| NavigationRail | `OnGroupToggle(id)` | `OnGroupExpandedChange(id, expanded)` |
+| NavigationRail | `CollapsedWidth`, `ExpandedWidth`, `ItemHeight`, `FontSize` as `float64`, `FontWeight int32` | Same fields as `float64?` and `int32?` |
+
 
 ## 0.18.6 - 2026-11-03
 

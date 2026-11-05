@@ -30,10 +30,10 @@ public data struct Avatar {
     var TextColor Color?
     /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Avatar width and height. Zero resolves to 40.
-    var Size float64
-    /// Border width. A RingColor uses the theme border width when this is zero.
-    var BorderWidth float64
+    /// Avatar width and height. Nil resolves to 40.
+    var Size float64?
+    /// Border width. Nil uses the theme border width with RingColor, otherwise zero.
+    var BorderWidth float64?
     /// Corner radius. Nil resolves to half the size; explicit zero remains zero.
     var BorderRadius float64?
     /// Fallback font family. Nil inherits Goo's font choice.
@@ -44,10 +44,10 @@ public data struct Avatar {
     var Opacity float64?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Fallback font size. Zero uses the nearest theme font size.
-    var FontSize float64
-    /// Fallback font weight. Zero uses the nearest theme font weight.
-    var FontWeight int32
+    /// Fallback font size. Nil uses the nearest theme font size.
+    var FontSize float64?
+    /// Fallback font weight. Nil uses the nearest theme font weight.
+    var FontWeight int32?
     /// Creates the final image from resolved props. Nil uses Avatar's composition.
     var CreateImage Func[Avatar, Image]?
     /// Creates the final fallback text from resolved props. Nil uses Avatar's composition.
@@ -62,29 +62,18 @@ public data struct Avatar {
         let createFallback = CreateFallback
         let createRoot = CreateRoot
         let imageMode = ImageSource != nil || (ImagePath ?? "") != ""
-        let size = if Size == 0.0 {
-            40.0
-        } else {
-            Size
-        }
+        let size = Size ?? 40.0
         let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
             Size = size,
             BackgroundColor = background,
             TextColor = TextColor ?? (NameTone != nil ? theme.ToneColor(NameTone!!): theme.TextColor),
+            BorderWidth = BorderWidth ?? (RingColor != nil ? theme.BorderWidth: 0.0),
             BorderColor = RingColor ?? BorderColor ?? theme.BorderColor,
             BorderRadius = BorderRadius ?? (size / 2.0),
             FontFamily = FontFamily ?? theme.FontFamily,
-            FontSize = if FontSize == 0.0 {
-                theme.FontSize
-            } else {
-                FontSize
-            },
-            FontWeight = if FontWeight == 0 {
-                theme.FontWeight
-            } else {
-                FontWeight
-            },
+            FontSize = FontSize ?? theme.FontSize,
+            FontWeight = FontWeight ?? theme.FontWeight,
             Fit = Fit ?? ImageFit.Cover,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -114,8 +103,8 @@ public data struct Avatar {
             let fallback = Text{
                 Content: resolved.FallbackText ?? "",
                 Color: resolved.TextColor!!,
-                FontSize: resolved.FontSize,
-                FontWeight: resolved.FontWeight,
+                FontSize: resolved.FontSize!!,
+                FontWeight: resolved.FontWeight!!,
             }
             if let fontFamily = resolved.FontFamily {
                 fallback.FontFamily = fontFamily
@@ -132,10 +121,10 @@ public data struct Avatar {
         }
         let root = Container{
             LineHeight: theme.LineHeight,
-            Width: resolved.Size,
-            Height: resolved.Size,
+            Width: resolved.Size!!,
+            Height: resolved.Size!!,
             BorderRadius: resolved.BorderRadius!!,
-            BorderWidth: RingColor != nil && BorderWidth == 0.0 ? theme.BorderWidth: resolved.BorderWidth,
+            BorderWidth: resolved.BorderWidth!!,
             BorderColor: resolved.BorderColor!!,
             BackgroundColor: resolved.BackgroundColor!!,
             Opacity: resolved.Opacity!!,
@@ -198,19 +187,19 @@ public data struct AvatarGroup {
     var Items[]Avatar
     /// Maximum visible avatars, clamped to zero or greater. Nil uses 5.
     var Max int32?
-    /// Avatar square size in logical pixels. Zero uses 40.
-    var Size float64
+    /// Avatar square size in logical pixels. Nil uses 40.
+    var Size float64?
     /// Horizontal overlap in logical pixels. Nil uses 12.
     var Overlap float64?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Receives the zero-based avatar index when it is activated. Nil leaves avatars noninteractive.
-    var OnActivate Action[int32]?
+    var OnClick Action[int32]?
 
     /// Builds a named group. Only actionable avatars enter the tab order.
     public func Build() Blob {
         let theme = Theme.Read()
-        let size = Size == 0.0 ? 40.0: Size
+        let size = Size ?? 40.0
         let overlap = Overlap ?? 12.0
         let items = Items ?? []Avatar{}
         let count = Math.Min(items.Length, Math.Max(0, Max ?? 5))
@@ -232,12 +221,12 @@ public data struct AvatarGroup {
                     Presence = nil,
                     BackgroundColor = items[index].BackgroundColor ?? theme.HoverColor,
                     RingColor = items[index].RingColor ?? theme.PanelColor,
-                    BorderWidth = items[index].BorderWidth == 0.0 ? theme.BorderWidth * 2.0: items[index].BorderWidth,
+                    BorderWidth = items[index].BorderWidth ?? theme.BorderWidth * 2.0,
                 }
             ).Build()
             avatar.FlexShrink = 0.0
             let offset = index == 0 ? 0.0: -overlap
-            if let activate = OnActivate {
+            if let activate = OnClick {
                 let itemIndex = index
                 let button = Button{
                     MarginStart: offset,

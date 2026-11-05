@@ -192,7 +192,7 @@ customize the panel/root while placement, handles, input, and content stay wired
 `Theme.Direction`). Popover still flips/clamps at viewport edges. The arrow toward
 the submenu side opens it and the other arrow closes it. Items
 have globally unique IDs, labels/custom content, disabled/separator state, optional
-children, and an optional per-item action overriding the shared OnActivate(id).
+children, and an optional per-item action overriding the shared OnClick(id).
 Up/Down/Home/End navigate; the arrows open and close submenus; Enter/Space activate;
 Escape closes the active level. Pointer hover also opens submenus. DismissOnActivate
 defaults to true. CreateItem, CreateSeparator, CreatePanel, and CreateRoot retain
@@ -553,9 +553,9 @@ Customize donut `Size`, `Thickness`, `TrackColor`, and `Center`; customize bar
 `Width`, `Height`, `BorderRadius`, and `TrackColor`. `ShowLegend` enables the
 default labeled values and percentages. Both expose `CreateLabel`, `CreateLegend`,
 and `CreateRoot`; donut slices use `CreateSlice`, and bars use `CreateSegment`.
-Factories receive resolved `ChartSegment` data with the fraction and accessible
-summary. Required geometry, identity, interaction, and semantics are reapplied to
-custom segments. `OnActivate` enables pointer/Enter/Space activation and Tab focus;
+Factories receive the resolved widget first, then `ChartSegment` data with the
+fraction and accessible summary. Required geometry, identity, interaction, and semantics
+are reapplied to custom segments. `OnClick` enables pointer/Enter/Space activation and Tab focus;
 `OnHover` reports a series ID or nil on leave. Omit them for passive charts.
 
 ## Horizontal TimeAxis
@@ -578,7 +578,7 @@ selection with the host. Event semantics include labels and time intervals.
 `InitialTime` or `InitialEventId` positions the viewport once at its first layout,
 using `InitialAlignment` (Center, Start, or Nearest). Unknown initial IDs are
 ignored. Subsequent marker, data, scale, and size changes do not restart centering.
-The scroll viewport supports Left/Right and Home/End. `OnViewportChanged` reports
+The scroll viewport supports Left/Right and Home/End. `OnViewportChange` reports
 later offsets and visible instants on the UI thread; a host that displays those
 values should call its `Rebuild()`. A root factory can retain the prepared
 `ElementHandle` for later `JumpTo` or `ScrollTo` requests from host actions.

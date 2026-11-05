@@ -20,12 +20,12 @@ public data struct MediaCard {
     var OnClick Action?
     /// Whether the card rejects input.
     var Disabled bool
-    /// Card width. Zero resolves to 200.0.
-    var Width float64
-    /// Thumbnail height. Zero resolves to the card width.
-    var ThumbnailHeight float64
-    /// Metadata area height. Zero resolves to 88.0.
-    var ContentHeight float64
+    /// Card width. Nil resolves to 200.0.
+    var Width Length?
+    /// Thumbnail height. Nil uses the pixel card width, or 200 for other lengths.
+    var ThumbnailHeight float64?
+    /// Metadata area height. Nil resolves to 88.0.
+    var ContentHeight float64?
     /// Metadata padding. Nil uses the nearest theme padding.
     var Padding float64?
     /// Gap between metadata rows. Nil uses the nearest theme spacing.
@@ -40,10 +40,10 @@ public data struct MediaCard {
     var TitleColor Color?
     /// Secondary text color. Nil uses the nearest theme.
     var SupportingColor Color?
-    /// Primary text size. Zero uses the nearest theme heading font size.
-    var TitleFontSize float64
-    /// Supporting text size. Zero uses the nearest theme caption font size.
-    var SupportingFontSize float64
+    /// Primary text size. Nil uses the nearest theme heading font size.
+    var TitleFontSize float64?
+    /// Supporting text size. Nil uses the nearest theme caption font size.
+    var SupportingFontSize float64?
     /// Optional base style for the root button.
     var RootStyle Style?
     /// Creates the metadata content from resolved props.
@@ -57,25 +57,14 @@ public data struct MediaCard {
         let createContent = CreateContent
         let createRoot = CreateRoot
         let title = Title ?? ""
-        let width = if Width == 0.0 {
-            200.0
-        } else {
-            Width
-        }
+        let defaultWidth Length = 200.0
+        let width = Width ?? defaultWidth
         let resolved = this with{
             Title = title,
             AccessibilityName = AccessibilityName ?? title,
             Width = width,
-            ThumbnailHeight = if ThumbnailHeight == 0.0 {
-                width
-            } else {
-                ThumbnailHeight
-            },
-            ContentHeight = if ContentHeight == 0.0 {
-                88.0
-            } else {
-                ContentHeight
-            },
+            ThumbnailHeight = ThumbnailHeight ?? (width.HasMagnitude && !width.IsPercent ? width.Magnitude: 200.0),
+            ContentHeight = ContentHeight ?? 88.0,
             Padding = Padding ?? theme.PanelPadding,
             Gap = Gap ?? theme.Spacing,
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
@@ -83,23 +72,15 @@ public data struct MediaCard {
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             TitleColor = TitleColor ?? theme.TextColor,
             SupportingColor = SupportingColor ?? theme.MutedTextColor,
-            TitleFontSize = if TitleFontSize == 0.0 {
-                theme.HeadingFontSize
-            } else {
-                TitleFontSize
-            },
-            SupportingFontSize = if SupportingFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                SupportingFontSize
-            },
+            TitleFontSize = TitleFontSize ?? theme.HeadingFontSize,
+            SupportingFontSize = SupportingFontSize ?? theme.CaptionFontSize,
             CreateContent = nil,
             CreateRoot = nil,
         }
         let thumbnail = resolved.Thumbnail ??
         Container{
-            Width: resolved.Width,
-            Height: resolved.ThumbnailHeight,
+            Width: Percent(100),
+            Height: resolved.ThumbnailHeight!!,
             FlexShrink: 0.0,
             BackgroundColor: theme.FieldColor,
             Accessibility: Accessibility{Hidden: true},
@@ -112,7 +93,7 @@ public data struct MediaCard {
                 Text{
                     Content: resolved.Title!!,
                     FontFamily: theme.HeadingFontFamily,
-                    FontSize: resolved.TitleFontSize,
+                    FontSize: resolved.TitleFontSize!!,
                     FontWeight: theme.HeadingFontWeight,
                     Color: resolved.TitleColor!!,
                     TextWrap: TextWrap.NoWrap,
@@ -126,8 +107,8 @@ public data struct MediaCard {
                 children.Add(SupportingText(theme, resolved, detail))
             }
             Container{
-                Width: resolved.Width,
-                Height: resolved.ContentHeight,
+                Width: Percent(100),
+                Height: resolved.ContentHeight!!,
                 MinWidth: 0.0,
                 FlexShrink: 0.0,
                 Padding: resolved.Padding!!,
@@ -144,8 +125,8 @@ public data struct MediaCard {
         }
         let button = Button{
             LineHeight: theme.LineHeight,
-            Width: resolved.Width,
-            Height: resolved.ThumbnailHeight + resolved.ContentHeight,
+            Width: resolved.Width!!,
+            Height: resolved.ThumbnailHeight!! + resolved.ContentHeight!!,
             Padding: 0.0,
             BorderRadius: resolved.BorderRadius!!,
             Focus: theme.FocusStyle,
@@ -171,7 +152,7 @@ public data struct MediaCard {
         Content: content,
         FontFamily: theme.FontFamily,
         FontWeight: theme.CaptionFontWeight,
-        FontSize: input.SupportingFontSize,
+        FontSize: input.SupportingFontSize!!,
         Color: input.SupportingColor!!,
         TextWrap: TextWrap.NoWrap,
         TextTrimming: TextTrimming.Ellipsis,
