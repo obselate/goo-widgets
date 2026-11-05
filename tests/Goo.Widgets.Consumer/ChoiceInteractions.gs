@@ -125,6 +125,79 @@ internal class ChoiceHost : Cell {
     }
 }
 
+internal class RadioButtonHost : Cell {
+    internal var Value bool
+    internal var Changes int32
+    internal var Handle ElementHandle = ElementHandle()
+    internal var DisabledHandle ElementHandle = ElementHandle()
+
+    public override func Build() Blob -> Container{
+        Padding: Theme.Read().ControlPadding,
+        Gap: Theme.Read().ControlGap,
+        BasedOn: Theme.Read().CanvasStyle,
+        RadioButton{
+            Label: "Priority",
+            Value: Value,
+            OnChange: (value bool) -> {
+                Value = value
+                Changes++
+                Rebuild()
+            },
+            CreateRoot: (input RadioButton, button Button) -> {
+                button.Handle = Handle
+                return button
+            },
+        }.Build(),
+        RadioButton{
+            Label: "Archived",
+            Value: true,
+            Disabled: true,
+            OnChange: (value bool) -> Changes++,
+            CreateRoot: (input RadioButton, button Button) -> {
+                button.Handle = DisabledHandle
+                return button
+            },
+        }.Build(),
+        Button{Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Next"}, Text{Content: "Next"}},
+    }
+}
+
+func RadioButtonInteractions() {
+    let host = RadioButtonHost()
+    let adapter = SearchListSemantics()
+    let window = Window{Title: "Radio choice", Width: 420, Height: 240, Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
+    window.Open()
+    try {
+        PumpFrames(window, 20)
+        for palette in []Theme{Theme.Bone, Theme.Ink, Theme.Ink.WithHighContrast()} {
+            Theme.Attach(window, palette)
+            PumpFrames(window, 8)
+            Require(FeedbackNode(adapter, AccessibilityRole.Radio, "Priority").Checked == AccessibilityChecked.False, "Radio initial value changed")
+            Require(FeedbackNode(adapter, AccessibilityRole.Radio, "Archived").Checked == AccessibilityChecked.True, "Disabled radio lost its value")
+            CompositeClick(window, host.DisabledHandle)
+            Require(host.Changes == 0, "Disabled radio accepted pointer input")
+        }
+        ChoiceKey(window, SDLScancode.Tab)
+        Require(FeedbackNode(adapter, AccessibilityRole.Radio, "Priority").Focused, "Standalone radio did not receive Tab focus")
+        ChoiceKey(window, SDLScancode.Space)
+        Require(host.Value && host.Changes == 1, "Radio Space did not request true")
+        ChoiceKey(window, SDLScancode.Return)
+        CompositeClick(window, host.Handle)
+        Require(host.Value && host.Changes == 1, "Checked radio emitted another change")
+        host.Value = false
+        host.Rebuild()
+        PumpFrames(window, 8)
+        CompositeClick(window, host.Handle)
+        Require(host.Value && host.Changes == 2, "Radio pointer activation did not request true")
+        ChoiceKey(window, SDLScancode.Tab)
+        Require(FeedbackNode(adapter, AccessibilityRole.Button, "Next").Focused, "Disabled radio remained in Tab traversal")
+        Console.WriteLine("PASS: standalone RadioButton pointer, keyboard, controlled value, disabled traversal and light/dark/high-contrast semantics")
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+}
+
 func ChoiceKey(window Window, key SDLScancode) {
     SendKey(OnlyNativeWindow(), key)
     PumpFrames(window, 6)
@@ -264,7 +337,8 @@ func ChoiceInteractions() {
         window.RequestClose()
         PumpFrames(window, 5)
     }
-    for page in[]string{"Action button", "Toggle button", "Radio group", "Toggle group"} {
+    RadioButtonInteractions()
+    for page in[]string{"Action button", "Toggle button", "Radio button", "Radio group", "Toggle group"} {
         for dark in[]bool{false, true} {
             for size in 0 ... 3 {
                 let width = size == 1 ? 900: size == 2 ? 2560: 1100

@@ -4,6 +4,7 @@
 
 - Resolve omitted disabled opacity in partial external themes affected by [gsharp#5296](https://github.com/DavidObando/gsharp/issues/5296).
 - Add a controlled ToggleButton with shared button paint and pressed accessibility state.
+- Add a controlled RadioButton and share its radio item with RadioGroup while keeping group navigation and one Tab stop.
 - Check gallery page fit in every choice interaction run and exclude the scrollable navigation sidebar.
 - Add TeachingTip with anchored and centered presentation, host-owned open state, shared actions, and optional light dismissal.
 - Add TimePicker with culture-based clock segments, minute increments, nullable clearing and read-only selection.

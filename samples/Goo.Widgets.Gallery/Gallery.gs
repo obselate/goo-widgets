@@ -380,6 +380,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
     }),
     GalleryCategory("Inputs", "input", []GalleryPage{
         CheckboxPage{DisplayTitle: "Checkbox"},
+        RadioButtonPage{DisplayTitle: "Radio button"},
         RadioGroupPage{DisplayTitle: "Radio group"},
         ToggleGroupPage{DisplayTitle: "Toggle group"},
         TextFieldPage{DisplayTitle: "Text field"},
