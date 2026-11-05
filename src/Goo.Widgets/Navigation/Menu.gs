@@ -267,7 +267,6 @@ public open class Menu : Cell[MenuInput] {
             Overlays: overlays,
             Role: AccessibilityRole.Menu,
             AccessibilityName: name,
-            MaxHeight: current.MaxHeight,
             ZIndex: current.ZIndex,
             Placement: depth == 0 ? current.Placement: SubmenuPlacement(),
             Padding: theme.Spacing,
@@ -284,6 +283,9 @@ public open class Menu : Cell[MenuInput] {
         }
         if let viewport = current.Viewport {
             popup.Viewport = viewport
+        }
+        if current.MaxHeight != 0.0 {
+            popup.MaxHeight = current.MaxHeight
         }
         if current.Width != 0.0 {
             popup.Width = current.Width
