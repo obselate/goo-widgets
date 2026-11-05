@@ -98,6 +98,7 @@ internal class OverlayHost : Cell {
     internal var BackgroundEscapes int32
     internal var Confirms int32
     internal var Dismisses int32
+    internal var OpenChanges int32
     internal var LastDismiss PopoverDismissReason
     internal var Activated string = ""
     internal var OuterRoot Container?
@@ -125,7 +126,14 @@ internal class OverlayHost : Cell {
         Rebuild()
     }
 
+    private func PopupOpenChange(open bool) {
+        Require(!open && PopupOpen, "Popover did not request the new closed state")
+        OpenChanges++
+        PopupOpen = open
+    }
+
     private func PopupDismiss(reason PopoverDismissReason) {
+        Require(!PopupOpen && OpenChanges == Dismisses + 1, "Popover state request did not precede dismissal")
         LastDismiss = reason
         Dismisses++
         PopupOpen = false
@@ -383,6 +391,7 @@ internal class OverlayHost : Cell {
                     Accessibility: Accessibility{Name: "Popup action"}
                 }
             },
+            OnOpenChange: PopupOpenChange,
             OnDismiss: PopupDismiss,
             CreatePanel: CapturePanel,
             CreateRoot: CapturePopup
