@@ -88,7 +88,7 @@ public data struct DataGridRow {
     var SourceIndex int32
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
-    /// Excludes this row from grid selection and navigation without disabling its content.
+    /// Excludes this row from selection. Navigation requires OnExpandedGroupChange.
     var IsGroup bool
     /// Text values indexed by column ID. Nil supplies empty cell text.
     var Values IReadOnlyDictionary[string, string]?
@@ -156,6 +156,14 @@ public data struct DataGridInput {
     var SelectedIds[]?string
     /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectionChange Action[[]string]?
+    /// Selects every eligible row without materializing indexed IDs. SelectedIds is ignored while true.
+    /// A later explicit selection request sends OnSelectionChange and the owner clears this value.
+    var AllSelected bool
+    /// Runs on Ctrl+A for indexed sources in Multiple mode. The owner sets AllSelected and rebuilds.
+    /// No row IDs are read. Nil leaves indexed select-all unhandled.
+    var OnSelectAll Action?
+    /// Requests copying the controlled selected rows on Ctrl+C or Ctrl+Insert.
+    var OnCopy Action?
     /// Runs before OnSelectionChange with source indices in the same order. Missing IDs have index -1.
     var OnSelectionIndicesChange Action[[]int32]?
     /// Nil keeps the grid's active row. A valid ID controls its focus outline and active descendant.
@@ -164,16 +172,28 @@ public data struct DataGridInput {
     var OnActiveRowChange Action[string]?
     /// Receives the active source index without a host ID lookup.
     var OnActiveRowIndexChange Action[int32]?
+    /// Nil keeps the current column. A valid ID controls horizontal keyboard navigation.
+    var ActiveColumnId string?
+    /// Runs after a pointer or keyboard gesture changes the current column.
+    var OnActiveColumnChange Action[string]?
     /// When set, the host owns selection and its range anchor. Arguments are ID, toggle, extend.
     var OnSelectionRequest Action[string, bool, bool]?
     /// Adds a leading composed checkbox. The row's semantics expose selection once.
     var ShowSelection bool
     /// Selection column width. Nil uses the theme's control height.
     var SelectionColumnWidth float64?
+    /// Optional row-header content. Its pointer gestures use the row selection policy.
+    var CreateRowHeader Func[DataGridInput, DataGridRow, Blob]?
+    /// Row-header width in logical pixels. Nil uses the theme control height.
+    var RowHeaderWidth float64?
     /// Controlled expanded row IDs. Nil collapses all details.
     var ExpandedIds[]?string
     /// Receives the row ID and requested expanded state after a detail toggle. Nil ignores the request.
     var OnExpandedChange Action[string, bool]?
+    /// Host-owned expanded group IDs. Nil collapses every group. Groups remain outside row selection.
+    var ExpandedGroupIds[]?string
+    /// Sends the group ID and requested expanded state on expander, double-click or Left/Right.
+    var OnExpandedGroupChange Action[string, bool]?
     /// Expansion control width. Nil uses the theme's control height; zero hides the control.
     var ExpandColumnWidth float64?
     /// Padding inside details, after the leading control columns. Nil uses theme control padding; zero is preserved.
@@ -253,7 +273,7 @@ public data struct DataGridInput {
     /// A returned OnClick handler runs after the grid's selection handler.
     var CreateRow Func[DataGridInput, DataGridRow, Container, Container]?
     /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
-    /// Set IsGroup on group headers to exclude them from navigation and selection.
+    /// Set IsGroup on group headers to exclude them from selection.
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
     /// Receives the resolved input and prepared root, and returns the root container. Grid identity, focus, input routing, and accessibility are reapplied. Nil keeps the default root.
     var CreateRoot Func[DataGridInput, Container, Container]?
@@ -304,9 +324,20 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var beforeColumns float64
     private var afterColumns float64
     private var activeId string?
+    private var activeColumn int32
+    private var rowPresentation DataGridInput
+    private var rowPresentationTheme Theme
+    private var rowPresentationVersion int64
+    private var rowPresentationWidths[]float64 = []float64{}
+    private var rowPresentationOffset float64
+    private var rowPresentationFirst int32
+    private var rowPresentationEnd int32
+    private let buildRow((DataGridRow) -> Blob)
+    private let rowKey((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
+    private let rowContext Func[DataGridRow, VirtualRowContext]
     private var hoveredId string?
     private var anchorId string?
-    private var anchorSelection HashSet[string] = HashSet[string](StringComparer.Ordinal)
+    private var groupExpanded HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var hasFocus bool
     private var pointerFocus bool
     private var clickModifiers KeyModifiers
@@ -314,6 +345,12 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var clickCount int32
     private var reorderOrigin float64
     private var reordered bool
+    private var reorderColumn string?
+    private var reorderTarget int32 = -1
+    private var reorderPointer int64 = -1L
+    private var reorderPosition float64
+    private var reorderScroll WindowTimer?
+    private var window Window?
     private var pinnedCount int32
     private var pointer int64 = -1L
     private var resizeId string?
@@ -336,6 +373,8 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         moveResize = MoveResize
         endResize = EndResize
         cancelResize = CancelResize
+        buildRow = (row DataGridRow) -> BuildRow(input, row, hasDetails && input.ExpandColumnWidth > 0.0)
+        rowContext = RowContext
         rootHandle.MetricsChanged += Metrics
         viewport.MetricsChanged += HorizontalMetrics
         horizontalViewport.MetricsChanged += HeaderMetrics
@@ -347,6 +386,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             return
         }
         disposed = true
+        reorderScroll?.Dispose()
         pointer = -1L
         resizeId = nil
         rootHandle.MetricsChanged -= Metrics
@@ -356,6 +396,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
 
     protected override func Build(value DataGridInput) Blob {
         theme = Theme.Read()
+        window = Theme.Key.Window
         let sourceChanged = !Object.Equals(input.RowAt, value.RowAt) ||
             input.RowVersion != value.RowVersion ||
             input.RowCount != value.RowCount
@@ -384,6 +425,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             SelectionColumnWidth = value.SelectionColumnWidth ?? theme.ControlHeight,
             ExpandColumnWidth = value.ExpandColumnWidth ?? theme.ControlHeight,
             DetailPadding = value.DetailPadding ?? theme.ControlPadding,
+            RowHeaderWidth = value.RowHeaderWidth ?? theme.ControlHeight,
             DetailBackground = value.DetailBackground ?? theme.SunkenColor,
             AccessibilityName = value.AccessibilityName ?? theme.Text("Data grid"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
@@ -419,6 +461,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         ValidateWidth(input.SelectionColumnWidth!!)
         ValidateWidth(input.ExpandColumnWidth!!)
         ValidateWidth(input.DetailPadding!!)
+        ValidateWidth(input.RowHeaderWidth!!)
         if input.Selection < DataGridSelection.None || input.Selection > DataGridSelection.Multiple
         || input.SortDirection < DataGridSort.None || input.SortDirection > DataGridSort.Descending {
             throw ArgumentOutOfRangeException("Grid selection/sort policy")
@@ -453,11 +496,21 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         if input.ColumnOrder != nil || input.PinnedColumns != nil {
             let ordered = List[DataGridColumn](columns.Length)
             let used = HashSet[string](StringComparer.Ordinal)
+            let pinned = HashSet[string](StringComparer.Ordinal)
             for id in input.PinnedColumns ?? []string{} {
-                if !columnIds.Contains(id) || !used.Add(id) {
+                if !columnIds.Contains(id) || !pinned.Add(id) {
                     throw ArgumentException("Invalid pinned column ID")
                 }
-                ordered.Add(columns[ColumnIndex(id)])
+            }
+            for id in input.ColumnOrder ?? []string{} {
+                if pinned.Contains(id) && used.Add(id) {
+                    ordered.Add(columns[ColumnIndex(id)])
+                }
+            }
+            for id in input.PinnedColumns ?? []string{} {
+                if used.Add(id) {
+                    ordered.Add(columns[ColumnIndex(id)])
+                }
             }
             pinnedCount = ordered.Count
             for id in input.ColumnOrder ?? []string{} {
@@ -511,11 +564,16 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         }
         let controlledActiveChanged = input.ActiveRowId != nil &&
             input.ActiveRowId != activeId &&
-            Index(input.ActiveRowId) >= 0
+            NavigationIndex(input.ActiveRowId) >= 0
         if controlledActiveChanged {
             activeId = input.ActiveRowId
         }
         expanded = HashSet[string](input.ExpandedIds ?? []string{}, StringComparer.Ordinal)
+        groupExpanded = HashSet[string](input.ExpandedGroupIds ?? []string{}, StringComparer.Ordinal)
+        if input.ActiveColumnId != nil && ColumnIndex(input.ActiveColumnId) >= 0 {
+            activeColumn = ColumnIndex(input.ActiveColumnId)
+        }
+        activeColumn = Math.Clamp(activeColumn, 0, Math.Max(0, columns.Length - 1))
         Prune(resizeHandles, columnIds)
         if input.Disabled || !CanResize(ColumnIndex(resizeId))
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
@@ -534,7 +592,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             }
             Reveal()
         }
-        if Index(activeId) < 0 {
+        if NavigationIndex(activeId) < 0 {
             activeId = nil
             for id in selected {
                 if Index(id) >= 0 {
@@ -546,7 +604,6 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         }
         if Index(anchorId) < 0 {
             anchorId = activeId
-            anchorSelection = HashSet[string](selected, StringComparer.Ordinal)
         }
         if controlledActiveChanged && hasFocus && !pointerFocus {
             Reveal()
@@ -555,7 +612,8 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         leading = (
             input.ShowSelection && input.Selection != DataGridSelection.None ? input.SelectionColumnWidth!!: 0.0
         ) +
-            (details ? input.ExpandColumnWidth!!: 0.0)
+            (details ? input.ExpandColumnWidth!!: 0.0) +
+            (input.CreateRowHeader != nil ? input.RowHeaderWidth!!: 0.0)
         available = rootHandle.ContentBox.Width
         let verticalGutter = if let scrollbar = input.ScrollbarY {
             if scrollbar.ReserveSpace && input.ScrollbarVisibilityY != ScrollbarVisibility.Hidden {
@@ -568,6 +626,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         }
         ResolveWidths(verticalGutter)
         ResolveVisibleColumns()
+        UpdateRowPresentation()
         let snapshot = input
         virtualRows = nil
         var body Blob = if RowCount == 0 {
@@ -588,16 +647,15 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             }
         } else {
-            let key((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
-            let build((DataGridRow) -> Blob) = (row DataGridRow) -> BuildRow(snapshot, row, details)
             let source = VirtualRowsSource[DataGridRow](
                 rows,
                 virtualItemExtent(input.EstimatedRowHeight ?? input.RowHeight!!, "EstimatedRowHeight"),
-                key,
-                build,
+                rowKey,
+                buildRow,
                 snapshot.RowHeightProvider
             ){
                 Equality = rowEquality,
+                Context = rowContext,
                 Get = input.RowAt == nil ? nil: Row,
                 Index = RawIndex,
                 Count = RowCount,
@@ -679,6 +737,9 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         root.Disabled = input.Disabled
         root.Focusable = !input.Disabled
         root.OnKeyDown = (e KeyEvent) -> {
+            if input.UseDefaultKeyboard ?? true {
+                pointerFocus = false
+            }
             if e.Key == Key.Tab ||
                 e.Key == Key.Left ||
                 e.Key == Key.Right ||

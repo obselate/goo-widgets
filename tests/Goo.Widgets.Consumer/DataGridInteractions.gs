@@ -36,6 +36,21 @@ internal class DataGridHeightHost : Cell {
     internal var SelectedIds[]string = []string{}
     internal var Root Container?
     internal let FullWidthIds HashSet[string] = HashSet[string]()
+    internal var Navigation bool
+    internal var Single bool
+    internal var AllSelected bool
+    internal var SelectAllRequests int32
+    internal var SelectAllEnabled bool = true
+    internal var CopyRequests int32
+    internal var RowBuilds int32
+    internal var Column string?
+    internal var GroupExpansion bool
+    internal let RowHeaders Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
+    internal let NavigationHeaders Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
+    internal var Sorts[]DataGridSortColumn = []DataGridSortColumn{}
+    internal var Order[]string = []string{}
+    internal var Pinned[]string = []string{}
+    internal var FocusTarget string = ""
     internal var HeaderClicks int32
     internal var Header Button?
     internal var WidthCase int32
@@ -45,7 +60,7 @@ internal class DataGridHeightHost : Cell {
 
     internal init() {
         for index in 0 ... wideColumns.Length {
-            wideColumns[index] = DataGridColumn{Id: index.ToString(), Minimum: 150}
+            wideColumns[index] = DataGridColumn{Id: index.ToString(), Minimum: 150, Sortable: true}
         }
         for index in 0 ... Rows.Length {
             let id = index.ToString()
@@ -53,6 +68,18 @@ internal class DataGridHeightHost : Cell {
             values.Add("value", "one two three four five six seven eight")
             Rows[index] = DataGridRow{Id: id, IsGroup: index == 0, Values: values}
         }
+    }
+
+    private func RowHeader(input DataGridInput, row DataGridRow) Blob {
+        let handle = ElementHandle()
+        RowHeaders[row.Id!!] = handle
+        return Text{Handle: handle, Content: row.Id!!}
+    }
+
+    private func NavigationHeader(input DataGridInput, column DataGridColumn, content Blob) Blob {
+        let handle = ElementHandle()
+        NavigationHeaders[column.Id!!] = handle
+        return Container{Handle: handle, content}
     }
 
     private func At(index int32) DataGridRow {
@@ -88,6 +115,7 @@ internal class DataGridHeightHost : Cell {
             Handle: ElementHandle(),
             Width: Percent(100),
             Height: 32,
+            TabStop: !Navigation,
             OnClick: () -> HeaderClicks++,
             Text{Content: "Group"}
         }
@@ -95,7 +123,8 @@ internal class DataGridHeightHost : Cell {
         return header
     }
 
-    public override func Build() Blob -> Cell.Mount[DataGridInput, DataGrid](
+    public override func Build() Blob {
+        let grid = Cell.Mount[DataGridInput, DataGrid](
         "grid",
         DataGridInput{
             Columns: WidthCase > 0 ? []DataGridColumn{
@@ -126,20 +155,33 @@ internal class DataGridHeightHost : Cell {
             RowHeightProvider: Auto || Indexed || AutoColumns ? nil: Height,
             ViewportHandle: Viewport,
             Height: 232,
-            Width: WidthCase > 0 ? (WidthCase == 1 ? 800: 700): (SourceWidth ? 1000: Compact ? 120: 220),
+            Width: Navigation ? 500: WidthCase > 0 ? (WidthCase == 1 ? 800: 700): (SourceWidth ? 1000: Compact ? 120: 220),
             ScrollbarVisibilityY: WidthCase > 0 ? ScrollbarVisibility.Hidden: ScrollbarVisibility.Auto,
             ScrollbarY: VirtualColumns ? Scrollbar{
                 Thickness: 10,
                 Inset: 0,
                 Thumb: Container{Handle: VerticalThumb, BackgroundColor: "#a1a1aa"}
             }: nil,
-            CreateHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
+            CreateHeader: Navigation ? NavigationHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
                 Container{Handle: column.Id == "a" ? WidthA: WidthB, Width: Percent(100), content},
-            Selection: DataGridSelection.Multiple,
+            Selection: Single ? DataGridSelection.Single: DataGridSelection.Multiple,
+            AllSelected: AllSelected,
+            OnSelectAll: SelectAllEnabled ? () -> {
+                SelectAllRequests++
+                AllSelected = true
+                Rebuild()
+            }: nil,
+            OnCopy: () -> CopyRequests++,
+            ActiveColumnId: Column,
+            OnActiveColumnChange: (id string) -> {
+                Column = id
+                Rebuild()
+            },
             SelectedIds: SelectedIds,
             OnSelectionIndicesChange: (indices[]int32) -> SelectedIndices = indices,
             OnSelectionChange: (ids[]string) -> {
                 SelectedIds = ids
+                AllSelected = false
                 Rebuild()
                 Require(ids.Length == SelectedIndices.Length, "Selection IDs ran before source indices")
                 for index in 0 ... ids.Length {
@@ -149,7 +191,24 @@ internal class DataGridHeightHost : Cell {
                     )
                 }
             },
+            ExpandedGroupIds: GroupExpansion ? []string{"0"}: []string{},
+            OnExpandedGroupChange: Navigation ? (id string, expanded bool) -> {
+                GroupExpansion = expanded
+                Rebuild()
+            }: nil,
+            CreateRowHeader: Navigation ? RowHeader: nil,
             OnActiveRowIndexChange: (index int32) -> ActiveIndex = index,
+            Sorts: Sorts,
+            OnSortsChange: Navigation ? (sorts[]DataGridSortColumn) -> {
+                Sorts = sorts
+                Rebuild()
+            }: nil,
+            PinnedColumns: Pinned,
+            ColumnOrder: Order,
+            OnColumnOrderChange: Navigation ? (order[]string) -> {
+                Order = order
+                Rebuild()
+            }: nil,
             ActiveRowId: Active,
             CreateCellContent: Wrap ? nil: Content,
             CreateFullWidthRow: FullWidth,
@@ -160,10 +219,21 @@ internal class DataGridHeightHost : Cell {
             },
             CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
                 RowBlobs[row.Id!!] = root
+                RowBuilds++
                 return root
             }
         }
     )
+        if !Navigation {
+            return grid
+        }
+        return Container{
+            FlexDirection: FlexDirection.Column,
+            Button{Height: 24, OnFocus: (e FocusEvent) -> { FocusTarget = "before" }, Text{Content: "Before"}},
+            grid,
+            Button{Height: 24, OnFocus: (e FocusEvent) -> { FocusTarget = "after" }, Text{Content: "After"}}
+        }
+    }
 }
 
 func DataGridHeightInteractions() {
@@ -208,7 +278,7 @@ func DataGridHeightInteractions() {
         PumpFrames(window, 4)
         Require(host.HeaderClicks == 1, "Group header content was disabled")
         host.Root!!.Handle!!.Focus()
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
         PumpFrames(window, 4)
         Require(
             host.Root!!.Accessibility!!.Relationships!!.ActiveDescendant == host.RowBlobs["1"].Handle,
@@ -238,23 +308,23 @@ func DataGridHeightInteractions() {
         Require(host.Viewport.ScrollToItem("500000"), "Indexed grid rejected a pixel-exact offset")
         PumpFrames(window, 8)
         Require(Math.Abs(host.Viewport.ScrollOffset.Y - 16500000.0) < .1, "Indexed offset below float32 limit was not exact")
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
         for step in 0 ... 4 {
-            host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down})
+            GridKey(window, Key.Down)
             PumpFrames(window, 2)
         }
         for step in 0 ... 3 {
-            host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Down, Modifiers: KeyModifiers{Shift: true}})
+            GridKey(window, Key.Down, KeyModifiers{Shift: true})
             PumpFrames(window, 2)
         }
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Up, Modifiers: KeyModifiers{Shift: true}})
+        GridKey(window, Key.Up, KeyModifiers{Shift: true})
         PumpFrames(window, 2)
         Require(
-            host.SelectedIndices.Length == 3 && Array.IndexOf(host.SelectedIndices, 5) >= 0 &&
-                Array.IndexOf(host.SelectedIndices, 6) >= 0 && Array.IndexOf(host.SelectedIndices, 7) >= 0,
-            "Shift range did not shrink to rows 5, 6, 7"
+            host.SelectedIndices.Length == 4 && Array.IndexOf(host.SelectedIndices, 5) >= 0 &&
+                Array.IndexOf(host.SelectedIndices, 6) >= 0 && Array.IndexOf(host.SelectedIndices, 8) >= 0,
+            "Shift range reversal removed a previously selected row"
         )
-        host.Root!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.End})
+        GridKey(window, Key.End, KeyModifiers{Ctrl: true})
         PumpFrames(window, 8)
         Require(host.ActiveIndex == 1999999, "Indexed navigation did not report its active source index")
         Require(
@@ -943,9 +1013,204 @@ func GridModifiedClick(window Window, handle ElementHandle, modifiers SDLKeymod)
     GridModifierKey(key, SDLKeymod.None, false)
 }
 
+func GridKey(window Window, key Key, modifiers KeyModifiers = default(KeyModifiers)) {
+    window.PlatformInput.KeyPress(key, modifiers)
+    window.PlatformInput.KeyRelease(key)
+    PumpFrames(window, 3)
+}
+
+func GridPointer(window Window, handle ElementHandle, modifiers KeyModifiers = default(KeyModifiers),
+    button PointerButton = PointerButton.Primary) {
+    let box = handle.BorderBox
+    let x = float32(box.X + Math.Min(20.0, box.Width / 2.0))
+    let y = float32(box.Y + box.Height / 2.0)
+    window.PlatformInput.PointerPress(1L, PointerDevice.Mouse, x, y, button, modifiers, 1.0F)
+    window.PlatformInput.PointerRelease(1L, PointerDevice.Mouse, x, y, button, modifiers, 1.0F)
+    PumpFrames(window, 4)
+}
+
+func DataGridNavigationInteractions() {
+    let host = DataGridHeightHost()
+    host.Navigation = true
+    host.VirtualColumns = true
+    host.Indexed = true
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "DataGrid navigation",
+        Width: 500,
+        Height: 320,
+        Root: host,
+        AccessibilityAdapter: semantics,
+        SmoothScrolling: false
+    }
+    Theme.Attach(window, Theme.Default)
+    window.Open()
+    try {
+        PumpFrames(window, 12)
+        Require(host.Root!!.Handle!!.Focus(), "Navigation grid did not focus")
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
+        Require(host.Root!!.Accessibility!!.Relationships!!.ActiveDescendant == host.RowBlobs["0"].Handle &&
+            host.SelectedIds.Length == 0, "Group corner navigation selected a group")
+        GridKey(window, Key.Right)
+        Require(host.GroupExpansion, "Right did not expand the current group")
+        GridKey(window, Key.Left)
+        Require(!host.GroupExpansion, "Left did not collapse the current group")
+        GridPointer(window, host.RowBlobs["0"].Handle!!)
+        Require(host.GroupExpansion && host.SelectedIds.Length == 0, "Group expander changed row selection")
+        host.Root!!.Handle!!.Focus()
+        GridKey(window, Key.Down)
+        Require(host.ActiveIndex == 1 && host.SelectedIds.Length == 1, "Down did not select the first data row")
+        let before = host.RowBuilds
+        GridKey(window, Key.Down)
+        Require(host.RowBuilds - before <= 2, "Down rebuilt unchanged visible rows")
+        GridKey(window, Key.Down, KeyModifiers{Shift: true})
+        GridKey(window, Key.Up, KeyModifiers{Shift: true})
+        Require(host.SelectedIds.Length == 2 && Array.IndexOf(host.SelectedIds, "3") >= 0, "Range reversal removed selected rows")
+        GridKey(window, Key.Down, KeyModifiers{Ctrl: true})
+        Require(host.ActiveIndex == 1999999 && host.SelectedIds.Length == 1, "Ctrl+Down did not replace selection at the boundary")
+        GridKey(window, Key.Up, KeyModifiers{Ctrl: true})
+        Require(host.ActiveIndex == 0 && host.SelectedIds.Length == 1, "Ctrl+Up did not reach the first group without changing selection")
+        GridKey(window, Key.Down)
+        GridKey(window, Key.PageDown)
+        let page = host.ActiveIndex
+        Require(page > 1 && page < 10 && host.SelectedIds.Length == 1, "PageDown did not use fully visible slots")
+        GridKey(window, Key.PageDown, KeyModifiers{Ctrl: true})
+        Require(host.ActiveIndex > page && host.SelectedIds.Length == 1, "Ctrl+PageDown kept the previous selection")
+        GridKey(window, Key.PageUp, KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.SelectedIds.Length > 1, "Ctrl+Shift+PageUp did not add the anchor range")
+        GridKey(window, Key.Right)
+        GridKey(window, Key.Home)
+        Require(host.Column == "0", "Home did not move to the first cell")
+        let active = host.ActiveIndex
+        let selection = host.SelectedIds
+        GridKey(window, Key.End, KeyModifiers{Shift: true})
+        Require(host.Column == "11" && host.ActiveIndex == active &&
+            Object.ReferenceEquals(host.SelectedIds, selection) && host.Viewport.ScrollOffset.X > 0.0,
+            "Shift+End changed row selection or failed to reveal the last cell")
+        GridKey(window, Key.Left, KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.Column == "0" && host.Viewport.ScrollOffset.X < .1, "Ctrl+Shift+Left did not reveal the first cell")
+        GridKey(window, Key.Right, KeyModifiers{Shift: true})
+        Require(host.Column == "1" && Object.ReferenceEquals(host.SelectedIds, selection), "Shift+Right extended row selection")
+        GridKey(window, Key.End, KeyModifiers{Ctrl: true})
+        Require(host.Column == "11" && host.ActiveIndex == 1999999 && host.SelectedIds.Length == 1, "Ctrl+End did not select the grid corner")
+        GridKey(window, Key.Up)
+        GridKey(window, Key.End, KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.ActiveIndex == 1999999 && host.SelectedIds.Length == 2, "Ctrl+Shift+End did not add the corner range")
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
+        GridKey(window, Key.Down)
+        GridKey(window, Key.Down)
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.ActiveIndex == 0 && host.SelectedIds.Length == 2, "Ctrl+Shift+Home did not add the first data row")
+        GridKey(window, Key.Down)
+        let calls = host.RowCalls
+        GridKey(window, Key.A, KeyModifiers{Ctrl: true})
+        Require(host.AllSelected && host.SelectAllRequests == 1 && host.RowCalls - calls < 120,
+            "Indexed Ctrl+A enumerated rows or failed its controlled request")
+        Require(host.RowBlobs["1"].Accessibility!!.Selected == true, "AllSelected did not reach row semantics")
+        GridKey(window, Key.Down)
+        Require(!host.AllSelected && host.SelectedIds.Length == 1 && host.SelectedIds[0] == "2",
+            "Explicit navigation did not replace all-selected state")
+        GridKey(window, Key.Space)
+        Require(host.SelectedIds.Length == 0, "Space did not toggle a multiple selection")
+        GridKey(window, Key.Space)
+        Require(host.SelectedIds.Length == 1, "Space did not restore a multiple selection")
+        GridKey(window, Key.C, KeyModifiers{Ctrl: true})
+        GridKey(window, Key.Insert, KeyModifiers{Ctrl: true})
+        Require(host.CopyRequests == 2, "Copy chords did not request the controlled row copy")
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
+        GridKey(window, Key.Down)
+        GridPointer(window, host.Cells["2:0"])
+        Require(host.SelectedIds.Length == 1 && host.SelectedIds[0] == "2", "Indexed primary click failed")
+        GridPointer(window, host.Cells["1:0"], KeyModifiers{Ctrl: true})
+        Require(host.SelectedIds.Length == 2, "Indexed Ctrl+click did not toggle selection")
+        GridPointer(window, host.Cells["2:0"], KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.SelectedIds.Length == 2, "Indexed Ctrl+Shift+click did not add the anchor range")
+        GridPointer(window, host.Cells["1:0"], KeyModifiers{Ctrl: true}, PointerButton.Secondary)
+        Require(host.SelectedIds.Length == 2, "Secondary click on a selected row replaced the set")
+        host.Root!!.Handle!!.Focus()
+        host.Single = true
+        host.SelectedIds = []string{"1"}
+        host.Active = nil
+        host.Rebuild()
+        PumpFrames(window, 6)
+        GridKey(window, Key.Down, KeyModifiers{Shift: true})
+        Require(host.SelectedIds.Length == 1 && host.SelectedIds[0] == "2", "Single mode extended a range")
+        GridKey(window, Key.Space)
+        Require(host.SelectedIds.Length == 1, "Single mode Space changed selection")
+        GridKey(window, Key.A, KeyModifiers{Ctrl: true})
+        Require(!host.AllSelected && host.SelectAllRequests == 1, "Single mode accepted select-all")
+        GridPointer(window, host.Cells["1:0"])
+        GridPointer(window, host.Cells["2:0"], KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.SelectedIds.Length == 1 && host.SelectedIds[0] == "2", "Single mode pointer gesture extended a set")
+        host.Single = false
+        host.SelectAllEnabled = false
+        host.Rebuild()
+        PumpFrames(window, 4)
+        GridKey(window, Key.A, KeyModifiers{Ctrl: true})
+        Require(!host.AllSelected && host.SelectAllRequests == 1, "Indexed Ctrl+A without a request callback changed selection")
+        host.Indexed = false
+        host.Single = false
+        host.Active = nil
+        host.Rebuild()
+        PumpFrames(window, 8)
+        GridKey(window, Key.A, KeyModifiers{Ctrl: true})
+        Require(host.SelectedIds.Length == 99 && Array.IndexOf(host.SelectedIds, "0") < 0,
+            "Array Ctrl+A did not select eligible rows")
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
+        GridKey(window, Key.Down)
+        GridPointer(window, host.RowHeaders["2"])
+        Require(host.SelectedIds.Length == 1 && host.SelectedIds[0] == "2", "Row header did not share the row selection policy")
+        GridPointer(window, host.NavigationHeaders["0"])
+        Require(host.Sorts.Length == 1 && host.Sorts[0].Direction == DataGridSort.Ascending, "Header click did not sort ascending")
+        GridPointer(window, host.NavigationHeaders["0"])
+        Require(host.Sorts[0].Direction == DataGridSort.Descending, "Header click did not sort descending")
+        GridPointer(window, host.NavigationHeaders["1"], KeyModifiers{Shift: true})
+        Require(host.Sorts.Length == 2, "Shift header click replaced the sort set")
+        GridPointer(window, host.NavigationHeaders["0"], KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.Sorts.Length == 2 && host.Sorts[0].Direction == DataGridSort.Descending, "Ctrl+Shift header click changed existing sorts")
+        GridPointer(window, host.NavigationHeaders["0"], KeyModifiers{Ctrl: true})
+        Require(host.Sorts.Length == 0, "Ctrl header click did not clear sorting")
+        host.Pinned = []string{"0", "1"}
+        host.Rebuild()
+        PumpFrames(window, 6)
+        let first = host.NavigationHeaders["0"].BorderBox
+        let second = host.NavigationHeaders["1"].BorderBox
+        let y = float32(first.Y + first.Height / 2.0)
+        window.PlatformInput.PointerPress(1L, PointerDevice.Mouse, float32(second.X + second.Width / 2.0), y,
+            PointerButton.Primary, KeyModifiers{}, 1.0F)
+        window.PlatformInput.PointerMove(1L, PointerDevice.Mouse, float32(first.X + 2.0), y, KeyModifiers{}, 1.0F)
+        PumpFrames(window, 3)
+        window.PlatformInput.PointerRelease(1L, PointerDevice.Mouse, float32(first.X + 2.0), y,
+            PointerButton.Primary, KeyModifiers{}, 1.0F)
+        PumpFrames(window, 6)
+        Require(host.Order.Length == 12 && host.Order[0] == "1" && host.Order[1] == "0", "Header drag did not reorder the pinned segment")
+        host.Root!!.Handle!!.Focus()
+        GridKey(window, Key.Tab)
+        Require(host.FocusTarget == "after", "Tab did not leave the grid")
+        host.Root!!.Handle!!.Focus()
+        GridKey(window, Key.Tab, KeyModifiers{Shift: true})
+        Require(host.FocusTarget == "before", "Shift+Tab did not leave the grid")
+        host.Root!!.Handle!!.Focus()
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
+        GridKey(window, Key.Down)
+        GridKey(window, Key.Down, KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.SelectedIds.Length == 99, "Ctrl+Shift+Down did not add the boundary range")
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
+        GridKey(window, Key.Down)
+        GridKey(window, Key.PageDown, KeyModifiers{Shift: true})
+        let count = host.SelectedIds.Length
+        GridKey(window, Key.PageUp, KeyModifiers{Shift: true})
+        Require(count > 1 && host.SelectedIds.Length >= count, "Shift+Page range reversal removed rows")
+    } finally {
+        CloseNativeWindow(window)
+    }
+    Console.WriteLine("PASS DataGrid navigation: row retention, additive ranges, corners, pages, columns, select-all, groups and copy")
+}
+
 func DataGridInteractions() {
     RunContracts(DataGridContracts)
     DataGridHeightInteractions()
+    DataGridNavigationInteractions()
     let host = DataGridHost()
     let semantics = SearchListSemantics()
     let window = Window{
@@ -996,7 +1261,7 @@ func DataGridInteractions() {
         )
         CompositeClick(window, host.Headers["name"])
         PumpFrames(window, 8)
-        Require(host.SortDirection == DataGridSort.None, "Grid sort did not cycle to None")
+        Require(host.SortDirection == DataGridSort.Ascending, "Grid sort did not use the two-state cycle")
         CompositeClick(window, host.Cells["beta:name"])
         Require(host.Selected.Length == 1 && host.Selected[0] == "beta", "Grid pointer single replacement failed")
         GridModifiedClick(window, host.Cells["echo:name"], SDLKeymod.Ctrl)
@@ -1010,6 +1275,9 @@ func DataGridInteractions() {
         Require(host.Selected.Length == 3, "Disabled grid row changed selection")
         CompositeClick(window, host.Checks["alpha"].Handle!!)
         Require(host.Selected.Length == 4, "Leading selection control lost controlled toggle")
+        host.Root!!.Handle!!.Focus()
+        GridKey(window, Key.A, KeyModifiers{Ctrl: true})
+        Require(host.Selected.Length == 4 && Array.IndexOf(host.Selected, "locked") < 0, "Ctrl+A selected a disabled row")
         host.Controlled = true
         host.Active = "beta"
         host.Anchor = "beta"
@@ -1113,7 +1381,7 @@ func DataGridInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         host.Root!!.Handle!!.Focus()
-        SendKey(id, SDLScancode.Home)
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
         SendKey(id, SDLScancode.Down)
         SendKey(id, SDLScancode.Down)
         SendKey(id, SDLScancode.Return)
@@ -1160,7 +1428,7 @@ func DataGridInteractions() {
         host.Rebuild()
         PumpFrames(window, 15)
         host.Root!!.Handle!!.Focus()
-        SendKey(id, SDLScancode.End)
+        GridKey(window, Key.End, KeyModifiers{Ctrl: true})
         PumpFrames(window, 20)
         let grid = FindSemantics(semantics.Tree!!.Root, "Inventory grid")!!
         let last = FindSemantics(semantics.Tree!!.Root, "Host host-1499")!!

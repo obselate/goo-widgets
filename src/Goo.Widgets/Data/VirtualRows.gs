@@ -99,6 +99,11 @@ public class VirtualLists {
     }
 }
 
+internal data struct VirtualRowContext {
+    internal var Version int64
+    internal var State int64
+}
+
 internal class VirtualRowsSource[T] : VirtualSource {
     internal let Items IReadOnlyList[T]
     internal let Estimate float32
@@ -119,6 +124,7 @@ internal class VirtualRowsSource[T] : VirtualSource {
     }
     internal var Current VirtualRowsStorage[T]?
     internal var Equality IEqualityComparer[T] = EqualityComparer[T].Default
+    internal var Context Func[T, VirtualRowContext]?
 
     internal init(
         items IReadOnlyList[T],
@@ -155,6 +161,8 @@ internal class VirtualRowsStorage[T] : VirtualState {
     internal var Equality IEqualityComparer[T] = EqualityComparer[T].Default
     private var current Dictionary[string, T] = Dictionary[string, T](StringComparer.Ordinal)
     private var next Dictionary[string, T] = Dictionary[string, T](StringComparer.Ordinal)
+    private var currentContexts Dictionary[string, VirtualRowContext] = Dictionary[string, VirtualRowContext](StringComparer.Ordinal)
+    private var nextContexts Dictionary[string, VirtualRowContext] = Dictionary[string, VirtualRowContext](StringComparer.Ordinal)
     private let measurements List[VirtualRowMeasurement] = List[VirtualRowMeasurement](128)
     private let droppedRows List[VirtualRow[T]] = List[VirtualRow[T]]()
     private var appendedRows int32
@@ -174,6 +182,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
 
     public override func Realize(viewport VirtualViewport, output VirtualOutput) {
         next.Clear()
+        nextContexts.Clear()
         measurements.Clear()
         pendingAnchorKey = ""
         pendingMetadata = nil
@@ -447,6 +456,9 @@ internal class VirtualRowsStorage[T] : VirtualState {
         let previous = current
         current = next
         next = previous
+        let previousContexts = currentContexts
+        currentContexts = nextContexts
+        nextContexts = previousContexts
         droppedRows.Clear()
         appendedRows = 0
         Cancel()
@@ -462,6 +474,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
         droppedRows.Clear()
         appendedRows = 0
         next.Clear()
+        nextContexts.Clear()
         measurements.Clear()
         pendingMetadata = nil
         Pending = nil
@@ -470,6 +483,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
     public override func Dispose() {
         Cancel()
         current.Clear()
+        currentContexts.Clear()
         metadata = nil
         source = nil
     }
@@ -486,10 +500,16 @@ internal class VirtualRowsStorage[T] : VirtualState {
             pendingAnchorKey = row.Key
         }
         var content Blob?
+        let context = input.Context?.Invoke(row.Item) ?? VirtualRowContext{}
+        if input.Context != nil {
+            nextContexts[row.Key] = context
+        }
         var unchanged = false
         if sameBuilder {
             if current.TryGetValue(row.Key, out var previous) {
-                unchanged = Equality.Equals(previous, row.Item)
+                unchanged = Equality.Equals(previous, row.Item) &&
+                    (input.Context == nil ||
+                        currentContexts.TryGetValue(row.Key, out var priorContext) && priorContext == context)
             }
         }
         if !unchanged {

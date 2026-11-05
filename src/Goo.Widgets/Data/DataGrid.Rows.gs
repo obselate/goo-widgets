@@ -94,7 +94,7 @@ public open partial class DataGrid {
     private func First(last bool) string? {
         for step in 0 ... RowCount {
             let row = Row(last ? RowCount - step - 1: step)
-            if !row.Disabled && !row.IsGroup {
+            if !row.Disabled && (!row.IsGroup || input.OnExpandedGroupChange != nil) {
                 return row.Id
             }
         }
@@ -103,7 +103,8 @@ public open partial class DataGrid {
 
     private func BuildRow(snapshot DataGridInput, row DataGridRow, details bool) Blob {
         let id = row.Id!!
-        let isSelected = !row.IsGroup && snapshot.Selection != DataGridSelection.None && selected.Contains(id)
+        let isSelected = !row.Disabled && !row.IsGroup && snapshot.Selection != DataGridSelection.None &&
+            (snapshot.AllSelected || selected.Contains(id))
         let isExpanded = expanded.Contains(id) && (row.HasDetail || row.Detail != nil)
         let fullWidth = snapshot.CreateFullWidthRow?.Invoke(snapshot, row)
         let height = if let provider = snapshot.RowHeightProvider {
@@ -132,6 +133,18 @@ public open partial class DataGrid {
         }
         if let content = fullWidth {
             cells.OnKeyDown = stopGridKeys
+            if row.IsGroup && snapshot.OnExpandedGroupChange != nil {
+                cells.FlexDirection = FlexDirection.Row
+                cells.Children.Add(Button{
+                    Width: snapshot.ExpandColumnWidth!!,
+                    Height: height,
+                    Focusable: false,
+                    TabStop: false,
+                    OnClick: () -> input.OnExpandedGroupChange?.Invoke(id, !groupExpanded.Contains(id)),
+                    Accessibility: Accessibility{Hidden: true},
+                    ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                })
+            }
             cells.Children.Add(content)
         } else {
             if leading > 0.0 {
@@ -142,6 +155,14 @@ public open partial class DataGrid {
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
                     Accessibility: Accessibility{Role: AccessibilityRole.GridCell, Name: theme.Text("Row controls")}
+                }
+                if let create = snapshot.CreateRowHeader {
+                    controls.Children.Add(Container{
+                        Key: "row-header",
+                        Width: snapshot.RowHeaderWidth!!,
+                        Accessibility: Accessibility{Role: AccessibilityRole.RowHeader, Name: row.Label ?? id},
+                        create(snapshot, row)
+                    })
                 }
                 if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
                     var check = (
@@ -162,7 +183,8 @@ public open partial class DataGrid {
                             snapshot.OnSelectionChange == nil &&
                             snapshot.OnSelectionIndicesChange == nil
                     )
-                    check.OnClick = () -> Select(id, true, false, false)
+                    check.OnPointerDown = (e PointerEvent) -> clickModifiers = e.Modifiers
+                    check.OnClick = () -> Select(id, true, clickModifiers.Shift, false)
                     check.Accessibility = Accessibility{Hidden: true}
                     controls.Children.Add(
                         Container{
@@ -238,6 +260,14 @@ public open partial class DataGrid {
                         Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                         JustifyContent: JustifyContent.Center,
                         TextAlign: column.Alignment,
+                        OutlineWidth: activeId == id && activeColumn == index && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
+                        OutlineColor: snapshot.FocusColor!!,
+                        OutlineOffset: -theme.FocusRingWidth,
+                        OnPointerDown: (e PointerEvent) -> {
+                            if e.Button == PointerButton.Primary && !e.IsFromInteractiveChild {
+                                SetActiveColumn(index, false)
+                            }
+                        },
                         Overflow: Overflow.Hidden,
                         OnKeyDown: stopGridKeys,
                         Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
@@ -290,21 +320,31 @@ public open partial class DataGrid {
             clickModifiers = e.Modifiers
             clickFromInteractiveChild = e.IsFromInteractiveChild
             clickCount = e.Button == PointerButton.Primary ? e.ClickCount: 0
-            if e.Button == PointerButton.Primary && !row.IsGroup {
+            if (e.Button == PointerButton.Primary || e.Button == PointerButton.Secondary) &&
+                (!row.IsGroup || input.OnExpandedGroupChange != nil) {
                 pointerFocus = true
                 if activeId != id {
                     activeId = id
                     input.OnActiveRowIndexChange?.Invoke(RawIndex(id))
                     input.OnActiveRowChange?.Invoke(id)
                 }
+                if e.Button == PointerButton.Secondary && !row.IsGroup && !IsSelected(id) {
+                    Select(id, false, false, false)
+                }
             }
         }
         let hostClick = root.OnClick
         root.OnClick = () -> {
             if !clickFromInteractiveChild {
-                Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
-                if clickCount == 2 {
-                    Invoke(id)
+                if row.IsGroup {
+                    if clickCount == 2 {
+                        input.OnExpandedGroupChange?.Invoke(id, !groupExpanded.Contains(id))
+                    }
+                } else {
+                    Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+                    if clickCount == 2 {
+                        Invoke(id)
+                    }
                 }
             }
             hostClick?.Invoke()
@@ -326,11 +366,16 @@ public open partial class DataGrid {
                 actions.Add(isExpanded ? AccessibilityAction.Collapse: AccessibilityAction.Expand)
             }
         }
+        if row.IsGroup && !row.Disabled && !snapshot.Disabled && snapshot.OnExpandedGroupChange != nil {
+            actions.Add(AccessibilityAction.Focus)
+            actions.Add(groupExpanded.Contains(id) ? AccessibilityAction.Collapse: AccessibilityAction.Expand)
+        }
         let semantics = Accessibility{
             Role: AccessibilityRole.Row,
             Name: row.Label ?? id,
             Selected: snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected,
-            Expanded: (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
+            Expanded: row.IsGroup && snapshot.OnExpandedGroupChange != nil ? groupExpanded.Contains(id):
+                (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
             Actions: actions.ToArray()
         }
         if actions.Count > 0 {
@@ -372,7 +417,7 @@ public open partial class DataGrid {
     }
 
     private func Activate(id string, reveal bool = true) {
-        if Index(id) < 0 || input.Disabled {
+        if NavigationIndex(id) < 0 || input.Disabled {
             return
         }
         let changed = activeId != id
@@ -388,7 +433,8 @@ public open partial class DataGrid {
     }
 
     private func Reveal() {
-        if activeId == nil || Index(activeId) < 0 {
+        RevealColumn()
+        if activeId == nil || NavigationIndex(activeId) < 0 {
             return
         }
         let handle = Handle(rowHandles, activeId!!)
@@ -423,9 +469,11 @@ public open partial class DataGrid {
         ) {
             return
         }
-        if let request = input.OnSelectionRequest {
-            request(id, toggle, extend)
-            return
+        if !input.AllSelected {
+            if let request = input.OnSelectionRequest {
+                request(id, toggle, extend)
+                return
+            }
         }
         let next = List[string]()
         if input.Selection == DataGridSelection.Single {
@@ -435,39 +483,33 @@ public open partial class DataGrid {
         } else if extend && Index(anchorId) >= 0 {
             let start = Math.Min(Index(anchorId), Index(id))
             let end = Math.Max(Index(anchorId), Index(id))
-            for current in anchorSelection {
-                next.Add(current)
+            if !input.AllSelected {
+                for current in selected {
+                    next.Add(current)
+                }
             }
             for index in start ... end + 1 {
                 let row = Row(index)
-                if !row.Disabled && !row.IsGroup && !anchorSelection.Contains(row.Id!!) {
+                if !row.Disabled && !row.IsGroup && (input.AllSelected || !selected.Contains(row.Id!!)) {
                     next.Add(row.Id!!)
                 }
             }
         } else {
-            if toggle {
+            if toggle && !input.AllSelected {
                 for current in selected {
                     if current != id {
                         next.Add(current)
                     }
                 }
             }
-            if !toggle || !selected.Contains(id) {
+            if !toggle || !IsSelected(id) {
                 next.Add(id)
             }
         }
         if !extend && (!toggle || !selected.Contains(id)) {
             anchorId = id
-            anchorSelection = HashSet[string](next, StringComparer.Ordinal)
         }
-        if let changed = input.OnSelectionIndicesChange {
-            let positions = [next.Count]int32
-            for index in 0 ... next.Count {
-                positions[index] = RawIndex(next[index])
-            }
-            changed(positions)
-        }
-        input.OnSelectionChange?.Invoke(next.ToArray())
+        NotifySelection(next.ToArray())
     }
 
     private func Expand(id string, state bool, reveal bool = true) {
@@ -485,6 +527,17 @@ public open partial class DataGrid {
     }
 
     private func RowAction(id string, request AccessibilityActionRequest) bool {
+        if NavigationIndex(id) >= 0 && Row(RawIndex(id)).IsGroup && !input.Disabled {
+            if request.Action == AccessibilityAction.Focus {
+                Activate(id)
+                return true
+            }
+            if request.Action == AccessibilityAction.Expand || request.Action == AccessibilityAction.Collapse {
+                input.OnExpandedGroupChange?.Invoke(id, request.Action == AccessibilityAction.Expand)
+                return true
+            }
+            return false
+        }
         if Index(id) < 0 || input.Disabled {
             return false
         }
@@ -535,77 +588,211 @@ public open partial class DataGrid {
     }
 
     private func KeyDown(e KeyEvent) {
-        if input.Disabled || !hasFocus {
+        if input.Disabled || !hasFocus || e.IsComposing {
             return
         }
-        var next = Index(activeId)
-        if e.Key == Key.Down || e.Key == Key.Up {
-            let delta = e.Key == Key.Down ? 1: -1
-            next += delta
-            while next >= 0 && next < RowCount && (Row(next).Disabled || Row(next).IsGroup) {
-                next += delta
+        let control = e.Modifiers.Ctrl || e.Modifiers.Super
+        let current = NavigationIndex(activeId)
+        var next = current
+        if control && e.Key == Key.A {
+            if input.Selection != DataGridSelection.Multiple || e.Repeat {
+                return
             }
-        } else if e.Key == Key.Home {
-            next = Index(First(false))
-        } else if e.Key == Key.End {
-            next = Index(First(true))
-        } else if e.Key == Key.PageUp || e.Key == Key.PageDown {
-            let delta = e.Key == Key.PageDown ? 1: -1
-            var remaining = viewport.ContentBox.Height
-            var moved = false
-            while next >= 0 && next < RowCount {
-                let candidate = next + delta
-                if candidate < 0 || candidate >= RowCount {
-                    break
+            if input.RowAt != nil {
+                guard let request = input.OnSelectAll else { return }
+                request()
+            } else {
+                let ids = List[string](rows.Length)
+                for row in rows {
+                    if !row.Disabled && !row.IsGroup {
+                        ids.Add(row.Id!!)
+                    }
                 }
-                let row = Row(delta > 0 ? next: candidate)
-                let height = if rowHandles.TryGetValue(row.Id!!, out var handle) && handle.IsMounted {
-                    handle.BorderBox.Height
-                } else {
-                    input.RowHeightProvider?.Invoke(row) ?? input.RowHeight!!
-                }
-                if moved && height > remaining {
-                    break
-                }
-                remaining -= height
-                next = candidate
-                moved = true
+                NotifySelection(ids.ToArray())
             }
-            while next >= 0 && next < RowCount && (Row(next).Disabled || Row(next).IsGroup) {
-                next += delta
-            }
-        } else if e.Key == Key.Space || e.Key == Key.Enter {
-            if activeId != nil {
-                Select(activeId!!, e.Key == Key.Space || e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
-                if e.Key == Key.Enter && !e.Repeat {
-                    Invoke(activeId!!)
-                }
+        } else if control && (e.Key == Key.C || e.Key == Key.Insert) {
+            if !e.Repeat {
+                input.OnCopy?.Invoke()
             }
         } else if e.Key == Key.Left || e.Key == Key.Right {
-            if activeId != nil {
+            if activeId != nil && current >= 0 && Row(current).IsGroup {
+                input.OnExpandedGroupChange?.Invoke(activeId!!, e.Key == Key.Right)
+            } else if e.Modifiers.Alt && activeId != nil {
                 Expand(activeId!!, e.Key == Key.Right)
+            } else {
+                SetActiveColumn(control ? (e.Key == Key.Left ? 0: columns.Length - 1):
+                    activeColumn + (e.Key == Key.Left ? -1: 1), true)
+            }
+        } else if (e.Key == Key.Home || e.Key == Key.End) && !control {
+            SetActiveColumn(e.Key == Key.Home ? 0: columns.Length - 1, true)
+        } else if e.Key == Key.Down || e.Key == Key.Up {
+            if control {
+                next = NavigationIndex(First(e.Key == Key.Down))
+            } else {
+                let delta = e.Key == Key.Down ? 1: -1
+                next += delta
+                while next >= 0 && next < RowCount && NavigationIndex(Row(next).Id) < 0 {
+                    next += delta
+                }
+            }
+            SelectNavigation(next, e.Modifiers.Shift)
+        } else if e.Key == Key.Home || e.Key == Key.End {
+            SetActiveColumn(e.Key == Key.Home ? 0: columns.Length - 1, false)
+            next = NavigationIndex(First(e.Key == Key.End))
+            SelectNavigation(next, e.Modifiers.Shift)
+        } else if e.Key == Key.PageUp || e.Key == Key.PageDown {
+            next = PageDestination(current, e.Key == Key.PageDown ? 1: -1)
+            SelectNavigation(next, e.Modifiers.Shift)
+        } else if e.Key == Key.Space {
+            if !e.Repeat && activeId != nil && input.Selection == DataGridSelection.Multiple {
+                Select(activeId!!, true, e.Modifiers.Shift)
+            }
+        } else if e.Key == Key.Enter {
+            if !e.Repeat && activeId != nil {
+                Invoke(activeId!!)
             }
         } else {
             return
         }
         e.PreventDefault()
         e.StopPropagation()
-        if next >= 0 && next < RowCount {
-            if e.Key == Key.Down ||
-                e.Key == Key.Up ||
-                e.Key == Key.Home ||
-                e.Key == Key.End ||
-                e.Key == Key.PageUp ||
-                e.Key == Key
-                .PageDown {
-                if (e.Modifiers.Ctrl || e.Modifiers.Super) && !e.Modifiers.Shift {
-                    Activate(Row(next).Id!!)
-                } else {
-                    Select(Row(next).Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+    }
+
+    private func NavigationIndex(id string?) int32 {
+        if id == nil {
+            return -1
+        }
+        let index = RawIndex(id)
+        if index < 0 || index >= RowCount {
+            return -1
+        }
+        let row = Row(index)
+        return row.Disabled || row.IsGroup && input.OnExpandedGroupChange == nil ? -1: index
+    }
+
+    private func SelectNavigation(index int32, extend bool) {
+        if index >= 0 && index < RowCount {
+            let row = Row(index)
+            if row.IsGroup {
+                if extend && Index(anchorId) >= 0 {
+                    let delta = Index(anchorId) >= index ? 1: -1
+                    var target = index + delta
+                    while target >= 0 && target < RowCount && Index(Row(target).Id) < 0 {
+                        target += delta
+                    }
+                    if target >= 0 && target < RowCount {
+                        Select(Row(target).Id!!, false, true)
+                    }
                 }
+                Activate(row.Id!!)
             } else {
-                Activate(Row(next).Id!!)
+                Select(row.Id!!, false, extend)
             }
+        }
+    }
+
+    private func PageDestination(current int32, delta int32) int32 {
+        var slots = 0
+        let top = viewport.ContentBox.Y
+        let bottom = top + viewport.ContentBox.Height
+        for handle in rowHandles.Values {
+            if handle.IsMounted {
+                let bounds = handle.BorderBox
+                if bounds.Y >= top - .01 && bounds.Y + bounds.Height <= bottom + .01 {
+                    slots++
+                }
+            }
+        }
+        var next = int32(Math.Clamp(int64(current) + int64(delta) * Math.Max(1, slots), 0L, int64(Math.Max(0, RowCount - 1))))
+        while next >= 0 && next < RowCount && NavigationIndex(Row(next).Id) < 0 {
+            next += delta
+        }
+        return next
+    }
+
+    private func IsSelected(id string) bool -> input.AllSelected || selected.Contains(id)
+
+    private func NotifySelection(ids[]string) {
+        if let changed = input.OnSelectionIndicesChange {
+            let positions = [ids.Length]int32
+            for index in 0 ... ids.Length {
+                positions[index] = RawIndex(ids[index])
+            }
+            changed(positions)
+        }
+        input.OnSelectionChange?.Invoke(ids)
+    }
+
+    private func SetActiveColumn(index int32, reveal bool) {
+        let next = Math.Clamp(index, 0, Math.Max(0, columns.Length - 1))
+        if next != activeColumn {
+            activeColumn = next
+            input.OnActiveColumnChange?.Invoke(columns[next].Id!!)
+        }
+        if reveal {
+            RevealColumn()
+        }
+    }
+
+    private func RevealColumn() {
+        if columns.Length == 0 || activeColumn < pinnedCount || !viewport.IsMounted {
+            return
+        }
+        var left = leading
+        var pinned = leading
+        for index in 0 ... activeColumn {
+            left += widths[index]
+            if index < pinnedCount {
+                pinned += widths[index]
+            }
+        }
+        let offset = viewport.ScrollOffset
+        let right = left + widths[activeColumn]
+        if left < offset.X + pinned {
+            viewport.JumpTo(Math.Max(0, left - pinned), offset.Y)
+        } else if right > offset.X + viewport.ContentBox.Width {
+            viewport.JumpTo(right - viewport.ContentBox.Width, offset.Y)
+        }
+    }
+
+    private func RowContext(row DataGridRow) VirtualRowContext -> VirtualRowContext{
+        Version: rowPresentationVersion,
+        State: (!row.Disabled && !row.IsGroup && input.Selection != DataGridSelection.None && IsSelected(row.Id!!) ? 1L: 0L) +
+            (expanded.Contains(row.Id!!) ? 2L: 0L) +
+            (hoveredId == row.Id ? 4L: 0L) +
+            (groupExpanded.Contains(row.Id!!) ? 8L: 0L) +
+            (input.OnSelectionChange != nil || input.OnSelectionIndicesChange != nil || input.OnSelectionRequest != nil ? 16L: 0L) +
+            (activeId == row.Id && hasFocus && !pointerFocus ? 32L * (int64(activeColumn) + 1L): 0L)
+    }
+
+    private func UpdateRowPresentation() {
+        let presentation = input with{
+            Rows = nil, RowAt = nil, RowIndex = nil, RowCount = 0,
+            SelectedIds = nil, ExpandedIds = nil, ExpandedGroupIds = nil, AllSelected = false,
+            ActiveRowId = nil, ActiveColumnId = nil,
+            OnActiveRowChange = nil, OnActiveRowIndexChange = nil, OnActiveColumnChange = nil,
+            OnSelectionChange = nil, OnSelectionIndicesChange = nil, OnSelectionRequest = nil,
+            OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, CreateRoot = nil,
+            UseDefaultKeyboard = nil, OnRowInvoke = nil,
+            Sorts = nil, SortColumnId = nil, SortDirection = DataGridSort.None,
+            OnSort = nil, OnSortsChange = nil, Footer = nil
+        }
+        var changed = !Object.Equals(rowPresentation, presentation) ||
+            !Object.Equals(rowPresentationTheme, theme) ||
+            rowPresentationWidths.Length != widths.Length ||
+            rowPresentationOffset != (pinnedCount > 0 ? horizontalOffset: 0.0) ||
+            rowPresentationFirst != firstColumn || rowPresentationEnd != endColumn
+        for index in 0 ... Math.Min(rowPresentationWidths.Length, widths.Length) {
+            changed = changed || rowPresentationWidths[index] != widths[index]
+        }
+        if changed {
+            rowPresentationVersion++
+            rowPresentation = presentation
+            rowPresentationTheme = theme
+            rowPresentationWidths = widths
+            rowPresentationOffset = pinnedCount > 0 ? horizontalOffset: 0.0
+            rowPresentationFirst = firstColumn
+            rowPresentationEnd = endColumn
         }
     }
 
