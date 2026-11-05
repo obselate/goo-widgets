@@ -4,7 +4,7 @@
     {
       "rule": "S1",
       "symbol": "T:Goo.Widgets.Layout.ModalDialogHost",
-      "signature": "public open class ModalDialogHost : Cell[ModalDialog]",
+      "signature": "public open class ModalDialogHost : Cell[ModalDialog],IDisposable",
       "reason": "The host retains ModalDialog state and reuses its public descriptor without a second input owner."
     },
     {

@@ -19,7 +19,7 @@ class ApiShapeCheck {
     var Descriptors HashSet[string] = HashSet[string](StringComparer.Ordinal)
     var Configuration List[string] = List[string]()
 
-    func Simple(name string) string -> Regex.Replace(name, "^.*\\.", "")
+    func Simple(name string) string -> name.Substring(name.LastIndexOf('.') + 1)
 
     func Add(rule int32, symbol string, current string, expected string) {
         let entry = Exceptions.FirstOrDefault(item -> item.Rule == rule && item.Symbol == symbol && item.Signature == current)
@@ -88,8 +88,8 @@ class ApiShapeCheck {
         for type in Types {
             if type.Program { continue }
             let cell = Cell(type, HashSet[string](StringComparer.Ordinal))
-            let build = type.Members.FirstOrDefault(item -> item.Name == "Build" && item.Parameters.Count == 0 && IsVisual(item.Type))
-            if cell == nil && build == nil { continue }
+            let build = type.Members.FirstOrDefault(item -> item.Name == "Build" && item.Parameters.Count == 0 && item.Arity == 0 && !item.Static && IsVisual(item.Type))
+            if cell == nil && build == nil && !reviewed.Contains(Simple(type.Name)) { continue }
             Widgets.Add(type.Name)
             if !reviewed.Contains(Simple(type.Name)) { Configuration.Add("Unregistered widget role: " + type.Id) }
             if cell != nil {
@@ -97,12 +97,12 @@ class ApiShapeCheck {
                 let input = Types.FirstOrDefault(item -> item.Name == cell.Arguments[0].Name)
                 Require(input != nil, "Missing public widget input: " + type.Id)
                 Descriptors.Add(input.Name)
-                if !type.Open || Simple(input.Name) != Simple(type.Name) + "Input" || !input.Data || type.Base.Name != "Goo.Cell`1" {
+                if type.Kind != "class" || !type.Open || Simple(input.Name) != Simple(type.Name) + "Input" || !input.Data || type.Base.Name != "Goo.Cell`1" {
                     Add(1, type.Id, TypeSignature(type), "public open class " + Simple(type.Name) + " : Cell[" + Simple(type.Name) + "Input] with a public data struct input")
                 }
             } else {
                 Descriptors.Add(type.Name)
-                if !type.Data { Add(1, type.Id, TypeSignature(type), "public data struct with public Build() Blob") }
+                if !type.Data || build == nil { Add(1, type.Id, TypeSignature(type), "public data struct with public Build() Blob") }
             }
         }
         for type in Types {
@@ -112,7 +112,15 @@ class ApiShapeCheck {
         }
     }
 
-    func TypeSignature(type ApiDeclaration) string -> "public " + (if type.Data { "data struct " } else if type.Open { "open class " } else { "class " }) + Simple(type.Name) + (if type.Base.Name != "" { " : " + type.Base.Text() } else { "" })
+    func TypeSignature(type ApiDeclaration) string {
+        let parents = List[string]()
+        if type.Kind == "class" && type.Base.Name != "" && type.Base.Name != "System.Object" { parents.Add(type.Base.Text()) }
+        if !type.Data {
+            parents.AddRange(type.Interfaces.Select(name -> Regex.Replace(name, "([A-Za-z_][A-Za-z0-9_]*\\.)+", "")))
+        }
+        let modifier = if type.Data { "data " } else if type.Kind == "class" && type.Open { "open " } else { "" }
+        return "public " + modifier + type.Kind + " " + Simple(type.Name) + (if parents.Count > 0 { " : " + String.Join(",", parents) } else { "" })
+    }
 
     func Primary(type ApiDeclaration, name string) {
         let rows = []string{
@@ -210,6 +218,14 @@ class ApiShapeCheck {
                 if expected.StartsWith("OnSeek") { expected = expected.Replace("OnSeek", "OnPosition") }
                 Add(6, member.Id, member.Signature, "var " + expected + " " + value)
             }
+            if descriptor && name.StartsWith("On") && (name.EndsWith("Change") || name.EndsWith("Commit")) {
+                let concept = name.Substring(2, name.Length - 8)
+                let state = Member(type, concept) ?? Member(type, concept + "Id")
+                if state != nil && concept != "Value" && concept != "Selection" {
+                    let emitted = state.Type.Text().TrimEnd('?')
+                    if value != "Action[" + emitted + "]?" { Add(6, member.Id, member.Signature, "var " + name + " Action[" + emitted + "]?") }
+                }
+            }
             if name == "OnActivate" || name == "OnInvoke" || name == "OnRowInvoke" || name.EndsWith("Activate") || (Simple(type.Name) == "AttachmentChip" && name == "OnOpen") {
                 Add(9, member.Id, member.Signature, "var " + (if name == "OnMenuActivate" { "OnMenuClick" } else { "OnClick" }) + " " + value)
             }
@@ -237,7 +253,7 @@ class ApiShapeCheck {
             if descriptor {
                 let root = []string{"Width", "Height", "MinWidth", "MinHeight", "MaxWidth", "MaxHeight"}.Contains(name)
                 let token = Regex.IsMatch(name, "(Color|FontSize|FontWeight|FontFamily|Gap|Padding|PaddingHorizontal|PaddingVertical|BorderWidth|BorderRadius|Opacity|TransitionMs|TransitionEasing|Transform|BoxShadow)$")
-                let metric = !root && Regex.IsMatch(name, "(Width|Height|Size|Thickness|Spacing)$") && []string{"System.Double", "System.Single", "System.Int32", "System.Int64"}.Contains(member.Type.Name)
+                let metric = !root && name != "Size" && Regex.IsMatch(name, "(Width|Height|Size|Thickness|Spacing)$") && []string{"System.Double", "System.Single", "System.Int32", "System.Int64"}.Contains(member.Type.Name)
                 let fixedCoordinate = []string{"GraphCanvasInput", "GraphNodeCard"}.Contains(Simple(type.Name)) && (name == "Width" || name == "Height")
                 if ((token || fixedCoordinate) && !member.Type.Optional) || (metric && value != "float64?") { Add(20, member.Id, member.Signature, "var " + name + " " + (if metric { "float64?" } else { value + "?" })) }
                 if root && value != "Length?" { Add(21, member.Id, member.Signature, "var " + name + " Length?") }
@@ -251,7 +267,7 @@ class ApiShapeCheck {
             }
             if name.StartsWith("On") || name == "LoadChildren" {
                 if name == "LoadChildren" || !(value.StartsWith("Action") || value.StartsWith("Func[")) || !member.Type.Optional || value.Contains("Task") || value.Contains("ValueTask") { Add(24, member.Id, member.Signature, "a nullable synchronous Action or Func named On<Operation>") }
-                if member.Type.Arguments.Any(argument -> argument.Name == type.Name || argument.Name == "System.Object") { Add(25, member.Id, member.Signature, "event arguments without sender or owning descriptor") }
+                if member.Type.Arguments.Any(argument -> argument.Name == type.Name || argument.Name + "Input" == type.Name || argument.Name == "System.Object") { Add(25, member.Id, member.Signature, "event arguments without sender or owning descriptor") }
             }
         }
         if !type.Program && !Summaries.Contains(type.Id) { Add(27, type.Id, TypeSignature(type), "a nonempty XML summary") }

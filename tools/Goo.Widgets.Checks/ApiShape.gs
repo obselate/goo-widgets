@@ -7,21 +7,19 @@ import System.Linq
 import System.Reflection
 import System.Reflection.Metadata
 import System.Reflection.Metadata.Ecma335
-import System.Reflection.PortableExecutable
-import System.Text.Json
 import System.Text.RegularExpressions
-import System.Xml.Linq
 
 class ApiType {
     public var Name string = ""
     public var Value bool
     public var Optional bool
+    public var Reference bool
     public var Arguments List[ApiType] = List[ApiType]()
 
     public func Text(full bool = false) string {
         var name = Name
         if !full {
-            name = Regex.Replace(name, "^.*\\.", "")
+            name = name.Substring(name.LastIndexOf('.') + 1)
             name = switch name {
                 case "String": "string"
                 case "Boolean": "bool"
@@ -34,13 +32,13 @@ class ApiType {
             }
         }
         if Name == "[]" {
-            return Arguments[0].Text(full) + "[]" + (if Optional && !full { "?" } else { "" })
+            return Arguments[0].Text(full) + "[]" + (if Optional && !full { "?" } else { "" }) + (if Reference { "@" } else { "" })
         }
         if Arguments.Count > 0 {
             name = Regex.Replace(name, "`[0-9]+$", "") + (if full { "{" } else { "[" }) + String.Join(",", Arguments.Select(item -> item.Text(full))) + (if full { "}" } else { "]" })
         }
-        if full && Value && Optional { return "System.Nullable{" + name + "}" }
-        return name + (if Optional && !full { "?" } else { "" })
+        if full && Value && Optional { name = "System.Nullable{" + name + "}" }
+        return name + (if Optional && !full { "?" } else { "" }) + (if Reference { "@" } else { "" })
     }
 }
 
@@ -51,6 +49,7 @@ class ApiMember {
     public var Type ApiType = ApiType()
     public var Parameters List[ApiType] = List[ApiType]()
     public var Arity int32
+    public var Static bool
     public var Signature string = ""
 }
 
@@ -58,6 +57,8 @@ class ApiDeclaration {
     public var Id string = ""
     public var Name string = ""
     public var Base ApiType = ApiType()
+    public var Kind string = "class"
+    public var Interfaces List[string] = List[string]()
     public var Data bool
     public var Open bool
     public var Program bool
@@ -160,7 +161,7 @@ class ApiMetadata {
         }
         if code == 0x10 {
             let type = Decode(ref blob)
-            type.Name += "@"
+            type.Reference = true
             return type
         }
         if code == 0x1d {
@@ -243,6 +244,11 @@ class ApiMetadata {
                     Decode(ref blob)
                 } else { ApiType { Name: Name(definition.BaseType) } }
             }
+            type.Kind = if (definition.Attributes & TypeAttributes.Interface) != 0 { "interface" } else if type.Base.Name == "System.Enum" { "enum" } else if type.Base.Name == "System.ValueType" { "struct" } else { "class" }
+            for implementationHandle in definition.GetInterfaceImplementations() {
+                let implemented = Reader.GetInterfaceImplementation(implementationHandle).Interface
+                type.Interfaces.Add(Name(implemented))
+            }
             let token = MetadataTokens.GetToken(handle)
             if Semantics.ContainsKey(token) {
                 let marker = Semantics[token]
@@ -287,7 +293,7 @@ class ApiMetadata {
                 let arity = if header.IsGeneric { blob.ReadCompressedInteger() } else { 0 }
                 let count = blob.ReadCompressedInteger()
                 let result = Decode(ref blob)
-                let member = ApiMember { Name: methodName, Kind: "func", Type: result, Arity: arity }
+                let member = ApiMember { Name: methodName, Kind: "func", Type: result, Arity: arity, Static: (method.Attributes & MethodAttributes.Static) != 0 }
                 for i in 0 ... count { member.Parameters.Add(Decode(ref blob)) }
                 let methodContext = Context(method.GetCustomAttributes(), context)
                 for parameterHandle in method.GetParameters() {
@@ -328,7 +334,7 @@ class ApiMetadata {
             (member.Name == "GetHashCode" && count == 0 && member.Type.Name == "System.Int32") ||
             (member.Name == "ToString" && count == 0 && member.Type.Name == "System.String") ||
             ([]string{"op_Equality", "op_Inequality"}.Contains(member.Name) && count == 2 && member.Type.Name == "System.Boolean") ||
-            (member.Name == "Deconstruct" && member.Type.Name == "System.Void" && member.Parameters.All(item -> item.Name.EndsWith("@"))) ||
+            (member.Name == "Deconstruct" && member.Type.Name == "System.Void" && member.Parameters.All(item -> item.Reference)) ||
             (member.Name == "<Clone>$" && count == 0)
     }
 }
