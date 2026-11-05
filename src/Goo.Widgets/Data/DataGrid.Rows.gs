@@ -103,6 +103,7 @@ public open partial class DataGrid {
 
     private func BuildRow(snapshot DataGridInput, row DataGridRow, details bool) Blob {
         let id = row.Id!!
+        let rowIndex = RawIndex(id)
         let isSelected = !row.Disabled && !row.IsGroup && snapshot.Selection != DataGridSelection.None &&
             (snapshot.AllSelected || selected.Contains(id))
         let isExpanded = expanded.Contains(id) && (row.HasDetail || row.Detail != nil)
@@ -157,13 +158,23 @@ public open partial class DataGrid {
                     FlexShrink: 0,
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
-                    Accessibility: Accessibility{Role: AccessibilityRole.GridCell, Name: theme.Text("Row controls")}
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.GridCell,
+                        Name: theme.Text("Row controls"),
+                        RowIndex: rowIndex,
+                        ColumnIndex: 0
+                    }
                 }
                 if let create = snapshot.CreateRowHeader {
                     controls.Children.Add(Container{
                         Key: "row-header",
                         Width: snapshot.RowHeaderWidth!!,
-                        Accessibility: Accessibility{Role: AccessibilityRole.RowHeader, Name: row.Label ?? id},
+                        Accessibility: Accessibility{
+                            Role: AccessibilityRole.RowHeader,
+                            Name: row.Label ?? id,
+                            RowIndex: rowIndex,
+                            ColumnIndex: 0
+                        },
                         create(snapshot, row)
                     })
                 }
@@ -281,6 +292,8 @@ public open partial class DataGrid {
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.GridCell,
                             Name: column.Label ?? column.Id!!,
+                            RowIndex: rowIndex,
+                            ColumnIndex: index + (leading > 0.0 ? 1: 0),
                             Value: text
                         },
                         content
@@ -378,6 +391,8 @@ public open partial class DataGrid {
         let semantics = Accessibility{
             Role: AccessibilityRole.Row,
             Name: row.Label ?? id,
+            RowIndex: rowIndex,
+            ColumnCount: columns.Length + (leading > 0.0 ? 1: 0),
             Selected: snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected,
             Expanded: row.IsGroup && snapshot.OnGroupExpandedChange != nil ? groupExpanded.Contains(id):
                 (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
@@ -412,7 +427,9 @@ public open partial class DataGrid {
                     OnKeyDown: stopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
-                        Name: theme.Text("Details for {0}", row.Label ?? id)
+                        Name: theme.Text("Details for {0}", row.Label ?? id),
+                        RowIndex: rowIndex,
+                        ColumnIndex: 0
                     },
                     detail
                 }

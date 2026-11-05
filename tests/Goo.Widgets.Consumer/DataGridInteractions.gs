@@ -1381,6 +1381,7 @@ func DataGridInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         let alpha = FindSemantics(semantics.Tree!!.Root, "Host alpha")!!
+        Require(alpha.RowIndex == 0, "Grid first data row index included presentation headers")
         Require(
             window.PerformAccessibilityAction(alpha.Id, AccessibilityActionRequest(AccessibilityAction.Expand)),
             "Grid detail accessibility expansion failed"
@@ -1494,6 +1495,13 @@ func DataGridInteractions() {
         PumpFrames(window, 20)
         let grid = FindSemantics(semantics.Tree!!.Root, "Inventory grid")!!
         let last = FindSemantics(semantics.Tree!!.Root, "Host host-1499")!!
+        Require(grid.RowCount == 1500 && grid.ColumnCount == 4 && last.RowIndex == 1499 && last.ColumnCount == 4,
+            "Virtual grid omitted logical row or column metadata")
+        let lastName = FindSemantics(last, "Name")!!
+        let lastState = FindSemantics(last, "State")!!
+        Require(lastName.RowIndex == 1499 && lastName.ColumnIndex == 3 &&
+            lastState.RowIndex == 1499 && lastState.ColumnIndex == 2,
+            "Grid cell indices did not follow reordered columns and unrealized rows")
         Require(
             grid.Focused && grid.Relationships.ActiveDescendant == last.Id,
             "Grid End failed to reveal a virtual active descendant"
