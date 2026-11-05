@@ -409,6 +409,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
     GalleryCategory("Feedback", "notifications", []GalleryPage{
         ToastPage{DisplayTitle: "Toast"},
         SpinnerPage{DisplayTitle: "Spinner"},
+        TeachingTipPage{DisplayTitle: "Teaching tip"},
         BadgePage{DisplayTitle: "Badge"},
         BannerPage{DisplayTitle: "Banner"},
         DismissibleContextBarPage{DisplayTitle: "Dismissible context bar"},
