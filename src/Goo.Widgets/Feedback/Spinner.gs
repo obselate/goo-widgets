@@ -135,6 +135,8 @@ public open class Spinner : Cell[SpinnerInput] {
 }
 
 internal sealed class SpinnerPulse(Period float64, Offset float64, Low float64) : Simulation {
+    public override prop IsInfinite bool { get -> true }
+
     public override func Position(elapsed float64) float64 -> At(elapsed / Period)
 
     public override func Velocity(elapsed float64) float64 ->
