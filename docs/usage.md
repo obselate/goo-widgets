@@ -1,7 +1,7 @@
 # Using Goo Widgets
 
 Goo Widgets `0.15.0` requires Goo `0.16.0` or later, .NET 10, and
-`Gsharp.NET.Sdk/0.4.1150`. SVG and gestures are included in Goo.
+`Gsharp.NET.Sdk/0.5.212`. SVG and gestures are included in Goo.
 Follow the [installation instructions](../README.md#install).
 
 ## Basic widgets

@@ -144,7 +144,7 @@ public data struct SearchList {
         ){
             Count = count,
             Get = (index int32) -> {
-                let item = prepared == nil ? items[indices[index]]: prepared!!(index)
+                let item = prepared == nil ? items[indices[index]]: prepared(index)
                 return SearchListRow{
                     Item: item,
                     Selected: selectedId != nil && selectedId == item.Id,
