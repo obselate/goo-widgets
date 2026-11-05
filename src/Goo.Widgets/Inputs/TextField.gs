@@ -4,18 +4,20 @@ import Goo
 import Goo.Widgets
 import System
 
-/// A semantic single-line text field with label, issue, and primitive factories.
+/// A semantic single-line text field with label, error, and primitive factories.
 public data struct TextField {
     /// Optional label.
     var Label string?
+    /// Supporting text linked to the editor. Nil omits it.
+    var Description string?
     /// Initial value. Nil resolves to an empty string.
     var Value string?
     /// Applies Value while the entry is focused. False lets focused edits win until blur.
     var Controlled bool
     /// Empty-value hint. Nil resolves to an empty string.
     var Placeholder string?
-    /// Optional validation issue text.
-    var IssueText string?
+    /// Optional validation error text.
+    var Error string?
     /// Whether the field uses invalid styling.
     var Invalid bool
     /// Whether the field rejects input.
@@ -74,16 +76,16 @@ public data struct TextField {
     var Gap float64?
     /// Entry horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
-    /// Entry text size. Zero uses the nearest theme font size.
-    var FontSize float64
-    /// Label text size. Zero uses the nearest theme label font size.
-    var LabelFontSize float64
-    /// Label font weight. Zero uses the nearest theme label font weight.
-    var LabelFontWeight int32
+    /// Entry text size. Nil uses the nearest theme font size.
+    var FontSize float64?
+    /// Label text size. Nil uses the nearest theme label font size.
+    var LabelFontSize float64?
+    /// Label font weight. Nil uses the nearest theme label font weight.
+    var LabelFontWeight int32?
     /// Label transform. Nil uses sentence case.
     var LabelTextTransform TextTransform?
-    /// Issue text size. Zero uses the nearest theme caption font size.
-    var IssueFontSize float64
+    /// Error text size. Nil uses the nearest theme caption font size.
+    var ErrorFontSize float64?
     /// Entry border width. Nil uses the nearest theme border width.
     var BorderWidth float64?
     /// Entry border radius. Nil uses the nearest theme radius.
@@ -124,6 +126,7 @@ public data struct TextField {
         let controlHeight Length = theme.ControlHeight
         let resolved = this with{
             Value = value,
+            Invalid = Invalid || Error != nil,
             Placeholder = placeholder,
             AccessibilityName = AccessibilityName ?? labelName,
             BackgroundColor = BackgroundColor ?? theme.FieldColor,
@@ -139,26 +142,10 @@ public data struct TextField {
             EntryHeight = EntryHeight ?? controlHeight,
             Gap = Gap ?? theme.ControlGap,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
-            FontSize = if FontSize == 0.0 {
-                theme.FontSize
-            } else {
-                FontSize
-            },
-            LabelFontSize = if LabelFontSize == 0.0 {
-                theme.LabelFontSize
-            } else {
-                LabelFontSize
-            },
-            IssueFontSize = if IssueFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                IssueFontSize
-            },
-            LabelFontWeight = if LabelFontWeight == 0 {
-                theme.LabelFontWeight
-            } else {
-                LabelFontWeight
-            },
+            FontSize = FontSize ?? theme.FontSize,
+            LabelFontSize = LabelFontSize ?? theme.LabelFontSize,
+            ErrorFontSize = ErrorFontSize ?? theme.CaptionFontSize,
+            LabelFontWeight = LabelFontWeight ?? theme.LabelFontWeight,
             LabelTextTransform = LabelTextTransform ?? TextTransform.None,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
@@ -172,6 +159,7 @@ public data struct TextField {
         }
         let labelHandle = ElementHandle()
         let issueHandle = ElementHandle()
+        let descriptionHandle = ElementHandle()
         var label Text? = nil
         if resolved.Label != nil {
             label = Text{
@@ -179,13 +167,21 @@ public data struct TextField {
                 Handle: labelHandle,
                 Content: resolved.Label!!,
                 Color: resolved.MutedTextColor!!,
-                FontSize: resolved.LabelFontSize,
-                FontWeight: resolved.LabelFontWeight,
+                FontSize: resolved.LabelFontSize!!,
+                FontWeight: resolved.LabelFontWeight!!,
                 TextTransform: resolved.LabelTextTransform!!
             }
             if resolved.FontFamily != nil {
                 label.FontFamily = resolved.FontFamily!!
             }
+        }
+        let description Text? = resolved.Description == nil ? nil: Text{
+            Key: "description",
+            Handle: descriptionHandle,
+            Content: resolved.Description!!,
+            Accessibility: Accessibility{Role: AccessibilityRole.Text, Name: resolved.Description!!},
+            Color: resolved.MutedTextColor!!,
+            FontSize: theme.CaptionFontSize,
         }
         let accent = if resolved.Invalid {
             resolved.InvalidColor!!
@@ -211,7 +207,7 @@ public data struct TextField {
                 },
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
-                FontSize: resolved.FontSize,
+                FontSize: resolved.FontSize!!,
                 FontWeight: theme.FontWeight,
                 Value: resolved.Value!!,
                 Controlled: resolved.Controlled,
@@ -249,18 +245,18 @@ public data struct TextField {
             entry!!.TextAlign = theme.RightToLeft ? TextAlign.Right: TextAlign.Left
         }
         var issue Text? = nil
-        if resolved.IssueText != nil {
+        if resolved.Error != nil {
             issue = Text{
                 Key: "issue",
                 Handle: issueHandle,
-                Content: resolved.IssueText!!,
+                Content: resolved.Error!!,
                 Color: resolved.InvalidColor!!,
-                FontSize: resolved.IssueFontSize,
+                FontSize: resolved.ErrorFontSize!!,
                 FontWeight: theme.CaptionFontWeight,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Alert,
                     Live: AccessibilityLive.Polite,
-                    Name: resolved.IssueText!!
+                    Name: resolved.Error!!
                 }
             }
             if resolved.FontFamily != nil {
@@ -278,7 +274,9 @@ public data struct TextField {
             ReadOnly: readOnly,
             Relationships: AccessibilityRelationships{
                 LabelledBy: label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
-                DescribedBy: issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
+                DescribedBy: resolved.Description != nil
+                    ? (issue != nil ? []ElementHandle{descriptionHandle, issueHandle}: []ElementHandle{descriptionHandle})
+                    : (issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}),
                 ErrorMessage: resolved.Invalid && issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
             }
         }
@@ -288,6 +286,9 @@ public data struct TextField {
         }
         if let createRoot = createRoot {
             let content = createRoot(resolved, label, entry!!, issue)
+            if let description = description {
+                content.Children.Add(description)
+            }
             return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
                 content.Key,
                 TouchTextEditingInput{Content: content, Editor: entry!!, Enabled: resolved.TouchEditing}
@@ -397,11 +398,14 @@ public data struct TextField {
                 Text{
                     Key: "counter",
                     Content: counter,
-                    FontSize: resolved.IssueFontSize,
+                    FontSize: resolved.ErrorFontSize!!,
                     Color: resolved.MaxLength != nil && value.Length > resolved.MaxLength!!
                     ? resolved.InvalidColor!!: resolved.MutedTextColor!!
                 }
             )
+        }
+        if let description = description {
+            root.Children.Add(description)
         }
         if let issue = issue {
             root.Children.Add(issue)

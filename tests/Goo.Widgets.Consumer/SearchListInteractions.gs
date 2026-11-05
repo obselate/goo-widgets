@@ -54,8 +54,8 @@ internal class SearchListHost : Cell {
 
     private let selectionCallback Action[string]
     private let selectAlternate Action[string]
-    private let row Func[SelectionItem, Button, Blob]
-    private let customRow Func[SelectionItem, Button, Blob]
+    private let row Func[SearchList, SelectionItem, Button, Blob]
+    private let customRow Func[SearchList, SelectionItem, Button, Blob]
 
     private func ChangeQuery(value string) {
         Query = value.ToLowerInvariant()
@@ -81,7 +81,7 @@ internal class SearchListHost : Cell {
         Rebuild()
     }
 
-    private func Row(item SelectionItem, row Button) Blob {
+    private func Row(owner SearchList, item SelectionItem, row Button) Blob {
         let id = item.Id!!
         if !Handles.ContainsKey(id) {
             Handles.Add(id, ElementHandle{})
@@ -92,9 +92,9 @@ internal class SearchListHost : Cell {
         return row
     }
 
-    private func CustomRow(item SelectionItem, row Button) Blob {
+    private func CustomRow(owner SearchList, item SelectionItem, row Button) Blob {
         row.Children.Add(Text{Content: "Custom"})
-        return Row(item, row)
+        return Row(owner, item, row)
     }
 
     public override func Build() Blob -> Container{
@@ -108,7 +108,7 @@ internal class SearchListHost : Cell {
             Query: Query,
             OnQueryChange: ChangeQuery,
             Placeholder: "Search items",
-            CustomizeEntry: (entry TextEntry) -> {
+            CreateEntry: (owner SearchList, entry TextEntry) -> {
                 entry.Handle = EntryHandle
                 return entry
             },
@@ -123,7 +123,7 @@ internal class SearchListHost : Cell {
             } else {
                 selectionCallback
             },
-            CustomizeRow: if Custom {
+            CreateRow: if Custom {
                 customRow
             } else {
                 row

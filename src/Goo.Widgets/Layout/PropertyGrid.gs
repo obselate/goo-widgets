@@ -194,7 +194,7 @@ public data struct PropertyGrid {
         let field = FormField{
             Label: item.Label ?? "",
             Description: item.Description,
-            Issue: item.Error,
+            Error: item.Error,
             Content: item.Editor,
             CreateContent: item.CreateEditor,
             LabelFor: item.LabelFor,

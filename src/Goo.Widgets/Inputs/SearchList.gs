@@ -18,16 +18,18 @@ public data struct SearchList {
     var OnQueryChange Action[string]?
     /// Receives the identifier activated by pointer or keyboard.
     var OnSelect Action[string]?
+    /// Whether the search entry and rows reject input.
+    var Disabled bool
     /// Accessible list name. Nil resolves to Choose an item.
     var AccessibilityName string?
     /// Search entry hint. Nil resolves to Search.
     var Placeholder string?
     /// Message shown when the query has no matches.
     var EmptyText string?
-    /// List width in pixels. Nil resolves to 280.
-    var Width float64?
-    /// Total height in pixels. Nil resolves to 240.
-    var Height float64?
+    /// List width. Nil resolves to 280.
+    var Width Length?
+    /// Total height. Nil resolves to 240.
+    var Height Length?
     /// Virtual row height in pixels. Nil uses the theme's control height.
     var RowHeight float64?
     /// Surface color. Nil uses the nearest theme.
@@ -45,11 +47,11 @@ public data struct SearchList {
     /// Vertical visibility. Nil uses Auto.
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Final entry customization. Preserve Value and OnChange for controlled editing.
-    var CustomizeEntry Func[TextEntry, TextEntry]?
+    var CreateEntry Func[SearchList, TextEntry, TextEntry]?
     /// Final row customization. Preserve the supplied action and disabled state.
-    var CustomizeRow Func[SelectionItem, Button, Blob]?
+    var CreateRow Func[SearchList, SelectionItem, Button, Blob]?
     /// Final root customization. Preserve the virtual viewport dimensions when resizing.
-    var CustomizeRoot Func[Container, Blob]?
+    var CreateRoot Func[SearchList, Container, Blob]?
     internal var ItemAt Func[int32, SelectionItem]?
     internal var ItemCount int32
 
@@ -58,10 +60,13 @@ public data struct SearchList {
 
     internal func BuildContent(indices[]int32, positions Dictionary[string, int32]) Blob {
         let theme = Theme.Read()
-        let width = Width ?? 280.0
-        let height = Height ?? 240.0
+        let defaultWidth Length = 280.0
+        let defaultHeight Length = 240.0
+        let width = Width ?? defaultWidth
+        let height = Height ?? defaultHeight
         let rowHeight = RowHeight ?? theme.ControlHeight
-        if !Double.IsFinite(width) || width <= 2.0 || !Double.IsFinite(height) || height <= theme.ControlHeight
+        if (width.HasMagnitude && !width.IsPercent && (!Double.IsFinite(width.Magnitude) || width.Magnitude <= 2.0))
+        || (height.HasMagnitude && !height.IsPercent && (!Double.IsFinite(height.Magnitude) || height.Magnitude <= theme.ControlHeight))
         || !Double.IsFinite(rowHeight) || rowHeight <= 0.0 {
             throw ArgumentOutOfRangeException(
                 "Width/Height/RowHeight",
@@ -75,8 +80,8 @@ public data struct SearchList {
         let selection = SelectedColor ?? theme.AccentColor.WithAlpha(0.15)
         let focus = FocusColor ?? theme.FocusColor
         let selectedId = SelectedId
-        let onSelect = OnSelect
-        let customizeRow = CustomizeRow
+        let onSelect = Disabled ? nil: OnSelect
+        let createRow = CreateRow
         let query = Query ?? ""
         let items = Items ?? []SelectionItem{}
         let rowOptions = SearchListRowOptions{
@@ -87,7 +92,8 @@ public data struct SearchList {
             Selection: selection,
             Focus: focus,
             OnSelect: onSelect,
-            Customize: customizeRow,
+            CreateRow: createRow,
+            Owner: this,
         }
         let prepared = ItemAt
         let count = prepared == nil ? indices.Length: ItemCount
@@ -104,18 +110,24 @@ public data struct SearchList {
             FontWeight: theme.FontWeight,
             SelectionColor: theme.AccentColor.WithAlpha(0.35),
             Cursor: Cursor.Text,
-            Focusable: true,
+            Focusable: !Disabled,
+            Disabled: Disabled,
             Value: query,
             Controlled: true,
             Placeholder: Placeholder ?? theme.Text("Search"),
             PlaceholderColor: theme.PlaceholderColor,
-            OnChange: OnQueryChange,
+            OnChange: Disabled ? nil: OnQueryChange,
             Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
         }
-        if let customize = CustomizeEntry {
-            entry = customize(entry)
+        if let createEntry = CreateEntry {
+            entry = createEntry(this, entry)
         }
+        entry.Disabled = Disabled
+        entry.Focusable = !Disabled
+        entry.Value = query
+        entry.Controlled = true
+        entry.OnChange = Disabled ? nil: OnQueryChange
 
         let key((SearchListRow) -> string) = (row SearchListRow) -> "item:" + (row.Item.Id ?? "")
         let build((SearchListRow) -> Blob) = buildSearchListRow
@@ -192,8 +204,8 @@ public data struct SearchList {
         } else {
             root.Children.Add(list)
         }
-        if let customize = CustomizeRoot {
-            return customize(root)
+        if let createRoot = CreateRoot {
+            return createRoot(this, root)
         }
         return root
     }
@@ -259,9 +271,9 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
 
     internal func Build() Blob {
         let theme = Theme.Read()
-        let item = Item
-        let id = item.Id ?? ""
         let options = Options!!
+        let item = Item with{Disabled = Item.Disabled || options.Owner.Disabled}
+        let id = item.Id ?? ""
         let onSelect = options.OnSelect
         let row = Button{
             Height: options.RowHeight,
@@ -316,9 +328,13 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             },
         }
         var result Blob = row
-        if let customize = options.Customize {
-            result = customize(item, row)
+        if let createRow = options.CreateRow {
+            result = createRow(options.Owner, item, row)
         }
+        result.Disabled = item.Disabled
+        result.Focusable = !item.Disabled
+        result.OnClick = row.OnClick
+        result.Accessibility = row.Accessibility
         WidgetKeyBindings.BindActivation(result)
         return result
     }
@@ -333,13 +349,14 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     internal var Selection Color
     internal var Focus Color
     internal var OnSelect Action[string]?
-    internal var Customize Func[SelectionItem, Button, Blob]?
+    internal var CreateRow Func[SearchList, SelectionItem, Button, Blob]?
+    internal var Owner SearchList
 
     public func Equals(other SearchListRowOptions?) bool -> other != nil
     && RowHeight == other.RowHeight && sameColor(Background, other.Background)
     && sameColor(Foreground, other.Foreground) && sameColor(Muted, other.Muted)
     && sameColor(Selection, other.Selection) && sameColor(Focus, other.Focus)
-    && Object.Equals(OnSelect, other.OnSelect) && Object.Equals(Customize, other.Customize)
+    && Object.Equals(OnSelect, other.OnSelect) && Object.Equals(CreateRow, other.CreateRow) && Owner.Disabled == other.Owner.Disabled
 
     private func sameColor(a Color, b Color) bool -> a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A
 }

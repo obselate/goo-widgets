@@ -23,7 +23,7 @@ class ToggleDemo : Cell {
                 AccessibilityName: "Calendar range",
                 SelectedIds: selected,
                 Stretch: true,
-                OnChange: (ids[]string) -> {
+                OnSelectionChange: (ids[]string) -> {
                     selected = ids
                     Rebuild()
                 },
@@ -39,9 +39,9 @@ class ToggleDemo : Cell {
             ToggleGroupInput{
                 AccessibilityName: "Text formatting",
                 Multiple: true,
-                Look: ToggleGroupLook.Toolbar,
+                Variant: ToggleGroupVariant.Toolbar,
                 SelectedIds: formats,
-                OnChange: (ids[]string) -> {
+                OnSelectionChange: (ids[]string) -> {
                     formats = ids
                     Rebuild()
                 },
@@ -61,8 +61,8 @@ class ToggleDemo : Cell {
             ToggleGroupInput{
                 AccessibilityName: "Calendar chips",
                 SelectedIds: selected,
-                Look: ToggleGroupLook.Chips,
-                OnChange: (ids[]string) -> {
+                Variant: ToggleGroupVariant.Chips,
+                OnSelectionChange: (ids[]string) -> {
                     selected = ids
                     Rebuild()
                 },

@@ -63,7 +63,7 @@ class RadioDemo : Cell {
             Label: "Delivery reminders",
             Description: "Send a message before delivery",
             Card: true,
-            State: reminders,
+            Value: reminders,
             OnChange: (state AccessibilityChecked) -> {
                 reminders = state
                 Rebuild()

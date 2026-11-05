@@ -49,7 +49,7 @@ internal class ControlStateHost : Cell {
                 AttachmentChip{Name: "attachment.pdf", OnRemove: () -> {}}.Build():
                 AttachmentChip{Name: "attachment.pdf", OnDownload: () -> {}}.Build()
             case 4: Chip{Label: "Subset chip", OnRemove: () -> {}}.Build()
-            case 5: Checkbox{State: Expanded ? AccessibilityChecked.Mixed: AccessibilityChecked.True}.Build()
+            case 5: Checkbox{Value: Expanded ? AccessibilityChecked.Mixed: AccessibilityChecked.True}.Build()
             case 6: Cell.Mount[ComboBoxInput, ComboBox]("combo", ComboBoxInput{
                 Multiple: true, Open: true,
                 Items: []ComboBoxOption{ComboBoxOption{Id: "selected", Label: "Selected"}, ComboBoxOption{Id: "other", Label: "Other"}},
@@ -109,7 +109,7 @@ internal class ControlStateHost : Cell {
                 }},
                 ExpandedIds: Expanded ? []string{"parent"}: []string{},
             })
-            case 21: Cell.Mount[TokenInputInput, TokenInput]("tokens", TokenInputInput{Tokens: []string{"token"}})
+            case 21: Cell.Mount[TokenInputInput, TokenInput]("tokens", TokenInputInput{Value: []string{"token"}})
             case 22: SplitButton{
                 Button: ActionButton{Content: "Action"}, Menu: MenuButtonInput{Open: Expanded},
             }.Build()

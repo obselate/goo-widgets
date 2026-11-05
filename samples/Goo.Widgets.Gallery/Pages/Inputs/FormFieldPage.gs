@@ -28,7 +28,7 @@ internal class FormFieldPage : GalleryPage {
             }.Build(),
             FormField{
                 Label: "Email",
-                Issue: "Enter a valid email address.",
+                Error: "Enter a valid email address.",
                 CreateContent: relations -> TextField{
                     Value: "alex@",
                     AccessibilityName: "Email",
@@ -43,7 +43,7 @@ internal class FormFieldPage : GalleryPage {
             FormField{
                 Label: "Notifications",
                 Description: "Receive updates by email.",
-                Content: Checkbox{Label: "Email updates", State: AccessibilityChecked.True}.Build()
+                Content: Checkbox{Label: "Email updates", Value: AccessibilityChecked.True}.Build()
             }.Build(),
         },
     }.Build()

@@ -34,8 +34,10 @@ public data struct TextAreaInput {
     var Placeholder string?
     /// Optional visible label.
     var Label string?
+    /// Supporting text linked to the editor. Nil omits it.
+    var Description string?
     /// Optional validation text.
-    var IssueText string?
+    var Error string?
     /// Marks the field invalid.
     var Invalid bool
     /// Prevents editing while preserving selection and copy.
@@ -52,8 +54,8 @@ public data struct TextAreaInput {
     var Height Length?
     /// Minimum text rows. Zero resolves to three rows.
     var MinimumRows int32
-    /// Optional minimum editor height in logical pixels.
-    var MinimumHeight float64?
+    /// Optional minimum editor height.
+    var MinHeight Length?
     /// Font size. Nil uses the nearest theme font size.
     var FontSize float64?
     /// Optional font family.
@@ -64,7 +66,7 @@ public data struct TextAreaInput {
     var BackgroundColor Color?
     /// Editor foreground. Nil uses the nearest theme.
     var TextColor Color?
-    /// Invalid border and issue color. Nil uses the nearest theme.
+    /// Invalid border and error color. Nil uses the nearest theme.
     var InvalidColor Color?
     /// Focus border color. Nil uses the nearest theme.
     var FocusColor Color?
@@ -74,7 +76,7 @@ public data struct TextAreaInput {
     var RootStyle Style?
     /// Customizes the prepared editor. It must retain the supplied controller; field behavior is reapplied.
     var CreateEditor Func[TextAreaInput, TextEditor, TextEditor]?
-    /// Customizes root appearance; label, editor, and issue children are reapplied.
+    /// Customizes root appearance; label, editor, and error children are reapplied.
     var CreateRoot Func[TextAreaInput, Container, Container]?
 }
 
@@ -88,6 +90,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
     private var input TextAreaInput
     private let labelHandle ElementHandle = ElementHandle()
     private let issueHandle ElementHandle = ElementHandle()
+    private let descriptionHandle ElementHandle = ElementHandle()
     /// Current UTF-16 character count.
     public prop Count int32 {
         get -> controller?.Document.Length ?? 0
@@ -111,18 +114,20 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         let theme = Theme.Read()
         let rows = value.MinimumRows == 0 ? 3: value.MinimumRows
         let font = value.FontSize ?? theme.FontSize
-        let minimum = value.MinimumHeight ?? (float64(rows) * font * theme.LineHeight + theme.ControlPadding * 2.0)
-        if rows < 1 || !Double.IsFinite(font) || font <= 0.0 || !Double.IsFinite(minimum) || minimum < 0.0 {
-            throw ArgumentOutOfRangeException("MinimumRows/FontSize/MinimumHeight")
+        let minimum = float64(rows) * font * theme.LineHeight + theme.ControlPadding * 2.0
+        let defaultHeight Length = minimum
+        let minHeight = value.MinHeight ?? defaultHeight
+        if rows < 1 || !Double.IsFinite(font) || font <= 0.0 || !Double.IsFinite(minimum)
+        || (minHeight.HasMagnitude && (!Double.IsFinite(minHeight.Magnitude) || minHeight.Magnitude < 0.0)) {
+            throw ArgumentOutOfRangeException("MinimumRows/FontSize/MinHeight")
         }
         if value.MaximumRows < 0 || (value.MaximumRows > 0 && value.MaximumRows < rows) || value.MaxLength < 0 {
             throw ArgumentOutOfRangeException("MaximumRows/MaxLength")
         }
         let defaultWidth Length = 280.0
-        let defaultHeight Length = minimum
         input = value with{
             MinimumRows = rows,
-            MinimumHeight = minimum,
+            MinHeight = minHeight,
             FontSize = font,
             FontFamily = value.FontFamily ?? theme.FontFamily,
             Width = value.Width ?? defaultWidth,
@@ -145,11 +150,11 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Synchronize(next)
         }
         let overLimit = value.MaxLength != nil && Count > value.MaxLength!!
-        let invalid = value.Invalid || overLimit
+        let invalid = value.Invalid || value.Error != nil || overLimit
         var editor = TextEditor(editorController, value.Layers ?? []TextPresentationLayer{}){
             Width = Percent(100),
-            Height = value.Height ?? defaultHeight,
-            MinHeight = minimum,
+            Height = value.Height ?? minHeight,
+            MinHeight = minHeight,
             Padding = theme.ControlPadding,
             FontSize = font,
             FontWeight = theme.FontWeight,
@@ -197,8 +202,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Invalid: invalid,
             Relationships: AccessibilityRelationships{
                 LabelledBy: input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
-                DescribedBy: input.IssueText != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
-                ErrorMessage: invalid && input.IssueText != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
+                DescribedBy: input.Description != nil
+                    ? (input.Error != nil ? []ElementHandle{descriptionHandle, issueHandle}: []ElementHandle{descriptionHandle})
+                    : (input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{}),
+                ErrorMessage: invalid && input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
             },
         }
         var root = Container{
@@ -240,7 +247,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                         input.MaximumRows,
                         editorController.Document.LineCount,
                         theme.ControlPadding * 2.0 + theme.BorderWidth * 2.0,
-                        minimum
+                        minHeight.HasMagnitude && !minHeight.IsPercent ? minHeight.Magnitude: minimum
                     ),
                     editor
                 }
@@ -264,7 +271,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 }
             )
         }
-        if let issue = input.IssueText {
+        if let description = input.Description {
+            root.Children.Add(Text{Key: "description", Handle: descriptionHandle, Content: description, Accessibility: Accessibility{Role: AccessibilityRole.Text, Name: description}, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize})
+        }
+        if let issue = input.Error {
             root.Children.Add(
                 Text{
                     Key: "issue",

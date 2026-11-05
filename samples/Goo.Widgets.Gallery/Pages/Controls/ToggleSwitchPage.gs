@@ -15,18 +15,17 @@ class ToggleSwitchPage : GalleryPage {
             ThumbSize: 28.0,
             BorderRadius: 17.0,
             ThumbRadius: 14.0,
-            OnClick: () -> { },
         }
 
-        let offSwitch = baseSwitch with{Checked = false, AccessibilityName = "Off switch",}
-        let onSwitch = baseSwitch with{Checked = true, AccessibilityName = "On switch",}
+        let offSwitch = baseSwitch with{Value = false, AccessibilityName = "Off switch",}
+        let onSwitch = baseSwitch with{Value = true, AccessibilityName = "On switch",}
         let disabledOffSwitch = baseSwitch with{
-            Checked = false,
+            Value = false,
             Disabled = true,
             AccessibilityName = "Disabled off switch",
         }
         let disabledOnSwitch = baseSwitch with{
-            Checked = true,
+            Value = true,
             Disabled = true,
             AccessibilityName = "Disabled on switch",
         }

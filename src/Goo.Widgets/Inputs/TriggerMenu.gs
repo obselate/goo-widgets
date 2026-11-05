@@ -24,8 +24,8 @@ public data struct TriggerMenuInput {
     var Items Func[string, []string]?
     /// Receives the trigger, the picked item and the typed range. Nil replaces the range with trigger, item and a space.
     var OnPick Action[string, string, TextRange]?
-    /// Zero uses 240.
-    var MaxHeight float64
+    /// Nil uses 240.
+    var MaxHeight Length?
 }
 
 /// Lists ranked items at a typed trigger in a non-focusing Popover. Editor keeps focus.
@@ -61,7 +61,8 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
         if input.Content == nil || input.Editor == nil || input.Controller == nil {
             throw ArgumentException("TriggerMenu requires Content, Editor and Controller")
         }
-        if input.MinQueryLength < 0 || !Double.IsFinite(input.MaxHeight) || input.MaxHeight < 0.0 {
+        if input.MinQueryLength < 0 || (input.MaxHeight != nil && input.MaxHeight!!.HasMagnitude
+        && (!Double.IsFinite(input.MaxHeight!!.Magnitude) || input.MaxHeight!!.Magnitude < 0.0)) {
             throw ArgumentOutOfRangeException("input", "TriggerMenu MinQueryLength and MaxHeight must be finite and nonnegative")
         }
         let theme = Theme.Read()
@@ -86,7 +87,9 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
         }
         visible = found && anchorRect != nil
         rowHeight = theme.ControlHeight
-        let height = input.MaxHeight == 0.0 ? 240.0: input.MaxHeight
+        let defaultHeight Length = 240.0
+        let height = input.MaxHeight ?? defaultHeight
+        let limit = height.HasMagnitude && !height.IsPercent ? height.Magnitude: matches.Length * rowHeight
         let highlighted = matches.Length > 0 ? matches[active].Order: -1
         let key((FuzzyMatchItem[string]) -> string) = (match FuzzyMatchItem[string]) -> match.Item + "\0" + match.Order.ToString()
         let build((FuzzyMatchItem[string]) -> Blob) = (match FuzzyMatchItem[string]) -> Row(match, theme, highlighted)
@@ -100,7 +103,8 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             state: nil
         )
         list.Handle = listHandle
-        list.Height = Math.Min(height, matches.Length * rowHeight)
+        list.Height = Math.Min(limit, matches.Length * rowHeight)
+        list.MaxHeight = height
         list.Accessibility = Accessibility{Role: AccessibilityRole.List, SizeOfSet: matches.Length}
         return Container{
             MinWidth: 0,
@@ -118,7 +122,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
                     TakeFocus: false,
                     DismissOnOutsideClick: false,
                     Content: list,
-                    MaxHeight: height + 8.0,
+                    MaxHeight: limit + 8.0,
                     Padding: 4.0,
                     AccessibilityName: theme.Text("Suggestions"),
                     OnDismiss: Dismiss,

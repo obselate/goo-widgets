@@ -41,9 +41,9 @@ public data struct ActionButton {
     /// Disabled text.
     var DisabledTextColor Color?
     /// Fixed height. Nil uses the theme control height.
-    var Height float64?
+    var Height Length?
     /// Minimum width. Explicit zero is preserved.
-    var MinWidth float64?
+    var MinWidth Length?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
     /// Text size.
@@ -78,6 +78,8 @@ public data struct ActionButton {
         let createRoot = CreateRoot
         let content = Content ?? ""
         let background = BackgroundColor ?? theme.RaisedColor
+        let defaultHeight Length = theme.ControlHeight
+        let defaultMinWidth Length = theme.ControlMinWidth
         let resolved = this with{
             Content = content,
             Disabled = Disabled || Loading,
@@ -91,8 +93,8 @@ public data struct ActionButton {
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             DisabledBackgroundColor = DisabledBackgroundColor ?? theme.PanelColor,
             DisabledTextColor = DisabledTextColor ?? theme.FaintTextColor,
-            Height = Height ?? theme.ControlHeight,
-            MinWidth = MinWidth ?? theme.ControlMinWidth,
+            Height = Height ?? defaultHeight,
+            MinWidth = MinWidth ?? defaultMinWidth,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             FontSize = FontSize ?? theme.FontSize,
             FontFamily = FontFamily ?? theme.FontFamily,

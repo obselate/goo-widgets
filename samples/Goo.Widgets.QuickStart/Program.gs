@@ -33,8 +33,8 @@ class ColorPickerHost : Cell {
                     Value: liveColor,
                     WheelSize: 260.0,
                     AccessibilityName: "Theme color",
-                    OnValueChanged: (value int32) -> SetLiveColor(value),
-                    OnValueCommitted: (value int32) -> CommitColor(value),
+                    OnChange: (value int32) -> SetLiveColor(value),
+                    OnCommit: (value int32) -> CommitColor(value),
                 }
             ),
             Text{

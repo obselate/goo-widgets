@@ -26,7 +26,7 @@ public data struct FindBar {
     /// One-based current match index. Zero means no active match. Display is clamped to MatchCount.
     var ActiveMatch int32
     /// Validation text shown with invalid presentation. Nil means no validation message.
-    var Issue string?
+    var Error string?
     /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
     /// Receives the new matching flags after a user toggle. Nil ignores the request.
@@ -49,15 +49,15 @@ public data struct FindBar {
     var Disabled bool
     /// Root layout width. Nil fills the available width.
     var Width Length?
-    /// Receives the TextField value, and returns the replacement entry. Nil uses the default composition.
-    var CreateEntry Func[TextField, TextEntry]?
+    /// Receives the owning find bar and field, and returns the replacement entry. Nil uses the default composition.
+    var CreateEntry Func[FindBar, TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.
     public func Build() Blob -> Cell.Mount[FindBar, FindBarState](nil, this)
 
     internal func BuildContent(state FindBarState) Blob {
         let theme = Theme.Read()
-        let ready = !Disabled && Issue == nil && !String.IsNullOrEmpty(Query) && MatchCount > 0
+        let ready = !Disabled && Error == nil && !String.IsNullOrEmpty(Query) && MatchCount > 0
         let count = Math.Max(0, MatchCount)
         let status = theme.Text("{0} of {1}", Math.Clamp(ActiveMatch, 0, count), count)
         let size = theme.ControlHeight
@@ -175,7 +175,7 @@ internal class FindBarState : Cell[FindBar] {
     }
 
     private func Ready() bool ->
-    !current.Disabled && current.Issue == nil && !String.IsNullOrEmpty(current.Query) && current.MatchCount > 0
+    !current.Disabled && current.Error == nil && !String.IsNullOrEmpty(current.Query) && current.MatchCount > 0
 
     protected override func Build(input FindBar) Blob {
         let previousReady = Ready()
@@ -183,7 +183,7 @@ internal class FindBarState : Cell[FindBar] {
         current = input
         let nextSize = Theme.Read().ControlHeight
         if QueryField == nil || previous.Query != input.Query || previous.Options != input.Options
-        || previous.Issue != input.Issue || previous.Disabled != input.Disabled
+        || previous.Error != input.Error || previous.Disabled != input.Disabled
         || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange
         || previous.CreateEntry != input.CreateEntry {
             QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{Value: input, Bindings: Bindings})
@@ -213,8 +213,10 @@ internal class FindBarField : Cell[FindBarFieldInput] {
     private let matchCase Action
     private let wholeWord Action
     private let regex Action
+    private let createEntry Func[TextField, TextEntry]
 
     public init() {
+        createEntry = props -> current.CreateEntry!!(current, props)
         matchCase = () -> current.OnOptionsChange?.Invoke(current.Options with{MatchCase = !current.Options.MatchCase})
         wholeWord = () -> current.OnOptionsChange?.Invoke(current.Options with{WholeWord = !current.Options.WholeWord})
         regex = () -> current.OnOptionsChange?.Invoke(current.Options with{Regex = !current.Options.Regex})
@@ -232,10 +234,10 @@ internal class FindBarField : Cell[FindBarFieldInput] {
             AccessibilityName: theme.Text("Find"),
             Width: Percent(100),
             Disabled: input.Disabled,
-            Invalid: input.Issue != nil,
-            IssueText: input.Issue,
+            Invalid: input.Error != nil,
+            Error: input.Error,
             OnChange: input.OnQueryChange,
-            CreateEntry: input.CreateEntry,
+            CreateEntry: input.CreateEntry == nil ? nil: createEntry,
             EntryKeyBindings: field.Bindings,
             Trailing: Container{
                 FlexDirection: FlexDirection.Row,

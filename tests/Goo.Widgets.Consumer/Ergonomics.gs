@@ -41,7 +41,7 @@ func ColorPickerErgonomics() {
                 Value: 0x336699,
                 Mode: ColorMode.Hsv,
                 Disabled: true,
-                OnModeChanged: (mode ColorMode) -> {
+                OnModeChange: (mode ColorMode) -> {
                     disabledChanges++
                 },
             }
@@ -68,7 +68,7 @@ func ColorPickerErgonomics() {
         .ColorPickerInput{
         Value: 0x808080,
         Mode: ColorMode.Hsv,
-        OnValueChanged: (rgb int32) -> {
+        OnChange: (rgb int32) -> {
             changedRgb = rgb
         },
         CreateRoot: (resolved Goo.Widgets.Colors.ColorPickerInput, wheel Blob, slider Blob) -> {
@@ -108,7 +108,7 @@ internal class CheckboxHitHost : Cell {
 func CheckboxErgonomics() {
     var next = AccessibilityChecked.False
     let input = Checkbox{
-        State: AccessibilityChecked.False,
+        Value: AccessibilityChecked.False,
         Label: "Enable alerts",
         OnChange: (state AccessibilityChecked) -> {
             next = state
@@ -121,7 +121,7 @@ func CheckboxErgonomics() {
     )
     before.OnClick?.Invoke()
     Require(next == AccessibilityChecked.True, "Labeled Checkbox did not activate from its row.")
-    let after = ((input with{State = next}).Build() as Button)!!
+    let after = ((input with{Value = next}).Build() as Button)!!
     Require(
         after.Accessibility?.Checked == AccessibilityChecked.True,
         "Labeled Checkbox did not reflect its controlled state."
@@ -159,7 +159,7 @@ func SliderErgonomics() {
         Label: "Volume",
         ShowValue: true,
         FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
-        OnValueChanged: (value float64) -> {
+        OnChange: (value float64) -> {
             changed = value
         },
     }
@@ -218,7 +218,7 @@ func ThemeErgonomics() {
                             "Customized theme did not reach the primary button factory."
                         )
                         Require(
-                            resolved.FontSize == custom.FontSize && resolved.Height == custom.ControlHeight,
+                            resolved.FontSize == custom.FontSize && resolved.Height!!.Magnitude == custom.ControlHeight,
                             "Customized theme lost typography or compact control height."
                         )
                         return Text{Content: resolved.Content!!}
@@ -271,8 +271,8 @@ internal class TextFieldSemanticHost : Cell {
     public override func Build() Blob -> TextField{
         Label: "Name",
         AccessibilityName: "Name entry",
-        Invalid: true,
-        IssueText: "Required",
+        Description: "Enter your name",
+        Error: "Required",
         CreateEntry: Custom ? (input TextField) -> TextEntry{}: nil
     }.Build()
 }
@@ -286,6 +286,7 @@ func TextFieldAccessibility() {
         PumpFrames(window, 8)
         let labelId = SelectorFindRole(semantics.Tree?.Root, AccessibilityRole.Text)!!.Id
         let issueId = FindSemantics(semantics.Tree?.Root, "Required")!!.Id
+        let descriptionId = FindSemantics(semantics.Tree?.Root, "Enter your name")!!.Id
         for custom in[]bool{false, true} {
             host.Custom = custom
             host.Rebuild()
@@ -295,7 +296,8 @@ func TextFieldAccessibility() {
             Require(entry.Invalid == true, "TextField did not expose invalid state")
             Require(
                 relations.LabelledBy.Count == 1 && relations.LabelledBy[0] == labelId
-                && relations.DescribedBy.Count == 1 && relations.DescribedBy[0] == issueId
+                && relations.DescribedBy.Count == 2 && relations.DescribedBy[0] == descriptionId
+                && relations.DescribedBy[1] == issueId
                 && relations.ErrorMessage.Count == 1 && relations.ErrorMessage[0] == issueId,
                 "TextField lost stable label or issue targets after rebuild or custom entry"
             )
@@ -308,5 +310,5 @@ func TextFieldAccessibility() {
     } finally {
         CloseNativeWindow(window)
     }
-    Console.WriteLine("PASS: mounted TextField invalid state and stable relationships with default and custom entries")
+    Console.WriteLine("PASS: mounted TextField error-implied invalid state and stable description relationships with default and custom entries")
 }

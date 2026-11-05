@@ -15,23 +15,23 @@ public data struct ColorPickerInput {
     /// Accessible name. Nil resolves to Color picker.
     var AccessibilityName string?
     /// Receives preview colors during pointer and keyboard input.
-    var OnValueChanged Action[int32]?
+    var OnChange Action[int32]?
     /// Receives the final color after pointer, keyboard, or accessibility input.
-    var OnValueCommitted Action[int32]?
+    var OnCommit Action[int32]?
     /// Receives color-model changes made by the built-in mode buttons.
-    var OnModeChanged Action[ColorMode]?
+    var OnModeChange Action[ColorMode]?
     /// Whether the picker rejects input.
     var Disabled bool
     /// Whether to show only the wheel and tone slider.
     var Compact bool
-    /// Wheel width and height. Zero resolves to 240.0.
-    var WheelSize float64
-    /// Tone slider height. Zero resolves to 28.0.
-    var ToneSliderHeight float64
+    /// Wheel width and height. Nil resolves to 240.0.
+    var WheelSize float64?
+    /// Tone slider height. Nil uses the theme control height.
+    var ToneSliderHeight float64?
     /// Gap between the wheel and slider. Nil uses the theme's gap.
     var Gap float64?
-    /// Marker diameter. Zero resolves to 22.0.
-    var MarkerSize float64
+    /// Marker diameter. Nil resolves to 22.0.
+    var MarkerSize float64?
     /// Marker border color. Nil uses the theme's text color.
     var MarkerBorderColor Color?
     /// Focus outline color. Nil uses the nearest theme.
@@ -116,10 +116,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 } else {
                     theme.Text("Color lightness")
                 },
-                OnValueChanged: (value float64) -> ToneChanged(value),
-                OnValueCommitted: (value float64) -> ToneCommitted(value),
+                OnChange: (value float64) -> ToneChanged(value),
+                OnCommit: (value float64) -> ToneCommitted(value),
                 Disabled: resolved.Disabled,
-                Height: resolved.ToneSliderHeight,
+                Height: resolved.ToneSliderHeight!!,
                 TrackColor: Color.Transparent,
                 FillColor: Color.Transparent,
                 ThumbColor: ColorMath.GooColor(currentRgb),
@@ -134,7 +134,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         let root = Container{
             LineHeight: theme.LineHeight,
             Key: "color-picker",
-            Width: resolved.WheelSize,
+            Width: resolved.WheelSize!!,
             Gap: resolved.Gap!!,
             AlignItems: AlignItems.Stretch,
             BasedOn: resolved.RootStyle,
@@ -154,21 +154,9 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         if input.Value < 0 || input.Value > 0xFFFFFF {
             throw ArgumentOutOfRangeException("Value")
         }
-        let wheelSize = if input.WheelSize == 0.0 {
-            240.0
-        } else {
-            input.WheelSize
-        }
-        let markerSize = if input.MarkerSize == 0.0 {
-            22.0
-        } else {
-            input.MarkerSize
-        }
-        let sliderHeight = if input.ToneSliderHeight == 0.0 {
-            theme.ControlHeight
-        } else {
-            input.ToneSliderHeight
-        }
+        let wheelSize = input.WheelSize ?? 240.0
+        let markerSize = input.MarkerSize ?? 22.0
+        let sliderHeight = input.ToneSliderHeight ?? theme.ControlHeight
         if !Double.IsFinite(wheelSize) || wheelSize <= 0.0 {
             throw ArgumentOutOfRangeException("WheelSize")
         }
@@ -200,10 +188,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Position: PositionType.Absolute,
                 Left: Percent(50.0 + x * 50.0),
                 Top: Percent(50.0 + y * 50.0),
-                Margin: Edges{Top: -resolved.MarkerSize / 2.0, Left: -resolved.MarkerSize / 2.0},
-                Width: resolved.MarkerSize,
-                Height: resolved.MarkerSize,
-                BorderRadius: resolved.MarkerSize / 2.0,
+                Margin: Edges{Top: -resolved.MarkerSize!! / 2.0, Left: -resolved.MarkerSize!! / 2.0},
+                Width: resolved.MarkerSize!!,
+                Height: resolved.MarkerSize!!,
+                BorderRadius: resolved.MarkerSize!! / 2.0,
                 BorderWidth: 3.0,
                 BorderColor: resolved.MarkerBorderColor!!,
                 BackgroundColor: ColorMath.GooColor(currentRgb),
@@ -234,11 +222,11 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         return Container{
             Key: "color-wheel",
             Handle: wheelHandle,
-            Width: resolved.WheelSize,
-            Height: resolved.WheelSize,
+            Width: resolved.WheelSize!!,
+            Height: resolved.WheelSize!!,
             FlexShrink: 0.0,
             Position: PositionType.Relative,
-            BorderRadius: resolved.WheelSize / 2.0,
+            BorderRadius: resolved.WheelSize!! / 2.0,
             Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
@@ -266,8 +254,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Key: "color-wheel-image",
                 Source: wheelSource,
                 Fit: ImageFit.Contain,
-                Width: resolved.WheelSize,
-                Height: resolved.WheelSize,
+                Width: resolved.WheelSize!!,
+                Height: resolved.WheelSize!!,
                 Accessibility: Accessibility{Hidden: true},
             },
             Container{
@@ -371,7 +359,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         }
         currentMode = mode
         ReadCoordinates(currentRgb)
-        resolved.OnModeChanged?.Invoke(mode)
+        resolved.OnModeChange?.Invoke(mode)
         Rebuild()
     }
 
@@ -403,10 +391,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         let next = ColorWheelSource.Sample(currentMode, hue, radius, tone)
         if next != currentRgb {
             currentRgb = next
-            resolved.OnValueChanged?.Invoke(next)
+            resolved.OnChange?.Invoke(next)
         }
         if commit {
-            resolved.OnValueCommitted?.Invoke(currentRgb)
+            resolved.OnCommit?.Invoke(currentRgb)
         }
     }
 

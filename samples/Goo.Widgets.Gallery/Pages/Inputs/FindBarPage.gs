@@ -39,7 +39,7 @@ internal class FindBarExample : Cell {
             Options: options,
             MatchCount: count,
             ActiveMatch: active,
-            Issue: issue,
+            Error: issue,
             OnQueryChange: value -> {
                 query = value
                 active = 1

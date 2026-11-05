@@ -24,7 +24,7 @@ class TextFieldPage : GalleryPage {
             Value = "alex@",
             Placeholder = "you@example.com",
             Invalid = true,
-            IssueText = "Enter a valid email address.",
+            Error = "Enter a valid email address.",
             AccessibilityName = "Email address",
         }
         let disabledField = ltrField with{

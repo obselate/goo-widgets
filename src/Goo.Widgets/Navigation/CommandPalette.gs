@@ -215,7 +215,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
             OnQueryChange: input.OnQueryChange,
-            CustomizeEntry: (entry TextEntry) -> {
+            CreateEntry: (owner SearchList, entry TextEntry) -> {
                 entry.Value = query
                 entry.Controlled = true
                 entry.OnKeyDown = KeyDown
@@ -226,8 +226,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 entry.Focus = Style{}
                 return entry
             },
-            CustomizeRow: (item SelectionItem, button Button) -> Row(input, item, button),
-            CustomizeRoot: (root Container) -> {
+            CreateRow: (owner SearchList, item SelectionItem, button Button) -> Row(input, item, button),
+            CreateRoot: (owner SearchList, root Container) -> {
                 root.Children[0] = Container{
                     Height: inputHeight,
                     FlexShrink: 0,
