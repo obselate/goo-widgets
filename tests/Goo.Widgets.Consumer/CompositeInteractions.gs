@@ -388,6 +388,11 @@ func CompositeInteractions() {
         CompositeClick(window, host.Tabs["one"].Handle!!)
         Require(host.Selected == "one", "Pointer tab selection failed")
         let divider = host.Divider!!.Handle!!
+        let dividerSemantics = FindSemantics(semantics.Tree!!.Root, "Resize panes")!!
+        Require(dividerSemantics.Role == AccessibilityRole.Separator &&
+            dividerSemantics.Orientation == AccessibilityOrientation.Vertical &&
+            dividerSemantics.ValueMinimum == 0.0 && dividerSemantics.ValueMaximum == 1.0 &&
+            dividerSemantics.ValueNow == host.Split, "SplitPane omitted separator orientation or range semantics")
         divider.Focus()
         let beforeKey = host.Split
         SendKey(id, SDLScancode.Right)

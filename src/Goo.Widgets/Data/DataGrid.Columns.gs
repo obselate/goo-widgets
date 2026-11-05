@@ -268,7 +268,11 @@ public open partial class DataGrid {
                     Key: "leading",
                     Width: leading,
                     FlexShrink: 0,
-                    Accessibility: Accessibility{Role: AccessibilityRole.ColumnHeader, Name: theme.Text("Row controls")}
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.ColumnHeader,
+                        Name: theme.Text("Row controls"),
+                        ColumnIndex: 0
+                    }
                 }
             )
         }
@@ -323,7 +327,11 @@ public open partial class DataGrid {
             }
             if filter {
                 slot.Padding = theme.Spacing
-                slot.Accessibility = Accessibility{Role: AccessibilityRole.GridCell, Name: theme.Text("Filter {0}", label)}
+                slot.Accessibility = Accessibility{
+                    Role: AccessibilityRole.GridCell,
+                    Name: theme.Text("Filter {0}", label),
+                    ColumnIndex: index + (leading > 0.0 ? 1: 0)
+                }
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
                 let sort = Button{
@@ -367,6 +375,7 @@ public open partial class DataGrid {
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.ColumnHeader,
                         Name: label,
+                        ColumnIndex: index + (leading > 0.0 ? 1: 0),
                         Description: direction.ToString()
                     },
                     content

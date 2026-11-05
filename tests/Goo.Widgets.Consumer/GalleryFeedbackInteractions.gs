@@ -75,7 +75,7 @@ func FeedbackCombo(window Window, adapter SearchListSemantics) {
 
 func FeedbackSplit(window Window, adapter SearchListSemantics) {
     for index in 0 ... 2 {
-        let divider = FeedbackNode(adapter, AccessibilityRole.Slider, "Resize panes", index)
+        let divider = FeedbackNode(adapter, AccessibilityRole.Separator, "Resize panes", index)
         let before = divider.ValueNow!!
         let box = divider.Bounds
         let id = OnlyNativeWindow()
@@ -88,7 +88,7 @@ func FeedbackSplit(window Window, adapter SearchListSemantics) {
         PumpFrames(window, 6)
         MouseButton(id, x + (index == 0 ? 60.0F: 0.0F), y + (index == 1 ? 24.0F: 0.0F), false)
         PumpFrames(window, 10)
-        let after = FeedbackNode(adapter, AccessibilityRole.Slider, "Resize panes", index).ValueNow!!
+        let after = FeedbackNode(adapter, AccessibilityRole.Separator, "Resize panes", index).ValueNow!!
         CaptureIssueProof(window, "gallery-split-" + index.ToString())
         Console.WriteLine(
             "split index=" + index.ToString() + " before=" + before.ToString() + " after=" + after.ToString()

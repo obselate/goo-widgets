@@ -168,9 +168,9 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
         }
         divider.Accessibility = Accessibility{
-            Role: AccessibilityRole.Slider,
+            Role: AccessibilityRole.Separator,
             Name: input.AccessibilityName!!,
-            Orientation: horizontal ? AccessibilityOrientation.Horizontal: AccessibilityOrientation.Vertical,
+            Orientation: horizontal ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal,
             Range: AccessibilityValue{
                 Minimum: 0,
                 Maximum: input.Unit == SplitUnit.Ratio ? 1.0: available,

@@ -777,6 +777,8 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             Role: AccessibilityRole.Grid,
             Name: input.AccessibilityName!!,
             Description: theme.Text("{0} rows, {1} columns", RowCount, columns.Length),
+            RowCount: RowCount,
+            ColumnCount: columns.Length + (leading > 0.0 ? 1: 0),
             MultiSelectable: input.Selection == DataGridSelection.Multiple,
             Relationships: AccessibilityRelationships{ActiveDescendant: active}
         }
