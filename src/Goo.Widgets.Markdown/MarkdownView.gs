@@ -191,7 +191,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         if let create = current.CreateBlock {
             content = create(info, content)
         }
-        let root = Container{Key: info.Id, MinWidth: 0.0, FlexShrink: 0.0, content}
+        let root = Container{Key: model.Key == "" ? info.Id: model.Key, MinWidth: 0.0, FlexShrink: 0.0, content}
         if info.Kind == MarkdownBlockKind.Heading {
             root.Handle = state.Headings[info.Id!!].Handle
             root.Accessibility = Accessibility{
