@@ -175,6 +175,9 @@ func ListViewInteractions() {
             list.Relationships.ActiveDescendant == FindSemantics(semantics.Tree!!.Root, "Gamma")!!.Id,
             "List active descendant did not follow focus"
         )
+        let gamma = FindSemantics(semantics.Tree!!.Root, "Gamma")!!
+        Require(gamma.PositionInSet == 3 && gamma.SizeOfSet == 5,
+            "ListView included section headers in item positions or set size")
         ListKey(window, SDLScancode.Space, SDLKeymod.Ctrl)
         Require(host.Selected.Length == 1 && host.Selected[0] == "beta", "List Ctrl-Space failed to toggle")
         ListKey(window, SDLScancode.A, SDLKeymod.Gui)

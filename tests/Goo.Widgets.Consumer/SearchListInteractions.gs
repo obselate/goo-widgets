@@ -159,6 +159,8 @@ func SearchListInteractions() {
         let alpha = FindSemantics(semantics.Tree?.Root, "Alpha")!!
         let beta = FindSemantics(semantics.Tree?.Root, "Beta")!!
         Require(alpha.Selected == true && beta.Selected == false, "Initial list selection is incorrect.")
+        Require(alpha.PositionInSet == 0 && beta.PositionInSet == 1 && alpha.SizeOfSet == 3 && beta.SizeOfSet == 3,
+            "SearchList did not derive virtual option positions and set sizes")
         let calls = host.Calls
         host.Rebuild()
         PumpFrames(window, 4)
