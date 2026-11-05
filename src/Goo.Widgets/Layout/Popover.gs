@@ -103,7 +103,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private var activeScope FocusScope?
     private var current PopoverInput
     private var rootBox ElementRect
-    private var anchorBox ElementRect
     private var panelHeight float64
     private var panelWidth float64
     private var layoutWidth float64
@@ -116,7 +115,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private var previewWindow Window?
     private let previewKey Func[Key, KeyModifiers, bool]
     private var disposed bool
-    private var rightToLeft bool
 
     /// Subscribes to panel geometry for placement and focus containment. Dispose the popup to release subscriptions and its focus scope.
     public init() {
@@ -148,7 +146,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
 
     protected override func Build(input PopoverInput) Blob {
         let theme = Theme.Read()
-        rightToLeft = theme.RightToLeft
         let previous = current
         current = Resolve(input, theme)
         BindAnchor(input.Open ? input.Anchor: nil)
@@ -157,7 +154,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         if !input.Open {
             anchorWasMounted = false
             anchorDismissed = false
-            anchorBox = ElementRect{}
             ResetPresentation()
             return Present(
                 Container{HitTestSelf: false, Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true}}
@@ -171,14 +167,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         if let handle = anchor {
             if handle.IsMounted {
-                anchorBox = handle.BorderBox
                 anchorWasMounted = true
             }
-        }
-        let target = if let rect = current.AnchorRect {
-            ElementRect{X: anchorBox.X + rect.X, Y: anchorBox.Y + rect.Y, Width: rect.Width, Height: rect.Height}
-        } else {
-            anchorBox
         }
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
@@ -202,29 +192,15 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         )
         let requestedHeight = current.MaxHeight!!
         let maxHeight = !requestedHeight.HasMagnitude ? Double.PositiveInfinity: requestedHeight.IsPercent ? viewport.Height * requestedHeight.Magnitude / 100.0: requestedHeight.Magnitude
-        var heightLimit = Math.Min(maxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
+        let heightLimit = Math.Min(maxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
         if !presented && rootBox.Width > 0.0 && rootBox.Height > 0.0
         && (current.WindowPoint != nil || anchorWasMounted)
-        && MeasurementValid(fit ? maxWidth: width) {
+        && (anchor != nil || MeasurementValid(fit ? maxWidth: width)) {
             presented = true
         }
         layoutWidth = fit ? maxWidth: width
-        var height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
-        if anchor != nil &&
-            (
-            current.Placement == PopoverPlacement.BottomStart
-            || current.Placement == PopoverPlacement.BottomEnd
-            || current.Placement == PopoverPlacement.TopStart
-            || current.Placement == PopoverPlacement.TopEnd
-        ) {
-            let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
-            let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
-            let above = Math.Max(0.0, target.Y - current.Gap!!- top)
-            let below = Math.Max(0.0, bottom - target.Y - target.Height - current.Gap!!)
-            heightLimit = Math.Min(heightLimit, Math.Max(1.0, Math.Max(above, below)))
-            height = Math.Min(height, heightLimit)
-        }
-        let origin = Place(viewport, width, height, target)
+        let height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
+        let origin = anchor == nil ? Place(viewport, width, height): Point{}
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
         let content = current.Content ?? Container{HitTestSelf: false}
         let panel = if let create = current.CreatePanel {
@@ -243,9 +219,11 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         panel.Key = "panel"
         panel.Handle = panelHandle
-        panel.Position = PositionType.Absolute
-        panel.Left = origin.X - rootBox.X
-        panel.Top = origin.Y - rootBox.Y
+        panel.Position = anchor == nil ? PositionType.Absolute: PositionType.Relative
+        if anchor == nil {
+            panel.Left = origin.X - rootBox.X
+            panel.Top = origin.Y - rootBox.Y
+        }
         panel.Width = fit ? Length.Auto: width
         if current.MinWidth != nil {
             panel.MinWidth = minWidth
@@ -255,7 +233,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         panel.MaxHeight = presented ? heightLimit: current.MaxHeight!!
         panel.MinHeight = 0.0
-        panel.FlexShrink = 0.0
+        panel.FlexShrink = anchor == nil ? 0.0: 1.0
         panel.OverflowY = Overflow.Scroll
         panel.Children.Clear()
         panel.Children.Add(content)
@@ -290,7 +268,34 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         root.OnKeyDown = HandleKey
         root.Children.Clear()
         root.Children.Add(backdrop)
-        root.Children.Add(panel)
+        if anchor != nil {
+            let left = viewport.X + Math.Min(margin, viewport.Width * 0.5)
+            let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
+            let right = Math.Max(left, viewport.X + viewport.Width - margin)
+            let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
+            root.Children.Add(Portal{
+                Anchor: current.Anchor,
+                AnchorRect: current.AnchorRect,
+                Placement: switch current.Placement {
+                    case PopoverPlacement.BottomStart: PortalPlacement.BottomStart
+                    case PopoverPlacement.BottomEnd: PortalPlacement.BottomEnd
+                    case PopoverPlacement.TopStart: PortalPlacement.TopStart
+                    case PopoverPlacement.TopEnd: PortalPlacement.TopEnd
+                    case PopoverPlacement.RightStart: PortalPlacement.RightStart
+                    case _: PortalPlacement.LeftStart
+                },
+                CollisionBounds: ElementRect{X: left, Y: top, Width: right - left, Height: bottom - top},
+                Padding: current.Placement == PopoverPlacement.RightStart || current.Placement == PopoverPlacement.LeftStart
+                    ? Edges{Left: current.Gap!!, Right: current.Gap!!}
+                    : Edges{Top: current.Gap!!, Bottom: current.Gap!!},
+                BackgroundColor: Color.Transparent,
+                HitTestSelf: false,
+                ZIndex: current.ZIndex + (activeScope?.Order ?? 0),
+                panel,
+            })
+        } else {
+            root.Children.Add(panel)
+        }
         for overlay in current.Overlays ?? []Blob{} {
             root.Children.Add(overlay)
         }
@@ -359,48 +364,16 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private func MeasurementValid(width float64) bool ->
     hasPanelMeasurement && Math.Abs(measuredWidth - width) <= 0.01
 
-    private func Place(viewport ElementRect, width float64, height float64, target ElementRect) Point {
+    private func Place(viewport ElementRect, width float64, height float64) Point {
         let margin = current.ViewportMargin!!
         let left = viewport.X + Math.Min(margin, viewport.Width * 0.5)
         let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
         let right = Math.Max(left, viewport.X + viewport.Width - margin)
         let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
-        if let point = current.WindowPoint {
-            return Point{
-                X: Math.Clamp(point.X, left, Math.Max(left, right - width)),
-                Y: Math.Clamp(point.Y, top, Math.Max(top, bottom - height))
-            }
-        }
-        let gap = current.Gap!!
-        var x = target.X
-        var y = target.Y + target.Height + gap
-        if (current.Placement == PopoverPlacement.BottomEnd || current.Placement == PopoverPlacement.TopEnd) != rightToLeft {
-            x = target.X + target.Width - width
-        }
-        if current.Placement == PopoverPlacement.TopStart || current.Placement == PopoverPlacement.TopEnd {
-            y = target.Y - height - gap
-            if y < top && target.Y + target.Height + gap + height <= bottom {
-                y = target.Y + target.Height + gap
-            }
-        } else if current.Placement == PopoverPlacement.RightStart || current.Placement == PopoverPlacement.LeftStart {
-            y = target.Y
-            if current.Placement == PopoverPlacement.RightStart {
-                x = target.X + target.Width + gap
-                if x + width > right && target.X - gap - width >= left {
-                    x = target.X - gap - width
-                }
-            } else {
-                x = target.X - width - gap
-                if x < left && target.X + target.Width + gap + width <= right {
-                    x = target.X + target.Width + gap
-                }
-            }
-        } else if y + height > bottom && target.Y - height - gap >= top {
-            y = target.Y - height - gap
-        }
+        let point = current.WindowPoint ?? Point{}
         return Point{
-            X: Math.Clamp(x, left, Math.Max(left, right - width)),
-            Y: Math.Clamp(y, top, Math.Max(top, bottom - height))
+            X: Math.Clamp(point.X, left, Math.Max(left, right - width)),
+            Y: Math.Clamp(point.Y, top, Math.Max(top, bottom - height))
         }
     }
 
@@ -445,10 +418,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             return
         }
         anchorWasMounted = true
-        if metrics.BorderBox != anchorBox {
-            anchorBox = metrics.BorderBox
-            Rebuild()
-        }
     }
 
     private func RootMetrics(metrics ElementMetrics) {
@@ -480,7 +449,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     }
 
     private func PanelMetrics(metrics ElementMetrics) {
-        if disposed || !current.Open || !metrics.IsMounted {
+        if disposed || !current.Open || !metrics.IsMounted || current.Anchor != nil {
             return
         }
         let heightChanged = Math.Abs(metrics.BorderBox.Height - panelHeight) > 0.01
