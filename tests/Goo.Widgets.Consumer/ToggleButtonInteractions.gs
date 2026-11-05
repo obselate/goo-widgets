@@ -24,6 +24,7 @@ internal class ToggleButtonHost : Cell {
             },
         }.Build()
         DisabledRoot = ToggleButton{Content: "Archived", Value: true, Disabled: true, OnChange: (value bool) -> Changes++}.Build()
+        DisabledRoot!!.Handle = ElementHandle()
         return Container{
             Padding: Theme.Read().ControlPadding,
             Gap: Theme.Read().ControlGap,
@@ -59,7 +60,7 @@ func ToggleButtonInteractions() {
         Require(!host.Value && host.Changes == 0, "Toggle changed before Space release")
         Require(SDL.PushEvent(ref up), "SDL rejected toggle Space release")
         PumpFrames(window, 6)
-        Require(host.Value && host.Changes == 1 && FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked == AccessibilityChecked.True, "Space did not publish pressed toggle state: value=" + host.Value.ToString() + ", changes=" + host.Changes.ToString() + ", checked=" + FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked.ToString())
+        Require(host.Value && host.Changes == 1 && FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked == AccessibilityChecked.True, "Space did not publish pressed toggle state")
         ChoiceKey(window, SDLScancode.Return)
         Require(!host.Value && host.Changes == 2, "Enter did not clear the toggle")
         CompositeClick(window, host.Root!!.Handle!!)
