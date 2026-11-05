@@ -74,12 +74,12 @@ internal class PathActionsHost : Cell {
                     Order = order
                     Rebuild()
                 },
-                OnRowInvoke: (id string) -> {
+                OnClick: (id string) -> {
                     Invoked = id
                     Invokes++
                 },
                 Footer: Text{Content: "Total: 2", Accessibility: Accessibility{Name: "Total: 2"}},
-                Density: DataGridDensity.Compact,
+                Density: Density.Compact,
                 CreateRoot: (input DataGridInput, root Container) -> {
                     Root = root
                     return root

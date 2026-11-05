@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Apply the API shape to DataGrid activation, group expansion and shared density (breaking).
 - Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.
 - Align DataGrid navigation, additive selection, sorting and column reordering with desktop grids. Plain header clicks replace the sort. Shift-click adds a sort. Retain unchanged visible rows during navigation and support indexed select-all requests.
@@ -34,6 +35,8 @@
 | ComboBox | `CreateText`, `OnSelectedIdsChange` | `FormatCreateText`, `OnSelectionChange` |
 | ComboBox | `Width`: `float64` | `Length?` |
 | ComboBox | `PopupHeight`, `RowHeight`: zero selects default | `float64?`. Nil selects default. |
+| DataGrid | `OnRowInvoke`, `OnExpandedGroupChange` | `OnClick`, `OnGroupExpandedChange` |
+| DataGrid | `DataGridDensity.Normal`, `.Compact`, `.Comfortable` | `Density.Standard`, `.Compact`, `.Comfortable`. `Density.Touch` uses touch metrics. |
 | DatePicker | `Width`: `float64` | `Length?` |
 | DatePicker | `PopupWidth`: zero selects default | `float64?`. Nil selects default. |
 | DismissibleContextBar | `MinHeight float64?`, numeric dismiss font overrides | `MinHeight Length?`, nullable dismiss font overrides |

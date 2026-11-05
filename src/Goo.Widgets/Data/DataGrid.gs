@@ -28,16 +28,6 @@ public enum DataGridSelection {
     Multiple
 }
 
-/// Resolves the default row height from the theme.
-public enum DataGridDensity {
-    /// Uses the theme control height for rows.
-    Normal;
-    /// Uses 80 percent of the theme control height.
-    Compact;
-    /// Uses 125 percent of the theme control height.
-    Comfortable
-}
-
 /// One host-owned sort, ordered from highest to lowest priority.
 public data struct DataGridSortColumn {
     /// Stable ID of the column to sort. It must identify a current column.
@@ -88,7 +78,7 @@ public data struct DataGridRow {
     var SourceIndex int32
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
-    /// Excludes this row from selection. Navigation requires OnExpandedGroupChange.
+    /// Excludes this row from selection. Navigation requires OnGroupExpandedChange.
     var IsGroup bool
     /// Text values indexed by column ID. Nil supplies empty cell text.
     var Values IReadOnlyDictionary[string, string]?
@@ -146,10 +136,10 @@ public data struct DataGridInput {
     var OnColumnOrderChange Action[[]string]?
     /// Content below the main body. Nil omits the footer.
     var Footer Blob?
-    /// Selects the theme row-height multiplier when RowHeight is nil. Normal uses the theme control height.
-    var Density DataGridDensity
-    /// Receives the row ID on row invocation. Nil ignores the request.
-    var OnRowInvoke Action[string]?
+    /// Selects row-height metrics when RowHeight is nil. Standard uses the current theme control height.
+    var Density Density
+    /// Receives the row ID on row activation. Nil ignores the request.
+    var OnClick Action[string]?
     /// Row-selection policy. None disables selection, Single permits one ID, and Multiple permits a set.
     var Selection DataGridSelection
     /// Controlled selected item IDs. Nil means an empty selection.
@@ -193,7 +183,7 @@ public data struct DataGridInput {
     /// Host-owned expanded group IDs. Nil collapses every group. Groups remain outside row selection.
     var ExpandedGroupIds[]?string
     /// Sends the group ID and requested expanded state on expander, double-click or Left/Right.
-    var OnExpandedGroupChange Action[string, bool]?
+    var OnGroupExpandedChange Action[string, bool]?
     /// Expansion control width. Nil uses the theme's control height; zero hides the control.
     var ExpandColumnWidth float64?
     /// Padding inside details, after the leading control columns. Nil uses theme control padding; zero is preserved.
@@ -416,10 +406,10 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         input = value with{
             Width = value.Width ?? Percent(100),
             Height = value.Height ?? defaultHeight,
-            RowHeight = value.RowHeight ??
-                theme.ControlHeight * (
-                value.Density == DataGridDensity.Compact ? 0.8: value.Density == DataGridDensity.Comfortable ? 1.25: 1.0
-            ),
+            RowHeight = value.RowHeight ?? (value.Density == Density.Touch ?
+                theme.WithDensity(Density.Touch).ControlHeight:
+                theme.ControlHeight * (value.Density == Density.Compact ? 0.8:
+                    value.Density == Density.Comfortable ? 1.25: 1.0)),
             HeaderHeight = value.HeaderHeight ?? theme.ControlHeight,
             FilterHeight = value.FilterHeight ?? theme.ControlHeight,
             SelectionColumnWidth = value.SelectionColumnWidth ?? theme.ControlHeight,
