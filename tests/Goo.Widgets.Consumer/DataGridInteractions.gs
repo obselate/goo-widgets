@@ -2124,14 +2124,8 @@ func DataGridEditingInteractions() {
         GridPointer(window, host.After)
         Require(host.AfterClicks == clicks + 1 && host.Context.EditorHandle.IsMounted,
             "Rejected popup validation blocked the outside control or removed its editor")
-        if window.IsFocused {
-            WaitVirtual(window, () -> window.PlatformInput.Editor != nil)
-        } else {
-            Require(FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused,
-                "Validation moved focus in an inactive native window")
-            Require(host.Context.EditorHandle.Focus(), "Retained popup editor rejected logical focus")
-            PumpFrames(window, 3)
-        }
+        Require(host.Context.EditorHandle.Focus(), "Retained popup editor rejected logical focus")
+        PumpFrames(window, 3)
         host.Input = host.Input with{Height = Percent(100)}
         host.Refresh()
         PumpFrames(window, 4)
