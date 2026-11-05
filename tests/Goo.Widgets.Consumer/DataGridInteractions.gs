@@ -52,6 +52,10 @@ internal class DataGridHeightHost : Cell {
     internal var Pinned[]string = []string{}
     internal var FocusTarget string = ""
     internal var HeaderClicks int32
+    internal var ContextRequests int32
+    internal var ContextSelected bool
+    internal var InteractiveEditor bool
+    internal let Editor ElementHandle = ElementHandle()
     internal var Header Button?
     internal var WidthCase int32
     internal let WidthA ElementHandle = ElementHandle()
@@ -92,6 +96,9 @@ internal class DataGridHeightHost : Cell {
     private func Height(row DataGridRow) float64 -> int32.Parse(row.Id!!) % 2 == 0 ? 32.0: 92.0
 
     private func Content(input DataGridInput, row DataGridRow, column DataGridColumn) Blob {
+        if InteractiveEditor && row.Id == "1" && column.Id == "0" {
+            return TextEntry{Handle: Editor, Value: "editable value", Width: Percent(100), Height: 32}
+        }
         if VirtualColumns {
             let handle = ElementHandle()
             Cells[row.Id!!+ ":" + column.Id!!] = handle
@@ -220,6 +227,14 @@ internal class DataGridHeightHost : Cell {
             CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
                 RowBlobs[row.Id!!] = root
                 RowBuilds++
+                if Navigation {
+                    root.OnPointerDown = (e PointerEvent) -> {
+                        if e.Button == PointerButton.Secondary {
+                            ContextRequests++
+                            ContextSelected = AllSelected || Array.IndexOf(SelectedIds, row.Id!!) >= 0
+                        }
+                    }
+                }
                 return root
             }
         }
@@ -1062,7 +1077,7 @@ func DataGridNavigationInteractions() {
         Require(host.ActiveIndex == 1 && host.SelectedIds.Length == 1, "Down did not select the first data row")
         let before = host.RowBuilds
         GridKey(window, Key.Down)
-        Require(host.RowBuilds - before <= 2, "Down rebuilt unchanged visible rows")
+        Require(host.RowBuilds - before <= 2, "Down rebuilt " + (host.RowBuilds - before).ToString() + " visible rows")
         GridKey(window, Key.Down, KeyModifiers{Shift: true})
         GridKey(window, Key.Up, KeyModifiers{Shift: true})
         Require(host.SelectedIds.Length == 2 && Array.IndexOf(host.SelectedIds, "3") >= 0, "Range reversal removed selected rows")
@@ -1127,6 +1142,10 @@ func DataGridNavigationInteractions() {
         Require(host.SelectedIds.Length == 2, "Indexed Ctrl+Shift+click did not add the anchor range")
         GridPointer(window, host.Cells["1:0"], KeyModifiers{Ctrl: true}, PointerButton.Secondary)
         Require(host.SelectedIds.Length == 2, "Secondary click on a selected row replaced the set")
+        Require(host.ContextRequests == 1 && host.ContextSelected, "Secondary click lost the row context handler")
+        GridPointer(window, host.Cells["3:0"], KeyModifiers{Ctrl: true, Shift: true}, PointerButton.Secondary)
+        Require(host.SelectedIds.Length == 1 && host.SelectedIds[0] == "3" &&
+            host.ContextRequests == 2 && host.ContextSelected, "Secondary click did not select before the context handler")
         host.Root!!.Handle!!.Focus()
         host.Single = true
         host.SelectedIds = []string{"1"}
@@ -1201,6 +1220,16 @@ func DataGridNavigationInteractions() {
         let count = host.SelectedIds.Length
         GridKey(window, Key.PageUp, KeyModifiers{Shift: true})
         Require(count > 1 && host.SelectedIds.Length >= count, "Shift+Page range reversal removed rows")
+        host.InteractiveEditor = true
+        host.Version++
+        host.Rebuild()
+        PumpFrames(window, 6)
+        Require(host.Editor.Focus(), "Composed cell editor did not focus")
+        GridKey(window, Key.A, KeyModifiers{Ctrl: true})
+        Require(window.PlatformInput.Selection!!.Active.Offset - window.PlatformInput.Selection!!.Anchor.Offset == 14 &&
+            !host.AllSelected && host.SelectAllRequests == 1, "Grid stole native editor select-all")
+        GridKey(window, Key.C, KeyModifiers{Ctrl: true})
+        Require(host.CopyRequests == 2, "Grid stole native editor copy")
     } finally {
         CloseNativeWindow(window)
     }

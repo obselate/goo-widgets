@@ -316,6 +316,7 @@ public open partial class DataGrid {
         root.Focusable = false
         root.TabStop = false
         root.Disabled = row.Disabled || snapshot.Disabled
+        let hostPointerDown = root.OnPointerDown
         root.OnPointerDown = (e PointerEvent) -> {
             clickModifiers = e.Modifiers
             clickFromInteractiveChild = e.IsFromInteractiveChild
@@ -332,6 +333,7 @@ public open partial class DataGrid {
                     Select(id, false, false, false)
                 }
             }
+            hostPointerDown?.Invoke(e)
         }
         let hostClick = root.OnClick
         root.OnClick = () -> {
@@ -581,7 +583,9 @@ public open partial class DataGrid {
                 e.Key == Key.Left ||
                 e.Key == Key.Right ||
                 e.Key == Key.Space ||
-                e.Key == Key.Enter
+                e.Key == Key.Enter ||
+                (e.Modifiers.Ctrl || e.Modifiers.Super) &&
+                    (e.Key == Key.A || e.Key == Key.C || e.Key == Key.Insert)
         ) {
             e.StopPropagation()
         }
@@ -762,7 +766,9 @@ public open partial class DataGrid {
             (hoveredId == row.Id ? 4L: 0L) +
             (groupExpanded.Contains(row.Id!!) ? 8L: 0L) +
             (input.OnSelectionChange != nil || input.OnSelectionIndicesChange != nil || input.OnSelectionRequest != nil ? 16L: 0L) +
-            (activeId == row.Id && hasFocus && !pointerFocus ? 32L * (int64(activeColumn) + 1L): 0L)
+            ((row.HasDetail || row.Detail != nil) && input.OnExpandedChange != nil ? 32L: 0L) +
+            (row.IsGroup && input.OnExpandedGroupChange != nil ? 64L: 0L) +
+            (activeId == row.Id && hasFocus && !pointerFocus ? 128L * (int64(activeColumn) + 1L): 0L)
     }
 
     private func UpdateRowPresentation() {
@@ -774,11 +780,19 @@ public open partial class DataGrid {
             OnSelectionChange = nil, OnSelectionIndicesChange = nil, OnSelectionRequest = nil,
             OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, CreateRoot = nil,
             UseDefaultKeyboard = nil, OnRowInvoke = nil,
+            OnExpandedChange = nil, OnExpandedGroupChange = nil,
+            ColumnWidths = nil, OnColumnWidthChange = nil, OnColumnWidthCommit = nil,
+            FitColumnsToViewport = false, OnFittedColumnWidthsChange = nil, OnFittedColumnWidthsCommit = nil,
+            OnColumnOrderChange = nil, RootHandle = nil, ViewportHandle = nil,
+            Width = nil, Height = nil, HeaderHeight = nil, FilterHeight = nil, AccessibilityName = nil,
+            HeaderStyle = nil, ResizeHandleStyle = nil, CreateResizeHandle = nil,
+            CreateHeader = nil, CreateFilter = nil, EmptyContent = nil,
+            ScrollbarX = nil, ScrollbarY = nil, ScrollbarVisibilityX = nil, ScrollbarVisibilityY = nil,
             Sorts = nil, SortColumnId = nil, SortDirection = DataGridSort.None,
             OnSort = nil, OnSortsChange = nil, Footer = nil
         }
-        var changed = !Object.Equals(rowPresentation, presentation) ||
-            !Object.Equals(rowPresentationTheme, theme) ||
+        var changed = rowPresentation != presentation ||
+            rowPresentationTheme != theme ||
             rowPresentationWidths.Length != widths.Length ||
             rowPresentationOffset != (pinnedCount > 0 ? horizontalOffset: 0.0) ||
             rowPresentationFirst != firstColumn || rowPresentationEnd != endColumn
