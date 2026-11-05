@@ -1698,7 +1698,7 @@ internal class DataGridEditHost : Cell {
         }
     }
 
-    private func CaptureEditor(context DataGridEditContext, editor Blob) Blob {
+    private func CaptureEditor(column DataGridColumn, context DataGridEditContext, editor Blob) Blob {
         Context = context
         return Container{
             Width: Percent(100), MinWidth: 0, FlexDirection: FlexDirection.Row,

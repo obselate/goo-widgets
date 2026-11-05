@@ -69,8 +69,8 @@ public data struct DataGridEditContext {
     var ErrorMessage string?
     /// Required native editor handle. Preserve it in custom content.
     var EditorHandle ElementHandle
-    /// Updates only the draft, never the host model.
-    var OnDraftChange Action[string]
+    /// Updates only the draft, never the host model. DataGrid always supplies this callback.
+    var OnDraftChange Action[string]?
     /// Validates and commits on the same cell.
     var Commit Action
     /// Discards this session as an Escape cancellation.
@@ -373,7 +373,7 @@ public open partial class DataGrid {
             }.Build()
         }
         if let create = column.CreateEditor {
-            editor = create(DataGridEditContext{
+            editor = create(column, DataGridEditContext{
                 Edit: session.Value, ErrorMessage: session.Error, EditorHandle: session.Editor,
                 OnDraftChange: change,
                 Commit: () -> {

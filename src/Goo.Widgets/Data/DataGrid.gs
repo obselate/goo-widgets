@@ -70,8 +70,8 @@ public data struct DataGridColumn {
     var Multiline bool
     /// Editor placement. Inline preserves the row height.
     var EditPresentation DataGridEditPresentation
-    /// Replaces the prepared editor. Preserve its handle, draft binding and lifecycle routing.
-    var CreateEditor Func[DataGridEditContext, Blob, Blob]?
+    /// Receives this column, the edit context and the prepared editor. Preserve its handle, draft binding and lifecycle routing.
+    var CreateEditor Func[DataGridColumn, DataGridEditContext, Blob, Blob]?
 }
 
 /// A stable row. Applications may use Id to look up domain objects in cell/detail factories.
