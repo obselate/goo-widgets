@@ -60,7 +60,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         }
         backdrop.Key = "backdrop"
         backdrop.Focusable = false
-        backdrop.OnClick = resolved.OnClose
+        backdrop.OnClick = resolved.CanDismissBackdrop ? () -> resolved.OnOpenChange?.Invoke(false): nil
         panel.Key = "dialog"
         panel.Focusable = false
         panel.TabStop = false
@@ -87,9 +87,12 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         if event.Key == Key.Escape {
             event.PreventDefault()
             event.StopPropagation()
-            let callback = current.OnCancel ?? current.OnClose
             if !event.Repeat && current.CanEscape {
-                callback?.Invoke()
+                if let cancel = current.OnCancel {
+                    cancel()
+                } else {
+                    current.OnOpenChange?.Invoke(false)
+                }
             }
             return
         }
