@@ -737,17 +737,37 @@ public data struct Theme {
     }
 
     /// Strengthens text, borders and focus without replacing the palette.
-    public func WithHighContrast() Theme -> this with{
-        HighContrast = true,
-        BorderColor = TextColor,
-        InputBorderColor = TextColor,
-        StrongBorderColor = TextColor,
-        MutedTextColor = TextColor,
-        FaintTextColor = TextColor,
-        SubtleTextColor = TextColor,
-        DisabledTextColor = TextColor,
-        FocusColor = TextColor,
-        BorderWidth = Math.Max(2.0, BorderWidth),
+    public func WithHighContrast() Theme {
+        var surface = CanvasColor
+        for color in []Color{PanelColor, RaisedColor, OverlayColor, FieldColor, HoverColor, PressedColor, SunkenColor, ActiveColor, InfoFillColor, SuccessFillColor, WarningFillColor, DangerQuietColor} {
+            if Contrast(TextColor, color) < Contrast(TextColor, surface) {
+                surface = color
+            }
+        }
+        let accent = Legible(AccentColor, TextColor, surface, 7.0)
+        return this with{
+            HighContrast = true,
+            BorderColor = TextColor,
+            InputBorderColor = TextColor,
+            StrongBorderColor = TextColor,
+            MutedTextColor = TextColor,
+            FaintTextColor = TextColor,
+            SubtleTextColor = TextColor,
+            DisabledTextColor = TextColor,
+            AccentColor = accent,
+            AccentHoverColor = Legible(AccentHoverColor, TextColor, surface, 7.0),
+            AccentPressedColor = Legible(AccentPressedColor, TextColor, surface, 7.0),
+            OnAccentColor = Legible(OnAccentColor, CanvasColor, accent, 7.0),
+            InfoColor = Legible(InfoColor, TextColor, surface, 7.0),
+            SuccessColor = Legible(SuccessColor, TextColor, surface, 7.0),
+            WarningColor = Legible(WarningColor, TextColor, surface, 7.0),
+            DangerColor = Legible(DangerColor, TextColor, surface, 7.0),
+            DangerFillColor = Legible(DangerFillColor, TextColor, surface, 7.0),
+            DangerHoverColor = Legible(DangerHoverColor, TextColor, surface, 7.0),
+            LinkColor = Legible(LinkColor, TextColor, surface, 7.0),
+            FocusColor = Legible(FocusColor, TextColor, surface, 3.0),
+            BorderWidth = Math.Max(2.0, BorderWidth),
+        }
     }
 
     /// Makes chrome translucent over the native window material. Content panels stay opaque.
