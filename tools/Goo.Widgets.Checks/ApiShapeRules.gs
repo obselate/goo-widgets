@@ -24,7 +24,7 @@ class ApiShapeCheck {
     func Add(rule int32, symbol string, current string, expected string) {
         let parameters = symbol.IndexOf('(')
         let sourceSymbol = symbol.Substring(2, if parameters >= 0 { parameters - 2 } else { symbol.Length - 2 })
-        let entry = Exceptions.FirstOrDefault(item -> item.Rule == rule && item.Symbol == sourceSymbol && item.Signature == current)
+        let entry = Exceptions.FirstOrDefault(item -> current != "not declared" && item.Rule == rule && item.Symbol == sourceSymbol && item.Signature == current)
         if entry != nil {
             entry.Used = true
             return
@@ -75,7 +75,7 @@ class ApiShapeCheck {
             let reason = value.GetProperty("reason").GetString() ?? ""
             Require(Regex.IsMatch(rule, "^S[1-9][0-9]*$") && known.Contains(int32.Parse(rule.Substring(1))), "Unknown API allowlist rule: " + rule)
             Require(Regex.IsMatch(symbol, "^[A-Za-z_][A-Za-z0-9_`]*(\\.[A-Za-z_][A-Za-z0-9_`]*)+$") && !string.IsNullOrWhiteSpace(signature) && !string.IsNullOrWhiteSpace(reason), "Malformed API allowlist entry: " + symbol)
-            Require(!Regex.IsMatch(reason, "^(legacy|temporary|ignore)$", RegexOptions.IgnoreCase), "API allowlist reason must state a domain need: " + symbol)
+            Require(!Regex.IsMatch(reason.Trim(), "^(legacy|temporary|ignore)\\.?$", RegexOptions.IgnoreCase), "API allowlist reason must state a domain need: " + symbol)
             let number = int32.Parse(rule.Substring(1))
             let key = number.ToString("D2") + "|" + symbol + "|" + signature
             Require(keys.Add(key), "Duplicate API allowlist entry: " + symbol)
@@ -324,7 +324,7 @@ class ApiShapeCheck {
             Console.WriteLine(finding.Symbol + " | S" + finding.Rule.ToString() + " | " + finding.Current + " | expected: " + finding.Expected)
         }
         for error in Configuration.OrderBy(item -> item, StringComparer.Ordinal) { Console.WriteLine("CONFIG | " + error) }
-        Console.WriteLine("S27 constructors not checked: compiler marker missing")
+        Console.WriteLine("S27 constructors not checked: G# emits no CompilerGeneratedAttribute, https://github.com/DavidObando/gsharp/issues/5761")
         let count = Types.Count(item -> !item.Program)
         Console.WriteLine("Inventory: " + count.ToString() + " public types, " + Widgets.Count.ToString() + " widgets, " + (count - Widgets.Count).ToString() + " support types, " + Types.Where(item -> item.Program).Sum(item -> item.Members.Count).ToString() + " free functions.")
         for rule in []int32{1,3,4,5,6,9,10,12,13,14,15,16,18,19,20,21,22,23,24,25,27} {
