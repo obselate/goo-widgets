@@ -75,7 +75,6 @@ func ToggleButtonInteractions() {
         Require(FeedbackNode(adapter, AccessibilityRole.Button, "Next").Focused, "Disabled toggle remained in Tab traversal")
         Console.WriteLine("PASS: ToggleButton pointer, Space release, Enter, controlled value, disabled traversal and light/dark/high-contrast semantics")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
 }

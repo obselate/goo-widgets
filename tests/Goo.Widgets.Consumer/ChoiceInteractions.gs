@@ -186,8 +186,7 @@ func RadioButtonInteractions() {
         Require(FeedbackNode(adapter, AccessibilityRole.Button, "Next").Focused, "Disabled radio remained in Tab traversal")
         Console.WriteLine("PASS: standalone RadioButton pointer, keyboard, controlled value, disabled traversal and light/dark/high-contrast semantics")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
 }
 
