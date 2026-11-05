@@ -226,7 +226,7 @@ public data struct StatusIndicator {
     var Variant StatusVariant
     /// Optional semantic color override. Nil derives the tone from State.
     var Tone Tone?
-    /// Visible item label. Nil omits the label.
+    /// Visible and accessible status label. Nil uses the State enum name.
     var Label string?
     /// Optional icon override. Nil uses the icon selected by State.
     var Icon Blob?

@@ -101,7 +101,7 @@ public data struct Kbd {
 
 /// One display-only shortcut in a named group.
 public data struct ShortcutEntry {
-    /// Stable, nonempty identity. Keep it unique within the collection.
+    /// Optional shortcut identity used when Label is nil. Nil leaves the fallback label empty.
     var Id string?
     /// Display group label. Nil uses an unlabelled group.
     var Group string?
