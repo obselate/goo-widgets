@@ -1897,6 +1897,9 @@ func DataGridEditingInteractions() {
         GridKey(window, Key.Enter)
         Require(host.Rows[0].Values!!["name"].EndsWith(" indexed") && host.Context.Edit.SourceIndex == 1000,
             "Indexed commit used the display index as identity")
+        Require(FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Focused &&
+            host.RowBlobs["0"].Handle!!.IsMounted && host.Viewport.ScrollOffset.Y > 30000,
+            "Off-screen commit did not reveal and focus the edited cell")
         host.Input = host.Input with{ActiveRowId = "1", ActiveColumnId = "name"}
         host.Refresh()
         PumpFrames(window, 5)
@@ -2025,7 +2028,7 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         host.Input = host.Input with{ActiveColumnId = "name",
             CanEdit = (row DataGridRow, column DataGridColumn) -> true,
-            CreateFullWidthRow = (input DataGridInput, row DataGridRow) -> row.Id == "0" ? Text{Content: "Full-width row"}: nil}
+            CreateFullWidthRow = (input DataGridInput, row DataGridRow) -> row.Id == "0" ? (Text{Content: "Full-width row"} as Blob): nil}
         host.Refresh()
         PumpFrames(window, 4)
         GridKey(window, Key.Enter)
@@ -2053,6 +2056,9 @@ func DataGridEditingInteractions() {
         GridPointer(window, host.After)
         Require(host.AfterClicks == clicks + 1 && window.PlatformInput.Editor != nil,
             "Rejected popup validation blocked the outside control or lost its editor")
+        host.Input = host.Input with{Height = Percent(100)}
+        host.Refresh()
+        PumpFrames(window, 4)
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
             window.Width = width
@@ -2066,6 +2072,39 @@ func DataGridEditingInteractions() {
             CaptureIssueProof(window, "datagrid-editing-150-" + width.ToString())
         }
         host.Reject = false
+        GridKey(window, Key.Escape)
+        host.Input = host.Input with{ActiveColumnId = "notes",
+            GetEditPresentation = (row DataGridRow, column DataGridColumn) -> DataGridEditPresentation.Popover}
+        host.Refresh()
+        PumpFrames(window, 4)
+        host.Root.Focus()
+        GridKey(window, Key.Enter)
+        Require(window.PlatformInput.Editor!!.IsMultiline &&
+            FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Relationships.LabelledBy.Count == 1,
+            "Per-cell presentation did not mount a related multiline popup")
+        GridKey(window, Key.Down)
+        Require(host.Input.ActiveRowId == "0", "Multiline navigation changed the grid row")
+        GridKey(window, Key.Escape)
+        host.Input = host.Input with{ActiveColumnId = "name", GetEditPresentation = nil,
+            BeginEditKeys = []DataGridEditKey{DataGridEditKey{Key: Key.Escape}},
+            CommitEditKey = DataGridEditKey{Key: Key.Down}}
+        host.Refresh()
+        PumpFrames(window, 4)
+        host.Root.Focus()
+        host.Events.Clear()
+        GridKey(window, Key.Escape)
+        Require(String.Join(",", host.Events) == "begin", "Escape could not be configured as a begin key")
+        GridKey(window, Key.Down)
+        Require(String.Join(",", host.Events) == "begin,validate,set,end" && host.Input.ActiveRowId == "0",
+            "A navigation commit chord moved the active cell")
+        host.Input = host.Input with{BeginEditKeys = nil, CommitEditKey = nil, AutoRowHeight = true, VirtualizeColumns = false,
+            CreateCellContent = (input DataGridInput, row DataGridRow, column DataGridColumn) -> Container{Height: 84, Text{Content: "Tall content"}}}
+        host.Refresh()
+        PumpFrames(window, 8)
+        let rowHeight = host.RowBlobs["0"].Handle!!.BorderBox.Height
+        GridKey(window, Key.Enter)
+        Require(rowHeight >= 84 && Math.Abs(host.RowBlobs["0"].Handle!!.BorderBox.Height - rowHeight) < 1,
+            "Inline editing changed the measured row height")
         GridKey(window, Key.Escape)
     } finally {
         CloseNativeWindow(window)

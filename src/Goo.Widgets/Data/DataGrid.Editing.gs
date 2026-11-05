@@ -87,6 +87,7 @@ internal class DataGridEditSession {
     internal var Focused bool
     internal var Presentation DataGridEditPresentation
     internal var Multiline bool
+    internal var RowHeight float64
     internal var Revision int64
     internal var Identity int64
     internal var Controller TextEditorController?
@@ -165,6 +166,12 @@ public open partial class DataGrid {
             Presentation = input.GetEditPresentation?.Invoke(row, column) ?? column.EditPresentation,
             Multiline = column.Multiline,
             Revision = editRevision, Identity = editRevision
+        }
+        session.RowHeight = input.RowHeightProvider?.Invoke(row) ?? input.RowHeight!!
+        if cellHandles.TryGetValue(rowId, out var handles) {
+            for handle in handles.Values {
+                if handle.IsMounted { session.RowHeight = Math.Max(session.RowHeight, handle.BorderBox.Height) }
+            }
         }
         if !Enum.IsDefined(session.Presentation) { throw ArgumentOutOfRangeException("EditPresentation") }
         session.Editor.MetricsChanged += (metrics ElementMetrics) -> {
@@ -265,7 +272,7 @@ public open partial class DataGrid {
 
     private func EditKeyDown(e KeyEvent) {
         e.StopPropagation()
-        if e.IsComposing { return }
+        if e.IsComposing || (window?.PlatformInput.Editor?.CompositionStart ?? -1) >= 0 { return }
         let commit = input.CommitEditKey ?? DataGridEditKey{Key: Key.Enter}
         if e.Key == Key.Escape || e.Key == Key.Tab || e.Key == commit.Key && e.Modifiers == commit.Modifiers {
             e.PreventDefault()
@@ -360,21 +367,30 @@ public open partial class DataGrid {
         }
     }
 
-    private func EditError(session DataGridEditSession) Blob -> Text{
-        Key: "edit-error", Handle: session.ErrorHandle,
-        Content: session.Error!!, TextWrap: TextWrap.Wrap,
-        Color: theme.DangerColor, FontSize: theme.CaptionFontSize,
-        Accessibility: Accessibility{Role: AccessibilityRole.Alert, Name: session.Error!!, Live: AccessibilityLive.Polite}
+    private func EditError(session DataGridEditSession) Blob -> Container{
+        Key: "edit-error", MaxHeight: theme.ControlHeight * 2.0, FlexShrink: 0, OverflowY: Overflow.Scroll,
+        Text{
+            Handle: session.ErrorHandle, Content: session.Error!!, TextWrap: TextWrap.Wrap,
+            Color: theme.DangerColor, FontSize: theme.CaptionFontSize,
+            Accessibility: Accessibility{Role: AccessibilityRole.Alert, Name: session.Error!!, Live: AccessibilityLive.Polite}
+        }
     }
 
     private func BuildEditPopover(session DataGridEditSession) Blob {
         let index = ColumnIndex(session.Value.ColumnId)
         let editor = BuildEditor(session, columns[index], session.Multiline ? theme.ControlHeight * 4.0: theme.ControlHeight)
-        let content = Container{Width: Percent(100), MinWidth: 0, FlexDirection: FlexDirection.Column, Gap: theme.ControlGap, editor}
+        let content = Container{
+            Width: Percent(100), MinWidth: 0, FlexDirection: FlexDirection.Column, Gap: theme.ControlGap,
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.Group, Name: theme.Text("Cell editor"), Modal: false,
+                Relationships: AccessibilityRelationships{LabelledBy: []ElementHandle{session.Anchor}}
+            },
+            editor
+        }
         if session.Error != nil { content.Children.Add(EditError(session)) }
         return Cell.Mount[PopoverInput, Popover]("grid-editor:" + session.Identity.ToString(), PopoverInput{
             Open: true, Anchor: session.Anchor, Content: content, InitialFocus: session.Editor, DismissOnOutsideClick: false,
-            AccessibilityName: theme.Text("Cell editor"),
+            AccessibilityName: theme.Text("Cell editor popup"),
             OnDismiss: (reason PopoverDismissReason) -> {
                 if reason == PopoverDismissReason.Escape { CancelEdit(DataGridEditCancelReason.Escape) }
                 else if reason == PopoverDismissReason.AnchorRemoved { CancelEdit(DataGridEditCancelReason.Unavailable) }

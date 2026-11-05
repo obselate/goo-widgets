@@ -163,7 +163,9 @@ public open partial class DataGrid {
             (snapshot.AllSelected || selected.Contains(id))
         let isExpanded = expanded.Contains(id) && (row.HasDetail || row.Detail != nil)
         let fullWidth = snapshot.CreateFullWidthRow?.Invoke(snapshot, row)
-        let height = if let provider = snapshot.RowHeightProvider {
+        let height = if editSession?.Value.RowId == id && editSession?.Presentation == DataGridEditPresentation.Inline {
+            editSession!!.RowHeight
+        } else if let provider = snapshot.RowHeightProvider {
             float64(virtualItemExtent(provider(row), "RowHeightProvider"))
         } else {
             snapshot.RowHeight!!
@@ -179,7 +181,7 @@ public open partial class DataGrid {
             OutlineOffset: -theme.FocusRingWidth,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
         }
-        if snapshot.AutoRowHeight {
+        if snapshot.AutoRowHeight && !(editSession?.Value.RowId == id && editSession?.Presentation == DataGridEditPresentation.Inline) {
             cells.Height = Length.Auto
             cells.MinHeight = height
             cells.AlignItems = AlignItems.Stretch
