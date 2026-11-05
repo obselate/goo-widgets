@@ -85,6 +85,9 @@ func ValidatePackage(id string, directory string, license string, extras[]string
         expected[item.Attribute("Include")!!.Value] = item.Attribute("Version")!!.Value
     }
     for item in project.Descendants("ProjectReference") {
+        if item.Attribute("ReferenceOutputAssembly")?.Value == "false" {
+            continue
+        }
         let referenced = XDocument.Load(Path.Combine(projectDirectory, item.Attribute("Include")!!.Value))
         expected[Property(referenced, "PackageId")] = Property(referenced, "Version")
     }

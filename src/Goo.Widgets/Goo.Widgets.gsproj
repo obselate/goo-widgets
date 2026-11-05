@@ -21,7 +21,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Goo" Version="0.27.5" />
-    <EmbeddedResource Include="../../assets/material-symbols/outlined/*.svg" LogicalName="Goo.Widgets.MaterialSymbols.%(Filename)%(Extension)" />
+    <ProjectReference Include="../../tools/Goo.Widgets.Checks/Goo.Widgets.Checks.gsproj" ReferenceOutputAssembly="false" PrivateAssets="all" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishAot;PublishTrimmed" />
+    <EmbeddedResource Include="$(IntermediateOutputPath)MaterialSymbols.bundle" LogicalName="Goo.Widgets.MaterialSymbols.bundle" />
     <EmbeddedResource Include="Shaders/touch_magnifier.goo-effect" LogicalName="Goo.Widgets.TouchMagnifier" />
     <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
     <None Include="../../buildTransitive/Goo.Widgets.targets" Pack="true" PackagePath="buildTransitive/Goo.Widgets.targets" />
@@ -32,6 +33,11 @@
     <None Include="../../assets/material-symbols/LICENSE" Pack="true" PackagePath="licenses/material-symbols/" />
     <None Include="../../assets/material-symbols/README.md" Pack="true" PackagePath="licenses/material-symbols/" />
   </ItemGroup>
+  <Target Name="GenerateMaterialSymbols" BeforeTargets="CoreCompile"
+          Inputs="../../assets/material-symbols/outlined;../../assets/material-symbols/outlined/*.svg;../../tools/Goo.Widgets.Checks/bin/$(Configuration)/net10.0/Goo.Widgets.Checks.dll"
+          Outputs="$(IntermediateOutputPath)MaterialSymbols.bundle">
+    <Exec Command="dotnet &quot;$(MSBuildThisFileDirectory)../../tools/Goo.Widgets.Checks/bin/$(Configuration)/net10.0/Goo.Widgets.Checks.dll&quot; bundle &quot;$(IntermediateOutputPath)MaterialSymbols.bundle&quot;" />
+  </Target>
   <Target Name="PopulateWidgetDocumentation" AfterTargets="CoreCompile" Condition="'$(DocumentationFile)' != ''">
     <ItemGroup>
       <DocFileItem Include="$(DocumentationFile)" />

@@ -4,6 +4,7 @@ import System
 import System.Buffers.Binary
 import System.Collections.Generic
 import System.IO
+import System.IO.Compression
 import System.Linq
 import System.Text
 import System.Text.RegularExpressions
@@ -25,9 +26,12 @@ func Require(condition bool, message string) {
 func Main() int {
     try {
         let args = Environment.GetCommandLineArgs().Skip(1).ToArray()
-        Require(args.Length > 0, "Usage: Goo.Widgets.Checks symbols [--check] | screenshots | package [--markdown]")
+        Require(args.Length > 0, "Usage: Goo.Widgets.Checks symbols [--check] | bundle <output> | screenshots | package [--markdown]")
         if args[0] == "symbols" {
             Symbols(args.Skip(1).ToArray())
+        } else if args[0] == "bundle" {
+            Require(args.Length == 2, "Usage: bundle <output>")
+            Bundle(args[1])
         } else if args[0] == "screenshots" {
             Screenshots()
         } else if args[0] == "package" {
@@ -46,20 +50,7 @@ func Symbols(args[]string) {
     Require(args.Length == 0 || (args.Length == 1 && args[0] == "--check"), "Usage: symbols [--check]")
     let root = Root()
     let target = Path.Combine(root, "src/Goo.Widgets/ILLink.Substitutions.xml")
-    let lines = StringBuilder(
-        "<linker>\n  <assembly fullname=\"Goo.Widgets\" feature=\"Goo.Widgets.MaterialSymbols.Subset\" featurevalue=\"true\">\n"
-    )
-    for svg in Directory.GetFiles(Path.Combine(root, "assets/material-symbols/outlined"), "*.svg").OrderBy(
-        path -> path,
-        StringComparer.Ordinal
-    ) {
-        let name = Path.GetFileNameWithoutExtension(svg).Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;")
-        lines
-            .Append("    <resource name=\"Goo.Widgets.MaterialSymbols.")
-            .Append(name)
-            .Append(".svg\" action=\"remove\" />\n")
-    }
-    let content = lines.Append("  </assembly>\n</linker>\n").ToString()
+    let content = "<linker>\n  <assembly fullname=\"Goo.Widgets\" feature=\"Goo.Widgets.MaterialSymbols.Subset\" featurevalue=\"true\">\n    <resource name=\"Goo.Widgets.MaterialSymbols.bundle\" action=\"remove\" />\n  </assembly>\n</linker>\n"
     if args.Length == 1 {
         Require(
             File.Exists(target) && File.ReadAllText(target).Replace("\r\n", "\n") == content,
@@ -93,6 +84,60 @@ func Symbols(args[]string) {
     } else {
         File.WriteAllText(targets, updated)
     }
+}
+
+func Bundle(output string) {
+    let files = Directory.GetFiles(Path.Combine(Root(), "assets/material-symbols/outlined"), "*.svg")
+        .OrderBy(path -> path, StringComparer.Ordinal).ToArray()
+    let count = files.Length
+    let blockSize = 96
+    let groups = (count + blockSize - 1) / blockSize
+    Require(count <= UInt16.MaxValue && groups <= Byte.MaxValue, "Material Symbol catalogue is too large.")
+    using let bundle = MemoryStream()
+    using let writer = BinaryWriter(bundle, Encoding.ASCII, true)
+    writer.Write(Encoding.ASCII.GetBytes("MSI1"))
+    writer.Write(uint16(count))
+    writer.Write(uint8(groups))
+    bundle.Position = 7 + 6 * groups + 4 * count
+    let offsets = [count]int32
+    let blocks = List[[]uint8]()
+    for group in 0 ... groups {
+        using let raw = MemoryStream()
+        for i in group * blockSize ... Math.Min(count, (group + 1) * blockSize) {
+            let name = Path.GetFileNameWithoutExtension(files[i])
+            let svg = File.ReadAllBytes(files[i])
+            Require(raw.Length + svg.Length <= UInt16.MaxValue, "Material Symbol block is too large.")
+            offsets[i] = int32(bundle.Position)
+            writer.Write(uint8(group))
+            writer.Write(uint16(raw.Length))
+            writer.Write(uint16(svg.Length))
+            writer.Write(name)
+            raw.Write(svg, 0, svg.Length)
+        }
+        using let compressed = MemoryStream()
+        {
+            using let encoder = BrotliStream(compressed, CompressionLevel.SmallestSize, true)
+            raw.Position = 0
+            raw.CopyTo(encoder)
+        }
+        blocks.Add(compressed.ToArray())
+        let position = bundle.Position
+        bundle.Position = 7 + 6 * group + 4
+        writer.Write(uint16(raw.Length))
+        bundle.Position = position
+    }
+    for group in 0 ... groups {
+        let position = bundle.Position
+        bundle.Position = 7 + 6 * group
+        writer.Write(int32(position))
+        bundle.Position = position
+        writer.Write(blocks[group])
+    }
+    bundle.Position = 7 + 6 * groups
+    for offset in offsets {
+        writer.Write(offset)
+    }
+    File.WriteAllBytes(output, bundle.ToArray())
 }
 
 func IsWidget(path string) bool {
