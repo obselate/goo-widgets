@@ -172,10 +172,11 @@ class ApiShapeCheck {
                 Field(type, 6, "On" + concept + "Commit", "Action[" + parts[2] + "]?", "On" + old + "Committed")
             }
         }
-        if []string{"ComboBox", "RadioGroup", "TabBar", "NavigationRail", "SearchList", "TreeView"}.Contains(role) {
+        if []string{"ComboBox", "RadioGroup", "TabBar", "NavigationRail", "SearchList", "TreeView", "SettingsLayout", "TimeAxis"}.Contains(role) {
             Field(type, 10, "SelectedId", "string?")
             Field(type, 10, "OnSelect", "Action[string]?")
         }
+        if role == "Breadcrumb" { Field(type, 10, "OnSelect", "Action[string]?") }
         if []string{"ComboBox", "DataGrid", "ListView", "TreeView", "ToggleGroup", "GraphCanvas"}.Contains(role) {
             let selected = Member(type, "SelectedIds") ?? Member(type, "SelectedNodeIds")
             if selected == nil || !(selected.Type.Text() == "string[]?" || selected.Type.Text() == "string[]") || selected.Name != "SelectedIds" {
@@ -203,8 +204,9 @@ class ApiShapeCheck {
             Field(type, 13, "Expanded" + part + "Ids", "string[]?", "Collapsed" + part + "s")
             Field(type, 13, "On" + part + "ExpandedChange", "Action[string,bool]?", "On" + part + "Toggle")
         }
-        if Member(type, "Query") != nil { Field(type, 14, "Query", "string?") }
-        if []string{"ComboBox", "CommandPalette", "FindBar", "NavigationRail", "PropertyGrid", "SearchList", "TokenInput", "TreeView", "TriggerMenu"}.Contains(role) && Member(type, "Query") != nil {
+        let queryEditors = []string{"ComboBox", "CommandPalette", "FindBar", "PropertyGrid", "SearchList", "SettingsLayout", "ShortcutList"}
+        if Member(type, "Query") != nil || queryEditors.Contains(role) || role == "ListView" { Field(type, 14, "Query", "string?") }
+        if queryEditors.Contains(role) {
             Field(type, 14, "OnQueryChange", "Action[string]?")
         }
         if []string{"FormField", "TextField", "TextArea", "NumberInput"}.Contains(role) {
@@ -221,8 +223,16 @@ class ApiShapeCheck {
         if fields.Contains(role) {
             Field(type, 16, "Disabled", "bool")
             Field(type, 16, "AccessibilityName", "string?")
+            for property in []string{"Label", "Description", "Error"} {
+                if Member(type, property) != nil { Field(type, 15, property, "string?") }
+            }
         }
         if []string{"TextField", "TextArea", "DatePicker", "NumberInput", "TokenInput"}.Contains(role) { Field(type, 16, "ReadOnly", "bool") }
+        if role == "FormField" { Field(type, 16, "Required", "bool") }
+        if role != "FormField" && Member(type, "Required") != nil {
+            let member = Member(type, "Required")!!
+            Add(16, member.Id, member.Signature, "compose FormField for Required metadata")
+        }
     }
 
     func Members(type ApiDeclaration) {
@@ -294,6 +304,11 @@ class ApiShapeCheck {
             Add(23, type.Id, TypeSignature(type), "the shared Density or a Variant enum")
             if type.Name.EndsWith("DataGridDensity") {
                 for member in type.Members { Add(23, member.Id, member.Signature, "use the corresponding shared Density value") }
+            }
+        }
+        if type.Name == "Goo.Widgets.Density" {
+            for name in []string{"Standard", "Compact", "Comfortable", "Touch"} {
+                if Member(type, name) == nil { Add(23, "F:" + type.Name + "." + name, "not declared", "a shared Density value") }
             }
         }
     }
