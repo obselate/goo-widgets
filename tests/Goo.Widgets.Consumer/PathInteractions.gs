@@ -155,7 +155,9 @@ func PathActionsInteractions() {
         Require(host.Invokes == 2, "Disabled row invoked")
         Require(FindSemantics(semantics.Tree!!.Root, "Total: 2") != nil, "Aggregation footer missing")
         FeedbackClick(window, FindSemantics(semantics.Tree!!.Root, "Alpha")!!.Bounds)
+        GridModifierKey(SDLScancode.Lshift, SDLKeymod.Shift, true)
         FeedbackClick(window, FindSemantics(semantics.Tree!!.Root, "Beta")!!.Bounds)
+        GridModifierKey(SDLScancode.Lshift, SDLKeymod.None, false)
         Require(
             host.Sorts.Length == 2 && host.Sorts[0].ColumnId == "a" && host.Sorts[1].ColumnId == "b",
             "Multi-sort lost priority"

@@ -56,6 +56,7 @@ internal class DataGridHeightHost : Cell {
     internal var ContextSelected bool
     internal var InteractiveEditor bool
     internal let Editor ElementHandle = ElementHandle()
+    internal var EditorCopyRequests int32
     internal var Header Button?
     internal var WidthCase int32
     internal let WidthA ElementHandle = ElementHandle()
@@ -111,7 +112,16 @@ internal class DataGridHeightHost : Cell {
 
     private func Content(input DataGridInput, row DataGridRow, column DataGridColumn) Blob {
         if InteractiveEditor && row.Id == "1" && column.Id == "0" {
-            return TextEntry{Handle: Editor, Value: "editable value", Width: Percent(100), Height: 32}
+            return TextEntry{
+                Handle: Editor,
+                Value: "editable value",
+                Width: Percent(100),
+                Height: 32,
+                KeyBindings: []KeyBinding{
+                    KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> EditorCopyRequests++},
+                    KeyBinding{Key: Key.Insert, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> EditorCopyRequests++}
+                }
+            }
         }
         if VirtualColumns {
             let handle = ElementHandle()
@@ -1131,6 +1141,7 @@ func DataGridNavigationInteractions() {
         Require(host.SelectedIds.Length == 0, "Space did not toggle a multiple selection")
         GridKey(window, Key.Space)
         Require(host.SelectedIds.Length == 1, "Space did not restore a multiple selection")
+        Require(host.Root!!.Handle!!.Focus() && window.PlatformInput.Editor == nil, "Row copy did not focus the grid")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Insert, KeyModifiers{Ctrl: true})
         Require(host.CopyRequests == 2, "Copy chords did not request the controlled row copy")
@@ -1235,7 +1246,8 @@ func DataGridNavigationInteractions() {
             Object.ReferenceEquals(editorSelection, host.SelectedIds) && !host.AllSelected &&
                 host.SelectAllRequests == 1, "Grid stole native editor select-all")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
-        Require(host.CopyRequests == 2, "Grid stole native editor copy")
+        GridKey(window, Key.Insert, KeyModifiers{Ctrl: true})
+        Require(host.CopyRequests == 2 && host.EditorCopyRequests == 2, "Grid stole composed editor copy bindings")
     } finally {
         CloseNativeWindow(window)
     }

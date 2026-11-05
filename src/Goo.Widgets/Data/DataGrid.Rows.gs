@@ -618,9 +618,13 @@ public open partial class DataGrid {
                 NotifySelection(ids.ToArray())
             }
         } else if control && (e.Key == Key.C || e.Key == Key.Insert) {
+            guard let copy = input.OnCopy else { return }
+            e.PreventDefault()
+            e.StopPropagation()
             if !e.Repeat {
-                input.OnCopy?.Invoke()
+                copy()
             }
+            return
         } else if e.Key == Key.Left || e.Key == Key.Right {
             if activeId != nil && current >= 0 && Row(current).IsGroup {
                 input.OnExpandedGroupChange?.Invoke(activeId!!, e.Key == Key.Right)
