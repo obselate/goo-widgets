@@ -72,7 +72,6 @@ internal enum GraphPointerMode {
     Node
 }
 
-/// An interactive controlled graph canvas with panning, zooming, selection, and node dragging.
 public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     private let handle ElementHandle = ElementHandle{}
     private var resolved GraphCanvasInput

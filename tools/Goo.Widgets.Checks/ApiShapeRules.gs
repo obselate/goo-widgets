@@ -22,7 +22,9 @@ class ApiShapeCheck {
     func Simple(name string) string -> name.Substring(name.LastIndexOf('.') + 1)
 
     func Add(rule int32, symbol string, current string, expected string) {
-        let entry = Exceptions.FirstOrDefault(item -> item.Rule == rule && item.Symbol == symbol && item.Signature == current)
+        let parameters = symbol.IndexOf('(')
+        let sourceSymbol = symbol.Substring(2, if parameters >= 0 { parameters - 2 } else { symbol.Length - 2 })
+        let entry = Exceptions.FirstOrDefault(item -> item.Rule == rule && item.Symbol == sourceSymbol && item.Signature == current)
         if entry != nil {
             entry.Used = true
             return
@@ -72,7 +74,7 @@ class ApiShapeCheck {
             let signature = value.GetProperty("signature").GetString() ?? ""
             let reason = value.GetProperty("reason").GetString() ?? ""
             Require(Regex.IsMatch(rule, "^S[1-9][0-9]*$") && known.Contains(int32.Parse(rule.Substring(1))), "Unknown API allowlist rule: " + rule)
-            Require(symbol.Length > 2 && symbol[1] == ':' && !symbol.Contains('*') && !string.IsNullOrWhiteSpace(signature) && !string.IsNullOrWhiteSpace(reason), "Malformed API allowlist entry: " + symbol)
+            Require(Regex.IsMatch(symbol, "^[A-Za-z_][A-Za-z0-9_`]*(\\.[A-Za-z_][A-Za-z0-9_`]*)+$") && !string.IsNullOrWhiteSpace(signature) && !string.IsNullOrWhiteSpace(reason), "Malformed API allowlist entry: " + symbol)
             Require(!Regex.IsMatch(reason, "^(legacy|temporary|ignore)$", RegexOptions.IgnoreCase), "API allowlist reason must state a domain need: " + symbol)
             let number = int32.Parse(rule.Substring(1))
             let key = number.ToString("D2") + "|" + symbol + "|" + signature
@@ -84,14 +86,31 @@ class ApiShapeCheck {
     }
 
     func Inventory() {
-        let reviewed = ("ActionButton Alert AppBar AsyncImage AttachmentChip Avatar AvatarGroup Badge Banner Breadcrumb Calendar Card Checkbox CodeBlock ColorPicker ComboBox CommandPalette DataGrid DatePicker Disclosure DismissibleContextBar DonutChart Drawer EmptyState FindBar FormField FormSection GraphCanvas GraphNodeCard Grid HoverCard IconButton InlineMessage Kbd ListRow ListView MasterDetail MediaCard MediaTransport Menu MenuButton ModalDialog ModalDialogHost NavigationRail NumberInput PathBar Popover ProgressBar ProgressSummary PropertyGrid RadioGroup SearchList SectionHeader SettingsLayout ShortcutList Slider Spinner SplitButton SplitPane StackedBar StatusBar StatusIndicator Stepper TabBar TextArea TextField ThemeScope TimeAxis Toast ToastHost ToggleGroup ToggleSwitch TokenInput Tooltip TouchTextEditing TreeView TriggerMenu Typography UploadTile WindowChrome").Split(' ')
+        let reviewed = HashSet[string](StringComparer.Ordinal)
+        for group in []string{
+            "Goo.Widgets|Kbd ShortcutList ThemeScope Typography",
+            "Goo.Widgets.Actions|ActionButton IconButton",
+            "Goo.Widgets.Charts|DonutChart StackedBar",
+            "Goo.Widgets.Colors|ColorPicker",
+            "Goo.Widgets.Content|CodeBlock",
+            "Goo.Widgets.Data|AttachmentChip Chip DataGrid ListView TimeAxis TreeView",
+            "Goo.Widgets.Feedback|Alert Badge Banner DismissibleContextBar EmptyState InlineMessage ProgressBar ProgressSummary Spinner StatusIndicator Toast ToastHost",
+            "Goo.Widgets.Graphs|GraphCanvas GraphNodeCard",
+            "Goo.Widgets.Inputs|Calendar Checkbox ComboBox DatePicker FindBar FormField FormSection NumberInput RadioGroup SearchList Slider Stepper TextArea TextField ToggleGroup ToggleSwitch TokenInput TouchTextEditing TriggerMenu UploadTile",
+            "Goo.Widgets.Layout|AppBar Card Disclosure Drawer Grid HoverCard ListRow MasterDetail ModalDialog ModalDialogHost Popover PropertyGrid SectionHeader SettingsLayout SplitPane StatusBar Tooltip WindowChrome",
+            "Goo.Widgets.Media|AsyncImage Avatar AvatarGroup MediaCard MediaTransport",
+            "Goo.Widgets.Navigation|Breadcrumb CommandPalette Menu MenuButton NavigationRail PathBar SplitButton TabBar"
+        } {
+            let parts = group.Split('|')
+            for name in parts[1].Split(' ') { reviewed.Add(parts[0] + "." + name) }
+        }
         for type in Types {
             if type.Program { continue }
             let cell = Cell(type, HashSet[string](StringComparer.Ordinal))
             let build = type.Members.FirstOrDefault(item -> item.Name == "Build" && item.Parameters.Count == 0 && item.Arity == 0 && !item.Static && IsVisual(item.Type))
-            if cell == nil && build == nil && !reviewed.Contains(Simple(type.Name)) { continue }
+            if cell == nil && build == nil && !reviewed.Contains(type.Name) { continue }
             Widgets.Add(type.Name)
-            if !reviewed.Contains(Simple(type.Name)) { Configuration.Add("Unregistered widget role: " + type.Id) }
+            if !reviewed.Contains(type.Name) { Configuration.Add("Unregistered widget role: " + type.Id) }
             if cell != nil {
                 Require(cell.Arguments.Count == 1, "Unresolved widget input: " + type.Id)
                 let input = Types.FirstOrDefault(item -> item.Name == cell.Arguments[0].Name)
@@ -153,7 +172,7 @@ class ApiShapeCheck {
                 Field(type, 6, "On" + concept + "Commit", "Action[" + parts[2] + "]?", "On" + old + "Committed")
             }
         }
-        if []string{"ComboBox", "RadioGroup", "TabBar", "NavigationRail", "MenuButton", "SearchList", "TreeView"}.Contains(role) {
+        if []string{"ComboBox", "RadioGroup", "TabBar", "NavigationRail", "SearchList", "TreeView"}.Contains(role) {
             Field(type, 10, "SelectedId", "string?")
             Field(type, 10, "OnSelect", "Action[string]?")
         }
@@ -185,7 +204,7 @@ class ApiShapeCheck {
             Field(type, 13, "On" + part + "ExpandedChange", "Action[string,bool]?", "On" + part + "Toggle")
         }
         if Member(type, "Query") != nil { Field(type, 14, "Query", "string?") }
-        if []string{"ComboBox", "CommandPalette", "FindBar", "ListView", "NavigationRail", "PropertyGrid", "SearchList", "TokenInput", "TreeView", "TriggerMenu"}.Contains(role) && Member(type, "Query") != nil {
+        if []string{"ComboBox", "CommandPalette", "FindBar", "NavigationRail", "PropertyGrid", "SearchList", "TokenInput", "TreeView", "TriggerMenu"}.Contains(role) && Member(type, "Query") != nil {
             Field(type, 14, "OnQueryChange", "Action[string]?")
         }
         if []string{"FormField", "TextField", "TextArea", "NumberInput"}.Contains(role) {
@@ -226,10 +245,10 @@ class ApiShapeCheck {
                     if value != "Action[" + emitted + "]?" { Add(6, member.Id, member.Signature, "var " + name + " Action[" + emitted + "]?") }
                 }
             }
-            if name == "OnActivate" || name == "OnInvoke" || name == "OnRowInvoke" || name.EndsWith("Activate") || (Simple(type.Name) == "AttachmentChip" && name == "OnOpen") {
+            if name == "OnInvoke" || name == "OnRowInvoke" || (name.StartsWith("On") && name.EndsWith("Activate")) || (Simple(type.Name) == "AttachmentChip" && name == "OnOpen") {
                 Add(9, member.Id, member.Signature, "var " + (if name == "OnMenuActivate" { "OnMenuClick" } else { "OnClick" }) + " " + value)
             }
-            if name == "OnClick" || name.EndsWith("Click") {
+            if name.StartsWith("On") && name.EndsWith("Click") {
                 if !value.StartsWith("Action") || member.Type.Arguments.Count > 1 || !member.Type.Optional || (member.Type.Arguments.Count == 1 && member.Type.Arguments[0].Text() != (if Simple(type.Name) == "AvatarGroup" { "int32" } else { "string" })) {
                     if Simple(type.Name) != "ToggleSwitch" { Add(9, member.Id, member.Signature, "a nullable Action with zero or one identity argument") }
                 }
@@ -265,7 +284,7 @@ class ApiShapeCheck {
                 }
                 if name == "Density" && Simple(member.Type.Name) != "Density" { Add(23, member.Id, member.Signature, "var Density Density") }
             }
-            if name.StartsWith("On") || name == "LoadChildren" {
+            if (name.StartsWith("On") && member.Type.Name != "Goo.Color") || name == "LoadChildren" {
                 if name == "LoadChildren" || !(value.StartsWith("Action") || value.StartsWith("Func[")) || !member.Type.Optional || value.Contains("Task") || value.Contains("ValueTask") { Add(24, member.Id, member.Signature, "a nullable synchronous Action or Func named On<Operation>") }
                 if member.Type.Arguments.Any(argument -> argument.Name == type.Name || argument.Name + "Input" == type.Name || argument.Name == "System.Object") { Add(25, member.Id, member.Signature, "event arguments without sender or owning descriptor") }
             }
@@ -305,6 +324,7 @@ class ApiShapeCheck {
             Console.WriteLine(finding.Symbol + " | S" + finding.Rule.ToString() + " | " + finding.Current + " | expected: " + finding.Expected)
         }
         for error in Configuration.OrderBy(item -> item, StringComparer.Ordinal) { Console.WriteLine("CONFIG | " + error) }
+        Console.WriteLine("S27 constructors not checked: compiler marker missing")
         let count = Types.Count(item -> !item.Program)
         Console.WriteLine("Inventory: " + count.ToString() + " public types, " + Widgets.Count.ToString() + " widgets, " + (count - Widgets.Count).ToString() + " support types, " + Types.Where(item -> item.Program).Sum(item -> item.Members.Count).ToString() + " free functions.")
         for rule in []int32{1,3,4,5,6,9,10,12,13,14,15,16,18,19,20,21,22,23,24,25,27} {

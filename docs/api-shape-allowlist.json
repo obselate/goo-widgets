@@ -3,79 +3,79 @@
   "entries": [
     {
       "rule": "S1",
-      "symbol": "T:Goo.Widgets.Layout.ModalDialogHost",
+      "symbol": "Goo.Widgets.Layout.ModalDialogHost",
       "signature": "public open class ModalDialogHost : Cell[ModalDialog],IDisposable",
       "reason": "The host retains ModalDialog state and reuses its public descriptor without a second input owner."
     },
     {
       "rule": "S1",
-      "symbol": "T:Goo.Widgets.Navigation.PathBar",
+      "symbol": "Goo.Widgets.Navigation.PathBar",
       "signature": "public class PathBar : Breadcrumb",
       "reason": "The path entry point inherits the Breadcrumb input and behavior without a second state owner."
     },
     {
       "rule": "S3",
-      "symbol": "M:Goo.Widgets.Data.VirtualItems``1(System.Collections.Generic.IReadOnlyList{``0},System.Double,System.Double,System.Func{``0,System.String},System.Func{``0,Goo.Blob})",
+      "symbol": "Goo.Widgets.Data.VirtualItems``1",
       "signature": "func VirtualItems``1(IReadOnlyList[``0],float64,float64,Func[``0,string],Func[``0,Blob]) Virtual",
       "reason": "The fixed-size item factory connects typed data directly to Goo virtualization."
     },
     {
       "rule": "S3",
-      "symbol": "M:Goo.Widgets.Data.VirtualLists.Rows``1(System.Collections.Generic.IReadOnlyList{``0},System.Double,System.Func{``0,System.String},System.Func{``0,Goo.Blob},System.Boolean,System.Nullable{System.Int64},Goo.Widgets.Data.VirtualRowsState{``0})",
+      "symbol": "Goo.Widgets.Data.VirtualLists.Rows``1",
       "signature": "func Rows``1(IReadOnlyList[``0],float64,Func[``0,string],Func[``0,Blob],bool,int64?,VirtualRowsState[``0]?) Virtual",
       "reason": "The named CLR bridge exposes the measured-row policy without a second implementation."
     },
     {
       "rule": "S3",
-      "symbol": "M:Goo.Widgets.Data.VirtualRows``1(System.Collections.Generic.IReadOnlyList{``0},System.Double,System.Func{``0,System.String},System.Func{``0,Goo.Blob},System.Boolean,System.Nullable{System.Int64},Goo.Widgets.Data.VirtualRowsState{``0})",
+      "symbol": "Goo.Widgets.Data.VirtualRows``1",
       "signature": "func VirtualRows``1(IReadOnlyList[``0],float64,Func[``0,string],Func[``0,Blob],bool,int64?,VirtualRowsState[``0]?) Virtual",
       "reason": "The measured-row factory connects typed data directly to Goo virtualization."
     },
     {
       "rule": "S9",
-      "symbol": "F:Goo.Widgets.Layout.ListRow.OnInvoke",
+      "symbol": "Goo.Widgets.Layout.ListRow.OnInvoke",
       "signature": "var OnInvoke Action?",
       "reason": "Double-click and Enter invoke the row. OnClick separately handles single-click and Space."
     },
     {
       "rule": "S19",
-      "symbol": "F:Goo.Widgets.Inputs.FormField.CreateContent",
+      "symbol": "Goo.Widgets.Inputs.FormField.CreateContent",
       "signature": "var CreateContent Func[AccessibilityRelationships,Blob]?",
       "reason": "The relationship object is the complete context for attaching field metadata to a caller-owned editor."
     },
     {
       "rule": "S19",
-      "symbol": "F:Goo.Widgets.Layout.PropertyGridItem.CreateEditor",
+      "symbol": "Goo.Widgets.Layout.PropertyGridItem.CreateEditor",
       "signature": "var CreateEditor Func[AccessibilityRelationships,Blob]?",
       "reason": "The relationship object is the complete context for attaching property metadata to a caller-owned editor."
     },
     {
       "rule": "S19",
-      "symbol": "F:Goo.Widgets.Layout.SettingsRow.CreateControl",
+      "symbol": "Goo.Widgets.Layout.SettingsRow.CreateControl",
       "signature": "var CreateControl Func[AccessibilityRelationships,Blob]?",
       "reason": "The relationship object is the complete context for attaching settings metadata to a caller-owned control."
     },
     {
       "rule": "S21",
-      "symbol": "F:Goo.Widgets.Graphs.GraphCanvasInput.Height",
+      "symbol": "Goo.Widgets.Graphs.GraphCanvasInput.Height",
       "signature": "var Height float64",
       "reason": "Graph transforms and hit testing require a fixed logical-pixel viewport height. S20 still requires nullable overrides."
     },
     {
       "rule": "S21",
-      "symbol": "F:Goo.Widgets.Graphs.GraphCanvasInput.Width",
+      "symbol": "Goo.Widgets.Graphs.GraphCanvasInput.Width",
       "signature": "var Width float64",
       "reason": "Graph transforms and hit testing require a fixed logical-pixel viewport width. S20 still requires nullable overrides."
     },
     {
       "rule": "S21",
-      "symbol": "F:Goo.Widgets.Graphs.GraphNodeCard.Height",
+      "symbol": "Goo.Widgets.Graphs.GraphNodeCard.Height",
       "signature": "var Height float64",
       "reason": "The node occupies a fixed world-coordinate rectangle height. S20 still requires nullable overrides."
     },
     {
       "rule": "S21",
-      "symbol": "F:Goo.Widgets.Graphs.GraphNodeCard.Width",
+      "symbol": "Goo.Widgets.Graphs.GraphNodeCard.Width",
       "signature": "var Width float64",
       "reason": "The node occupies a fixed world-coordinate rectangle width. S20 still requires nullable overrides."
     }

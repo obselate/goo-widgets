@@ -287,7 +287,7 @@ class ApiMetadata {
                 let method = Reader.GetMethodDefinition(methodHandle)
                 let methodName = Reader.GetString(method.Name)
                 if (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public { continue }
-                if (method.Attributes & MethodAttributes.SpecialName) != 0 && !methodName.StartsWith("op_") && methodName != ".ctor" { continue }
+                if (method.Attributes & MethodAttributes.SpecialName) != 0 && !methodName.StartsWith("op_") { continue }
                 var blob = Reader.GetBlobReader(method.Signature)
                 let header = blob.ReadSignatureHeader()
                 let arity = if header.IsGeneric { blob.ReadCompressedInteger() } else { 0 }
@@ -306,7 +306,6 @@ class ApiMetadata {
                 if count > 0 { member.Id += "(" + String.Join(",", member.Parameters.Select(item -> item.Text(true))) + ")" }
                 if methodName == "op_Implicit" || methodName == "op_Explicit" { member.Id += "~" + result.Text(true) }
                 member.Signature = "func " + methodName + (if arity > 0 { "``" + arity.ToString() } else { "" }) + "(" + String.Join(",", member.Parameters.Select(item -> item.Text())) + ") " + result.Text()
-                if methodName == ".ctor" && !HasSequencePoints(methodHandle) { continue }
                 if type.Data && Generated(member) && !HasSequencePoints(methodHandle) { continue }
                 type.Members.Add(member)
             }

@@ -5,6 +5,7 @@ import Goo.Gestures
 import System
 import System.Collections.Generic
 
+/// An interactive controlled graph canvas with panning, zooming, selection, and node dragging.
 public open partial class GraphCanvas {
     private let navigation []GestureRecognizer
     private let nodeGestures Dictionary[string, []GestureRecognizer] = Dictionary[string, []GestureRecognizer]()
