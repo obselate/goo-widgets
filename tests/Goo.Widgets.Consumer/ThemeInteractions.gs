@@ -439,15 +439,16 @@ func ThemeBackgroundContracts() {
 }
 
 func ThemePolicyContracts() {
+    let defaults = Theme{}
     let partialWindow = Window{}
-    Theme.Attach(partialWindow, Theme{FontSize: 19.0})
+    Theme.Attach(partialWindow, defaults with{FontSize = 19.0})
     let partial = Theme.Read(partialWindow)
     Require(partial.DisabledOpacity == Theme.Default.DisabledOpacity,
         "A partial external theme lost its disabled opacity default.")
     using let literalHost = ThemePreferenceHost()
     literalHost.Resize(360, 280, 360, 280)
     let literalAccent = Color.Rgb(31, 91, 173)
-    let literalTheme = Theme{AccentColor: literalAccent}
+    let literalTheme = defaults with{AccentColor = literalAccent}
     let literalRoot = ThemeScopeHost(){
         Value = literalTheme with{BackdropColor = Color.Transparent, HoverColor = Color.Transparent}
     }
