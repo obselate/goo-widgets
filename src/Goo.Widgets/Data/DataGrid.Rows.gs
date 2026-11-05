@@ -138,14 +138,17 @@ public open partial class DataGrid {
                 cells.Children.Add(Button{
                     Width: snapshot.ExpandColumnWidth!!,
                     Height: height,
+                    FlexShrink: 0,
                     Focusable: false,
                     TabStop: false,
                     OnClick: () -> input.OnExpandedGroupChange?.Invoke(id, !groupExpanded.Contains(id)),
                     Accessibility: Accessibility{Hidden: true},
                     ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
                 })
+                cells.Children.Add(Container{FlexGrow: 1, FlexBasis: 0, MinWidth: 0, content})
+            } else {
+                cells.Children.Add(content)
             }
-            cells.Children.Add(content)
         } else {
             if leading > 0.0 {
                 let controls = Container{

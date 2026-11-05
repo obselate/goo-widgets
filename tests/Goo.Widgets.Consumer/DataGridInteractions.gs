@@ -74,6 +74,20 @@ internal class DataGridHeightHost : Cell {
         }
     }
 
+    private func CaptureRow(input DataGridInput, row DataGridRow, root Container) Container {
+        RowBlobs[row.Id!!] = root
+        RowBuilds++
+        if Navigation {
+            root.OnPointerDown = (e PointerEvent) -> {
+                if e.Button == PointerButton.Secondary {
+                    ContextRequests++
+                    ContextSelected = AllSelected || Array.IndexOf(SelectedIds, row.Id!!) >= 0
+                }
+            }
+        }
+        return root
+    }
+
     private func RowHeader(input DataGridInput, row DataGridRow) Blob {
         let handle = ElementHandle()
         RowHeaders[row.Id!!] = handle
@@ -224,19 +238,7 @@ internal class DataGridHeightHost : Cell {
                 Root = root
                 return root
             },
-            CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
-                RowBlobs[row.Id!!] = root
-                RowBuilds++
-                if Navigation {
-                    root.OnPointerDown = (e PointerEvent) -> {
-                        if e.Button == PointerButton.Secondary {
-                            ContextRequests++
-                            ContextSelected = AllSelected || Array.IndexOf(SelectedIds, row.Id!!) >= 0
-                        }
-                    }
-                }
-                return root
-            }
+            CreateRow: CaptureRow
         }
     )
         if !Navigation {
@@ -1214,6 +1216,8 @@ func DataGridNavigationInteractions() {
         GridKey(window, Key.Down)
         GridKey(window, Key.Down, KeyModifiers{Ctrl: true, Shift: true})
         Require(host.SelectedIds.Length == 99, "Ctrl+Shift+Down did not add the boundary range")
+        GridKey(window, Key.Up, KeyModifiers{Ctrl: true, Shift: true})
+        Require(host.ActiveIndex == 0 && host.SelectedIds.Length == 99, "Ctrl+Shift+Up did not preserve the additive boundary range")
         GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Down)
         GridKey(window, Key.PageDown, KeyModifiers{Shift: true})
@@ -1225,9 +1229,11 @@ func DataGridNavigationInteractions() {
         host.Rebuild()
         PumpFrames(window, 6)
         Require(host.Editor.Focus(), "Composed cell editor did not focus")
+        let editorSelection = host.SelectedIds
         GridKey(window, Key.A, KeyModifiers{Ctrl: true})
         Require(window.PlatformInput.Selection!!.Active.Offset - window.PlatformInput.Selection!!.Anchor.Offset == 14 &&
-            !host.AllSelected && host.SelectAllRequests == 1, "Grid stole native editor select-all")
+            Object.ReferenceEquals(editorSelection, host.SelectedIds) && !host.AllSelected &&
+                host.SelectAllRequests == 1, "Grid stole native editor select-all")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
         Require(host.CopyRequests == 2, "Grid stole native editor copy")
     } finally {
