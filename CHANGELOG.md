@@ -13,7 +13,7 @@
 - Add TimePicker with culture-based clock segments, minute increments, nullable clearing and read-only selection.
 - Upgrade Gsharp.NET.Sdk to 0.5.212 and Markdig to 1.6.0.
 - Add RatingControl with whole or half-star selection, hover preview, keyboard navigation and read-only display.
-- Add Skeleton text, circle, and rectangle placeholders with paint-only shimmer and static reduced-motion rendering.
+- Add Skeleton text, circle, and rectangle placeholders with paint-only shimmer that pauses while fully clipped and stays static under reduced motion.
 - Share interaction styles across directly focused controls, keep selected values through hover and press, and use one focus ring, disabled opacity and motion policy.
 - Upgrade Goo to 0.27.11, derive virtual option set sizes from core, and verify held-key DataGrid navigation without rebuilding unchanged rows.
 - Expose SplitPane separator orientation and range values, and DataGrid logical row and column indices and counts.

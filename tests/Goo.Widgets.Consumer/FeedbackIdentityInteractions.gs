@@ -324,6 +324,7 @@ func FeedbackIdentityInteractions() {
 internal class SkeletonHost : Cell {
     internal let Before ElementHandle = ElementHandle()
     internal let After ElementHandle = ElementHandle()
+    internal let Viewport ElementHandle = ElementHandle()
     internal var Animated bool?
     internal var Named bool
     internal var Builds int32
@@ -338,18 +339,23 @@ internal class SkeletonHost : Cell {
     public override func Build() Blob -> Container{
         Width: Percent(100), Height: Percent(100), Padding: 20.0, Gap: 12.0,
         Button{Handle: Before, Focusable: true, Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Before"}},
-        Cell.Mount[SkeletonInput, Skeleton]("text", SkeletonInput{
-            Width: Percent(100), Animated: Animated, AccessibilityName: Named ? "Loading text": nil,
-            CreateRoot: (input, root) -> Capture(0, root),
-        }),
-        Cell.Mount[SkeletonInput, Skeleton]("circle", SkeletonInput{
-            Variant: SkeletonVariant.Circle, Animated: Animated, AccessibilityName: Named ? "Loading avatar": nil,
-            CreateRoot: (input, root) -> Capture(1, root),
-        }),
-        Cell.Mount[SkeletonInput, Skeleton]("rectangle", SkeletonInput{
-            Variant: SkeletonVariant.Rectangle, Width: Percent(100), Animated: Animated, AccessibilityName: "Loading preview",
-            CreateRoot: (input, root) -> Capture(2, root),
-        }),
+        Container{
+            Handle: Viewport, Height: 200, FlexShrink: 0, Gap: 12,
+            OverflowY: Overflow.Scroll, ScrollbarVisibilityY: ScrollbarVisibility.Hidden,
+            Cell.Mount[SkeletonInput, Skeleton]("text", SkeletonInput{
+                Width: Percent(100), Animated: Animated, AccessibilityName: Named ? "Loading text": nil,
+                CreateRoot: (input, root) -> Capture(0, root),
+            }),
+            Cell.Mount[SkeletonInput, Skeleton]("circle", SkeletonInput{
+                Variant: SkeletonVariant.Circle, Animated: Animated, AccessibilityName: Named ? "Loading avatar": nil,
+                CreateRoot: (input, root) -> Capture(1, root),
+            }),
+            Cell.Mount[SkeletonInput, Skeleton]("rectangle", SkeletonInput{
+                Variant: SkeletonVariant.Rectangle, Width: Percent(100), Animated: Animated, AccessibilityName: "Loading preview",
+                CreateRoot: (input, root) -> Capture(2, root),
+            }),
+            Container{Height: 512, FlexShrink: 0},
+        },
         Button{Handle: After, Focusable: true, Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "After"}},
     }
 }
@@ -395,6 +401,17 @@ func SkeletonInteractions() {
         let second = ThemeCapture(window)
         Require(SkeletonDifference(first, second) > 100 && host.Builds == builds,
             "Skeleton shimmer did not move without rebuilding")
+        let visibleFrames = presents
+        FeedbackWait(window, 150)
+        Require(presents > visibleFrames, "Visible Skeleton did not present frames")
+        Require(host.Viewport.JumpTo(0.0, 512.0), "Skeleton viewport did not scroll")
+        FeedbackWait(window, 100)
+        let clippedFrames = presents
+        FeedbackWait(window, 150)
+        Require(presents == clippedFrames, "Fully clipped Skeleton continued presenting frames")
+        Require(host.Viewport.JumpTo(0.0, 0.0), "Skeleton viewport did not restore")
+        FeedbackWait(window, 150)
+        Require(presents > clippedFrames, "Skeleton did not resume after scrolling into view")
         host.Animated = false
         host.Named = true
         host.Rebuild()
@@ -424,8 +441,7 @@ func SkeletonInteractions() {
             }
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 4)
+        CloseNativeWindow(window)
     }
     using let baseline = ThemePreferenceHost()
     baseline.Resize(640, 480, 640, 480)
@@ -483,8 +499,7 @@ func SkeletonInteractions() {
                 "Skeleton gallery content did not fit the scaled window")
         }
     } finally {
-        proof.RequestClose()
-        PumpFrames(proof, 4)
+        CloseNativeWindow(proof)
     }
-    Console.WriteLine("PASS: Skeleton text/circle/rectangle, moving paint without rebuilds, static pixels, hidden or busy accessibility, pointer/Tab exclusion, Ink/Bone/high contrast, 150 percent viewport fit, reduced-motion and Animated false idle")
+    Console.WriteLine("PASS: Skeleton text/circle/rectangle, moving paint without rebuilds, clipped idle and resume, static pixels, hidden or busy accessibility, pointer/Tab exclusion, Ink/Bone/high contrast, 150 percent viewport fit, reduced-motion and Animated false idle")
 }

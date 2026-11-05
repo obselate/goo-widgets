@@ -54,13 +54,19 @@ public open class Skeleton : Cell[SkeletonInput] {
 
     /// Creates the retained paint animation and observes width changes.
     public init() {
-        sweep = AnimateValue(Point{})
+        sweep = AnimateValue(Point{}, MotionConverter[Point](1,
+            ReadCoordinate,
+            (coordinates []float64) -> Point{X: coordinates[0]}))
         handle.MetricsChanged += (metrics ElementMetrics) -> {
             if metrics.BorderBox.Width > 0.0 && width != metrics.BorderBox.Width {
                 width = metrics.BorderBox.Width
                 Start()
             }
         }
+    }
+
+    private func ReadCoordinate(value Point, coordinates []float64) {
+        coordinates[0] = value.X
     }
 
     protected override func Build(input SkeletonInput) Blob {
@@ -127,11 +133,13 @@ public open class Skeleton : Cell[SkeletonInput] {
         }
         let distance = width
         let seconds = period / 1000.0
-        sweep.To(Point{}, (from float64, to float64, velocity float64) -> SkeletonSweep(distance, seconds), Motion.Tween(0.0))
+        sweep.To(Point{}, (from float64, to float64, velocity float64) -> SkeletonSweep(distance, seconds))
     }
 }
 
 internal sealed class SkeletonSweep(Width float64, Period float64) : Simulation {
+    public override prop IsInfinite bool { get -> true }
+
     public override func Position(elapsed float64) float64 -> Width * (2 * (elapsed / Period - Math.Floor(elapsed / Period)) - 1)
     public override func Velocity(elapsed float64) float64 -> 2 * Width / Period
     public override func Done(elapsed float64) bool -> false
