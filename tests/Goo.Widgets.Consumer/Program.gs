@@ -200,26 +200,35 @@ func NumericAndIdentityRegressions() {
 
     var rejected bool = false
     try {
-        SearchList{
-            Items: []SelectionItem{
-                SelectionItem{Id: "duplicate", Label: "First"},
-                SelectionItem{Id: "duplicate", Label: "Second"},
-            }
-        }.Build()
+        RunContracts(
+            () -> {},
+            content: SearchList{
+                Items: []SelectionItem{
+                    SelectionItem{Id: "duplicate", Label: "First"},
+                    SelectionItem{Id: "duplicate", Label: "Second"},
+                }
+            }.Build()
+        )
     } catch (error ArgumentException) {
         rejected = true
     }
     Require(rejected, "Duplicate virtual-list identifiers reached Goo reconciliation.")
 
-    let empty = (
-        SearchList{
+    var empty Container?
+    RunContracts(
+        () -> {},
+        content: SearchList{
             Items: []SelectionItem{SelectionItem{Id: "one", Label: "First", Detail: "Document"}},
             Query: "missing",
             EmptyText: "Nothing found",
-        }.Build() as Container
-    )!!
+            CustomizeRoot: (root Container) -> {
+                empty = root
+                return root
+            },
+        }.Build()
+    )
     Require(
-        empty.Children.Count == 2 && (empty.Children[1] as Text)!!.Content == "Nothing found",
+        empty != nil && empty.Children.Count == 2 && (empty.Children[1] as Text)!!.Content == "Nothing found",
         "No-match search did not replace its virtual viewport with the empty state."
     )
 }
@@ -298,6 +307,7 @@ func MaterialIconRegressions() {
 internal class ContractHost : Cell {
     private let action Action
     internal var Complete bool
+    internal var Content Blob?
 
     internal init(action Action) {
         this.action = action
@@ -308,14 +318,14 @@ internal class ContractHost : Cell {
             action()
             Complete = true
         }
-        return Container{}
+        return Content ?? Container{}
     }
 }
 
-func RunContracts(action Action, theme Theme? = nil) {
+func RunContracts(action Action, theme Theme? = nil, content Blob? = nil) {
     using let embedded = ThemePreferenceHost()
     embedded.Resize(320, 240, 320, 240)
-    let host = ContractHost(action)
+    let host = ContractHost(action){Content = content}
     let window = Window{Root: host}
     if let value = theme {
         Theme.Attach(window, value)

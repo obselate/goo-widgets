@@ -54,7 +54,9 @@ public data struct SearchList {
     internal var ItemCount int32
 
     /// Builds a fresh list and rejects duplicate identifiers or invalid geometry.
-    public func Build() Blob {
+    public func Build() Blob -> Cell.Mount[SearchList, SearchListState](nil, this)
+
+    internal func BuildContent(indices[]int32, positions Dictionary[string, int32]) Blob {
         let theme = Theme.Read()
         let width = Width ?? 280.0
         let height = Height ?? 240.0
@@ -87,24 +89,6 @@ public data struct SearchList {
             OnSelect: onSelect,
             Customize: customizeRow,
         }
-        let filtered = List[int32]()
-        let identifiers = HashSet[string](StringComparer.Ordinal)
-        if ItemAt == nil {
-            for index in 0 ... items.Length {
-                let item = items[index]
-                let id = item.Id ?? ""
-                if !identifiers.Add(id) {
-                    throw ArgumentException("SearchList item identifiers must be unique: " + id)
-                }
-                if query.Length == 0 || ((item.Label ?? "") + " " + (item.Detail ?? "")).IndexOf(
-                    query,
-                    StringComparison.OrdinalIgnoreCase
-                ) >= 0 {
-                    filtered.Add(index)
-                }
-            }
-        }
-        let indices = filtered.ToArray()
         let prepared = ItemAt
         let count = prepared == nil ? indices.Length: ItemCount
 
@@ -152,8 +136,11 @@ public data struct SearchList {
                 }
             },
             Index = (key string) -> {
+                if prepared == nil {
+                    return positions.TryGetValue(key, out var index) ? index: -1
+                }
                 for index in 0 ... count {
-                    let item = prepared == nil ? items[indices[index]]: prepared!!(index)
+                    let item = prepared(index)
                     let id = item.Id ?? ""
                     if key.Length == id.Length + 5 && key.StartsWith("item:", StringComparison.Ordinal)
                     && key.EndsWith(id, StringComparison.Ordinal) {
@@ -208,6 +195,45 @@ public data struct SearchList {
             return customize(root)
         }
         return root
+    }
+}
+
+internal class SearchListState : Cell[SearchList] {
+    private var items[]?SelectionItem
+    private var query string?
+    private var prepared bool
+    private var indices[]int32 = []int32{}
+    private var positions Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
+
+    protected override func Build(input SearchList) Blob {
+        if input.ItemAt == nil &&
+            (!prepared || !Object.ReferenceEquals(items, input.Items) || query != input.Query) {
+            let filtered = List[int32]()
+            let identifiers = HashSet[string](StringComparer.Ordinal)
+            let lookup = Dictionary[string, int32](StringComparer.Ordinal)
+            let nextItems = input.Items ?? []SelectionItem{}
+            let nextQuery = input.Query ?? ""
+            for index in 0 ... nextItems.Length {
+                let item = nextItems[index]
+                let id = item.Id ?? ""
+                if !identifiers.Add(id) {
+                    throw ArgumentException("SearchList item identifiers must be unique: " + id)
+                }
+                if nextQuery.Length == 0 || ((item.Label ?? "") + " " + (item.Detail ?? "")).IndexOf(
+                    nextQuery,
+                    StringComparison.OrdinalIgnoreCase
+                ) >= 0 {
+                    lookup.Add("item:" + id, filtered.Count)
+                    filtered.Add(index)
+                }
+            }
+            items = input.Items
+            query = input.Query
+            indices = filtered.ToArray()
+            positions = lookup
+            prepared = true
+        }
+        return input.BuildContent(indices, positions)
     }
 }
 
