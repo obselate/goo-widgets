@@ -494,7 +494,12 @@ func OverlayInteractions() {
     host.AttachWindow(window)
     window.Open()
     try {
-        PumpFrames(window, 12)
+        Require(window.RequestActivation() == WindowOperationResult.Accepted, "Overlay activation request failed")
+        WaitVirtual(
+            window,
+            () -> window.IsVisible && window.IsFocused && host.TooltipTarget.IsMounted &&
+                host.TooltipTarget.BorderBox.Width > 0.0 && host.TooltipTarget.BorderBox.Height > 0.0
+        )
         let id = OnlyNativeWindow()
         host.Before.Focus()
         let tooltipBounds = host.TooltipTarget.BorderBox

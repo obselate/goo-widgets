@@ -30,12 +30,14 @@ internal class TextSurfaceHost : Cell {
     internal var Highlights int32
     internal var CodeBuilds int32
     internal var Highlighter Action[TextPresentationLayer, SyntaxPalette]?
+    internal let Handle ElementHandle = ElementHandle()
     internal let QueryHandle ElementHandle = ElementHandle()
     internal let AreaHandle ElementHandle = ElementHandle()
     internal let CodeHandle ElementHandle = ElementHandle()
     internal let Source string = "let value = 42\nsecond\nthird\nfourth\nfifth\nsixth"
 
     public override func Build() Blob -> Container{
+        Handle: Handle,
         Width: Percent(100),
         Padding: 16,
         Gap: 12,
@@ -297,7 +299,12 @@ func TextSurfaceInteractions() {
         window.UiScale = 1.5F
         for width in[]int32{320, 700, 2560} {
             window.Width = width
-            PumpFrames(window, 5)
+            WaitVirtual(
+                window,
+                () -> window.Width == width && window.Height == 1440 && Math.Abs(
+                    host.Handle.BorderBox.Width - float64(width) / 1.5
+                ) < 1.0
+            )
             for handle in[]ElementHandle{host.QueryHandle, host.AreaHandle, host.CodeHandle} {
                 let bounds = handle.BorderBox
                 Require(
