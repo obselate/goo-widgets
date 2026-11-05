@@ -420,6 +420,7 @@ func MarkdownInteractions() {
         Require(restored.Handle!!.IsMounted && restored.Controller.Selection.Equals(selection),
             "Virtual Markdown lost per-block selection after remounting: mounted=" + restored.Handle!!.IsMounted.ToString() +
             " expected=" + selection.ToString() + " actual=" + restored.Controller.Selection.ToString())
+        PumpFrames(window, 30)
         let links = host.Links
         CompositeClick(window, host.LinkContent!!)
         PumpFrames(window, 8)
