@@ -56,14 +56,14 @@ Rules marked **review** require source review or behavior verification. The chec
 | ColorPicker | int32 | int32, packed 24-bit sRGB. |
 | DatePicker | DateOnly? | DateOnly?. Nil is no date and can be emitted to clear it. |
 | TimePicker | TimeOnly? | TimeOnly?. Nil is no time and can be emitted to clear it. |
-| NumberInput, Slider, SplitPane | float64 | float64. SplitUnit selects ratio or pixels for SplitPane. |
+| NumberInput, RatingControl, Slider, SplitPane | float64 | float64. SplitUnit selects ratio or pixels for SplitPane. |
 | TextArea | string? | string. Nil preserves an external document or initializes the owned document to empty. |
 | TextField | string? | string. Nil selects an empty initial string. Controlled selects synchronization while focused. |
 | ToggleSwitch | bool | bool. |
 | TokenInput | []?string | []string. Nil selects an empty token array. |
 
-- Disabled and AccessibilityName are required on TextField, TextArea, DatePicker, TimePicker, NumberInput, TokenInput, Calendar, Checkbox, ColorPicker, ComboBox, RadioGroup, SearchList, Slider, ToggleGroup and ToggleSwitch.
-- ReadOnly is required on TextField, TextArea, DatePicker, TimePicker, NumberInput and TokenInput. Keep it connected to native editing behavior.
+- Disabled and AccessibilityName are required on TextField, TextArea, DatePicker, TimePicker, NumberInput, TokenInput, Calendar, Checkbox, ColorPicker, ComboBox, RadioGroup, RatingControl, SearchList, Slider, ToggleGroup and ToggleSwitch.
+- ReadOnly is required on TextField, TextArea, DatePicker, TimePicker, NumberInput, RatingControl and TokenInput. Keep it connected to native editing behavior.
 - FormField, TextField, TextArea and NumberInput expose Label, Description and Error. Other controls compose FormField. Existing Label or Description convenience fields keep the same types. Keep Invalid where an invalid state without error text is useful. DatePicker.InvalidMessage is a parse-failure message, not field validation metadata.
 - Apply S12 to ComboBox, DatePicker, MenuButton, Menu, CommandPalette, ModalDialog, Popover and Toast. Keep reason-bearing or item-bearing OnDismiss and the ModalDialog OnCancel and OnConfirm actions.
 - PropertyGrid and NavigationRail named expanded ID sets use nil for all expanded. A non-nil array is the explicit expanded set. Presentation-only expanded indicators need no callback.
