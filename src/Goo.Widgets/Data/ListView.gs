@@ -54,7 +54,7 @@ public data struct ListViewInput {
     /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectionChange Action[[]string]?
     /// Receives the activated item ID. Nil ignores activation.
-    var OnInvoke Action[string]?
+    var OnClick Action[string]?
     /// Controlled keyboard-active item ID, independent of selection. Nil lets the widget choose an eligible item.
     var ActiveId string?
     /// Receives the new keyboard-active item ID after navigation. Nil ignores the notification.
@@ -364,7 +364,7 @@ public open class ListView : Cell[ListViewInput] {
             if !fromChild {
                 Select(id, modifiers.Ctrl || modifiers.Super, modifiers.Shift)
                 if presses == 2 {
-                    input.OnInvoke?.Invoke(id)
+                    input.OnClick?.Invoke(id)
                 }
             }
         }
@@ -388,7 +388,7 @@ public open class ListView : Cell[ListViewInput] {
                 } else if request.Action == AccessibilityAction.Select {
                     Select(id, false, false)
                 } else if request.Action == AccessibilityAction.Activate {
-                    input.OnInvoke?.Invoke(id)
+                    input.OnClick?.Invoke(id)
                 } else {
                     return false
                 }
@@ -423,7 +423,7 @@ public open class ListView : Cell[ListViewInput] {
         } else if e.Key == Key.Space {
             Select(activeId!!, primary, e.Modifiers.Shift)
         } else if e.Key == Key.Enter {
-            input.OnInvoke?.Invoke(activeId!!)
+            input.OnClick?.Invoke(activeId!!)
         } else {
             typeAhead.ActiveId = activeId
             typeAhead.HandleKey(e)

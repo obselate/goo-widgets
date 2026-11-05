@@ -23,7 +23,7 @@ public data struct MenuItem {
     /// Display-only keyboard chord. Nil omits the shortcut label.
     var Shortcut KeyBinding?
     /// Overrides the menu's shared activation callback for this item.
-    var OnActivate Action?
+    var OnClick Action?
 }
 
 /// Use Anchor for a trigger menu or WindowPoint for a context menu; Open remains host-owned.
@@ -37,9 +37,9 @@ public data struct MenuInput {
     /// Root menu entries in display order. Nil supplies no entries. IDs must be unique across all levels.
     var Items[]?MenuItem
     /// Receives the activated leaf item ID unless its own callback overrides it. Runs before optional dismissal. Nil ignores the request.
-    var OnActivate Action[string]?
-    /// Requests dismissal after a user dismissal action. Nil ignores the request.
-    var OnDismiss Action?
+    var OnClick Action[string]?
+    /// Requests visibility changes after user dismissal. Nil ignores the request.
+    var OnOpenChange Action[bool]?
     /// Enabled root item focused when the menu opens. Nil selects the first item.
     var InitialFocusId string?
     /// Nil resolves to true; false keeps the menu open after leaf activation.
@@ -50,10 +50,10 @@ public data struct MenuInput {
     var Placement PopoverPlacement
     /// Preferred submenu side; LeftStart or RightStart. Nil opens toward the end edge of the theme direction.
     var SubmenuPlacement PopoverPlacement?
-    /// Positive menu width in logical pixels. Zero uses the Popover default of 280.
-    var Width float64
-    /// Positive height limit in logical pixels. Zero uses the Popover default of 360.
-    var MaxHeight float64
+    /// Menu width. Nil uses the Popover default of 280.
+    var Width Length?
+    /// Height limit. Nil uses the Popover default of 360.
+    var MaxHeight Length?
     /// Overlay stacking order. Zero selects the widget default layer.
     var ZIndex int32
     /// Accessible name override. Nil uses the widget label or localized default.
@@ -284,10 +284,7 @@ public open class Menu : Cell[MenuInput] {
         if let viewport = current.Viewport {
             popup.Viewport = viewport
         }
-        if current.MaxHeight != 0.0 {
-            popup.MaxHeight = current.MaxHeight
-        }
-        if current.Width != 0.0 {
+        if current.Width != nil {
             popup.Width = current.Width
         }
         if selected != "" {
@@ -404,19 +401,19 @@ public open class Menu : Cell[MenuInput] {
             OpenChild(depth, id)
             return
         }
-        if let callback = item.OnActivate {
+        if let callback = item.OnClick {
             callback()
         } else {
-            current.OnActivate?.Invoke(id)
+            current.OnClick?.Invoke(id)
         }
         if current.DismissOnActivate ?? true {
-            current.OnDismiss?.Invoke()
+            current.OnOpenChange?.Invoke(false)
         }
     }
 
     private func CloseLevel(depth int32) {
         if depth == 0 {
-            current.OnDismiss?.Invoke()
+            current.OnOpenChange?.Invoke(false)
             return
         }
         let parentId = path.Count >= depth ? path[depth - 1]: ""

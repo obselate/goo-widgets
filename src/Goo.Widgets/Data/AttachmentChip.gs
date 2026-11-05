@@ -23,7 +23,7 @@ public data struct AttachmentChip {
     /// Requests removal when the remove action is activated. Nil hides the action.
     var OnRemove Action?
     /// Requests opening the attachment when its name is activated. Nil supplies no open action.
-    var OnOpen Action?
+    var OnClick Action?
     /// Requests download when the download action is activated. Nil hides the action.
     var OnDownload Action?
     /// Root layout width. Nil uses 280 logical pixels.
@@ -88,8 +88,8 @@ public data struct AttachmentChip {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Disabled: Disabled,
-            Focusable: !Disabled && OnOpen != nil,
-            OnClick: OnOpen,
+            Focusable: !Disabled && OnClick != nil,
+            OnClick: OnClick,
             Focus: theme.FocusStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
             Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, theme.MutedTextColor),

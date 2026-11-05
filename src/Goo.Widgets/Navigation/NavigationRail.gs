@@ -27,10 +27,10 @@ public data struct NavigationRailInput {
     var OnSelect Action[string]?
     /// Grouped navigation entries in display order. Nil supplies no groups.
     var Groups[]?NavigationGroup
-    /// IDs of groups whose items are hidden. Nil expands every group.
-    var CollapsedGroups[]?string
-    /// Receives the group ID when its disclosure is activated. Nil ignores the request.
-    var OnGroupToggle Action[string]?
+    /// IDs of expanded groups. Nil expands every group. An empty array collapses all groups.
+    var ExpandedGroupIds[]?string
+    /// Receives the group ID and requested new expanded state. Nil ignores the request.
+    var OnGroupExpandedChange Action[string, bool]?
     /// Displayed counts indexed by navigation item ID. Nil displays no counts.
     var Counts Dictionary[string, int32]?
     /// Navigation entries fixed at the bottom of the rail. Nil supplies no bottom entries.
@@ -39,14 +39,14 @@ public data struct NavigationRailInput {
     var ActiveMarker bool?
     /// Accessible tab-list name. Nil resolves to "Navigation".
     var AccessibilityName string?
-    /// Width while collapsed. Zero resolves to 64.
-    var CollapsedWidth float64
-    /// Width while expanded. Zero resolves to 220.
-    var ExpandedWidth float64
+    /// Width while collapsed. Nil resolves to 64.
+    var CollapsedWidth float64?
+    /// Width while expanded. Nil resolves to 220.
+    var ExpandedWidth float64?
     /// Height. Nil resolves to 100%.
     var Height Length?
-    /// Item height. Zero uses the nearest theme control height.
-    var ItemHeight float64
+    /// Item height. Nil uses the nearest theme control height.
+    var ItemHeight float64?
     /// Gap between items. Nil uses the nearest theme gap and preserves explicit zero.
     var Gap float64?
     /// Horizontal item padding. Nil uses the nearest theme padding and preserves explicit zero.
@@ -67,10 +67,10 @@ public data struct NavigationRailInput {
     var TextColor Color?
     /// Selected text color. Nil uses the nearest theme.
     var SelectedTextColor Color?
-    /// Label font size. Zero uses the nearest theme font size.
-    var FontSize float64
-    /// Label font weight. Zero uses the nearest theme label font weight.
-    var FontWeight int32
+    /// Label font size. Nil uses the nearest theme font size.
+    var FontSize float64?
+    /// Label font weight. Nil uses the nearest theme label font weight.
+    var FontWeight int32?
     /// Optional label font family.
     var FontFamily string?
     /// Rail opacity. Nil resolves to 1 and preserves explicit zero.
@@ -85,25 +85,12 @@ public data struct NavigationRailInput {
     internal func Resolve(theme Theme) NavigationRailInput -> this with{
         Items = Items ?? []NavigationItem{},
         Groups = Groups ?? []NavigationGroup{},
-        CollapsedGroups = CollapsedGroups ?? []string{},
         BottomItems = BottomItems ?? []NavigationItem{},
         AccessibilityName = AccessibilityName ?? theme.Text("Navigation"),
-        CollapsedWidth = if CollapsedWidth == 0.0 {
-            64.0
-        } else {
-            CollapsedWidth
-        },
-        ExpandedWidth = if ExpandedWidth == 0.0 {
-            220.0
-        } else {
-            ExpandedWidth
-        },
+        CollapsedWidth = CollapsedWidth ?? 64.0,
+        ExpandedWidth = ExpandedWidth ?? 220.0,
         Height = Height ?? Percent(100.0),
-        ItemHeight = if ItemHeight == 0.0 {
-            theme.ControlHeight
-        } else {
-            ItemHeight
-        },
+        ItemHeight = ItemHeight ?? theme.ControlHeight,
         Gap = Gap ?? theme.ControlGap,
         ItemPaddingHorizontal = ItemPaddingHorizontal ?? theme.ControlPadding,
         ItemGap = ItemGap ?? theme.ControlGap,
@@ -116,16 +103,8 @@ public data struct NavigationRailInput {
         TextColor = TextColor ?? theme.ChromeTextColor,
         SelectedTextColor = SelectedTextColor ??
             (theme.Selection == SelectionStyle.Indicator ? theme.TextColor: theme.OnAccentColor),
-        FontSize = if FontSize == 0.0 {
-            theme.FontSize
-        } else {
-            FontSize
-        },
-        FontWeight = if FontWeight == 0 {
-            theme.LabelFontWeight
-        } else {
-            FontWeight
-        },
+        FontSize = FontSize ?? theme.FontSize,
+        FontWeight = FontWeight ?? theme.LabelFontWeight,
         Opacity = Opacity ?? 1.0,
         Transform = Transform ?? PanelTransform{},
         CreateItem = nil,
@@ -155,7 +134,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 if String.IsNullOrEmpty(group.Id) || !groupIds.Add(group.Id) {
                     throw ArgumentException("Rail group IDs must be nonempty and unique")
                 }
-                if Array.IndexOf(input.CollapsedGroups!!, group.Id) < 0 {
+                if input.ExpandedGroupIds == nil || Array.IndexOf(input.ExpandedGroupIds!!, group.Id) >= 0 {
                     visible.AddRange(group.Items ?? []NavigationItem{})
                 }
             }
@@ -199,7 +178,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 let selected = id == resolved.SelectedId
                 button = Button{
                     Width: Percent(100.0),
-                    Height: resolved.ItemHeight,
+                    Height: resolved.ItemHeight!!,
                     Padding: Edges{Right: resolved.ItemPaddingHorizontal!!, Left: resolved.ItemPaddingHorizontal!!},
                     Gap: resolved.ItemGap!!,
                     BorderRadius: resolved.ItemBorderRadius!!,
@@ -237,8 +216,8 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 if resolved.Expanded || item.Content == nil {
                     let text = Text{
                         Content: label,
-                        FontSize: resolved.FontSize,
-                        FontWeight: resolved.FontWeight,
+                        FontSize: resolved.FontSize!!,
+                        FontWeight: resolved.FontWeight!!,
                         TextWrap: TextWrap.NoWrap,
                         TextTrimming: TextTrimming.Ellipsis,
                     }
@@ -311,9 +290,9 @@ public open class NavigationRail : Cell[NavigationRailInput] {
         let root = Container{
             LineHeight: theme.LineHeight,
             Width: if resolved.Expanded {
-                resolved.ExpandedWidth
+                resolved.ExpandedWidth!!
             } else {
-                resolved.CollapsedWidth
+                resolved.CollapsedWidth!!
             },
             Height: resolved.Height!!,
             Gap: resolved.Gap!!,
@@ -341,14 +320,14 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             root.Children.Add(byId[item.Id!!])
         }
         for group in input.Groups!! {
-            let collapsed = Array.IndexOf(input.CollapsedGroups!!, group.Id) >= 0
+            let collapsed = input.ExpandedGroupIds != nil && Array.IndexOf(input.ExpandedGroupIds!!, group.Id) < 0
             let heading = Button{
                 Key: "group-" + group.Id,
-                MinHeight: resolved.ItemHeight,
+                MinHeight: resolved.ItemHeight!!,
                 Padding: theme.ControlPadding,
                 Color: theme.ChromeTextColor,
-                Focusable: input.OnGroupToggle != nil,
-                OnClick: () -> input.OnGroupToggle?.Invoke(group.Id),
+                Focusable: input.OnGroupExpandedChange != nil,
+                OnClick: () -> input.OnGroupExpandedChange?.Invoke(group.Id, collapsed),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: group.Label, Expanded: !collapsed},
                 Focus: theme.FocusStyle,
                 Text{Content: resolved.Expanded ? group.Label: collapsed ? "›": "⌄", FontSize: theme.CaptionFontSize},

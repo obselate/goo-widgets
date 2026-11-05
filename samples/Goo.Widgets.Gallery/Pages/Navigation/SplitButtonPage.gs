@@ -25,7 +25,7 @@ internal class SplitButtonExample : Cell {
                     isOpen = value
                     Rebuild()
                 },
-                OnActivate: Activate,
+                OnClick: Activate,
                 Items: []MenuItem{
                     MenuItem{Id: "Schedule send", Label: "Schedule send"},
                     MenuItem{Id: "Save as draft", Label: "Save as draft"},

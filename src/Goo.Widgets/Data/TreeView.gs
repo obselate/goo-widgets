@@ -67,7 +67,7 @@ public data struct TreeViewInput {
     /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectionChange Action[[]string]?
     /// Called when an unloaded branch opens. The host supplies Children and LoadingIds.
-    var LoadChildren Action[string]?
+    var OnLoadChildren Action[string]?
     /// IDs whose children are being loaded by the host. Nil marks no nodes as loading.
     var LoadingIds[]?string
     /// Requests editing of the active row. The host owns the editor and new label.
@@ -516,7 +516,7 @@ public open class TreeView : Cell[TreeViewInput] {
         input.OnExpandedChange?.Invoke(id, expanded)
         let node = rows[Index(id)].Node
         if expanded && node.HasChildren && node.Children == nil && !(input.LoadingIds ?? []string{}).Contains(id) {
-            input.LoadChildren?.Invoke(id)
+            input.OnLoadChildren?.Invoke(id)
         }
     }
 

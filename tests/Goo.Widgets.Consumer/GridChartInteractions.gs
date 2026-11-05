@@ -48,7 +48,7 @@ func GridChartContracts() {
         DonutChart{
             Series: values,
             ShowLegend: true,
-            OnActivate: (id string) -> {
+            OnClick: (id string) -> {
                 activated = id
             },
             OnHover: (id string?) -> {
@@ -282,7 +282,7 @@ internal class GridChartHost : Cell {
             ShowLegend: true,
             Center: Text{Content: "5.0", FontSize: 26, Color: "#f4f4f5"},
             AccessibilityName: "Capacity donut",
-            OnActivate: (id string) -> {
+            OnClick: (id string) -> {
                 Selected = id
             },
             OnHover: (id string?) -> {
@@ -297,7 +297,7 @@ internal class GridChartHost : Cell {
             ShowLegend: true,
             AccessibilityName: "Capacity bar",
             CreateSegment: Segment,
-            OnActivate: (id string) -> {
+            OnClick: (id string) -> {
                 Selected = id
             }
         }.Build()
@@ -332,13 +332,13 @@ internal class GraphActivationHost : Cell {
                 GraphNode{Id: "two", Label: "Second node", Position: Point{X: 300, Y: 100}},
                 GraphNode{Id: "disabled", Label: "Disabled node", Position: Point{X: 100, Y: 200}},
             },
-            SelectedNodeIds: Selected,
-            OnSelectionChanged: (ids[]string) -> {
+            SelectedIds: Selected,
+            OnSelectionChange: (ids[]string) -> {
                 Selected = ids
                 Requests++
                 Rebuild()
             },
-            CustomizeNode: (node GraphNode, card Container) -> {
+            CreateNode: (input GraphCanvasInput, node GraphNode, card Container) -> {
                 card.Handle = ElementHandle()
                 card.Disabled = node.Id == "disabled"
                 Cards[node.Id] = card

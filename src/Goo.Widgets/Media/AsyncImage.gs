@@ -28,10 +28,10 @@ public data struct AsyncImage {
     var ErrorTextColor Color?
     /// Root border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Root width. Zero resolves to 160.0.
-    var Width float64
-    /// Root height. Zero resolves to 120.0.
-    var Height float64
+    /// Root width. Nil resolves to 160.0.
+    var Width Length?
+    /// Root height. Nil resolves to 120.0.
+    var Height Length?
     /// Border width. Nil uses the nearest theme border width; explicit zero survives.
     var BorderWidth float64?
     /// Border radius. Nil uses the nearest theme radius; explicit zero survives.
@@ -48,10 +48,10 @@ public data struct AsyncImage {
     var Fit ImageFit?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Fallback text size. Zero uses the nearest theme font size.
-    var FontSize float64
-    /// Fallback text weight. Zero uses the nearest theme font weight.
-    var FontWeight int32
+    /// Fallback text size. Nil uses the nearest theme font size.
+    var FontSize float64?
+    /// Fallback text weight. Nil uses the nearest theme font weight.
+    var FontWeight int32?
     /// Creates the selected image from resolved props.
     var CreateImage Func[AsyncImage, Image]?
     /// Creates the selected placeholder from resolved props.
@@ -78,16 +78,8 @@ public data struct AsyncImage {
             PlaceholderTextColor = PlaceholderTextColor ?? theme.MutedTextColor,
             ErrorTextColor = ErrorTextColor ?? theme.DangerColor,
             BorderColor = BorderColor ?? theme.BorderColor,
-            Width = if Width == 0.0 {
-                160.0
-            } else {
-                Width
-            },
-            Height = if Height == 0.0 {
-                120.0
-            } else {
-                Height
-            },
+            Width = Width ?? 160.0,
+            Height = Height ?? 120.0,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
@@ -95,16 +87,8 @@ public data struct AsyncImage {
             Opacity = Opacity ?? 1.0,
             Fit = Fit ?? ImageFit.Cover,
             FontFamily = FontFamily ?? theme.FontFamily,
-            FontSize = if FontSize == 0.0 {
-                theme.FontSize
-            } else {
-                FontSize
-            },
-            FontWeight = if FontWeight == 0 {
-                theme.FontWeight
-            } else {
-                FontWeight
-            },
+            FontSize = FontSize ?? theme.FontSize,
+            FontWeight = FontWeight ?? theme.FontWeight,
             Transform = Transform ?? PanelTransform{},
             CreateImage = nil,
             CreatePlaceholder = nil,
@@ -127,8 +111,8 @@ public data struct AsyncImage {
                     resolved.ErrorText!!,
                     resolved.ErrorTextColor!!,
                     resolved.FontFamily,
-                    resolved.FontSize,
-                    resolved.FontWeight
+                    resolved.FontSize!!,
+                    resolved.FontWeight!!
                 )
             }
         } else if resolved.Loading {
@@ -142,8 +126,8 @@ public data struct AsyncImage {
                     resolved.PlaceholderText!!,
                     resolved.PlaceholderTextColor!!,
                     resolved.FontFamily,
-                    resolved.FontSize,
-                    resolved.FontWeight
+                    resolved.FontSize!!,
+                    resolved.FontWeight!!
                 )
             }
         } else if let createImage = createImage {
@@ -169,8 +153,8 @@ public data struct AsyncImage {
         }
         return Container{
             LineHeight: theme.LineHeight,
-            Width: resolved.Width,
-            Height: resolved.Height,
+            Width: resolved.Width!!,
+            Height: resolved.Height!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderWidth: resolved.BorderWidth!!,
             BorderColor: resolved.BorderColor!!,

@@ -187,7 +187,7 @@ public open class StatusBar : Cell[StatusBarInput], IDisposable {
                             openId = isOpen ? id: nil
                             Rebuild()
                         },
-                        OnActivate: item.OnMenuClick
+                        OnClick: item.OnMenuClick
                     }
                 )
             } else {

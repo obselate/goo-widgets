@@ -47,13 +47,13 @@ public data struct MediaTransportInput {
     /// Next action.
     var OnNext Action?
     /// Receives preview seek positions.
-    var OnSeekChanged Action[float64]?
+    var OnPositionChange Action[float64]?
     /// Receives committed seek positions.
-    var OnSeekCommitted Action[float64]?
+    var OnPositionCommit Action[float64]?
     /// Receives preview volume values.
-    var OnVolumeChanged Action[float64]?
+    var OnVolumeChange Action[float64]?
     /// Receives committed volume values.
-    var OnVolumeCommitted Action[float64]?
+    var OnVolumeCommit Action[float64]?
     /// Optional previous action content.
     var PreviousContent Blob?
     /// Optional play action content.
@@ -70,10 +70,10 @@ public data struct MediaTransportInput {
     var Gap float64?
     /// Gap between action buttons. Nil resolves to 8.0.
     var ActionGap float64?
-    /// Standard action button size. Zero resolves to 40.0.
-    var ActionSize float64
-    /// Play or pause button size. Zero resolves to 52.0.
-    var PrimaryActionSize float64
+    /// Standard action button size. Nil resolves to 40.0.
+    var ActionSize float64?
+    /// Play or pause button size. Nil resolves to 52.0.
+    var PrimaryActionSize float64?
     /// Root background. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Supporting text color. Nil uses the nearest theme.
@@ -154,8 +154,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                             Disabled: !resolved.CanSeek!!,
                             AccessibilityName: theme.Text("Media position"),
                             FormatValue: (value float64) -> FormatTime(value),
-                            OnChange: resolved.OnSeekChanged,
-                            OnCommit: resolved.OnSeekCommitted,
+                            OnChange: resolved.OnPositionChange,
+                            OnCommit: resolved.OnPositionCommit,
                             TrackColor: resolved.TrackColor,
                             FillColor: resolved.FillColor,
                             ThumbColor: resolved.FillColor,
@@ -204,8 +204,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                                 Disabled: !resolved.CanSetVolume!!,
                                 AccessibilityName: theme.Text("Volume"),
                                 FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
-                                OnChange: resolved.OnVolumeChanged,
-                                OnCommit: resolved.OnVolumeCommitted,
+                                OnChange: resolved.OnVolumeChange,
+                                OnCommit: resolved.OnVolumeCommit,
                                 TrackColor: resolved.TrackColor,
                                 FillColor: resolved.FillColor,
                                 ThumbColor: resolved.FillColor,
@@ -231,16 +231,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         if !Double.IsFinite(input.Volume) {
             throw ArgumentOutOfRangeException("Volume")
         }
-        let actionSize = if input.ActionSize == 0.0 {
-            theme.ControlHeight
-        } else {
-            input.ActionSize
-        }
-        let primarySize = if input.PrimaryActionSize == 0.0 {
-            theme.ControlHeight + theme.Spacing * 2.0
-        } else {
-            input.PrimaryActionSize
-        }
+        let actionSize = input.ActionSize ?? theme.ControlHeight
+        let primarySize = input.PrimaryActionSize ?? theme.ControlHeight + theme.Spacing * 2.0
         if !Double.IsFinite(actionSize) || actionSize <= 0.0 {
             throw ArgumentOutOfRangeException("ActionSize")
         }
@@ -248,9 +240,9 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             throw ArgumentOutOfRangeException("PrimaryActionSize")
         }
         let canSeek = !input.Disabled && input.Duration > 0.0
-        && (input.CanSeek ?? (input.OnSeekChanged != nil || input.OnSeekCommitted != nil))
+        && (input.CanSeek ?? (input.OnPositionChange != nil || input.OnPositionCommit != nil))
         let canSetVolume = !input.Disabled
-        && (input.CanSetVolume ?? (input.OnVolumeChanged != nil || input.OnVolumeCommitted != nil))
+        && (input.CanSetVolume ?? (input.OnVolumeChange != nil || input.OnVolumeCommit != nil))
         return input with{
             Position = Math.Clamp(input.Position, 0.0, input.Duration),
             Volume = Math.Clamp(input.Volume, 0.0, 1.0),

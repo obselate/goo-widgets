@@ -31,7 +31,7 @@ internal class MenuButtonExample : Cell {
                     Button: ActionButton{Content: "File actions"},
                     Items: items,
                     Open: menuOpen,
-                    OnActivate: Activate,
+                    OnClick: Activate,
                     OnOpenChange: (isOpen bool) -> {
                         menuOpen = isOpen
                         Rebuild()

@@ -47,9 +47,9 @@ internal class GraphHost : Cell {
             "graph",
             GraphCanvasInput{
                 Nodes: []GraphNode{GraphNode{Id: "one", Label: "Drag me", Position: Position}},
-                SelectedNodeIds: Selected,
+                SelectedIds: Selected,
                 Viewport: Viewport,
-                OnViewportChanged: (next GraphViewport) -> {
+                OnViewportChange: (next GraphViewport) -> {
                     ViewportRequests++
                     if !RejectViewport {
                         Viewport = next
@@ -58,16 +58,16 @@ internal class GraphHost : Cell {
                 },
                 Width: 500.0,
                 Height: 320.0,
-                CustomizeNode: (node GraphNode, card Container) -> {
+                CreateNode: (input GraphCanvasInput, node GraphNode, card Container) -> {
                     card.Handle = ElementHandle{}
                     Card = card
                     return card
                 },
-                OnSelectionChanged: (ids[]string) -> {
+                OnSelectionChange: (ids[]string) -> {
                     Selected = ids
                     Rebuild()
                 },
-                OnNodePositionChanged: (change GraphNodePositionChange) -> {
+                OnNodePositionChange: (change GraphNodePositionChange) -> {
                     Position = change.Position
                     Moves++
                     Rebuild()

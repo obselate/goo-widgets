@@ -21,13 +21,13 @@ public data struct DonutChart {
     /// Accessible group name. Nil resolves to Chart.
     var AccessibilityName string?
     /// Optional series activation, exposed to pointer, keyboard, and accessibility input.
-    var OnActivate Action[string]?
+    var OnClick Action[string]?
     /// Optional hover identity; nil means the pointer left a segment.
     var OnHover Action[string?]?
     /// Customizes a slice. Path, position, identity, handlers, and semantics are reapplied.
     var CreateSlice Func[DonutChart, ChartSegment, Shape, Shape]?
     /// Customizes each legend label.
-    var CreateLabel Func[ChartSegment, Text, Text]?
+    var CreateLabel Func[DonutChart, ChartSegment, Text, Text]?
     /// Customizes the prepared legend.
     var CreateLegend Func[DonutChart, Container, Container]?
     /// Customizes the root. Required children and summary semantics are reapplied.
@@ -74,7 +74,7 @@ public data struct DonutChart {
                 Path: path,
                 BackgroundColor: segment.Series.Color!!,
                 Focus: theme.FocusStyle,
-                Cursor: OnActivate == nil ? Cursor.Default: Cursor.Pointer
+                Cursor: OnClick == nil ? Cursor.Default: Cursor.Pointer
             }
             if let create = CreateSlice {
                 shape = create(resolved, segment, shape)
@@ -85,7 +85,7 @@ public data struct DonutChart {
             shape.Position = PositionType.Absolute
             shape.Left = 0
             shape.Top = 0
-            ChartParts.Wire(shape, segment, OnActivate, OnHover)
+            ChartParts.Wire(shape, segment, OnClick, OnHover)
             shape.Key = "series:" + segment.Series.Id!!
             plot.Children.Add(shape)
             angle += segment.Fraction * Math.PI * 2.0
@@ -120,7 +120,7 @@ public data struct DonutChart {
         root.Children.Clear()
         root.Children.Add(plot)
         if ShowLegend {
-            var legend = ChartParts.Legend(segments, CreateLabel, theme)
+            var legend = ChartParts.Legend(resolved, segments, CreateLabel, theme)
             if let create = CreateLegend {
                 legend = create(resolved, legend)
             }

@@ -101,7 +101,7 @@ public data struct TimeAxisInput {
     /// Initial placement. Defaults to Center. Later scroll offsets remain under user/host control.
     var InitialAlignment TimeAxisAlignment
     /// Reports subsequent scroll/viewport changes on the UI thread, including handle scrolling. Hosts displaying the result should Rebuild.
-    var OnViewportChanged Action[TimeAxisViewport]?
+    var OnViewportChange Action[TimeAxisViewport]?
     /// Root width. Nil resolves to 100%.
     var Width Length?
     /// Root height. Nil fits the ruler, lanes, and overflow row.
@@ -476,7 +476,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         }
         lastOffset = metrics.ScrollOffset.X
         lastWidth = metrics.ContentBox.Width
-        input.OnViewportChanged?.Invoke(
+        input.OnViewportChange?.Invoke(
             TimeAxisViewport{Start: At(lastOffset), End: At(lastOffset + lastWidth), Offset: lastOffset}
         )
     }

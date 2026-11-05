@@ -26,22 +26,22 @@ internal open class GraphCanvasExample : Cell {
             GraphCanvasInput{
                 Nodes: nodes,
                 Edges: edges,
-                SelectedNodeIds: selected,
+                SelectedIds: selected,
                 Viewport: viewport,
                 Width: 740.0,
                 Height: 400.0,
                 NodeWidth: 140.0,
                 NodeHeight: 58.0,
-                CreateNodeContent: (node GraphNode) -> NodeContent(node),
-                OnSelectionChanged: (ids[]string) -> {
+                CreateNodeContent: (input GraphCanvasInput, node GraphNode) -> NodeContent(node),
+                OnSelectionChange: (ids[]string) -> {
                     selected = ids
                     Rebuild()
                 },
-                OnViewportChanged: (value GraphViewport) -> {
+                OnViewportChange: (value GraphViewport) -> {
                     viewport = value
                     Rebuild()
                 },
-                OnNodePositionChanged: (change GraphNodePositionChange) -> MoveNode(change),
+                OnNodePositionChange: (change GraphNodePositionChange) -> MoveNode(change),
             }
         ),
         Text{

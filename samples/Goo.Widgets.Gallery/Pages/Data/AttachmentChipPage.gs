@@ -17,7 +17,7 @@ internal class AttachmentChipPage : GalleryPage {
             AttachmentChip{
                 Name: "Quarterly-product-design-review-final.pdf",
                 Detail: "2.4 MB",
-                OnOpen: () -> { },
+                OnClick: () -> { },
                 OnDownload: () -> { },
             }.Build(),
             AttachmentChip{

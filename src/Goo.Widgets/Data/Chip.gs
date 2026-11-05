@@ -49,15 +49,15 @@ public data struct Chip {
     /// Focus outline border color. Nil uses the nearest theme.
     var FocusBorderColor Color?
     /// Fixed height. Nil uses the theme control height.
-    var Height float64?
+    var Height Length?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
     /// Content gap. Explicit zero is preserved.
     var Gap float64?
-    /// Font size of the text label. Zero uses the nearest theme caption font size.
-    var FontSize float64
-    /// Font weight of the text label. Zero uses the nearest theme caption font weight.
-    var FontWeight int32
+    /// Font size of the text label. Nil uses the nearest theme caption font size.
+    var FontSize float64?
+    /// Font weight of the text label. Nil uses the nearest theme caption font weight.
+    var FontWeight int32?
     /// Border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
     /// Corner border radius. Nil uses the nearest theme radius; explicit zero is preserved.
@@ -108,16 +108,8 @@ public data struct Chip {
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             Gap = Gap ?? theme.ControlGap,
             FontFamily = FontFamily ?? theme.FontFamily,
-            FontSize = if FontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                FontSize
-            },
-            FontWeight = if FontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                FontWeight
-            },
+            FontSize = FontSize ?? theme.CaptionFontSize,
+            FontWeight = FontWeight ?? theme.CaptionFontWeight,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
@@ -133,7 +125,7 @@ public data struct Chip {
         let text = if let createText = createText {
             createText(resolved)
         } else {
-            let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize, FontWeight: resolved.FontWeight}
+            let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize!!, FontWeight: resolved.FontWeight!!}
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
             }

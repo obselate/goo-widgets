@@ -437,8 +437,8 @@ internal class OverlayHost : Cell {
                         },
                         MenuItem{Id: "delete", Label: "Delete"},
                     },
-                    OnActivate: MenuActivate,
-                    OnDismiss: MenuDismiss,
+                    OnClick: MenuActivate,
+                    OnOpenChange: (open bool) -> MenuDismiss(),
                     DismissOnActivate: !KeepMenu,
                     CreateItem: MenuRow
                 }

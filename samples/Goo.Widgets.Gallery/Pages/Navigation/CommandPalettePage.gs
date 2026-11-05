@@ -33,11 +33,11 @@ internal class CommandPaletteExample : Cell {
                     query = value
                     Rebuild()
                 },
-                OnDismiss: () -> {
-                    isOpen = false
+                OnOpenChange: (open bool) -> {
+                    isOpen = open
                     Rebuild()
                 },
-                OnActivate: (id string) -> {
+                OnClick: (id string) -> {
                     result = id
                     Rebuild()
                 },

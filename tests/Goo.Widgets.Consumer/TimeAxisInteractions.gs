@@ -157,7 +157,7 @@ internal class TimeAxisHost : Cell {
                         OnOverflow: (items[]TimeAxisEvent) -> {
                             OverflowClicks++
                         },
-                        OnViewportChanged: (view TimeAxisViewport) -> {
+                        OnViewportChange: (view TimeAxisViewport) -> {
                             ViewChanges++
                             LastView = view
                         },

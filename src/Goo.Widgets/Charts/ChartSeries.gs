@@ -83,7 +83,7 @@ internal class ChartParts {
             }
         }
 
-        internal func Legend(segments[]ChartSegment, label Func[ChartSegment, Text, Text]?, theme Theme) Container {
+        internal func Legend[T](owner T, segments[]ChartSegment, label Func[T, ChartSegment, Text, Text]?, theme Theme) Container {
             let root = Container{
                 FlexDirection: FlexDirection.Row,
                 FlexWrap: FlexWrap.Wrap,
@@ -99,7 +99,7 @@ internal class ChartParts {
                     FontWeight: theme.CaptionFontWeight,
                 }
                 if let create = label {
-                    text = create(segment, text)
+                    text = create(owner, segment, text)
                 }
                 root.Children.Add(
                     Container{
