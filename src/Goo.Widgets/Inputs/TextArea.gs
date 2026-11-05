@@ -195,7 +195,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             Relationships: AccessibilityRelationships{
                 LabelledBy: input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
                 DescribedBy: input.IssueText != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
-                ErrorMessage: input.Invalid && input.IssueText != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
+                ErrorMessage: invalid && input.IssueText != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
             },
         }
         var root = Container{

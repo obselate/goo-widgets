@@ -409,6 +409,12 @@ func ComboBoxInteractions() {
                 ComboActive(semantics, "Option 0042"),
             "Controlled search failed to update active options"
         )
+        let filteredOption = FindSemantics(semantics.Tree?.Root, "Option 0042")!!
+        Require(
+            filteredOption.PositionInSet == 0 && filteredOption.SizeOfSet == 1,
+            "Filtered ComboBox option metadata: role=" + filteredOption.Role.ToString() +
+            " position=" + filteredOption.PositionInSet.ToString() + " size=" + filteredOption.SizeOfSet.ToString()
+        )
         host.Query = "Option 0043"
         host.Rebuild()
         PumpFrames(window, 9)

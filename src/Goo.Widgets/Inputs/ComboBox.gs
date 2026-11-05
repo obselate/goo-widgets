@@ -60,6 +60,7 @@ public data struct ComboBoxInput {
 
 internal data struct ComboBoxRow {
     var Item ComboBoxOption
+    var SizeOfSet int32
     var Selected bool
     var Active bool
     var KeyboardActive bool
@@ -394,6 +395,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 let item = indices[index] < 0 ? creation: items[indices[index]]
                 return ComboBoxRow{
                     Item: item,
+                    SizeOfSet: indices.Length,
                     Selected: indices[index] >= 0 && (snapshot.Multiple
                     ? Array.IndexOf(snapshot.SelectedIds ?? []string{}, item.Id!!) >= 0
                     : item.Id == snapshot.SelectedId),
@@ -485,6 +487,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Role: row.Input.Multiple && id != createId ? AccessibilityRole.Checkbox: AccessibilityRole.ListItem,
             Name: item.Label ?? id,
             Selected: row.Selected,
+            SizeOfSet: row.SizeOfSet,
             Checked: row.Input.Multiple && id != createId
             ? (row.Selected ? AccessibilityChecked.True: AccessibilityChecked.False): AccessibilityChecked.Unspecified,
             Actions: []AccessibilityAction{AccessibilityAction.Select},

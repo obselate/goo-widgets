@@ -52,6 +52,7 @@ internal data struct ListViewEntry {
     var Id string
     var Item ListViewItem
     var Header string?
+    var PositionInSet int32
 }
 
 /// A virtual list with controlled selection and one keyboard focus target.
@@ -115,6 +116,7 @@ public open class ListView : Cell[ListViewInput] {
                 if entry.Header == nil {
                     indices.Add(entry.Id, index)
                     hasCaption = hasCaption || entry.Item.Caption != nil
+                    entries[index] = entry with{PositionInSet = indices.Count - 1}
                     if !entry.Item.Disabled {
                         searchable.Add(entry.Id)
                     }
@@ -341,6 +343,8 @@ public open class ListView : Cell[ListViewInput] {
             Role: AccessibilityRole.ListItem,
             Name: item.Label ?? id,
             Selected: selected.Contains(id),
+            PositionInSet: entry.PositionInSet,
+            SizeOfSet: indices.Count,
             Actions: []AccessibilityAction{
                 AccessibilityAction.Focus,
                 AccessibilityAction.Select,
