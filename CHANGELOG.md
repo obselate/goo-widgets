@@ -11,6 +11,7 @@
 - Cache `ComboBox` and `SearchList` rows and lookups until their source or query inputs change.
 - Virtualize Markdown blocks when `MarkdownViewInput.Height` is bounded. Leave it unset for content-sized views. Use `MarkdownViewState.ScrollToHeading(id)` instead of `MarkdownHeading.Handle.ScrollIntoView()` for off-screen headings.
 - Cache prepared `ListView` rows until the items, sections or query change.
+- Link over-limit text area errors and correct virtual row positions and set sizes for lists, trees, combo boxes, and search lists.
 
 ## 0.18.6 - 2026-11-03
 

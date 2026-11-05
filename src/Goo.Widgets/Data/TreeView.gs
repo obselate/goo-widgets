@@ -43,6 +43,8 @@ public data struct TreeViewRow {
     var Disabled bool
     /// Whether this is the nonselectable loading placeholder.
     var Loading bool
+    internal var PositionInSet int32
+    internal var SizeOfSet int32
 }
 
 /// Controlled hierarchy, selection, and appearance for a mounted tree.
@@ -117,6 +119,8 @@ internal data struct TreeWalk {
     var Depth int32
     var Visible bool
     var Disabled bool
+    var PositionInSet int32
+    var SizeOfSet int32
 }
 
 /// The destination relative to a tree row.
@@ -203,6 +207,8 @@ public open class TreeView : Cell[TreeViewInput] {
                 Node: node,
                 ParentId: walk.ParentId,
                 Depth: walk.Depth,
+                PositionInSet: walk.PositionInSet,
+                SizeOfSet: walk.SizeOfSet,
                 Expanded: (children.Length > 0 || node.HasChildren) && expanded.Contains(node.Id!!),
                 Selected: selected.Contains(node.Id!!),
                 Disabled: walk.Disabled || node.Disabled
@@ -378,7 +384,9 @@ public open class TreeView : Cell[TreeViewInput] {
                     ParentId: parent,
                     Depth: depth,
                     Visible: visible,
-                    Disabled: disabled
+                    Disabled: disabled,
+                    PositionInSet: index - 1,
+                    SizeOfSet: children.Length,
                 }
             )
         }
@@ -692,6 +700,8 @@ public open class TreeView : Cell[TreeViewInput] {
             Role: AccessibilityRole.TreeItem,
             Name: row.Node.Label ?? id,
             Level: row.Depth + 1,
+            PositionInSet: row.PositionInSet,
+            SizeOfSet: row.SizeOfSet,
             Selected: row.Selected,
             Checked: row.Node.CheckState,
             Expanded: branch ? row.Expanded: nil,
