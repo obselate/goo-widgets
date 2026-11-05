@@ -94,7 +94,7 @@ class ApiShapeCheck {
             "Goo.Widgets.Colors|ColorPicker",
             "Goo.Widgets.Content|CodeBlock",
             "Goo.Widgets.Data|AttachmentChip Chip DataGrid ListView TimeAxis TreeView",
-            "Goo.Widgets.Feedback|Alert Badge Banner DismissibleContextBar EmptyState InlineMessage ProgressBar ProgressSummary Spinner StatusIndicator TeachingTip Toast ToastHost",
+            "Goo.Widgets.Feedback|Alert Badge Banner DismissibleContextBar EmptyState InlineMessage ProgressBar ProgressSummary Skeleton Spinner StatusIndicator TeachingTip Toast ToastHost",
             "Goo.Widgets.Graphs|GraphCanvas GraphNodeCard",
             "Goo.Widgets.Inputs|Calendar Checkbox ComboBox DatePicker FindBar FormField FormSection NumberInput RadioButton RadioGroup RatingControl SearchList Slider Stepper TextArea TextField TimePicker ToggleGroup ToggleSwitch TokenInput TouchTextEditing TriggerMenu UploadTile",
             "Goo.Widgets.Layout|AppBar Card Disclosure Drawer Grid HoverCard ListRow MasterDetail ModalDialog ModalDialogHost Popover PropertyGrid SectionHeader SettingsLayout SplitPane StatusBar Tooltip WindowChrome",

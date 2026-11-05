@@ -414,6 +414,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         ToastPage{DisplayTitle: "Toast"},
         SpinnerPage{DisplayTitle: "Spinner"},
         TeachingTipPage{DisplayTitle: "Teaching tip"},
+        SkeletonPage{DisplayTitle: "Skeleton"},
         BadgePage{DisplayTitle: "Badge"},
         BannerPage{DisplayTitle: "Banner"},
         DismissibleContextBarPage{DisplayTitle: "Dismissible context bar"},

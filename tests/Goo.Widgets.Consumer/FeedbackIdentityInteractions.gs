@@ -163,6 +163,7 @@ func SpinnerBarHeight(window Window, frame ElementRect) float64 {
 }
 
 func FeedbackIdentityInteractions() {
+    SkeletonInteractions()
     let host = FeedbackIdentityHost()
     let semantics = SearchListSemantics()
     let window = Window{
@@ -318,4 +319,193 @@ func FeedbackIdentityInteractions() {
     Console.WriteLine(
         "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner clipped idle and resume, period and range without rebuilds, reduced-motion still frame"
     )
+}
+
+internal class SkeletonHost : Cell {
+    internal let Before ElementHandle = ElementHandle()
+    internal let After ElementHandle = ElementHandle()
+    internal let Viewport ElementHandle = ElementHandle()
+    internal let Shimmer ElementHandle = ElementHandle()
+    internal var Animated bool?
+    internal var Named bool
+    internal var Builds int32
+    internal let Roots []Container? = [3]Container?
+
+    private func Capture(index int32, root Container) Container {
+        Builds++
+        Roots[index] = root
+        if index == 2 {
+            let shape = (root.Children[0] as Container)!!
+            if shape.Children.Count > 0 { shape.Children[0].Handle = Shimmer }
+        }
+        return root
+    }
+
+    public override func Build() Blob -> Container{
+        Width: Percent(100), Height: Percent(100), Padding: 20.0, Gap: 12.0,
+        Button{Handle: Before, Focusable: true, Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Before"}},
+        Container{
+            Handle: Viewport, Height: 200, FlexShrink: 0, Gap: 12,
+            OverflowY: Overflow.Scroll, ScrollbarVisibilityY: ScrollbarVisibility.Hidden,
+            Cell.Mount[SkeletonInput, Skeleton]("text", SkeletonInput{
+                Width: Percent(100), Animated: Animated, AccessibilityName: Named ? "Loading text": nil,
+                CreateRoot: (input, root) -> Capture(0, root),
+            }),
+            Cell.Mount[SkeletonInput, Skeleton]("circle", SkeletonInput{
+                Variant: SkeletonVariant.Circle, Animated: Animated, AccessibilityName: Named ? "Loading avatar": nil,
+                CreateRoot: (input, root) -> Capture(1, root),
+            }),
+            Cell.Mount[SkeletonInput, Skeleton]("rectangle", SkeletonInput{
+                Variant: SkeletonVariant.Rectangle, Width: Percent(100), Animated: Animated, AccessibilityName: "Loading preview",
+                CreateRoot: (input, root) -> Capture(2, root),
+            }),
+            Container{Height: 512, FlexShrink: 0},
+        },
+        Button{Handle: After, Focusable: true, Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "After"}},
+    }
+}
+
+func SkeletonDifference(first WindowCapture, second WindowCapture) int32 {
+    Require(first.Width == second.Width && first.Height == second.Height, "Skeleton capture size changed")
+    var changed int32
+    for index in 0 ... first.Pixels.Length {
+        if first.Pixels[index] != second.Pixels[index] { changed++ }
+    }
+    return changed
+}
+
+func SkeletonInteractions() {
+    let host = SkeletonHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "Skeleton verification", Width: 640, Height: 480, Root: host, AccessibilityAdapter: semantics}
+    Theme.Attach(window, Theme.Ink)
+    var presents int32
+    window.PresentationAccepted += (accepted WindowPresentationAccepted) -> { presents++ }
+    window.Open()
+    try {
+        WaitVirtual(window, () -> host.Roots[2] != nil && FindSemantics(semantics.Tree?.Root, "Loading preview") != nil)
+        let status = FindSemantics(semantics.Tree?.Root, "Loading preview")!!
+        Require(status.Role == AccessibilityRole.Status, "Skeleton role: " + status.Role.ToString())
+        Require(status.Busy == true, "Skeleton busy state: " + status.Busy.ToString())
+        Require(!window.PerformAccessibilityAction(status.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
+            && !window.PerformAccessibilityAction(status.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
+            "Skeleton accepted activation or focus")
+        Require(host.Roots[0]!!.Accessibility!!.Hidden == true && host.Roots[1]!!.Accessibility!!.Hidden == true,
+            "Decorative skeletons were not hidden")
+        Require(host.Roots[0]!!.Children.Count == 3 && host.Roots[1]!!.Children.Count == 1,
+            "Skeleton text or circle geometry changed")
+        host.Before.Focus()
+        SendKey(OnlyNativeWindow(), SDLScancode.Tab)
+        PumpFrames(window, 4)
+        Require(OverlayFocus(semantics, "After"), "Skeleton entered Tab order")
+        FeedbackClick(window, status.Bounds)
+        Require(FindSemantics(semantics.Tree?.Root, "Loading preview")!!.Focused == false, "Skeleton pointer click took focus")
+        let builds = host.Builds
+        let first = ThemeCapture(window)
+        PumpFrames(window, 30)
+        let second = ThemeCapture(window)
+        Require(SkeletonDifference(first, second) > 100 && host.Builds == builds,
+            "Skeleton shimmer did not move without rebuilding")
+        let visibleX = host.Shimmer.BorderBox.X
+        FeedbackWait(window, 150)
+        Require(Math.Abs(host.Shimmer.BorderBox.X - visibleX) > 0.1, "Visible Skeleton sweep did not advance")
+        Require(host.Viewport.JumpTo(0.0, 512.0), "Skeleton viewport did not scroll")
+        FeedbackWait(window, 100)
+        let clippedFrames = presents
+        FeedbackWait(window, 150)
+        Require(presents == clippedFrames, "Fully clipped Skeleton continued presenting frames")
+        Require(host.Viewport.JumpTo(0.0, 0.0), "Skeleton viewport did not restore")
+        let restoredX = host.Shimmer.BorderBox.X
+        FeedbackWait(window, 150)
+        Require(Math.Abs(host.Shimmer.BorderBox.X - restoredX) > 0.1, "Skeleton sweep did not resume after scrolling into view")
+        host.Animated = false
+        host.Named = true
+        host.Rebuild()
+        PumpFrames(window, 8)
+        let staticBuilds = host.Builds
+        let still = ThemeCapture(window)
+        PumpFrames(window, 8)
+        let idlePresents = presents
+        PumpFrames(window, 30)
+        Require(presents == idlePresents, "Static Skeleton continued presenting frames")
+        Require(SkeletonDifference(still, ThemeCapture(window)) == 0 && host.Builds == staticBuilds,
+            "Static Skeleton changed paint or rebuilt")
+        for palette in []Theme{Theme.Ink, Theme.Bone, Theme.Ink.WithHighContrast()} {
+            Theme.Attach(window, palette)
+            for width in []int32{480, 900, 1600, 2560} {
+                window.Width = width
+                window.Height = width == 2560 ? 1440: 480
+                window.UiScale = 1.5F
+                PumpFrames(window, 12)
+                for name in []string{"Loading text", "Loading avatar", "Loading preview"} {
+                    let bounds = FindSemantics(semantics.Tree?.Root, name)!!.Bounds
+                    Require(bounds.Width > 0 && bounds.Height > 0 && bounds.X >= 0 && bounds.Y >= 0
+                        && bounds.X + bounds.Width <= float64(window.Width) / window.UiScale + 1
+                        && bounds.Y + bounds.Height <= float64(window.Height) / window.UiScale + 1,
+                        "Skeleton escaped the scaled viewport")
+                }
+            }
+        }
+    } finally {
+        CloseNativeWindow(window)
+    }
+    using let baseline = ThemePreferenceHost()
+    baseline.Resize(640, 480, 640, 480)
+    baseline.UpdatePreferences(PlatformPreferences{ReducedMotion: true})
+    let plain = Window{Root: ThemeProbe()}
+    plain.Attach(baseline)
+    ThemeFrames(baseline)
+    let before = baseline.Wakes
+    for frame in 0 ... 120 { baseline.RenderFrame(0.016) }
+    let idleWakes = baseline.Wakes - before
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(640, 480, 640, 480)
+    embedded.UpdatePreferences(PlatformPreferences{ReducedMotion: true})
+    let staticHost = SkeletonHost()
+    let staticWindow = Window{Root: staticHost}
+    staticWindow.Attach(embedded)
+    ThemeFrames(embedded)
+    let wakes = embedded.Wakes
+    let builds = staticHost.Builds
+    for frame in 0 ... 120 { embedded.RenderFrame(0.016) }
+    Require(embedded.Wakes - wakes == idleWakes && staticHost.Builds == builds,
+        "Reduced-motion Skeleton idle: wakes " + (embedded.Wakes - wakes).ToString()
+        + ", baseline " + idleWakes.ToString() + ", builds " + (staticHost.Builds - builds).ToString())
+    for root in staticHost.Roots {
+        for shape in root!!.Children {
+            Require((shape as Container)!!.Children.Count == 0, "Reduced-motion Skeleton retained its shimmer")
+        }
+    }
+    embedded.UpdatePreferences(PlatformPreferences{ReducedMotion: false})
+    ThemeFrames(embedded)
+    Require((staticHost.Roots[0]!!.Children[0] as Container)!!.Children.Count == 1,
+        "Skeleton did not restore shimmer when reduced motion ended")
+    staticHost.Animated = false
+    staticHost.Rebuild()
+    ThemeFrames(embedded)
+    let idle = embedded.Wakes
+    for frame in 0 ... 120 { embedded.RenderFrame(0.016) }
+    Require(embedded.Wakes - idle == idleWakes, "Animated false Skeleton continued scheduling frames")
+    let registry = CreateRegistry()
+    let gallery = Gallery(registry, registry.IndexOf("Skeleton"))
+    let gallerySemantics = SearchListSemantics()
+    let proof = Window{Title: "Skeleton gallery", Width: 960, Height: 640, UiScale: 1.5F,
+        Root: gallery, AccessibilityAdapter: gallerySemantics}
+    gallery.AttachWindow(proof)
+    proof.Open()
+    try {
+        for width in []int32{960, 1600, 2560} {
+            proof.Width = width
+            proof.Height = width == 2560 ? 1440: 640
+            PumpFrames(proof, 16)
+            let card = gallery.CardHandle.BorderBox
+            let pause = FindSemantics(gallerySemantics.Tree?.Root, "Pause")!!.Bounds
+            Require(pause.X >= card.X && pause.Y >= card.Y && pause.X + pause.Width <= card.X + card.Width
+                && pause.Y + pause.Height <= card.Y + card.Height - 32,
+                "Skeleton gallery content did not fit the scaled window")
+        }
+    } finally {
+        CloseNativeWindow(proof)
+    }
+    Console.WriteLine("PASS: Skeleton text/circle/rectangle, moving paint without rebuilds, clipped idle and resume, static pixels, hidden or busy accessibility, pointer/Tab exclusion, Ink/Bone/high contrast, 150 percent viewport fit, reduced-motion and Animated false idle")
 }

@@ -16,6 +16,7 @@ func Gallery(args[]string) int {
         "Data grid",
         "Tree view",
         "Teaching tip",
+        "Skeleton",
         "Menu"
     }
     var output = Path.Combine(Root(), "artifacts/gallery-feedback")
