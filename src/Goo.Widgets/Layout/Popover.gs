@@ -116,10 +116,9 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private let previewKey Func[Key, KeyModifiers, bool]
     private var disposed bool
 
-    /// Subscribes to panel geometry for placement and focus containment. Dispose the popup to release subscriptions and its focus scope.
+    /// Subscribes to viewport and focus lifecycle events. Dispose the popup to release subscriptions and its focus scope.
     public init() {
         rootHandle.MetricsChanged += RootMetrics
-        panelHandle.MetricsChanged += PanelMetrics
         measurementRootHandle.MetricsChanged += MeasurementRootMetrics
         previewKey = (key Key, modifiers KeyModifiers) -> {
             if key != Key.Escape {
@@ -148,6 +147,12 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let theme = Theme.Read()
         let previous = current
         current = Resolve(input, theme)
+        if input.Open && input.WindowPoint != nil && (!previous.Open || previous.WindowPoint == nil) {
+            panelHandle.MetricsChanged += PanelMetrics
+        }
+        if previous.Open && previous.WindowPoint != nil && (!input.Open || input.WindowPoint == nil) {
+            panelHandle.MetricsChanged -= PanelMetrics
+        }
         BindAnchor(input.Open ? input.Anchor: nil)
         let preview Window? = input.Open && input.TakeFocus == false ? Theme.Key.Window: nil
         BindPreview(preview)
@@ -289,7 +294,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                     ? Edges{Left: current.Gap!!, Right: current.Gap!!}
                     : Edges{Top: current.Gap!!, Bottom: current.Gap!!},
                 BackgroundColor: Color.Transparent,
-                HitTestSelf: false,
                 ZIndex: current.ZIndex + (activeScope?.Order ?? 0),
                 panel,
             })
