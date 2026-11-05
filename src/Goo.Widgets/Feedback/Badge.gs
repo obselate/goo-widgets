@@ -76,7 +76,7 @@ public data struct Badge {
         }
         let isDot = content == nil
         let dotSize = DotSize ?? theme.Spacing * 2.0
-        let height = Height ?? Length(theme.CaptionFontSize + theme.Spacing * 2.0)
+        let height = Height ?? theme.CaptionFontSize + theme.Spacing * 2.0
         let minWidth = MinWidth ?? height
         let padding = PaddingHorizontal ?? theme.Spacing * 1.5
         var resolvedName string? = AccessibilityName

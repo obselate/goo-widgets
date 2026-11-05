@@ -105,7 +105,11 @@ public data struct WindowChrome {
             ShowMinimize = ShowMinimize ?? controls == nil,
             ShowMaximize = ShowMaximize ?? controls == nil,
             ShowClose = ShowClose ?? controls == nil,
-            Height = Height ?? Math.Max(theme.ControlHeight, controls?.Height ?? 0.0),
+            Height = if let height = Height {
+                height.HasMagnitude && !height.IsPercent ? Math.Max(height.Magnitude, controls?.Height ?? 0.0): height
+            } else {
+                Math.Max(theme.ControlHeight, controls?.Height ?? 0.0)
+            },
             ControlWidth = ControlWidth ?? Math.Max(46.0, theme.ControlHeight),
             BackgroundColor = BackgroundColor ?? theme.ChromeColor,
             BorderColor = BorderColor ?? (theme.GlassColor == nil ? theme.BorderColor: Color.Transparent),

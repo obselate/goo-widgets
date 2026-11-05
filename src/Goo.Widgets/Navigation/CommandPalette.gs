@@ -260,7 +260,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 Width: input.Width ?? 560,
                 Padding: 0,
                 Gap: 0,
-                OnClose: input.OnDismiss,
+                OnOpenChange: (open bool) -> input.OnDismiss?.Invoke(),
                 OnCancel: input.OnDismiss,
                 Content: search,
                 Footer: Container{Height: 0, HitTestSelf: false},

@@ -183,8 +183,16 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
         let available = Math.Max(1.0, viewport.Width - 2.0 * margin)
-        let maxWidth = Math.Min(current.MaxWidth == nil || !current.MaxWidth!!.HasMagnitude ? available: current.MaxWidth!!.IsPercent ? viewport.Width * current.MaxWidth!!.Magnitude / 100.0: current.MaxWidth!!.Magnitude, available)
-        let minWidth = Math.Min(current.MinWidth == nil || !current.MinWidth!!.HasMagnitude ? 0.0: current.MinWidth!!.IsPercent ? viewport.Width * current.MinWidth!!.Magnitude / 100.0: current.MinWidth!!.Magnitude, maxWidth)
+        let maximum = current.MaxWidth ?? Length.Auto
+        let minimum = current.MinWidth ?? Length.Auto
+        let maxWidth = Math.Min(
+            !maximum.HasMagnitude ? available: maximum.IsPercent ? viewport.Width * maximum.Magnitude / 100.0: maximum.Magnitude,
+            available
+        )
+        let minWidth = Math.Min(
+            !minimum.HasMagnitude ? 0.0: minimum.IsPercent ? viewport.Width * minimum.Magnitude / 100.0: minimum.Magnitude,
+            maxWidth
+        )
         let requested = current.Width!!
         let fit = !requested.HasMagnitude
         let width = Math.Clamp(
