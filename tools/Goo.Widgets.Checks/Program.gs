@@ -26,7 +26,7 @@ func Require(condition bool, message string) {
 func Main() int {
     try {
         let args = Environment.GetCommandLineArgs().Skip(1).ToArray()
-        Require(args.Length > 0, "Usage: Goo.Widgets.Checks symbols [--check] | bundle <output> | screenshots | package [--markdown]")
+        Require(args.Length > 0, "Usage: Goo.Widgets.Checks symbols [--check] | bundle <output> | screenshots | package [--markdown] | api-shape --check")
         if args[0] == "symbols" {
             Symbols(args.Skip(1).ToArray())
         } else if args[0] == "bundle" {
@@ -36,6 +36,8 @@ func Main() int {
             Screenshots()
         } else if args[0] == "package" {
             Packages(args.Contains("--markdown"))
+        } else if args[0] == "api-shape" {
+            ApiShape(args.Skip(1).ToArray())
         } else {
             throw ArgumentException("Unknown check: " + args[0])
         }
