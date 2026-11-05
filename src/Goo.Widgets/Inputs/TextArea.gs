@@ -272,7 +272,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             )
         }
         if let description = input.Description {
-            root.Children.Add(Text{Key: "description", Handle: descriptionHandle, Content: description, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize})
+            root.Children.Add(Text{Key: "description", Handle: descriptionHandle, Content: description, Accessibility: Accessibility{Role: AccessibilityRole.Text, Name: description}, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize})
         }
         if let issue = input.Error {
             root.Children.Add(

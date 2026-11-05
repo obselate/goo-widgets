@@ -179,6 +179,7 @@ public data struct TextField {
             Key: "description",
             Handle: descriptionHandle,
             Content: resolved.Description!!,
+            Accessibility: Accessibility{Role: AccessibilityRole.Text, Name: resolved.Description!!},
             Color: resolved.MutedTextColor!!,
             FontSize: theme.CaptionFontSize,
         }
