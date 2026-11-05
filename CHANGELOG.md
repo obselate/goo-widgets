@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Upgrade Goo to 0.27.11, derive virtual option set sizes from core, and verify held-key DataGrid navigation without rebuilding unchanged rows.
 - Apply the API shape to DataGrid activation, group expansion and shared density (breaking).
 - Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.

@@ -413,6 +413,11 @@ func TreeViewInteractions() {
         )
         PumpFrames(window, 8)
         let beta = FindSemantics(semantics.Tree!!.Root, "Release plan")!!
+        let workspace = FindSemantics(semantics.Tree!!.Root, "Workspace")!!
+        Require(workspace.PositionInSet == 0 && workspace.SizeOfSet == 2 &&
+            folder.PositionInSet == 2 && folder.SizeOfSet == 3 &&
+            beta.PositionInSet == 0 && beta.SizeOfSet == 1,
+            "TreeView lost per-level sibling positions or set sizes")
         Require(
             window.PerformAccessibilityAction(beta.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
             "Tree did not support accessible active-descendant focus"

@@ -159,6 +159,10 @@ func SearchListInteractions() {
         let alpha = FindSemantics(semantics.Tree?.Root, "Alpha")!!
         let beta = FindSemantics(semantics.Tree?.Root, "Beta")!!
         Require(alpha.Selected == true && beta.Selected == false, "Initial list selection is incorrect.")
+        let list = FindSemantics(semantics.Tree?.Root, "Choose an item")!!
+        Require(list.SizeOfSet == 3 && list.Children[0].PositionInSet == 0 &&
+            list.Children[0].SizeOfSet == 3 && list.Children[1].PositionInSet == 1 &&
+            list.Children[1].SizeOfSet == 3, "SearchList lost virtual row positions or set sizes")
         let calls = host.Calls
         host.Rebuild()
         PumpFrames(window, 4)
