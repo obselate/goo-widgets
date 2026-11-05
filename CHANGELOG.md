@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Check gallery page fit in every choice interaction run and exclude the scrollable navigation sidebar.
 - Share interaction styles across directly focused controls, keep selected values through hover and press, and use one focus ring, disabled opacity and motion policy.
 - Upgrade Goo to 0.27.11, derive virtual option set sizes from core, and verify held-key DataGrid navigation without rebuilding unchanged rows.
 - Expose SplitPane separator orientation and range values, and DataGrid logical row and column indices and counts.
