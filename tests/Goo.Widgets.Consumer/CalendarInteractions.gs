@@ -74,6 +74,8 @@ internal class CalendarHost : Cell {
     internal var EmptyAllowed bool = true
     internal var Iso bool
     internal var PickerDisabled bool
+    internal var PickerReadOnly bool
+    internal var CopyRequests int32
     internal var Show bool = true
     internal var Entry TextEntry?
     internal var Popup Container?
@@ -140,6 +142,9 @@ internal class CalendarHost : Cell {
 
     private func Input(input DatePickerInput, prepared TextEntry) TextEntry {
         Entry = prepared
+        prepared.KeyBindings = []KeyBinding{
+            KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+        }
         return prepared
     }
 
@@ -204,6 +209,7 @@ internal class CalendarHost : Cell {
             OnOpenChange: Open,
             AllowEmpty: EmptyAllowed,
             Disabled: PickerDisabled,
+            ReadOnly: PickerReadOnly,
             Today: DateOnly(2026, 9, 14),
             Minimum: DateOnly(2026, 9, 1),
             Maximum: DateOnly(2026, 9, 30),
@@ -488,6 +494,25 @@ func CalendarInteractions() {
             !host.IsOpen && OverlayFocus(semantics, "Deployment date"),
             "Calendar Escape did not restore entry focus"
         )
+        host.PickerReadOnly = true
+        host.Rebuild()
+        PumpFrames(window, 8)
+        Require(host.Entry!!.Handle!!.Focus(), "Read-only date did not focus")
+        Require(host.Entry!!.Accessibility!!.ReadOnly == true, "Date did not expose read-only state")
+        let original = host.Entry!!.Value
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
+        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
+            - window.PlatformInput.Selection!!.Anchor.Offset == original.Length, "Read-only date lost selection or copy routing")
+        SelectorType(window, id, "changed")
+        SendKey(id, SDLScancode.F4)
+        SendKey(id, SDLScancode.Return)
+        PumpFrames(window, 8)
+        Require(host.Entry!!.Value == original && !host.IsOpen, "Read-only date accepted editing or opened its picker")
+        Require(!host.OpenButton.Focus(), "Read-only date trigger accepted focus")
+        host.PickerReadOnly = false
+        Console.WriteLine("PASS: read-only date retains focus selection and copy without editing or picker opening")
         host.PickerDisabled = true
         host.Rebuild()
         PumpFrames(window, 8)

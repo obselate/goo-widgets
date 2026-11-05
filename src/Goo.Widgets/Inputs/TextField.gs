@@ -22,6 +22,8 @@ public data struct TextField {
     var Invalid bool
     /// Whether the field rejects input.
     var Disabled bool
+    /// Preserves focus, selection and copy while preventing edits.
+    var ReadOnly bool
     /// Nil enables long-press selection and touch editing controls.
     var TouchEditing bool?
     /// Accessible name. Nil falls back to label, placeholder, then empty.
@@ -263,9 +265,10 @@ public data struct TextField {
                 issue.FontFamily = resolved.FontFamily!!
             }
         }
-        let readOnly = entry!!.Accessibility?.ReadOnly ?? false
+        let readOnly = resolved.ReadOnly || entry!!.ReadOnly || (entry!!.Accessibility?.ReadOnly ?? false)
         entry!!.Key = "entry"
         entry!!.Disabled = resolved.Disabled
+        entry!!.ReadOnly = readOnly
         entry!!.Focusable = !resolved.Disabled
         entry!!.Accessibility = Accessibility{
             Role: AccessibilityRole.TextInput,
