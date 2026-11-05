@@ -291,8 +291,8 @@ internal class OverlayHost : Cell {
                 Open: DrawerOpen,
                 Modal: true,
                 AccessibilityName: "Modal drawer",
-                OnDismiss: () -> {
-                    DrawerOpen = false
+                OnOpenChange: (value) -> {
+                    DrawerOpen = value
                     Rebuild()
                 },
                 Content: Button{

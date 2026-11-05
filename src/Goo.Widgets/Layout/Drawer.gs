@@ -12,8 +12,8 @@ public data struct Drawer {
     var Open bool
     /// Whether the open drawer isolates input and contains focus in the window overlay.
     var Modal bool
-    /// Called when Escape or the modal scrim dismisses the drawer.
-    var OnDismiss Action?
+    /// Requests Open = false when Escape or the modal scrim dismisses the drawer.
+    var OnOpenChange Action[bool]?
     /// Whether the drawer docks to and slides from the end edge instead of the start edge.
     var FromEnd bool
     /// Accessible name for the group container. Nil resolves to "Drawer".
@@ -99,7 +99,7 @@ public data struct Drawer {
         let root = if let createRoot = createRoot {
             createRoot(resolved, Content)
         } else {
-            Container{
+            let panel = Container{
                 Position: PositionType.Absolute,
                 Top: 0.0,
                 Direction: theme.Direction,
@@ -123,18 +123,15 @@ public data struct Drawer {
                     Hidden: !resolved.Open,
                 },
             }
-        }
-
-        if createRoot == nil && resolved.FromEnd {
-            root.End = 0.0
-        } else if createRoot == nil {
-            root.Start = 0.0
-        }
-
-        if createRoot == nil {
-            if let content = Content {
-                root.Children.Add(content)
+            if resolved.FromEnd {
+                panel.End = 0.0
+            } else {
+                panel.Start = 0.0
             }
+            if let content = Content {
+                panel.Children.Add(content)
+            }
+            panel
         }
         if Modal {
             return Cell.Mount[ModalDialog, ModalDialogHost](
@@ -142,7 +139,7 @@ public data struct Drawer {
                 ModalDialog{
                     Open: Open,
                     AccessibilityName: resolved.AccessibilityName,
-                    OnClose: OnDismiss,
+                    OnClose: () -> OnOpenChange?.Invoke(false),
                     Fullscreen: true,
                     Padding: 0.0,
                     Gap: 0.0,
