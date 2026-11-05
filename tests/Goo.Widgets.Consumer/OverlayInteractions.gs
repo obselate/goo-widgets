@@ -3,6 +3,7 @@ package Goo.Widgets.Consumer
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Layout
+import Goo.Widgets.Feedback
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
 import System
@@ -490,6 +491,7 @@ func ModalClipboardInteractions() {
 
 func OverlayInteractions() {
     RunContracts(OverlayContracts)
+    TeachingTipInteractions()
     let host = OverlayHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
@@ -767,4 +769,133 @@ func OverlayInteractions() {
     Console.WriteLine(
         "PASS: native managed modal entry/containment/nesting/fallback/backdrop/unmount, popover anchor/point/flip/resize/dismiss/restore/content width, menu disabled/separator/keyboard/submenu/hover/activation policy"
     )
+}
+
+internal class TeachingTipHost : Cell {
+    internal let Anchor ElementHandle = ElementHandle()
+    internal var Open bool
+    internal var Anchored bool = true
+    internal var LightDismiss bool
+    internal var ActionDisabled bool
+    internal var AcceptChange bool = true
+    internal var Requests int32
+    internal var Actions int32
+
+    private func Change(value bool) {
+        Require(!value, "TeachingTip requested opening during dismissal")
+        Requests++
+        if AcceptChange { Open = value }
+        Rebuild()
+    }
+
+    public override func Build() Blob -> Container{
+        Width: Percent(100), Height: Percent(100), Padding: 40.0,
+        Button{Handle: Anchor, Width: 140.0, Height: 40.0, Focusable: true,
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Tip target"},
+            Text{Content: "Bookmark"}},
+        TeachingTip{
+            Open: Open, Anchor: Anchored ? Anchor: nil, OnOpenChange: Change,
+            Title: "Bookmark", Subtitle: "Reading list", AccessibilityName: "Save bookmark",
+            CloseText: "Close tip", ActionText: "Save", ActionDisabled: ActionDisabled,
+            LightDismiss: LightDismiss, OnActionClick: () -> { Actions++ },
+            Content: Text{Content: "Page 12"},
+        }.Build(),
+    }
+}
+
+func TeachingTipInteractions() {
+    let host = TeachingTipHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "Teaching tip verification", Width: 640, Height: 480,
+        Root: ApplicationRoot(host), AccessibilityAdapter: semantics}
+    Theme.Attach(window, Theme.Ink)
+    window.Open()
+    try {
+        let id = OnlyNativeWindow()
+        WaitVirtual(window, () -> host.Anchor.IsMounted)
+        for palette in []Theme{Theme.Ink, Theme.Bone, Theme.Ink.WithHighContrast()} {
+            Theme.Attach(window, palette)
+            for anchored in []bool{true, false} {
+                host.Anchored = anchored
+                host.LightDismiss = false
+                host.ActionDisabled = true
+                host.Anchor.Focus()
+                host.Open = true
+                host.Rebuild()
+                WaitVirtual(window, () -> FindSemantics(semantics.Tree?.Root, "Close tip") != nil)
+                let tip = FindSemantics(semantics.Tree?.Root, "Save bookmark")!!
+                Require(tip.Role == AccessibilityRole.Dialog && (anchored || tip.Modal == true),
+                    "TeachingTip lost dialog or modal semantics")
+                let action = FindSemantics(semantics.Tree?.Root, "Save")!!
+                Require(action.Disabled && !window.PerformAccessibilityAction(action.Id,
+                    AccessibilityActionRequest(AccessibilityAction.Activate)),
+                    "TeachingTip disabled action accepted activation")
+                SendKey(id, SDLScancode.Tab)
+                PumpFrames(window, 4)
+                Require(OverlayFocus(semantics, "Close tip"), "TeachingTip Tab reached the disabled action")
+                MouseButton(id, 620.0F, 460.0F, true)
+                MouseButton(id, 620.0F, 460.0F, false)
+                PumpFrames(window, 4)
+                Require(host.Open, "TeachingTip dismissed with LightDismiss false")
+                host.ActionDisabled = false
+                host.Rebuild()
+                PumpFrames(window, 5)
+                Require(window.PerformAccessibilityAction(FindSemantics(semantics.Tree?.Root, "Close tip")!!.Id,
+                    AccessibilityActionRequest(AccessibilityAction.Focus)), "TeachingTip close button did not focus")
+                let previousActions = host.Actions
+                SendKey(id, SDLScancode.Tab)
+                PumpFrames(window, 4)
+                Require(OverlayFocus(semantics, "Save"), "TeachingTip enabled action did not enter Tab order")
+                SendKey(id, SDLScancode.Return)
+                PumpFrames(window, 4)
+                Require(host.Actions == previousActions + 1 && host.Open, "TeachingTip action closed the tip or failed activation")
+                host.AcceptChange = false
+                SendKey(id, SDLScancode.Escape)
+                PumpFrames(window, 4)
+                Require(host.Open, "TeachingTip mutated controlled Open")
+                host.AcceptChange = true
+                let close = FindSemantics(semantics.Tree?.Root, "Close tip")!!.Bounds
+                MouseButton(id, float32(close.X + close.Width / 2), float32(close.Y + close.Height / 2), true)
+                MouseButton(id, float32(close.X + close.Width / 2), float32(close.Y + close.Height / 2), false)
+                WaitVirtual(window, () -> !host.Open)
+                Require(OverlayFocus(semantics, "Tip target"), "TeachingTip did not restore target focus")
+                host.LightDismiss = true
+                host.Open = true
+                host.Rebuild()
+                WaitVirtual(window, () -> FindSemantics(semantics.Tree?.Root, "Close tip") != nil)
+                MouseButton(id, 620.0F, 460.0F, true)
+                MouseButton(id, 620.0F, 460.0F, false)
+                WaitVirtual(window, () -> !host.Open)
+                host.Open = true
+                host.Rebuild()
+                WaitVirtual(window, () -> FindSemantics(semantics.Tree?.Root, "Close tip") != nil)
+                SendKey(id, SDLScancode.Escape)
+                WaitVirtual(window, () -> !host.Open)
+            }
+        }
+        Require(host.Requests == 24 && host.Actions == 6, "TeachingTip callback counts changed")
+        for width in []int32{480, 900, 1600, 2560} {
+            window.Width = width
+            window.Height = width == 2560 ? 1440: 480
+            window.UiScale = 1.5F
+            for anchored in []bool{true, false} {
+                host.Anchored = anchored
+                host.Open = true
+                host.Rebuild()
+                PumpFrames(window, 16)
+                let panel = FindSemantics(semantics.Tree?.Root, "Save bookmark")!!.Bounds
+                Require(panel.X >= 0 && panel.Y >= 0
+                    && panel.X + panel.Width <= float64(window.Width) / window.UiScale + 1
+                    && panel.Y + panel.Height <= float64(window.Height) / window.UiScale + 1,
+                    "TeachingTip escaped the scaled viewport")
+                host.Open = false
+                host.Rebuild()
+                PumpFrames(window, 4)
+            }
+        }
+    } finally {
+        window.RequestClose()
+        PumpFrames(window, 5)
+    }
+    Console.WriteLine("PASS: TeachingTip anchored/centered, pointer close/light-dismiss, Escape, controlled Open, action keyboard/disabled, focus restore, dialog semantics, Ink/Bone/high contrast")
 }

@@ -94,7 +94,7 @@ class ApiShapeCheck {
             "Goo.Widgets.Colors|ColorPicker",
             "Goo.Widgets.Content|CodeBlock",
             "Goo.Widgets.Data|AttachmentChip Chip DataGrid ListView TimeAxis TreeView",
-            "Goo.Widgets.Feedback|Alert Badge Banner DismissibleContextBar EmptyState InlineMessage ProgressBar ProgressSummary Spinner StatusIndicator Toast ToastHost",
+            "Goo.Widgets.Feedback|Alert Badge Banner DismissibleContextBar EmptyState InlineMessage ProgressBar ProgressSummary Spinner StatusIndicator TeachingTip Toast ToastHost",
             "Goo.Widgets.Graphs|GraphCanvas GraphNodeCard",
             "Goo.Widgets.Inputs|Calendar Checkbox ComboBox DatePicker FindBar FormField FormSection NumberInput RadioGroup SearchList Slider Stepper TextArea TextField ToggleGroup ToggleSwitch TokenInput TouchTextEditing TriggerMenu UploadTile",
             "Goo.Widgets.Layout|AppBar Card Disclosure Drawer Grid HoverCard ListRow MasterDetail ModalDialog ModalDialogHost Popover PropertyGrid SectionHeader SettingsLayout SplitPane StatusBar Tooltip WindowChrome",
@@ -184,7 +184,7 @@ class ApiShapeCheck {
             }
             Field(type, 10, "OnSelectionChange", "Action[string[]]?", "OnSelectedIdsChange|OnSelectionChanged|" + (if role == "ToggleGroup" { "OnChange" } else { "" }))
         }
-        if []string{"ComboBox", "DatePicker", "MenuButton", "Menu", "CommandPalette", "ModalDialog", "Popover", "Toast"}.Contains(role) {
+        if []string{"ComboBox", "DatePicker", "MenuButton", "Menu", "CommandPalette", "ModalDialog", "Popover", "TeachingTip", "Toast"}.Contains(role) {
             let state = Member(type, "Open")
             if state == nil || !(state.Type.Text() == "bool" || state.Type.Text() == "bool?") {
                 Add(12, "F:" + type.Name + ".Open", if state == nil { "not declared" } else { state.Signature }, "var Open bool or bool?")
