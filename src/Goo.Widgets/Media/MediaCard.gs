@@ -79,7 +79,7 @@ public data struct MediaCard {
         }
         let thumbnail = resolved.Thumbnail ??
         Container{
-            Width: resolved.Width!!,
+            Width: Percent(100),
             Height: resolved.ThumbnailHeight!!,
             FlexShrink: 0.0,
             BackgroundColor: theme.FieldColor,
@@ -107,7 +107,7 @@ public data struct MediaCard {
                 children.Add(SupportingText(theme, resolved, detail))
             }
             Container{
-                Width: resolved.Width!!,
+                Width: Percent(100),
                 Height: resolved.ContentHeight!!,
                 MinWidth: 0.0,
                 FlexShrink: 0.0,
