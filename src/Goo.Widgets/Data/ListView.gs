@@ -87,6 +87,7 @@ public open class ListView : Cell[ListViewInput] {
             AccessibilityName = value.AccessibilityName ?? theme.Text("List")
         }
         if !Double.IsFinite(input.RowHeight!!) || input.RowHeight!!<= 0 {
+            prepared = false
             throw ArgumentOutOfRangeException("RowHeight")
         }
         selected = HashSet[string](input.SelectedIds ?? []string{}, StringComparer.Ordinal)
