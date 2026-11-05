@@ -56,6 +56,7 @@ func GridChartContracts() {
             },
             CreateSlice: (input DonutChart, segment ChartSegment, prepared Shape) -> {
                 fraction += segment.Fraction
+                Require(segment.Series.Color == Theme.Read().SeriesPalette[segment.Index], "Donut chart ignored the series palette")
                 return Shape{BackgroundColor: "#22d3ee"}
             },
         }.Build() as Container
@@ -91,6 +92,10 @@ func GridChartContracts() {
             Series: []ChartSeries{
                 ChartSeries{Id: "small", Label: "Small", Value: .25},
                 ChartSeries{Id: "large", Label: "Large", Value: .75}
+            },
+            CreateSegment: (input StackedBar, segment ChartSegment, prepared Container) -> {
+                Require(segment.Series.Color == Theme.Read().SeriesPalette[segment.Index], "Stacked bar ignored the series palette order")
+                return prepared
             }
         }.Build() as Container
     )!!

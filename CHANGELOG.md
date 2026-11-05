@@ -5,6 +5,7 @@
 - Use theme spacing and padding for attachment chips, token inputs, and radio group marks.
 - Cache graph validation and node lookup until the node or edge array changes.
 - Add modal drawers with a scrim, focus containment and focus restoration. Escape and scrim clicks request closure through `OnOpenChange(false)`.
+- Use the theme series palette in order for chart series without an explicit color, with the accent as the empty-palette fallback.
 
 ## 0.18.6 - 2026-11-03
 
