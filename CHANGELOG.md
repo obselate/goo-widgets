@@ -5,6 +5,7 @@
 - Upgrade Goo to 0.27.11, derive virtual option set sizes from core, and verify held-key DataGrid navigation without rebuilding unchanged rows.
 - Expose SplitPane separator orientation and range values, and DataGrid logical row and column indices and counts.
 - Add read-only DatePicker, NumberInput, TextField and TokenInput values with focus, selection and copy.
+- Add the public API shape rules and metadata conformance check to the build verification gate.
 - Apply the API shape to DataGrid activation, group expansion and shared density (breaking).
 - Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.
@@ -66,6 +67,7 @@
 | SearchList | No disabled state | `Disabled bool` |
 | SectionHeader | Numeric font overrides | Nullable font overrides |
 | SettingsLayout | Sealed class, numeric width metrics | Open class, nullable width metrics |
+| ShortcutList | Sealed class | Open class |
 | Slider | `OnValueChanged`, `OnValueCommitted` | `OnChange`, `OnCommit` |
 | Slider | `Height`: `float64` | `Length?` |
 | Slider | `LabelFontSize`, `ValueFontSize`, `ThumbSize`, `TrackThickness`: zero selects default | `float64?`. Nil selects default. |
