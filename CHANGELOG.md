@@ -84,11 +84,6 @@
 | TokenInput | `Tokens`, `OnTokensChange` | `Value`, `OnChange` |
 | TriggerMenu | `MaxHeight`: `float64` | `Length?`. Nil selects default. |
 | WindowChrome | `Height float64`, `ControlWidth float64` | `Height Length?`, `ControlWidth float64?` |
-
-### API migration
-
-| Widget | Old | New |
-| --- | --- | --- |
 | AttachmentChip | `OnOpen` | `OnClick` |
 | Chip | `Height float64?` | `Height Length?` |
 | Chip | `FontSize float64`, `FontWeight int32` | `FontSize float64?`, `FontWeight int32?` |

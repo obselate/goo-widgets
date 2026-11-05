@@ -57,9 +57,9 @@ public data struct CommandPaletteInput {
     /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
     /// Dialog width. Nil uses 560 logical pixels.
-    var Width float64?
+    var Width Length?
     /// Maximum height. Short result lists use their natural height.
-    var Height float64?
+    var Height Length?
     /// Receives the widget input, command descriptor, match score and highlight ranges, and prepared button, and returns the replacement content. Nil uses the default composition.
     var CreateItem Func[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button, Blob]?
 }
@@ -195,6 +195,9 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 })
             }
         }
+        let defaultWidth Length = 560.0
+        let defaultHeight Length = 360.0
+        let height = input.Height ?? defaultHeight
         let search = SearchList{
             ItemCount: ordered.Count,
             ItemAt: (index int32) -> {
@@ -206,11 +209,11 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             },
             SelectedId: activeId,
             OnSelect: Activate,
-            Width: input.Width ?? 560,
-            Height: Math.Min(
-                input.Height ?? 360,
+            Width: Percent(100),
+            Height: height.HasMagnitude && !height.IsPercent ? Math.Min(
+                height.Magnitude,
                 inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
-            ),
+            ): height,
             RowHeight: theme.ControlHeight,
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
@@ -257,10 +260,10 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             ModalDialog{
                 Open: true,
                 AccessibilityName: input.AccessibilityName ?? theme.Text("Command palette"),
-                Width: input.Width ?? 560,
+                Width: input.Width ?? defaultWidth,
                 Padding: 0,
                 Gap: 0,
-                OnClose: () -> input.OnOpenChange?.Invoke(false),
+                OnOpenChange: input.OnOpenChange,
                 OnCancel: () -> input.OnOpenChange?.Invoke(false),
                 Content: search,
                 Footer: Container{Height: 0, HitTestSelf: false},

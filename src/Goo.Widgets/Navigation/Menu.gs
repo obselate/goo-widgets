@@ -52,8 +52,8 @@ public data struct MenuInput {
     var SubmenuPlacement PopoverPlacement?
     /// Menu width. Nil uses the Popover default of 280.
     var Width Length?
-    /// Positive height limit in logical pixels. Zero uses the Popover default of 360.
-    var MaxHeight float64
+    /// Height limit. Nil uses the Popover default of 360.
+    var MaxHeight Length?
     /// Overlay stacking order. Zero selects the widget default layer.
     var ZIndex int32
     /// Accessible name override. Nil uses the widget label or localized default.
@@ -267,6 +267,7 @@ public open class Menu : Cell[MenuInput] {
             Overlays: overlays,
             Role: AccessibilityRole.Menu,
             AccessibilityName: name,
+            MaxHeight: current.MaxHeight,
             ZIndex: current.ZIndex,
             Placement: depth == 0 ? current.Placement: SubmenuPlacement(),
             Padding: theme.Spacing,
