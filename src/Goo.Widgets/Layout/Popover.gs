@@ -46,6 +46,8 @@ public data struct PopoverInput {
     var Overlays[]?Blob
     /// Receives the dismissal reason after Escape, an outside click, or loss of the anchor. Nil ignores the request.
     var OnDismiss Action[PopoverDismissReason]?
+    /// Requests false before OnDismiss for outside click, Escape, or anchor removal. Nil ignores the state request.
+    var OnOpenChange Action[bool]?
     /// False allows pointer input outside this panel to reach an underlying menu level. Defaults to true.
     var DismissOnOutsideClick bool?
     /// Optional collision bounds in window logical coordinates; defaults to the Window bounds.
@@ -56,11 +58,11 @@ public data struct PopoverInput {
     /// Maximum height defaults to 360. Both shrink to the available viewport.
     var Width Length?
     /// Lower width bound. Nil keeps the panel's own MinWidth.
-    var MinWidth float64?
+    var MinWidth Length?
     /// Upper width bound. Nil uses the available viewport and keeps the panel's own MaxWidth unless Width is Auto.
-    var MaxWidth float64?
-    /// Finite positive panel height limit in logical pixels. Zero uses 360. The viewport can reduce it.
-    var MaxHeight float64
+    var MaxWidth Length?
+    /// Panel height limit. Nil uses 360. The viewport can reduce it.
+    var MaxHeight Length?
     /// Nonnegative anchor-to-panel gap in logical pixels. Nil uses the theme spacing.
     var Gap float64?
     /// Nonnegative collision-bound inset in logical pixels. Nil uses the theme control gap.
@@ -181,8 +183,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let viewport = current.Viewport ?? rootBox
         let margin = current.ViewportMargin!!
         let available = Math.Max(1.0, viewport.Width - 2.0 * margin)
-        let maxWidth = Math.Min(current.MaxWidth ?? available, available)
-        let minWidth = Math.Min(current.MinWidth ?? 0.0, maxWidth)
+        let maxWidth = Math.Min(current.MaxWidth == nil || !current.MaxWidth!!.HasMagnitude ? available: current.MaxWidth!!.IsPercent ? viewport.Width * current.MaxWidth!!.Magnitude / 100.0: current.MaxWidth!!.Magnitude, available)
+        let minWidth = Math.Min(current.MinWidth == nil || !current.MinWidth!!.HasMagnitude ? 0.0: current.MinWidth!!.IsPercent ? viewport.Width * current.MinWidth!!.Magnitude / 100.0: current.MinWidth!!.Magnitude, maxWidth)
         let requested = current.Width!!
         let fit = !requested.HasMagnitude
         let width = Math.Clamp(
@@ -190,7 +192,9 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             minWidth,
             maxWidth
         )
-        var heightLimit = Math.Min(current.MaxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
+        let requestedHeight = current.MaxHeight!!
+        let maxHeight = !requestedHeight.HasMagnitude ? Double.PositiveInfinity: requestedHeight.IsPercent ? viewport.Height * requestedHeight.Magnitude / 100.0: requestedHeight.Magnitude
+        var heightLimit = Math.Min(maxHeight, Math.Max(1.0, viewport.Height - 2.0 * margin))
         if !presented && rootBox.Width > 0.0 && rootBox.Height > 0.0
         && (current.WindowPoint != nil || anchorWasMounted)
         && MeasurementValid(fit ? maxWidth: width) {
@@ -241,7 +245,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         if fit || current.MaxWidth != nil {
             panel.MaxWidth = maxWidth
         }
-        panel.MaxHeight = presented ? heightLimit: current.MaxHeight
+        panel.MaxHeight = presented ? heightLimit: current.MaxHeight!!
         panel.MinHeight = 0.0
         panel.FlexShrink = 0.0
         panel.OverflowY = Overflow.Scroll
@@ -296,7 +300,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let defaultWidth Length = 280
         let result = input with{
             Width = input.Width ?? defaultWidth,
-            MaxHeight = input.MaxHeight == 0.0 ? 360.0: input.MaxHeight,
+            MaxHeight = input.MaxHeight ?? 360.0,
             Gap = input.Gap ?? theme.Spacing,
             ViewportMargin = input.ViewportMargin ?? theme.ControlGap,
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,
@@ -310,9 +314,9 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         let width = result.Width!!
         if width.HasMagnitude && (!Double.IsFinite(width.Magnitude) || width.Magnitude <= 0.0)
-        || result.MinWidth != nil && (!Double.IsFinite(result.MinWidth!!) || result.MinWidth!!< 0.0)
-        || result.MaxWidth != nil && (!Double.IsFinite(result.MaxWidth!!) || result.MaxWidth!!<= 0.0)
-        || !Double.IsFinite(result.MaxHeight) || result.MaxHeight <= 0.0
+        || result.MinWidth != nil && result.MinWidth!!.HasMagnitude && (!Double.IsFinite(result.MinWidth!!.Magnitude) || result.MinWidth!!.Magnitude < 0.0)
+        || result.MaxWidth != nil && result.MaxWidth!!.HasMagnitude && (!Double.IsFinite(result.MaxWidth!!.Magnitude) || result.MaxWidth!!.Magnitude <= 0.0)
+        || result.MaxHeight!!.HasMagnitude && (!Double.IsFinite(result.MaxHeight!!.Magnitude) || result.MaxHeight!!.Magnitude <= 0.0)
         || !Double.IsFinite(result.Gap!!) || result.Gap!!< 0.0
         || !Double.IsFinite(result.ViewportMargin!!) || result.ViewportMargin!!< 0.0
         || !Double.IsFinite(result.Padding!!) || result.Padding!!< 0.0 {
@@ -509,6 +513,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         if reason == PopoverDismissReason.OutsideClick {
             CloseScope(false)
         }
+        current.OnOpenChange?.Invoke(false)
         current.OnDismiss?.Invoke(reason)
     }
 
