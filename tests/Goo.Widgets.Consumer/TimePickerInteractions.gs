@@ -98,6 +98,7 @@ func TimePickerInteractions() {
             host.Rebuild()
             PumpFrames(window, 5)
             let disabled = FindSemantics(semantics.Tree?.Root, "Meeting hour")!!
+            Require(FindSemantics(semantics.Tree?.Root, "Meeting")!!.Disabled, "Disabled time group omitted its semantic state")
             Require(!window.PerformAccessibilityAction(disabled.Id, AccessibilityActionRequest(AccessibilityAction.Focus)), "Disabled time accepted focus")
             host.Disabled = false
             host.Rebuild()

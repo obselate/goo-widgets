@@ -54,6 +54,7 @@ public open class TimePicker : Cell[TimePickerInput] {
         let root = Container{
             Width: input.Width ?? width,
             MinWidth: 0,
+            Disabled: input.Disabled,
             Direction: theme.Direction,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
