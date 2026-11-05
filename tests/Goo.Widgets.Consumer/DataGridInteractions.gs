@@ -1272,6 +1272,7 @@ func DataGridNavigationInteractions() {
 
 func DataGridInteractions() {
     RunContracts(DataGridContracts)
+    DataGridLogicalEditingFocus()
     DataGridHeightInteractions()
     DataGridNavigationInteractions()
     DataGridEditingInteractions()
@@ -1740,6 +1741,64 @@ internal class DataGridEditHost : Cell {
     }
 }
 
+func DataGridLogicalEditingFocus() {
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(520, 340, 520, 340)
+    let host = DataGridEditHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Root: host, AccessibilityAdapter: semantics}
+    Theme.Attach(window, Theme.Default)
+    window.Attach(embedded)
+    embedded.SetFocused(false)
+    ThemeFrames(embedded)
+    Require(!window.IsFocused && host.Root.Focus(), "Inactive window rejected grid logical focus")
+    ThemeFrames(embedded)
+    host.Builds = 0
+    window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
+    window.PlatformInput.KeyRelease(Key.Enter)
+    ThemeFrames(embedded)
+    Require(window.PlatformInput.Editor?.Text == "Value 0" &&
+        window.PlatformInput.Selection?.Active.Offset == 7 && host.Builds == 1,
+        "Edit entry required native window focus or rebuilt unrelated rows")
+    window.PlatformInput.CommitText(" changed")
+    window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
+    window.PlatformInput.KeyRelease(Key.Enter)
+    ThemeFrames(embedded)
+    Require(host.Rows[0].Values!!["name"] == "Value 0 changed" && !window.IsFocused &&
+        FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Focused,
+        "Explicit commit did not return logical focus without native activation")
+    host.Reject = true
+    window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
+    window.PlatformInput.KeyRelease(Key.Enter)
+    ThemeFrames(embedded)
+    Require(host.After.Focus(), "Outside control rejected logical focus")
+    ThemeFrames(embedded)
+    Require(host.Sets == 1 && host.Context.EditorHandle.IsMounted &&
+        FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused && !window.IsFocused,
+        "Rejected validation closed the edit or moved focus in an inactive window")
+    Require(host.Context.EditorHandle.Focus(), "Retained editor rejected logical focus")
+    window.PlatformInput.KeyPress(Key.Escape, KeyModifiers{})
+    window.PlatformInput.KeyRelease(Key.Escape)
+    ThemeFrames(embedded)
+    Require(host.Outcome == DataGridEditOutcome.Cancel &&
+        FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Focused && !window.IsFocused,
+        "Explicit cancel did not return logical focus without native activation")
+    host.Input = host.Input with{ActiveColumnId = "popup"}
+    host.Refresh()
+    ThemeFrames(embedded)
+    window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
+    window.PlatformInput.KeyRelease(Key.Enter)
+    ThemeFrames(embedded)
+    Require(window.PlatformInput.Editor?.Text == "Popup 0" && !window.IsFocused,
+        "Popup editing required native window activation")
+    window.PlatformInput.KeyPress(Key.Escape, KeyModifiers{})
+    window.PlatformInput.KeyRelease(Key.Escape)
+    ThemeFrames(embedded)
+    Require(FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Focused && !window.IsFocused,
+        "Popup cancel did not restore logical focus in an inactive window")
+    Console.WriteLine("PASS DataGrid logical editing focus: inactive native window, entry, commit, cancel and validation")
+}
+
 func DataGridEditingInteractions() {
     let host = DataGridEditHost()
     let semantics = SearchListSemantics()
@@ -1753,6 +1812,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 3)
         host.Builds = 0
         GridKey(window, Key.Enter)
+        WaitVirtual(window, () -> window.PlatformInput.Editor != nil && window.PlatformInput.Selection != nil)
         Require(host.Events.Count == 1 && host.Events[0] == "begin" && host.Context.EditorHandle.IsMounted,
             "Enter did not begin one editable cell")
         Require(host.Builds == 1, "Edit entry did not rebuild exactly one row: " + host.Builds.ToString())
@@ -2062,8 +2122,16 @@ func DataGridEditingInteractions() {
         GridKey(window, Key.Enter)
         let clicks = host.AfterClicks
         GridPointer(window, host.After)
-        Require(host.AfterClicks == clicks + 1 && window.PlatformInput.Editor != nil,
-            "Rejected popup validation blocked the outside control or lost its editor")
+        Require(host.AfterClicks == clicks + 1 && host.Context.EditorHandle.IsMounted,
+            "Rejected popup validation blocked the outside control or removed its editor")
+        if window.IsFocused {
+            WaitVirtual(window, () -> window.PlatformInput.Editor != nil)
+        } else {
+            Require(FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused,
+                "Validation moved focus in an inactive native window")
+            Require(host.Context.EditorHandle.Focus(), "Retained popup editor rejected logical focus")
+            PumpFrames(window, 3)
+        }
         host.Input = host.Input with{Height = Percent(100)}
         host.Refresh()
         PumpFrames(window, 4)

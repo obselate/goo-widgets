@@ -185,7 +185,7 @@ public open partial class DataGrid {
                 session.OnUnmount = nil
                 complete?.Invoke()
             }
-            if session == editSession && session.FocusPending && metrics.IsMounted && window?.IsFocused == true {
+            if session == editSession && session.FocusPending && metrics.IsMounted {
                 session.Editor.Focus()
             }
         }
@@ -251,7 +251,7 @@ public open partial class DataGrid {
     private func ReturnEditFocus(session DataGridEditSession, traverse bool, forward bool) {
         session.OnUnmount = () -> {
             window?.TryPost(() -> {
-                if disposed || editSession != nil || window?.IsFocused != true { return }
+                if disposed || editSession != nil { return }
                 Reveal()
                 if rootHandle.Focus() && traverse { window!!.PlatformInput.MoveFocus(forward) }
             })
