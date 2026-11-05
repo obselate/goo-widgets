@@ -30,6 +30,7 @@ public open partial class DataGrid {
         }
         for id in removed {
             rowHandles.Remove(id)
+            cellHandles.Remove(id)
         }
     }
 
@@ -101,6 +102,60 @@ public open partial class DataGrid {
         return nil
     }
 
+    private func BuildCell(snapshot DataGridInput, row DataGridRow, index int32, isSelected bool, height float64) Container {
+        let column = columns[index]
+        let id = row.Id!!
+        var text = ""
+        if let values = row.Values {
+            if values.TryGetValue(column.Id!!, out var value) { text = value }
+        }
+        let session = editSession?.Value.RowId == id && editSession?.Value.ColumnId == column.Id ? editSession: nil
+        var content Blob
+        if session != nil && session.Presentation == DataGridEditPresentation.Inline {
+            content = BuildEditor(session, column, height)
+        } else {
+            content = if let create = snapshot.CreateCellContent {
+                create(snapshot, row, column)
+            } else {
+                Text{
+                    Content: text,
+                    Color: isSelected ? theme.SelectedText(snapshot.TextColor!!): snapshot.TextColor!!,
+                    TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
+                    FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight
+                }
+            }
+            if let create = snapshot.CreateCell { content = create(snapshot, row, column, content) }
+            if column.AutoWidth && column.Width == nil && column.AutoWidthContent == nil {
+                content = MeasureWidth(column.Id!!, content)
+            }
+        }
+        return Container{
+            Key: "column:" + column.Id!!,
+            Handle: session?.Anchor ?? CellHandle(id, column.Id!!),
+            Width: widths[index], FlexShrink: 0, MinWidth: 0,
+            Padding: session != nil && session.Presentation == DataGridEditPresentation.Inline ? Edges{}:
+                Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
+            JustifyContent: JustifyContent.Center, TextAlign: column.Alignment,
+            OutlineWidth: editSession == nil && activeId == id && activeColumn == index && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
+            OutlineColor: snapshot.FocusColor!!, OutlineOffset: -theme.FocusRingWidth,
+            OnPointerDown: (e PointerEvent) -> {
+                if e.Button == PointerButton.Primary && !e.IsFromInteractiveChild { SetActiveColumn(index, false) }
+            },
+            Overflow: Overflow.Hidden, OnKeyDown: stopGridKeys,
+            Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
+            ZIndex: index < pinnedCount ? 1: 0,
+            BackgroundColor: index < pinnedCount ? (
+                isSelected ? snapshot.SelectedColor!!: hoveredId == id ? theme.HoverColor: snapshot.BackgroundColor!!
+            ): Color.Transparent,
+            Accessibility: Accessibility{
+                Role: AccessibilityRole.GridCell, Name: column.Label ?? column.Id!!, Value: text,
+                RowIndex: RawIndex(id), ColumnIndex: index + (leading > 0.0 ? 1: 0),
+                ReadOnly: !CanEditCell(row, column, false)
+            },
+            content
+        }
+    }
+
     private func BuildRow(snapshot DataGridInput, row DataGridRow, details bool) Blob {
         let id = row.Id!!
         let rowIndex = RawIndex(id)
@@ -119,7 +174,7 @@ public open partial class DataGrid {
             Height: height,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
-            OutlineWidth: activeId == id && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
+            OutlineWidth: editSession == nil && activeId == id && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
             OutlineColor: snapshot.FocusColor!!,
             OutlineOffset: -theme.FocusRingWidth,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
@@ -240,65 +295,19 @@ public open partial class DataGrid {
                 if step == pinnedCount && beforeColumns > 0.0 {
                     cells.Children.Add(Container{Key: "before-columns", Width: beforeColumns, FlexShrink: 0})
                 }
-                let column = columns[index]
-                var text = ""
-                if let values = row.Values {
-                    if values.TryGetValue(column.Id!!, out var found) {
-                        text = found
-                    }
+                cells.Children.Add(BuildCell(snapshot, row, index, isSelected, height))
+            }
+            if let session = editSession {
+                let editedColumn = ColumnIndex(session.Value.ColumnId)
+                if session.Value.RowId == id && editedColumn >= pinnedCount &&
+                    (editedColumn < unpinnedStart || editedColumn >= endColumn) {
+                    var left = leading
+                    for index in 0 ... editedColumn { left += widths[index] }
+                    let retained = BuildCell(snapshot, row, editedColumn, isSelected, height)
+                    retained.Position = PositionType.Absolute
+                    retained.Left = left
+                    cells.Children.Add(retained)
                 }
-                var content Blob = if let create = snapshot.CreateCellContent {
-                    create(snapshot, row, column)
-                } else {
-                    Text{
-                        Content: text,
-                        Color: isSelected ? theme.SelectedText(snapshot.TextColor!!): snapshot.TextColor!!,
-                        TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
-                        FontFamily: theme.FontFamily,
-                        FontSize: theme.FontSize,
-                        FontWeight: theme.FontWeight,
-                    }
-                }
-                if let create = snapshot.CreateCell {
-                    content = create(snapshot, row, column, content)
-                }
-                if column.AutoWidth && column.Width == nil && column.AutoWidthContent == nil {
-                    content = MeasureWidth(column.Id!!, content)
-                }
-                cells.Children.Add(
-                    Container{
-                        Key: "column:" + column.Id!!,
-                        Width: widths[index],
-                        FlexShrink: 0,
-                        MinWidth: 0,
-                        Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-                        JustifyContent: JustifyContent.Center,
-                        TextAlign: column.Alignment,
-                        OutlineWidth: activeId == id && activeColumn == index && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
-                        OutlineColor: snapshot.FocusColor!!,
-                        OutlineOffset: -theme.FocusRingWidth,
-                        OnPointerDown: (e PointerEvent) -> {
-                            if e.Button == PointerButton.Primary && !e.IsFromInteractiveChild {
-                                SetActiveColumn(index, false)
-                            }
-                        },
-                        Overflow: Overflow.Hidden,
-                        OnKeyDown: stopGridKeys,
-                        Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
-                        ZIndex: index < pinnedCount ? 1: 0,
-                        BackgroundColor: index < pinnedCount ? (
-                            isSelected ? snapshot.SelectedColor!!: hoveredId == id ? theme.HoverColor: snapshot.BackgroundColor!!
-                        ): Color.Transparent,
-                        Accessibility: Accessibility{
-                            Role: AccessibilityRole.GridCell,
-                            Name: column.Label ?? column.Id!!,
-                            RowIndex: rowIndex,
-                            ColumnIndex: index + (leading > 0.0 ? 1: 0),
-                            Value: text
-                        },
-                        content
-                    }
-                )
             }
             if afterColumns > 0.0 {
                 cells.Children.Add(Container{Key: "after-columns", Width: afterColumns, FlexShrink: 0})
@@ -361,7 +370,7 @@ public open partial class DataGrid {
                 } else {
                     Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
                     if clickCount == 2 {
-                        Invoke(id)
+                        if !BeginEdit(id, activeColumn) { Invoke(id) }
                     }
                 }
             }
@@ -612,7 +621,12 @@ public open partial class DataGrid {
     }
 
     private func KeyDown(e KeyEvent) {
-        if input.Disabled || !hasFocus || e.IsComposing {
+        if input.Disabled || !hasFocus || e.IsComposing || editSession != nil {
+            return
+        }
+        if IsBeginEditKey(e) && activeId != nil && !e.Repeat && BeginEdit(activeId!!, activeColumn) {
+            e.PreventDefault()
+            e.StopPropagation()
             return
         }
         let control = e.Modifiers.Ctrl || e.Modifiers.Super
@@ -792,7 +806,8 @@ public open partial class DataGrid {
             (input.OnSelectionChange != nil || input.OnSelectionIndicesChange != nil || input.OnSelectionRequest != nil ? 16L: 0L) +
             ((row.HasDetail || row.Detail != nil) && input.OnExpandedChange != nil ? 32L: 0L) +
             (row.IsGroup && input.OnGroupExpandedChange != nil ? 64L: 0L) +
-            (activeId == row.Id && hasFocus && !pointerFocus ? 128L * (int64(activeColumn) + 1L): 0L)
+            (editSession == nil && activeId == row.Id && hasFocus && !pointerFocus ? 128L * (int64(activeColumn) + 1L): 0L) +
+            (editSession?.Value.RowId == row.Id ? editSession!!.Revision * 1048576L: 0L)
     }
 
     private func UpdateRowPresentation() {
@@ -813,7 +828,9 @@ public open partial class DataGrid {
             CreateHeader = nil, CreateFilter = nil, EmptyContent = nil,
             ScrollbarX = nil, ScrollbarY = nil, ScrollbarVisibilityX = nil, ScrollbarVisibilityY = nil,
             Sorts = nil, SortColumnId = nil, SortDirection = DataGridSort.None,
-            OnSort = nil, OnSortsChange = nil, Footer = nil
+            OnSort = nil, OnSortsChange = nil, Footer = nil,
+            OnEditBegin = nil, OnEditCommit = nil, OnEditCancel = nil, OnEditEnd = nil,
+            BeginEditKeys = nil, CommitEditKey = nil
         }
         var changed = rowPresentation != presentation ||
             rowPresentationTheme != theme ||

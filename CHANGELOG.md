@@ -6,6 +6,7 @@
 - Expose SplitPane separator orientation and range values, and DataGrid logical row and column indices and counts.
 - Add read-only DatePicker, NumberInput, TextField and TokenInput values with focus, selection and copy.
 - Add the public API shape rules and metadata conformance check to the build verification gate.
+- Add host-owned DataGrid cell editing with native inline and popup editors, validation, keyboard traversal and retained virtual rows.
 - Apply the API shape to DataGrid activation, group expansion and shared density (breaking).
 - Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.
