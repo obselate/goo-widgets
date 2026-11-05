@@ -1088,7 +1088,7 @@ func DataGridNavigationInteractions() {
         let heldStart = host.ActiveIndex
         let heldBuilds = host.RowBuilds
         let heldRows = host.RowBlobs.Count
-        window.PlatformInput.KeyPress(Key.Down)
+        window.PlatformInput.KeyPress(Key.Down, KeyModifiers{})
         try {
             FeedbackWait(window, 750)
         } finally {
