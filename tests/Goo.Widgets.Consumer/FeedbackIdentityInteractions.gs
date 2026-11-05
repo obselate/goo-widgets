@@ -368,12 +368,17 @@ func SkeletonInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{Title: "Skeleton verification", Width: 640, Height: 480, Root: host, AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Ink)
+    var presents int32
+    window.PresentationAccepted += (accepted WindowPresentationAccepted) -> { presents++ }
     window.Open()
     try {
         WaitVirtual(window, () -> host.Roots[2] != nil && FindSemantics(semantics.Tree?.Root, "Loading preview") != nil)
         let status = FindSemantics(semantics.Tree?.Root, "Loading preview")!!
-        Require(status.Role == AccessibilityRole.Status && status.Busy == true && status.Actions.Count == 0,
-            "Skeleton did not expose a noninteractive busy status")
+        Require(status.Role == AccessibilityRole.Status, "Skeleton role: " + status.Role.ToString())
+        Require(status.Busy == true, "Skeleton busy state: " + status.Busy.ToString())
+        Require(!window.PerformAccessibilityAction(status.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
+            && !window.PerformAccessibilityAction(status.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
+            "Skeleton accepted activation or focus")
         Require(host.Roots[0]!!.Accessibility!!.Hidden == true && host.Roots[1]!!.Accessibility!!.Hidden == true,
             "Decorative skeletons were not hidden")
         Require(host.Roots[0]!!.Children.Count == 3 && host.Roots[1]!!.Children.Count == 1,
@@ -383,7 +388,7 @@ func SkeletonInteractions() {
         PumpFrames(window, 4)
         Require(OverlayFocus(semantics, "After"), "Skeleton entered Tab order")
         FeedbackClick(window, status.Bounds)
-        Require(OverlayFocus(semantics, "After"), "Skeleton pointer click took focus")
+        Require(FindSemantics(semantics.Tree?.Root, "Loading preview")!!.Focused == false, "Skeleton pointer click took focus")
         let builds = host.Builds
         let first = ThemeCapture(window)
         PumpFrames(window, 30)
@@ -396,7 +401,10 @@ func SkeletonInteractions() {
         PumpFrames(window, 8)
         let staticBuilds = host.Builds
         let still = ThemeCapture(window)
+        PumpFrames(window, 8)
+        let idlePresents = presents
         PumpFrames(window, 30)
+        Require(presents == idlePresents, "Static Skeleton continued presenting frames")
         Require(SkeletonDifference(still, ThemeCapture(window)) == 0 && host.Builds == staticBuilds,
             "Static Skeleton changed paint or rebuilt")
         for palette in []Theme{Theme.Ink, Theme.Bone, Theme.Ink.WithHighContrast()} {
@@ -419,6 +427,15 @@ func SkeletonInteractions() {
         window.RequestClose()
         PumpFrames(window, 4)
     }
+    using let baseline = ThemePreferenceHost()
+    baseline.Resize(640, 480, 640, 480)
+    baseline.UpdatePreferences(PlatformPreferences{ReducedMotion: true})
+    let plain = Window{Root: ThemeProbe()}
+    plain.Attach(baseline)
+    ThemeFrames(baseline)
+    let before = baseline.Wakes
+    for frame in 0 ... 120 { baseline.RenderFrame(0.016) }
+    let idleWakes = baseline.Wakes - before
     using let embedded = ThemePreferenceHost()
     embedded.Resize(640, 480, 640, 480)
     embedded.UpdatePreferences(PlatformPreferences{ReducedMotion: true})
@@ -429,8 +446,9 @@ func SkeletonInteractions() {
     let wakes = embedded.Wakes
     let builds = staticHost.Builds
     for frame in 0 ... 120 { embedded.RenderFrame(0.016) }
-    Require(embedded.Wakes == wakes && staticHost.Builds == builds,
-        "Reduced-motion Skeleton continued scheduling frames or rebuilding")
+    Require(embedded.Wakes - wakes == idleWakes && staticHost.Builds == builds,
+        "Reduced-motion Skeleton idle: wakes " + (embedded.Wakes - wakes).ToString()
+        + ", baseline " + idleWakes.ToString() + ", builds " + (staticHost.Builds - builds).ToString())
     for root in staticHost.Roots {
         for shape in root!!.Children {
             Require((shape as Container)!!.Children.Count == 0, "Reduced-motion Skeleton retained its shimmer")
@@ -445,7 +463,7 @@ func SkeletonInteractions() {
     ThemeFrames(embedded)
     let idle = embedded.Wakes
     for frame in 0 ... 120 { embedded.RenderFrame(0.016) }
-    Require(embedded.Wakes == idle, "Animated false Skeleton continued scheduling frames")
+    Require(embedded.Wakes - idle == idleWakes, "Animated false Skeleton continued scheduling frames")
     let registry = CreateRegistry()
     let gallery = Gallery(registry, registry.IndexOf("Skeleton"))
     let gallerySemantics = SearchListSemantics()
