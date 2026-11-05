@@ -91,7 +91,7 @@
 | --- | --- | --- |
 | AttachmentChip | `OnOpen` | `OnClick` |
 | Chip | `Height float64?` | `Height Length?` |
-| Chip | `FontSize float64`, `FontWeight int32` | Nullable token overrides |
+| Chip | `FontSize float64`, `FontWeight int32` | `FontSize float64?`, `FontWeight int32?` |
 | ListView | `OnInvoke` | `OnClick` |
 | TimeAxis | `OnViewportChanged` | `OnViewportChange` |
 | TreeView | `LoadChildren` | `OnLoadChildren` |
@@ -102,19 +102,19 @@
 | GraphCanvas | `OnSelectionChanged`, `OnNodePositionChanged`, `OnViewportChanged` | `OnSelectionChange`, `OnNodePositionChange`, `OnViewportChange` |
 | GraphCanvas | `CustomizeNode`, `CustomizeEdge` | `CreateNode`, `CreateEdge`, with owner first |
 | GraphCanvas | `CreateNodeContent(node)` | `CreateNodeContent(input, node)` |
-| GraphCanvas | Non-nullable canvas, node, grid and edge dimensions | Nullable token overrides |
+| GraphCanvas | `Width`, `Height`, `NodeWidth`, `NodeHeight`, `GridSpacing`, `MinimumGridScreenSpacing`, `EdgeWidth` as `float64` | Same fields as `float64?` |
 | GraphNodeCard | `OnActivate` | `OnClick` |
 | GraphNodeCard | `Width float64`, `Height float64` | `Width float64?`, `Height float64?` |
 | GraphCanvas | Public `GraphPointerMode` | Internal implementation type |
 | AsyncImage | `Width float64`, `Height float64` | `Width Length?`, `Height Length?` |
-| AsyncImage | Non-nullable font size and weight | Nullable token overrides |
-| Avatar | Non-nullable size, border width, font size and weight | Nullable token overrides |
+| AsyncImage | `FontSize float64`, `FontWeight int32` | `FontSize float64?`, `FontWeight int32?` |
+| Avatar | `Size`, `BorderWidth`, `FontSize` as `float64`, `FontWeight int32` | Same fields as `float64?` and `int32?` |
 | AvatarGroup | `OnActivate`, `Size float64` | `OnClick`, `Size float64?` |
 | MediaCard | `Width float64` | `Width Length?` |
-| MediaCard | Non-nullable thumbnail height, content height and font sizes | Nullable token overrides |
+| MediaCard | `ThumbnailHeight`, `ContentHeight`, `TitleFontSize`, `SupportingFontSize` as `float64` | Same fields as `float64?` |
 | MediaTransport | `OnSeekChanged`, `OnSeekCommitted` | `OnPositionChange`, `OnPositionCommit` |
 | MediaTransport | `OnVolumeChanged`, `OnVolumeCommitted` | `OnVolumeChange`, `OnVolumeCommit` |
-| MediaTransport | Non-nullable action sizes | Nullable token overrides |
+| MediaTransport | `ActionSize float64`, `PrimaryActionSize float64` | `ActionSize float64?`, `PrimaryActionSize float64?` |
 | CommandPalette | `OnActivate`, `OnDismiss()` | `OnClick`, `OnOpenChange(false)` |
 | CommandPalette | `Width float64?`, `Height float64?` | `Width Length?`, `Height Length?` |
 | CommandPalette | `CreateItem(item, match, button)` | `CreateItem(input, item, match, button)` |
@@ -124,7 +124,7 @@
 | MenuButton | `CreateMenu(menu)` | `CreateMenu(input, menu)` |
 | NavigationRail | `CollapsedGroups` | `ExpandedGroupIds`. Use the complement. Nil expands all groups |
 | NavigationRail | `OnGroupToggle(id)` | `OnGroupExpandedChange(id, expanded)` |
-| NavigationRail | Non-nullable widths, item height, font size and weight | Nullable token overrides |
+| NavigationRail | `CollapsedWidth`, `ExpandedWidth`, `ItemHeight`, `FontSize` as `float64`, `FontWeight int32` | Same fields as `float64?` and `int32?` |
 
 
 ## 0.18.6 - 2026-11-03
