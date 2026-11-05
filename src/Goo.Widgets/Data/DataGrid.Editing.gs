@@ -328,6 +328,9 @@ public open partial class DataGrid {
                 Width: Percent(100), Height: height, MinHeight: 0, MinimumRows: 1,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
                 CreateEditor: (input TextAreaInput, value TextEditor) -> {
+                    if session.Presentation == DataGridEditPresentation.Inline {
+                        value.Padding = Edges{Left: theme.ControlPadding, Right: theme.ControlPadding}
+                    }
                     prepared = value
                     return value
                 },
