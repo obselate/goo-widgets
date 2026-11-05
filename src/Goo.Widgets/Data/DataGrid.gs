@@ -595,7 +595,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             activeColumn = ColumnIndex(input.ActiveColumnId)
         }
         activeColumn = Math.Clamp(activeColumn, 0, Math.Max(0, columns.Length - 1))
-        SynchronizeEdit()
+        SynchronizeEdit(true)
         Prune(resizeHandles, columnIds)
         if input.Disabled || !CanResize(ColumnIndex(resizeId))
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
@@ -785,13 +785,15 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             pointerFocus = true
             hostPointer?.Invoke(e)
         }
-        root.OnTextInput = (text string) -> {
-            if editSession == nil && (input.UseDefaultKeyboard ?? true) && activeId != nil &&
-                text.Length > 0 && !Char.IsControl(text[0]) {
-                BeginEdit(activeId!!, activeColumn, text)
+        if input.SetCellValue != nil || hostText != nil || input.OnTextInput != nil {
+            root.OnTextInput = (text string) -> {
+                if editSession == nil && (input.UseDefaultKeyboard ?? true) && activeId != nil &&
+                    text.Length > 0 && !Char.IsControl(text[0]) {
+                    BeginEdit(activeId!!, activeColumn, text)
+                }
+                hostText?.Invoke(text)
+                input.OnTextInput?.Invoke(text)
             }
-            hostText?.Invoke(text)
-            input.OnTextInput?.Invoke(text)
         }
         root.OnFocus = (e FocusEvent) -> {
             hasFocus = true

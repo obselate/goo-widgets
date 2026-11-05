@@ -1505,7 +1505,7 @@ func DataGridInteractions() {
             lastState.RowIndex == 1499 && lastState.ColumnIndex == 2,
             "Grid cell indices did not follow reordered columns and unrealized rows")
         Require(
-            grid.Focused && grid.Relationships.ActiveDescendant == FindSemantics(last, "Owner")!!.Id,
+            grid.Focused && grid.Relationships.ActiveDescendant == lastName.Id,
             "Grid End failed to reveal a virtual active descendant"
         )
         var mounted int32
@@ -1735,7 +1735,7 @@ internal class DataGridEditHost : Cell {
     public override func Build() Blob -> Container{
         Width: Percent(100), Height: Percent(100), FlexDirection: FlexDirection.Column,
         Button{Handle: Before, Height: 24, Text{Content: "Before grid"}},
-        Cell.Mount[DataGridInput, DataGrid]("editing-grid", Input),
+        Container{FlexGrow: 1, FlexBasis: 0, MinHeight: 0, Cell.Mount[DataGridInput, DataGrid]("editing-grid", Input)},
         Button{Handle: After, Height: 24, OnClick: () -> AfterClicks++, Text{Content: "After grid"}}
     }
 }
@@ -1901,7 +1901,7 @@ func DataGridEditingInteractions() {
         Require(host.Context.EditorHandle.IsMounted && host.Events.Count == 0 && host.Calls < 120,
             "Inline row or column virtualization discarded an edit")
         GridKey(window, Key.Enter)
-        Require(host.Rows[0].Values!!["name"].EndsWith(" indexed") && host.Context.Edit.SourceIndex == 1000,
+        Require(host.Rows[0].Values!!["name"].EndsWith(" indexed") && host.Context.Edit.SourceIndex == 999,
             "Indexed commit used the display index as identity")
         Require(FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Focused &&
             host.RowBlobs["0"].Handle!!.IsMounted && host.Viewport.ScrollOffset.Y > 30000,
@@ -2071,13 +2071,16 @@ func DataGridEditingInteractions() {
             window.UiScale = 1.5F
             window.Width = width
             window.Height = width == 2560 ? 1440: 480
+            WaitVirtual(window, () -> window.Width == width && Math.Abs(host.Root.BorderBox.Width - float64(width) / 1.5) < 1)
+            host.Viewport.JumpTo(host.Viewport.ScrollRange.X, 0)
             PumpFrames(window, 8)
+            CaptureIssueProof(window, "datagrid-editing-150-" + width.ToString())
             let popup = FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Bounds
             let error = FindSemantics(semantics.Tree!!.Root, "Enter a valid value")!!.Bounds
             Require(popup.X >= 0 && popup.Y >= 0 && popup.X + popup.Width <= float64(width) / 1.5 + 1 &&
-                popup.Y + popup.Height <= float64(window.Height) / 1.5 + 1 && error.Width <= popup.Width,
+                popup.Y + popup.Height <= float64(window.Height) / 1.5 + 1 && error.Width <= popup.Width &&
+                host.After.BorderBox.Y + host.After.BorderBox.Height <= float64(window.Height) / 1.5 + 1,
                 "Scaled editor or error left the viewport")
-            CaptureIssueProof(window, "datagrid-editing-150-" + width.ToString())
         }
         host.Reject = false
         GridKey(window, Key.Escape)

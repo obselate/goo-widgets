@@ -91,6 +91,7 @@ internal class DataGridEditSession {
     internal var Revision int64
     internal var Identity int64
     internal var Controller TextEditorController?
+    internal var OnUnmount Action?
 }
 
 public open partial class DataGrid {
@@ -130,17 +131,17 @@ public open partial class DataGrid {
         if row.Id != session.Value.RowId { return false }
         indices[session.Value.RowId] = index
         column = columns[columnIndex]
-        session.Value = session.Value with{SourceIndex = row.SourceIndex}
+        session.Value = session.Value with{SourceIndex = index}
         return true
     }
 
-    private func SynchronizeEdit() {
+    private func SynchronizeEdit(rebuilding bool = false) {
         guard let session = editSession else { return }
         if editTransition { return }
         if !EditLocation(session, out var row, out var column) || CellValue(row, column) != session.Value.OriginalValue {
-            CancelEdit(DataGridEditCancelReason.SourceChanged, session.Focused)
+            CancelEdit(DataGridEditCancelReason.SourceChanged, session.Focused, !rebuilding)
         } else if !CanEditCell(row, column) {
-            CancelEdit(DataGridEditCancelReason.Unavailable, session.Focused)
+            CancelEdit(DataGridEditCancelReason.Unavailable, session.Focused, !rebuilding)
         }
     }
 
@@ -154,7 +155,7 @@ public open partial class DataGrid {
         let column = columns[columnIndex]
         if !CanEditCell(row, column) { return false }
         let original = CellValue(row, column)
-        let value = DataGridEdit{RowId: rowId, ColumnId: column.Id!!, SourceIndex: row.SourceIndex, OriginalValue: original, Draft: original + appended}
+        let value = DataGridEdit{RowId: rowId, ColumnId: column.Id!!, SourceIndex: index, OriginalValue: original, Draft: original + appended}
         editTransition = true
         var allowed bool
         try { allowed = input.OnEditBegin?.Invoke(value) ?? true }
@@ -175,28 +176,42 @@ public open partial class DataGrid {
         }
         if !Enum.IsDefined(session.Presentation) { throw ArgumentOutOfRangeException("EditPresentation") }
         session.Editor.MetricsChanged += (metrics ElementMetrics) -> {
+            if !metrics.IsMounted {
+                if session != editSession {
+                    session.Controller?.Dispose()
+                    session.Controller = nil
+                }
+                let complete = session.OnUnmount
+                session.OnUnmount = nil
+                complete?.Invoke()
+            }
             if session == editSession && session.FocusPending && metrics.IsMounted && window?.IsFocused == true {
                 session.Editor.Focus()
             }
         }
         editSession = session
+        let activeChanged = activeId != rowId
         activeId = rowId
         SetActiveColumn(columnIndex, false)
+        if activeChanged {
+            input.OnActiveRowIndexChange?.Invoke(index)
+            input.OnActiveRowChange?.Invoke(rowId)
+        }
         Reveal()
         Rebuild()
         return true
     }
 
-    private func CancelEdit(reason DataGridEditCancelReason, restore bool = true) {
+    private func CancelEdit(reason DataGridEditCancelReason, restore bool = true, rebuild bool = true) {
         guard let session = editSession else { return }
         if editTransition { return }
         editTransition = true
         try {
             input.OnEditCancel?.Invoke(session.Value, reason)
-            CloseEdit(session)
+            CloseEdit(session, rebuild)
             input.OnEditEnd?.Invoke(session.Value, DataGridEditOutcome.Cancel)
         } finally { editTransition = false }
-        if restore { ReturnEditFocus(false, true) }
+        if restore { ReturnEditFocus(session, false, true) }
     }
 
     private func CommitEdit(restore bool = true, traversal int32 = 0) bool {
@@ -223,22 +238,29 @@ public open partial class DataGrid {
             input.OnEditEnd?.Invoke(session.Value, DataGridEditOutcome.Commit)
         } finally { editTransition = false }
         if traversal != 0 && MoveEdit(session.Value, traversal) { return true }
-        if restore || traversal != 0 { ReturnEditFocus(traversal != 0, traversal >= 0) }
+        if restore || traversal != 0 { ReturnEditFocus(session, traversal != 0, traversal >= 0) }
         return true
     }
 
-    private func CloseEdit(session DataGridEditSession) {
+    private func CloseEdit(session DataGridEditSession, rebuild bool = true) {
         editSession = nil
-        session.Controller?.Dispose()
-        Rebuild()
+        if !session.Editor.IsMounted { session.Controller?.Dispose() }
+        if rebuild { Rebuild() }
     }
 
-    private func ReturnEditFocus(traverse bool, forward bool) {
-        window?.TryPost(() -> {
-            if disposed || editSession != nil || window?.IsFocused != true { return }
-            Reveal()
-            if rootHandle.Focus() && traverse { window!!.PlatformInput.MoveFocus(forward) }
-        })
+    private func ReturnEditFocus(session DataGridEditSession, traverse bool, forward bool) {
+        session.OnUnmount = () -> {
+            window?.TryPost(() -> {
+                if disposed || editSession != nil || window?.IsFocused != true { return }
+                Reveal()
+                if rootHandle.Focus() && traverse { window!!.PlatformInput.MoveFocus(forward) }
+            })
+        }
+        if !session.Editor.IsMounted {
+            let complete = session.OnUnmount
+            session.OnUnmount = nil
+            complete?.Invoke()
+        }
     }
 
     private func MoveEdit(value DataGridEdit, direction int32) bool {
@@ -280,7 +302,8 @@ public open partial class DataGrid {
             if e.Key == Key.Escape { CancelEdit(DataGridEditCancelReason.Escape) }
             else if e.Key == Key.Tab {
                 if e.Modifiers.Ctrl || e.Modifiers.Super {
-                    if CommitEdit(false) { ReturnEditFocus(true, !e.Modifiers.Shift) }
+                    let session = editSession
+                    if CommitEdit(false) && session != nil { ReturnEditFocus(session, true, !e.Modifiers.Shift) }
                 } else { CommitEdit(false, e.Modifiers.Shift ? -1: 1) }
             } else { CommitEdit() }
         }
@@ -352,7 +375,14 @@ public open partial class DataGrid {
         if let create = column.CreateEditor {
             editor = create(DataGridEditContext{
                 Edit: session.Value, ErrorMessage: session.Error, EditorHandle: session.Editor,
-                OnDraftChange: change, Commit: () -> { CommitEdit() }, Cancel: () -> CancelEdit(DataGridEditCancelReason.Escape)
+                OnDraftChange: change,
+                Commit: () -> {
+                    if editSession != session { return }
+                    CommitEdit()
+                },
+                Cancel: () -> {
+                    if editSession == session { CancelEdit(DataGridEditCancelReason.Escape) }
+                }
             }, editor)
         }
         return Container{
