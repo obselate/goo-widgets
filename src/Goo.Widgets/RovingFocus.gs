@@ -6,12 +6,19 @@ import System.Collections.Generic
 
 /// One Tab stop with disabled-aware arrow, Home and End navigation.
 public data struct RovingFocus {
+    /// Stable item IDs in navigation order. Nil supplies no navigation targets.
     var Ids[]?string
+    /// Current keyboard-active ID. Nil makes the first enabled ID the tab stop.
     var ActiveId string?
+    /// Direction of layout and arrow-key navigation. Nil uses horizontal layout.
     var Orientation AccessibilityOrientation?
+    /// Wraps navigation at either end. Nil means true.
     var Wrap bool?
+    /// Reverses horizontal arrow movement for right-to-left layout.
     var RightToLeft bool
+    /// Tests whether an ID must be skipped. Nil treats every ID as enabled.
     var IsDisabled Func[string, bool]?
+    /// Receives the next enabled ID after a handled navigation key. Nil ignores the movement request.
     var OnMove Action[string]?
 
     /// Selects the active enabled ID, or the first enabled ID.

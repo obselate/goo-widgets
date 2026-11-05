@@ -14,6 +14,7 @@ public open partial class GraphCanvas {
     private var previousScale float64 = 1.0
     private var previousNodePoint Point
 
+    /// Creates the retained gesture recognizer for canvas pan and zoom.
     public init() {
         navigation = []GestureRecognizer{TransformGesture(TransformViewport)}
     }

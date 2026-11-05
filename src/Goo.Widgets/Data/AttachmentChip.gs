@@ -8,16 +8,27 @@ import System
 
 /// A file attachment with a persistent filename suffix and optional transfer actions.
 public data struct AttachmentChip {
+    /// Attachment filename. Nil uses localized Attachment text. The suffix stays visible when space is limited.
     var Name string?
+    /// Secondary information shown with the item. Nil omits it.
     var Detail string?
+    /// Content before the label. Nil leaves this slot empty.
     var Leading Blob?
+    /// Transfer fraction clamped to 0 through 1. Nil hides the progress track.
     var Progress float64?
+    /// Uses failure presentation for the transfer status.
     var Failed bool
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Requests removal when the remove action is activated. Nil hides the action.
     var OnRemove Action?
+    /// Requests opening the attachment when its name is activated. Nil supplies no open action.
     var OnOpen Action?
+    /// Requests download when the download action is activated. Nil hides the action.
     var OnDownload Action?
+    /// Root layout width. Nil uses 280 logical pixels.
     var Width Length?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[AttachmentChip, Container, Container]?
 
     /// Builds the attachment and its independent transfer action.

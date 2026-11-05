@@ -10,22 +10,35 @@ import System.Collections.Generic
 
 /// A status item. Higher priority remains visible longer.
 public data struct StatusBarItem {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?
+    /// Visible status text. Nil omits the text.
     var Text string?
+    /// Runs when the enabled status item is activated. Nil renders no primary action.
     var OnActivate Action?
+    /// Hover hint. Nil supplies no tooltip.
     var Tooltip string?
+    /// Shows ongoing work without changing the host-owned action.
     var Busy bool
+    /// Relative item importance used when space is limited. Larger values have higher priority.
     var Priority int32
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Actions for this status item. Nil supplies no menu.
     var MenuItems[]?MenuItem
+    /// Receives the selected menu item ID after activation. Nil ignores the request.
     var OnMenuActivate Action[string]?
 }
 
 /// Items anchored to the two ends of a status bar.
 public data struct StatusBarInput {
+    /// Status items placed at the leading edge. Nil supplies no leading items.
     var Start[]?StatusBarItem
+    /// Caller-owned window for status menus. Nil uses the mounted window.
     var Window Window?
+    /// Status items placed at the trailing edge. Nil supplies no trailing items.
     var End[]?StatusBarItem
 }
 
@@ -39,6 +52,7 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
     private var openId string?
     private var disposed bool
 
+    /// Subscribes to root geometry to fit status items. Dispose the bar to release the subscription.
     public init() {
         handle.MetricsChanged += Metrics
     }

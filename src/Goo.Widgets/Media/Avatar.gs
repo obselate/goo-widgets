@@ -16,9 +16,13 @@ public data struct Avatar {
     var ImageSource ImageSourceProvider?
     /// Fallback text. Nil renders as an empty string.
     var FallbackText string?
+    /// Optional operational state shown as a presence marker. Nil hides the marker.
     var Presence StatusState?
+    /// Ring color override. Nil uses BorderColor or the theme border color.
     var RingColor Color?
+    /// Semantic fallback-text color. Nil uses the explicit TextColor or theme text color.
     var NameTone Tone?
+    /// Visual used when no image or initials are available. Nil uses the default fallback.
     var FallbackIcon Blob?
     /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
@@ -190,11 +194,17 @@ public data struct Avatar {
 
 /// Overlapping avatars with an overflow count and optional per-person actions.
 public data struct AvatarGroup {
+    /// Avatars in display order. Excess items contribute to the overflow count.
     var Items[]Avatar
+    /// Maximum visible avatars, clamped to zero or greater. Nil uses 5.
     var Max int32?
+    /// Avatar square size in logical pixels. Zero uses 40.
     var Size float64
+    /// Horizontal overlap in logical pixels. Nil uses 12.
     var Overlap float64?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Receives the zero-based avatar index when it is activated. Nil leaves avatars noninteractive.
     var OnActivate Action[int32]?
 
     /// Builds a named group. Only actionable avatars enter the tab order.

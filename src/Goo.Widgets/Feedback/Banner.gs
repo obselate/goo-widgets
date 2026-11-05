@@ -10,15 +10,25 @@ public data struct Banner {
     var Content string?
     /// Accessible name. Nil resolves to the resolved content.
     var AccessibilityName string?
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
+    /// Heading shown above the content. Nil omits the heading.
     var Title string?
+    /// Rich message content. Nil uses the plain content.
     var Body Blob?
+    /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?
+    /// Single action content. Nil leaves this slot empty.
     var Action Blob?
+    /// Action content shown with the item. Nil leaves this slot empty.
     var Actions Blob?
+    /// Runs after the user-requested collapse animation finishes. Nil hides the dismiss action.
     var OnDismiss Action?
+    /// Accessible name of the dismiss action. Nil uses localized dismissal text.
     var DismissAccessibilityName string?
+    /// Enables live accessibility announcements. Nil means true. Danger uses assertive announcements and other tones use polite announcements.
     var Live bool?
+    /// Selects banner, alert, rule, or inline message presentation.
     var Variant MessageVariant
     /// Background override. Nil uses the tone's quiet fill.
     var BackgroundColor Color?
@@ -199,9 +209,13 @@ public data struct Banner {
 
 /// Message layout. Rule and Inline use a transparent background.
 public enum MessageVariant {
+    /// Shows a bordered message surface.
     Banner;
+    /// Shows emphasized alert content.
     Alert;
+    /// Shows a message with a leading accent rule.
     Rule;
+    /// Shows a compact message without a surrounding frame.
     Inline
 }
 
@@ -259,21 +273,33 @@ internal sealed class BannerState : Cell[Banner] {
 
 /// Filled panel or a transparent panel with a leading rule.
 public enum AlertVariant {
+    /// Uses a filled alert surface.
     Filled;
+    /// Uses a leading accent rule.
     Rule
 }
 
 /// A title and description with optional content and actions.
 public data struct Alert {
+    /// Heading shown above the content. Nil omits the heading.
     var Title string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Main display content. Nil leaves this slot empty.
     var Content Blob?
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
+    /// Selects a filled alert surface or a leading accent rule.
     var Variant AlertVariant
+    /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?
+    /// Action content shown with the item. Nil leaves this slot empty.
     var Actions Blob?
+    /// Runs after the user-requested collapse animation finishes. Nil hides the dismiss action.
     var OnDismiss Action?
+    /// Accessible name of the dismiss action. Nil uses localized dismissal text.
     var DismissAccessibilityName string?
+    /// Enables live accessibility announcements. Nil means true. Danger uses assertive announcements and other tones use polite announcements.
     var Live bool?
 
     /// Builds an alert using the shared semantic message renderer.
@@ -293,9 +319,13 @@ public data struct Alert {
 
 /// A compact, polite semantic message.
 public data struct InlineMessage {
+    /// Plain message text. Nil uses an empty string.
     var Content string?
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
+    /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?
+    /// Enables live accessibility announcements. Nil means true. Danger uses assertive announcements and other tones use polite announcements.
     var Live bool?
 
     /// Builds a single-line message without a border or outer padding.

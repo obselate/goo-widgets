@@ -7,30 +7,49 @@ import System
 
 /// Host-owned search options. Matching stays with the host document.
 public data struct FindOptions {
+    /// Requests case-sensitive matching in the host search operation.
     var MatchCase bool
+    /// Requests whole-word matching in the host search operation.
     var WholeWord bool
+    /// Requests regular-expression matching in the host search operation.
     var Regex bool
 }
 
 /// Controlled find and replace surface. ActiveMatch is one-based, or zero for no match.
 public data struct FindBar {
+    /// Filter text. Nil uses an empty query.
     var Query string?
+    /// Controlled matching flags. The host performs the actual search.
     var Options FindOptions
+    /// Number of matches. Negative values display as zero.
     var MatchCount int32
+    /// One-based current match index. Zero means no active match. Display is clamped to MatchCount.
     var ActiveMatch int32
+    /// Validation text shown with invalid presentation. Nil means no validation message.
     var Issue string?
+    /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
+    /// Receives the new matching flags after a user toggle. Nil ignores the request.
     var OnOptionsChange Action[FindOptions]?
+    /// Requests the next match when activated. Nil supplies no action.
     var OnNext Action?
+    /// Requests the previous match when activated. Nil supplies no action.
     var OnPrevious Action?
+    /// Requests closure when the close action is activated. Nil supplies no action.
     var OnClose Action?
     /// Nil hides the replace row.
     var Replacement string?
+    /// Receives the new replacement string after a user edit. Nil ignores the notification.
     var OnReplacementChange Action[string]?
+    /// Requests replacement of the active match. Nil supplies no action.
     var OnReplace Action?
+    /// Requests replacement of all matches. Nil supplies no action.
     var OnReplaceAll Action?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Root layout width. Nil fills the available width.
     var Width Length?
+    /// Receives the TextField value, and returns the replacement entry. Nil uses the default composition.
     var CreateEntry Func[TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.

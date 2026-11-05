@@ -6,18 +6,27 @@ import System
 
 /// Loading visuals driven by the window animation clock.
 public enum SpinnerVariant {
+    /// Animates a rotating circular arc.
     Ring;
+    /// Animates a sequence of dots.
     Dots;
+    /// Animates a sequence of bars.
     Bars
 }
 
 /// Spinner appearance. Zero Size uses 24 pixels.
 public data struct SpinnerInput {
+    /// Selects ring, dots, or bars for the loading animation.
     var Variant SpinnerVariant
+    /// Finite positive square size in logical pixels. Zero uses 24.
     var Size float64
+    /// Finite positive ring thickness in logical pixels, at most half Size. Nil uses the greater of 2 and Size divided by 10.
     var StrokeWidth float64?
+    /// Indicator color. Nil uses the theme accent color.
     var Color Color?
+    /// Accessible progress label. Nil uses localized loading text.
     var Label string?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[SpinnerInput, Container, Container]?
 }
 
@@ -32,6 +41,7 @@ public open class Spinner : Cell[SpinnerInput] {
         private let bar VectorPath = PathBuilder().MoveTo(0.5, 0.1).LineTo(0.5, 0.9).Build()
     }
 
+    /// Creates retained animation values for the indicator segments.
     public init() {
         for index in 0 ... 12 {
             opacities[index] = AnimateValue(1.0)

@@ -16,7 +16,9 @@ public data struct Checkbox {
     var OnChange Action[AccessibilityChecked]?
     /// Optional text rendered beside the checkbox mark as one interactive row.
     var Label string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Uses a bordered card presentation for each labeled choice.
     var Card bool
     /// Label text color. Nil resolves to the theme text color.
     var LabelColor Color?

@@ -8,10 +8,15 @@ import Goo.Widgets
 public data struct Badge {
     /// Badge text when Count is nil. Nil selects a dot; an empty string remains a pill.
     var Content string?
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
+    /// Displayed count, capped by MaxCount with a plus suffix. Nil uses Content, or a dot when Content is nil.
     var Count int32?
+    /// Count cap before the plus suffix is shown. Nil uses 99.
     var MaxCount int32?
+    /// Content under the overlaid badge. Nil renders the badge by itself.
     var Anchor Blob?
+    /// Enables live accessibility announcements for content changes.
     var Live bool
     /// Background color. Nil uses the nearest theme.
     var BackgroundColor Color?
@@ -189,28 +194,43 @@ public data struct Badge {
 
 /// Shared status values for indicators and avatar presence.
 public enum StatusState {
+    /// Indicates no active work.
     Idle;
+    /// Indicates work in progress.
     Running;
+    /// Indicates work waiting for a prerequisite.
     Waiting;
+    /// Indicates successful completion.
     Done;
+    /// Indicates unsuccessful completion.
     Failed;
+    /// Indicates an unavailable connection.
     Offline
 }
 
 /// Dot, icon or filled pill status presentation.
 public enum StatusVariant {
+    /// Shows a colored status dot.
     Dot;
+    /// Shows a status icon.
     Icon;
+    /// Shows the status in a rounded label.
     Pill
 }
 
 /// A text-labelled semantic status using the shared tone palette.
 public data struct StatusIndicator {
+    /// Operational state represented by the status visual and default label.
     var State StatusState
+    /// Selects a status dot, icon, or pill.
     var Variant StatusVariant
+    /// Optional semantic color override. Nil derives the tone from State.
     var Tone Tone?
+    /// Visible and accessible status label. Nil uses the State enum name.
     var Label string?
+    /// Optional icon override. Nil uses the icon selected by State.
     var Icon Blob?
+    /// Enables live accessibility announcements for content changes.
     var Live bool
 
     /// Builds a status marker and label. Running uses Spinner.

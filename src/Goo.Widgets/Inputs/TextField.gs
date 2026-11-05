@@ -32,19 +32,23 @@ public data struct TextField {
     var OnCommit Action[string]?
     /// Content inside the entry frame before and after the editor.
     var Leading Blob?
+    /// Content after the editor or label. Nil leaves this slot empty.
     var Trailing Blob?
     /// Content in separate attached sections of the entry frame.
     var PrefixAddon Blob?
+    /// Content in an attached section after the entry frame. Nil omits the section.
     var SuffixAddon Blob?
     /// Shows a named clear action while the field is nonempty.
     var Clearable bool
     /// Masks text until the optional reveal action is pressed.
     var Password bool
+    /// Shows a password-visibility action when Password is true.
     var RevealButton bool
     /// Direction of the value and its addons. Nil inherits. Use LeftToRight for emails, URLs and passwords.
     var ContentDirection Direction?
     /// Soft character limit. Input is retained when the count exceeds it.
     var MaxLength int32?
+    /// Character-count label override. Nil uses the generated count when MaxLength is set.
     var CounterText string?
     /// Entry background. Nil uses the nearest theme.
     var BackgroundColor Color?

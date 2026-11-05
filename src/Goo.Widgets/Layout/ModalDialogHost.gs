@@ -12,6 +12,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
     private var rootKeyHandler Action[KeyEvent]?
     private var disposed bool
 
+    /// Subscribes to root geometry for focus containment. Dispose the host to release the subscription and focus scope.
     public init() {
         rootHandle.MetricsChanged += Metrics
     }

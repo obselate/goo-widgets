@@ -8,12 +8,19 @@ import System.Collections.Generic
 
 /// IDs are unique across all levels, including separators and closed submenus.
 public data struct MenuItem {
+    /// Stable, nonempty identity, unique across all menu levels, including separators.
     var Id string?
+    /// Visible and accessible label. Nil uses the item ID.
     var Label string?
+    /// Custom item content. Nil uses Label.
     var Content Blob?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Renders a noninteractive divider instead of a command.
     var Separator bool
+    /// Submenu items in display order. Nil makes this a leaf command.
     var Children[]?MenuItem
+    /// Display-only keyboard chord. Nil omits the shortcut label.
     var Shortcut KeyBinding?
     /// Overrides the menu's shared activation callback for this item.
     var OnActivate Action?
@@ -21,30 +28,45 @@ public data struct MenuItem {
 
 /// Use Anchor for a trigger menu or WindowPoint for a context menu; Open remains host-owned.
 public data struct MenuInput {
+    /// Controlled visibility. False hides the popup.
     var Open bool
+    /// Caller-owned mounted trigger handle. Nil requires WindowPoint when open.
     var Anchor ElementHandle?
+    /// Context-menu origin in window logical pixels. Nil uses Anchor.
     var WindowPoint Point?
+    /// Root menu entries in display order. Nil supplies no entries. IDs must be unique across all levels.
     var Items[]?MenuItem
+    /// Receives the activated leaf item ID unless its own callback overrides it. Runs before optional dismissal. Nil ignores the request.
     var OnActivate Action[string]?
+    /// Requests dismissal after a user dismissal action. Nil ignores the request.
     var OnDismiss Action?
     /// Enabled root item focused when the menu opens. Nil selects the first item.
     var InitialFocusId string?
     /// Nil resolves to true; false keeps the menu open after leaf activation.
     var DismissOnActivate bool?
+    /// Collision bounds in window logical pixels. Nil uses the window viewport.
     var Viewport ElementRect?
     /// Preferred root placement; defaults to BottomStart. The viewport may flip or clamp it.
     var Placement PopoverPlacement
     /// Preferred submenu side; LeftStart or RightStart. Nil opens toward the end edge of the theme direction.
     var SubmenuPlacement PopoverPlacement?
+    /// Positive menu width in logical pixels. Zero uses the Popover default of 280.
     var Width float64
+    /// Positive height limit in logical pixels. Zero uses the Popover default of 360.
     var MaxHeight float64
+    /// Overlay stacking order. Zero selects the widget default layer.
     var ZIndex int32
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Optional base style for the submenu direction indicator.
     var SubmenuArrowStyle Style?
+    /// Receives the widget input, the MenuItem value, and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateItem Func[MenuInput, MenuItem, Button, Button]?
+    /// Receives the widget input and the MenuItem value, and returns the replacement content. Nil uses the default composition.
     var CreateSeparator Func[MenuInput, MenuItem, Blob]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreatePanel Func[MenuInput, Container, Container]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[MenuInput, Container, Container]?
 }
 

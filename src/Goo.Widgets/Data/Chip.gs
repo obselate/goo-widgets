@@ -10,6 +10,7 @@ public data struct Chip {
     var Label string?
     /// Optional leading element placed before the text label.
     var Leading Blob?
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
     /// Whether the chip is in its selected active state.
     var Selected bool
@@ -19,8 +20,11 @@ public data struct Chip {
     var AccessibilityName string?
     /// Action invoked when the chip button is activated.
     var OnClick Action?
+    /// Requests removal when the remove action is activated. Nil hides the action.
     var OnRemove Action?
+    /// Accessible name of the remove action. Nil uses localized removal text.
     var RemoveAccessibilityName string?
+    /// Marks the value invalid without changing the caller-owned value.
     var Invalid bool
     /// Background color in normal unselected state. Nil uses the nearest theme.
     var BackgroundColor Color?

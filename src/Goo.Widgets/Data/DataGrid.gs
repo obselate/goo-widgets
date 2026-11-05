@@ -10,45 +10,61 @@ import System.Globalization
 
 /// Host-owned sorting; None preserves the host's current order.
 public enum DataGridSort {
+    /// Preserves the host-provided row order.
     None;
+    /// Requests increasing values for the column.
     Ascending;
+    /// Requests decreasing values for the column.
     Descending
 }
 
 /// Row selection policy.
 public enum DataGridSelection {
+    /// Disables row selection.
     None;
+    /// Permits one selected row.
     Single;
+    /// Permits a set of selected rows.
     Multiple
 }
 
 /// Resolves the default row height from the theme.
 public enum DataGridDensity {
+    /// Uses the theme control height for rows.
     Normal;
+    /// Uses 80 percent of the theme control height.
     Compact;
+    /// Uses 125 percent of the theme control height.
     Comfortable
 }
 
 /// One host-owned sort, ordered from highest to lowest priority.
 public data struct DataGridSortColumn {
+    /// Stable ID of the column to sort. It must identify a current column.
     var ColumnId string?
+    /// Requested direction for this column. None leaves its order unchanged.
     var Direction DataGridSort
 }
 
 /// One stable column definition used by headers, filters, and body cells.
 public data struct DataGridColumn {
+    /// Required stable, nonempty column ID, unique in the grid.
     var Id string?
+    /// Header label. Nil falls back to the column ID.
     var Label string?
     /// Fixed logical width; nil participates in flex distribution.
     var Width float64?
     /// With no fixed Width, grows to the natural width of headers and realized cells without shrinking on scroll.
     var AutoWidth bool
+    /// Representative content measured for automatic width. Nil uses the header measurement.
     var AutoWidthContent Blob?
     /// Positive relative flex weight. Nil resolves to 1.
     var Flex float64?
     /// Width bounds. Nil resolves to 60 and 1000000.
     var Minimum float64?
+    /// Maximum column width in logical pixels. Nil leaves the width unbounded.
     var Maximum float64?
+    /// Enables header activation to request a sort change. The host applies row ordering.
     var Sortable bool
     /// Aligns default header and cell text. Defaults to left.
     var Alignment TextAlign
@@ -56,67 +72,95 @@ public data struct DataGridColumn {
     var Resizable bool?
     /// Arbitrary header and filter content. Filtering stays in the application.
     var Header Blob?
+    /// Caller-built filter content below this column header. Nil omits the filter.
     var Filter Blob?
 }
 
 /// A stable row. Applications may use Id to look up domain objects in cell/detail factories.
 public data struct DataGridRow {
+    /// Required stable, nonempty row ID, unique in the grid.
     var Id string?
+    /// Accessible row label. Nil falls back to the row ID.
     var Label string?
     /// Host-owned data passed unchanged to row and cell factories.
     var Tag object?
     /// Host-owned source index passed unchanged to factories.
     var SourceIndex int32
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
     /// Excludes this row from grid selection and navigation without disabling its content.
     var IsGroup bool
+    /// Text values indexed by column ID. Nil supplies empty cell text.
     var Values IReadOnlyDictionary[string, string]?
     /// Advertises a lazily built detail supplied by CreateDetail.
     var HasDetail bool
+    /// Expanded row content. Nil supplies no default detail.
     var Detail Blob?
 }
 
 /// Controlled data and composition for a virtualized grid. Replace changed arrays/maps and rebuild the host.
 public data struct DataGridInput {
+    /// Column descriptors in display order. Nil supplies no columns. IDs must be nonempty and unique.
     var Columns[]?DataGridColumn
+    /// Host-owned rows in display order. Nil supplies no rows unless the indexed source is used. IDs must be unique.
     var Rows[]?DataGridRow
     /// Lazy indexed rows. Supply RowIndex and replace RowAt or increment RowVersion after data changes.
     var RowAt Func[int32, DataGridRow]?
+    /// Nonnegative row count for RowAt. Used only when RowAt supplies the indexed source.
     var RowCount int32
     /// Returns the current index of a stable row ID, or -1 when absent.
     var RowIndex Func[string, int32]?
+    /// Indexed-source revision. Change this after source edits so retained rows are refreshed.
     var RowVersion int64
     /// Advertises detail controls without enumerating lazy rows.
     var HasRowDetails bool
     /// Controlled pixel preferences; fit mode keeps definition-flex columns flexible.
     var ColumnWidths IReadOnlyDictionary[string, float64]?
+    /// Receives the column ID and new width in logical pixels during a resize. Nil disables ordinary column resizing.
     var OnColumnWidthChange Action[string, float64]?
     /// Pointer-up or keyboard commit; cancellation keeps prior change requests but does not commit.
     var OnColumnWidthCommit Action[string, float64]?
     /// Fits columns to the measured root content width, excluding a reserved vertical scrollbar.
     var FitColumnsToViewport bool
+    /// Builds only visible center columns while retaining pinned columns.
     var VirtualizeColumns bool
     /// Receives all resolved widths atomically. Columns without a definition width or AutoWidth remain flexible.
     var OnFittedColumnWidthsChange Action[IReadOnlyDictionary[string, float64]]?
+    /// Receives the complete fitted column-width map in logical pixels after a resize completes. Nil ignores the commit.
     var OnFittedColumnWidthsCommit Action[IReadOnlyDictionary[string, float64]]?
+    /// ID of the single sorted column. Nil means no single-column sort.
     var SortColumnId string?
+    /// Controlled single-column sort direction. The host supplies rows in the requested order.
     var SortDirection DataGridSort
+    /// Receives the column ID and requested sort direction after header activation. Nil ignores the request.
     var OnSort Action[string, DataGridSort]?
+    /// Controlled multi-column sorts in precedence order. Nil uses the single-column sort fields.
     var Sorts[]?DataGridSortColumn
+    /// Receives the new ordered sort descriptors after header input. Nil ignores the request.
     var OnSortsChange Action[[]DataGridSortColumn]?
+    /// Column IDs pinned at the leading edge. Nil pins no columns.
     var PinnedColumns[]?string
+    /// Controlled column IDs in display order. Nil uses the descriptor order.
     var ColumnOrder[]?string
+    /// Receives a new array of column IDs in requested display order after a reorder. Nil ignores the request.
     var OnColumnOrderChange Action[[]string]?
+    /// Content below the main body. Nil omits the footer.
     var Footer Blob?
+    /// Selects the theme row-height multiplier when RowHeight is nil. Normal uses the theme control height.
     var Density DataGridDensity
+    /// Receives the row ID on row invocation. Nil ignores the request.
     var OnRowInvoke Action[string]?
+    /// Row-selection policy. None disables selection, Single permits one ID, and Multiple permits a set.
     var Selection DataGridSelection
+    /// Controlled selected item IDs. Nil means an empty selection.
     var SelectedIds[]?string
+    /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectionChange Action[[]string]?
     /// Runs before OnSelectionChange with source indices in the same order. Missing IDs have index -1.
     var OnSelectionIndicesChange Action[[]int32]?
     /// Nil keeps the grid's active row. A valid ID controls its focus outline and active descendant.
     var ActiveRowId string?
+    /// Receives the new keyboard-active row ID after navigation. Nil ignores the notification.
     var OnActiveRowChange Action[string]?
     /// Receives the active source index without a host ID lookup.
     var OnActiveRowIndexChange Action[int32]?
@@ -126,7 +170,9 @@ public data struct DataGridInput {
     var ShowSelection bool
     /// Selection column width. Nil uses the theme's control height.
     var SelectionColumnWidth float64?
+    /// Controlled expanded row IDs. Nil collapses all details.
     var ExpandedIds[]?string
+    /// Receives the row ID and requested expanded state after a detail toggle. Nil ignores the request.
     var OnExpandedChange Action[string, bool]?
     /// Expansion control width. Nil uses the theme's control height; zero hides the control.
     var ExpandColumnWidth float64?
@@ -134,9 +180,13 @@ public data struct DataGridInput {
     var DetailPadding float64?
     /// Detail surface color. Nil uses the nearest theme.
     var DetailBackground Color?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Root layout width. Nil fills the available width.
     var Width Length?
+    /// Scroll viewport layout height. Nil uses 300 logical pixels.
     var Height Length?
+    /// Positive row height in logical pixels. Nil uses the theme control height scaled by Density.
     var RowHeight float64?
     /// Height of AutoRowHeight rows before measurement. Nil uses RowHeight. Must be at least RowHeight.
     /// Keep it constant, because a new value discards measured heights.
@@ -147,35 +197,57 @@ public data struct DataGridInput {
     var MaximumRowHeight float64?
     /// Supplies finite positive cell heights. Replace this delegate when heights change.
     var RowHeightProvider Func[DataGridRow, float64]?
+    /// Positive column-header height in logical pixels. Nil uses the theme control height.
     var HeaderHeight float64?
+    /// Positive filter-row height in logical pixels. Nil uses the theme control height.
     var FilterHeight float64?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Grid background. Nil uses the theme panel color.
     var BackgroundColor Color?
+    /// Cell text color. Nil uses the theme text color.
     var TextColor Color?
+    /// Selected row fill. Nil uses the theme selection color.
     var SelectedColor Color?
     /// Keyboard focus outline color for the active row's cells.
     var FocusColor Color?
+    /// Caller-owned handle attached to the composed root. Nil uses the widget-owned root handle.
     var RootHandle ElementHandle?
+    /// Caller-owned handle attached to the scroll viewport. Nil uses the widget-owned handle.
     var ViewportHandle ElementHandle?
+    /// Receives the routed key event. Nil adds no key handler.
     var OnKeyDown((KeyEvent) -> void)?
+    /// Receives typed text routed through the grid. Nil adds no text-input handler.
     var OnTextInput Action[string]?
     /// Nil preserves built-in keyboard navigation and activation.
     var UseDefaultKeyboard bool?
+    /// Horizontal scrollbar appearance. Nil uses the nearest theme scrollbar.
     var ScrollbarX Scrollbar?
+    /// Horizontal scrollbar visibility policy. Nil uses Goo default visibility.
     var ScrollbarVisibilityX ScrollbarVisibility?
+    /// Vertical scrollbar appearance. Nil uses the nearest theme scrollbar.
     var ScrollbarY Scrollbar?
+    /// Vertical scrollbar visibility policy. Nil uses Goo default visibility.
     var ScrollbarVisibilityY ScrollbarVisibility?
+    /// Base style for the resizehandle part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var ResizeHandleStyle Style?
+    /// Receives the widget input, the column descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateResizeHandle Func[DataGridInput, DataGridColumn, Container, Container]?
+    /// Base style for the header part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var HeaderStyle Style?
+    /// Content shown when no rows exist. Nil uses the default empty-state content.
     var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
     var CreateCell Func[DataGridInput, DataGridRow, DataGridColumn, Blob, Blob]?
+    /// Receives the widget input, the row descriptor, and the column descriptor, and returns the replacement content. Nil uses the default composition.
     var CreateCellContent Func[DataGridInput, DataGridRow, DataGridColumn, Blob]?
     /// Replaces content inside the sortable header button.
     var CreateHeader Func[DataGridInput, DataGridColumn, Blob, Blob]?
+    /// Receives the widget input, the column descriptor, and the prepared content, and returns the replacement content. Nil uses the default composition.
     var CreateFilter Func[DataGridInput, DataGridColumn, Blob, Blob]?
+    /// Receives the widget input, the row descriptor, and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateSelection Func[DataGridInput, DataGridRow, Button, Button]?
+    /// Receives the widget input and the row descriptor, and returns the replacement content. Nil uses the default composition.
     var CreateDetail Func[DataGridInput, DataGridRow, Blob]?
     /// Required slots, width, identity, and semantics are reapplied.
     /// A returned OnClick handler runs after the grid's selection handler.
@@ -183,6 +255,7 @@ public data struct DataGridInput {
     /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
     /// Set IsGroup on group headers to exclude them from navigation and selection.
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
+    /// Receives the resolved input and prepared root, and returns the root container. Grid identity, focus, input routing, and accessibility are reapplied. Nil keeps the default root.
     var CreateRoot Func[DataGridInput, Container, Container]?
 }
 
@@ -255,6 +328,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private let endResize Action[PointerEvent]
     private let cancelResize Action[PointerEvent]
 
+    /// Creates retained input handlers and subscribes to grid geometry. Dispose the grid to release its subscriptions.
     public init() {
         rootHandle = defaultRootHandle
         viewport = defaultViewport

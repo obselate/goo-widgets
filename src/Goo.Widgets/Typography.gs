@@ -5,30 +5,51 @@ import System
 
 /// Selects a size and weight from the theme type scale.
 public enum TextVariant {
+    /// Uses the theme body text style.
     Body;
+    /// Uses the theme level-1 heading style.
     H1;
+    /// Uses the theme level-2 heading style.
     H2;
+    /// Uses the theme level-3 heading style.
     H3;
+    /// Uses the theme level-4 heading style.
     H4;
+    /// Uses the theme level-5 heading style.
     H5;
+    /// Uses the theme level-6 heading style.
     H6;
+    /// Uses the theme title text style.
     Title;
+    /// Uses the theme subtitle text style.
     Subtitle;
+    /// Uses the theme label text style.
     Label;
+    /// Uses the theme caption text style.
     Caption;
+    /// Uses the theme uppercase overline style.
     Overline;
+    /// Uses the theme monospace code style.
     Code
 }
 
 /// Theme-styled text with optional heading semantics.
 public data struct Typography {
+    /// Text to display. Nil uses an empty string.
     var Content string?
+    /// Selects font metrics and text treatment from the theme type scale.
     var Variant TextVariant
+    /// Explicit accessibility heading level from 1 through 6. Nil derives it from H1 through H6, or emits no heading role.
     var HeadingLevel int32?
+    /// Text color override. Nil uses the theme text color.
     var Color Color?
+    /// Maximum displayed lines. Zero leaves the line count unrestricted.
     var MaxLines int32
+    /// Text overflow treatment passed to Goo text layout.
     var Trimming TextTrimming
+    /// UTF-16 text spans with explicit styling. Nil supplies no span overrides.
     var StyleRanges[]?TextStyleRange
+    /// Receives the widget input and the prepared text, and returns the replacement text. Nil uses the default composition.
     var CreateText Func[Typography, Text, Text]?
 
     /// Creates styled text. H1 through H6 expose their heading level.

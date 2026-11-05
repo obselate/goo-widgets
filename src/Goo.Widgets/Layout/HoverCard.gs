@@ -14,9 +14,11 @@ public data struct HoverCardInput {
     var OpenDelayMs float64?
     /// Delay after the pointer and focus leave the target and card. Nil uses 300.
     var CloseDelayMs float64?
+    /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
     /// Nil uses 320.
     var Width Length?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
 }
 

@@ -7,23 +7,37 @@ import System.Collections.Generic
 
 /// An identified radio choice with optional descriptive content.
 public data struct RadioOption {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Visible and accessible label. Nil uses the item ID.
     var Label string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Content before the label. Nil leaves this slot empty.
     var Leading Blob?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
 }
 
 /// Controlled radio selection and appearance.
 public data struct RadioGroupInput {
+    /// Radio choices in display order. Nil supplies no choices. IDs must be stable and unique.
     var Items[]?RadioOption
+    /// Controlled selected item ID. Nil means no selection.
     var SelectedId string?
+    /// Receives the selected item ID after user selection. Nil ignores the request.
     var OnSelect Action[string]?
+    /// Direction of layout and arrow-key navigation. Nil uses horizontal layout.
     var Orientation AccessibilityOrientation?
+    /// Uses a bordered card presentation for each labeled choice.
     var Card bool
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Receives the widget input, the radio option, and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateItem Func[RadioGroupInput, RadioOption, Button, Button]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[RadioGroupInput, Container, Container]?
 }
 

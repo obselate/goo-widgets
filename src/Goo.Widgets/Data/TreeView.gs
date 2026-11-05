@@ -62,13 +62,17 @@ public data struct TreeViewInput {
     var OnSelect Action[string]?
     /// Controlled selection. When supplied, this takes precedence over SelectedId.
     var SelectedIds[]?string
+    /// Enables set selection instead of single selection. False limits selection to one item.
     var Multiple bool
+    /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectionChange Action[[]string]?
     /// Called when an unloaded branch opens. The host supplies Children and LoadingIds.
     var LoadChildren Action[string]?
+    /// IDs whose children are being loaded by the host. Nil marks no nodes as loading.
     var LoadingIds[]?string
     /// Requests editing of the active row. The host owns the editor and new label.
     var OnRename Action[string]?
+    /// Receives dragged node IDs, target node ID, and insertion position after a drop. Nil disables host drop requests.
     var OnDrop Action[[]string, string, TreeDropPosition]?
     /// Runs before built-in keyboard handling. Return true to handle the event and skip the default action.
     var OnKeyDown Func[KeyEvent, bool]?
@@ -125,8 +129,11 @@ internal data struct TreeWalk {
 
 /// The destination relative to a tree row.
 public enum TreeDropPosition {
+    /// Inserts dropped nodes before the target sibling.
     Before;
+    /// Inserts dropped nodes after the target sibling.
     After;
+    /// Inserts dropped nodes as children of the target.
     Into
 }
 

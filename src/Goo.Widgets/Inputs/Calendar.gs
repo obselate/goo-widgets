@@ -8,44 +8,69 @@ import System.Globalization
 
 /// Date and state passed to a calendar day factory.
 public data struct CalendarDay {
+    /// Civil date represented by this day cell.
     var Date DateOnly
+    /// Indicates that the date belongs to the visible month.
     var CurrentMonth bool
+    /// Indicates the caller-selected date.
     var Selected bool
+    /// Indicates the resolved local or caller-supplied current date.
     var Today bool
+    /// Indicates the date targeted by keyboard navigation.
     var Active bool
+    /// Indicates a date that cannot be selected or focused.
     var Disabled bool
 }
 
 /// A controlled Gregorian date with optional controlled visible month.
 public data struct CalendarInput {
+    /// Controlled selected date. Nil means no date is selected.
     var Value DateOnly?
+    /// Receives the selected civil date after user activation. The calendar never emits a clear operation. Nil ignores the request.
     var OnChange Action[DateOnly]?
     /// Nil lets the widget own its visible month. Supplied dates are normalized to the first day.
     var Month DateOnly?
+    /// Receives the first day of the newly visible month after navigation. Nil ignores the notification.
     var OnMonthChange Action[DateOnly]?
+    /// Inclusive earliest selectable civil date. Nil imposes no lower bound.
     var Minimum DateOnly?
+    /// Inclusive latest selectable civil date. Nil imposes no upper bound.
     var Maximum DateOnly?
+    /// Tests whether a date is unavailable. Nil imposes no extra restriction.
     var IsDateDisabled Func[DateOnly, bool]?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
     /// Defaults to local Today; hosts can supply their own civil date.
     var Today DateOnly?
+    /// Culture for date labels and formatting. Nil uses the nearest theme locale. The calendar must be Gregorian.
     var Culture CultureInfo?
+    /// First weekday column. Nil uses the selected culture calendar settings.
     var FirstDayOfWeek DayOfWeek?
+    /// Root layout width. Nil uses 280 logical pixels.
     var Width Length?
+    /// Finite positive day-cell height in logical pixels. Zero uses the theme control height.
     var DayHeight float64
     /// Optional base style for the month heading text.
     var MonthTextStyle Style?
     /// Optional base style for each day number, applied after the default text styling.
     var DayTextStyle Style?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Accessible name of the previous-month button. Nil uses localized previous-month text.
     var PreviousMonthLabel string?
+    /// Accessible name of the next-month button. Nil uses localized next-month text.
     var NextMonthLabel string?
+    /// Runs when Escape is pressed. Nil supplies no escape action.
     var OnEscape Action?
     /// Optional stable root handle. Focusing the root enters the active eligible date.
     var Handle ElementHandle?
+    /// Receives the widget input, the day date and state, and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateDay Func[CalendarInput, CalendarDay, Button, Button]?
+    /// Receives the widget input, the month navigation delta, and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateNavigation Func[CalendarInput, int32, Button, Button]?
+    /// Receives the widget input, the weekday, and the prepared text, and returns the replacement content. Nil uses the default composition.
     var CreateWeekday Func[CalendarInput, DayOfWeek, Text, Blob]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[CalendarInput, Container, Container]?
 }
 

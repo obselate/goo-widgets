@@ -11,16 +11,23 @@ import System.Runtime.CompilerServices
 
 /// Selects the built-in window appearance policy.
 public enum ThemeMode {
+    /// Follows the operating system appearance preference.
     System;
+    /// Uses the light theme palette.
     Light;
+    /// Uses the dark theme palette.
     Dark
 }
 
 /// Selects absolute control metrics for a subtree.
 public enum Density {
+    /// Uses standard control spacing and target sizes.
     Standard;
+    /// Uses reduced spacing and target sizes.
     Compact;
+    /// Uses increased spacing and target sizes.
     Comfortable;
+    /// Uses larger touch-oriented spacing and target sizes.
     Touch
 }
 
@@ -82,44 +89,83 @@ public data struct Theme {
     var DangerFillColor Color
     /// Hovered destructive action fill.
     var DangerHoverColor Color
+    /// Background for recessed surfaces. Supplied by the selected theme palette.
     var SunkenColor Color
+    /// Background for active neutral controls. Supplied by the selected theme palette.
     var ActiveColor Color
+    /// High-emphasis border color. Supplied by the selected theme palette.
     var StrongBorderColor Color
+    /// Low-emphasis text color. Supplied by the selected theme palette.
     var SubtleTextColor Color
+    /// Text color for disabled content. Supplied by the selected theme palette.
     var DisabledTextColor Color
+    /// Foreground color for links. Supplied by the selected theme palette.
     var LinkColor Color
+    /// Outline color for keyboard focus. Supplied by the selected theme palette.
     var FocusColor Color
+    /// Keyboard-focus outline width in logical pixels. Defaults to 2.
     var FocusRingWidth float64 = 2.0
+    /// Keyboard-focus outline offset in logical pixels. Defaults to 2.
     var FocusRingOffset float64 = 2.0
+    /// Quiet informational background. Supplied by the selected theme palette.
     var InfoFillColor Color
+    /// Quiet success background. Supplied by the selected theme palette.
     var SuccessFillColor Color
+    /// Quiet warning background. Supplied by the selected theme palette.
     var WarningFillColor Color
+    /// Quiet danger background. Supplied by the selected theme palette.
     var DangerQuietColor Color
+    /// Small corner radius in logical pixels. Nil selects the built-in theme radius.
     var RadiusSm float64?
+    /// Medium corner radius in logical pixels. Nil selects the built-in theme radius.
     var RadiusMd float64?
+    /// Large corner radius in logical pixels. Nil selects the built-in theme radius.
     var RadiusLg float64?
+    /// Extra-large corner radius in logical pixels. Nil selects the built-in theme radius.
     var RadiusXl float64?
+    /// Shadow for small raised surfaces. Supplied by the selected theme palette.
     var ElevationSm BoxShadow
+    /// Shadow for medium raised surfaces. Supplied by the selected theme palette.
     var ElevationMd BoxShadow
+    /// Shadow for large raised surfaces. Supplied by the selected theme palette.
     var ElevationLg BoxShadow
+    /// Text size for display typography in logical pixels. Defaults to 40.0.
     var DisplayFontSize float64 = 40.0
+    /// Text size for h1 typography in logical pixels. Defaults to 32.0.
     var H1FontSize float64 = 32.0
+    /// Text size for h2 typography in logical pixels. Defaults to 28.0.
     var H2FontSize float64 = 28.0
+    /// Text size for h3 typography in logical pixels. Defaults to 24.0.
     var H3FontSize float64 = 24.0
+    /// Text size for h4 typography in logical pixels. Defaults to 20.0.
     var H4FontSize float64 = 20.0
+    /// Text size for h5 typography in logical pixels. Defaults to 18.0.
     var H5FontSize float64 = 18.0
+    /// Text size for h6 typography in logical pixels. Defaults to 16.0.
     var H6FontSize float64 = 16.0
+    /// Text size for subtitle typography in logical pixels. Defaults to 16.0.
     var SubtitleFontSize float64 = 16.0
+    /// Text size for overline typography in logical pixels. Defaults to 10.0.
     var OverlineFontSize float64 = 10.0
+    /// Text size for code typography in logical pixels. Defaults to 14.0.
     var CodeFontSize float64 = 14.0
+    /// Fast transition duration in milliseconds. Defaults to 120.0.
     var MotionFastMs float64 = 120.0
+    /// Standard transition duration in milliseconds. Defaults to 200.0.
     var MotionNormalMs float64 = 200.0
+    /// Slow transition duration in milliseconds. Defaults to 320.0.
     var MotionSlowMs float64 = 320.0
+    /// Spinner animation cycle duration in milliseconds. Defaults to 1000.0.
     var SpinnerPeriodMs float64 = 1000.0
+    /// Ordered chart-series colors. The selected theme supplies the default palette.
     var SeriesPalette[]Color
+    /// Ordered chart-series colors for color-vision accessibility. The selected theme supplies the default palette.
     var ColorBlindPalette[]Color
+    /// Default foreground roles for host-provided syntax highlighting.
     var Syntax SyntaxPalette
+    /// Default foreground and background roles for change displays.
     var Diff DiffPalette
+    /// Default standard and bright terminal color tables.
     var Ansi AnsiPalette
     internal var HighContrast bool
     internal var NativeLook bool
@@ -1089,6 +1135,7 @@ public data struct Theme {
         get -> Style{OutlineWidth: FocusRingWidth, OutlineColor: FocusColor, OutlineOffset: FocusRingOffset}
     }
 
+    /// Creates a focus outline inside the element border using FocusRingWidth and FocusColor.
     public prop InsetFocusStyle Style {
         get -> Style{OutlineWidth: FocusRingWidth, OutlineColor: FocusColor, OutlineOffset: -FocusRingWidth}
     }

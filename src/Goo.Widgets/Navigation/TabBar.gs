@@ -8,15 +8,21 @@ import System.Collections.Generic
 
 /// Whether arrow-key focus also requests selection, or Enter/Space must activate.
 public enum TabActivation {
+    /// Selects a tab as keyboard focus moves to it.
     Automatic;
+    /// Selects the focused tab only on explicit activation.
     Manual
 }
 
 /// Panel edge that contains the tabs. Start and End follow the theme direction. The indicator faces the panel.
 public enum TabPlacement {
+    /// Places tabs above the associated content.
     Top;
+    /// Places tabs below the associated content.
     Bottom;
+    /// Places tabs at the content start edge.
     Start;
+    /// Places tabs at the content end edge.
     End
 }
 
@@ -30,17 +36,27 @@ public data struct TabBarInput {
     var OnSelect Action[string]?
     /// Automatic selection on arrow-key navigation is the default.
     var Activation TabActivation
+    /// Panel edge containing the tabs. Start and End follow the theme direction. Top is the default.
     var Placement TabPlacement
+    /// Uses vertical tab layout. Placement at Start or End also selects vertical layout.
     var Vertical bool
+    /// Shows the selected-tab indicator. Nil means true.
     var ShowIndicator bool?
+    /// Badge text indexed by tab ID. Nil supplies no badges.
     var Badges Dictionary[string, string]?
+    /// Receives the tab ID when its close action is activated. Nil hides close actions.
     var OnClose Action[string]?
+    /// Requests a new tab when the add action is activated. Nil hides the add action.
     var OnAdd Action?
+    /// IDs of tabs with pinned presentation and no close action. Nil pins no tabs.
     var PinnedIds[]?string
+    /// IDs of tabs with unsaved-change indicators. Nil marks no tabs as dirty.
     var DirtyIds[]?string
+    /// ID of the temporary preview tab. Nil marks no tab as preview.
     var PreviewId string?
     /// Ctrl+Shift and the directional arrow request a new index.
     var OnReorder Action[string, int32]?
+    /// Moves overflowing whole horizontal tabs into a menu instead of clipping them.
     var OverflowMenu bool
     /// Accessible tab-list name. Nil resolves to Tabs.
     var AccessibilityName string?

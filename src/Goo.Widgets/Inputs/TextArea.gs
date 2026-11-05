@@ -20,10 +20,13 @@ public data struct TextAreaInput {
     var OnChange Action[string]?
     /// Enter submits when enabled. Shift+Enter still inserts a line.
     var SubmitOnEnter bool
+    /// Receives the current document string on Enter when SubmitOnEnter is enabled. Nil ignores submission.
     var OnSubmit Action[string]?
+    /// Requests cancellation when Escape is pressed. Nil ignores the request.
     var OnCancel Action?
     /// Optional soft character limit. Text is retained above the limit.
     var MaxLength int32?
+    /// Character-count label override. Nil uses the generated count when MaxLength is set.
     var CounterText string?
     /// Maximum visible rows for automatic growth. Zero keeps a fixed height.
     var MaximumRows int32

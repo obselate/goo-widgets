@@ -9,9 +9,13 @@ import System.Collections.Generic
 
 /// Identifies a standard window chrome command.
 public enum WindowChromeAction {
+    /// Requests minimization of the window.
     Minimize;
+    /// Requests maximization of the window.
     Maximize;
+    /// Requests restoration of the normal window size.
     Restore;
+    /// Requests closure of the window.
     Close
 }
 
