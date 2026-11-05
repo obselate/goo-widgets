@@ -26,7 +26,7 @@ public data struct DonutChart {
     var OnHover Action[string?]?
     /// Customizes a slice. Path, position, identity, handlers, and semantics are reapplied.
     var CreateSlice Func[DonutChart, ChartSegment, Shape, Shape]?
-    /// Customizes each legend label.
+    /// Receives the resolved chart, segment, and prepared legend label.
     var CreateLabel Func[DonutChart, ChartSegment, Text, Text]?
     /// Customizes the prepared legend.
     var CreateLegend Func[DonutChart, Container, Container]?

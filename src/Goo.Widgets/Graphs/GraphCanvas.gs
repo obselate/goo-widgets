@@ -51,11 +51,11 @@ public data struct GraphCanvasInput {
     var NodeStyle Style?
     /// Optional base style for edge strokes.
     var EdgeStyle Style?
-    /// Creates content for a node. The node Content value is used when nil.
+    /// Receives the resolved input and node to create its content. Nil uses the node Content.
     var CreateNodeContent Func[GraphCanvasInput, GraphNode, Blob]?
-    /// Customizes a built interactive node card or replaces it with another blob.
+    /// Receives the resolved input, node, and prepared interactive card, and returns its replacement.
     var CreateNode Func[GraphCanvasInput, GraphNode, Container, Blob]?
-    /// Customizes a built edge stroke or replaces it with another blob.
+    /// Receives the resolved input, edge, and prepared stroke, and returns its replacement.
     var CreateEdge Func[GraphCanvasInput, GraphEdge, Container, Blob]?
     /// Receives requested controlled selection updates.
     var OnSelectionChange Action[[]string]?

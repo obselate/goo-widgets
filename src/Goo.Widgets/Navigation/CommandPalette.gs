@@ -56,11 +56,11 @@ public data struct CommandPaletteInput {
     var AccessibilityName string?
     /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
-    /// Dialog width in logical pixels. Nil uses 560.
+    /// Dialog width. Nil uses 560 logical pixels.
     var Width Length?
     /// Maximum height. Short result lists use their natural height.
     var Height Length?
-    /// Receives the command descriptor, the match score and highlight ranges, and the prepared button, and returns the replacement content. Nil uses the default composition.
+    /// Receives the widget input, command descriptor, match score and highlight ranges, and prepared button, and returns the replacement content. Nil uses the default composition.
     var CreateItem Func[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button, Blob]?
 }
 
@@ -195,6 +195,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 })
             }
         }
+        let height = input.Height ?? 360.0
         let search = SearchList{
             ItemCount: ordered.Count,
             ItemAt: (index int32) -> {
@@ -207,10 +208,10 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             SelectedId: activeId,
             OnSelect: Activate,
             Width: input.Width ?? 560,
-            Height: input.Height ?? Math.Min(
-                360,
+            Height: height.HasMagnitude && !height.IsPercent ? Math.Min(
+                height.Magnitude,
                 inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
-            ),
+            ): height,
             RowHeight: theme.ControlHeight,
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),

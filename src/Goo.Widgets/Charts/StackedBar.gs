@@ -10,7 +10,7 @@ public data struct StackedBar {
     var Series[]?ChartSeries
     /// Root width. Nil resolves to 100%.
     var Width Length?
-    /// Bar height in logical pixels. Nil resolves to 16.
+    /// Bar height. Nil resolves to 16 logical pixels.
     var Height Length?
     /// Track and segment clipping radius. Nil resolves to 4.
     var BorderRadius float64?
@@ -26,7 +26,7 @@ public data struct StackedBar {
     var OnHover Action[string?]?
     /// Customizes each segment. Proportion, identity, handlers, and semantics are reapplied.
     var CreateSegment Func[StackedBar, ChartSegment, Container, Container]?
-    /// Customizes each legend label.
+    /// Receives the resolved chart, segment, and prepared legend label.
     var CreateLabel Func[StackedBar, ChartSegment, Text, Text]?
     /// Customizes the prepared legend.
     var CreateLegend Func[StackedBar, Container, Container]?
@@ -43,10 +43,9 @@ public data struct StackedBar {
             TrackColor = TrackColor ?? theme.BorderColor,
             AccessibilityName = AccessibilityName ?? theme.Text("Chart")
         }
-        if !Double.IsFinite(
-            resolved.BorderRadius!!
-        ) ||
-            resolved.BorderRadius!!< 0.0 {
+        let height = resolved.Height!!
+        if height.HasMagnitude && (!Double.IsFinite(height.Magnitude) || height.Magnitude <= 0.0)
+            || !Double.IsFinite(resolved.BorderRadius!!) || resolved.BorderRadius!! < 0.0 {
             throw ArgumentOutOfRangeException("Bar height/radius")
         }
         let segments = ChartParts.Resolve(Series ?? []ChartSeries{}, theme)
