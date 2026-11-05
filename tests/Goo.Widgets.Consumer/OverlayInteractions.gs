@@ -616,8 +616,6 @@ func OverlayInteractions() {
         window.Pump(0.016)
         Require(!host.PopupAction.Focus(), "Popover accepted input at its provisional root measurement")
         window.Pump(0.016)
-        Require(!host.PopupAction.Focus(), "Popover accepted input at its provisional wrapped-content measurement")
-        window.Pump(0.016)
         let panel = host.PopupPanel!!.Handle!!.BorderBox
         let anchor = host.Anchor.BorderBox
         Require(

@@ -430,16 +430,6 @@ public open partial class DataGrid {
                 else { CommitEdit(false) }
                 return
             },
-            CreateRoot: (input PopoverInput, backdrop Container, panel Container) -> {
-                let anchor = session.Anchor.BorderBox
-                let view = viewport.ContentBox
-                if anchor.Y + anchor.Height <= view.Y || anchor.Y >= view.Y + view.Height ||
-                    anchor.X + anchor.Width <= view.X || anchor.X >= view.X + view.Width {
-                    panel.Top = -1000000.0
-                    backdrop.HitTestSelf = false
-                }
-                return Container{Position: PositionType.Absolute, Left: 0, Right: 0, Top: 0, Bottom: 0, Overflow: Overflow.Hidden}
-            }
         })
     }
 }
