@@ -35,6 +35,8 @@ public data struct ToastInput {
     var Open bool?
     /// Receives the toast ID after timeout or user dismissal. Nil ignores the request.
     var OnDismiss Action[string]?
+    /// Requests false after timeout or user action, before the exit animation and OnDismiss. Programmatic closing does not emit it.
+    var OnOpenChange Action[bool]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[ToastInput, Container, Container]?
 }
@@ -188,6 +190,9 @@ public open class Toast : Cell[ToastInput], IDisposable {
         }
         Pause()
         closing = true
+        if !departing {
+            current.OnOpenChange?.Invoke(false)
+        }
         if reduced || duration <= 0.0 {
             Finish()
         } else {
@@ -230,10 +235,10 @@ public data struct ToastHostInput {
     var Placement ToastPlacement
     /// Maximum displayed notifications, clamped to zero or greater. Nil uses 3.
     var MaxVisible int32?
-    /// Stack width in logical pixels, limited by the viewport. Nil uses 360.
-    var Width float64?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    var CreateToast Func[ToastInput, Container, Container]?
+    /// Stack width, limited by the viewport. Nil uses 360.
+    var Width Length?
+    /// Receives the host input, toast input, and prepared container, and returns its replacement. Nil uses the default composition.
+    var CreateToast Func[ToastHostInput, ToastInput, Container, Container]?
 }
 
 /// Retains removed notifications until their exit animation finishes.
@@ -242,12 +247,14 @@ public open class ToastHost : Cell[ToastHostInput] {
     private let dismissed HashSet[string] = HashSet[string]()
     private let incoming HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private let positions Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
+    private let createToast Func[ToastInput, Container, Container]
     private let finished Action[string]
     private var current ToastHostInput
 
     /// Creates the retained notification-dismissal handler.
     public init() {
         finished = Finished
+        createToast = (toast, root) -> current.CreateToast?.Invoke(current, toast, root) ?? root
     }
 
     protected override func Build(input ToastHostInput) Blob {
@@ -296,7 +303,7 @@ public open class ToastHost : Cell[ToastHostInput] {
                         Item: item,
                         Open: incoming.Contains(item.Id),
                         OnDismiss: finished,
-                        CreateRoot: input.CreateToast,
+                        CreateRoot: input.CreateToast == nil ? nil: createToast,
                     }
                 )
             )

@@ -37,15 +37,15 @@ public data struct Banner {
     /// Border override. Nil uses the tone color.
     var BorderColor Color?
     /// Minimum height. Nil uses the theme control height.
-    var MinHeight float64?
+    var MinHeight Length?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
     /// Vertical padding. Explicit zero is preserved.
     var PaddingVertical float64?
-    /// Text font size. Zero uses the nearest theme font size.
-    var FontSize float64
-    /// Text font weight. Zero uses the nearest theme font weight.
-    var FontWeight int32
+    /// Text font size. Nil uses the nearest theme font size.
+    var FontSize float64?
+    /// Text font weight. Nil uses the nearest theme font weight.
+    var FontWeight int32?
     /// Border width. Nil uses the nearest theme border width; explicit zero is preserved.
     var BorderWidth float64?
     /// Border radius. Nil uses the nearest theme radius; explicit zero is preserved.
@@ -88,16 +88,8 @@ public data struct Banner {
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
             FontFamily = FontFamily ?? theme.FontFamily,
-            FontSize = if FontSize == 0.0 {
-                theme.FontSize
-            } else {
-                FontSize
-            },
-            FontWeight = if FontWeight == 0 {
-                theme.FontWeight
-            } else {
-                FontWeight
-            },
+            FontSize = FontSize ?? theme.FontSize,
+            FontWeight = FontWeight ?? theme.FontWeight,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
@@ -114,8 +106,8 @@ public data struct Banner {
             let value = Text{
                 Content: resolved.Content!!,
                 Color: resolved.TextColor!!,
-                FontSize: resolved.FontSize,
-                FontWeight: resolved.FontWeight,
+                FontSize: resolved.FontSize!!,
+                FontWeight: resolved.FontWeight!!,
                 FlexGrow: 1.0,
             }
             if let fontFamily = resolved.FontFamily {
@@ -136,7 +128,7 @@ public data struct Banner {
         let root = Container{
             LineHeight: theme.LineHeight,
             Color: resolved.TextColor!!,
-            FontSize: resolved.FontSize,
+            FontSize: resolved.FontSize!!,
             FontFamily: resolved.FontFamily!!,
             FlexDirection: FlexDirection.Row,
             Gap: theme.ControlGap,
@@ -172,12 +164,12 @@ public data struct Banner {
                 case Tone.Warning: ControlIcon.Warning
                 default: ControlIcon.Error
             }
-            root.Children.Add(ControlIcons.Create(name, resolved.FontSize + 4.0, theme.ToneColor(Tone)))
+            root.Children.Add(ControlIcons.Create(name, resolved.FontSize!! + 4.0, theme.ToneColor(Tone)))
         }
         let body = Container{FlexGrow: 1.0, MinWidth: 0}
         if let title = Title {
             body.Children.Add(Text{
-                Content: title, Color: resolved.TextColor!!, FontSize: resolved.FontSize,
+                Content: title, Color: resolved.TextColor!!, FontSize: resolved.FontSize!!,
                 FontFamily: resolved.FontFamily!!, FontWeight: theme.HeadingFontWeight
             })
         }
@@ -198,7 +190,7 @@ public data struct Banner {
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Button, Name: DismissAccessibilityName ?? theme.Text("Dismiss")
                 },
-                ControlIcons.Create(ControlIcon.Close, resolved.FontSize + 4.0, theme.TextColor)
+                ControlIcons.Create(ControlIcon.Close, resolved.FontSize!! + 4.0, theme.TextColor)
             }
             WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)

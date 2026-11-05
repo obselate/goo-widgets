@@ -38,7 +38,7 @@ public data struct PropertyGridItem {
     /// Requests restoring the property default. Nil hides the reset action.
     var OnReset Action?
     /// Validation text shown with invalid presentation. Nil means no validation message.
-    var Issue string?
+    var Error string?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
 }
@@ -53,14 +53,14 @@ public data struct PropertyGrid {
     var Query string?
     /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
-    /// Section headings whose rows are hidden. Nil expands every section.
-    var CollapsedSections[]?string
-    /// Receives the section heading when its disclosure is activated. Nil ignores the request.
-    var OnSectionToggle Action[string]?
-    /// Shared label column width. Zero resolves to 160.
-    var LabelWidth float64
-    /// Receives the property descriptor and the prepared content, and returns the replacement content. Nil uses the default composition.
-    var CreateRow Func[PropertyGridItem, Blob, Blob]?
+    /// Expanded section headings. Nil expands every section. A non-nil array is the explicit expanded set.
+    var ExpandedSectionIds[]?string
+    /// Receives the section heading and requested expanded state. Nil ignores the request.
+    var OnSectionExpandedChange Action[string, bool]?
+    /// Shared label column width. Nil resolves to 160.
+    var LabelWidth float64?
+    /// Receives the grid, property descriptor, and prepared content, and returns the replacement content. Nil uses the default composition.
+    var CreateRow Func[PropertyGrid, PropertyGridItem, Blob, Blob]?
 
     /// Builds the filtered sections and optional search field.
     public func Build() Blob {
@@ -99,15 +99,15 @@ public data struct PropertyGrid {
                 Gap: theme.ControlGap,
                 Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: section}
             }
-            let collapsed = Array.IndexOf(CollapsedSections ?? []string{}, section) >= 0 && query.Length == 0
+            let collapsed = ExpandedSectionIds != nil && Array.IndexOf(ExpandedSectionIds!!, section) < 0 && query.Length == 0
             if section.Length > 0 {
                 group.Children.Add(Container{Key: "divider", Height: 1, BackgroundColor: theme.BorderColor})
-                if let toggle = OnSectionToggle {
+                if let change = OnSectionExpandedChange {
                     let name = section
                     let heading = Button{
                         Key: "heading",
                         Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name, Expanded: !collapsed},
-                        OnClick: () -> toggle(name),
+                        OnClick: () -> change(name, collapsed),
                         Height: theme.ControlHeight - 8,
                         FlexDirection: FlexDirection.Row,
                         AlignItems: AlignItems.Center,
@@ -135,7 +135,7 @@ public data struct PropertyGrid {
                 for row in items {
                     if (row.Section ?? "") == section && Matches(row, query) {
                         let content = BuildRow(row)
-                        let result = CreateRow?.Invoke(row, content) ?? content
+                        let result = CreateRow?.Invoke(this, row, content) ?? content
                         result.Key = "row:" + row.Id
                         group.Children.Add(result)
                     }
@@ -170,7 +170,7 @@ public data struct PropertyGrid {
     public func BuildRow(item PropertyGridItem) Blob {
         let theme = Theme.Read()
         let layout = Layout
-        let labelWidth = LabelWidth == 0 ? 160: LabelWidth
+        let labelWidth = LabelWidth ?? 160
         let reset Blob? = if item.Modified && item.OnReset != nil {
             let button = Button{
                 Width: 24,
@@ -194,7 +194,7 @@ public data struct PropertyGrid {
         let field = FormField{
             Label: item.Label ?? "",
             Description: item.Description,
-            Issue: item.Issue,
+            Issue: item.Error,
             Content: item.Editor,
             CreateContent: item.CreateEditor,
             LabelFor: item.LabelFor,

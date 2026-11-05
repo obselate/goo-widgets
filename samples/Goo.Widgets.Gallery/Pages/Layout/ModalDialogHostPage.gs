@@ -83,7 +83,7 @@ internal class ManagedDialogExample : Cell {
                     },
                     BuildNestedButton()
                 },
-                OnClose: Close,
+                OnOpenChange: (open bool) -> Close(),
                 OnCancel: Close,
                 OnConfirm: () -> {
                     result = "Change confirmed"
@@ -99,7 +99,7 @@ internal class ManagedDialogExample : Cell {
                 AccessibilityName: "Nested confirmation",
                 Header: Text{Content: "Nested confirmation", FontSize: 20.0, FontWeight: 700},
                 Content: Text{Content: "Discard the label change?"},
-                OnClose: CloseNested,
+                OnOpenChange: (open bool) -> CloseNested(),
                 OnCancel: CloseNested,
                 OnConfirm: CloseNested
             }

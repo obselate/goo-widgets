@@ -53,8 +53,8 @@ internal open class ModalDialogExample : Cell {
                 Content: preset == ModalDialogPreset.Form ?
                 TextField{Label: "Project name", Value: "Studio"}.Build():
                 Text{Content: "Apply this change to the selected items?", Color: Theme.Read().TextColor},
-                OnClose: () -> {
-                    dialogOpen = false
+                OnOpenChange: (open bool) -> {
+                    dialogOpen = open
                     Rebuild()
                 },
                 OnCancel: () -> {

@@ -340,7 +340,7 @@ internal class OverlayHost : Cell {
                         Content: content,
                         AccessibilityName: "Review change",
                         Width: 440.0,
-                        OnClose: CloseOuter,
+                        OnOpenChange: (open bool) -> CloseOuter(),
                         OnCancel: CloseOuter,
                         OnConfirm: Confirm,
                         CreateRoot: Outer,
@@ -358,7 +358,7 @@ internal class OverlayHost : Cell {
                         Width: 370.0,
                         Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
                         AccessibilityName: "Nested confirmation",
-                        OnClose: CloseTop,
+                        OnOpenChange: (open bool) -> CloseTop(),
                         OnCancel: CloseTop,
                         OnConfirm: CloseTop,
                         CreateRoot: Top

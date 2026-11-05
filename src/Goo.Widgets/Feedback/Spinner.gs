@@ -14,12 +14,12 @@ public enum SpinnerVariant {
     Bars
 }
 
-/// Spinner appearance. Zero Size uses 24 pixels.
+/// Spinner appearance. Nil Size uses 24 pixels.
 public data struct SpinnerInput {
     /// Selects ring, dots, or bars for the loading animation.
     var Variant SpinnerVariant
-    /// Finite positive square size in logical pixels. Zero uses 24.
-    var Size float64
+    /// Finite positive square size in logical pixels. Nil uses 24.
+    var Size float64?
     /// Finite positive ring thickness in logical pixels, at most half Size. Nil uses the greater of 2 and Size divided by 10.
     var StrokeWidth float64?
     /// Indicator color. Nil uses the theme accent color.
@@ -53,7 +53,7 @@ public open class Spinner : Cell[SpinnerInput] {
 
     protected override func Build(input SpinnerInput) Blob {
         let theme = Theme.Read()
-        let size = input.Size == 0.0 ? 24.0: input.Size
+        let size = input.Size ?? 24.0
         let stroke = input.StrokeWidth ?? Math.Max(2.0, size / 10.0)
         if !Double.IsFinite(size) || size <= 0.0 || !Double.IsFinite(stroke) || stroke <= 0.0 || stroke > size / 2.0 {
             throw ArgumentOutOfRangeException("Size")

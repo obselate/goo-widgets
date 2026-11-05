@@ -46,7 +46,7 @@ public data struct ListRow {
     /// Authored selected-state shadow. Nil uses an accent border.
     var SelectedBoxShadow BoxShadow?
     /// Minimum row height. Nil sizes to content and density.
-    var MinHeight float64?
+    var MinHeight Length?
     /// Horizontal padding. Explicit zero is preserved.
     var PaddingHorizontal float64?
     /// Vertical padding. Explicit zero is preserved.
@@ -63,14 +63,14 @@ public data struct ListRow {
     var TransitionEasing Easing?
     /// Row opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Title font size. Zero uses the nearest theme font size.
-    var TitleFontSize float64
-    /// Title font weight. Zero uses the nearest theme label font weight.
-    var TitleFontWeight int32
-    /// Caption font size. Zero uses the nearest theme caption font size.
-    var CaptionFontSize float64
-    /// Caption font weight. Zero uses the nearest theme caption font weight.
-    var CaptionFontWeight int32
+    /// Title font size. Nil uses the nearest theme font size.
+    var TitleFontSize float64?
+    /// Title font weight. Nil uses the nearest theme label font weight.
+    var TitleFontWeight int32?
+    /// Caption font size. Nil uses the nearest theme caption font size.
+    var CaptionFontSize float64?
+    /// Caption font weight. Nil uses the nearest theme caption font weight.
+    var CaptionFontWeight int32?
     /// Optional font family for title and caption.
     var FontFamily string?
     /// Transform applied to the row root. Nil resolves to the identity transform.
@@ -124,26 +124,10 @@ public data struct ListRow {
             FontFamily = FontFamily ?? theme.FontFamily,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
-            TitleFontSize = if TitleFontSize == 0.0 {
-                theme.FontSize
-            } else {
-                TitleFontSize
-            },
-            TitleFontWeight = if TitleFontWeight == 0 {
-                theme.LabelFontWeight
-            } else {
-                TitleFontWeight
-            },
-            CaptionFontSize = if CaptionFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                CaptionFontSize
-            },
-            CaptionFontWeight = if CaptionFontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                CaptionFontWeight
-            },
+            TitleFontSize = TitleFontSize ?? theme.FontSize,
+            TitleFontWeight = TitleFontWeight ?? theme.LabelFontWeight,
+            CaptionFontSize = CaptionFontSize ?? theme.CaptionFontSize,
+            CaptionFontWeight = CaptionFontWeight ?? theme.CaptionFontWeight,
             Transform = Transform ?? PanelTransform{},
             CreateTitle = nil,
             CreateCaption = nil,
@@ -156,8 +140,8 @@ public data struct ListRow {
             let value = Text{
                 Content: resolved.Title!!,
                 Color: resolved.TextColor!!,
-                FontSize: resolved.TitleFontSize,
-                FontWeight: resolved.TitleFontWeight
+                FontSize: resolved.TitleFontSize!!,
+                FontWeight: resolved.TitleFontWeight!!
             }
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
@@ -172,8 +156,8 @@ public data struct ListRow {
                 let value = Text{
                     Content: captionText,
                     Color: resolved.CaptionColor!!,
-                    FontSize: resolved.CaptionFontSize,
-                    FontWeight: resolved.CaptionFontWeight
+                    FontSize: resolved.CaptionFontSize!!,
+                    FontWeight: resolved.CaptionFontWeight!!
                 }
                 if let fontFamily = resolved.FontFamily {
                     value.FontFamily = fontFamily

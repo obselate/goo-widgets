@@ -17,7 +17,7 @@ public data struct StatusBarItem {
     /// Visible status text. Nil omits the text.
     var Text string?
     /// Runs when the enabled status item is activated. Nil renders no primary action.
-    var OnActivate Action?
+    var OnClick Action?
     /// Hover hint. Nil supplies no tooltip.
     var Tooltip string?
     /// Shows ongoing work without changing the host-owned action.
@@ -29,7 +29,7 @@ public data struct StatusBarItem {
     /// Actions for this status item. Nil supplies no menu.
     var MenuItems[]?MenuItem
     /// Receives the selected menu item ID after activation. Nil ignores the request.
-    var OnMenuActivate Action[string]?
+    var OnMenuClick Action[string]?
 }
 
 /// Items anchored to the two ends of a status bar.
@@ -43,7 +43,7 @@ public data struct StatusBarInput {
 }
 
 /// Hides low-priority items when the measured contents do not fit.
-public class StatusBar : Cell[StatusBarInput], IDisposable {
+public open class StatusBar : Cell[StatusBarInput], IDisposable {
     private let handle ElementHandle = ElementHandle()
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     private let widths Dictionary[string, float64] = Dictionary[string, float64]()
@@ -160,13 +160,13 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
             leading.Children.Add(icon)
         }
         var content Blob
-        if item.MenuItems != nil || item.OnActivate != nil {
+        if item.MenuItems != nil || item.OnClick != nil {
             let button = ActionButton{
                 Content: item.Text,
                 Leading: leading,
                 Disabled: item.Disabled,
                 AccessibilityName: item.Text,
-                OnClick: item.OnActivate,
+                OnClick: item.OnClick,
                 MinWidth: 0,
                 PaddingHorizontal: theme.ControlPadding,
                 BorderWidth: 0,
@@ -187,7 +187,7 @@ public class StatusBar : Cell[StatusBarInput], IDisposable {
                             openId = isOpen ? id: nil
                             Rebuild()
                         },
-                        OnActivate: item.OnMenuActivate
+                        OnActivate: item.OnMenuClick
                     }
                 )
             } else {

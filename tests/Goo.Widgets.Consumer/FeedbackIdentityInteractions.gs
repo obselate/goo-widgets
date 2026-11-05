@@ -103,7 +103,7 @@ internal class FeedbackIdentityHost : Cell {
                             Items = []ToastItem{}
                             Rebuild()
                         },
-                        CreateToast: (input ToastInput, visual Container) -> {
+                        CreateToast: (host ToastHostInput, input ToastInput, visual Container) -> {
                             visual.Handle = Panel
                             return visual
                         },

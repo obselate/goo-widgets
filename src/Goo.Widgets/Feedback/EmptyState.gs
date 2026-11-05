@@ -19,7 +19,7 @@ public data struct EmptyState {
     /// Root width. Nil resolves to 100%.
     var Width Length?
     /// Minimum height for the root container. Nil resolves to 240.0; explicit zero is preserved.
-    var MinHeight float64?
+    var MinHeight Length?
     /// Background color of the root container. Nil resolves to Color.Transparent.
     var BackgroundColor Color?
     /// Border color of the root container. Nil resolves to theme.BorderColor.
@@ -46,14 +46,14 @@ public data struct EmptyState {
     var TransitionEasing Easing?
     /// Root opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Title font size. Zero resolves to theme.HeadingFontSize.
-    var TitleFontSize float64
-    /// Title font weight. Zero resolves to theme.HeadingFontWeight.
-    var TitleFontWeight int32
-    /// Description font size. Zero resolves to theme.CaptionFontSize.
-    var DescriptionFontSize float64
-    /// Description font weight. Zero resolves to theme.CaptionFontWeight.
-    var DescriptionFontWeight int32
+    /// Title font size. Nil resolves to theme.HeadingFontSize.
+    var TitleFontSize float64?
+    /// Title font weight. Nil resolves to theme.HeadingFontWeight.
+    var TitleFontWeight int32?
+    /// Description font size. Nil resolves to theme.CaptionFontSize.
+    var DescriptionFontSize float64?
+    /// Description font weight. Nil resolves to theme.CaptionFontWeight.
+    var DescriptionFontWeight int32?
     /// Optional font family for title and description elements.
     var FontFamily string?
     /// Transform applied to the root container. Nil resolves to identity.
@@ -98,26 +98,10 @@ public data struct EmptyState {
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
-            TitleFontSize = if TitleFontSize == 0.0 {
-                theme.HeadingFontSize
-            } else {
-                TitleFontSize
-            },
-            TitleFontWeight = if TitleFontWeight == 0 {
-                theme.HeadingFontWeight
-            } else {
-                TitleFontWeight
-            },
-            DescriptionFontSize = if DescriptionFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                DescriptionFontSize
-            },
-            DescriptionFontWeight = if DescriptionFontWeight == 0 {
-                theme.CaptionFontWeight
-            } else {
-                DescriptionFontWeight
-            },
+            TitleFontSize = TitleFontSize ?? theme.HeadingFontSize,
+            TitleFontWeight = TitleFontWeight ?? theme.HeadingFontWeight,
+            DescriptionFontSize = DescriptionFontSize ?? theme.CaptionFontSize,
+            DescriptionFontWeight = DescriptionFontWeight ?? theme.CaptionFontWeight,
             Transform = Transform ?? PanelTransform{},
             CreateTitle = nil,
             CreateDescription = nil,
@@ -132,8 +116,8 @@ public data struct EmptyState {
                 Content: resolved.Title!!,
                 Color: resolved.TitleColor!!,
                 FontFamily: resolved.FontFamily ?? theme.FontFamily,
-                FontSize: resolved.TitleFontSize,
-                FontWeight: resolved.TitleFontWeight,
+                FontSize: resolved.TitleFontSize!!,
+                FontWeight: resolved.TitleFontWeight!!,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Heading,
                     Name: resolved.Title!!,
@@ -151,8 +135,8 @@ public data struct EmptyState {
                     Content: resolved.Description!!,
                     Color: resolved.DescriptionColor!!,
                     FontFamily: resolved.FontFamily ?? theme.FontFamily,
-                    FontSize: resolved.DescriptionFontSize,
-                    FontWeight: resolved.DescriptionFontWeight
+                    FontSize: resolved.DescriptionFontSize!!,
+                    FontWeight: resolved.DescriptionFontWeight!!
                 }
             }
         }

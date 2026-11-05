@@ -53,10 +53,10 @@ public data struct WindowChrome {
     var OverlayHost ElementHandle?
     /// Customizes menu presentation. Open state, actions, anchor, and dismissal are rewired.
     var CreateMenu Func[WindowChrome, MenuInput, MenuInput]?
-    /// Chrome height. Zero uses the theme control height.
-    var Height float64
-    /// Width of each control. Zero uses the larger of 46 and the theme control height.
-    var ControlWidth float64
+    /// Chrome height. Nil uses the theme control height.
+    var Height Length?
+    /// Width of each control. Nil uses the larger of 46 and the theme control height.
+    var ControlWidth float64?
     /// Chrome background. Nil uses the nearest theme.
     var BackgroundColor Color?
     /// Chrome bottom border. Nil uses the nearest theme.
@@ -105,27 +105,16 @@ public data struct WindowChrome {
             ShowMinimize = ShowMinimize ?? controls == nil,
             ShowMaximize = ShowMaximize ?? controls == nil,
             ShowClose = ShowClose ?? controls == nil,
-            Height = Math.Max(
-                if Height == 0.0 {
-                    theme.ControlHeight
-                } else {
-                    Height
-                },
-                controls?.Height ?? 0.0
-            ),
-            ControlWidth = if ControlWidth == 0.0 {
-                Math.Max(46.0, theme.ControlHeight)
-            } else {
-                ControlWidth
-            },
+            Height = Height ?? Math.Max(theme.ControlHeight, controls?.Height ?? 0.0),
+            ControlWidth = ControlWidth ?? Math.Max(46.0, theme.ControlHeight),
             BackgroundColor = BackgroundColor ?? theme.ChromeColor,
             BorderColor = BorderColor ?? (theme.GlassColor == nil ? theme.BorderColor: Color.Transparent),
             ControlColor = ControlColor ?? theme.ChromeTextColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             CloseHoverBackgroundColor = CloseHoverBackgroundColor ?? theme.DangerHoverColor,
         }
-        if !Double.IsFinite(resolved.Height) || resolved.Height <= 0.0
-        || !Double.IsFinite(resolved.ControlWidth) || resolved.ControlWidth <= 0.0 {
+        if resolved.Height!!.HasMagnitude && (!Double.IsFinite(resolved.Height!!.Magnitude) || resolved.Height!!.Magnitude <= 0.0)
+        || !Double.IsFinite(resolved.ControlWidth!!) || resolved.ControlWidth!! <= 0.0 {
             throw ArgumentOutOfRangeException("WindowChrome dimensions")
         }
         if let host = host {
@@ -199,7 +188,7 @@ public data struct WindowChrome {
         }
         let ordered = children.ToArray()
         let prepared = Container{
-            Height: resolved.Height,
+            Height: resolved.Height!!,
             FlexShrink: 0.0,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -243,7 +232,7 @@ public data struct WindowChrome {
             ControlIcons.Create(IconName(command), 18.0, resolved.ControlColor, useCurrentColor: true)
         }
         let prepared = Button{
-            Width: resolved.ControlWidth,
+            Width: resolved.ControlWidth!!,
             Height: Percent(100),
             Padding: 0.0,
             AlignItems: AlignItems.Center,

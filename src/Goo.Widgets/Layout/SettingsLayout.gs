@@ -52,16 +52,16 @@ public data struct SettingsLayoutInput {
     var Query string?
     /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
-    /// Stack navigation and labels below this measured width. Zero resolves to 640.
-    var NarrowWidth float64
-    /// Wide navigation width. Zero resolves to 180.
-    var SidebarWidth float64
-    /// Wide label column width. Zero resolves to 180.
-    var LabelWidth float64
+    /// Stack navigation and labels below this measured width. Nil resolves to 640.
+    var NarrowWidth float64?
+    /// Wide navigation width. Nil resolves to 180.
+    var SidebarWidth float64?
+    /// Wide label column width. Nil resolves to 180.
+    var LabelWidth float64?
 }
 
 /// Moves section navigation above the editors when its own width is narrow.
-public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
+public open class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
     private let handle ElementHandle = ElementHandle()
     private var input SettingsLayoutInput
     private var width float64
@@ -80,15 +80,15 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
 
     protected override func Build(supplied SettingsLayoutInput) Blob {
         let value = supplied with{
-            NarrowWidth = supplied.NarrowWidth == 0 ? 640: supplied.NarrowWidth,
-            SidebarWidth = supplied.SidebarWidth == 0 ? 180: supplied.SidebarWidth,
-            LabelWidth = supplied.LabelWidth == 0 ? 180: supplied.LabelWidth
+            NarrowWidth = supplied.NarrowWidth ?? 640,
+            SidebarWidth = supplied.SidebarWidth ?? 180,
+            LabelWidth = supplied.LabelWidth ?? 180
         }
         input = value
         let query = value.Query ?? ""
         let sections = value.Sections ?? []SettingsSection{}
         let theme = Theme.Read()
-        let narrow = width > 0 && width < value.NarrowWidth
+        let narrow = width > 0 && width < value.NarrowWidth!!
         let root = Container{
             Handle: handle,
             Width: Percent(100),
@@ -115,7 +115,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
         }
         let navigation = Container{
             Key: "navigation",
-            Width: narrow ? Percent(100): value.SidebarWidth,
+            Width: narrow ? Percent(100): value.SidebarWidth!!,
             FlexShrink: 0,
             MinWidth: 0,
             Gap: 2,
@@ -229,7 +229,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
             return
         }
         let next = metrics.BorderBox.Width
-        let changed = (width > 0 && width < input.NarrowWidth) != (next > 0 && next < input.NarrowWidth)
+        let changed = (width > 0 && width < input.NarrowWidth!!) != (next > 0 && next < input.NarrowWidth!!)
         width = next
         if changed {
             Rebuild()

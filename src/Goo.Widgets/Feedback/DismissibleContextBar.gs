@@ -42,7 +42,7 @@ public data struct DismissibleContextBar {
     /// Disabled text color of the dismiss button. Nil uses the nearest theme.
     var DismissDisabledTextColor Color?
     /// Minimum height of the context bar container. Nil resolves to theme.ControlHeight.
-    var MinHeight float64?
+    var MinHeight Length?
     /// Horizontal padding of the context bar container. Nil resolves to theme.PanelPadding.
     var PaddingHorizontal float64?
     /// Vertical padding of the context bar container. Nil resolves to theme.PanelPadding.
@@ -71,10 +71,10 @@ public data struct DismissibleContextBar {
     var DismissMinWidth float64?
     /// Horizontal padding of the dismiss button. Nil resolves to theme.ControlPadding.
     var DismissPaddingHorizontal float64?
-    /// Font size of the dismiss button text. Zero resolves to theme.FontSize.
-    var DismissFontSize float64
-    /// Font weight of the dismiss button text. Zero resolves to theme.FontWeight.
-    var DismissFontWeight int32
+    /// Font size of the dismiss button text. Nil resolves to theme.FontSize.
+    var DismissFontSize float64?
+    /// Font weight of the dismiss button text. Nil resolves to theme.FontWeight.
+    var DismissFontWeight int32?
     /// Optional font family for the dismiss button text.
     var FontFamily string?
     /// Transform applied to the context bar container. Nil resolves to identity.
@@ -121,16 +121,8 @@ public data struct DismissibleContextBar {
             DismissHeight = DismissHeight ?? theme.ControlHeight,
             DismissMinWidth = DismissMinWidth ?? theme.ControlMinWidth,
             DismissPaddingHorizontal = DismissPaddingHorizontal ?? theme.ControlPadding,
-            DismissFontSize = if DismissFontSize == 0.0 {
-                theme.FontSize
-            } else {
-                DismissFontSize
-            },
-            DismissFontWeight = if DismissFontWeight == 0 {
-                theme.FontWeight
-            } else {
-                DismissFontWeight
-            },
+            DismissFontSize = DismissFontSize ?? theme.FontSize,
+            DismissFontWeight = DismissFontWeight ?? theme.FontWeight,
             FontFamily = FontFamily ?? theme.FontFamily,
             Transform = Transform ?? PanelTransform{},
             CreateDismiss = nil,
@@ -143,8 +135,8 @@ public data struct DismissibleContextBar {
             let label = Text{
                 Content: resolved.DismissText!!,
                 FontFamily: resolved.FontFamily ?? theme.FontFamily,
-                FontSize: resolved.DismissFontSize,
-                FontWeight: resolved.DismissFontWeight,
+                FontSize: resolved.DismissFontSize!!,
+                FontWeight: resolved.DismissFontWeight!!,
             }
             button = Button{
                 Height: resolved.DismissHeight!!,

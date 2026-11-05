@@ -14,12 +14,12 @@ public data struct ProgressBar {
     var FillColor Color?
     /// Border color. Nil uses the nearest theme.
     var BorderColor Color?
-    /// Progress bar width. Zero resolves to 160.
-    var Width float64
+    /// Progress bar width. Nil resolves to 160.
+    var Width Length?
     /// Progress height. Nil uses two theme spacing units.
-    var Height float64?
-    /// Border width. Zero leaves the border unpainted.
-    var BorderWidth float64
+    var Height Length?
+    /// Border width. Nil leaves the border unpainted.
+    var BorderWidth float64?
     /// Radius. Nil uses half the resolved height. Explicit zero is preserved.
     var BorderRadius float64?
     /// Transition duration in milliseconds. Nil uses theme motion. Explicit zero is preserved.
@@ -54,13 +54,9 @@ public data struct ProgressBar {
         let trackColor = TrackColor ?? theme.BorderColor
         let fillColor = FillColor ?? theme.AccentColor
         let borderColor = BorderColor ?? theme.BorderColor
-        let width = if Width == 0.0 {
-            160.0
-        } else {
-            Width
-        }
-        let height = Height ?? theme.Spacing * 2.0
-        let borderRadius = BorderRadius ?? height / 2.0
+        let width = Width ?? 160.0
+        let height = Height ?? Length(theme.Spacing * 2.0)
+        let borderRadius = BorderRadius ?? (height.HasMagnitude ? height.Magnitude / 2.0: theme.Spacing)
 
         let resolved = this with{
             Value = clampedValue,
@@ -70,6 +66,7 @@ public data struct ProgressBar {
             Width = width,
             Height = height,
             BorderRadius = borderRadius,
+            BorderWidth = BorderWidth ?? 0.0,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
@@ -111,10 +108,10 @@ public data struct ProgressBar {
         }
 
         return Container{
-            Width: resolved.Width,
+            Width: resolved.Width!!,
             Height: resolved.Height!!,
             BorderRadius: resolved.BorderRadius!!,
-            BorderWidth: resolved.BorderWidth,
+            BorderWidth: resolved.BorderWidth!!,
             BorderColor: resolved.BorderColor!!,
             BackgroundColor: resolved.TrackColor!!,
             Opacity: resolved.Opacity!!,
