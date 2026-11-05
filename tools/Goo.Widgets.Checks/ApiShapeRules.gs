@@ -96,7 +96,7 @@ class ApiShapeCheck {
             "Goo.Widgets.Data|AttachmentChip Chip DataGrid ListView TimeAxis TreeView",
             "Goo.Widgets.Feedback|Alert Badge Banner DismissibleContextBar EmptyState InlineMessage ProgressBar ProgressSummary Spinner StatusIndicator TeachingTip Toast ToastHost",
             "Goo.Widgets.Graphs|GraphCanvas GraphNodeCard",
-            "Goo.Widgets.Inputs|Calendar Checkbox ComboBox DatePicker FindBar FormField FormSection NumberInput RadioGroup SearchList Slider Stepper TextArea TextField TimePicker ToggleGroup ToggleSwitch TokenInput TouchTextEditing TriggerMenu UploadTile",
+            "Goo.Widgets.Inputs|Calendar Checkbox ComboBox DatePicker FindBar FormField FormSection NumberInput RadioButton RadioGroup SearchList Slider Stepper TextArea TextField TimePicker ToggleGroup ToggleSwitch TokenInput TouchTextEditing TriggerMenu UploadTile",
             "Goo.Widgets.Layout|AppBar Card Disclosure Drawer Grid HoverCard ListRow MasterDetail ModalDialog ModalDialogHost Popover PropertyGrid SectionHeader SettingsLayout SplitPane StatusBar Tooltip WindowChrome",
             "Goo.Widgets.Media|AsyncImage Avatar AvatarGroup MediaCard MediaTransport",
             "Goo.Widgets.Navigation|Breadcrumb CommandPalette Menu MenuButton NavigationRail PathBar SplitButton TabBar"
@@ -144,7 +144,7 @@ class ApiShapeCheck {
     func Primary(type ApiDeclaration, name string) {
         let rows = []string{
             "Calendar|DateOnly?|DateOnly", "Checkbox|AccessibilityChecked|AccessibilityChecked", "ColorPicker|int32|int32",
-            "DatePicker|DateOnly?|DateOnly?", "TimePicker|TimeOnly?|TimeOnly?", "NumberInput|float64|float64", "Slider|float64|float64", "SplitPane|float64|float64",
+            "DatePicker|DateOnly?|DateOnly?", "TimePicker|TimeOnly?|TimeOnly?", "NumberInput|float64|float64", "RadioButton|bool|bool", "Slider|float64|float64", "SplitPane|float64|float64",
             "TextArea|string?|string", "TextField|string?|string", "ToggleButton|bool|bool", "ToggleSwitch|bool|bool", "TokenInput|string[]?|string[]"
         }
         for row in rows {
@@ -219,7 +219,7 @@ class ApiShapeCheck {
             let member = Member(type, "IssueFontSize")!!
             Add(15, member.Id, member.Signature, "var ErrorFontSize float64?")
         }
-        let fields = []string{"TextField", "TextArea", "DatePicker", "TimePicker", "NumberInput", "TokenInput", "Calendar", "Checkbox", "ColorPicker", "ComboBox", "RadioGroup", "SearchList", "Slider", "ToggleButton", "ToggleGroup", "ToggleSwitch"}
+        let fields = []string{"TextField", "TextArea", "DatePicker", "TimePicker", "NumberInput", "TokenInput", "Calendar", "Checkbox", "ColorPicker", "ComboBox", "RadioButton", "RadioGroup", "SearchList", "Slider", "ToggleButton", "ToggleGroup", "ToggleSwitch"}
         if fields.Contains(role) {
             Field(type, 16, "Disabled", "bool")
             Field(type, 16, "AccessibilityName", "string?")

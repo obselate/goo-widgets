@@ -91,70 +91,26 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 handles.Add(id, ElementHandle())
             }
             let selected = id == input.SelectedId
-            let label = item.Label ?? id
-            let enabled = !input.Disabled && !item.Disabled
-            let mark = Container{
-                Width: theme.Spacing * 4.5,
-                Height: theme.Spacing * 4.5,
-                FlexShrink: 0,
-                BorderRadius: theme.Spacing * 2.25,
-                BorderWidth: theme.BorderWidth,
-                BorderColor: enabled ? selected ? theme.AccentColor: theme.InputBorderColor: theme.DisabledTextColor,
-                BackgroundColor: enabled ? theme.FieldColor: theme.SunkenColor,
-                AlignItems: AlignItems.Center,
-                JustifyContent: JustifyContent.Center,
-            }
-            if selected {
-                mark.Children.Add(Container{Width: theme.Spacing * 2.5, Height: theme.Spacing * 2.5, BorderRadius: theme.Spacing * 1.25, BackgroundColor: enabled ? theme.AccentColor: theme.DisabledTextColor})
-            }
-            let text = Container{
-                Gap: theme.Spacing,
-                Text{Content: label, FontFamily: theme.FontFamily, FontSize: theme.FontSize}
-            }
-            if let description = item.Description {
-                text.Children.Add(
-                    Text{Content: description, Color: !enabled ? theme.DisabledTextColor: selected && input.Card ? theme.SelectedText(theme.MutedTextColor): theme.MutedTextColor, FontSize: theme.CaptionFontSize}
-                )
-            }
-            var button = Button{
-                MinHeight: theme.ControlHeight,
-                FlexDirection: FlexDirection.Row,
-                JustifyContent: JustifyContent.FlexStart,
-                Gap: theme.ControlGap,
-                Color: enabled ? selected && input.Card ? theme.SelectedText(theme.TextColor): theme.TextColor: theme.DisabledTextColor,
-                BorderWidth: input.Card || theme.HighContrast ? theme.BorderWidth: 0,
-                BorderRadius: theme.ControlRadius!!,
-                BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
-                Padding: input.Card ? theme.ControlPadding: 0,
-                BackgroundColor: input.Card ? selected ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor: Color.Transparent,
-                TransitionMs: theme.TransitionMs,
-                TransitionEasing: Easing.EaseOut,
-                TransitionProperties: theme.InteractionTransitions,
-                DisabledStyle: Style{BackgroundColor: input.Card ? theme.PanelColor: Color.Transparent},
-                mark,
-            }
-            if let leading = item.Leading {
-                button.Children.Add(leading)
-            }
-            button.Children.Add(text)
-            if let create = input.CreateItem {
-                button = create(input, item, button)
-            }
-            theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && input.Card)
+            let button = (RadioButton{
+                Value: selected,
+                Label: item.Label ?? id,
+                Description: item.Description,
+                Leading: item.Leading,
+                Card: input.Card,
+                Disabled: input.Disabled || item.Disabled,
+                OnChange: (value bool) -> Select(id),
+                CreateRoot: (value RadioButton, prepared Button) -> {
+                    var button = prepared
+                    if let create = input.CreateItem {
+                        button = create(input, item, button)
+                    }
+                    button.Handle = handles[id]
+                    return button
+                },
+            }.Build() as Button)!!
             button.Key = id
-            button.Handle = handles[id]
-            button.Disabled = !enabled
-            button.Focusable = enabled
             button.TabStop = id == tabStop
-            button.OnClick = () -> Select(id)
             button.OnKeyDown = (e KeyEvent) -> Move(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Radio,
-                Name: label,
-                Description: item.Description ?? "",
-                Checked: selected ? AccessibilityChecked.True: AccessibilityChecked.False,
-            }
-            WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)
         }
         return root
