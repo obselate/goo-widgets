@@ -231,8 +231,7 @@ func TimeAxisInteractions() {
         PumpFrames(window, 8)
         Require(!handle.IsMounted, "TimeAxis removal retained its viewport")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: TimeAxis collision/overflow/point/clipping, native selection, initial centering, user/host scroll, marker/scale/resize and removal"

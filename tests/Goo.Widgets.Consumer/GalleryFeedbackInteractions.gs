@@ -454,8 +454,7 @@ func GalleryFeedbackInteractions() {
             failures.Add(page + ": " + error.Message)
             Console.WriteLine("FAIL gallery feedback: " + page + ": " + error.ToString())
         } finally {
-            window.RequestClose()
-            PumpFrames(window, 6)
+            CloseNativeWindow(window)
         }
     }
     Require(visited, "Set GOO_WIDGETS_GALLERY_FEEDBACK_PAGE to a supported page")

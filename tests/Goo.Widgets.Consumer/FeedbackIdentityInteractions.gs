@@ -255,8 +255,7 @@ func FeedbackIdentityInteractions() {
         FeedbackWait(window, 300)
         Require(!host.Panel.IsMounted && host.Dismisses == 5, "Externally removed toast did not finish its exit")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 4)
+        CloseNativeWindow(window)
     }
 
     using let embedded = ThemePreferenceHost()
@@ -286,8 +285,7 @@ func FeedbackIdentityInteractions() {
         PumpFrames(proof, 12)
         CaptureIssueProof(proof, "feedback-identity-dark")
     } finally {
-        proof.RequestClose()
-        PumpFrames(proof, 4)
+        CloseNativeWindow(proof)
     }
     Console.WriteLine(
         "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner period and range without rebuilds, reduced-motion still frame"

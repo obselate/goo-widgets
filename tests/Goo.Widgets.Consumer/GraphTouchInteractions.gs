@@ -45,8 +45,7 @@ func GraphTouchInteractions() {
         GraphViewportInteractions(window, host, id)
         CaptureIssueProof(window, "graph-touch-navigation")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 2)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: graph pan, pinch without contact-join jump, cancellation, node drag and controlled mouse zoom")
 }

@@ -321,7 +321,6 @@ func NavigationInteractions() {
             "PASS: menu expanded/first/last/focus, editor tab close and overflow, palette open/filter/rank/arrows/Enter/Escape in light and dark"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 3)
+        CloseNativeWindow(window)
     }
 }

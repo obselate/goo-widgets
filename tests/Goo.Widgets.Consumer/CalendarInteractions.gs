@@ -532,8 +532,7 @@ func CalendarInteractions() {
         Require(host.Before.Focus(), "Removing DatePicker left focus trapped")
         Require(host.MonthChanges >= 4, "Calendar did not report visible-month changes")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: native Calendar leap/year/bounds/locale/disabled navigation and DatePicker commit/cancel/empty/invalid/parser/formatter/blur/focus/unmount"

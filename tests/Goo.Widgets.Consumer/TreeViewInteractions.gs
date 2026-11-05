@@ -556,8 +556,7 @@ func TreeViewInteractions() {
             "Passive tree activation changed selection or lost logical focus"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: Tree controlled expansion/checks/selection, disabled state, active-descendant keyboard/AX focus, collapse recovery, one Tab stop and 1500-node virtualization"

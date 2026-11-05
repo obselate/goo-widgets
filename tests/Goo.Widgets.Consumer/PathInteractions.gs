@@ -194,8 +194,7 @@ func PathActionsInteractions() {
             "Compact density did not reduce row height"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 4)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: Typography headings, Kbd platform labels, breadcrumb keyboard/overflow, DataGrid invoke and table options"
