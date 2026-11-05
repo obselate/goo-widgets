@@ -1085,6 +1085,21 @@ func DataGridNavigationInteractions() {
         GridPointer(window, host.RowBlobs["0"].Handle!!)
         Require(host.GroupExpansion && host.SelectedIds.Length == 0, "Group expander changed row selection")
         host.Root!!.Handle!!.Focus()
+        let heldStart = host.ActiveIndex
+        let heldBuilds = host.RowBuilds
+        let heldRows = host.RowBlobs.Count
+        window.PlatformInput.KeyPress(Key.Down)
+        try {
+            FeedbackWait(window, 750)
+        } finally {
+            window.PlatformInput.KeyRelease(Key.Down)
+        }
+        PumpFrames(window, 3)
+        let heldSteps = host.ActiveIndex - heldStart
+        Require(heldSteps > 1, "Held Down did not repeat row navigation")
+        Require(host.RowBuilds - heldBuilds <= heldSteps * 2 + host.RowBlobs.Count - heldRows,
+            "Held Down rebuilt unchanged visible rows")
+        GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Down)
         Require(host.ActiveIndex == 1 && host.SelectedIds.Length == 1, "Down did not select the first data row")
         let before = host.RowBuilds
@@ -1251,7 +1266,7 @@ func DataGridNavigationInteractions() {
     } finally {
         CloseNativeWindow(window)
     }
-    Console.WriteLine("PASS DataGrid navigation: row retention, additive ranges, corners, pages, columns, select-all, groups and copy")
+    Console.WriteLine("PASS DataGrid navigation: held-key repeat, row retention, additive ranges, corners, pages, columns, select-all, groups and copy")
 }
 
 func DataGridInteractions() {

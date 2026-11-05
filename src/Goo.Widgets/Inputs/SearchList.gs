@@ -143,7 +143,6 @@ public data struct SearchList {
                 let item = prepared == nil ? items[indices[index]]: prepared!!(index)
                 return SearchListRow{
                     Item: item,
-                    SizeOfSet: count,
                     Selected: selectedId != nil && selectedId == item.Id,
                     Options: rowOptions,
                 }
@@ -257,7 +256,6 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
     internal var Item SelectionItem
     internal var Selected bool
     internal var Options SearchListRowOptions?
-    internal var SizeOfSet int32
 
     public func Equals(other SearchListRow) bool ->
     Item.Id == other.Item.Id && Item.Label == other.Item.Label && Item.Detail == other.Item.Detail
@@ -266,7 +264,6 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
         .Item
         .Disabled &&
         Selected == other.Selected &&
-        SizeOfSet == other.SizeOfSet &&
         (Options == other.Options || (Options?.Equals(other.Options) ?? false))
 
     internal func Build() Blob {
@@ -302,8 +299,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: item.Label ?? "",
-                Selected: Selected,
-                SizeOfSet: SizeOfSet
+                Selected: Selected
             },
             OnClick: () -> {
                 if !item.Disabled {
