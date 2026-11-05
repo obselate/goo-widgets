@@ -207,6 +207,7 @@ func OneTabStop(root Container) bool {
 
 func ChoiceInteractions() {
     ToggleButtonInteractions()
+    RatingControlInteractions()
     let host = ChoiceHost()
     let root = ApplicationRoot(host)
     let adapter = SearchListSemantics()

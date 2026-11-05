@@ -399,6 +399,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         CalendarPage{DisplayTitle: "Calendar"},
         DatePickerPage{DisplayTitle: "Date picker"},
         TimePickerPage{DisplayTitle: "Time picker"},
+        RatingControlPage{DisplayTitle: "Rating"},
         SliderPage{DisplayTitle: "Slider"}
     }),
     GalleryCategory("Data", "table_chart", []GalleryPage{
