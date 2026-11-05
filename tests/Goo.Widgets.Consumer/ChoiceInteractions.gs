@@ -131,11 +131,8 @@ internal class RadioButtonHost : Cell {
     internal var Handle ElementHandle = ElementHandle()
     internal var DisabledHandle ElementHandle = ElementHandle()
 
-    public override func Build() Blob -> Container{
-        Padding: Theme.Read().ControlPadding,
-        Gap: Theme.Read().ControlGap,
-        BasedOn: Theme.Read().CanvasStyle,
-        RadioButton{
+    public override func Build() Blob {
+        let radio = RadioButton{
             Label: "Priority",
             Value: Value,
             OnChange: (value bool) -> {
@@ -143,22 +140,18 @@ internal class RadioButtonHost : Cell {
                 Changes++
                 Rebuild()
             },
-            CreateRoot: (input RadioButton, button Button) -> {
-                button.Handle = Handle
-                return button
-            },
-        }.Build(),
-        RadioButton{
-            Label: "Archived",
-            Value: true,
-            Disabled: true,
-            OnChange: (value bool) -> Changes++,
-            CreateRoot: (input RadioButton, button Button) -> {
-                button.Handle = DisabledHandle
-                return button
-            },
-        }.Build(),
-        Button{Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Next"}, Text{Content: "Next"}},
+        }.Build()
+        Handle = radio.Handle!!
+        let disabled = RadioButton{Label: "Archived", Value: true, Disabled: true, OnChange: (value bool) -> Changes++}.Build()
+        DisabledHandle = disabled.Handle!!
+        return Container{
+            Padding: Theme.Read().ControlPadding,
+            Gap: Theme.Read().ControlGap,
+            BasedOn: Theme.Read().CanvasStyle,
+            radio,
+            disabled,
+            Button{Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Next"}, Text{Content: "Next"}},
+        }
     }
 }
 
