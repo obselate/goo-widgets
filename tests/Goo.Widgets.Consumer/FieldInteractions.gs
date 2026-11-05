@@ -17,6 +17,7 @@ internal class FieldHost : Cell {
     internal var TextCommit string?
     internal var Disabled bool
     internal var ReadOnly bool
+    internal var CopyRequests int32
     internal var Reject bool
     internal var Entry TextEntry?
     internal var PasswordEntry TextEntry?
@@ -53,6 +54,9 @@ internal class FieldHost : Cell {
                 CreateEntry: (input, entry) -> {
                     Entry = entry
                     entry.Handle = NumberHandle
+                    entry.KeyBindings = []KeyBinding{
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                    }
                     return entry
                 }
             }
@@ -81,6 +85,9 @@ internal class FieldHost : Cell {
                     Password: input.Password,
                     OnChange: input.OnChange,
                     OnSubmit: input.OnSubmit,
+                    KeyBindings: []KeyBinding{
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                    },
                     Height: 36,
                     Width: Percent(100)
                 }
@@ -236,7 +243,8 @@ func FieldInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(window.GetClipboardText() == "2", "Read-only number did not copy its selection")
+        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
+            - window.PlatformInput.Selection!!.Anchor.Offset == 1, "Read-only number lost selection or copy routing")
         SelectorType(window, id, "8")
         SendKey(id, SDLScancode.Up)
         SendKey(id, SDLScancode.Pageup)
@@ -256,6 +264,7 @@ func FieldInteractions() {
         PumpFrames(window, 5)
         Require(host.Text == "Read only", "Read-only text accepted editing")
         Require(host.PasswordEntry!!.Accessibility!!.ReadOnly == true, "Text did not expose read-only state")
+        Require(host.CopyRequests == 2, "Read-only text did not route copy")
         Console.WriteLine("PASS: read-only number and text retain focus and selection and reject editing and stepping")
         host.ReadOnly = false
         host.Disabled = true

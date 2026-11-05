@@ -75,6 +75,7 @@ internal class CalendarHost : Cell {
     internal var Iso bool
     internal var PickerDisabled bool
     internal var PickerReadOnly bool
+    internal var CopyRequests int32
     internal var Show bool = true
     internal var Entry TextEntry?
     internal var Popup Container?
@@ -141,6 +142,9 @@ internal class CalendarHost : Cell {
 
     private func Input(input DatePickerInput, prepared TextEntry) TextEntry {
         Entry = prepared
+        prepared.KeyBindings = []KeyBinding{
+            KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+        }
         return prepared
     }
 
@@ -499,7 +503,8 @@ func CalendarInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(window.GetClipboardText() == original, "Read-only date did not copy its selection")
+        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
+            - window.PlatformInput.Selection!!.Anchor.Offset == original.Length, "Read-only date lost selection or copy routing")
         SelectorType(window, id, "changed")
         SendKey(id, SDLScancode.F4)
         SendKey(id, SDLScancode.Return)

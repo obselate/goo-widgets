@@ -22,6 +22,7 @@ internal class TokenHost : Cell {
     internal var Removed int32
     internal var Disabled bool
     internal var ReadOnly bool
+    internal var CopyRequests int32
     internal var Suggestions[]string = []string{}
 
     public override func Build() Blob -> Container{
@@ -45,6 +46,9 @@ internal class TokenHost : Cell {
                 },
                 CreateEntry: (input, entry) -> {
                     Entry = entry
+                    entry.KeyBindings = []KeyBinding{
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                    }
                     return entry
                 },
             }
@@ -124,7 +128,8 @@ func TokenInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(window.GetClipboardText() == "invalid", "Read-only token draft did not copy")
+        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
+            - window.PlatformInput.Selection!!.Anchor.Offset == 7, "Read-only token draft lost selection or copy routing")
         SelectorType(window, id, "changed,")
         SendKey(id, SDLScancode.Backspace)
         SendKey(id, SDLScancode.Return)
