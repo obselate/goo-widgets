@@ -7,7 +7,7 @@ import Goo.Widgets.Icons
 /// A controlled checkbox with false, true, and mixed accessibility states.
 public data struct Checkbox {
     /// Current checkbox state. Unspecified resolves to false.
-    var State AccessibilityChecked
+    var Value AccessibilityChecked
     /// Whether activation cycles from true to mixed before false.
     var AllowMixed bool
     /// Whether the checkbox rejects input.
@@ -22,10 +22,10 @@ public data struct Checkbox {
     var Card bool
     /// Label text color. Nil resolves to the theme text color.
     var LabelColor Color?
-    /// Label font size. Zero uses the nearest theme font size.
-    var LabelFontSize float64
-    /// Label font weight. Zero uses the nearest theme font weight.
-    var LabelFontWeight int32
+    /// Label font size. Nil uses the nearest theme font size.
+    var LabelFontSize float64?
+    /// Label font weight. Nil uses the nearest theme font weight.
+    var LabelFontWeight int32?
     /// Gap between the checkbox mark and label. Nil resolves to the theme control gap.
     var LabelGap float64?
     /// Accessible name. Nil resolves to Label or an empty string.
@@ -36,8 +36,8 @@ public data struct Checkbox {
     var CheckedContent Blob?
     /// Optional content shown when mixed.
     var MixedContent Blob?
-    /// Visible box width and height. Zero uses five theme spacing units.
-    var Size float64
+    /// Visible box width and height. Nil uses five theme spacing units.
+    var Size float64?
     /// Hit-target square size, or labeled row height. Nil uses the larger of Size and the theme's control height.
     var HitSize float64?
     /// Background while false. Nil resolves to the theme field color.
@@ -56,8 +56,8 @@ public data struct Checkbox {
     var BorderWidth float64?
     /// Corner radius. Nil resolves to the theme control radius half and preserves explicit zero.
     var BorderRadius float64?
-    /// Mark icon size. Zero uses three and a half theme spacing units.
-    var MarkSize float64
+    /// Mark icon size. Nil uses three and a half theme spacing units.
+    var MarkSize float64?
     /// Transition duration. Nil resolves to the theme transition duration and preserves explicit zero.
     var TransitionMs float64?
     /// Transition easing. Nil resolves to EaseOut.
@@ -70,27 +70,19 @@ public data struct Checkbox {
         let theme = Theme.Read()
         let createRoot = CreateRoot
         let onChange = OnChange
-        let state = if State == AccessibilityChecked.Unspecified {
+        let state = if Value == AccessibilityChecked.Unspecified {
             AccessibilityChecked.False
         } else {
-            State
+            Value
         }
         let active = state != AccessibilityChecked.False
-        let size = Size == 0.0 ? theme.Spacing * 5.0: Size
+        let size = Size ?? theme.Spacing * 5.0
         let resolved = this with{
-            State = state,
+            Value = state,
             AccessibilityName = AccessibilityName ?? (Label ?? ""),
             LabelColor = LabelColor ?? theme.TextColor,
-            LabelFontSize = if LabelFontSize == 0.0 {
-                theme.FontSize
-            } else {
-                LabelFontSize
-            },
-            LabelFontWeight = if LabelFontWeight == 0 {
-                theme.FontWeight
-            } else {
-                LabelFontWeight
-            },
+            LabelFontSize = LabelFontSize ?? theme.FontSize,
+            LabelFontWeight = LabelFontWeight ?? theme.FontWeight,
             LabelGap = LabelGap ?? theme.ControlGap,
             Size = size,
             HitSize = HitSize ?? Math.Max(size, theme.ControlHeight),
@@ -102,11 +94,7 @@ public data struct Checkbox {
             DisabledOpacity = DisabledOpacity ?? 0.5,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!! / 2.0,
-            MarkSize = if MarkSize == 0.0 {
-                theme.Spacing * 3.5
-            } else {
-                MarkSize
-            },
+            MarkSize = MarkSize ?? theme.Spacing * 3.5,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             CreateRoot = nil,
@@ -124,14 +112,9 @@ public data struct Checkbox {
             } else {
                 ControlIcon.Check
             }
-            content = ControlIcons.Create(mark, size: resolved.MarkSize, color: resolved.MarkColor!!)
+            content = ControlIcons.Create(mark, size: resolved.MarkSize!!, color: resolved.MarkColor!!)
         }
 
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, content)
-            WidgetKeyBindings.BindActivation(button)
-            return button
-        }
         var onClick Action? = nil
         if !resolved.Disabled {
             if let onChange = onChange {
@@ -145,10 +128,18 @@ public data struct Checkbox {
                 onClick = () -> onChange(next)
             }
         }
+        if let createRoot = createRoot {
+            let button = createRoot(resolved, content)
+            button.Disabled = resolved.Disabled
+            button.OnClick = onClick
+            button.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Checked: state, Description: resolved.Description ?? ""}
+            WidgetKeyBindings.BindActivation(button)
+            return button
+        }
         if let label = resolved.Label {
             let markBox = Container{
-                Width: resolved.Size,
-                Height: resolved.Size,
+                Width: resolved.Size!!,
+                Height: resolved.Size!!,
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
                 BorderColor: if active {
@@ -201,8 +192,8 @@ public data struct Checkbox {
                     Content: label,
                     Color: resolved.LabelColor!!,
                     FontFamily: theme.FontFamily,
-                    FontSize: resolved.LabelFontSize,
-                    FontWeight: resolved.LabelFontWeight,
+                    FontSize: resolved.LabelFontSize!!,
+                    FontWeight: resolved.LabelFontWeight!!,
                 },
             }
             if !resolved.Card && resolved.Description == nil {
@@ -253,8 +244,8 @@ public data struct Checkbox {
             root.Opacity = resolved.DisabledOpacity!!
         }
         let markBox = Container{
-            Width: resolved.Size,
-            Height: resolved.Size,
+            Width: resolved.Size!!,
+            Height: resolved.Size!!,
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderColor: if active {

@@ -31,13 +31,13 @@ internal class TokenHost : Cell {
         Cell.Mount[TokenInputInput, TokenInput](
             "tokens",
             TokenInputInput{
-                Tokens: Tokens,
+                Value: Tokens,
                 Width: Percent(100),
                 AccessibilityName: "Recipients",
                 Disabled: Disabled,
                 Suggestions: Suggestions,
                 Validate: value -> value.Contains("@"),
-                OnTokensChange: values -> {
+                OnChange: values -> {
                     Tokens = values
                     Rebuild()
                 },
@@ -55,7 +55,7 @@ internal class TokenHost : Cell {
                 AllowFreeText: true,
                 Searchable: true,
                 SelectedIds: Selected,
-                OnSelectedIdsChange: values -> {
+                OnSelectionChange: values -> {
                     Selected = values
                     Rebuild()
                 },

@@ -130,8 +130,8 @@ internal class InteractiveHost : Cell {
                     Value: Value,
                     Step: 0.3,
                     Disabled: RangeDisabled,
-                    OnValueChanged: (value float64) -> Change(value),
-                    OnValueCommitted: (value float64) -> {
+                    OnChange: (value float64) -> Change(value),
+                    OnCommit: (value float64) -> {
                         if !RejectEdits {
                             Value = value
                         }
@@ -153,7 +153,7 @@ internal class InteractiveHost : Cell {
                         Value: ColorValue,
                         Mode: ColorMode.Hsv,
                         WheelSize: 220,
-                        OnValueChanged: (value int32) -> {
+                        OnChange: (value int32) -> {
                             if !RejectEdits {
                                 ColorValue = value
                             }
@@ -161,7 +161,7 @@ internal class InteractiveHost : Cell {
                         },
                         CreateRoot: (input ColorPickerInput, wheel Blob, tone Blob) -> {
                             RenderedColor = input.Value
-                            let container = Container{Gap: 12, Width: input.WheelSize, wheel, tone}
+                            let container = Container{Gap: 12, Width: input.WheelSize!!, wheel, tone}
                             ColorRoot = container
                             return container
                         },

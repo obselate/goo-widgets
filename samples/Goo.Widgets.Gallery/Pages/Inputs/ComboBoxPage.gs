@@ -103,7 +103,7 @@ internal class ComboBoxExample : Cell {
                         SelectedIds: labels,
                         Items: labelOptions.ToArray(),
                         AccessibilityName: "Labels",
-                        OnSelectedIdsChange: values -> {
+                        OnSelectionChange: values -> {
                             labels = values
                             Rebuild()
                         },

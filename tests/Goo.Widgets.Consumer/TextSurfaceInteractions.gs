@@ -46,7 +46,7 @@ internal class TextSurfaceHost : Cell {
             Options: Options,
             MatchCount: 3,
             ActiveMatch: 2,
-            Issue: Issue,
+            Error: Issue,
             Replacement: "new",
             Disabled: Disabled,
             OnQueryChange: value -> {
@@ -62,7 +62,7 @@ internal class TextSurfaceHost : Cell {
             OnClose: () -> Closed++,
             OnReplace: () -> Replaced++,
             OnReplaceAll: () -> ReplacedAll++,
-            CreateEntry: input -> TextEntry{
+            CreateEntry: (owner, input) -> TextEntry{
                 Handle: QueryHandle,
                 Value: input.Value ?? "",
                 Controlled: true,

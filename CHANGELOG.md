@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.
 - Use theme spacing and padding for attachment chips, token inputs, and radio group marks.
 - Cache graph validation and node lookup until the node or edge array changes.
@@ -19,30 +20,64 @@
 
 | Widget | Old | New |
 | --- | --- | --- |
+| ActionButton | `Height`, `MinWidth`: `float64?` | `Length?` |
 | AppBar | `Height float64?`, numeric font overrides | `Height Length?`, nullable font overrides |
 | Badge | Numeric `Height` and `MinWidth`, numeric token overrides | `Height Length?`, `MinWidth Length?`, nullable token overrides |
 | Banner | `MinHeight float64?`, numeric font overrides | `MinHeight Length?`, nullable font overrides |
+| Calendar | `DayHeight`: zero selects default | `float64?`. Nil selects default. |
+| Checkbox | `State` | `Value` |
+| Checkbox | `Size`, `MarkSize`, `LabelFontSize`, `LabelFontWeight`: zero selects default | Nullable tokens. Nil selects default. |
 | CodeBlock | Sealed class, `MaxHeight float64` | Open class, `MaxHeight Length?` |
+| ColorPicker | `OnValueChanged`, `OnValueCommitted`, `OnModeChanged` | `OnChange`, `OnCommit`, `OnModeChange` |
+| ColorPicker | `WheelSize`, `MarkerSize`, `ToneSliderHeight`: zero selects default | `float64?`. Nil selects default. |
+| ComboBox | `CreateText`, `OnSelectedIdsChange` | `FormatCreateText`, `OnSelectionChange` |
+| ComboBox | `Width`: `float64` | `Length?` |
+| ComboBox | `PopupHeight`, `RowHeight`: zero selects default | `float64?`. Nil selects default. |
+| DatePicker | `Width`: `float64` | `Length?` |
+| DatePicker | `PopupWidth`: zero selects default | `float64?`. Nil selects default. |
 | DismissibleContextBar | `MinHeight float64?`, numeric dismiss font overrides | `MinHeight Length?`, nullable dismiss font overrides |
 | Drawer | `Width float64` | `Width Length?` |
 | EmptyState | `MinHeight float64?`, numeric font overrides | `MinHeight Length?`, nullable font overrides |
+| FindBar | `CreateEntry(field)` | `CreateEntry(owner, field)` |
+| FormField, NumberInput, FindBar | `Issue` | `Error` |
 | Grid | Numeric `ColumnGap` and `RowGap` | Nullable `ColumnGap` and `RowGap` |
+| IconButton | `Width`, `Height`: `float64?` | `Length?` |
 | ListRow | `MinHeight float64?`, numeric font overrides | `MinHeight Length?`, nullable font overrides |
 | MasterDetail | `MasterWidth float64` | `MasterWidth float64?` |
 | ModalDialog | `OnClose Action?`, `Width float64` | `OnOpenChange Action[bool]?`, `Width Length?` |
+| NumberInput | Closed mounted class | Public open mounted class |
 | Popover | Numeric `MinWidth`, `MaxWidth`, and `MaxHeight` | `Length?` constraints, `OnOpenChange Action[bool]?` |
 | ProgressBar | Numeric `Width`, `Height`, and `BorderWidth` | `Width Length?`, `Height Length?`, `BorderWidth float64?` |
 | ProgressSummary | Numeric font overrides | Nullable font overrides |
 | PropertyGrid | `CollapsedSections`, `OnSectionToggle` | `ExpandedSectionIds`, `OnSectionExpandedChange Action[string, bool]?` |
 | PropertyGrid | `LabelWidth float64`, `CreateRow(item, content)` | `LabelWidth float64?`, `CreateRow(grid, item, content)` |
 | PropertyGridItem | `Issue` | `Error` |
+| SearchList | `CustomizeEntry`, `CustomizeRow`, `CustomizeRoot` | `CreateEntry`, `CreateRow`, `CreateRoot`, with the owner first |
+| SearchList | `Width`, `Height`: `float64?` | `Length?` |
+| SearchList | No disabled state | `Disabled bool` |
 | SectionHeader | Numeric font overrides | Nullable font overrides |
 | SettingsLayout | Sealed class, numeric width metrics | Open class, nullable width metrics |
+| Slider | `OnValueChanged`, `OnValueCommitted` | `OnChange`, `OnCommit` |
+| Slider | `Height`: `float64` | `Length?` |
+| Slider | `LabelFontSize`, `ValueFontSize`, `ThumbSize`, `TrackThickness`: zero selects default | `float64?`. Nil selects default. |
 | Spinner | `Size float64` | `Size float64?` |
 | StatusBar | Sealed class | Open class |
 | StatusBarItem | `OnActivate`, `OnMenuActivate` | `OnClick`, `OnMenuClick` |
+| Stepper | `Height`: `float64?` | `Length?` |
+| Stepper | `FontSize`, `FontWeight`: zero selects default | Nullable tokens. Nil selects default. |
+| TextArea | `MinimumHeight float64?` | `MinHeight Length?` |
+| TextField | `IssueFontSize` | `ErrorFontSize float64?` |
+| TextField | `FontSize`, `LabelFontSize`, `LabelFontWeight`: zero selects default | Nullable tokens. Nil selects default. |
+| TextField, TextArea | `IssueText` | `Error` |
+| TextField, TextArea | No description | `Description string?` |
 | Toast | No open-state callback | `OnOpenChange Action[bool]?` |
 | ToastHost | `Width float64?`, `CreateToast(toast, root)` | `Width Length?`, `CreateToast(host, toast, root)` |
+| ToggleGroup | `Look`, `ToggleGroupLook`, `OnChange` | `Variant`, `ToggleGroupVariant`, `OnSelectionChange` |
+| ToggleSwitch | `Checked`, `OnClick Action?` | `Value`, `OnChange Action<bool>?` |
+| ToggleSwitch | `Width`, `Height`: pixel values | `Length?` |
+| ToggleSwitch | `ThumbSize`: zero selects default | `float64?`. Nil selects default. |
+| TokenInput | `Tokens`, `OnTokensChange` | `Value`, `OnChange` |
+| TriggerMenu | `MaxHeight`: `float64` | `Length?`. Nil selects default. |
 | WindowChrome | `Height float64`, `ControlWidth float64` | `Height Length?`, `ControlWidth float64?` |
 
 ## 0.18.6 - 2026-11-03

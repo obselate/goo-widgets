@@ -35,26 +35,26 @@ public data struct SliderInput {
     var LabelColor Color?
     /// Displayed value color. Nil uses the nearest theme.
     var ValueColor Color?
-    /// Visible label font size. Zero uses the nearest theme label font size.
-    var LabelFontSize float64
-    /// Displayed value font size. Zero uses the nearest theme caption font size.
-    var ValueFontSize float64
+    /// Visible label font size. Nil uses the nearest theme label font size.
+    var LabelFontSize float64?
+    /// Displayed value font size. Nil uses the nearest theme caption font size.
+    var ValueFontSize float64?
     /// Formats the accessible range value and optional visible value. Nil formats with the theme Culture.
     var FormatValue Func[float64, string]?
     /// Receives pointer and keyboard preview values.
-    var OnValueChanged Action[float64]?
+    var OnChange Action[float64]?
     /// Receives the final value after pointer, keyboard, or accessibility input.
-    var OnValueCommitted Action[float64]?
+    var OnCommit Action[float64]?
     /// Whether the slider rejects input.
     var Disabled bool
     /// Horizontal slider width. Nil resolves to 100 percent.
     var Width Length?
-    /// Slider height. Zero uses the nearest theme control height horizontally or 160.0 vertically.
-    var Height float64
-    /// Track thickness. Zero uses the nearest theme spacing.
-    var TrackThickness float64
-    /// Thumb diameter. Zero uses the nearest theme spacing.
-    var ThumbSize float64
+    /// Slider height. Nil uses the nearest theme control height horizontally or 160.0 vertically.
+    var Height Length?
+    /// Track thickness. Nil uses the nearest theme spacing.
+    var TrackThickness float64?
+    /// Thumb diameter. Nil uses the nearest theme spacing.
+    var ThumbSize float64?
     /// Thumb corner radius. Nil resolves to half the thumb size.
     var ThumbRadius float64?
     /// Thumb border width. Nil uses the nearest theme border width and preserves explicit zero.
@@ -117,23 +117,24 @@ public open class Slider : Cell[SliderInput] {
             Start: if horizontal {
                 0.0
             } else {
-                (resolved.ThumbSize - resolved.TrackThickness) / 2.0
+                (resolved.ThumbSize!! - resolved.TrackThickness!!) / 2.0
             },
             Top: if horizontal {
-                (resolved.Height - resolved.TrackThickness) / 2.0
+                Percent(50.0)
             } else {
                 0.0
             },
             Width: if horizontal {
                 Percent(100.0)
             } else {
-                resolved.TrackThickness
+                resolved.TrackThickness!!
             },
             Height: if horizontal {
-                resolved.TrackThickness
+                resolved.TrackThickness!!
             } else {
                 Percent(100.0)
             },
+            Margin: Edges{Top: horizontal ? -resolved.TrackThickness!! / 2.0: 0.0},
             BorderRadius: resolved.TrackRadius!!,
             BackgroundColor: resolved.TrackColor!!,
             BasedOn: resolved.TrackStyle,
@@ -144,23 +145,24 @@ public open class Slider : Cell[SliderInput] {
             Start: if horizontal {
                 0.0
             } else {
-                (resolved.ThumbSize - resolved.TrackThickness) / 2.0
+                (resolved.ThumbSize!! - resolved.TrackThickness!!) / 2.0
             },
             Top: if horizontal {
-                (resolved.Height - resolved.TrackThickness) / 2.0
+                Percent(50.0)
             } else {
                 Percent((1.0 - fraction) * 100.0)
             },
             Width: if horizontal {
                 Percent(fraction * 100.0)
             } else {
-                resolved.TrackThickness
+                resolved.TrackThickness!!
             },
             Height: if horizontal {
-                resolved.TrackThickness
+                resolved.TrackThickness!!
             } else {
                 Percent(fraction * 100.0)
             },
+            Margin: Edges{Top: horizontal ? -resolved.TrackThickness!! / 2.0: 0.0},
             BorderRadius: resolved.TrackRadius!!,
             BackgroundColor: resolved.FillColor!!,
             BasedOn: resolved.FillStyle,
@@ -174,14 +176,14 @@ public open class Slider : Cell[SliderInput] {
                 0.0
             },
             Top: if horizontal {
-                (resolved.Height - resolved.ThumbSize) / 2.0
+                Percent(50.0)
             } else {
                 Percent((1.0 - fraction) * 100.0)
             },
-            Margin: Edges{Top: horizontal ? 0.0: -resolved.ThumbSize / 2.0},
-            MarginStart: horizontal ? -resolved.ThumbSize / 2.0: 0.0,
-            Width: resolved.ThumbSize,
-            Height: resolved.ThumbSize,
+            Margin: Edges{Top: -resolved.ThumbSize!! / 2.0},
+            MarginStart: horizontal ? -resolved.ThumbSize!! / 2.0: 0.0,
+            Width: resolved.ThumbSize!!,
+            Height: resolved.ThumbSize!!,
             BorderRadius: resolved.ThumbRadius!!,
             BorderWidth: resolved.ThumbBorderWidth!!,
             BorderColor: resolved.ThumbBorderColor!!,
@@ -242,9 +244,9 @@ public open class Slider : Cell[SliderInput] {
                     resolved.Width!!
                 }
             } else {
-                resolved.ThumbSize
+                resolved.ThumbSize!!
             },
-            Height: resolved.Height,
+            Height: resolved.Height!!,
             FlexShrink: 0.0,
             Position: PositionType.Relative,
             Cursor: if horizontal {
@@ -303,7 +305,7 @@ public open class Slider : Cell[SliderInput] {
                 Text{
                     Key: "slider-label",
                     Content: label,
-                    FontSize: resolved.LabelFontSize,
+                    FontSize: resolved.LabelFontSize!!,
                     FontWeight: theme.LabelFontWeight,
                     Color: resolved.LabelColor!!,
                     FlexGrow: 1.0,
@@ -315,7 +317,7 @@ public open class Slider : Cell[SliderInput] {
                 Text{
                     Key: "slider-value",
                     Content: formattedValue,
-                    FontSize: resolved.ValueFontSize,
+                    FontSize: resolved.ValueFontSize!!,
                     FontWeight: theme.CaptionFontWeight,
                     Color: resolved.ValueColor!!,
                 }
@@ -362,22 +364,15 @@ public open class Slider : Cell[SliderInput] {
         if !Double.IsFinite(step) || step <= 0.0 {
             throw ArgumentOutOfRangeException("Step")
         }
-        let thumbSize = if input.ThumbSize == 0.0 {
-            theme.Spacing * 5.0
-        } else {
-            input.ThumbSize
-        }
-        let trackThickness = if input.TrackThickness == 0.0 {
-            theme.Spacing * 2.0
-        } else {
-            input.TrackThickness
-        }
+        let thumbSize = input.ThumbSize ?? theme.Spacing * 5.0
+        let trackThickness = input.TrackThickness ?? theme.Spacing * 2.0
         if !Double.IsFinite(thumbSize) || thumbSize <= 0.0 {
             throw ArgumentOutOfRangeException("ThumbSize")
         }
         if !Double.IsFinite(trackThickness) || trackThickness <= 0.0 {
             throw ArgumentOutOfRangeException("TrackThickness")
         }
+        let defaultHeight Length = input.Orientation == SliderOrientation.Horizontal ? theme.ControlHeight: 160.0
         return input with{
             Minimum = minimum,
             Maximum = maximum,
@@ -386,26 +381,10 @@ public open class Slider : Cell[SliderInput] {
             LabelColor = input.LabelColor ?? theme.TextColor,
             ValueColor = input.ValueColor ?? theme.MutedTextColor,
             Width = input.Width ?? Percent(100.0),
-            Height = if input.Height == 0.0 {
-                if input.Orientation == SliderOrientation.Horizontal {
-                    theme.ControlHeight
-                } else {
-                    160.0
-                }
-            } else {
-                input.Height
-            },
+            Height = input.Height ?? defaultHeight,
             TrackThickness = trackThickness,
-            LabelFontSize = if input.LabelFontSize == 0.0 {
-                theme.LabelFontSize
-            } else {
-                input.LabelFontSize
-            },
-            ValueFontSize = if input.ValueFontSize == 0.0 {
-                theme.CaptionFontSize
-            } else {
-                input.ValueFontSize
-            },
+            LabelFontSize = input.LabelFontSize ?? theme.LabelFontSize,
+            ValueFontSize = input.ValueFontSize ?? theme.CaptionFontSize,
             ThumbSize = thumbSize,
             ThumbRadius = input.ThumbRadius ?? thumbSize / 2.0,
             ThumbBorderWidth = input.ThumbBorderWidth ?? theme.BorderWidth,
@@ -437,11 +416,11 @@ public open class Slider : Cell[SliderInput] {
             return
         }
         current = next
-        resolved.OnValueChanged?.Invoke(next)
+        resolved.OnChange?.Invoke(next)
     }
 
     private func Commit() {
-        resolved.OnValueCommitted?.Invoke(current)
+        resolved.OnCommit?.Invoke(current)
     }
 
     private func ValueFromPointer(e PointerEvent) float64 {

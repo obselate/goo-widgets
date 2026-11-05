@@ -21,12 +21,12 @@ internal open class SliderExample : Cell {
                 Minimum: 0.0,
                 Maximum: 100.0,
                 Step: 5.0,
-                OnValueChanged: (value float64) -> {
+                OnChange: (value float64) -> {
                     horizontal = value
                     status = "Preview " + value.ToString("0")
                     Rebuild()
                 },
-                OnValueCommitted: (value float64) -> {
+                OnCommit: (value float64) -> {
                     horizontal = value
                     status = "Committed " + value.ToString("0")
                     Rebuild()
@@ -50,11 +50,11 @@ internal open class SliderExample : Cell {
                     Maximum: 1.0,
                     Step: 0.05,
                     Orientation: SliderOrientation.Vertical,
-                    OnValueChanged: (value float64) -> {
+                    OnChange: (value float64) -> {
                         vertical = value
                         Rebuild()
                     },
-                    OnValueCommitted: (value float64) -> {
+                    OnCommit: (value float64) -> {
                         vertical = value
                         status = "Vertical committed"
                         Rebuild()

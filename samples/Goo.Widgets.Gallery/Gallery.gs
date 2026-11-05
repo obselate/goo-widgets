@@ -302,7 +302,7 @@ class Gallery : Cell, IDisposable {
                 BorderWidth: Edges{Top: 1}, BorderColor: theme.BorderColor,
                 Padding: Edges{Top: 12, Left: 12, Right: 12},
                 Cell.Mount[ToggleGroupInput, ToggleGroup]("appearance", ToggleGroupInput{
-                    Look: ToggleGroupLook.Segmented, Stretch: true, AccessibilityName: "Appearance",
+                    Variant: ToggleGroupVariant.Segmented, Stretch: true, AccessibilityName: "Appearance",
                     Orientation: AccessibilityOrientation.Horizontal,
                     SelectedIds: []string{theme.CanvasColor == Theme.Ink.CanvasColor ? "dark": "light"},
                     Items: []ToggleOption{
@@ -315,7 +315,7 @@ class Gallery : Cell, IDisposable {
                         button.BorderWidth = 1
                         return button
                     },
-                    OnChange: (ids[]string) -> {
+                    OnSelectionChange: (ids[]string) -> {
                         if ids.Length > 0 && owningWindow != nil { Theme.SetMode(owningWindow!!, ids[0] == "dark" ? ThemeMode.Dark: ThemeMode.Light) }
                     }
                 })

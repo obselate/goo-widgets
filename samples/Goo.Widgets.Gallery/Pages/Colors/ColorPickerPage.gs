@@ -17,11 +17,11 @@ internal open class ColorPickerExample : Cell {
             ColorPickerInput{
                 Value: rgb,
                 WheelSize: 260.0,
-                OnValueChanged: (value int32) -> {
+                OnChange: (value int32) -> {
                     rgb = value
                     Rebuild()
                 },
-                OnValueCommitted: (value int32) -> {
+                OnCommit: (value int32) -> {
                     rgb = value
                     committed = value
                     Rebuild()

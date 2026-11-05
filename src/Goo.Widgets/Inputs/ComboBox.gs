@@ -33,11 +33,11 @@ public data struct ComboBoxInput {
     /// Controlled selected item IDs. Nil means an empty selection.
     var SelectedIds[]?string
     /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
-    var OnSelectedIdsChange Action[[]string]?
+    var OnSelectionChange Action[[]string]?
     /// Allows creating an option from a nonempty query that has no exact match.
     var AllowFreeText bool
     /// Formats the create-option label from the query string. Nil uses localized create text.
-    var CreateText Func[string, string]?
+    var FormatCreateText Func[string, string]?
     /// Receives the entered free text when the create option is activated. Nil ignores the request.
     var OnCreate Action[string]?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
@@ -62,16 +62,16 @@ public data struct ComboBoxInput {
     var SearchPlaceholder string?
     /// Message shown when no options match. Nil uses the localized widget default.
     var EmptyText string?
-    /// Finite positive trigger width in logical pixels. Zero uses 280.
-    var Width float64
+    /// Trigger layout width. Nil uses 280.
+    var Width Length?
     /// Makes the popup at least as wide as the mounted trigger.
     var MatchTriggerWidth bool
-    /// Finite positive popup height limit in logical pixels. Zero uses 260.
-    var PopupHeight float64
+    /// Finite positive popup height limit in logical pixels. Nil uses 260.
+    var PopupHeight float64?
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
-    /// Finite positive option height in logical pixels. Zero uses the theme control height.
-    var RowHeight float64
+    /// Finite positive option height in logical pixels. Nil uses the theme control height.
+    var RowHeight float64?
     /// Layer of the popup while open.
     var ZIndex int32
     /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
@@ -144,21 +144,22 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     protected override func Build(input ComboBoxInput) Blob {
         let itemsChanged = !prepared || !Object.ReferenceEquals(current.Items, input.Items)
         let optionsChanged = itemsChanged || current.Searchable != input.Searchable ||
-            current.AllowFreeText != input.AllowFreeText || !Object.Equals(current.CreateText, input.CreateText)
+            current.AllowFreeText != input.AllowFreeText || !Object.Equals(current.FormatCreateText, input.FormatCreateText)
         let selectionChanged = itemsChanged || current.Multiple != input.Multiple ||
             !Object.ReferenceEquals(current.SelectedIds, input.SelectedIds)
         theme = Theme.Read()
+        let defaultWidth Length = 280.0
         current = input with{
-            Width = input.Width == 0.0 ? 280.0: input.Width,
-            PopupHeight = input.PopupHeight == 0.0 ? 260.0: input.PopupHeight,
-            RowHeight = input.RowHeight == 0.0 ? theme.ControlHeight: input.RowHeight,
+            Width = input.Width ?? defaultWidth,
+            PopupHeight = input.PopupHeight ?? 260.0,
+            RowHeight = input.RowHeight ?? theme.ControlHeight,
             Placeholder = input.Placeholder ?? theme.Text("Choose an option"),
             AccessibilityName = input.AccessibilityName ?? theme.Text("Choose an option"),
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex
         }
-        if !Double.IsFinite(current.Width) || current.Width <= 2.0
-        || !Double.IsFinite(current.PopupHeight) || current.PopupHeight <= 42.0
-        || !Double.IsFinite(current.RowHeight) || current.RowHeight <= 0.0 {
+        if (current.Width!!.HasMagnitude && !current.Width!!.IsPercent && (!Double.IsFinite(current.Width!!.Magnitude) || current.Width!!.Magnitude <= 2.0))
+        || !Double.IsFinite(current.PopupHeight!!) || current.PopupHeight!! <= 42.0
+        || !Double.IsFinite(current.RowHeight!!) || current.RowHeight!! <= 0.0 {
             prepared = false
             throw ArgumentOutOfRangeException("ComboBox dimensions")
         }
@@ -215,7 +216,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 }
                 created = ComboBoxOption{
                     Id: createId,
-                    Label: input.CreateText?.Invoke(creation) ?? "Create “" + creation + "”",
+                    Label: input.FormatCreateText?.Invoke(creation) ?? "Create “" + creation + "”",
                 }
                 positions.Add(createId, filtered.Count)
                 filtered.Add(-1)
@@ -323,7 +324,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         arrow.Key = "arrow"
         button.Children.Add(arrow)
         var root = Container{
-            Width: current.Width,
+            Width: current.Width!!,
             MinWidth: 0.0,
             Overflow: Overflow.Visible,
             LineHeight: theme.LineHeight
@@ -334,10 +335,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         root.Children.Clear()
         root.Children.Add(button)
         let popupHeight = Math.Min(
-            current.PopupHeight,
+            current.PopupHeight!!,
             2.0 + ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) + Math.Max(
                 theme.ControlHeight,
-                float64(rows.Length) * current.RowHeight
+                float64(rows.Length) * current.RowHeight!!
             )
         )
         var popup = PopoverInput{
@@ -345,7 +346,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Anchor: trigger,
             Placement: current.Placement,
             Content: BuildList(query, popupHeight),
-            Width: current.Width,
+            Width: current.Width!!,
             MaxHeight: popupHeight,
             Padding: 0.0,
             AccessibilityName: current.AccessibilityName,
@@ -416,7 +417,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let build((ComboBoxRow) -> Blob) = BuildRow
         let source = VirtualRowsSource[ComboBoxRow](
             []ComboBoxRow{},
-            virtualItemExtent(current.RowHeight, "RowHeight"),
+            virtualItemExtent(current.RowHeight!!, "RowHeight"),
             key,
             build,
             nil
@@ -501,9 +502,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         result.Key = id
         result.Handle = Handle(id)
-        result.Height = row.Input.RowHeight
-        result.MinHeight = row.Input.RowHeight
-        result.MaxHeight = row.Input.RowHeight
+        result.Height = row.Input.RowHeight!!
+        result.MinHeight = row.Input.RowHeight!!
+        result.MaxHeight = row.Input.RowHeight!!
         result.Focusable = false
         result.Disabled = item.Disabled
         result.OnClick = () -> Commit(id)
@@ -633,7 +634,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             if !values.Remove(id) {
                 values.Add(id)
             }
-            current.OnSelectedIdsChange?.Invoke(values.ToArray())
+            current.OnSelectionChange?.Invoke(values.ToArray())
             Rebuild()
         } else {
             current.OnSelect?.Invoke(id)

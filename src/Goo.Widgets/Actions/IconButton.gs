@@ -17,9 +17,9 @@ public data struct IconButton {
     /// Whether the active visual state is selected.
     var Active bool
     /// Button width. Nil uses the theme control height.
-    var Width float64?
+    var Width Length?
     /// Button height. Nil uses the resolved width.
-    var Height float64?
+    var Height Length?
     /// Button padding. Nil resolves to 0.0.
     var Padding float64?
     /// Button corner radius. Nil uses the nearest theme radius.
@@ -43,7 +43,8 @@ public data struct IconButton {
     public func Build() Blob {
         let theme = Theme.Read()
         let createRoot = CreateRoot
-        let width = Width ?? theme.ControlHeight
+        let defaultWidth Length = theme.ControlHeight
+        let width = Width ?? defaultWidth
         let height = Height ?? width
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? theme.Text("Icon action"),

@@ -51,7 +51,7 @@ internal class TextAreaExample : Cell {
                 Value: "",
                 Placeholder: "Add context",
                 Invalid: true,
-                IssueText: "An explanation is required.",
+                Error: "An explanation is required.",
                 Width: Percent(100),
                 MinimumRows: 2
             }

@@ -48,8 +48,8 @@ public data struct CalendarInput {
     var FirstDayOfWeek DayOfWeek?
     /// Root layout width. Nil uses 280 logical pixels.
     var Width Length?
-    /// Finite positive day-cell height in logical pixels. Zero uses the theme control height.
-    var DayHeight float64
+    /// Finite positive day-cell height in logical pixels. Nil uses the theme control height.
+    var DayHeight float64?
     /// Optional base style for the month heading text.
     var MonthTextStyle Style?
     /// Optional base style for each day number, applied after the default text styling.
@@ -110,13 +110,13 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Culture = culture,
             FirstDayOfWeek = input.FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
             Width = input.Width ?? width,
-            DayHeight = input.DayHeight == 0.0 ? theme.ControlHeight: input.DayHeight,
+            DayHeight = input.DayHeight ?? theme.ControlHeight,
             Today = input.Today ?? DateOnly.FromDateTime(DateTime.Today),
             AccessibilityName = input.AccessibilityName ?? theme.Text("Calendar"),
             PreviousMonthLabel = input.PreviousMonthLabel ?? theme.Text("Previous month"),
             NextMonthLabel = input.NextMonthLabel ?? theme.Text("Next month")
         }
-        if !Double.IsFinite(current.DayHeight) || current.DayHeight <= 0.0 {
+        if !Double.IsFinite(current.DayHeight!!) || current.DayHeight!! <= 0.0 {
             throw ArgumentOutOfRangeException("DayHeight")
         }
         if !Enum.IsDefined(current.FirstDayOfWeek!!) {
@@ -160,7 +160,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         let title = month.ToString("MMMM yyyy", culture)
         let heading = Container{
             Key: "heading",
-            Height: Math.Max(theme.ControlHeight, current.DayHeight),
+            Height: Math.Max(theme.ControlHeight, current.DayHeight!!),
             FlexShrink: 0.0,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -240,7 +240,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                             Key: "empty-" + column.ToString(),
                             FlexGrow: 1.0,
                             FlexBasis: 0.0,
-                            Height: current.DayHeight,
+                            Height: current.DayHeight!!,
                             Accessibility: Accessibility{Hidden: true}
                         }
                     )
@@ -397,7 +397,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         button.FlexGrow = 1.0
         button.FlexBasis = 0.0
         button.MinWidth = 0.0
-        button.Height = current.DayHeight
+        button.Height = current.DayHeight!!
         button.Disabled = day.Disabled
         button.Focusable = !day.Disabled
         button.TabStop = day.Active && !day.Disabled

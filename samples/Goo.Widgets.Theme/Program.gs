@@ -40,7 +40,7 @@ class ThemeSample : Cell {
             let check = (
                 theme.Checkbox with{
                     Label = "Live preview",
-                    State = if livePreview {
+                    Value = if livePreview {
                         AccessibilityChecked.True
                     } else {
                         AccessibilityChecked.False
@@ -125,7 +125,7 @@ class ThemeSample : Cell {
                                     (
                                         theme.Checkbox with{
                                             Label = "Compact controls",
-                                            State = if compact {
+                                            Value = if compact {
                                                 AccessibilityChecked.True
                                             } else {
                                                 AccessibilityChecked.False
@@ -149,7 +149,7 @@ class ThemeSample : Cell {
                                                     Maximum = 100.0,
                                                     Step = 1.0,
                                                     FormatValue = (value float64) -> "$value%",
-                                                    OnValueChanged = (value float64) -> {
+                                                    OnChange = (value float64) -> {
                                                         opacity = value
                                                         Rebuild()
                                                     },

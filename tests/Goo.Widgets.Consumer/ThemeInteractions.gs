@@ -871,7 +871,7 @@ func ThemeDensityContracts() {
                 "Density did not update the real control hit boxes."
             )
             Require(
-                root.Explicit.Height == 23.0 && root.Explicit.PaddingHorizontal == 0.0
+                root.Explicit.Height!!.Magnitude == 23.0 && root.Explicit.PaddingHorizontal == 0.0
                 && root.Explicit.BorderRadius == 0.0 && root.Explicit.FontFamily == "monospace",
                 "The theme replaced explicit zero geometry or font customization."
             )

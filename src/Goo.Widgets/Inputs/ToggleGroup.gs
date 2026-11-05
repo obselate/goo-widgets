@@ -6,7 +6,7 @@ import System
 import System.Collections.Generic
 
 /// Segmented, toolbar or chip presentation for a toggle group.
-public enum ToggleGroupLook {
+public enum ToggleGroupVariant {
     /// Joins choices inside one segmented frame.
     Segmented;
     /// Shows choices as separate toolbar buttons.
@@ -36,9 +36,9 @@ public data struct ToggleGroupInput {
     /// Enables set selection instead of single selection. False limits selection to one item.
     var Multiple bool
     /// Receives a new selected-ID array after activation. Single mode still emits an array. Nil ignores the request.
-    var OnChange Action[[]string]?
+    var OnSelectionChange Action[[]string]?
     /// Selects the visual presentation without changing selection.
-    var Look ToggleGroupLook
+    var Variant ToggleGroupVariant
     /// Lets each option grow to share the available row space.
     var Stretch bool
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
@@ -92,10 +92,10 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             handles.Remove(id)
         }
         var root = Container{
-            Gap: input.Look == ToggleGroupLook.Segmented ? 0: theme.ControlGap,
-            Padding: input.Look == ToggleGroupLook.Segmented ? theme.Spacing: 0,
+            Gap: input.Variant == ToggleGroupVariant.Segmented ? 0: theme.ControlGap,
+            Padding: input.Variant == ToggleGroupVariant.Segmented ? theme.Spacing: 0,
             BorderRadius: theme.ControlRadius!!,
-            BackgroundColor: input.Look == ToggleGroupLook.Segmented ? theme.SunkenColor: Color.Transparent,
+            BackgroundColor: input.Variant == ToggleGroupVariant.Segmented ? theme.SunkenColor: Color.Transparent,
         }
         if let create = input.CreateRoot {
             root = create(input, root)
@@ -121,16 +121,16 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 FlexGrow: input.Stretch ? 1: 0,
                 FlexDirection: FlexDirection.Row,
                 Gap: theme.ControlGap,
-                BorderWidth: input.Look == ToggleGroupLook.Segmented ? Math.Max(2.0, theme.BorderWidth):
-                input.Look == ToggleGroupLook.Chips ? theme.BorderWidth: 0,
-                BorderColor: input.Look == ToggleGroupLook.Segmented
+                BorderWidth: input.Variant == ToggleGroupVariant.Segmented ? Math.Max(2.0, theme.BorderWidth):
+                input.Variant == ToggleGroupVariant.Chips ? theme.BorderWidth: 0,
+                BorderColor: input.Variant == ToggleGroupVariant.Segmented
                 ? active ? theme.StrongBorderColor: Color.Transparent
                 : active ? theme.AccentColor: theme.InputBorderColor,
-                BorderRadius: input.Look == ToggleGroupLook.Chips ? theme.ControlHeight / 2: theme.ControlRadius!!,
+                BorderRadius: input.Variant == ToggleGroupVariant.Chips ? theme.ControlHeight / 2: theme.ControlRadius!!,
                 BackgroundColor: active
-                ? input.Look == ToggleGroupLook.Segmented ? theme.RaisedColor: theme.ActiveColor
+                ? input.Variant == ToggleGroupVariant.Segmented ? theme.RaisedColor: theme.ActiveColor
                 : Color.Transparent,
-                BoxShadow: active && input.Look == ToggleGroupLook.Segmented ? theme.ElevationSm: BoxShadow{},
+                BoxShadow: active && input.Variant == ToggleGroupVariant.Segmented ? theme.ElevationSm: BoxShadow{},
                 Color: active ? theme.TextColor: theme.MutedTextColor,
                 Hover: Style{BackgroundColor: theme.HoverColor},
                 Active: Style{BackgroundColor: theme.PressedColor},
@@ -195,7 +195,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             return
         }
         if !input.Multiple {
-            input.OnChange?.Invoke([]string{id})
+            input.OnSelectionChange?.Invoke([]string{id})
             return
         }
         let result = List[string]()
@@ -204,7 +204,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 result.Add(item.Id)
             }
         }
-        input.OnChange?.Invoke(result.ToArray())
+        input.OnSelectionChange?.Invoke(result.ToArray())
     }
 
     private func Move(id string, e KeyEvent) {

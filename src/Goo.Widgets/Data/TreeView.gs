@@ -579,7 +579,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if row.Node.CheckState != AccessibilityChecked.Unspecified {
             var check = (
                 Checkbox{
-                    State: row.Node.CheckState,
+                    Value: row.Node.CheckState,
                     Disabled: row.Disabled || snapshot.OnCheckChange == nil,
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button

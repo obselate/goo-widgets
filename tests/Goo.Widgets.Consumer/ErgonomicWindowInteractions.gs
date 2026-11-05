@@ -45,7 +45,7 @@ internal class ErgonomicHost : Cell {
         let checkbox = (
             Checkbox{
                 Label: "Enable preview",
-                State: Checked,
+                Value: Checked,
                 Disabled: Disabled,
                 OnChange: (value AccessibilityChecked) -> {
                     Checked = value
@@ -57,10 +57,10 @@ internal class ErgonomicHost : Cell {
         CheckboxRoot = checkbox
         let toggle = (
             ToggleSwitch{
-                Checked: Switched,
+                Value: Switched,
                 Disabled: Disabled,
-                OnClick: () -> {
-                    Switched = !Switched
+                OnChange: (value bool) -> {
+                    Switched = value
                 },
             }.Build() as Button
         )!!
@@ -82,7 +82,7 @@ internal class ErgonomicHost : Cell {
                     Value: Value,
                     Width: Percent(50),
                     FormatValue: (value float64) -> (value * 100.0).ToString("0") + "%",
-                    OnValueChanged: (value float64) -> {
+                    OnChange: (value float64) -> {
                         Value = value
                         Rebuild()
                     },
@@ -100,11 +100,11 @@ internal class ErgonomicHost : Cell {
                     WheelSize: 200.0,
                     Compact: Compact,
                     Disabled: Disabled,
-                    OnValueChanged: (value int32) -> {
+                    OnChange: (value int32) -> {
                         Rgb = value
                         Rebuild()
                     },
-                    OnModeChanged: (mode ColorMode) -> {
+                    OnModeChange: (mode ColorMode) -> {
                         ModeChanges++
                     },
                 }

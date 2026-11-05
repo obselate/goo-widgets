@@ -47,10 +47,10 @@ public data struct DatePickerInput {
     var Open bool?
     /// Receives the requested open state after user interaction. Nil ignores the request.
     var OnOpenChange Action[bool]?
-    /// Finite editor width in logical pixels, greater than 40. Zero uses 280.
-    var Width float64
-    /// Finite calendar-popup width in logical pixels, greater than 40. Zero uses 300.
-    var PopupWidth float64
+    /// Editor layout width. Nil uses 280 logical pixels.
+    var Width Length?
+    /// Finite calendar-popup width in logical pixels, greater than 40. Nil uses 300.
+    var PopupWidth float64?
     /// Popup stacking order. Zero uses layer 20.
     var ZIndex int32
     /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
@@ -94,17 +94,18 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
 
     protected override func Build(input DatePickerInput) Blob {
         theme = Theme.Read()
+        let defaultWidth Length = 280.0
         current = input with{
             AllowEmpty = input.AllowEmpty ?? true,
             Culture = input.Culture ?? theme.Locale,
-            Width = input.Width == 0.0 ? 280.0: input.Width,
-            PopupWidth = input.PopupWidth == 0.0 ? 300.0: input.PopupWidth,
+            Width = input.Width ?? defaultWidth,
+            PopupWidth = input.PopupWidth ?? 300.0,
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,
             AccessibilityName = input.AccessibilityName ?? theme.Text("Date"),
             Placeholder = input.Placeholder ?? theme.Text("Choose a date")
         }
-        if !Double.IsFinite(current.Width) || current.Width <= 40.0 || !Double.IsFinite(current.PopupWidth) ||
-            current.PopupWidth <= 40.0 {
+        if (current.Width!!.HasMagnitude && !current.Width!!.IsPercent && (!Double.IsFinite(current.Width!!.Magnitude) || current.Width!!.Magnitude <= 40.0)) || !Double.IsFinite(current.PopupWidth!!) ||
+            current.PopupWidth!! <= 40.0 {
             throw ArgumentOutOfRangeException("DatePicker dimensions")
         }
         if input.Minimum != nil && input.Maximum != nil && input.Minimum!!> input.Maximum!! {
@@ -207,7 +208,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             button
         }
         var root = Container{
-            Width: current.Width,
+            Width: current.Width!!,
             MinWidth: 0.0,
             Gap: theme.ControlGap,
             Overflow: Overflow.Visible,
@@ -258,7 +259,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: fieldHandle,
-            Width: current.PopupWidth,
+            Width: current.PopupWidth!!,
             MaxHeight: 360.0,
             Content: Cell.Mount[CalendarInput, Calendar]("calendar", calendar),
             Padding: 0.0,

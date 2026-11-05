@@ -7,13 +7,13 @@ import Goo.Widgets
 /// Factories receive resolved props and may replace the final Goo primitives.
 public data struct ToggleSwitch {
     /// Whether the track displays its on state. Build does not invert this value.
-    var Checked bool
+    var Value bool
     /// Whether the switch rejects input and uses disabled visuals.
     var Disabled bool
     /// Accessible name. Nil resolves to an empty string.
     var AccessibilityName string?
-    /// Action forwarded directly to Goo.Button activation.
-    var OnClick Action?
+    /// Receives the new value when the switch is activated.
+    var OnChange Action[bool]?
     /// Off-state track color. Nil resolves to the theme panel color.
     var OffTrackColor Color?
     /// On-state track color. Nil resolves to the theme accent color.
@@ -30,14 +30,14 @@ public data struct ToggleSwitch {
     var BorderColor Color?
     /// Keyboard focus outline color. Nil uses theme accent.
     var FocusBorderColor Color?
-    /// Track width. Zero uses eleven theme spacing units.
-    var Width float64
+    /// Track width. Nil uses eleven theme spacing units.
+    var Width Length?
     /// Visible track height. Nil uses six theme spacing units.
-    var Height float64?
+    var Height Length?
     /// Track padding. Nil uses half the theme spacing; explicit zero is preserved.
     var Padding float64?
-    /// Thumb width and height. Zero uses five theme spacing units.
-    var ThumbSize float64
+    /// Thumb width and height. Nil uses five theme spacing units.
+    var ThumbSize float64?
     /// Border width. Nil uses the theme border width; explicit zero is preserved.
     var BorderWidth float64?
     /// Track corner radius. Nil uses half the track height; explicit zero is preserved.
@@ -63,8 +63,10 @@ public data struct ToggleSwitch {
         let theme = Theme.Read()
         let createThumb = CreateThumb
         let createRoot = CreateRoot
-        let height = Height ?? theme.Spacing * 6.0
-        let thumbSize = ThumbSize == 0.0 ? theme.Spacing * 5.0: ThumbSize
+        let defaultHeight Length = theme.Spacing * 6.0
+        let defaultWidth Length = theme.Spacing * 11.0
+        let height = Height ?? defaultHeight
+        let thumbSize = ThumbSize ?? theme.Spacing * 5.0
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "",
             OffTrackColor = OffTrackColor ?? theme.PanelColor,
@@ -75,16 +77,12 @@ public data struct ToggleSwitch {
             DisabledThumbColor = DisabledThumbColor ?? theme.FaintTextColor,
             BorderColor = BorderColor ?? theme.InputBorderColor,
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
-            Width = if Width == 0.0 {
-                theme.Spacing * 11.0
-            } else {
-                Width
-            },
+            Width = Width ?? defaultWidth,
             Height = height,
             Padding = Padding ?? theme.Spacing / 2.0,
             ThumbSize = thumbSize,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
-            BorderRadius = BorderRadius ?? height / 2.0,
+            BorderRadius = BorderRadius ?? (height.HasMagnitude && !height.IsPercent ? height.Magnitude / 2.0: theme.Spacing * 3.0),
             ThumbRadius = ThumbRadius ?? thumbSize / 2.0,
             TransitionMs = TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
@@ -94,50 +92,44 @@ public data struct ToggleSwitch {
             CreateThumb = nil,
             CreateRoot = nil,
         }
-        let travel = Math.Max(
-            0.0,
-            resolved.Width - 2.0 * (resolved.Padding!!+ resolved.BorderWidth!!) - resolved.ThumbSize
-        )
-        let offset = if resolved.Checked {
-            travel
-        } else {
-            0.0
-        }
         let thumb = if let createThumb = createThumb {
             createThumb(resolved)
         } else {
             let thumbColor = if resolved.Disabled {
                 resolved.DisabledThumbColor!!
-            } else if resolved.Checked {
+            } else if resolved.Value {
                 resolved.OnThumbColor!!
             } else {
                 resolved.ThumbColor!!
             }
             Container{
-                Width: resolved.ThumbSize,
-                Height: resolved.ThumbSize,
+                Width: resolved.ThumbSize!!,
+                Height: resolved.ThumbSize!!,
                 BackgroundColor: thumbColor,
                 BorderRadius: resolved.ThumbRadius!!,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
-                MarginStart: offset,
             }
         }
         if let createRoot = createRoot {
             let button = createRoot(resolved, thumb)
+            button.Disabled = resolved.Disabled
+            button.OnClick = resolved.Disabled ? nil: () -> resolved.OnChange?.Invoke(!resolved.Value)
+            button.Accessibility = Accessibility{Role: AccessibilityRole.Switch, Name: resolved.AccessibilityName!!, Checked: resolved.Value ? AccessibilityChecked.True: AccessibilityChecked.False}
             WidgetKeyBindings.BindActivation(button)
             return button
         }
         let trackColor = if resolved.Disabled {
             resolved.DisabledTrackColor!!
-        } else if resolved.Checked {
+        } else if resolved.Value {
             resolved.OnTrackColor!!
         } else {
             resolved.OffTrackColor!!
         }
         let button = Button{
-            Width: resolved.Width,
-            Height: Math.Max(resolved.Height!!, theme.ControlHeight),
+            Width: resolved.Width!!,
+            Height: resolved.Height!!,
+            MinHeight: theme.ControlHeight,
             Padding: 0.0,
             BorderWidth: 0.0,
             BackgroundColor: Color.Transparent,
@@ -146,7 +138,7 @@ public data struct ToggleSwitch {
             Cursor: Cursor.Pointer,
             Focusable: true,
             Disabled: resolved.Disabled,
-            OnClick: resolved.OnClick,
+            OnClick: resolved.Disabled ? nil: () -> resolved.OnChange?.Invoke(!resolved.Value),
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             Active: Style{Transform: resolved.ActiveTransform!!},
@@ -158,14 +150,14 @@ public data struct ToggleSwitch {
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Switch,
                 Name: resolved.AccessibilityName!!,
-                Checked: if resolved.Checked {
+                Checked: if resolved.Value {
                     AccessibilityChecked.True
                 } else {
                     AccessibilityChecked.False
                 },
             },
             Container{
-                Width: resolved.Width,
+                Width: Percent(100.0),
                 Height: resolved.Height!!,
                 Padding: resolved.Padding!!,
                 BorderWidth: resolved.BorderWidth!!,
@@ -174,6 +166,7 @@ public data struct ToggleSwitch {
                 BackgroundColor: trackColor,
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
+                JustifyContent: resolved.Value ? JustifyContent.FlexEnd: JustifyContent.FlexStart,
                 HitTestSelf: false,
                 thumb,
             },

@@ -12,7 +12,7 @@ internal class RetainedAllocationHost : Cell {
     internal var FieldBuilds int32
     private let tokens[]string = [200]string
     private let captureToken Func[TokenInputInput, TextEntry, TextEntry]
-    private let captureFind Func[TextField, TextEntry]
+    private let captureFind Func[FindBar, TextField, TextEntry]
 
     public init() {
         for index in 0 ... tokens.Length {
@@ -22,7 +22,7 @@ internal class RetainedAllocationHost : Cell {
             Entry = entry
             return entry
         }
-        captureFind = input -> {
+        captureFind = (owner, input) -> {
             FieldBuilds++
             return TextEntry{Value: input.Value!!, Controlled: true}
         }
@@ -34,7 +34,7 @@ internal class RetainedAllocationHost : Cell {
         }
         return Cell.Mount[TokenInputInput, TokenInput](
             "tokens",
-            TokenInputInput{Tokens: tokens, CreateEntry: captureToken, Width: Percent(100),}
+            TokenInputInput{Value: tokens, CreateEntry: captureToken, Width: Percent(100),}
         )
     }
 }

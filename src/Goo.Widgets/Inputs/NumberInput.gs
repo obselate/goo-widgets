@@ -40,7 +40,7 @@ public data struct NumberInputInput {
     /// Supporting text shown with the label. Nil omits it.
     var Description string?
     /// Validation text shown with invalid presentation. Nil means no validation message.
-    var Issue string?
+    var Error string?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
     /// Accessible name override. Nil uses the widget label or localized default.
@@ -58,7 +58,7 @@ public data struct NumberInputInput {
 }
 
 /// A culture-aware numeric editor with keyboard and pointer stepping.
-public class NumberInput : Cell[NumberInputInput] {
+public open class NumberInput : Cell[NumberInputInput] {
     private var current NumberInputInput
     private var source float64 = Double.NaN
     private var value float64
@@ -100,7 +100,7 @@ public class NumberInput : Cell[NumberInputInput] {
             AlignItems: AlignItems.Center,
             BackgroundColor: input.Disabled ? theme.PanelColor: theme.FieldColor,
             BorderWidth: theme.BorderWidth,
-            BorderColor: invalid || input.Issue != nil ? theme.DangerColor: theme.InputBorderColor,
+            BorderColor: invalid || input.Error != nil ? theme.DangerColor: theme.InputBorderColor,
             BorderRadius: theme.ControlRadius!!
         }
         if let label = input.ScrubLabel {
@@ -192,7 +192,7 @@ public class NumberInput : Cell[NumberInputInput] {
         return FormField{
             Label: input.Label,
             Description: input.Description,
-            Issue: input.Issue,
+            Error: input.Error,
             LabelFor: entry.Handle,
             Width: input.Width ?? defaultWidth,
             CreateContent: (relations AccessibilityRelationships) -> {
@@ -200,7 +200,7 @@ public class NumberInput : Cell[NumberInputInput] {
                     Role: AccessibilityRole.SpinButton,
                     Name: input.AccessibilityName ?? input.Label ?? theme.Text("Number"),
                     Value: draft,
-                    Invalid: invalid || input.Issue != nil,
+                    Invalid: invalid || input.Error != nil,
                     Relationships: relations,
                     Range: AccessibilityValue{Now: value, Minimum: input.Minimum, Maximum: input.Maximum, Text: draft},
                     Actions: []AccessibilityAction{

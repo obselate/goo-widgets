@@ -19,7 +19,7 @@ internal class PropertyGridExample : Cell {
         Gap: 16,
         Checkbox{
             Label: "Compact labels",
-            State: compact ? AccessibilityChecked.True: AccessibilityChecked.False,
+            Value: compact ? AccessibilityChecked.True: AccessibilityChecked.False,
             OnChange: state -> {
                 compact = state == AccessibilityChecked.True
             }
@@ -68,7 +68,7 @@ internal class PropertyGridExample : Cell {
                     Section: "Workspace",
                     Editor: Checkbox{
                         Label: "Keep devices up to date",
-                        State: enabled ? AccessibilityChecked.True: AccessibilityChecked.False,
+                        Value: enabled ? AccessibilityChecked.True: AccessibilityChecked.False,
                         OnChange: state -> {
                             enabled = state == AccessibilityChecked.True
                         }

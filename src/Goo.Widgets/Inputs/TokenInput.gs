@@ -9,9 +9,9 @@ import System.Collections.Generic
 /// Controlled token values. Invalid values remain visible and removable.
 public data struct TokenInputInput {
     /// Controlled token strings in display order. Nil supplies an empty array.
-    var Tokens[]?string
+    var Value[]?string
     /// Receives a new token array after addition or removal. Nil ignores the request.
-    var OnTokensChange Action[[]string]?
+    var OnChange Action[[]string]?
     /// Tests each token for valid presentation. Nil accepts all tokens. Invalid tokens remain visible and removable.
     var Validate Func[string, bool]?
     /// Suggested token strings. Nil supplies no suggestions.
@@ -43,7 +43,7 @@ public open class TokenInput : Cell[TokenInputInput] {
         current = input
         let theme = Theme.Read()
         let defaultWidth Length = 360
-        let values = input.Tokens ?? []string{}
+        let values = input.Value ?? []string{}
         if selected >= values.Length {
             selected = -1
         }
@@ -179,7 +179,7 @@ public open class TokenInput : Cell[TokenInputInput] {
         if current.Disabled {
             return
         }
-        let tokens = List[string](current.Tokens ?? []string{})
+        let tokens = List[string](current.Value ?? []string{})
         for part in value.Split((current.Separators ?? ",;\n").ToCharArray(), StringSplitOptions.RemoveEmptyEntries) {
             let token = part.Trim()
             if token.Length > 0 {
@@ -188,8 +188,8 @@ public open class TokenInput : Cell[TokenInputInput] {
         }
         draft = ""
         selected = -1
-        if tokens.Count != (current.Tokens?.Length ?? 0) {
-            current.OnTokensChange?.Invoke(tokens.ToArray())
+        if tokens.Count != (current.Value?.Length ?? 0) {
+            current.OnChange?.Invoke(tokens.ToArray())
         }
         Rebuild()
     }
@@ -204,13 +204,13 @@ public open class TokenInput : Cell[TokenInputInput] {
         if current.Disabled {
             return
         }
-        let tokens = List[string](current.Tokens ?? []string{})
+        let tokens = List[string](current.Value ?? []string{})
         if index < 0 || index >= tokens.Count {
             return
         }
         tokens.RemoveAt(index)
         selected = -1
-        current.OnTokensChange?.Invoke(tokens.ToArray())
+        current.OnChange?.Invoke(tokens.ToArray())
         editor.Focus()
         Rebuild()
     }
@@ -219,13 +219,13 @@ public open class TokenInput : Cell[TokenInputInput] {
         if current.Disabled {
             return
         }
-        if event.Key == Key.Backspace && draft.Length == 0 && (current.Tokens?.Length ?? 0) > 0 {
+        if event.Key == Key.Backspace && draft.Length == 0 && (current.Value?.Length ?? 0) > 0 {
             event.PreventDefault()
             event.StopPropagation()
             if selected >= 0 {
                 Remove(selected)
             } else {
-                selected = current.Tokens!!.Length - 1
+                selected = current.Value!!.Length - 1
                 Rebuild()
             }
         } else if event.Key == Key.Escape || event.Key == Key.Left || event.Key == Key.Right {

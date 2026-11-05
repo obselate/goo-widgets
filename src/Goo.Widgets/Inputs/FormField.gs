@@ -14,7 +14,7 @@ public data struct FormField {
     /// Supporting content below the label. Nil omits it.
     var Help Blob?
     /// Validation text shown with invalid presentation. Nil means no validation message.
-    var Issue string?
+    var Error string?
     /// Main display content. Nil leaves this slot empty.
     var Content Blob?
     /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
@@ -35,7 +35,7 @@ public data struct FormField {
         let relations = AccessibilityRelationships{
             LabelledBy: Label != nil ? []ElementHandle{label}: []ElementHandle{},
             DescribedBy: Description != nil ? []ElementHandle{description}: []ElementHandle{},
-            ErrorMessage: Issue != nil ? []ElementHandle{issue}: []ElementHandle{},
+            ErrorMessage: Error != nil ? []ElementHandle{issue}: []ElementHandle{},
         }
         let root = Container{
             Width: Width ?? Percent(100),
@@ -67,7 +67,7 @@ public data struct FormField {
                 let semantics = control.Accessibility ?? Accessibility{}
                 semantics.Relationships = relations
                 semantics.Required = Required
-                semantics.Invalid = Issue != nil
+                semantics.Invalid = Error != nil
                 control.Accessibility = semantics
             }
             root.Children.Add(control)
@@ -86,7 +86,7 @@ public data struct FormField {
         if let help = Help {
             root.Children.Add(help)
         }
-        if let text = Issue {
+        if let text = Error {
             root.Children.Add(
                 Text{
                     Key: "issue",

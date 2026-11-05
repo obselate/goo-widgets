@@ -146,7 +146,7 @@ public open partial class DataGrid {
                 if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
                     var check = (
                         Checkbox{
-                            State: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
+                            Value: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
                             Size: 18
                         }.Build() as Button
                     )!!

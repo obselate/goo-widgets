@@ -136,14 +136,14 @@ func PackageComposition() {
     var enabled bool = false
     let toggle = ToggleSwitch{
         AccessibilityName: "Updates",
-        Checked: enabled,
-        OnClick: () -> {
-            enabled = !enabled
+        Value: enabled,
+        OnChange: (value bool) -> {
+            enabled = value
         }
     }
     let before = (toggle.Build() as Button)!!
     before.OnClick?.Invoke()
-    let after = ((toggle with{Checked = enabled}).Build() as Button)!!
+    let after = ((toggle with{Value = enabled}).Build() as Button)!!
     Require(
         enabled && after.Accessibility?.Checked == AccessibilityChecked.True,
         "Controlled toggle did not reflect host state."
@@ -221,7 +221,7 @@ func NumericAndIdentityRegressions() {
             Items: []SelectionItem{SelectionItem{Id: "one", Label: "First", Detail: "Document"}},
             Query: "missing",
             EmptyText: "Nothing found",
-            CustomizeRoot: (root Container) -> {
+            CreateRoot: (input SearchList, root Container) -> {
                 empty = root
                 return root
             },
@@ -256,14 +256,14 @@ func MaterialIconRegressions() {
     Require(buttonIcon.Accessibility?.Hidden == true, "IconButton icon was not decorative.")
 
     for state in[]AccessibilityChecked{AccessibilityChecked.True, AccessibilityChecked.Mixed} {
-        let checkbox = (Checkbox{State: state}.Build() as Button)!!
+        let checkbox = (Checkbox{Value: state}.Build() as Button)!!
         Require(
             checkbox.Children.Count == 1 && (checkbox.Children[0] as Container)!!.Children[0] is Shape,
             "Checkbox fell back to a font glyph for its state mark."
         )
     }
     let customMark = Text{Content: "custom"}
-    let customCheckbox = (Checkbox{State: AccessibilityChecked.True, CheckedContent: customMark}.Build() as Button)!!
+    let customCheckbox = (Checkbox{Value: AccessibilityChecked.True, CheckedContent: customMark}.Build() as Button)!!
     Require((customCheckbox.Children[0] as Container)!!.Children[0] == customMark, "Checkbox replaced its custom mark.")
 
     var windowAction = ""
@@ -513,10 +513,10 @@ func SliderInteractions() {
     let input = SliderInput{
         Value: 0.0,
         Step: 0.3,
-        OnValueChanged: (value float64) -> {
+        OnChange: (value float64) -> {
             changed = value
         },
-        OnValueCommitted: (value float64) -> {
+        OnCommit: (value float64) -> {
             committed = value
         },
     }
@@ -540,7 +540,7 @@ func MirroredSliderKeys() {
     let root = SliderProbe{}.Render(SliderInput{
         Value: 0.5,
         Step: 0.1,
-        OnValueCommitted: (value float64) -> {
+        OnCommit: (value float64) -> {
             committed = value
         },
     })

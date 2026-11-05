@@ -17,13 +17,13 @@ internal class TokenInputExample : Cell {
             Cell.Mount[TokenInputInput, TokenInput](
                 "recipients",
                 TokenInputInput{
-                    Tokens: tokens,
+                    Value: tokens,
                     Width: Percent(100),
                     AccessibilityName: "Recipients",
                     Placeholder: "Add an email address",
                     Validate: value -> value.Contains("@"),
                     Suggestions: []string{"blair@example.com", "casey@example.com"},
-                    OnTokensChange: values -> {
+                    OnChange: values -> {
                         tokens = values
                         Rebuild()
                     },
@@ -32,7 +32,7 @@ internal class TokenInputExample : Cell {
             Text{Content: "Disabled", Color: theme.MutedTextColor},
             Cell.Mount[TokenInputInput, TokenInput](
                 "disabled",
-                TokenInputInput{Tokens: []string{"read-only@example.com"}, Width: Percent(100), Disabled: true,}
+                TokenInputInput{Value: []string{"read-only@example.com"}, Width: Percent(100), Disabled: true,}
             ),
         }
     }

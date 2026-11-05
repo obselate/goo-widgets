@@ -72,7 +72,7 @@ internal class ChoiceHost : Cell {
                 ToggleGroupInput{
                     AccessibilityName: "Single choices",
                     SelectedIds: Single,
-                    OnChange: (ids[]string) -> {
+                    OnSelectionChange: (ids[]string) -> {
                         Single = ids
                         Rebuild()
                     },
@@ -93,8 +93,8 @@ internal class ChoiceHost : Cell {
                     AccessibilityName: "Multiple choices",
                     Multiple: true,
                     SelectedIds: Multiple,
-                    Look: ToggleGroupLook.Toolbar,
-                    OnChange: (ids[]string) -> {
+                    Variant: ToggleGroupVariant.Toolbar,
+                    OnSelectionChange: (ids[]string) -> {
                         Multiple = ids
                         Rebuild()
                     },
@@ -113,7 +113,7 @@ internal class ChoiceHost : Cell {
                 Label: "Checkbox card",
                 Description: "Retains checkbox semantics",
                 Card: true,
-                State: Check,
+                Value: Check,
                 OnChange: (state AccessibilityChecked) -> {
                     Check = state
                     Rebuild()

@@ -45,7 +45,7 @@ internal class SettingsLayoutExample : Cell {
                             Keywords: []string{"alerts", "sound"},
                             Control: Checkbox{
                                 Label: "Show desktop alerts",
-                                State: notifications ? AccessibilityChecked.True: AccessibilityChecked.False,
+                                Value: notifications ? AccessibilityChecked.True: AccessibilityChecked.False,
                                 OnChange: state -> {
                                     notifications = state == AccessibilityChecked.True
                                 }
