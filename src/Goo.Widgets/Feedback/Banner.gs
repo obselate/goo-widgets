@@ -28,7 +28,7 @@ public data struct Banner {
     var DismissAccessibilityName string?
     /// Enables live accessibility announcements. Nil means true. Danger uses assertive announcements and other tones use polite announcements.
     var Live bool?
-    /// Selects the visual presentation without changing the controlled value.
+    /// Selects banner, alert, rule, or inline message presentation.
     var Variant MessageVariant
     /// Background override. Nil uses the tone's quiet fill.
     var BackgroundColor Color?
@@ -289,7 +289,7 @@ public data struct Alert {
     var Content Blob?
     /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
-    /// Selects the visual presentation without changing the controlled value.
+    /// Selects a filled alert surface or a leading accent rule.
     var Variant AlertVariant
     /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?

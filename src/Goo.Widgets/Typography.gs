@@ -37,7 +37,7 @@ public enum TextVariant {
 public data struct Typography {
     /// Text to display. Nil uses an empty string.
     var Content string?
-    /// Selects the visual presentation without changing the controlled value.
+    /// Selects font metrics and text treatment from the theme type scale.
     var Variant TextVariant
     /// Explicit accessibility heading level from 1 through 6. Nil derives it from H1 through H6, or emits no heading role.
     var HeadingLevel int32?

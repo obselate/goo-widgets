@@ -16,11 +16,11 @@ public enum SpinnerVariant {
 
 /// Spinner appearance. Zero Size uses 24 pixels.
 public data struct SpinnerInput {
-    /// Selects the visual presentation without changing the controlled value.
+    /// Selects ring, dots, or bars for the loading animation.
     var Variant SpinnerVariant
-    /// Positive square size in logical pixels. Zero uses 24.
+    /// Finite positive square size in logical pixels. Zero uses 24.
     var Size float64
-    /// Positive ring thickness in logical pixels, at most half Size. Nil uses the greater of 2 and Size divided by 10.
+    /// Finite positive ring thickness in logical pixels, at most half Size. Nil uses the greater of 2 and Size divided by 10.
     var StrokeWidth float64?
     /// Indicator color. Nil uses the theme accent color.
     var Color Color?

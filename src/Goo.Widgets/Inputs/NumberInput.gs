@@ -7,7 +7,7 @@ import System.Globalization
 
 /// Numeric field configuration. Text is committed on Enter or blur.
 public data struct NumberInputInput {
-    /// Controlled numeric value, clamped to Minimum and Maximum for presentation.
+    /// Finite controlled numeric value, clamped to Minimum and Maximum for presentation.
     var Value float64
     /// Inclusive lower value bound. Nil imposes no lower bound.
     var Minimum float64?

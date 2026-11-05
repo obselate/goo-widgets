@@ -222,7 +222,7 @@ public enum StatusVariant {
 public data struct StatusIndicator {
     /// Operational state represented by the status visual and default label.
     var State StatusState
-    /// Selects the visual presentation without changing the controlled value.
+    /// Selects a status dot, icon, or pill.
     var Variant StatusVariant
     /// Optional semantic color override. Nil derives the tone from State.
     var Tone Tone?

@@ -18,7 +18,7 @@ public enum CardVariant {
 
 /// A titled surface. Pressable cards must contain display-only content.
 public data struct Card {
-    /// Selects the visual presentation without changing the controlled value.
+    /// Selects rounded, square, framed, or recessed surface styling.
     var Variant CardVariant
     /// Heading shown above the content. Nil omits the heading.
     var Title string?
