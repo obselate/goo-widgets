@@ -10,51 +10,81 @@ import System.Collections.Generic
 
 /// One stable selector option; custom content retains its accessible label.
 public data struct ComboBoxOption {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
+    /// Visible and accessible label. Nil uses the item ID.
     var Label string?
+    /// Main display content. Nil leaves this slot empty.
     var Content Blob?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
 }
 
 /// Controlled selection with optional controlled opening and search state.
 public data struct ComboBoxInput {
+    /// Options in display order. Nil supplies no options. Each ID must be nonempty, stable, and unique.
     var Items[]?ComboBoxOption
+    /// Controlled selected item ID. Nil means no selection.
     var SelectedId string?
+    /// Receives the selected item ID after user selection. Nil ignores the request.
     var OnSelect Action[string]?
+    /// Enables set selection instead of single selection. False limits selection to one item.
     var Multiple bool
+    /// Controlled selected item IDs. Nil means an empty selection.
     var SelectedIds[]?string
+    /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectedIdsChange Action[[]string]?
+    /// Allows creating an option from a nonempty query that has no exact match.
     var AllowFreeText bool
+    /// Formats the create-option label from the query string. Nil uses localized create text.
     var CreateText Func[string, string]?
+    /// Receives the entered free text when the create option is activated. Nil ignores the request.
     var OnCreate Action[string]?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Optional mounted collision viewport. Presentation uses the Window's Portal overlay.
     var OverlayHost ElementHandle?
     /// Nil lets the widget own opening; otherwise update Open in OnOpenChange.
     var Open bool?
+    /// Receives the requested open state after user interaction. Nil ignores the request.
     var OnOpenChange Action[bool]?
+    /// Shows a query editor for filtering options.
     var Searchable bool
     /// Nil lets the widget own the query; otherwise update it in OnQueryChange.
     var Query string?
+    /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
+    /// Hint for the empty search entry. Nil uses the localized search text.
     var SearchPlaceholder string?
+    /// Message shown when no options match. Nil uses the localized widget default.
     var EmptyText string?
+    /// Finite positive trigger width in logical pixels. Zero uses 280.
     var Width float64
     /// Makes the popup at least as wide as the mounted trigger.
     var MatchTriggerWidth bool
+    /// Finite positive popup height limit in logical pixels. Zero uses 260.
     var PopupHeight float64
+    /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
+    /// Finite positive option height in logical pixels. Zero uses the theme control height.
     var RowHeight float64
     /// Layer of the popup while open.
     var ZIndex int32
+    /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateTrigger Func[ComboBoxInput, Button, Button]?
     /// Replaces the passive expansion indicator; the stable arrow key is reapplied.
     var CreateArrow Func[ComboBoxInput, Blob, Blob]?
+    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
     var CreateSearch Func[ComboBoxInput, TextEntry, TextEntry]?
+    /// Receives the widget input, the option descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRow Func[ComboBoxInput, ComboBoxOption, Container, Container]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreatePopup Func[ComboBoxInput, Container, Container]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[ComboBoxInput, Container, Container]?
 }
 
@@ -96,6 +126,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var disposed bool
     private var createId string = ""
 
+    /// Subscribes to list viewport metrics for active-option reveal. Dispose the selector to release the subscription.
     public init() {
         viewport.MetricsChanged += ListMetrics
     }

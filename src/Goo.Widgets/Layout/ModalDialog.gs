@@ -5,17 +5,25 @@ import Goo.Widgets
 
 /// Selects the standard dialog action and focus policy.
 public enum ModalDialogPreset {
+    /// Uses caller-supplied dialog content and actions.
     Custom;
+    /// Uses a confirmation dialog layout.
     Confirm;
+    /// Uses a destructive-action dialog layout.
     Destructive;
+    /// Uses a form dialog layout.
     Form
 }
 
 /// Controls user dismissal without confirming.
 public enum DialogDismissPolicy {
+    /// Uses the dismissal policy selected by the dialog preset.
     Default;
+    /// Allows dismissal by Escape or a backdrop click.
     EscapeAndBackdrop;
+    /// Allows dismissal by Escape but not a backdrop click.
     EscapeOnly;
+    /// Requires an explicit dialog action to dismiss.
     Explicit
 }
 
@@ -23,10 +31,15 @@ public enum DialogDismissPolicy {
 public data struct ModalDialog {
     /// Whether the overlay is rendered.
     var Open bool
+    /// Selects standard action and focus defaults. Custom leaves composition to the caller.
     var Preset ModalDialogPreset
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
+    /// Expands the dialog panel to fill its available overlay.
     var Fullscreen bool
+    /// Selects allowed Escape and backdrop dismissal. Default resolves from Preset.
     var DismissPolicy DialogDismissPolicy
+    /// Caller-owned element to focus on opening. Nil uses the default focus target.
     var InitialFocus ElementHandle?
     /// Dialog header content.
     var Header Blob?

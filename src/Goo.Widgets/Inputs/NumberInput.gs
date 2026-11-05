@@ -7,29 +7,53 @@ import System.Globalization
 
 /// Numeric field configuration. Text is committed on Enter or blur.
 public data struct NumberInputInput {
+    /// Controlled numeric value, clamped to Minimum and Maximum for presentation.
     var Value float64
+    /// Inclusive lower value bound. Nil imposes no lower bound.
     var Minimum float64?
+    /// Inclusive upper value bound. Nil imposes no upper bound.
     var Maximum float64?
+    /// Finite positive increment for arrows and spin buttons. Nil uses 1.
     var Step float64?
+    /// Finite positive Page Up and Page Down increment. Nil uses ten times Step.
     var PageStep float64?
+    /// Formats the numeric value for display. Nil uses the theme locale.
     var Format Func[float64, string]?
+    /// Parses draft text to a number. A nil result rejects the draft. Nil uses theme-locale parsing.
     var Parse Func[string, float64?]?
+    /// Content before the numeric entry. Nil leaves this slot empty.
     var Prefix Blob?
+    /// Content after the numeric entry. Nil leaves this slot empty.
     var Suffix Blob?
+    /// Optional unit choices in display order. Nil omits the unit selector.
     var Units[]?ComboBoxOption
+    /// Controlled selected unit ID. Nil leaves the unit unselected.
     var Unit string?
+    /// Receives the selected unit ID after user input. Nil ignores the request.
     var OnUnitChange Action[string]?
+    /// Label that supports pointer dragging to adjust the value. Nil omits scrubbing.
     var ScrubLabel string?
+    /// Displays increment and decrement buttons. Nil means true.
     var ShowSpinButtons bool?
+    /// Visible item label. Nil omits the label.
     var Label string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Validation text shown with invalid presentation. Nil means no validation message.
     var Issue string?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Root layout width. Nil uses 160 logical pixels.
     var Width Length?
+    /// Receives the new clamped number during valid user edits or stepping. Nil ignores the request.
     var OnChange Action[float64]?
+    /// Receives the final clamped number after a user commit. Nil ignores the notification.
     var OnCommit Action[float64]?
+    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
     var CreateEntry Func[NumberInputInput, TextEntry, TextEntry]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[NumberInputInput, Container, Container]?
 }
 

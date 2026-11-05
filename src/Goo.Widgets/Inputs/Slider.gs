@@ -7,7 +7,9 @@ import System.Globalization
 
 /// Selects slider layout and pointer direction.
 public enum SliderOrientation {
+    /// Increases values along the horizontal track.
     Horizontal;
+    /// Increases values along the vertical track.
     Vertical
 }
 

@@ -17,11 +17,17 @@ public data struct ListRow {
     var Trailing Blob?
     /// Whether the row is selected.
     var Selected bool
+    /// Runs on a click or Space activation. Nil supplies no click action.
     var OnClick Action?
+    /// Runs on double-click or Enter activation. Nil supplies no invocation action.
     var OnInvoke Action?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Hovered row fill. Nil uses the theme hover color.
     var HoverBackgroundColor Color?
+    /// Pressed row fill. Nil uses the theme pressed color.
     var PressedBackgroundColor Color?
+    /// Action content shown with the item. Nil leaves this slot empty.
     var Actions Blob?
     /// Nil shows actions on hover, focus, selection, or touch. False always shows them.
     var ShowActionsOnHover bool?

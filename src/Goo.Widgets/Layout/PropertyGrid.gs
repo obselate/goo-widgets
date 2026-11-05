@@ -9,36 +9,57 @@ import System.Collections.Generic
 
 /// Selects labels above editors or a shared label column.
 public enum PropertyGridLayout {
+    /// Places each editor below its label.
     Stacked;
+    /// Places labels and editors in adjacent columns.
     Compact
 }
 
 /// One controlled property editor and its reset action.
 public data struct PropertyGridItem {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Visible item label. Nil omits the label.
     var Label string?
+    /// Property key displayed beside the label. Nil omits the key.
     var Key string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Section heading used to group properties. Nil uses the unlabelled section.
     var Section string?
+    /// Caller-built property editor. Nil leaves the slot empty unless CreateEditor supplies it.
     var Editor Blob?
+    /// Builds an editor from the supplied accessibility relationships. Apply them to the actual editor. Nil uses Editor.
     var CreateEditor Func[AccessibilityRelationships, Blob]?
+    /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?
+    /// Marks the property as changed from its default.
     var Modified bool
+    /// Requests restoring the property default. Nil hides the reset action.
     var OnReset Action?
+    /// Validation text shown with invalid presentation. Nil means no validation message.
     var Issue string?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
 }
 
 /// Searchable sections of labelled editors. Editors own their Tab stops.
 public data struct PropertyGrid {
+    /// Host-owned property descriptors in display order. Nil supplies no properties.
     var Items[]?PropertyGridItem
+    /// Positions labels above editors or in a shared label column.
     var Layout PropertyGridLayout
+    /// Filter text. Nil uses an empty query.
     var Query string?
+    /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
+    /// Section headings whose rows are hidden. Nil expands every section.
     var CollapsedSections[]?string
+    /// Receives the section heading when its disclosure is activated. Nil ignores the request.
     var OnSectionToggle Action[string]?
     /// Shared label column width. Zero resolves to 160.
     var LabelWidth float64
+    /// Receives the property descriptor and the prepared content, and returns the replacement content. Nil uses the default composition.
     var CreateRow Func[PropertyGridItem, Blob, Blob]?
 
     /// Builds the filtered sections and optional search field.

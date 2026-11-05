@@ -9,21 +9,33 @@ import System.Diagnostics
 
 /// A controlled toast identity, message, optional action and timeout. Zero timeout stays open.
 public data struct ToastItem {
+    /// Stable, nonempty toast ID. Keep it unique within the host collection.
     var Id string
+    /// Required notification heading.
     var Title string
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Semantic color family resolved through the nearest theme. The default is Neutral.
     var Tone Tone
+    /// Action button label. Nil omits the action button.
     var ActionLabel string?
+    /// Runs when the toast action is activated. Nil supplies no action.
     var OnAction Action?
+    /// Finite nonnegative timeout in milliseconds. Nil uses 5000. Zero keeps the toast open. Hover and focus pause the timer.
     var DurationMs float64?
 }
 
 /// Toast content and lifecycle. Nil Open means open.
 public data struct ToastInput {
+    /// Caller-owned window used for overlays and lifecycle notifications. The widget does not dispose it.
     var Window Window
+    /// Caller-owned notification content and timeout settings.
     var Item ToastItem
+    /// Controlled visibility. Nil means open.
     var Open bool?
+    /// Receives the toast ID after timeout or user dismissal. Nil ignores the request.
     var OnDismiss Action[string]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[ToastInput, Container, Container]?
 }
 
@@ -49,6 +61,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
     private var reduced bool
     private var duration float64
 
+    /// Creates timeout and focus handlers. Dispose the toast to release its window subscriptions.
     public init() {
         opacity = AnimateValue(1.0)
         opacity.Completed += (reason MotionCompletionReason) -> Finish()
@@ -195,20 +208,31 @@ public open class Toast : Cell[ToastInput], IDisposable {
 
 /// The window corner used by a toast stack.
 public enum ToastPlacement {
+    /// Stacks notifications at the bottom right of the window.
     BottomRight;
+    /// Stacks notifications at the bottom left of the window.
     BottomLeft;
+    /// Stacks notifications at the top right of the window.
     TopRight;
+    /// Stacks notifications at the top left of the window.
     TopLeft
 }
 
 /// Controlled items in a window overlay. Nil limits use three items and 360 pixels.
 public data struct ToastHostInput {
+    /// Caller-owned window used for overlays and lifecycle notifications. The widget does not dispose it.
     var Window Window
+    /// Host-owned notifications in display order. Each ID must be nonempty and unique.
     var Items[]ToastItem
+    /// Receives the dismissed toast ID. The host removes it from Items. Nil ignores the request.
     var OnDismiss Action[string]?
+    /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement ToastPlacement
+    /// Maximum displayed notifications, clamped to zero or greater. Nil uses 3.
     var MaxVisible int32?
+    /// Stack width in logical pixels, limited by the viewport. Nil uses 360.
     var Width float64?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateToast Func[ToastInput, Container, Container]?
 }
 
@@ -221,6 +245,7 @@ public open class ToastHost : Cell[ToastHostInput] {
     private let finished Action[string]
     private var current ToastHostInput
 
+    /// Creates the retained notification-dismissal handler.
     public init() {
         finished = Finished
     }

@@ -7,8 +7,11 @@ import System.Collections.Generic
 
 /// A named, optionally collapsed section in a navigation rail.
 public data struct NavigationGroup {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Required visible group heading.
     var Label string
+    /// Navigation entries in this group. Nil supplies an empty group.
     var Items[]?NavigationItem
 }
 
@@ -22,11 +25,17 @@ public data struct NavigationRailInput {
     var Expanded bool
     /// Called with an enabled item's ID when it is activated.
     var OnSelect Action[string]?
+    /// Grouped navigation entries in display order. Nil supplies no groups.
     var Groups[]?NavigationGroup
+    /// IDs of groups whose items are hidden. Nil expands every group.
     var CollapsedGroups[]?string
+    /// Receives the group ID when its disclosure is activated. Nil ignores the request.
     var OnGroupToggle Action[string]?
+    /// Displayed counts indexed by navigation item ID. Nil displays no counts.
     var Counts Dictionary[string, int32]?
+    /// Navigation entries fixed at the bottom of the rail. Nil supplies no bottom entries.
     var BottomItems[]?NavigationItem
+    /// Shows a marker beside the selected entry. Nil enables it except with the native theme appearance.
     var ActiveMarker bool?
     /// Accessible tab-list name. Nil resolves to "Navigation".
     var AccessibilityName string?

@@ -10,36 +10,57 @@ import System.Collections.Generic
 
 /// A command with optional grouping, description and shortcut.
 public data struct CommandItem {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Required visible command name, used for matching and accessibility.
     var Label string
+    /// Secondary information shown with the item. Nil omits it.
     var Detail string?
+    /// Group identity for this command. Nil leaves the command ungrouped.
     var GroupId string?
+    /// Display-only keyboard chord. Nil omits the shortcut label.
     var Shortcut KeyBinding?
+    /// Content before the label. Nil leaves this slot empty.
     var Leading Blob?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
 }
 
 /// A named section shown when the query is empty.
 public data struct CommandGroup {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Required heading for the command group.
     var Label string
 }
 
 /// Controlled modal commands. Query and Open remain host-owned.
 public data struct CommandPaletteInput {
+    /// Commands available for matching and activation. Nil supplies no commands. IDs must be stable and unique.
     var Items[]?CommandItem
+    /// Named command groups shown for an empty query. Nil supplies no group headings.
     var Groups[]?CommandGroup
+    /// Filter text. Nil uses an empty query.
     var Query string?
+    /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
+    /// Recent command IDs in preferred order. Nil supplies no recent commands.
     var RecentIds[]?string
+    /// Controlled visibility. False hides the popup.
     var Open bool
+    /// Requests dismissal after a user dismissal action. Nil ignores the request.
     var OnDismiss Action?
+    /// Receives the activated item ID. Nil ignores activation.
     var OnActivate Action[string]?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
+    /// Dialog width in logical pixels. Nil uses 560.
     var Width float64?
     /// Maximum height. Short result lists use their natural height.
     var Height float64?
+    /// Receives the command descriptor, the match score and highlight ranges, and the prepared button, and returns the replacement content. Nil uses the default composition.
     var CreateItem Func[CommandItem, FuzzyMatchResult, Button, Blob]?
 }
 

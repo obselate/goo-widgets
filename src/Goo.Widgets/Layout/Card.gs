@@ -6,24 +6,39 @@ import System
 
 /// Selects the paint for one card composition.
 public enum CardVariant {
+    /// Uses a rounded panel-colored surface.
     Card;
+    /// Uses a square-cornered panel surface.
     Panel;
+    /// Uses a transparent bordered surface.
     Frame;
+    /// Uses a recessed background surface.
     Well
 }
 
 /// A titled surface. Pressable cards must contain display-only content.
 public data struct Card {
+    /// Selects the visual presentation without changing the controlled value.
     var Variant CardVariant
+    /// Heading shown above the content. Nil omits the heading.
     var Title string?
+    /// Secondary text below the heading. Nil omits it.
     var Subtitle string?
+    /// Content aligned beside the heading. Nil omits it.
     var HeaderAction Blob?
+    /// Main display content. Nil leaves this slot empty.
     var Content Blob?
+    /// Content below the main body. Nil omits the footer.
     var Footer Blob?
+    /// Content inset in logical pixels. Nil uses the theme panel padding.
     var Padding float64?
+    /// Runs on enabled card activation. Nil renders a noninteractive group. Pressable content must be display-only.
     var OnClick Action?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Accessible name override. Nil uses Title, then an empty string.
     var AccessibilityName string?
+    /// Receives the widget input and the prepared container, and returns the replacement content. Nil uses the default composition.
     var CreateRoot Func[Card, Container, Blob]?
 
     /// Builds a group or a single pressable surface.

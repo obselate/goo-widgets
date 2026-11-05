@@ -8,31 +8,49 @@ import System
 
 /// One setting with searchable keywords and a labelled control.
 public data struct SettingsRow {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Visible item label. Nil omits the label.
     var Label string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Caller-built setting editor. Nil leaves the slot empty unless CreateControl supplies it.
     var Control Blob?
+    /// Builds a control from the supplied accessibility relationships. Apply them to the actual editor. Nil uses Control.
     var CreateControl Func[AccessibilityRelationships, Blob]?
+    /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?
+    /// Places the control below its label even in the wide layout.
     var Stacked bool
+    /// Extra search terms used with the visible label. Nil supplies no extra terms.
     var Keywords[]?string
 }
 
 /// A named settings category.
 public data struct SettingsSection {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
+    /// Heading shown above the content. Nil omits the heading.
     var Title string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?
+    /// Setting rows in display order. Nil supplies an empty section.
     var Rows[]?SettingsRow
 }
 
 /// Controlled settings selection and search.
 public data struct SettingsLayoutInput {
+    /// Settings categories in display order. Nil supplies no categories.
     var Sections[]?SettingsSection
+    /// Controlled selected item ID. Nil means no selection.
     var SelectedId string?
+    /// Receives the selected item ID after user selection. Nil ignores the request.
     var OnSelect Action[string]?
+    /// Filter text. Nil uses an empty query.
     var Query string?
+    /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
     /// Stack navigation and labels below this measured width. Zero resolves to 640.
     var NarrowWidth float64
@@ -49,6 +67,7 @@ public class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
     private var width float64
     private var disposed bool
 
+    /// Subscribes to root width changes for responsive layout. Dispose the layout to release the subscription.
     public init() {
         handle.MetricsChanged += Metrics
     }

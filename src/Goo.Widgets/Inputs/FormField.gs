@@ -5,16 +5,25 @@ import Goo.Widgets
 
 /// Shared label, description and error presentation for a control.
 public data struct FormField {
+    /// Visible item label. Nil omits the label.
     var Label string?
+    /// Marks the field as required visually and semantically. The host still validates its value.
     var Required bool
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Supporting content below the label. Nil omits it.
     var Help Blob?
+    /// Validation text shown with invalid presentation. Nil means no validation message.
     var Issue string?
+    /// Main display content. Nil leaves this slot empty.
     var Content Blob?
+    /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?
+    /// Root layout width. Nil fills the available width.
     var Width Length?
     /// Creates a composite control with relationships attached to its input node.
     var CreateContent Func[AccessibilityRelationships, Blob]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[FormField, Container, Container]?
 
     /// Builds the labelled control and its supporting text.
@@ -99,10 +108,15 @@ public data struct FormField {
 
 /// A named group of related form controls.
 public data struct FormSection {
+    /// Section heading. Nil omits the legend.
     var Legend string?
+    /// Supporting text shown with the label. Nil omits it.
     var Description string?
+    /// Field content in display order. Nil supplies no children.
     var Children[]?Blob
+    /// Root layout width. Nil fills the available width.
     var Width Length?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[FormSection, Container, Container]?
 
     /// Builds the named group and its controls.

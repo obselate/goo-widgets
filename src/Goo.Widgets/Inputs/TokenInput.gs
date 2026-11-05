@@ -8,16 +8,27 @@ import System.Collections.Generic
 
 /// Controlled token values. Invalid values remain visible and removable.
 public data struct TokenInputInput {
+    /// Controlled token strings in display order. Nil supplies an empty array.
     var Tokens[]?string
+    /// Receives a new token array after addition or removal. Nil ignores the request.
     var OnTokensChange Action[[]string]?
+    /// Tests each token for valid presentation. Nil accepts all tokens. Invalid tokens remain visible and removable.
     var Validate Func[string, bool]?
+    /// Suggested token strings. Nil supplies no suggestions.
     var Suggestions[]?string
+    /// Characters that split and commit the draft. Nil uses comma, semicolon, and newline.
     var Separators string?
+    /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Root layout width. Nil uses 360 logical pixels.
     var Width Length?
+    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
     var CreateEntry Func[TokenInputInput, TextEntry, TextEntry]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[TokenInputInput, Container, Container]?
 }
 

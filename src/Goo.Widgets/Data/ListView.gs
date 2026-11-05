@@ -9,42 +9,71 @@ import System.Collections.Generic
 
 /// A selectable row with a stable identity and optional content slots.
 public data struct ListViewItem {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
+    /// Visible and accessible label. Nil uses the item ID.
     var Label string?
+    /// Secondary row text. Nil omits it.
     var Caption string?
+    /// Content before the label. Nil leaves this slot empty.
     var Leading Blob?
+    /// Content after the editor or label. Nil leaves this slot empty.
     var Trailing Blob?
+    /// Action content shown with the item. Nil leaves this slot empty.
     var Actions Blob?
+    /// Optional displayed count. Nil omits the count.
     var Count int32?
+    /// Marks the row as unread without changing selection.
     var Unread bool
+    /// Uses subdued row presentation without disabling interaction.
     var Muted bool
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
 }
 
 /// A labeled group. Its header is not selectable.
 public data struct ListViewSection {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
+    /// Visible and accessible label. Nil uses the item ID.
     var Label string?
+    /// Rows in this section in display order. Nil supplies an empty section.
     var Items[]?ListViewItem
 }
 
 /// Controlled list contents, selection, focus, and row factories.
 public data struct ListViewInput {
+    /// Ungrouped rows in display order. Nil supplies no ungrouped rows. IDs must be stable and unique.
     var Items[]?ListViewItem
+    /// Grouped rows in display order. Nil supplies no sections. Row IDs must remain unique across sections.
     var Sections[]?ListViewSection
+    /// Controlled selected item IDs. Nil means an empty selection.
     var SelectedIds[]?string
+    /// Enables set selection instead of single selection. False limits selection to one item.
     var Multiple bool
+    /// Receives a new array of selected IDs after user input. An empty array clears selection. Nil ignores the request.
     var OnSelectionChange Action[[]string]?
+    /// Receives the activated item ID. Nil ignores activation.
     var OnInvoke Action[string]?
+    /// Controlled keyboard-active item ID, independent of selection. Nil lets the widget choose an eligible item.
     var ActiveId string?
+    /// Receives the new keyboard-active item ID after navigation. Nil ignores the notification.
     var OnActiveChange Action[string]?
+    /// Filter text. Nil uses an empty query.
     var Query string?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Root layout width. Nil fills the available width.
     var Width Length?
+    /// Scroll viewport layout height. Nil uses 280 logical pixels.
     var Height Length?
+    /// Finite positive row height in logical pixels. Nil uses the theme control height.
     var RowHeight float64?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Receives the input, row item, and prepared row, and returns its replacement. Identity, row height, input routing, disabled state, and semantics are reapplied. Nil keeps the default row.
     var CreateRow Func[ListViewInput, ListViewItem, Container, Container]?
+    /// Receives the input and prepared root, and returns its replacement. Identity, focus, handlers, children, and list semantics are reapplied. Nil keeps the default root.
     var CreateRoot Func[ListViewInput, Container, Container]?
 }
 

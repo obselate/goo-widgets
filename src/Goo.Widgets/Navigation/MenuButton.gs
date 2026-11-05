@@ -9,12 +9,19 @@ import System
 
 /// A controlled menu trigger. The host updates Open after OnOpenChange.
 public data struct MenuButtonInput {
+    /// Trigger appearance. The widget replaces its click action, handle, and popup semantics.
     var Button ActionButton
+    /// Menu entries in display order. Nil supplies no entries.
     var Items[]?MenuItem
+    /// Controlled visibility. False hides the popup.
     var Open bool
+    /// Receives the requested open state after user interaction. Nil ignores the request.
     var OnOpenChange Action[bool]?
+    /// Receives the activated item ID. Nil ignores activation.
     var OnActivate Action[string]?
+    /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
+    /// Transforms the prepared menu input and returns its replacement. Open state, anchor, items, initial focus, and callbacks are reapplied. Nil keeps the default input.
     var CreateMenu Func[MenuInput, MenuInput]?
 }
 
@@ -99,8 +106,11 @@ public open class MenuButton : Cell[MenuButtonInput] {
 
 /// A primary action beside an independently controlled menu trigger.
 public data struct SplitButton {
+    /// Primary action descriptor. The adjacent arrow opens Menu independently.
     var Button ActionButton
+    /// Controlled descriptor for the arrow-triggered menu.
     var Menu MenuButtonInput
+    /// Accessible name for the menu arrow. Nil uses localized menu text.
     var ArrowAccessibilityName string?
 
     /// Builds the primary action and its menu arrow.

@@ -7,19 +7,29 @@ import System.Collections.Generic
 
 /// One stable path segment. The last segment is the current location.
 public data struct BreadcrumbItem {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
+    /// Visible and accessible label. Nil uses the item ID.
     var Label string?
+    /// Leading visual indicator. Nil leaves this slot empty.
     var Icon Blob?
 }
 
 /// Path segments, navigation callback, and optional sibling locations.
 public data struct BreadcrumbInput {
+    /// Path segments from root to current location. Nil supplies no segments. IDs must be stable and unique.
     var Items[]?BreadcrumbItem
+    /// Receives the selected item ID after user selection. Nil ignores the request.
     var OnSelect Action[string]?
+    /// Leading segments retained during overflow. Zero uses 1.
     var KeepStart int32
+    /// Trailing segments retained during overflow. Zero uses 1.
     var KeepEnd int32
+    /// Returns sibling destinations for a segment ID. Nil supplies no sibling menu.
     var SiblingItems Func[string, []BreadcrumbItem]?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Receives the widget input, the path segment, and the prepared content, and returns the replacement content. Nil uses the default composition.
     var CreateItem Func[BreadcrumbInput, BreadcrumbItem, Blob, Blob]?
 }
 
@@ -41,6 +51,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
     private var menuItems[]MenuItem = []MenuItem{}
     private var menuAnchor ElementHandle?
 
+    /// Subscribes to path geometry to measure overflow. Dispose the breadcrumb to release measurement subscriptions.
     public init() {
         rootHandle.MetricsChanged += Measure
         overflowHandle.MetricsChanged += Measure

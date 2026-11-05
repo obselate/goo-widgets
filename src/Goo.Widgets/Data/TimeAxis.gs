@@ -52,8 +52,11 @@ public data struct TimeAxisViewport {
 
 /// How an initial or explicit reveal target is placed in the viewport.
 public enum TimeAxisAlignment {
+    /// Centers the requested time in the viewport.
     Center;
+    /// Places the requested time at the viewport start.
     Start;
+    /// Scrolls only as far as needed to reveal the requested time.
     Nearest
 }
 

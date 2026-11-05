@@ -7,17 +7,25 @@ import System.Collections.Generic
 
 /// Selects modifier labels. Auto uses the current operating system.
 public enum KbdPlatform {
+    /// Uses modifier labels for the current operating system.
     Auto;
+    /// Uses Windows modifier labels.
     Windows;
+    /// Uses Linux modifier labels.
     Linux;
+    /// Uses macOS modifier symbols.
     MacOS
 }
 
 /// Displays key chords without installing bindings. Keycaps defaults to true.
 public data struct Kbd {
+    /// Display-only key chords in order. Nil displays no chords and installs no bindings.
     var Keys[]?KeyBinding
+    /// Modifier-label convention. Auto uses the current operating system.
     var Platform KbdPlatform
+    /// Displays separate keycap frames. Nil means true.
     var Keycaps bool?
+    /// Key label color. Nil uses theme text for keycaps and muted text for plain labels.
     var Color Color?
 
     /// Creates a row of labeled keycaps.
@@ -93,18 +101,27 @@ public data struct Kbd {
 
 /// One display-only shortcut in a named group.
 public data struct ShortcutEntry {
+    /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
+    /// Display group label. Nil uses an unlabelled group.
     var Group string?
+    /// Visible shortcut description. Nil uses Id, then an empty string.
     var Label string?
+    /// Display-only key chords for this command. Nil displays no chords.
     var Keys[]?KeyBinding
+    /// Extra search terms used with the visible label. Nil supplies no extra terms.
     var Keywords string?
 }
 
 /// Controlled shortcut filtering and platform labels.
 public data struct ShortcutListInput {
+    /// Shortcut descriptions in display order. Nil supplies an empty list.
     var Entries[]?ShortcutEntry
+    /// Filter text. Nil uses an empty query.
     var Query string?
+    /// Receives the new query string after a user edit. Nil ignores the notification.
     var OnQueryChange Action[string]?
+    /// Modifier-label convention. Auto uses the current operating system.
     var Platform KbdPlatform
 }
 

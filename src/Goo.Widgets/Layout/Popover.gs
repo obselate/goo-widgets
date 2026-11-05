@@ -6,37 +6,51 @@ import System
 
 /// Preferred anchor edge and alignment before viewport collision handling. Start and End follow the theme direction.
 public enum PopoverPlacement {
+    /// Opens below the anchor, aligned to its start edge.
     BottomStart;
+    /// Opens below the anchor, aligned to its end edge.
     BottomEnd;
+    /// Opens above the anchor, aligned to its start edge.
     TopStart;
+    /// Opens above the anchor, aligned to its end edge.
     TopEnd;
+    /// Opens to the right, aligned to the anchor top.
     RightStart;
+    /// Opens to the left, aligned to the anchor top.
     LeftStart
 }
 
 /// The interaction or anchor lifecycle event requesting dismissal.
 public enum PopoverDismissReason {
+    /// The user pressed Escape.
     Escape;
+    /// The user clicked outside the popup.
     OutsideClick;
+    /// The mounted anchor became unavailable.
     AnchorRemoved
 }
 
 /// Controlled popup state. Presentation uses the Window's automatic Portal overlay.
 public data struct PopoverInput {
+    /// Controlled visibility. False hides the popup.
     var Open bool
     /// Supply exactly one anchor or window point when open.
     var Anchor ElementHandle?
+    /// Anchor point in window logical pixels. Nil requires Anchor when open. Supply only one anchor source.
     var WindowPoint Point?
     /// Part of Anchor to place against, in Anchor border-box coordinates. Placement follows Anchor scroll and layout.
     var AnchorRect ElementRect?
+    /// Main display content. Nil leaves this slot empty.
     var Content Blob?
     /// Additional keyed overlays above this panel, used by nested menus.
     var Overlays[]?Blob
+    /// Receives the dismissal reason after Escape, an outside click, or loss of the anchor. Nil ignores the request.
     var OnDismiss Action[PopoverDismissReason]?
     /// False allows pointer input outside this panel to reach an underlying menu level. Defaults to true.
     var DismissOnOutsideClick bool?
     /// Optional collision bounds in window logical coordinates; defaults to the Window bounds.
     var Viewport ElementRect?
+    /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
     /// Width defaults to 280. Auto fits the content and Percent uses the viewport width.
     /// Maximum height defaults to 360. Both shrink to the available viewport.
@@ -45,18 +59,27 @@ public data struct PopoverInput {
     var MinWidth float64?
     /// Upper width bound. Nil uses the available viewport and keeps the panel's own MaxWidth unless Width is Auto.
     var MaxWidth float64?
+    /// Finite positive panel height limit in logical pixels. Zero uses 360. The viewport can reduce it.
     var MaxHeight float64
+    /// Nonnegative anchor-to-panel gap in logical pixels. Nil uses the theme spacing.
     var Gap float64?
+    /// Nonnegative collision-bound inset in logical pixels. Nil uses the theme control gap.
     var ViewportMargin float64?
     /// Base layer defaults to 20; mounted scopes add their opening order.
     var ZIndex int32
+    /// Caller-owned element to focus on opening. Nil uses the default focus target.
     var InitialFocus ElementHandle?
     /// False keeps focus where it is and starts no focus scope. Escape still dismisses. Defaults to true.
     var TakeFocus bool?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
+    /// Popup accessibility role. Auto resolves to Group.
     var Role AccessibilityRole
+    /// Panel fill. Nil uses the theme overlay color.
     var BackgroundColor Color?
+    /// Panel border color. Nil uses the theme border color.
     var BorderColor Color?
+    /// Panel content inset in logical pixels. Nil uses the theme control padding.
     var Padding float64?
     /// Vertical scrollbar. Nil uses the theme overlay parts.
     var ScrollbarY Scrollbar?
@@ -64,6 +87,7 @@ public data struct PopoverInput {
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Creates the panel from resolved input, window bounds, and content. Placement and identity are rewired.
     var CreatePanel Func[PopoverInput, ElementRect, Blob, Container]?
+    /// Receives the resolved input, prepared backdrop, and prepared panel, and returns their root container. Children, geometry, input routing, and popup semantics are reapplied. Nil uses the default root.
     var CreateRoot Func[PopoverInput, Container, Container, Container]?
 }
 
@@ -92,6 +116,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private var disposed bool
     private var rightToLeft bool
 
+    /// Subscribes to panel geometry for placement and focus containment. Dispose the popup to release subscriptions and its focus scope.
     public init() {
         rootHandle.MetricsChanged += RootMetrics
         panelHandle.MetricsChanged += PanelMetrics

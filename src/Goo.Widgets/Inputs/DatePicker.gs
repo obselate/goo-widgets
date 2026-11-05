@@ -9,36 +9,59 @@ import System.Globalization
 
 /// Controlled civil-date input; typing is a draft until Enter or blur commits it.
 public data struct DatePickerInput {
+    /// Controlled selected civil date. Nil means no date is selected.
     var Value DateOnly?
+    /// Receives the committed civil date after valid input or calendar selection. A permitted clear emits nil. Nil ignores the request.
     var OnChange Action[DateOnly?]?
+    /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
     /// Nil defaults to true. Empty input commits nil; false treats empty input as invalid.
     var AllowEmpty bool?
+    /// Inclusive earliest selectable civil date. Nil imposes no lower bound.
     var Minimum DateOnly?
+    /// Inclusive latest selectable civil date. Nil imposes no upper bound.
     var Maximum DateOnly?
+    /// Tests whether a date is unavailable. Nil imposes no extra restriction.
     var IsDateDisabled Func[DateOnly, bool]?
+    /// Culture for date labels and formatting. Nil uses the nearest theme locale. The calendar must be Gregorian.
     var Culture CultureInfo?
+    /// First weekday column. Nil uses the selected culture calendar settings.
     var FirstDayOfWeek DayOfWeek?
+    /// Current civil date for the calendar marker. Nil uses the local date.
     var Today DateOnly?
+    /// Formats a civil date for display. Nil uses the selected culture short-date format.
     var Format Func[DateOnly, string]?
     /// Nil result means invalid nonempty input; empty input follows AllowEmpty.
     var Parse Func[string, DateOnly?]?
     /// Invalid submissions retain the draft and committed value, and call this hook.
     var OnInvalid Action[string]?
+    /// Parse-failure message. Nil uses localized invalid-date text.
     var InvalidMessage string?
+    /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
+    /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Optional mounted collision viewport. Presentation uses the Window's Portal overlay.
     var OverlayHost ElementHandle?
+    /// Controlled calendar visibility. Nil lets the widget own opening, initially closed.
     var Open bool?
+    /// Receives the requested open state after user interaction. Nil ignores the request.
     var OnOpenChange Action[bool]?
+    /// Finite editor width in logical pixels, greater than 40. Zero uses 280.
     var Width float64
+    /// Finite calendar-popup width in logical pixels, greater than 40. Zero uses 300.
     var PopupWidth float64
+    /// Popup stacking order. Zero uses layer 20.
     var ZIndex int32
+    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
     var CreateInput Func[DatePickerInput, TextEntry, TextEntry]?
+    /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
     var CreateButton Func[DatePickerInput, Button, Button]?
+    /// Receives the widget input and the CalendarInput value, and returns the replacement CalendarInput. Nil uses the default composition.
     var CreateCalendar Func[DatePickerInput, CalendarInput, CalendarInput]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreatePopup Func[DatePickerInput, Container, Container]?
+    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     var CreateRoot Func[DatePickerInput, Container, Container]?
 }
 

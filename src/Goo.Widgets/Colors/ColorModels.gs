@@ -4,8 +4,11 @@ import System
 
 /// Selects the color model used by the picker wheel and tone slider.
 public enum ColorMode {
+    /// Edits hue, saturation, and lightness in sRGB.
     Hsl;
+    /// Edits hue, saturation, and value in sRGB.
     Hsv;
+    /// Edits perceptual lightness, chroma, and hue in OKLCH.
     Oklch
 }
 

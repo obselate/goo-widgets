@@ -9,17 +9,25 @@ import System.Collections.Generic
 
 /// Selectable code with host-supplied syntax styles and controlled folding.
 public data struct CodeBlockInput {
+    /// Code displayed in the read-only editor. Nil uses an empty document.
     var Code string?
+    /// Language label shown in the header. Nil omits it. Highlighting remains host-provided.
     var Language string?
     /// Window used for native clipboard copy. OnCopy can supply host clipboard behavior instead.
     var Window Window?
+    /// Receives the full code string when Copy is activated. Nil uses the supplied Window clipboard.
     var OnCopy Action[string]?
+    /// Displays one-based line numbers beside the code.
     var ShowLineNumbers bool
+    /// Wraps long lines instead of scrolling them horizontally.
     var Wrap bool
     /// Zero shows all lines. Expanded overrides this limit.
     var CollapsedLines int32
+    /// Shows all lines despite CollapsedLines.
     var Expanded bool
+    /// Receives the requested expanded state when the fold action is activated. Nil ignores the request.
     var OnExpandedChange Action[bool]?
+    /// Action content shown with the item. Nil leaves this slot empty.
     var Actions Blob?
     /// Styles the owned presentation layer with the current theme palette. The layer is cleared first.
     /// Runs again only when Code, Language, the theme syntax palette or the delegate instance changes.
@@ -30,9 +38,13 @@ public data struct CodeBlockInput {
     var StyleSpans IReadOnlyList[TextStyleSpan]?
     /// Maximum height of the code area. Zero shows all lines. Taller code scrolls and lays out only the visible lines.
     var MaxHeight float64
+    /// Root layout width. Nil fills the available width.
     var Width Length?
+    /// Code font family. Nil uses monospace.
     var FontFamily string?
+    /// Receives the input and prepared header, and returns the displayed header. Nil keeps the default header.
     var CreateHeader Func[CodeBlockInput, Container, Blob]?
+    /// Receives the input and prepared editor, and returns its replacement. Preserve the supplied controller. Read-only state and syntax layers are reapplied. Nil keeps the default editor.
     var CreateEditor Func[CodeBlockInput, TextEditor, TextEditor]?
 }
 

@@ -7,13 +7,17 @@ import System.Globalization
 
 /// The axis along which the first and second panes are placed.
 public enum SplitOrientation {
+    /// Places panes side by side.
     Horizontal;
+    /// Places panes above and below one another.
     Vertical
 }
 
 /// Units for the controlled first-pane value.
 public enum SplitUnit {
+    /// Expresses the first pane size as a fraction of available space.
     Ratio;
+    /// Expresses the first pane size in logical pixels.
     Pixels
 }
 

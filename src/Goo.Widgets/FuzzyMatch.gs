@@ -6,6 +6,7 @@ import System.Collections.Generic
 
 /// A successful case-insensitive subsequence match. Higher scores rank first.
 public data struct FuzzyMatchResult {
+    /// Match rank. Larger scores sort before smaller scores.
     var Score int32
     /// Contiguous UTF-16 ranges in the original text.
     var Ranges[]TextRange
@@ -13,7 +14,9 @@ public data struct FuzzyMatchResult {
 
 /// An item and its match, returned in stable score order.
 public data struct FuzzyMatchItem[T] {
+    /// Original value associated with this match.
     var Item T
+    /// Score and UTF-16 highlight ranges for the matched value.
     var Match FuzzyMatchResult
     internal var Order int32
 }

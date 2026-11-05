@@ -14,6 +14,7 @@ public open partial class GraphCanvas {
     private var previousScale float64 = 1.0
     private var previousNodePoint Point
 
+    /// Creates gesture recognizers for canvas navigation and node dragging.
     public init() {
         navigation = []GestureRecognizer{TransformGesture(TransformViewport)}
     }

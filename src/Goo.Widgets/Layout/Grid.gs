@@ -6,8 +6,11 @@ import System.Collections.Generic
 
 /// The sizing rule for a grid track.
 public enum GridUnit {
+    /// Sizes the track from its content.
     Auto;
+    /// Sizes the track in logical pixels.
     Fixed;
+    /// Allocates a weighted share of remaining space.
     Fraction
 }
 

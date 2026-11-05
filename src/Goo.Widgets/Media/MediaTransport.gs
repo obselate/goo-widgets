@@ -8,9 +8,13 @@ import System
 
 /// Identifies a media transport action slot.
 public enum MediaTransportAction {
+    /// Requests the previous media item.
     Previous;
+    /// Requests playback.
     Play;
+    /// Requests paused playback.
     Pause;
+    /// Requests the next media item.
     Next
 }
 
