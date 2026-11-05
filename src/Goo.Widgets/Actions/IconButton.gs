@@ -88,7 +88,7 @@ public data struct IconButton {
         button.Disabled = Disabled
         button.Focusable = !Disabled
         button.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Selected: Active}
-        button.OnClick = Disabled ? nil: OnClick
+        button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(button)
         return button
     }

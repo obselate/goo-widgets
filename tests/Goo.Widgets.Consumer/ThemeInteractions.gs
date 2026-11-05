@@ -900,8 +900,8 @@ func ThemeDensityContracts() {
         let authored = ThemeCapture(window)
         let icon = root.IconHandle.BorderBox
         Require(
-            ThemePixel(authored, int32(icon.X) - 3, int32(icon.Y + icon.Height / 2), Theme.Read(window).CanvasColor),
-            "An explicit zero ring width was overwritten."
+            ThemePixel(authored, int32(icon.X) - 3, int32(icon.Y + icon.Height / 2), Theme.Read(window).FocusColor),
+            "An explicit zero focus declaration removed the required ring."
         )
         SendKey(id, SDLScancode.Tab)
         PumpFrames(window, 4)

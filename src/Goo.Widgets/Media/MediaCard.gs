@@ -143,7 +143,7 @@ public data struct MediaCard {
         } }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = Disabled
-        button.OnClick = Disabled ? nil: OnClick
+        button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(button)
         return button
     }

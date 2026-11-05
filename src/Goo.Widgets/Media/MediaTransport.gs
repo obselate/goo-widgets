@@ -348,7 +348,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = disabled
-        button.OnClick = disabled ? nil: action
+        button.OnClick = disabled ? nil: button.OnClick ?? action
         WidgetKeyBindings.BindActivation(button)
         return button
     }

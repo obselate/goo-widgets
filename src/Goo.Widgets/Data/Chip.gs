@@ -170,7 +170,7 @@ public data struct Chip {
         root.Focusable = !Disabled
         root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Invalid: Invalid,
             Checked: Selected ? AccessibilityChecked.True: AccessibilityChecked.False}
-        root.OnClick = Disabled ? nil: OnClick
+        root.OnClick = Disabled ? nil: root.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(root)
         return RemovalRoot(root, resolved)
     }

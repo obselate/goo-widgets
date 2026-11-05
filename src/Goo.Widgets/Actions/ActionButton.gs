@@ -200,7 +200,7 @@ public data struct ActionButton {
         theme.ApplyInteraction(root, InteractionFamily.Button, Pressed == true)
         root.Disabled = resolved.Disabled
         root.Focusable = !resolved.Disabled
-        root.OnClick = resolved.OnClick
+        root.OnClick = resolved.Disabled ? nil: root.OnClick ?? resolved.OnClick
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Busy: Loading,
             Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
