@@ -89,7 +89,7 @@ class ApiShapeCheck {
         let reviewed = HashSet[string](StringComparer.Ordinal)
         for group in []string{
             "Goo.Widgets|Kbd ShortcutList ThemeScope Typography",
-            "Goo.Widgets.Actions|ActionButton IconButton",
+            "Goo.Widgets.Actions|ActionButton IconButton ToggleButton",
             "Goo.Widgets.Charts|DonutChart StackedBar",
             "Goo.Widgets.Colors|ColorPicker",
             "Goo.Widgets.Content|CodeBlock",
@@ -145,7 +145,7 @@ class ApiShapeCheck {
         let rows = []string{
             "Calendar|DateOnly?|DateOnly", "Checkbox|AccessibilityChecked|AccessibilityChecked", "ColorPicker|int32|int32",
             "DatePicker|DateOnly?|DateOnly?", "TimePicker|TimeOnly?|TimeOnly?", "NumberInput|float64|float64", "Slider|float64|float64", "SplitPane|float64|float64",
-            "TextArea|string?|string", "TextField|string?|string", "ToggleSwitch|bool|bool", "TokenInput|string[]?|string[]"
+            "TextArea|string?|string", "TextField|string?|string", "ToggleButton|bool|bool", "ToggleSwitch|bool|bool", "TokenInput|string[]?|string[]"
         }
         for row in rows {
             let parts = row.Split('|')
@@ -219,7 +219,7 @@ class ApiShapeCheck {
             let member = Member(type, "IssueFontSize")!!
             Add(15, member.Id, member.Signature, "var ErrorFontSize float64?")
         }
-        let fields = []string{"TextField", "TextArea", "DatePicker", "TimePicker", "NumberInput", "TokenInput", "Calendar", "Checkbox", "ColorPicker", "ComboBox", "RadioGroup", "SearchList", "Slider", "ToggleGroup", "ToggleSwitch"}
+        let fields = []string{"TextField", "TextArea", "DatePicker", "TimePicker", "NumberInput", "TokenInput", "Calendar", "Checkbox", "ColorPicker", "ComboBox", "RadioGroup", "SearchList", "Slider", "ToggleButton", "ToggleGroup", "ToggleSwitch"}
         if fields.Contains(role) {
             Field(type, 16, "Disabled", "bool")
             Field(type, 16, "AccessibilityName", "string?")

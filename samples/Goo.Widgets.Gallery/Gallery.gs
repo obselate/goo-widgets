@@ -375,7 +375,8 @@ class GalleryStageLayout : LayoutAlgorithm {
 func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
     GalleryCategory("Actions", "smart_button", []GalleryPage{
         ActionButtonPage{DisplayTitle: "Action button"},
-        IconButtonPage{DisplayTitle: "Icon button"}
+        IconButtonPage{DisplayTitle: "Icon button"},
+        ToggleButtonPage{DisplayTitle: "Toggle button"}
     }),
     GalleryCategory("Inputs", "input", []GalleryPage{
         CheckboxPage{DisplayTitle: "Checkbox"},
