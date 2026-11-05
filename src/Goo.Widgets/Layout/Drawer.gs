@@ -61,9 +61,10 @@ public data struct Drawer {
             PanelTransform{TranslateX: Percent(-100.0)}
         }
 
+        let defaultWidth Length = 320.0
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? theme.Text("Drawer"),
-            Width = Width ?? 320.0,
+            Width = Width ?? defaultWidth,
             Height = Height ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             BorderColor = BorderColor ?? theme.BorderColor,

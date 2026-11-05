@@ -118,12 +118,13 @@ public data struct ModalDialog {
         let cancelText = CancelText ?? theme.Text("Cancel")
         let confirmText = ConfirmText ??
             theme.Text(Preset == ModalDialogPreset.Destructive ? "Delete": Preset == ModalDialogPreset.Form ? "Save": "Confirm")
+        let defaultWidth Length = 560.0
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? theme.Text("Dialog"),
             CancelText = cancelText,
             ConfirmText = confirmText,
             Tone = Preset == ModalDialogPreset.Destructive ? Tone.Danger: Tone,
-            Width = Width ?? 560.0,
+            Width = Width ?? defaultWidth,
             ZIndex = if ZIndex == 0 {
                 20
             } else {

@@ -77,6 +77,7 @@ public data struct Banner {
         let border = Tone == Tone.Neutral ? theme.BorderColor: theme.ToneColor(Tone)
         let background = Variant == MessageVariant.Rule || Variant == MessageVariant.Inline ?
             Color.Transparent: theme.ToneFill(Tone)
+        let defaultMinHeight Length = theme.ControlHeight
         let resolved = this with{
             Content = content,
             AccessibilityName = AccessibilityName ?? content,
@@ -84,7 +85,7 @@ public data struct Banner {
             BackgroundColor = BackgroundColor ?? background,
             TextColor = TextColor ?? textColor,
             BorderColor = BorderColor ?? border,
-            MinHeight = MinHeight ?? theme.ControlHeight,
+            MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
             FontFamily = FontFamily ?? theme.FontFamily,

@@ -276,9 +276,10 @@ public open class ToastHost : Cell[ToastHostInput] {
             }
         }
         dismissed.RemoveWhere(id -> !incoming.Contains(id))
+        let defaultWidth Length = 360.0
         let stack = Container{
             Position: PositionType.Absolute,
-            Width: input.Width ?? 360.0,
+            Width: input.Width ?? defaultWidth,
             MaxWidth: Percent(100),
             Gap: theme.ControlGap,
             Padding: theme.ControlGap,

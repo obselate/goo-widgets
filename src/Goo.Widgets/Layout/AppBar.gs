@@ -67,6 +67,7 @@ public data struct AppBar {
         let createSubtitle = CreateSubtitle
         let createRoot = CreateRoot
         let titleText = Title ?? ""
+        let defaultHeight Length = theme.Spacing * 14.0
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
@@ -76,7 +77,7 @@ public data struct AppBar {
                 HeadingLevel
             },
             Width = Width ?? Percent(100.0),
-            Height = Height ?? theme.Spacing * 14.0,
+            Height = Height ?? defaultHeight,
             BackgroundColor = BackgroundColor ?? theme.CanvasColor,
             TextColor = TextColor ?? theme.TextColor,
             SubtitleColor = SubtitleColor ?? theme.MutedTextColor,

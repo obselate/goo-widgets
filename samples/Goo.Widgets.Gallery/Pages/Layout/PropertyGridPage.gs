@@ -31,14 +31,14 @@ internal class PropertyGridExample : Cell {
                 query = value
             },
             ExpandedSectionIds: expanded,
-            OnSectionExpandedChange: (section string, open bool) -> {
+            OnSectionExpandedChange: (section string, isOpen bool) -> {
                 let next = List[string]()
                 for name in expanded {
                     if name != section {
                         next.Add(name)
                     }
                 }
-                if open {
+                if isOpen {
                     next.Add(section)
                 }
                 expanded = next.ToArray()

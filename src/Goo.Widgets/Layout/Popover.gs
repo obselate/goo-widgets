@@ -306,9 +306,10 @@ public open class Popover : Cell[PopoverInput], IDisposable {
 
     private func Resolve(input PopoverInput, theme Theme) PopoverInput {
         let defaultWidth Length = 280
+        let defaultHeight Length = 360.0
         let result = input with{
             Width = input.Width ?? defaultWidth,
-            MaxHeight = input.MaxHeight ?? 360.0,
+            MaxHeight = input.MaxHeight ?? defaultHeight,
             Gap = input.Gap ?? theme.Spacing,
             ViewportMargin = input.ViewportMargin ?? theme.ControlGap,
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,

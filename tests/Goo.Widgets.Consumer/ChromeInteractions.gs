@@ -76,7 +76,7 @@ internal class ChromePaintHost : Cell {
                 CloseHoverBackgroundColor: Color.Rgb(255, 128, 192),
                 CreateRoot: (input WindowChrome, children []Blob) -> Container{
                     Handle: custom ? Custom: Stock,
-                    Height: input.Height,
+                    Height: input.Height!!,
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
                     BackgroundColor: input.BackgroundColor!!,
@@ -185,7 +185,7 @@ internal class ChromeHost : Cell {
         let button = Button{
             Handle: ElementHandle(),
             Width: input.ControlWidth,
-            Height: input.Height,
+            Height: input.Height!!,
             Padding: 0.0,
             BackgroundColor: Color.Transparent,
             AlignItems: AlignItems.Center,
@@ -202,7 +202,7 @@ internal class ChromeHost : Cell {
     private func Root(input WindowChrome, children[]Blob) Container {
         children[1].Handle = Blank
         return Container{
-            Height: input.Height,
+            Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BackgroundColor: "#18181b",

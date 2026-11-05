@@ -126,10 +126,10 @@ internal class OverlayHost : Cell {
         Rebuild()
     }
 
-    private func PopupOpenChange(open bool) {
-        Require(!open && PopupOpen, "Popover did not request the new closed state")
+    private func PopupOpenChange(isOpen bool) {
+        Require(!isOpen && PopupOpen, "Popover did not request the new closed state")
         OpenChanges++
-        PopupOpen = open
+        PopupOpen = isOpen
     }
 
     private func PopupDismiss(reason PopoverDismissReason) {
@@ -348,7 +348,7 @@ internal class OverlayHost : Cell {
                         Content: content,
                         AccessibilityName: "Review change",
                         Width: 440.0,
-                        OnOpenChange: (open bool) -> CloseOuter(),
+                        OnOpenChange: (isOpen bool) -> CloseOuter(),
                         OnCancel: CloseOuter,
                         OnConfirm: Confirm,
                         CreateRoot: Outer,
@@ -366,7 +366,7 @@ internal class OverlayHost : Cell {
                         Width: 370.0,
                         Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
                         AccessibilityName: "Nested confirmation",
-                        OnOpenChange: (open bool) -> CloseTop(),
+                        OnOpenChange: (isOpen bool) -> CloseTop(),
                         OnCancel: CloseTop,
                         OnConfirm: CloseTop,
                         CreateRoot: Top

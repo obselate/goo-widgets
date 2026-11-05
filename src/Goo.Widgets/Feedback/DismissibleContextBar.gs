@@ -90,6 +90,7 @@ public data struct DismissibleContextBar {
         let createRoot = CreateRoot
         let theme = Theme.Read()
         let dismissText = DismissText ?? theme.Text("Dismiss")
+        let defaultMinHeight Length = theme.ControlHeight
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? theme.Text("Context"),
             DismissText = dismissText,
@@ -106,7 +107,7 @@ public data struct DismissibleContextBar {
             DismissFocusBorderColor = DismissFocusBorderColor ?? theme.FocusColor,
             DismissDisabledBackgroundColor = DismissDisabledBackgroundColor ?? Color.Transparent,
             DismissDisabledTextColor = DismissDisabledTextColor ?? theme.FaintTextColor,
-            MinHeight = MinHeight ?? theme.ControlHeight,
+            MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
             PaddingVertical = PaddingVertical ?? theme.PanelPadding,
             Gap = Gap ?? theme.ControlGap,

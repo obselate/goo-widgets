@@ -54,8 +54,10 @@ public data struct ProgressBar {
         let trackColor = TrackColor ?? theme.BorderColor
         let fillColor = FillColor ?? theme.AccentColor
         let borderColor = BorderColor ?? theme.BorderColor
-        let width = Width ?? 160.0
-        let height = Height ?? theme.Spacing * 2.0
+        let defaultWidth Length = 160.0
+        let width = Width ?? defaultWidth
+        let defaultHeight Length = theme.Spacing * 2.0
+        let height = Height ?? defaultHeight
         let borderRadius = BorderRadius ?? (height.HasMagnitude ? height.Magnitude / 2.0: theme.Spacing)
 
         let resolved = this with{

@@ -75,6 +75,7 @@ public data struct EmptyState {
 
         let theme = Theme.Read()
         let resolvedTitle = Title ?? ""
+        let defaultMinHeight Length = 240.0
         let resolved = this with{
             Title = resolvedTitle,
             AccessibilityName = AccessibilityName ?? resolvedTitle,
@@ -84,7 +85,7 @@ public data struct EmptyState {
                 HeadingLevel
             },
             Width = Width ?? Percent(100.0),
-            MinHeight = MinHeight ?? 240.0,
+            MinHeight = MinHeight ?? defaultMinHeight,
             BackgroundColor = BackgroundColor ?? Color.Transparent,
             BorderColor = BorderColor ?? theme.BorderColor,
             TitleColor = TitleColor ?? theme.TextColor,

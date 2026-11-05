@@ -103,6 +103,7 @@ public data struct ListRow {
         } else {
             BoxShadow{}
         }
+        let defaultMinHeight Length = theme.ControlHeight
         let resolved = this with{
             Title = titleText,
             AccessibilityName = AccessibilityName ?? titleText,
@@ -114,7 +115,7 @@ public data struct ListRow {
             TextColor = Selected ? theme.SelectedText(text): text,
             CaptionColor = Selected ? theme.SelectedText(captionColor): captionColor,
             SelectedBoxShadow = SelectedBoxShadow ?? ring,
-            MinHeight = MinHeight ?? theme.ControlHeight,
+            MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
             Gap = Gap ?? theme.ControlGap,

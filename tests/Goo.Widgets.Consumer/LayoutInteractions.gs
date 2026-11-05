@@ -158,8 +158,8 @@ internal class LayoutHost : Cell {
                     DialogOpen = false
                     Rebuild()
                 },
-                OnOpenChange: (open bool) -> {
-                    DialogOpen = open
+                OnOpenChange: (isOpen bool) -> {
+                    DialogOpen = isOpen
                     Rebuild()
                 },
                 OnConfirm: () -> {
