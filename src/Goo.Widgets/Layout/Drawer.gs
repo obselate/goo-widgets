@@ -10,6 +10,10 @@ public data struct Drawer {
     var Content Blob?
     /// Whether the drawer is visible and expanded. Build does not invert or mutate this state.
     var Open bool
+    /// Whether the open drawer isolates input and contains focus in the window overlay.
+    var Modal bool
+    /// Requests Open = false when Escape or the modal scrim dismisses the drawer.
+    var OnOpenChange Action[bool]?
     /// Whether the drawer docks to and slides from the end edge instead of the start edge.
     var FromEnd bool
     /// Accessible name for the group container. Nil resolves to "Drawer".
@@ -81,10 +85,6 @@ public data struct Drawer {
             CreateRoot = nil,
         }
 
-        if let createRoot = createRoot {
-            return createRoot(resolved, Content)
-        }
-
         let opacity = if resolved.Open {
             resolved.OpenOpacity!!
         } else {
@@ -96,39 +96,82 @@ public data struct Drawer {
             resolved.ClosedTransform!!
         }
 
-        let root = Container{
-            Position: PositionType.Absolute,
-            Top: 0.0,
-            Direction: theme.Direction,
-            Width: resolved.Width,
-            Height: resolved.Height!!,
-            Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
-            BackgroundColor: resolved.BackgroundColor!!,
-            BorderColor: resolved.BorderColor!!,
-            BorderWidth: resolved.BorderWidth!!,
-            BorderRadius: resolved.BorderRadius!!,
-            BoxShadow: resolved.BoxShadow!!,
-            Opacity: opacity,
-            Transform: transform,
-            TransitionMs: resolved.TransitionMs!!,
-            TransitionEasing: resolved.TransitionEasing!!,
-            Overflow: Overflow.Hidden,
-            Disabled: !resolved.Open,
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Group,
-                Name: resolved.AccessibilityName!!,
-                Hidden: !resolved.Open,
-            },
-        }
-
-        if resolved.FromEnd {
-            root.End = 0.0
+        let root = if let createRoot = createRoot {
+            createRoot(resolved, Content)
         } else {
-            root.Start = 0.0
+            let panel = Container{
+                Position: PositionType.Absolute,
+                Top: 0.0,
+                Direction: theme.Direction,
+                Width: resolved.Width,
+                Height: resolved.Height!!,
+                Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
+                BackgroundColor: resolved.BackgroundColor!!,
+                BorderColor: resolved.BorderColor!!,
+                BorderWidth: resolved.BorderWidth!!,
+                BorderRadius: resolved.BorderRadius!!,
+                BoxShadow: resolved.BoxShadow!!,
+                Opacity: opacity,
+                Transform: transform,
+                TransitionMs: resolved.TransitionMs!!,
+                TransitionEasing: resolved.TransitionEasing!!,
+                Overflow: Overflow.Hidden,
+                Disabled: !resolved.Open,
+                Accessibility: Accessibility{
+                    Role: AccessibilityRole.Group,
+                    Name: resolved.AccessibilityName!!,
+                    Hidden: !resolved.Open,
+                },
+            }
+            if resolved.FromEnd {
+                panel.End = 0.0
+            } else {
+                panel.Start = 0.0
+            }
+            if let content = Content {
+                panel.Children.Add(content)
+            }
+            panel
         }
-
-        if let content = Content {
-            root.Children.Add(content)
+        if Modal {
+            return Cell.Mount[ModalDialog, ModalDialogHost](
+                nil,
+                ModalDialog{
+                    Open: Open,
+                    AccessibilityName: resolved.AccessibilityName,
+                    OnClose: () -> OnOpenChange?.Invoke(false),
+                    Fullscreen: true,
+                    Padding: 0.0,
+                    Gap: 0.0,
+                    BackgroundColor: Color.Transparent,
+                    BorderWidth: 0.0,
+                    BorderRadius: 0.0,
+                    Content: root,
+                    Footer: Container{},
+                    CreateRoot: (dialog, backdrop, panel) -> {
+                        panel.Position = PositionType.Absolute
+                        panel.Top = 0.0
+                        panel.Width = resolved.Width
+                        panel.Height = resolved.Height!!
+                        if resolved.FromEnd {
+                            panel.End = 0.0
+                        } else {
+                            panel.Start = 0.0
+                        }
+                        return Container{
+                            Position: PositionType.Absolute,
+                            Left: 0.0,
+                            Right: 0.0,
+                            Top: 0.0,
+                            Bottom: 0.0,
+                            Direction: theme.Direction,
+                            ZIndex: dialog.ZIndex,
+                            backdrop,
+                            panel,
+                        }
+                    },
+                }
+            )
         }
 
         return root

@@ -78,7 +78,9 @@ internal class OverlayHost : Cell {
     internal let Edit ElementHandle = ElementHandle()
     internal let Nested ElementHandle = ElementHandle()
     internal let PopupAction ElementHandle = ElementHandle()
+    internal let DrawerAction ElementHandle = ElementHandle()
     internal var DialogOpen bool
+    internal var DrawerOpen bool
     internal var TopOpen bool
     internal var PopupOpen bool
     internal var MenuOpen bool
@@ -284,6 +286,22 @@ internal class OverlayHost : Cell {
                 }
             )
         }
+        root.Children.Add(
+            Drawer{
+                Open: DrawerOpen,
+                Modal: true,
+                AccessibilityName: "Modal drawer",
+                OnOpenChange: (value) -> {
+                    DrawerOpen = value
+                    Rebuild()
+                },
+                Content: Button{
+                    Handle: DrawerAction,
+                    Accessibility: Accessibility{Name: "Drawer action"},
+                    Text{Content: "Drawer action"},
+                },
+            }.Build()
+        )
         if ShowDialogs {
             let content = if EmptyDialog {
                 Blob(Text{Content: "No focusable children. Escape still closes this dialog."})
@@ -551,6 +569,31 @@ func OverlayInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         Require(OverlayFocus(semantics, "Background action"), "Dialog unmount failed to restore focus")
+        host.DrawerOpen = true
+        host.Rebuild()
+        PumpFrames(window, 12)
+        Require(
+            host.DrawerAction.IsMounted && host.DrawerAction.BorderBox.Width > 0.0 && host.DrawerAction.BorderBox.Height > 0.0,
+            "Modal drawer content was not mounted and visible"
+        )
+        Require(OverlayFocus(semantics, "Drawer action"), "Modal drawer did not set initial focus")
+        Require(!host.Before.Focus(), "Modal drawer allowed background focus")
+        SendKey(id, SDLScancode.Tab)
+        PumpFrames(window, 4)
+        Require(OverlayFocus(semantics, "Drawer action"), "Tab escaped the modal drawer")
+        SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
+        PumpFrames(window, 4)
+        Require(OverlayFocus(semantics, "Drawer action"), "Shift+Tab escaped the modal drawer")
+        SendKey(id, SDLScancode.Escape)
+        PumpFrames(window, 8)
+        Require(!host.DrawerOpen && OverlayFocus(semantics, "Background action"), "Modal drawer Escape/restore failed")
+        host.DrawerOpen = true
+        host.Rebuild()
+        PumpFrames(window, 12)
+        MouseButton(id, 700.0F, 400.0F, true)
+        MouseButton(id, 700.0F, 400.0F, false)
+        PumpFrames(window, 8)
+        Require(!host.DrawerOpen && OverlayFocus(semantics, "Background action"), "Modal drawer scrim/restore failed")
         host.DialogOpen = false
         host.Anchor.Focus()
         host.PopupOpen = true
