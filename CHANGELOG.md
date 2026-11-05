@@ -17,6 +17,7 @@
 - Virtualize Markdown blocks when `MarkdownViewInput.Height` is bounded. Leave it unset for content-sized views. Use `MarkdownViewState.ScrollToHeading(id)` instead of `MarkdownHeading.Handle.ScrollIntoView()` for off-screen headings.
 - Cache prepared `ListView` rows until the items, sections or query change.
 - Link over-limit text area errors and correct virtual row positions and set sizes for lists, trees, combo boxes, and search lists.
+- Compress the full Material Symbols catalogue. Keep every icon name and declared icon subsets unchanged.
 - Apply the API shape to Layout, Feedback, and Content (breaking).
 
 ### API migration
