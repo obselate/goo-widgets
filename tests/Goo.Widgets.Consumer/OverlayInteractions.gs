@@ -894,8 +894,7 @@ func TeachingTipInteractions() {
             }
         }
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: TeachingTip anchored/centered, pointer close/light-dismiss, Escape, controlled Open, action keyboard/disabled, focus restore, dialog semantics, Ink/Bone/high contrast")
 }
