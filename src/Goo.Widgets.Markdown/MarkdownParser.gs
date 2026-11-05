@@ -29,7 +29,18 @@ internal class MarkdownParser {
     internal func Parse(text string)[]MarkdownModel {
         headings.Clear()
         headingIds.Clear()
-        return Children(Markdig.Markdown.Parse(text, pipeline), "root")
+        let document = Markdig.Markdown.Parse(text, pipeline)
+        let models = Children(document, "root")
+        let occurrences = Dictionary[string, int32](StringComparer.Ordinal)
+        var index = 0
+        for block in document {
+            let content = text.Substring(block.Span.Start, block.Span.Length)
+            occurrences.TryGetValue(content, out var count)
+            occurrences[content] = count + 1
+            models[index].Key = content + "\0" + count.ToString()
+            index++
+        }
+        return models
     }
 
     private func Children(parent ContainerBlock, path string)[]MarkdownModel {
