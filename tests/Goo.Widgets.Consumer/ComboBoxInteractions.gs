@@ -460,8 +460,7 @@ func ComboBoxInteractions() {
         PumpFrames(window, 8)
         Require(host.Before.Focus(), "Unmounting ComboBox left a focus scope behind")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: native ComboBox placement, constrained scrolling, controlled/disabled/custom options, keyboard commit/cancel, focus restoration, long-list reveal, search, empty input, resize and unmount"

@@ -220,7 +220,6 @@ func TokenInteractions() {
             "PASS: token keyboard editing, paste, invalid values, chip removal, multiple selection and creation"
         )
     } finally {
-        window.RequestClose()
-        window.Pump(0)
+        CloseNativeWindow(window)
     }
 }

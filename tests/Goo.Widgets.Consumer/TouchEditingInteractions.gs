@@ -155,8 +155,7 @@ func TouchEditingInteractions() {
             "Password touch editing exposed text export")
         CaptureIssueProof(window, "touch-editing-password")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 2)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: touch word selection, crossing handles, focus-safe clipboard, read-only/password and 150% fit")
 }

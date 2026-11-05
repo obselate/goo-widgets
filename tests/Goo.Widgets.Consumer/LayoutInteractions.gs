@@ -327,8 +327,7 @@ func LayoutInteractions() {
             "Status bar did not restore its hidden detail"
         )
     } finally {
-        window.RequestClose()
-        window.Pump(0)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: dialog preset focus and Escape, property search and reset, settings search and narrow stack"

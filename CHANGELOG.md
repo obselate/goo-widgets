@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Close native test windows before the next fixture starts.
 - Resolve omitted disabled opacity in partial external themes affected by [gsharp#5296](https://github.com/DavidObando/gsharp/issues/5296).
 - Add a controlled ToggleButton with shared button paint and pressed accessibility state.
 - Add a controlled RadioButton and share its radio item with RadioGroup while keeping group navigation and one Tab stop.

@@ -483,8 +483,7 @@ func ModalClipboardInteractions() {
         SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
         PumpFrames(window, 4)
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine("PASS: managed modal typing, Backspace, select all, copy, paste, Enter and Shift+Tab without application editing bindings")
 }
@@ -763,8 +762,7 @@ func OverlayInteractions() {
             "An overlay accidentally activated a background or confirmation action"
         )
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     Console.WriteLine(
         "PASS: native managed modal entry/containment/nesting/fallback/backdrop/unmount, popover anchor/point/flip/resize/dismiss/restore/content width, menu disabled/separator/keyboard/submenu/hover/activation policy"
