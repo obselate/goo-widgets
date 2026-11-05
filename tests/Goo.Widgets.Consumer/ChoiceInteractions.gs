@@ -141,6 +141,7 @@ func OneTabStop(root Container) bool {
 }
 
 func ChoiceInteractions() {
+    ToggleButtonInteractions()
     let host = ChoiceHost()
     let root = ApplicationRoot(host)
     let adapter = SearchListSemantics()
@@ -263,7 +264,7 @@ func ChoiceInteractions() {
         window.RequestClose()
         PumpFrames(window, 5)
     }
-    for page in[]string{"Action button", "Radio group", "Toggle group"} {
+    for page in[]string{"Action button", "Toggle button", "Radio group", "Toggle group"} {
         for dark in[]bool{false, true} {
             for size in 0 ... 3 {
                 let width = size == 1 ? 900: size == 2 ? 2560: 1100

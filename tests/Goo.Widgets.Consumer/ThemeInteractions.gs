@@ -1017,7 +1017,8 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     PumpFrames(window, 5)
     SendKey(id, SDLScancode.End)
     PumpFrames(window, 5)
-    Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Icon button", "End did not stay within the Actions category.")
+    let actions = registry.Groups[0].Pages
+    Require(ThemeFocused(adapter.Tree?.Root)?.Name == actions[actions.Length - 1].Name(), "End did not stay within the Actions category.")
     SendKey(id, SDLScancode.Home)
     PumpFrames(window, 5)
     Require(ThemeFocused(adapter.Tree?.Root)?.Name == "Action button", "Home did not focus the first category row.")
