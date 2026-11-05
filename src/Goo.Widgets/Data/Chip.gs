@@ -89,6 +89,7 @@ public data struct Chip {
         let originalLeading = Leading
         let label = Label ?? ""
         let tone = Invalid ? Tone.Danger: Tone
+        let defaultHeight Length = theme.ControlHeight
         let resolved = this with{
             Label = label,
             AccessibilityName = AccessibilityName ?? label,
@@ -104,7 +105,7 @@ public data struct Chip {
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             SelectedActiveBackgroundColor = SelectedActiveBackgroundColor ?? theme.AccentPressedColor,
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
-            Height = Height ?? theme.ControlHeight,
+            Height = Height ?? defaultHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             Gap = Gap ?? theme.ControlGap,
             FontFamily = FontFamily ?? theme.FontFamily,
@@ -215,15 +216,16 @@ public data struct Chip {
         }
         let theme = Theme.Read()
         let color = input.Selected ? input.SelectedTextColor!!: input.TextColor!!
+        let height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent ? input.Height!!.Magnitude: theme.ControlHeight
         let action = Button{
             Key: "remove",
-            Width: input.Height!! - 8.0,
-            Height: input.Height!! - 8.0,
+            Width: height - 8.0,
+            Height: height - 8.0,
             MarginEnd: 4.0,
             Padding: 0,
             Focusable: !input.Disabled,
             Disabled: input.Disabled,
-            BorderRadius: (input.Height!! - 8.0) / 2.0,
+            BorderRadius: (height - 8.0) / 2.0,
             Color: color,
             Hover: Style{BackgroundColor: theme.HoverColor},
             Focus: theme.FocusStyle,
@@ -238,7 +240,8 @@ public data struct Chip {
             ControlIcons.Create(ControlIcon.Close, 14, color),
         }
         WidgetKeyBindings.BindActivation(action)
-        button.Height = input.Height!! - 2.0 * input.BorderWidth!!
+        button.Height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent
+            ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0
         button.BackgroundColor = Color.Transparent
         button.Hover = Style{}

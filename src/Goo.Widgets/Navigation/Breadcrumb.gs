@@ -247,8 +247,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Items: menuItems,
                     AccessibilityName: theme.Text("Path locations"),
                     OnClick: (id string) -> input.OnSelect?.Invoke(id),
-                    OnOpenChange: (open bool) -> {
-                        menuOpen = open
+                    OnOpenChange: (isOpen bool) -> {
+                        menuOpen = isOpen
                         Rebuild()
                     }
                 }

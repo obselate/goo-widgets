@@ -33,8 +33,8 @@ internal class CommandPaletteExample : Cell {
                     query = value
                     Rebuild()
                 },
-                OnOpenChange: (open bool) -> {
-                    isOpen = open
+                OnOpenChange: (value bool) -> {
+                    isOpen = value
                     Rebuild()
                 },
                 OnClick: (id string) -> {

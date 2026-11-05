@@ -71,6 +71,8 @@ public data struct AsyncImage {
         let placeholderText = PlaceholderText ?? theme.Text("Loading")
         let errorText = ErrorText ?? theme.Text("Image unavailable")
         let background = BackgroundColor ?? theme.PanelColor
+        let defaultWidth Length = 160.0
+        let defaultHeight Length = 120.0
         let resolved = this with{
             PlaceholderText = placeholderText,
             ErrorText = errorText,
@@ -78,8 +80,8 @@ public data struct AsyncImage {
             PlaceholderTextColor = PlaceholderTextColor ?? theme.MutedTextColor,
             ErrorTextColor = ErrorTextColor ?? theme.DangerColor,
             BorderColor = BorderColor ?? theme.BorderColor,
-            Width = Width ?? 160.0,
-            Height = Height ?? 120.0,
+            Width = Width ?? defaultWidth,
+            Height = Height ?? defaultHeight,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             TransitionMs = TransitionMs ?? theme.TransitionMs,

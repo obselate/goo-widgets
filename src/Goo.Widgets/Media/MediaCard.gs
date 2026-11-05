@@ -57,7 +57,8 @@ public data struct MediaCard {
         let createContent = CreateContent
         let createRoot = CreateRoot
         let title = Title ?? ""
-        let width = Width ?? 200.0
+        let defaultWidth Length = 200.0
+        let width = Width ?? defaultWidth
         let resolved = this with{
             Title = title,
             AccessibilityName = AccessibilityName ?? title,

@@ -148,8 +148,8 @@ internal class NavigationHost : Cell {
                         Query = value
                         Rebuild()
                     },
-                    OnOpenChange: (open bool) -> {
-                        PaletteOpen = open
+                    OnOpenChange: (isOpen bool) -> {
+                        PaletteOpen = isOpen
                         Rebuild()
                     },
                     OnClick: (id string) -> Invoked = id,

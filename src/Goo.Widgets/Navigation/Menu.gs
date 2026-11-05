@@ -52,8 +52,8 @@ public data struct MenuInput {
     var SubmenuPlacement PopoverPlacement?
     /// Menu width. Nil uses the Popover default of 280.
     var Width Length?
-    /// Height limit. Nil uses the Popover default of 360.
-    var MaxHeight Length?
+    /// Positive height limit in logical pixels. Zero uses the Popover default of 360.
+    var MaxHeight float64
     /// Overlay stacking order. Zero selects the widget default layer.
     var ZIndex int32
     /// Accessible name override. Nil uses the widget label or localized default.

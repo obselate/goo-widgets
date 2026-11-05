@@ -71,7 +71,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             var prepared = MenuInput{
                 Open: menuOpen,
                 Items: items,
-                OnOpenChange: (open bool) -> Dismiss(),
+                OnOpenChange: (isOpen bool) -> Dismiss(),
                 WindowPoint: menuPoint,
                 Width: 200.0,
                 MaxHeight: 240.0,
@@ -93,7 +93,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             menu.Anchor = prepared.Anchor
             menu.WindowPoint = menuPoint
             menu.Viewport = prepared.Viewport
-            menu.OnOpenChange = (open bool) -> Dismiss()
+            menu.OnOpenChange = (isOpen bool) -> Dismiss()
             menu.DismissOnActivate = true
             root.Children.Add(Cell.Mount[MenuInput, Menu]("menu", menu))
         }

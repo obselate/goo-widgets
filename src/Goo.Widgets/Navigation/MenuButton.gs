@@ -69,7 +69,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
             InitialFocusId: initialId,
             Placement: input.Placement,
             OnClick: input.OnClick,
-            OnOpenChange: (open bool) -> Change(open, false),
+            OnOpenChange: (isOpen bool) -> Change(isOpen, false),
         }
         if let create = input.CreateMenu {
             menu = create(input, menu) with{
@@ -78,7 +78,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
                 Items = input.Items,
                 InitialFocusId = initialId,
                 OnClick = input.OnClick,
-                OnOpenChange = (open bool) -> Change(open, false)
+                OnOpenChange = (isOpen bool) -> Change(isOpen, false)
             }
         }
         return Container{FlexDirection: FlexDirection.Row, button, Cell.Mount[MenuInput, Menu]("menu", menu),}

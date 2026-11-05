@@ -36,9 +36,10 @@ public data struct StackedBar {
     /// Builds a fresh chart tree; normalization avoids overflow even for very large finite quantities.
     public func Build() Blob {
         let theme = Theme.Read()
+        let defaultHeight Length = 16.0
         let resolved = this with{
             Width = Width ?? Percent(100),
-            Height = Height ?? 16.0,
+            Height = Height ?? defaultHeight,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             TrackColor = TrackColor ?? theme.BorderColor,
             AccessibilityName = AccessibilityName ?? theme.Text("Chart")

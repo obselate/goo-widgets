@@ -39,7 +39,7 @@ internal class MenuExample : Cell {
             SubmenuPlacement: left ? PopoverPlacement.LeftStart: PopoverPlacement.RightStart,
             Width: 240.0,
             AccessibilityName: "Project actions",
-            OnOpenChange: (open bool) -> Dismiss(),
+            OnOpenChange: (isOpen bool) -> Dismiss(),
             OnClick: Activate,
             Items: []MenuItem{
                 MenuItem{Id: "open", Label: "Open project"},
