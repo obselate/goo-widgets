@@ -325,6 +325,7 @@ internal class SkeletonHost : Cell {
     internal let Before ElementHandle = ElementHandle()
     internal let After ElementHandle = ElementHandle()
     internal let Viewport ElementHandle = ElementHandle()
+    internal let Shimmer ElementHandle = ElementHandle()
     internal var Animated bool?
     internal var Named bool
     internal var Builds int32
@@ -333,6 +334,10 @@ internal class SkeletonHost : Cell {
     private func Capture(index int32, root Container) Container {
         Builds++
         Roots[index] = root
+        if index == 2 {
+            let shape = (root.Children[0] as Container)!!
+            if shape.Children.Count > 0 { shape.Children[0].Handle = Shimmer }
+        }
         return root
     }
 
@@ -401,17 +406,18 @@ func SkeletonInteractions() {
         let second = ThemeCapture(window)
         Require(SkeletonDifference(first, second) > 100 && host.Builds == builds,
             "Skeleton shimmer did not move without rebuilding")
-        let visibleFrames = presents
+        let visibleX = host.Shimmer.BorderBox.X
         FeedbackWait(window, 150)
-        Require(presents > visibleFrames, "Visible Skeleton did not present frames")
+        Require(Math.Abs(host.Shimmer.BorderBox.X - visibleX) > 0.1, "Visible Skeleton sweep did not advance")
         Require(host.Viewport.JumpTo(0.0, 512.0), "Skeleton viewport did not scroll")
         FeedbackWait(window, 100)
         let clippedFrames = presents
         FeedbackWait(window, 150)
         Require(presents == clippedFrames, "Fully clipped Skeleton continued presenting frames")
         Require(host.Viewport.JumpTo(0.0, 0.0), "Skeleton viewport did not restore")
+        let restoredX = host.Shimmer.BorderBox.X
         FeedbackWait(window, 150)
-        Require(presents > clippedFrames, "Skeleton did not resume after scrolling into view")
+        Require(Math.Abs(host.Shimmer.BorderBox.X - restoredX) > 0.1, "Skeleton sweep did not resume after scrolling into view")
         host.Animated = false
         host.Named = true
         host.Rebuild()
