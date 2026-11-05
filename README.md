@@ -8,7 +8,7 @@ and embedded Material Symbols. Import the categories you use.
 ## Install
 
 Goo Widgets `0.18.6` requires Goo `0.27.5` or later, .NET 10, and
-`Gsharp.NET.Sdk/0.4.1150`. Install from NuGet.org:
+`Gsharp.NET.Sdk/0.5.212`. Install from NuGet.org:
 
 ```sh
 dotnet add YourApp.gsproj package Goo.Widgets --version 0.18.6

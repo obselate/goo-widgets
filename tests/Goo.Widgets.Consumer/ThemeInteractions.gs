@@ -270,10 +270,12 @@ internal class ThemeRadiusHost : Cell {
 }
 
 func ThemeRadiusContracts() {
+    let unsetRadii = Theme{}
+    let zeroRadii = unsetRadii with{
+        ControlRadius = 0, PanelRadius = 0, RadiusSm = 0, RadiusMd = 0, RadiusLg = 0, RadiusXl = 0,
+    }
     for explicit in []bool{false, true} {
-        let theme = explicit ? Theme{
-            ControlRadius: 0, PanelRadius: 0, RadiusSm: 0, RadiusMd: 0, RadiusLg: 0, RadiusXl: 0,
-        }: Theme{}
+        let theme = explicit ? zeroRadii: unsetRadii
         using let host = ThemePreferenceHost()
         host.Resize(600, 360, 600, 360)
         let root = ThemeRadiusHost(){Value = theme}
@@ -296,8 +298,9 @@ func ThemeRadiusContracts() {
 }
 
 func ThemeRadiusCapture() {
-    let root = ThemeRadiusHost(){Value = Theme{
-        ControlRadius: 0, PanelRadius: 0, RadiusSm: 0, RadiusMd: 0, RadiusLg: 0, RadiusXl: 0,
+    let defaults = Theme{}
+    let root = ThemeRadiusHost(){Value = defaults with{
+        ControlRadius = 0, PanelRadius = 0, RadiusSm = 0, RadiusMd = 0, RadiusLg = 0, RadiusXl = 0,
     }}
     let window = Window{Root: root, Width: 600, Height: 360}
     Theme.Attach(window, root.Value)
@@ -305,7 +308,7 @@ func ThemeRadiusCapture() {
         window.Open()
         PumpFrames(window, 12)
         CaptureIssueProof(window, "zero")
-        root.Value = Theme{}
+        root.Value = defaults
         Theme.Attach(window, root.Value)
         root.Rebuild()
         PumpFrames(window, 12)
@@ -444,11 +447,12 @@ func ThemePolicyContracts() {
     using let literalHost = ThemePreferenceHost()
     literalHost.Resize(360, 280, 360, 280)
     let literalAccent = Color.Rgb(31, 91, 173)
+    let literalTheme = Theme{AccentColor: literalAccent}
     let literalRoot = ThemeScopeHost(){
-        Value = Theme{AccentColor: literalAccent, BackdropColor: Color.Transparent, HoverColor: Color.Transparent}
+        Value = literalTheme with{BackdropColor = Color.Transparent, HoverColor = Color.Transparent}
     }
     let literalWindow = Window{Root: literalRoot}
-    Theme.Attach(literalWindow, Theme{AccentColor: literalAccent})
+    Theme.Attach(literalWindow, literalTheme)
     literalWindow.Attach(literalHost)
     ThemeFrames(literalHost)
     for probe in []ThemeProbe{literalRoot.Outside!!, literalRoot.Inside!!} {
