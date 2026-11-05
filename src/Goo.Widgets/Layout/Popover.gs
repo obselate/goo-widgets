@@ -281,6 +281,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             root.Children.Add(Portal{
                 Anchor: current.Anchor,
                 AnchorRect: current.AnchorRect,
+                HideWhenAnchorClipped: true,
                 Placement: switch current.Placement {
                     case PopoverPlacement.BottomStart: PortalPlacement.BottomStart
                     case PopoverPlacement.BottomEnd: PortalPlacement.BottomEnd
