@@ -43,14 +43,29 @@ public data struct RadioButton {
             JustifyContent: JustifyContent.Center,
         }
         if selected {
-            mark.Children.Add(Container{Width: theme.Spacing * 2.5, Height: theme.Spacing * 2.5, BorderRadius: theme.Spacing * 1.25, BackgroundColor: enabled ? theme.AccentColor: theme.DisabledTextColor})
+            mark.Children.Add(
+                Container{
+                    Width: theme.Spacing * 2.5,
+                    Height: theme.Spacing * 2.5,
+                    BorderRadius: theme.Spacing * 1.25,
+                    BackgroundColor: enabled ? theme.AccentColor: theme.DisabledTextColor
+                }
+            )
         }
         let text = Container{
             Gap: theme.Spacing,
             Text{Content: Label ?? "", FontFamily: theme.FontFamily, FontSize: theme.FontSize}
         }
         if let description = Description {
-            text.Children.Add(Text{Content: description, Color: !enabled ? theme.DisabledTextColor: selected && Card ? theme.SelectedText(theme.MutedTextColor): theme.MutedTextColor, FontSize: theme.CaptionFontSize})
+            text.Children.Add(
+                Text{
+                    Content: description,
+                    Color: !enabled ? theme.DisabledTextColor: selected && Card ? theme.SelectedText(
+                        theme.MutedTextColor
+                    ): theme.MutedTextColor,
+                    FontSize: theme.CaptionFontSize
+                }
+            )
         }
         var button = Button{
             Direction: theme.Direction,
@@ -58,12 +73,16 @@ public data struct RadioButton {
             FlexDirection: FlexDirection.Row,
             JustifyContent: JustifyContent.FlexStart,
             Gap: theme.ControlGap,
-            Color: enabled ? selected && Card ? theme.SelectedText(theme.TextColor): theme.TextColor: theme.DisabledTextColor,
+            Color: enabled ? selected && Card ? theme.SelectedText(
+                theme.TextColor
+            ): theme.TextColor: theme.DisabledTextColor,
             BorderWidth: Card || theme.HighContrast ? theme.BorderWidth: 0,
             BorderRadius: theme.ControlRadius!!,
             BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
             Padding: Card ? theme.ControlPadding: 0,
-            BackgroundColor: Card ? selected ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor: Color.Transparent,
+            BackgroundColor: Card ? selected ? theme.SelectedFill(
+                theme.ActiveColor
+            ): theme.PanelColor: Color.Transparent,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,

@@ -10,7 +10,13 @@ internal open class RadioButtonExample : Cell {
 
     public override func Build() Blob -> Container{
         Gap: Theme.Read().ControlGap,
-        RadioButton{Label: "Priority", Value: selected, OnChange: (value bool) -> { selected = value }}.Build(),
+        RadioButton{
+            Label: "Priority",
+            Value: selected,
+            OnChange: (value bool) -> {
+                selected = value
+            }
+        }.Build(),
         RadioButton{Label: "Standard", Value: true, Card: true}.Build(),
         RadioButton{Label: "Archived", Value: true, Disabled: true}.Build(),
     }
