@@ -115,6 +115,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             }
             let active = Selected(id)
             let enabled = !input.Disabled && !item.Disabled
+            let selectedFill = input.Variant == ToggleGroupVariant.Segmented && !theme.HighContrast ? theme.RaisedColor: theme.SelectedFill(theme.ActiveColor)
             var button = Button{
                 MinHeight: theme.ControlHeight,
                 Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
@@ -122,21 +123,20 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 FlexDirection: FlexDirection.Row,
                 Gap: theme.ControlGap,
                 BorderWidth: input.Variant == ToggleGroupVariant.Segmented ? Math.Max(2.0, theme.BorderWidth):
-                input.Variant == ToggleGroupVariant.Chips ? theme.BorderWidth: 0,
+                input.Variant == ToggleGroupVariant.Chips || theme.HighContrast ? theme.BorderWidth: 0,
                 BorderColor: input.Variant == ToggleGroupVariant.Segmented
                 ? active ? theme.StrongBorderColor: Color.Transparent
                 : active ? theme.AccentColor: theme.InputBorderColor,
                 BorderRadius: input.Variant == ToggleGroupVariant.Chips ? theme.ControlHeight / 2: theme.ControlRadius!!,
-                BackgroundColor: active
-                ? input.Variant == ToggleGroupVariant.Segmented ? theme.RaisedColor: theme.ActiveColor
-                : Color.Transparent,
+                BackgroundColor: active ? selectedFill: Color.Transparent,
                 BoxShadow: active && input.Variant == ToggleGroupVariant.Segmented ? theme.ElevationSm: BoxShadow{},
-                Color: active ? theme.TextColor: theme.MutedTextColor,
-                Hover: Style{BackgroundColor: theme.HoverColor},
-                Active: Style{BackgroundColor: theme.PressedColor},
-                Focus: theme.FocusStyle,
+                Color: active ? theme.SelectedText(theme.TextColor, selectedFill): theme.MutedTextColor,
+                Hover: active ? Style{BackgroundColor: selectedFill}: nil,
+                Active: active ? Style{BackgroundColor: selectedFill}: nil,
                 TransitionMs: theme.TransitionMs,
-                Opacity: enabled ? 1.0: 0.5,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
+                DisabledStyle: Style{BackgroundColor: theme.PanelColor},
             }
             if let leading = item.Leading {
                 button.Children.Add(leading)
@@ -145,6 +145,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             if let create = input.CreateItem {
                 button = create(input, item, button)
             }
+            theme.ApplyInteraction(button, InteractionFamily.Toggle, active)
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = !enabled

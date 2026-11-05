@@ -219,23 +219,23 @@ func ThemeFocusContracts() {
         Require(window.PerformAccessibilityAction(action.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
             "The action did not accept keyboard focus.")
         ThemeFrames(host)
-        RequireFocusOutline(root.ActionHandle, width, width, []int32{0})
+        RequireFocusOutline(root.ActionHandle, Math.Max(1.0, width), width, []int32{0})
         Require(root.Tab!!.Handle!!.Focus(), "The tab did not accept keyboard focus.")
         ThemeFrames(host)
-        RequireFocusOutline(root.Tab!!.Handle!!, width, -width)
+        RequireFocusOutline(root.Tab!!.Handle!!, Math.Max(1.0, width), -width)
         for index in 0 ... 2 {
             let header = FeedbackNode(adapter, AccessibilityRole.ColumnHeader, index == 0 ? "Name": "State")
             Require(window.PerformAccessibilityAction(header.Id, AccessibilityActionRequest(AccessibilityAction.Focus)),
                 "The grid header did not accept keyboard focus.")
             ThemeFrames(host)
-            RequireFocusOutline(root.GridRoot!!.Handle!!, width, -width, []int32{0, 0, 0, index, 0})
+            RequireFocusOutline(root.GridRoot!!.Handle!!, Math.Max(1.0, width), -width, []int32{0, 0, 0, index, 0})
         }
         Require(root.GridRoot!!.Handle!!.Focus(), "The grid did not accept keyboard focus.")
         root.GridRoot!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
         ThemeFrames(host)
         RequireFocusOutline(root.GridRow!!.Handle!!, width, -width, []int32{0})
     }
-    Console.WriteLine("PASS theme focus geometry: default, one pixel, zero, header, active cell, action, tab and scope")
+    Console.WriteLine("PASS theme focus geometry: minimum visible ring, header, active cell, action, tab and scope")
 }
 
 internal class ThemeRadiusHost : Cell {

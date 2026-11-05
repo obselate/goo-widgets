@@ -18,13 +18,13 @@ public data struct ToggleSwitch {
     var OffTrackColor Color?
     /// On-state track color. Nil resolves to the theme accent color.
     var OnTrackColor Color?
-    /// Disabled track color. Nil resolves to the theme faint text color.
+    /// Disabled track color. Nil uses the theme sunken color.
     var DisabledTrackColor Color?
     /// Off-state thumb color. Nil uses theme text.
     var ThumbColor Color?
     /// Normal on-state thumb color. Nil resolves to the theme accent foreground color.
     var OnThumbColor Color?
-    /// Disabled thumb color. Nil resolves to the theme faint text color.
+    /// Disabled thumb color. Nil uses the theme disabled text color.
     var DisabledThumbColor Color?
     /// Track border color. Nil resolves to the theme input border color.
     var BorderColor Color?
@@ -71,10 +71,10 @@ public data struct ToggleSwitch {
             AccessibilityName = AccessibilityName ?? "",
             OffTrackColor = OffTrackColor ?? theme.PanelColor,
             OnTrackColor = OnTrackColor ?? theme.AccentColor,
-            DisabledTrackColor = DisabledTrackColor ?? theme.FaintTextColor,
+            DisabledTrackColor = DisabledTrackColor ?? theme.SunkenColor,
             ThumbColor = ThumbColor ?? theme.TextColor,
             OnThumbColor = OnThumbColor ?? theme.OnAccentColor,
-            DisabledThumbColor = DisabledThumbColor ?? theme.FaintTextColor,
+            DisabledThumbColor = DisabledThumbColor ?? theme.DisabledTextColor,
             BorderColor = BorderColor ?? theme.InputBorderColor,
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             Width = Width ?? defaultWidth,
@@ -84,7 +84,7 @@ public data struct ToggleSwitch {
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? (height.HasMagnitude && !height.IsPercent ? height.Magnitude / 2.0: theme.Spacing * 3.0),
             ThumbRadius = ThumbRadius ?? thumbSize / 2.0,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -111,51 +111,30 @@ public data struct ToggleSwitch {
                 TransitionEasing: resolved.TransitionEasing!!,
             }
         }
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, thumb)
-            button.Disabled = resolved.Disabled
-            button.OnClick = resolved.Disabled ? nil: () -> resolved.OnChange?.Invoke(!resolved.Value)
-            button.Accessibility = Accessibility{Role: AccessibilityRole.Switch, Name: resolved.AccessibilityName!!, Checked: resolved.Value ? AccessibilityChecked.True: AccessibilityChecked.False}
-            WidgetKeyBindings.BindActivation(button)
-            return button
-        }
-        let trackColor = if resolved.Disabled {
-            resolved.DisabledTrackColor!!
-        } else if resolved.Value {
-            resolved.OnTrackColor!!
-        } else {
-            resolved.OffTrackColor!!
-        }
-        let button = Button{
+        let trackColor = resolved.Disabled ? resolved.DisabledTrackColor!!:
+            resolved.Value ? resolved.OnTrackColor!!: resolved.OffTrackColor!!
+        let button = if let createRoot = createRoot { createRoot(resolved, thumb) } else { Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             MinHeight: theme.ControlHeight,
             Padding: 0.0,
-            BorderWidth: 0.0,
+            BorderWidth: theme.HighContrast ? theme.BorderWidth: 0.0,
+            BorderColor: Color.Transparent,
             BackgroundColor: Color.Transparent,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
             Cursor: Cursor.Pointer,
             Focusable: true,
-            Disabled: resolved.Disabled,
-            OnClick: resolved.Disabled ? nil: () -> resolved.OnChange?.Invoke(!resolved.Value),
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
-            Active: Style{Transform: resolved.ActiveTransform!!},
-            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: theme.FocusRingWidth, OutlineOffset: theme.FocusRingOffset},
-            DisabledStyle: Style{},
+            TransitionProperties: ActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
+            Hover: Style{BackgroundColor: Color.Transparent},
+            Active: Style{BackgroundColor: Color.Transparent, Transform: resolved.ActiveTransform!!},
+            Focus: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.FlexStart,
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Switch,
-                Name: resolved.AccessibilityName!!,
-                Checked: if resolved.Value {
-                    AccessibilityChecked.True
-                } else {
-                    AccessibilityChecked.False
-                },
-            },
             Container{
                 Width: Percent(100.0),
                 Height: resolved.Height!!,
@@ -170,7 +149,12 @@ public data struct ToggleSwitch {
                 HitTestSelf: false,
                 thumb,
             },
-        }
+        } }
+        theme.ApplyInteraction(button, InteractionFamily.Toggle, Value)
+        button.Disabled = Disabled
+        button.Focusable = !Disabled
+        button.OnClick = Disabled ? nil: () -> OnChange?.Invoke(!Value)
+        button.Accessibility = Accessibility{Role: AccessibilityRole.Switch, Name: resolved.AccessibilityName!!, Checked: Value ? AccessibilityChecked.True: AccessibilityChecked.False}
         WidgetKeyBindings.BindActivation(button)
         return button
     }

@@ -349,11 +349,14 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Padding: 0.0,
             BackgroundColor: theme.PanelColor,
             BorderRadius: theme.ControlRadius!!,
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
         }
         if let create = current.CreateNavigation {
             button = create(current, delta, button)
         }
+        theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = delta < 0 ? "previous": "next"
         button.Disabled = !CanMonth(delta)
         button.Focusable = !button.Disabled
@@ -383,15 +386,19 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Padding: 0.0,
             BorderRadius: theme.ControlRadius!!,
             BackgroundColor: day.Selected ? theme.AccentColor: Color.Transparent,
-            Hover: Style{BackgroundColor: theme.HoverColor},
+            Hover: day.Selected ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
+            Active: day.Selected ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             BorderWidth: day.Today ? theme.BorderWidth: 0.0,
             BorderColor: theme.AccentColor,
-            Focus: theme.InsetFocusStyle,
-            Opacity: day.Disabled ? .35: 1.0
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
         }
         if let create = current.CreateDay {
             button = create(current, day, button)
         }
+        theme.ApplyInteraction(button, InteractionFamily.Toggle, day.Selected)
         button.Key = date.DayNumber.ToString()
         button.Handle = Handle(date)
         button.FlexGrow = 1.0
@@ -427,7 +434,9 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
-                Color: if day.Selected {
+                Color: if day.Disabled {
+                    theme.DisabledTextColor
+                } else if day.Selected {
                     theme.OnAccentColor
                 } else if day.CurrentMonth {
                     theme.TextColor

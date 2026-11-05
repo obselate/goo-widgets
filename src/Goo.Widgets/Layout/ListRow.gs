@@ -109,11 +109,11 @@ public data struct ListRow {
             AccessibilityName = AccessibilityName ?? titleText,
             Width = Width ?? Percent(100.0),
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
-            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.AccentColor.WithAlpha(0.15)),
+            SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.ActiveColor),
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             PressedBackgroundColor = PressedBackgroundColor ?? theme.PressedColor,
-            TextColor = Selected ? theme.SelectedText(text): text,
-            CaptionColor = Selected ? theme.SelectedText(captionColor): captionColor,
+            TextColor = Selected ? theme.SelectedText(text, SelectedBackgroundColor): text,
+            CaptionColor = Selected ? theme.SelectedText(captionColor, SelectedBackgroundColor): captionColor,
             SelectedBoxShadow = SelectedBoxShadow ?? ring,
             MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
@@ -121,7 +121,7 @@ public data struct ListRow {
             Gap = Gap ?? theme.ControlGap,
             ContentGap = ContentGap ?? theme.Spacing,
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             FontFamily = FontFamily ?? theme.FontFamily,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
@@ -188,21 +188,21 @@ public data struct ListRow {
         var root = Container{
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled && (resolved.OnClick != nil || resolved.OnInvoke != nil),
-            Hover: resolved.OnClick != nil ||
-                resolved.OnInvoke != nil ? Style{BackgroundColor: resolved.HoverBackgroundColor!!}: nil,
-            Active: resolved.OnClick != nil ||
-                resolved.OnInvoke != nil ? Style{BackgroundColor: resolved.PressedBackgroundColor!!}: nil,
+            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            Active: PressedBackgroundColor == nil ? nil: Style{BackgroundColor: PressedBackgroundColor!!},
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
             Padding: Edges(resolved.PaddingVertical!!, resolved.PaddingHorizontal!!),
             BorderRadius: resolved.BorderRadius!!,
+            BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+            BorderColor: Color.Transparent,
             BackgroundColor: background,
-            Focus: theme.FocusStyle,
-            Opacity: resolved.Opacity!!* (resolved.Disabled ? .45: 1),
+            Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
+            TransitionProperties: theme.InteractionTransitions,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: resolved.Gap!!,
@@ -215,6 +215,11 @@ public data struct ListRow {
         if let create = createRoot {
             root = create(resolved, Leading, content, Trailing)
         }
+        if Selected && SelectedBackgroundColor != nil {
+            root.Hover = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.Hover}
+            root.Active = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.Active}
+        }
+        theme.ApplyInteraction(root, InteractionFamily.Row, Selected, OnClick != nil || OnInvoke != nil)
         if resolved.Disabled {
             root.Disabled = true
         }
@@ -257,7 +262,7 @@ public data struct ListRow {
             if let trailing = Trailing {
                 root.Children.Add(trailing)
             }
-            if resolved.Selected && theme.Selection == SelectionStyle.Indicator {
+            if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
                 root.Children.Add(theme.SelectionBar())
             }
         }

@@ -280,14 +280,18 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
             Height: size,
             Padding: 0,
             BorderRadius: theme.ControlRadius!!,
+            BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+            BorderColor: Color.Transparent,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Cursor: Cursor.Pointer,
             Disabled: disabled,
-            Opacity: disabled ? 0.4: 1.0,
             BackgroundColor: on == true ? theme.AccentColor: Color.Transparent,
-            Hover: Style{BackgroundColor: on == true ? theme.AccentHoverColor: theme.HoverColor},
-            Focus: theme.FocusStyle,
+            Hover: on == true ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
+            Active: on == true ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: theme.Text(name),
@@ -295,8 +299,9 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
                 on == true ? AccessibilityChecked.True: AccessibilityChecked.False,
             },
             OnClick: action,
-            ControlIcons.Create(icon, 16, on == true ? theme.OnAccentColor: theme.MutedTextColor),
+            ControlIcons.Create(icon, 16, disabled ? theme.DisabledTextColor: on == true ? theme.OnAccentColor: theme.MutedTextColor),
         }
+        theme.ApplyInteraction(button, InteractionFamily.Toggle, on == true)
         WidgetKeyBindings.BindActivation(button)
         return button
     }

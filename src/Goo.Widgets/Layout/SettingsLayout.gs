@@ -137,17 +137,21 @@ public open class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                 JustifyContent: JustifyContent.FlexStart,
                 Gap: theme.Spacing,
                 BorderRadius: theme.ControlRadius!!,
-                BackgroundColor: selected == id ? theme.ActiveColor: Color.Transparent,
-                Color: theme.TextColor,
+                BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+                BorderColor: Color.Transparent,
+                BackgroundColor: selected == id ? theme.SelectedFill(theme.ActiveColor): Color.Transparent,
+                Color: selected == id ? theme.SelectedText(theme.TextColor): theme.TextColor,
                 OnClick: () -> value.OnSelect?.Invoke(id),
-                Hover: Style{BackgroundColor: selected == id ? theme.ActiveColor: theme.HoverColor},
-                Focus: theme.FocusStyle,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Button,
                     Name: section.Title ?? id,
                     Checked: selected == id ? AccessibilityChecked.True: AccessibilityChecked.False
                 }
             }
+            theme.ApplyInteraction(row, InteractionFamily.Row, selected == id)
             if let icon = section.Icon {
                 row.Children.Add(icon)
             }

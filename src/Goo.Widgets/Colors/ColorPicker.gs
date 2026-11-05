@@ -219,7 +219,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 OnAction: (request AccessibilityActionRequest) -> HandleAccessibility(request),
             }
         }
-        return Container{
+        let wheel = Container{
             Key: "color-wheel",
             Handle: wheelHandle,
             Width: resolved.WheelSize!!,
@@ -235,7 +235,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: theme.FocusRingOffset},
+            Focus: Style{OutlineColor: resolved.FocusOutlineColor!!},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
@@ -269,6 +272,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 marker,
             },
         }
+        theme.ApplyInteraction(wheel, InteractionFamily.Field)
+        return wheel
     }
 
     private func BuildModeSelector() Blob -> Container{
@@ -291,13 +296,13 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             FlexGrow: 1.0,
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             BorderRadius: theme.ControlRadius!!,
-            BackgroundColor: if currentMode == mode {
-                theme.PressedColor
-            } else {
-                theme.PanelColor
-            },
-            Hover: Style{BackgroundColor: theme.HoverColor},
-            Focus: theme.FocusStyle,
+            BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+            BorderColor: Color.Transparent,
+            BackgroundColor: currentMode == mode ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor,
+            Color: currentMode == mode ? theme.SelectedText(theme.TextColor): theme.TextColor,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Cursor: if resolved.Disabled {
                 Cursor.Default
             } else {
@@ -317,9 +322,9 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 FontFamily: theme.FontFamily,
                 FontSize: theme.LabelFontSize,
                 FontWeight: theme.LabelFontWeight,
-                Color: theme.TextColor,
             },
         }
+        theme.ApplyInteraction(button, InteractionFamily.Toggle, currentMode == mode)
         WidgetKeyBindings.BindActivation(button)
         return button
     }

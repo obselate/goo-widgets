@@ -132,7 +132,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
     }
 
     private func Row(match FuzzyMatchItem[string], theme Theme, highlighted int32) Container {
-        return Container{
+        let row = Container{
             Key: match.Item + "\0" + match.Order.ToString(),
             Height: rowHeight,
             FlexShrink: 0,
@@ -141,8 +141,11 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BorderRadius: theme.ControlRadius!!,
-            BackgroundColor: match.Order == highlighted ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
-            Color: theme.TextColor,
+            BackgroundColor: match.Order == highlighted ? theme.SelectedFill(theme.ActiveColor): Color.Transparent,
+            Color: match.Order == highlighted ? theme.SelectedText(theme.TextColor): theme.TextColor,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             OnPointerEnter: (event PointerEvent) -> {
@@ -168,6 +171,8 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             },
             FuzzyMatch.Label(match.Item, match.Match, theme),
         }
+        theme.ApplyInteraction(row, InteractionFamily.Row, match.Order == highlighted)
+        return row
     }
 
     private func Detect() bool {

@@ -109,7 +109,9 @@ public data struct MasterDetail {
                         Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                         BackgroundColor: Color.Transparent,
                         Color: theme.TextColor,
-                        Focus: theme.FocusStyle,
+                        TransitionMs: theme.TransitionMs,
+                        TransitionEasing: Easing.EaseOut,
+                        TransitionProperties: theme.InteractionTransitions,
                         Cursor: Cursor.Pointer,
                         Focusable: true,
                         OnClick: resolved.OnBack,
@@ -122,6 +124,7 @@ public data struct MasterDetail {
                         },
                     }
                 }
+                theme.ApplyInteraction(back, InteractionFamily.Button)
                 WidgetKeyBindings.BindActivation(back)
                 pane.Children.Add(back)
             }

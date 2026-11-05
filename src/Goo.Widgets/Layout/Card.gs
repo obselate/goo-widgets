@@ -103,15 +103,16 @@ public data struct Card {
             BorderColor: theme.BorderColor,
             BorderWidth: theme.BorderWidth,
             BorderRadius: radius,
-            Opacity: Disabled ? 0.5: 1,
             Disabled: Disabled,
             OnClick: Disabled ? nil: OnClick,
-            Focus: theme.FocusStyle,
-            Hover: Style{BackgroundColor: theme.HoverColor},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Cursor: Disabled ? Cursor.Default: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: AccessibilityName ?? Title ?? ""},
             body
         }
+        theme.ApplyInteraction(root, InteractionFamily.Button)
         body.BackgroundColor = Color.Transparent
         body.BorderWidth = 0
         WidgetKeyBindings.BindActivation(root)

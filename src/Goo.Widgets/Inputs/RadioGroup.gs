@@ -99,13 +99,13 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 FlexShrink: 0,
                 BorderRadius: theme.Spacing * 2.25,
                 BorderWidth: theme.BorderWidth,
-                BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
-                BackgroundColor: theme.FieldColor,
+                BorderColor: enabled ? selected ? theme.AccentColor: theme.InputBorderColor: theme.DisabledTextColor,
+                BackgroundColor: enabled ? theme.FieldColor: theme.SunkenColor,
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
             }
             if selected {
-                mark.Children.Add(Container{Width: theme.Spacing * 2.5, Height: theme.Spacing * 2.5, BorderRadius: theme.Spacing * 1.25, BackgroundColor: theme.AccentColor})
+                mark.Children.Add(Container{Width: theme.Spacing * 2.5, Height: theme.Spacing * 2.5, BorderRadius: theme.Spacing * 1.25, BackgroundColor: enabled ? theme.AccentColor: theme.DisabledTextColor})
             }
             let text = Container{
                 Gap: theme.Spacing,
@@ -113,7 +113,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             }
             if let description = item.Description {
                 text.Children.Add(
-                    Text{Content: description, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize}
+                    Text{Content: description, Color: !enabled ? theme.DisabledTextColor: selected && input.Card ? theme.SelectedText(theme.MutedTextColor): theme.MutedTextColor, FontSize: theme.CaptionFontSize}
                 )
             }
             var button = Button{
@@ -121,17 +121,16 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 FlexDirection: FlexDirection.Row,
                 JustifyContent: JustifyContent.FlexStart,
                 Gap: theme.ControlGap,
-                Color: theme.TextColor,
-                Focus: theme.FocusStyle,
-                BorderWidth: input.Card ? theme.BorderWidth: 0,
+                Color: enabled ? selected && input.Card ? theme.SelectedText(theme.TextColor): theme.TextColor: theme.DisabledTextColor,
+                BorderWidth: input.Card || theme.HighContrast ? theme.BorderWidth: 0,
                 BorderRadius: theme.ControlRadius!!,
                 BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
                 Padding: input.Card ? theme.ControlPadding: 0,
-                BackgroundColor: input.Card ? selected ? theme.ActiveColor: theme.PanelColor: Color.Transparent,
-                Hover: Style{BackgroundColor: theme.HoverColor},
-                Active: Style{BackgroundColor: theme.PressedColor},
+                BackgroundColor: input.Card ? selected ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor: Color.Transparent,
                 TransitionMs: theme.TransitionMs,
-                Opacity: enabled ? 1.0: 0.5,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
+                DisabledStyle: Style{BackgroundColor: input.Card ? theme.PanelColor: Color.Transparent},
                 mark,
             }
             if let leading = item.Leading {
@@ -141,6 +140,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             if let create = input.CreateItem {
                 button = create(input, item, button)
             }
+            theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && input.Card)
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = !enabled

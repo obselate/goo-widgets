@@ -231,8 +231,10 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 JustifyContent: JustifyContent.Center,
                 Gap: theme.ControlGap / 2.0,
                 BackgroundColor: Color.Transparent,
-                Hover: Style{BackgroundColor: theme.HoverColor},
-                Focus: theme.InsetFocusStyle,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
+                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Cursor: Cursor.Pointer,
                 Disabled: input.OnExpandedChange == nil,
                 OnClick: () -> input.OnExpandedChange?.Invoke(!input.Expanded),
@@ -240,6 +242,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16, theme.MutedTextColor),
                 Text{Content: label, Color: theme.MutedTextColor},
             }
+            theme.ApplyInteraction(fold, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(fold)
             root.Children.Add(fold)
         }

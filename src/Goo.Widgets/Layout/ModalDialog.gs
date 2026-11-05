@@ -183,7 +183,9 @@ public data struct ModalDialog {
                     BorderColor: resolved.BorderColor!!,
                     BackgroundColor: Color.Transparent,
                     Color: theme.TextColor,
-                    Focus: theme.FocusStyle,
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Cursor: Cursor.Pointer,
                     Focusable: true,
                     OnClick: resolved.OnCancel,
@@ -200,7 +202,11 @@ public data struct ModalDialog {
                     BorderRadius: theme.ControlRadius!!,
                     BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor,
                     Color: theme.OnAccentColor,
-                    Focus: theme.FocusStyle,
+                    Hover: Style{BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
+                    Active: Style{BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Cursor: if resolved.ConfirmDisabled {
                         Cursor.Default
                     } else {
@@ -214,6 +220,8 @@ public data struct ModalDialog {
                 }
             }
 
+            theme.ApplyInteraction(cancel, InteractionFamily.Button)
+            theme.ApplyInteraction(confirm, InteractionFamily.Button)
             cancel.OnClick = resolved.OnCancel
             cancel.AutoFocus = InitialFocus == nil &&
                 (Preset == ModalDialogPreset.Confirm || Preset == ModalDialogPreset.Destructive)

@@ -132,16 +132,19 @@ public open class TabBar : Cell[TabBarInput] {
             }
             let active = id == input.SelectedId
             var button = Button{
-                Opacity: item.Disabled ? .45: 1.0,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
                 MinHeight: input.ItemHeight!!,
                 Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                 FlexShrink: 0,
+                BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+                BorderColor: Color.Transparent,
                 Color: active ? theme.TextColor: theme.ChromeTextColor,
                 FontStyle: id == input.PreviewId ? FontStyle.Italic: FontStyle.Normal,
                 BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
-                Hover: Style{BackgroundColor: theme.HoverColor},
-                Focus: theme.InsetFocusStyle,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
+                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 JustifyContent: input.Vertical ? JustifyContent.FlexStart: JustifyContent.Center,
@@ -158,6 +161,7 @@ public open class TabBar : Cell[TabBarInput] {
             if let create = input.CreateItem {
                 button = create(input, item, button)
             }
+            theme.ApplyInteraction(button, InteractionFamily.Tab, active)
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled
@@ -224,6 +228,8 @@ public open class TabBar : Cell[TabBarInput] {
                 button.PaddingEnd = 0
                 button.BackgroundColor = Color.Transparent
                 button.Hover = Style{}
+                button.Active = Style{BackgroundColor: Color.Transparent}
+                button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
                 let tab = Container{
                     Key: id,
                     FlexDirection: FlexDirection.Row,
@@ -231,7 +237,9 @@ public open class TabBar : Cell[TabBarInput] {
                     AlignItems: AlignItems.Center,
                     PaddingEnd: theme.Spacing * 2,
                     BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
-                    Hover: Style{BackgroundColor: theme.HoverColor},
+                    Hover: Style{BackgroundColor: active ? theme.ActiveColor: theme.HoverColor},
+                    Disabled: item.Disabled,
+                    DisabledStyle: Style{Color: theme.DisabledTextColor, Opacity: theme.DisabledOpacity},
                     button
                 }
                 let close = Button{
@@ -242,15 +250,18 @@ public open class TabBar : Cell[TabBarInput] {
                     AlignItems: AlignItems.Center,
                     JustifyContent: JustifyContent.Center,
                     Color: theme.ChromeTextColor,
-                    Hover: Style{BackgroundColor: theme.PressedColor, Color: theme.TextColor},
+                    DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
                     Disabled: item.Disabled,
                     Focusable: !item.Disabled,
                     TabStop: false,
                     OnClick: () -> input.OnClose?.Invoke(id),
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Close {0}", item.Label!!)},
-                    Focus: theme.FocusStyle,
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Text{Content: "×", FontSize: theme.FontSize},
                 }
+                theme.ApplyInteraction(close, InteractionFamily.Button)
                 WidgetKeyBindings.BindActivation(close)
                 tab.Children.Add(close)
                 if let marker = indicator {

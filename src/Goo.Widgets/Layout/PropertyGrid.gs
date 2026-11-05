@@ -114,10 +114,13 @@ public data struct PropertyGrid {
                         JustifyContent: JustifyContent.FlexStart,
                         Gap: theme.Spacing,
                         Color: theme.TextColor,
-                        Focus: theme.FocusStyle,
+                        TransitionMs: theme.TransitionMs,
+                        TransitionEasing: Easing.EaseOut,
+                        TransitionProperties: theme.InteractionTransitions,
                         ControlIcons.Create(collapsed ? (theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight): ControlIcon.ExpandMore, 16, theme.MutedTextColor),
                         Text{Content: name, FontWeight: theme.HeadingFontWeight}
                     }
+                    theme.ApplyInteraction(heading, InteractionFamily.Row)
                     WidgetKeyBindings.BindActivation(heading)
                     group.Children.Add(heading)
                 } else {
@@ -182,10 +185,12 @@ public data struct PropertyGrid {
                 Disabled: item.Disabled,
                 OnClick: item.OnReset,
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Reset {0}", item.Label)},
-                Hover: Style{BackgroundColor: theme.HoverColor},
-                Focus: theme.FocusStyle,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 ControlIcons.Create(ControlIcon.RestartAlt, 16, theme.MutedTextColor)
             }
+            theme.ApplyInteraction(button, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(button)
             button
         } else {

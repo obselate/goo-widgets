@@ -134,7 +134,6 @@ public data struct UploadTile {
             BorderRadius: resolved.BorderRadius!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
-            Hover: Style{BackgroundColor: theme.HoverColor},
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             Overflow: Overflow.Hidden,

@@ -32,7 +32,7 @@ public data struct IconButton {
     var HoverBackgroundColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
-    /// Disabled opacity. Nil resolves to 0.4.
+    /// Disabled opacity. Nil uses the theme.
     var DisabledOpacity float64?
     /// Optional base style for the root button.
     var RootStyle Style?
@@ -53,48 +53,42 @@ public data struct IconButton {
             Padding = Padding ?? 0.0,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             BackgroundColor = BackgroundColor ?? Color.Transparent,
-            ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
+            ActiveBackgroundColor = ActiveBackgroundColor ?? theme.ActiveColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             FocusOutlineColor = FocusOutlineColor ?? theme.FocusColor,
-            DisabledOpacity = DisabledOpacity ?? 0.4,
+            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             CreateRoot = nil,
         }
         let icon = resolved.Icon ?? Container{Width: 0.0, Height: 0.0, Accessibility: Accessibility{Hidden: true}}
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, icon)
-            WidgetKeyBindings.BindActivation(button)
-            return button
-        }
-        let button = Button{
+        let button = if let createRoot = createRoot { createRoot(resolved, icon) } else { Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             Padding: resolved.Padding!!,
             BorderRadius: resolved.BorderRadius!!,
             AlignItems: AlignItems.Center,
+            BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+            BorderColor: Color.Transparent,
             JustifyContent: JustifyContent.Center,
             Cursor: Cursor.Pointer,
-            Disabled: resolved.Disabled,
-            Opacity: if resolved.Disabled {
-                resolved.DisabledOpacity!!
-            } else {
-                1.0
-            },
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             BackgroundColor: if resolved.Active {
                 resolved.ActiveBackgroundColor!!
             } else {
                 resolved.BackgroundColor!!
             },
-            Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: theme.FocusRingOffset},
+            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            Focus: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
             BasedOn: resolved.RootStyle,
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: resolved.AccessibilityName!!,
-                Selected: resolved.Active,
-            },
-            OnClick: resolved.OnClick,
             icon,
-        }
+        } }
+        theme.ApplyInteraction(button, InteractionFamily.Button, Active)
+        button.Disabled = Disabled
+        button.Focusable = !Disabled
+        button.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Selected: Active}
+        button.OnClick = Disabled ? nil: OnClick
         WidgetKeyBindings.BindActivation(button)
         return button
     }

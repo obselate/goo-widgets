@@ -77,7 +77,7 @@ public data struct SearchList {
         let background = BackgroundColor ?? theme.PanelColor
         let foreground = TextColor ?? theme.TextColor
         let muted = MutedColor ?? theme.MutedTextColor
-        let selection = SelectedColor ?? theme.AccentColor.WithAlpha(0.15)
+        let selection = SelectedColor ?? theme.SelectedFill(theme.ActiveColor)
         let focus = FocusColor ?? theme.FocusColor
         let selectedId = SelectedId
         let onSelect = Disabled ? nil: OnSelect
@@ -117,12 +117,16 @@ public data struct SearchList {
             Placeholder: Placeholder ?? theme.Text("Search"),
             PlaceholderColor: theme.PlaceholderColor,
             OnChange: Disabled ? nil: OnQueryChange,
-            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
         }
         if let createEntry = CreateEntry {
             entry = createEntry(this, entry)
         }
+        theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Disabled = Disabled
         entry.Focusable = !Disabled
         entry.Value = query
@@ -284,18 +288,17 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             Focusable: true,
             Cursor: Cursor.Pointer,
             Disabled: item.Disabled,
-            Opacity: if item.Disabled {
-                0.45
-            } else {
-                1.0
-            },
             BackgroundColor: if Selected {
                 options.Selection
             } else {
                 options.Background
             },
-            Hover: Style{BackgroundColor: options.Selection},
-            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: options.Focus, OutlineOffset: -theme.FocusRingWidth},
+            Hover: Selected && options.Owner.SelectedColor != nil ? Style{BackgroundColor: options.Selection}: nil,
+            Active: Selected && options.Owner.SelectedColor != nil ? Style{BackgroundColor: options.Selection}: nil,
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: options.Focus, OutlineOffset: -theme.FocusRingWidth},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: item.Label ?? "",
@@ -308,7 +311,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             },
             Text{
                 Content: item.Label ?? "",
-                Color: options.Foreground,
+                Color: item.Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(options.Foreground, options.Selection): options.Foreground,
                 FlexGrow: 1,
                 MinWidth: 0,
                 FontFamily: theme.FontFamily,
@@ -317,16 +320,18 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             },
             Text{
                 Content: item.Detail ?? "",
-                Color: options.Muted,
+                Color: item.Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(options.Muted, options.Selection): options.Muted,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.CaptionFontSize,
                 FontWeight: theme.CaptionFontWeight,
             },
         }
+        if Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) { row.Children.Add(theme.SelectionBar()) }
         var result Blob = row
         if let createRow = options.CreateRow {
             result = createRow(options.Owner, item, row)
         }
+        theme.ApplyInteraction(result, InteractionFamily.Row, Selected)
         result.Disabled = item.Disabled
         result.Focusable = !item.Disabled
         result.OnClick = row.OnClick

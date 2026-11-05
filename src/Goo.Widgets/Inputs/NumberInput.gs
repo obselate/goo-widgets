@@ -135,8 +135,9 @@ public open class NumberInput : Cell[NumberInputInput] {
             FontSize: theme.FontSize,
             FontFamily: theme.FontFamily,
             Cursor: Cursor.Text,
-            Focus: theme.FocusStyle,
-            DisabledStyle: Style{Color: theme.DisabledTextColor},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             OnChange: Changed,
             OnSubmit: text -> Commit(),
             OnBlur: event -> Commit(),
@@ -145,6 +146,7 @@ public open class NumberInput : Cell[NumberInputInput] {
         if let create = input.CreateEntry {
             entry = create(input, entry)
         }
+        theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Handle ??= handle
         entry.Key = "entry"
         entry.Disabled = input.Disabled
@@ -335,9 +337,12 @@ public open class NumberInput : Cell[NumberInputInput] {
             OnClick: () -> {
                 Step(direction)
             },
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             ControlIcons.Create(icon, 14, theme.MutedTextColor)
         }
+        theme.ApplyInteraction(button, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(button)
         return button
     }

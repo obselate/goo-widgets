@@ -91,11 +91,11 @@ public data struct Checkbox {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             CheckedBorderColor = CheckedBorderColor ?? theme.AccentColor,
             MarkColor = MarkColor ?? theme.OnAccentColor,
-            DisabledOpacity = DisabledOpacity ?? 0.5,
+            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!! / 2.0,
             MarkSize = MarkSize ?? theme.Spacing * 3.5,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             CreateRoot = nil,
         }
@@ -112,7 +112,7 @@ public data struct Checkbox {
             } else {
                 ControlIcon.Check
             }
-            content = ControlIcons.Create(mark, size: resolved.MarkSize!!, color: resolved.MarkColor!!)
+            content = ControlIcons.Create(mark, size: resolved.MarkSize!!, color: Disabled ? theme.DisabledTextColor: resolved.MarkColor!!)
         }
 
         var onClick Action? = nil
@@ -128,144 +128,58 @@ public data struct Checkbox {
                 onClick = () -> onChange(next)
             }
         }
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, content)
-            button.Disabled = resolved.Disabled
-            button.OnClick = onClick
-            button.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Checked: state, Description: resolved.Description ?? ""}
-            WidgetKeyBindings.BindActivation(button)
-            return button
-        }
-        if let label = resolved.Label {
+        let root = if let createRoot = createRoot { createRoot(resolved, content) } else {
             let markBox = Container{
                 Width: resolved.Size!!,
                 Height: resolved.Size!!,
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
-                BorderColor: if active {
-                    resolved.CheckedBorderColor!!
-                } else {
-                    resolved.BorderColor!!
-                },
-                BackgroundColor: if active {
-                    resolved.CheckedBackgroundColor!!
-                } else {
-                    resolved.BackgroundColor!!
-                },
-                TransitionMs: resolved.TransitionMs!!,
-                TransitionEasing: resolved.TransitionEasing!!,
+                BorderColor: Disabled ? theme.DisabledTextColor: active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!,
+                BackgroundColor: Disabled ? theme.SunkenColor: active ? resolved.CheckedBackgroundColor!!: resolved.BackgroundColor!!,
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
                 HitTestSelf: false,
             }
-            if let content = content {
-                markBox.Children.Add(content)
-            }
-            let root = Button{
-                LineHeight: theme.LineHeight,
-                Width: Length.Auto,
+            if let content = content { markBox.Children.Add(content) }
+            let button = Button{
+                Width: Label == nil ? resolved.HitSize!!: Length.Auto,
                 MinHeight: resolved.HitSize!!,
                 Gap: resolved.LabelGap!!,
-                Cursor: if resolved.Disabled {
-                    Cursor.Default
-                } else {
-                    Cursor.Pointer
-                },
-                Focusable: true,
-                Focus: theme.FocusStyle,
-                Disabled: resolved.Disabled,
-                OnClick: onClick,
+                Cursor: Cursor.Pointer,
+                BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+                BorderColor: Color.Transparent,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
+                TransitionProperties: theme.InteractionTransitions,
                 FlexDirection: FlexDirection.Row,
-                JustifyContent: JustifyContent.FlexStart,
-                Hover: Style{BackgroundColor: Color.Transparent},
-                Active: Style{BackgroundColor: Color.Transparent},
-                Accessibility: Accessibility{
-                    Role: AccessibilityRole.Checkbox,
-                    Name: resolved.AccessibilityName!!,
-                    Checked: state,
-                    Description: resolved.Description ?? "",
-                },
+                JustifyContent: Label == nil ? JustifyContent.Center: JustifyContent.FlexStart,
+                DisabledStyle: Style{BackgroundColor: Card && Label != nil ? theme.PanelColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
                 markBox,
-                Text{
-                    Content: label,
-                    Color: resolved.LabelColor!!,
-                    FontFamily: theme.FontFamily,
-                    FontSize: resolved.LabelFontSize!!,
-                    FontWeight: resolved.LabelFontWeight!!,
-                },
             }
-            if !resolved.Card && resolved.Description == nil {
-                root.Height = resolved.HitSize!!
+            if let label = resolved.Label {
+                let text = Text{Content: label,
+                    Color: Disabled ? theme.DisabledTextColor: active && Card ? theme.SelectedText(resolved.LabelColor!!): resolved.LabelColor!!,
+                    FontFamily: theme.FontFamily, FontSize: resolved.LabelFontSize!!, FontWeight: resolved.LabelFontWeight!!}
+                if let description = resolved.Description {
+                    button.Children.Add(Container{Gap: theme.Spacing, text,
+                        Text{Content: description, Color: Disabled ? theme.DisabledTextColor: active && Card ? theme.SelectedText(theme.MutedTextColor): theme.MutedTextColor, FontSize: theme.CaptionFontSize}})
+                } else { button.Children.Add(text) }
             }
-            if let description = resolved.Description {
-                let labelText = root.Children[1]
-                root.Children[1] = Container{
-                    Gap: theme.Spacing,
-                    labelText,
-                    Text{Content: description, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize},
-                }
+            if Label == nil || (!resolved.Card && resolved.Description == nil) { button.Height = resolved.HitSize!! }
+            if resolved.Card && Label != nil {
+                button.Padding = theme.ControlPadding
+                button.BorderWidth = resolved.BorderWidth!!
+                button.BorderRadius = theme.ControlRadius!!
+                button.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
+                button.BackgroundColor = active ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor
             }
-            if resolved.Card {
-                root.Padding = theme.ControlPadding
-                root.BorderWidth = resolved.BorderWidth!!
-                root.BorderRadius = theme.ControlRadius!!
-                root.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
-                root.BackgroundColor = active ? theme.ActiveColor: theme.PanelColor
-            }
-            if resolved.Disabled {
-                root.Opacity = resolved.DisabledOpacity!!
-            }
-            WidgetKeyBindings.BindActivation(root)
-            return root
+            button
         }
-        let root = Button{
-            Width: resolved.HitSize!!,
-            Height: resolved.HitSize!!,
-            Cursor: if resolved.Disabled {
-                Cursor.Default
-            } else {
-                Cursor.Pointer
-            },
-            Focusable: true,
-            Focus: theme.FocusStyle,
-            Disabled: resolved.Disabled,
-            OnClick: onClick,
-            TransitionMs: resolved.TransitionMs!!,
-            TransitionEasing: resolved.TransitionEasing!!,
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Checkbox,
-                Name: resolved.AccessibilityName!!,
-                Checked: state,
-            },
-        }
-        if resolved.Disabled {
-            root.Opacity = resolved.DisabledOpacity!!
-        }
-        let markBox = Container{
-            Width: resolved.Size!!,
-            Height: resolved.Size!!,
-            BorderWidth: resolved.BorderWidth!!,
-            BorderRadius: resolved.BorderRadius!!,
-            BorderColor: if active {
-                resolved.CheckedBorderColor!!
-            } else {
-                resolved.BorderColor!!
-            },
-            BackgroundColor: if active {
-                resolved.CheckedBackgroundColor!!
-            } else {
-                resolved.BackgroundColor!!
-            },
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            HitTestSelf: false,
-        }
-        if let content = content {
-            markBox.Children.Add(content)
-        }
-        root.Children.Add(markBox)
+        theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)
+        root.Disabled = Disabled
+        root.Focusable = !Disabled
+        root.OnClick = onClick
+        root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Checked: state, Description: resolved.Description ?? ""}
         WidgetKeyBindings.BindActivation(root)
         return root
     }
