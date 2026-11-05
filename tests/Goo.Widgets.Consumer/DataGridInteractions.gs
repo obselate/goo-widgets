@@ -223,7 +223,7 @@ internal class DataGridHeightHost : Cell {
                 }
             },
             ExpandedGroupIds: GroupExpansion ? []string{"0"}: []string{},
-            OnExpandedGroupChange: Navigation ? (id string, expanded bool) -> {
+            OnGroupExpandedChange: Navigation ? (id string, expanded bool) -> {
                 GroupExpansion = expanded
                 Rebuild()
             }: nil,

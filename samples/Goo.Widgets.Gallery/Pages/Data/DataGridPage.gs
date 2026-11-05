@@ -181,8 +181,8 @@ internal class DataGridExample : Cell {
                         order = value
                         Rebuild()
                     },
-                    Density: DataGridDensity.Normal,
-                    OnRowInvoke: (id string) -> Expand(id, true),
+                    Density: Density.Standard,
+                    OnClick: (id string) -> Expand(id, true),
                     Footer: Container{
                         FlexDirection: FlexDirection.Row,
                         JustifyContent: JustifyContent.SpaceBetween,

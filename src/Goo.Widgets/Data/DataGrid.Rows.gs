@@ -94,7 +94,7 @@ public open partial class DataGrid {
     private func First(last bool) string? {
         for step in 0 ... RowCount {
             let row = Row(last ? RowCount - step - 1: step)
-            if !row.Disabled && (!row.IsGroup || input.OnExpandedGroupChange != nil) {
+            if !row.Disabled && (!row.IsGroup || input.OnGroupExpandedChange != nil) {
                 return row.Id
             }
         }
@@ -133,7 +133,7 @@ public open partial class DataGrid {
         }
         if let content = fullWidth {
             cells.OnKeyDown = stopGridKeys
-            if row.IsGroup && snapshot.OnExpandedGroupChange != nil {
+            if row.IsGroup && snapshot.OnGroupExpandedChange != nil {
                 cells.FlexDirection = FlexDirection.Row
                 cells.Children.Add(Button{
                     Width: snapshot.ExpandColumnWidth!!,
@@ -141,7 +141,7 @@ public open partial class DataGrid {
                     FlexShrink: 0,
                     Focusable: false,
                     TabStop: false,
-                    OnClick: () -> input.OnExpandedGroupChange?.Invoke(id, !groupExpanded.Contains(id)),
+                    OnClick: () -> input.OnGroupExpandedChange?.Invoke(id, !groupExpanded.Contains(id)),
                     Accessibility: Accessibility{Hidden: true},
                     ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
                 })
@@ -325,7 +325,7 @@ public open partial class DataGrid {
             clickFromInteractiveChild = e.IsFromInteractiveChild
             clickCount = e.Button == PointerButton.Primary ? e.ClickCount: 0
             if (e.Button == PointerButton.Primary || e.Button == PointerButton.Secondary) &&
-                (!row.IsGroup || input.OnExpandedGroupChange != nil) {
+                (!row.IsGroup || input.OnGroupExpandedChange != nil) {
                 pointerFocus = true
                 if activeId != id {
                     activeId = id
@@ -343,7 +343,7 @@ public open partial class DataGrid {
             if !clickFromInteractiveChild {
                 if row.IsGroup {
                     if clickCount == 2 {
-                        input.OnExpandedGroupChange?.Invoke(id, !groupExpanded.Contains(id))
+                        input.OnGroupExpandedChange?.Invoke(id, !groupExpanded.Contains(id))
                     }
                 } else {
                     Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
@@ -371,7 +371,7 @@ public open partial class DataGrid {
                 actions.Add(isExpanded ? AccessibilityAction.Collapse: AccessibilityAction.Expand)
             }
         }
-        if row.IsGroup && !row.Disabled && !snapshot.Disabled && snapshot.OnExpandedGroupChange != nil {
+        if row.IsGroup && !row.Disabled && !snapshot.Disabled && snapshot.OnGroupExpandedChange != nil {
             actions.Add(AccessibilityAction.Focus)
             actions.Add(groupExpanded.Contains(id) ? AccessibilityAction.Collapse: AccessibilityAction.Expand)
         }
@@ -379,7 +379,7 @@ public open partial class DataGrid {
             Role: AccessibilityRole.Row,
             Name: row.Label ?? id,
             Selected: snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected,
-            Expanded: row.IsGroup && snapshot.OnExpandedGroupChange != nil ? groupExpanded.Contains(id):
+            Expanded: row.IsGroup && snapshot.OnGroupExpandedChange != nil ? groupExpanded.Contains(id):
                 (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
             Actions: actions.ToArray()
         }
@@ -527,7 +527,7 @@ public open partial class DataGrid {
 
     private func Invoke(id string) {
         if !input.Disabled && Index(id) >= 0 {
-            input.OnRowInvoke?.Invoke(id)
+            input.OnClick?.Invoke(id)
         }
     }
 
@@ -538,7 +538,7 @@ public open partial class DataGrid {
                 return true
             }
             if request.Action == AccessibilityAction.Expand || request.Action == AccessibilityAction.Collapse {
-                input.OnExpandedGroupChange?.Invoke(id, request.Action == AccessibilityAction.Expand)
+                input.OnGroupExpandedChange?.Invoke(id, request.Action == AccessibilityAction.Expand)
                 return true
             }
             return false
@@ -627,7 +627,7 @@ public open partial class DataGrid {
             return
         } else if e.Key == Key.Left || e.Key == Key.Right {
             if activeId != nil && current >= 0 && Row(current).IsGroup {
-                input.OnExpandedGroupChange?.Invoke(activeId!!, e.Key == Key.Right)
+                input.OnGroupExpandedChange?.Invoke(activeId!!, e.Key == Key.Right)
             } else if e.Modifiers.Alt && activeId != nil {
                 Expand(activeId!!, e.Key == Key.Right)
             } else {
@@ -678,7 +678,7 @@ public open partial class DataGrid {
             return -1
         }
         let row = Row(index)
-        return row.Disabled || row.IsGroup && input.OnExpandedGroupChange == nil ? -1: index
+        return row.Disabled || row.IsGroup && input.OnGroupExpandedChange == nil ? -1: index
     }
 
     private func SelectNavigation(index int32, extend bool) {
@@ -774,7 +774,7 @@ public open partial class DataGrid {
             (groupExpanded.Contains(row.Id!!) ? 8L: 0L) +
             (input.OnSelectionChange != nil || input.OnSelectionIndicesChange != nil || input.OnSelectionRequest != nil ? 16L: 0L) +
             ((row.HasDetail || row.Detail != nil) && input.OnExpandedChange != nil ? 32L: 0L) +
-            (row.IsGroup && input.OnExpandedGroupChange != nil ? 64L: 0L) +
+            (row.IsGroup && input.OnGroupExpandedChange != nil ? 64L: 0L) +
             (activeId == row.Id && hasFocus && !pointerFocus ? 128L * (int64(activeColumn) + 1L): 0L)
     }
 
@@ -786,8 +786,8 @@ public open partial class DataGrid {
             OnActiveRowChange = nil, OnActiveRowIndexChange = nil, OnActiveColumnChange = nil,
             OnSelectionChange = nil, OnSelectionIndicesChange = nil, OnSelectionRequest = nil,
             OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, CreateRoot = nil,
-            UseDefaultKeyboard = nil, OnRowInvoke = nil,
-            OnExpandedChange = nil, OnExpandedGroupChange = nil,
+            UseDefaultKeyboard = nil, OnClick = nil,
+            OnExpandedChange = nil, OnGroupExpandedChange = nil,
             ColumnWidths = nil, OnColumnWidthChange = nil, OnColumnWidthCommit = nil,
             FitColumnsToViewport = false, OnFittedColumnWidthsChange = nil, OnFittedColumnWidthsCommit = nil,
             OnColumnOrderChange = nil, RootHandle = nil, ViewportHandle = nil,
