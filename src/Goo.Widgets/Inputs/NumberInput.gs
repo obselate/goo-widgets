@@ -43,6 +43,8 @@ public data struct NumberInputInput {
     var Error string?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Preserves focus, selection and copy while preventing edits and stepping.
+    var ReadOnly bool
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Root layout width. Nil uses 160 logical pixels.
@@ -146,6 +148,7 @@ public open class NumberInput : Cell[NumberInputInput] {
         entry.Handle ??= handle
         entry.Key = "entry"
         entry.Disabled = input.Disabled
+        entry.ReadOnly = input.ReadOnly
         entry.Focusable = !input.Disabled
         frame.Children.Add(entry)
         if let suffix = input.Suffix {
@@ -159,7 +162,7 @@ public open class NumberInput : Cell[NumberInputInput] {
                         Items: input.Units,
                         SelectedId: input.Unit,
                         OnSelect: input.OnUnitChange,
-                        Disabled: input.Disabled,
+                        Disabled: input.Disabled || input.ReadOnly,
                         AccessibilityName: theme.Text("Unit"),
                         Width: 90,
                         CreateTrigger: (props, button) -> {
@@ -201,6 +204,7 @@ public open class NumberInput : Cell[NumberInputInput] {
                     Name: input.AccessibilityName ?? input.Label ?? theme.Text("Number"),
                     Value: draft,
                     Invalid: invalid || input.Error != nil,
+                    ReadOnly: input.ReadOnly,
                     Relationships: relations,
                     Range: AccessibilityValue{Now: value, Minimum: input.Minimum, Maximum: input.Maximum, Text: draft},
                     Actions: []AccessibilityAction{
@@ -209,7 +213,7 @@ public open class NumberInput : Cell[NumberInputInput] {
                         AccessibilityAction.SetValue
                     },
                     OnAction: request -> {
-                        if input.Disabled {
+                        if input.Disabled || input.ReadOnly {
                             return false
                         }
                         if request.Action == AccessibilityAction.Increment {
@@ -263,7 +267,7 @@ public open class NumberInput : Cell[NumberInputInput] {
     }
 
     private func Commit() {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         let parsed = Parsed()
@@ -290,7 +294,7 @@ public open class NumberInput : Cell[NumberInputInput] {
     }
 
     private func Step(direction float64, page bool = false) {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         let parsed = Parsed()
@@ -299,7 +303,7 @@ public open class NumberInput : Cell[NumberInputInput] {
     }
 
     private func HandleKey(event KeyEvent) {
-        if current.Disabled || event.Modifiers.Ctrl || event.Modifiers.Alt || event.Modifiers.Super {
+        if current.Disabled || current.ReadOnly || event.Modifiers.Ctrl || event.Modifiers.Alt || event.Modifiers.Super {
             return
         }
         if event.Key == Key.Up {
@@ -325,8 +329,8 @@ public open class NumberInput : Cell[NumberInputInput] {
             Padding: 0,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            Disabled: current.Disabled,
-            Focusable: !current.Disabled,
+            Disabled: current.Disabled || current.ReadOnly,
+            Focusable: !current.Disabled && !current.ReadOnly,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
             OnClick: () -> {
                 Step(direction)
@@ -339,7 +343,7 @@ public open class NumberInput : Cell[NumberInputInput] {
     }
 
     private func ScrubStart(event PointerEvent) {
-        if current.Disabled || event.Button != PointerButton.Primary {
+        if current.Disabled || current.ReadOnly || event.Button != PointerButton.Primary {
             return
         }
         scrubbing = true
@@ -349,7 +353,7 @@ public open class NumberInput : Cell[NumberInputInput] {
     }
 
     private func ScrubMove(event PointerEvent) {
-        if scrubbing && !current.Disabled {
+        if scrubbing && !current.Disabled && !current.ReadOnly {
             let moved = (event.WindowPosition.X - scrubX) * (rightToLeft ? -1.0: 1.0)
             SetValue(scrubValue + Math.Truncate(moved / 8) * (current.Step ?? 1))
         }
@@ -361,7 +365,7 @@ public open class NumberInput : Cell[NumberInputInput] {
         }
         scrubbing = false
         event.ReleaseCapture()
-        if !current.Disabled {
+        if !current.Disabled && !current.ReadOnly {
             current.OnCommit?.Invoke(value)
         }
     }

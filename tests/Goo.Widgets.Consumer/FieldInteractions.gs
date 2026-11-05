@@ -38,6 +38,7 @@ internal class FieldHost : Cell {
                 Maximum: 20,
                 Step: 0.5,
                 Disabled: Disabled,
+                ReadOnly: ReadOnly,
                 Width: Percent(100),
                 OnChange: value -> {
                     if !Reject {
@@ -65,6 +66,7 @@ internal class FieldHost : Cell {
             RevealButton: true,
             MaxLength: 4,
             Disabled: Disabled,
+            ReadOnly: ReadOnly,
             Width: Percent(100),
             OnChange: value -> {
                 Text = value
@@ -79,7 +81,6 @@ internal class FieldHost : Cell {
                     Password: input.Password,
                     OnChange: input.OnChange,
                     OnSubmit: input.OnSubmit,
-                    Accessibility: Accessibility{ReadOnly: ReadOnly},
                     Height: 36,
                     Width: Percent(100)
                 }
@@ -231,6 +232,30 @@ func FieldInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(FindSemantics(semantics.Tree?.Root, "Clear Password") == nil, "Read-only field exposed a clear button")
+        Require(host.NumberHandle.Focus(), "Read-only number did not focus")
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        Require(window.GetClipboardText() == "2", "Read-only number did not copy its selection")
+        SelectorType(window, id, "8")
+        SendKey(id, SDLScancode.Up)
+        SendKey(id, SDLScancode.Pageup)
+        PumpFrames(window, 5)
+        Require(host.Number == 2 && host.Entry!!.Value == "2", "Read-only number accepted editing or stepping")
+        Require(host.Entry!!.Accessibility!!.ReadOnly == true, "Number did not expose read-only state")
+        Require(
+            !window.PerformAccessibilityAction(numeric.Id, AccessibilityActionRequest.SetValue("7"))
+            && !window.PerformAccessibilityAction(numeric.Id, AccessibilityActionRequest(AccessibilityAction.Increment)),
+            "Read-only number accepted an accessibility edit"
+        )
+        Require(host.PasswordHandle.Focus(), "Read-only text did not focus")
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        SelectorType(window, id, "changed")
+        SendKey(id, SDLScancode.Backspace)
+        PumpFrames(window, 5)
+        Require(host.Text == "Read only", "Read-only text accepted editing")
+        Require(host.PasswordEntry!!.Accessibility!!.ReadOnly == true, "Text did not expose read-only state")
+        Console.WriteLine("PASS: read-only number and text retain focus and selection and reject editing and stepping")
         host.ReadOnly = false
         host.Disabled = true
         host.Rebuild()

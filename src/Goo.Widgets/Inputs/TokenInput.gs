@@ -24,6 +24,8 @@ public data struct TokenInputInput {
     var AccessibilityName string?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Preserves focus, selection and copy while preventing token edits and suggestions.
+    var ReadOnly bool
     /// Root layout width. Nil uses 360 logical pixels.
     var Width Length?
     /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
@@ -76,6 +78,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                         Selected: selected == index,
                         Invalid: !(input.Validate?.Invoke(values[index]) ?? true),
                         Disabled: input.Disabled,
+                        ReadOnly: input.ReadOnly,
                     }
                 )
             )
@@ -87,6 +90,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                 Placeholder: input.Placeholder ?? theme.Text("Add a token"),
                 AccessibilityName: input.AccessibilityName ?? theme.Text("Tokens"),
                 Disabled: input.Disabled,
+                ReadOnly: input.ReadOnly,
                 Width: Length.Auto,
                 BorderWidth: 0,
                 BackgroundColor: Color.Transparent,
@@ -113,6 +117,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                         entry = create(input, entry)
                     }
                     entry.Handle = editor
+                    entry.ReadOnly = input.ReadOnly
                     entry.OnKeyDown = KeyDown
                     return entry
                 },
@@ -125,7 +130,7 @@ public open class TokenInput : Cell[TokenInputInput] {
             }.Build()
         )
         root.Children.Add(frame)
-        if !input.Disabled && draft.Length > 0 {
+        if !input.Disabled && !input.ReadOnly && draft.Length > 0 {
             let items = input.Suggestions ?? []string{}
             let matches = List[int32]()
             for index in 0 ... items.Length {
@@ -162,7 +167,7 @@ public open class TokenInput : Cell[TokenInputInput] {
     }
 
     private func Changed(value string) {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         selected = -1
@@ -176,7 +181,7 @@ public open class TokenInput : Cell[TokenInputInput] {
     }
 
     private func Commit(value string) {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         let tokens = List[string](current.Value ?? []string{})
@@ -201,7 +206,7 @@ public open class TokenInput : Cell[TokenInputInput] {
     }
 
     internal func Remove(index int32) {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         let tokens = List[string](current.Value ?? []string{})
@@ -216,7 +221,7 @@ public open class TokenInput : Cell[TokenInputInput] {
     }
 
     private func KeyDown(event KeyEvent) {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         if event.Key == Key.Backspace && draft.Length == 0 && (current.Value?.Length ?? 0) > 0 {
@@ -242,6 +247,7 @@ internal data struct TokenChipInput {
     internal var Selected bool
     internal var Invalid bool
     internal var Disabled bool
+    internal var ReadOnly bool
 }
 
 internal class TokenChip : Cell[TokenChipInput] {
@@ -264,7 +270,7 @@ internal class TokenChip : Cell[TokenChipInput] {
             Height: Theme.Read().ControlHeight - 8,
             PaddingHorizontal: 8,
             OnClick: activate,
-            OnRemove: remove,
+            OnRemove: input.ReadOnly ? nil: remove,
         }.Build()
     }
 }

@@ -21,6 +21,7 @@ internal class TokenHost : Cell {
     internal var Query string = ""
     internal var Removed int32
     internal var Disabled bool
+    internal var ReadOnly bool
     internal var Suggestions[]string = []string{}
 
     public override func Build() Blob -> Container{
@@ -35,6 +36,7 @@ internal class TokenHost : Cell {
                 Width: Percent(100),
                 AccessibilityName: "Recipients",
                 Disabled: Disabled,
+                ReadOnly: ReadOnly,
                 Suggestions: Suggestions,
                 Validate: value -> value.Contains("@"),
                 OnChange: values -> {
@@ -112,6 +114,25 @@ func TokenInteractions() {
         SelectorType(window, id, "invalid")
         Require(FindSemantics(semantics.Tree?.Root, "Add invalid-0") != nil, "Matching token suggestion did not mount")
         Require(FindSemantics(semantics.Tree?.Root, "Add invalid-999") == nil, "Off-screen token suggestion mounted")
+        host.ReadOnly = true
+        host.Rebuild()
+        PumpFrames(window, 5)
+        Require(host.Entry!!.Handle!!.Focus(), "Read-only token entry did not focus")
+        Require(host.Entry!!.Accessibility!!.ReadOnly == true, "Token entry did not expose read-only state")
+        Require(FindSemantics(semantics.Tree?.Root, "Add invalid-0") == nil, "Read-only token suggestions remained visible")
+        Require(FindSemantics(semantics.Tree?.Root, "Remove first@example.com") == nil, "Read-only token exposed removal")
+        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+        SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        Require(window.GetClipboardText() == "invalid", "Read-only token draft did not copy")
+        SelectorType(window, id, "changed,")
+        SendKey(id, SDLScancode.Backspace)
+        SendKey(id, SDLScancode.Return)
+        PumpFrames(window, 5)
+        Require(host.Tokens.Length == 1 && host.Entry!!.Value == "invalid", "Read-only token draft changed")
+        host.ReadOnly = false
+        host.Rebuild()
+        PumpFrames(window, 5)
+        Console.WriteLine("PASS: read-only tokens retain focus selection and copy without edits removal or suggestions")
         SendKey(id, SDLScancode.Return)
         PumpFrames(window, 6)
         Require(host.Tokens.Length == 2 && host.Tokens[1] == "invalid", "Enter did not retain an invalid token")

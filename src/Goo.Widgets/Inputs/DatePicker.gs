@@ -15,6 +15,8 @@ public data struct DatePickerInput {
     var OnChange Action[DateOnly?]?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
+    /// Preserves focus, selection and copy while preventing edits and calendar opening.
+    var ReadOnly bool
     /// Nil defaults to true. Empty input commits nil; false treats empty input as invalid.
     var AllowEmpty bool?
     /// Inclusive earliest selectable civil date. Nil imposes no lower bound.
@@ -125,7 +127,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
         lastValue = input.Value
         BindOverlay(input.OverlayHost)
-        let requestedOpen = !input.Disabled && (input.Open ?? ownedOpen)
+        let requestedOpen = !input.Disabled && !input.ReadOnly && (input.Open ?? ownedOpen)
         let isOpen = requestedOpen && (overlay?.IsMounted ?? true)
         var entry = TextEntry{
             Height: theme.ControlHeight,
@@ -152,6 +154,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         entry.Controlled = true
         entry.Placeholder = current.Placeholder!!
         entry.Disabled = current.Disabled
+        entry.ReadOnly = current.ReadOnly
         entry.Focusable = !current.Disabled
         entry.OnChange = Edited
         entry.OnSubmit = (value string) -> Submit()
@@ -166,6 +169,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Name: current.AccessibilityName!!,
             Invalid: invalid,
             Required: !current.AllowEmpty!!,
+            ReadOnly: current.ReadOnly,
             Relationships: AccessibilityRelationships{
                 Controls: []ElementHandle{calendarHandle},
                 ErrorMessage: invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
@@ -182,8 +186,8 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             button = create(current, button)
         }
         button.Key = "open"
-        button.Disabled = current.Disabled
-        button.Focusable = !current.Disabled
+        button.Disabled = current.Disabled || current.ReadOnly
+        button.Focusable = !current.Disabled && !current.ReadOnly
         button.OnClick = () -> SetOpen(!isOpen)
         WidgetKeyBindings.BindActivation(button)
         button.Accessibility = Accessibility{
@@ -298,7 +302,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     }
 
     private func Submit() {
-        if current.Disabled || !dirty {
+        if current.Disabled || current.ReadOnly || !dirty {
             return
         }
         var parsed DateOnly?
@@ -338,7 +342,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     }
 
     private func Selected(date DateOnly) {
-        if !Allowed(date) {
+        if current.Disabled || current.ReadOnly || !Allowed(date) {
             return
         }
         Apply(date)
@@ -346,7 +350,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     }
 
     private func SetOpen(value bool) {
-        if current.Disabled {
+        if current.Disabled || current.ReadOnly {
             return
         }
         ownedOpen = value
@@ -370,6 +374,9 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     }
 
     private func InputKey(event KeyEvent) {
+        if current.Disabled || current.ReadOnly {
+            return
+        }
         if event.Key == Key.Escape {
             event.PreventDefault()
             event.StopPropagation()
