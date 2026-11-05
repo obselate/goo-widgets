@@ -10,6 +10,7 @@
 - Virtualize TriggerMenu and TokenInput suggestions in bounded lists.
 - Cache `ComboBox` and `SearchList` rows and lookups until their source or query inputs change.
 - Virtualize Markdown blocks when `MarkdownViewInput.Height` is bounded. Leave it unset for content-sized views. Use `MarkdownViewState.ScrollToHeading(id)` instead of `MarkdownHeading.Handle.ScrollIntoView()` for off-screen headings.
+- Cache prepared `ListView` rows until the items, sections or query change.
 
 ## 0.18.6 - 2026-11-03
 
