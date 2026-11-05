@@ -78,6 +78,24 @@
       "symbol": "Goo.Widgets.Graphs.GraphNodeCard.Width",
       "signature": "var Width float64",
       "reason": "The node occupies a fixed world-coordinate rectangle width. S20 still requires nullable overrides."
+    },
+    {
+      "rule": "S27",
+      "symbol": "Goo.Widgets.Data.DataGrid",
+      "signature": "public open class DataGrid : Cell[DataGridInput],IDisposable",
+      "reason": "G# drops XML summaries of partial types (compiler defect, Gsharp.NET.Sdk 0.4.1150 to 0.5.460)"
+    },
+    {
+      "rule": "S27",
+      "symbol": "Goo.Widgets.Graphs.GraphCanvas",
+      "signature": "public open class GraphCanvas : Cell[GraphCanvasInput]",
+      "reason": "G# drops XML summaries of partial types (compiler defect, Gsharp.NET.Sdk 0.4.1150 to 0.5.460)"
+    },
+    {
+      "rule": "S27",
+      "symbol": "Goo.Widgets.Inputs.TouchTextEditing",
+      "signature": "public open class TouchTextEditing : Cell[TouchTextEditingInput],IDisposable",
+      "reason": "G# drops XML summaries of partial types (compiler defect, Gsharp.NET.Sdk 0.4.1150 to 0.5.460)"
     }
   ]
 }

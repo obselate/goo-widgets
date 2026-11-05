@@ -16,6 +16,7 @@ public data struct TouchTextEditingInput {
     var Enabled bool?
 }
 
+/// Adds long-press selection, endpoint handles and an edit toolbar to a text field.
 public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDisposable {
     private let defaultHandle ElementHandle = ElementHandle()
     private let viewportHandle ElementHandle = ElementHandle()

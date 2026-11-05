@@ -4,7 +4,6 @@ import Goo
 import System
 import System.Numerics
 
-/// Adds long-press selection, endpoint handles and an edit toolbar to a text field.
 public open partial class TouchTextEditing {
     private var magnifier ShaderEffect?
 
