@@ -498,6 +498,7 @@ func CalendarInteractions() {
         let original = host.Entry!!.Value
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
         Require(window.GetClipboardText() == original, "Read-only date did not copy its selection")
         SelectorType(window, id, "changed")
         SendKey(id, SDLScancode.F4)

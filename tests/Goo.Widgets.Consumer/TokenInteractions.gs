@@ -123,6 +123,7 @@ func TokenInteractions() {
         Require(FindSemantics(semantics.Tree?.Root, "Remove first@example.com") == nil, "Read-only token exposed removal")
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
         Require(window.GetClipboardText() == "invalid", "Read-only token draft did not copy")
         SelectorType(window, id, "changed,")
         SendKey(id, SDLScancode.Backspace)

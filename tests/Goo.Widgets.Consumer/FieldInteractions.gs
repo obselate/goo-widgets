@@ -235,6 +235,7 @@ func FieldInteractions() {
         Require(host.NumberHandle.Focus(), "Read-only number did not focus")
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
+        PumpFrames(window, 4)
         Require(window.GetClipboardText() == "2", "Read-only number did not copy its selection")
         SelectorType(window, id, "8")
         SendKey(id, SDLScancode.Up)
