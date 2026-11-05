@@ -303,20 +303,20 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         } else {
             Button{
                 Width: if primary {
-                    input.PrimaryActionSize
+                    input.PrimaryActionSize!!
                 } else {
-                    input.ActionSize
+                    input.ActionSize!!
                 },
                 Height: if primary {
-                    input.PrimaryActionSize
+                    input.PrimaryActionSize!!
                 } else {
-                    input.ActionSize
+                    input.ActionSize!!
                 },
                 Padding: 0.0,
                 BorderRadius: if primary {
-                    input.PrimaryActionSize / 2.0
+                    input.PrimaryActionSize!! / 2.0
                 } else {
-                    input.ActionSize / 2.0
+                    input.ActionSize!! / 2.0
                 },
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
