@@ -184,7 +184,7 @@ internal class ChromeHost : Cell {
     private func Control(input WindowChrome, command WindowChromeAction, content Blob, action Action?) Button {
         let button = Button{
             Handle: ElementHandle(),
-            Width: input.ControlWidth,
+            Width: input.ControlWidth!!,
             Height: input.Height!!,
             Padding: 0.0,
             BackgroundColor: Color.Transparent,
