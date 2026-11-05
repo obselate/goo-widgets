@@ -5,7 +5,7 @@ An optional `MarkdownView` for Goo. This package depends on
 the base Goo.Widgets package has no Markdown parser dependency.
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.18.6
+dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.19.0
 ```
 
 ```gsharp

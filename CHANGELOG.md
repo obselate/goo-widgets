@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.0 - 2026-11-06
+
 - Wait for virtual Markdown blocks to remount before checking retained selection in native tests.
 - Close native test windows before the next fixture starts.
 - Keep virtual rows at scroll offset zero when retained row content changes without a prepend.
