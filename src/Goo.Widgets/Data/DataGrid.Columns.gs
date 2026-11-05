@@ -316,7 +316,10 @@ public open partial class DataGrid {
                 MinWidth: 0,
                 Position: PositionType.Relative,
                 Overflow: Overflow.Hidden,
-                OnKeyDown: stopGridKeys
+                OnKeyDown: stopGridKeys,
+                BorderWidth: !filter && reorderColumn != nil && reorderTarget == index ?
+                    (ColumnIndex(reorderColumn) < index ? Edges{Right: theme.FocusRingWidth}: Edges{Left: theme.FocusRingWidth}): Edges{},
+                BorderColor: theme.FocusColor
             }
             if filter {
                 slot.Padding = theme.Spacing
@@ -337,18 +340,24 @@ public open partial class DataGrid {
                         !snapshot.Disabled ||
                         snapshot.OnColumnOrderChange != nil &&
                         !snapshot.Disabled,
-                    OnClick: () -> Sort(id),
+                    TabStop: false,
+                    OnClick: () -> Sort(id, clickModifiers),
                     OnPointerDown: (e PointerEvent) -> {
+                        clickModifiers = e.Modifiers
                         reorderOrigin = e.WindowPosition.X
                         reordered = false
                         if snapshot.OnColumnOrderChange != nil &&
                             e.Button == PointerButton.Primary &&
                             !snapshot.Disabled {
+                            reorderPointer = e.PointerId
                             e.Capture()
                         }
                     },
+                    OnPointerMove: (e PointerEvent) -> MoveReorder(id, e),
+                    OnPointerCancel: (e PointerEvent) -> StopReorder(),
                     OnPointerUp: (e PointerEvent) -> Reorder(id, e),
                     OnKeyDown: (e KeyEvent) -> {
+                        clickModifiers = e.Modifiers
                         if e.Modifiers.Alt && (e.Key == Key.Left || e.Key == Key.Right) {
                             MoveColumn(id, e.Key == Key.Left ? -1: 1)
                             e.PreventDefault()
@@ -385,6 +394,7 @@ public open partial class DataGrid {
                     handle.Width = 7
                     handle.Cursor = Cursor.ResizeHorizontal
                     handle.Focusable = !snapshot.Disabled
+                    handle.TabStop = false
                     handle.OnPointerDown = (e PointerEvent) -> BeginResize(id, e)
                     handle.OnPointerMove = moveResize
                     handle.OnPointerUp = endResize
@@ -431,7 +441,7 @@ public open partial class DataGrid {
         return input.SortColumnId == id ? input.SortDirection: DataGridSort.None
     }
 
-    private func Sort(id string) {
+    private func Sort(id string, modifiers KeyModifiers) {
         if reordered {
             reordered = false
             return
@@ -440,12 +450,17 @@ public open partial class DataGrid {
         if index < 0 || input.Disabled || !columns[index].Sortable {
             return
         }
+        if (modifiers.Ctrl || modifiers.Super) && modifiers.Shift {
+            return
+        }
         let current = SortDirection(id)
-        let next = current == DataGridSort.None ? DataGridSort.Ascending: current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.None
+        let clear = (modifiers.Ctrl || modifiers.Super) && !modifiers.Shift
+        let next = clear ? DataGridSort.None:
+            current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.Ascending
         if input.OnSortsChange != nil {
             let sorts = List[DataGridSortColumn]()
             var found = false
-            for sort in input.Sorts ?? []DataGridSortColumn{} {
+            for sort in modifiers.Shift ? input.Sorts ?? []DataGridSortColumn{}: []DataGridSortColumn{} {
                 if sort.ColumnId == id {
                     found = true
                     if next != DataGridSort.None {
@@ -469,9 +484,8 @@ public open partial class DataGrid {
         let target = index + delta
         if input.Disabled ||
             input.OnColumnOrderChange == nil ||
-            index < pinnedCount ||
-            target < pinnedCount ||
-            target >= columns.Length {
+            index < 0 || target < 0 || target >= columns.Length ||
+            (index < pinnedCount) != (target < pinnedCount) {
             return
         }
         let order = [columns.Length]string
@@ -485,20 +499,14 @@ public open partial class DataGrid {
 
     private func Reorder(id string, e PointerEvent) {
         e.ReleaseCapture()
+        StopReorder()
         if input.Disabled || e.Button != PointerButton.Primary || Math.Abs(e.WindowPosition.X - reorderOrigin) < 8 ||
             input.OnColumnOrderChange == nil {
             return
         }
         let index = ColumnIndex(id)
-        var target = pinnedCount
-        var x = rootHandle.ContentBox.X + leading - horizontalOffset
-        for i in 0 ... columns.Length {
-            if e.WindowPosition.X >= x + widths[i] / 2 {
-                target = i
-            }
-            x += widths[i]
-        }
-        if index < pinnedCount || target == index {
+        let target = ReorderTarget(index, e.WindowPosition.X)
+        if index < 0 || target == index {
             return
         }
         let order = List[string](columns.Length)
@@ -507,9 +515,76 @@ public open partial class DataGrid {
                 order.Add(column.Id!!)
             }
         }
-        order.Insert(Math.Clamp(target, pinnedCount, order.Count), id)
+        order.Insert(target, id)
         reordered = true
         input.OnColumnOrderChange?.Invoke(order.ToArray())
+    }
+
+    private func ReorderTarget(index int32, position float64) int32 {
+        let start = index < pinnedCount ? 0: pinnedCount
+        let end = index < pinnedCount ? pinnedCount: columns.Length
+        var target = start
+        var x = rootHandle.ContentBox.X + leading
+        for i in 0 ... end {
+            let left = x - (i < pinnedCount ? 0.0: horizontalOffset)
+            if i >= start && position >= left + widths[i] / 2.0 {
+                target = i
+            }
+            x += widths[i]
+        }
+        return Math.Clamp(target, start, Math.Max(start, end - 1))
+    }
+
+    private func MoveReorder(id string, e PointerEvent) {
+        if reorderPointer != e.PointerId || input.Disabled || input.OnColumnOrderChange == nil ||
+            Math.Abs(e.WindowPosition.X - reorderOrigin) < 8.0 {
+            return
+        }
+        let index = ColumnIndex(id)
+        if index < 0 {
+            return
+        }
+        reorderColumn = id
+        reorderTarget = ReorderTarget(index, e.WindowPosition.X)
+        reorderPosition = e.WindowPosition.X
+        if index >= pinnedCount {
+            ScrollReorder()
+        }
+        Rebuild()
+    }
+
+    private func StopReorder() {
+        reorderScroll?.Dispose()
+        reorderScroll = nil
+        reorderPointer = -1L
+        reorderColumn = nil
+        reorderTarget = -1
+    }
+
+    private func ScrollReorder() {
+        if reorderColumn == nil || reorderPointer < 0L || input.Disabled || !viewport.IsMounted ||
+            input.OnColumnOrderChange == nil || ColumnIndex(reorderColumn) < pinnedCount {
+            StopReorder()
+            return
+        }
+        let view = viewport.ContentBox
+        let offset = viewport.ScrollOffset
+        var left = view.X + leading
+        for index in 0 ... pinnedCount {
+            left += widths[index]
+        }
+        let delta = reorderPosition < left + theme.ControlHeight ? -theme.ControlHeight:
+            reorderPosition > view.X + view.Width - theme.ControlHeight ? theme.ControlHeight: 0.0
+        let next = Math.Clamp(offset.X + delta, 0.0, viewport.ScrollRange.X)
+        if next == offset.X {
+            reorderScroll?.Dispose()
+            reorderScroll = nil
+            return
+        }
+        reorderScroll ??= window!!.SetInterval(ScrollReorder, 16.0)
+        viewport.JumpTo(next, offset.Y)
+        reorderTarget = ReorderTarget(ColumnIndex(reorderColumn), reorderPosition)
+        Rebuild()
     }
 
     private func MeasureWidth(id string, content Blob, measurement Blob? = nil) Blob {

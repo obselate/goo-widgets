@@ -4,6 +4,7 @@
 
 - Apply the API shape to inputs, colors, and actions (breaking).
 - Document every public widget declaration, including enum values and explicit constructors.
+- Align DataGrid navigation, additive selection, sorting and column reordering with desktop grids. Plain header clicks replace the sort. Shift-click adds a sort. Retain unchanged visible rows during navigation and support indexed select-all requests.
 - Use theme spacing and padding for attachment chips, token inputs, and radio group marks.
 - Cache graph validation and node lookup until the node or edge array changes.
 - Add modal drawers with a scrim, focus containment and focus restoration. Escape and scrim clicks request closure through `OnOpenChange(false)`.
