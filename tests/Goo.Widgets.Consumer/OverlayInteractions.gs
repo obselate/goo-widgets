@@ -494,8 +494,13 @@ func OverlayInteractions() {
     host.AttachWindow(window)
     window.Open()
     try {
-        PumpFrames(window, 12)
         let id = OnlyNativeWindow()
+        Require(SDL.SyncWindow(SDL.GetWindowFromID(id)), "Overlay native window state did not settle")
+        WaitVirtual(
+            window,
+            () -> window.IsVisible && host.TooltipTarget.IsMounted &&
+                host.TooltipTarget.BorderBox.Width > 0.0 && host.TooltipTarget.BorderBox.Height > 0.0
+        )
         host.Before.Focus()
         let tooltipBounds = host.TooltipTarget.BorderBox
         MouseMove(id, float32(tooltipBounds.X + tooltipBounds.Width / 2.0), float32(tooltipBounds.Y + tooltipBounds.Height / 2.0))
