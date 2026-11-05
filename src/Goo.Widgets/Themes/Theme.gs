@@ -358,6 +358,7 @@ public data struct Theme {
             StrongBorderColor = StrongBorderColor == Color{} ? defaults.StrongBorderColor: StrongBorderColor,
             SubtleTextColor = SubtleTextColor == Color{} ? defaults.SubtleTextColor: SubtleTextColor,
             DisabledTextColor = DisabledTextColor == Color{} ? defaults.DisabledTextColor: DisabledTextColor,
+            DisabledOpacity = DisabledOpacity == 0 ? defaults.DisabledOpacity: DisabledOpacity,
             LinkColor = LinkColor == Color{} ? defaults.LinkColor: LinkColor,
             FocusColor = FocusColor == Color{} ? defaults.FocusColor: FocusColor,
             RadiusSm = RadiusSm ?? defaults.RadiusSm,
