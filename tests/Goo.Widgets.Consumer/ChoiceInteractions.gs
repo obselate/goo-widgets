@@ -326,8 +326,7 @@ func ChoiceInteractions() {
         CompositeClick(window, host.PlainHandle)
         Require(host.Clicks == 1, "Busy action accepted input")
     } finally {
-        window.RequestClose()
-        PumpFrames(window, 5)
+        CloseNativeWindow(window)
     }
     RadioButtonInteractions()
     for page in[]string{"Action button", "Toggle button", "Radio button", "Radio group", "Toggle group"} {
