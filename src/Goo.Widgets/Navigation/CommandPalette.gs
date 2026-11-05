@@ -226,7 +226,6 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 entry.Padding = 0
                 entry.PaddingEnd = theme.ControlPadding
                 entry.BackgroundColor = Color.Transparent
-                entry.Focus = Style{}
                 return entry
             },
             CreateRow: (owner SearchList, item SelectionItem, button Button) -> Row(input, item, button),

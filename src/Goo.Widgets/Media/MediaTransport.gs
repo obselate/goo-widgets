@@ -122,7 +122,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         } else {
             MediaTransportAction.Play
         }
-        let playback = ActionButton(theme, resolved, playbackAction, resolved.OnPlayPause, !resolved.CanPlayPause!!)
+        let playback = ActionButton(theme, resolved with{ActionHoverBackgroundColor = input.ActionHoverBackgroundColor ?? theme.AccentHoverColor}, playbackAction, resolved.OnPlayPause, !resolved.CanPlayPause!!)
         let next = ActionButton(theme, resolved, MediaTransportAction.Next, resolved.OnNext, !resolved.CanNext!!)
         let root = Container{
             LineHeight: theme.LineHeight,
@@ -262,7 +262,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
             TextColor = input.TextColor ?? theme.MutedTextColor,
             ActionBackgroundColor = input.ActionBackgroundColor ?? theme.HoverColor,
-            ActionHoverBackgroundColor = input.ActionHoverBackgroundColor ?? theme.BorderColor,
+            ActionHoverBackgroundColor = input.ActionHoverBackgroundColor ?? theme.HoverColor,
             PrimaryActionBackgroundColor = input.PrimaryActionBackgroundColor ?? theme.AccentColor,
             PrimaryActionTextColor = input.PrimaryActionTextColor ?? theme.OnAccentColor,
             TrackColor = input.TrackColor ?? theme.BorderColor,
@@ -326,14 +326,12 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     input.ActionBackgroundColor!!
                 },
                 Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
-                Focus: theme.FocusStyle,
+                Active: primary ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Cursor: Cursor.Pointer,
                 Disabled: disabled,
-                Opacity: if disabled {
-                    0.4
-                } else {
-                    1.0
-                },
                 BasedOn: if primary {
                     input.PrimaryActionStyle
                 } else {
@@ -348,6 +346,9 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 content,
             }
         }
+        theme.ApplyInteraction(button, InteractionFamily.Button)
+        button.Disabled = disabled
+        button.OnClick = disabled ? nil: button.OnClick ?? action
         WidgetKeyBindings.BindActivation(button)
         return button
     }

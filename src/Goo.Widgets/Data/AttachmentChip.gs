@@ -90,11 +90,15 @@ public data struct AttachmentChip {
             Disabled: Disabled,
             Focusable: !Disabled && OnClick != nil,
             OnClick: OnClick,
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
+            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
             Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, theme.MutedTextColor),
             text,
         }
+        theme.ApplyInteraction(trigger, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(trigger)
         let body = Container{
             Width: Percent(100),
@@ -109,6 +113,7 @@ public data struct AttachmentChip {
                     Icon: ControlIcons.Create(ControlIcon.Close, 16, theme.MutedTextColor),
                     AccessibilityName: theme.Text("Remove {0}", name),
                     Disabled: Disabled,
+                    DisabledOpacity: 1.0,
                     OnClick: remove,
                 }.Build()
             )
@@ -118,6 +123,7 @@ public data struct AttachmentChip {
                     Icon: ControlIcons.Create(ControlIcon.Download, 16, theme.MutedTextColor),
                     AccessibilityName: theme.Text("Download {0}", name),
                     Disabled: Disabled,
+                    DisabledOpacity: 1.0,
                     OnClick: download,
                 }.Build()
             )
@@ -129,7 +135,6 @@ public data struct AttachmentChip {
             BorderWidth: theme.BorderWidth,
             BorderColor: Failed ? theme.DangerColor: theme.InputBorderColor,
             BackgroundColor: theme.FieldColor,
-            Opacity: Disabled ? 0.5: 1,
             Overflow: Overflow.Hidden,
             body,
         }
@@ -158,6 +163,8 @@ public data struct AttachmentChip {
         if let create = CreateRoot {
             root = create(this, root)
         }
+        root.Disabled = Disabled
+        root.DisabledStyle = Style{BasedOn: root.DisabledStyle, Opacity: theme.DisabledOpacity}
         return root
     }
 }

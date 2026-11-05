@@ -73,7 +73,7 @@ public data struct SliderInput {
     var BackgroundColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
-    /// Disabled opacity. Nil resolves to 0.4.
+    /// Disabled opacity. Nil uses the theme.
     var DisabledOpacity float64?
     /// Optional base style for the interactive root.
     var RootStyle Style?
@@ -257,12 +257,11 @@ public open class Slider : Cell[SliderInput] {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Opacity: if resolved.Disabled {
-                resolved.DisabledOpacity!!
-            } else {
-                1.0
-            },
-            Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.FocusOutlineColor!!, OutlineOffset: theme.FocusRingOffset},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
+            Focus: input.FocusOutlineColor == nil ? nil: Style{OutlineColor: input.FocusOutlineColor!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: hasHeader ? 1.0: resolved.DisabledOpacity!!},
             BasedOn: resolved.RootStyle,
             Accessibility: accessibility,
             OnPointerDown: (e PointerEvent) -> BeginPointer(e),
@@ -281,6 +280,7 @@ public open class Slider : Cell[SliderInput] {
             fill,
             thumb,
         }
+        theme.ApplyInteraction(root, InteractionFamily.Field)
         let content Blob = if let createRoot = createRoot {
             createRoot(resolved, root)
         } else {
@@ -294,11 +294,6 @@ public open class Slider : Cell[SliderInput] {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
-            Opacity: if resolved.Disabled {
-                resolved.DisabledOpacity!!
-            } else {
-                1.0
-            },
         }
         if let label = resolved.Label {
             header.Children.Add(
@@ -340,6 +335,8 @@ public open class Slider : Cell[SliderInput] {
                 AlignItems.Center
             },
             Gap: theme.ControlGap,
+            Disabled: resolved.Disabled,
+            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             header,
             content,
         }
@@ -395,7 +392,7 @@ public open class Slider : Cell[SliderInput] {
             ThumbBorderColor = input.ThumbBorderColor ?? theme.OnAccentColor,
             BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
             FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
-            DisabledOpacity = input.DisabledOpacity ?? 0.4,
+            DisabledOpacity = input.DisabledOpacity ?? theme.DisabledOpacity,
         }
     }
 

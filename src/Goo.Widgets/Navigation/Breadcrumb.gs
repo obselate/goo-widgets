@@ -142,8 +142,9 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         },
                         OnKeyDown: (e KeyEvent) -> focus.Handle(e),
                         BackgroundColor: Color.Transparent,
-                        Hover: Style{BackgroundColor: theme.FieldColor},
-                        Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: theme.FocusColor},
+                        TransitionMs: theme.TransitionMs,
+                        TransitionEasing: Easing.EaseOut,
+                        TransitionProperties: theme.InteractionTransitions,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.Button,
                             Name: theme.Text("Show hidden path"),
@@ -152,6 +153,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         Text{Content: "…", Color: theme.MutedTextColor}
                     }
                 )
+                theme.ApplyInteraction(root.Children[root.Children.Count - 1], InteractionFamily.Button)
                 WidgetKeyBindings.BindActivation(root.Children[root.Children.Count - 1])
                 AddChevron(root)
             }
@@ -208,10 +210,13 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         }
                     },
                     OnKeyDown: (e KeyEvent) -> focus.Handle(e),
-                    Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: theme.FocusColor},
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: item.Label ?? id},
                     content
                 }
+                theme.ApplyInteraction(button, InteractionFamily.Button)
                 WidgetKeyBindings.BindActivation(button)
                 root.Children.Add(button)
             }
@@ -220,8 +225,9 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Handle: index == 0 ? separatorHandle: nil,
                     FlexShrink: 0,
                     BackgroundColor: Color.Transparent,
-                    Hover: Style{BackgroundColor: theme.FieldColor},
-                    Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: theme.FocusColor},
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,
                         Name: theme.Text("Locations in {0}", item.Label ?? id)
@@ -229,6 +235,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     OnClick: () -> OpenSiblings(id),
                     Text{Content: "›", Color: theme.MutedTextColor}
                 }
+                theme.ApplyInteraction(sibling, InteractionFamily.Button)
                 WidgetKeyBindings.BindActivation(sibling)
                 root.Children.Add(sibling)
             } else if index < items.Length - 1 {

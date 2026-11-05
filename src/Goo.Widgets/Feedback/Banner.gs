@@ -187,12 +187,14 @@ public data struct Banner {
                 Width: theme.ControlHeight, Height: theme.ControlHeight,
                 FlexShrink: 0, OnClick: dismiss, Color: theme.TextColor,
                 Focusable: true, Cursor: Cursor.Pointer,
-                BackgroundColor: Color.Transparent, Focus: theme.FocusStyle,
+                BackgroundColor: Color.Transparent,
+                TransitionMs: theme.TransitionMs, TransitionEasing: Easing.EaseOut, TransitionProperties: theme.InteractionTransitions,
                 Accessibility: Accessibility{
                     Role: AccessibilityRole.Button, Name: DismissAccessibilityName ?? theme.Text("Dismiss")
                 },
                 ControlIcons.Create(ControlIcon.Close, resolved.FontSize!! + 4.0, theme.TextColor)
             }
+            theme.ApplyInteraction(button, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)
         }

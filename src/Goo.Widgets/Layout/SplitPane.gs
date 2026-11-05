@@ -138,12 +138,17 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         }
         var divider = Container{
             BackgroundColor: theme.BorderColor,
-            Hover: Style{BackgroundColor: theme.HoverColor},
-            Focus: theme.InsetFocusStyle,
+            Hover: Style{BackgroundColor: theme.StrongBorderColor},
+            Active: Style{BackgroundColor: theme.AccentColor},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
         }
         if let create = input.CreateHandle {
             divider = create(input, divider)
         }
+        theme.ApplyInteraction(divider, InteractionFamily.Field)
         divider.Key = "divider"
         divider.Handle = dividerHandle
         divider.FlexShrink = 0

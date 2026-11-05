@@ -97,7 +97,7 @@ public data struct Chip {
             BackgroundColor = BackgroundColor ?? theme.ToneFill(tone),
             SelectedBackgroundColor = SelectedBackgroundColor ?? (Invalid ? theme.DangerColor: theme.AccentColor),
             TextColor = TextColor ?? theme.ToneColor(tone),
-            SelectedTextColor = SelectedTextColor ?? theme.OnAccentColor,
+            SelectedTextColor = SelectedTextColor ?? theme.SelectedText(theme.OnAccentColor, SelectedBackgroundColor ?? (Invalid ? theme.DangerColor: theme.AccentColor)),
             BorderColor = BorderColor ?? (tone == Tone.Neutral ? theme.InputBorderColor: theme.ToneColor(tone)),
             SelectedBorderColor = SelectedBorderColor ?? (Invalid ? theme.DangerColor: theme.AccentColor),
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
@@ -113,10 +113,10 @@ public data struct Chip {
             FontWeight = FontWeight ?? theme.CaptionFontWeight,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
-            DisabledOpacity = DisabledOpacity ?? 0.5,
+            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
@@ -132,80 +132,45 @@ public data struct Chip {
             }
             value
         }
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, originalLeading, text)
-            WidgetKeyBindings.BindActivation(button)
-            return RemovalRoot(button, resolved)
-        }
 
-        let currentBg = if resolved.Selected {
-            resolved.SelectedBackgroundColor!!
-        } else {
-            resolved.BackgroundColor!!
-        }
-        let currentText = if resolved.Selected {
-            resolved.SelectedTextColor!!
-        } else {
-            resolved.TextColor!!
-        }
-        let currentBorder = if resolved.Selected {
-            resolved.SelectedBorderColor!!
-        } else {
-            resolved.BorderColor!!
-        }
-        let currentHoverBg = if resolved.Selected {
-            resolved.SelectedHoverBackgroundColor!!
-        } else {
-            resolved.HoverBackgroundColor!!
-        }
-        let currentActiveBg = if resolved.Selected {
-            resolved.SelectedActiveBackgroundColor!!
-        } else {
-            resolved.ActiveBackgroundColor!!
-        }
-
-        let root = Button{
+        let root = if let createRoot = createRoot { createRoot(resolved, originalLeading, text) } else { Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
             Gap: resolved.Gap!!,
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
-            BorderColor: currentBorder,
-            BackgroundColor: currentBg,
-            Color: currentText,
+            BorderColor: Selected ? resolved.SelectedBorderColor!!: resolved.BorderColor!!,
+            BackgroundColor: Selected ? resolved.SelectedBackgroundColor!!: resolved.BackgroundColor!!,
+            Color: Selected ? resolved.SelectedTextColor!!: resolved.TextColor!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
             Cursor: Cursor.Pointer,
             Focusable: true,
-            Disabled: resolved.Disabled,
-            OnClick: resolved.OnClick,
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
-            Hover: Style{BackgroundColor: currentHoverBg},
-            Active: Style{BackgroundColor: currentActiveBg, Transform: resolved.ActiveTransform!!},
-            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: theme.FocusRingWidth, OutlineOffset: theme.FocusRingOffset},
+            TransitionProperties: ActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
+            Hover: Selected ? Style{BackgroundColor: resolved.SelectedHoverBackgroundColor!!}:
+                HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            Active: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
+            Focus: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
             DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Checkbox,
-                Name: resolved.AccessibilityName!!,
-                Invalid: resolved.Invalid,
-                Checked: if resolved.Selected {
-                    AccessibilityChecked.True
-                } else {
-                    AccessibilityChecked.False
-                },
-            },
-        }
+        } }
 
-        if let leading = originalLeading {
-            root.Children.Add(Container(){leading})
-            root.Children.Add(Container(){text})
-        } else {
-            root.Children.Add(text)
+        if createRoot == nil {
+            if let leading = originalLeading {
+                root.Children.Add(Container(){leading})
+                root.Children.Add(Container(){text})
+            } else { root.Children.Add(text) }
         }
+        theme.ApplyInteraction(root, InteractionFamily.Toggle, Selected)
+        root.Disabled = Disabled
+        root.Focusable = !Disabled
+        root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Invalid: Invalid,
+            Checked: Selected ? AccessibilityChecked.True: AccessibilityChecked.False}
+        root.OnClick = Disabled ? nil: root.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(root)
         return RemovalRoot(root, resolved)
     }
@@ -215,7 +180,7 @@ public data struct Chip {
             return button
         }
         let theme = Theme.Read()
-        let color = input.Selected ? input.SelectedTextColor!!: input.TextColor!!
+        let color = input.Disabled ? theme.DisabledTextColor: input.Selected ? input.SelectedTextColor!!: input.TextColor!!
         let height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent ? input.Height!!.Magnitude: theme.ControlHeight
         let action = Button{
             Key: "remove",
@@ -227,9 +192,10 @@ public data struct Chip {
             Disabled: input.Disabled,
             BorderRadius: (height - 8.0) / 2.0,
             Color: color,
-            Hover: Style{BackgroundColor: theme.HoverColor},
-            Focus: theme.FocusStyle,
-            DisabledStyle: Style{Opacity: input.DisabledOpacity!!},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
+            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: input.RemoveAccessibilityName ?? theme.Text("Remove {0}", input.Label!!),
@@ -239,16 +205,21 @@ public data struct Chip {
             JustifyContent: JustifyContent.Center,
             ControlIcons.Create(ControlIcon.Close, 14, color),
         }
+        theme.ApplyInteraction(action, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(action)
         button.Height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent
             ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0
         button.BackgroundColor = Color.Transparent
         button.Hover = Style{}
+        button.Active = Style{BackgroundColor: Color.Transparent}
+        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
         button.Padding = 0
         button.PaddingStart = input.PaddingHorizontal!!
         button.PaddingEnd = input.Gap!!
         return Container{
+            Disabled: input.Disabled,
+            DisabledStyle: Style{BackgroundColor: theme.SunkenColor, Color: theme.DisabledTextColor, Opacity: input.DisabledOpacity!!},
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

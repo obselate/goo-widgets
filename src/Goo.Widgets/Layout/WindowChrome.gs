@@ -242,7 +242,9 @@ public data struct WindowChrome {
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Cursor: Cursor.Pointer,
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Color: resolved.ControlColor!!,
             Hover: Style{
                 BackgroundColor: if command == WindowChromeAction.Close {
@@ -256,12 +258,14 @@ public data struct WindowChrome {
                     resolved.ControlColor!!
                 },
             },
+            Active: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
         }
         let control = if let create = createControl {
             create(resolved, command, content, action)
         } else {
             prepared
         }
+        theme.ApplyInteraction(control, InteractionFamily.Button)
         control.Disabled = action == nil
         control.Focusable = action != nil
         control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(Name(command))}

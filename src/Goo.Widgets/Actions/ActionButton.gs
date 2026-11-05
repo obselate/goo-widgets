@@ -92,7 +92,7 @@ public data struct ActionButton {
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             DisabledBackgroundColor = DisabledBackgroundColor ?? theme.PanelColor,
-            DisabledTextColor = DisabledTextColor ?? theme.FaintTextColor,
+            DisabledTextColor = DisabledTextColor ?? theme.DisabledTextColor,
             Height = Height ?? defaultHeight,
             MinWidth = MinWidth ?? defaultMinWidth,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
@@ -100,7 +100,7 @@ public data struct ActionButton {
             FontFamily = FontFamily ?? theme.FontFamily,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             FontWeight = FontWeight ?? theme.LabelFontWeight,
@@ -123,23 +123,8 @@ public data struct ActionButton {
             }
             value
         }
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, text)
-            button.Disabled = resolved.Disabled
-            if resolved.Disabled {
-                button.OnClick = nil
-            }
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: resolved.AccessibilityName!!,
-                Busy: Loading,
-                Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
-                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
-            }
-            WidgetKeyBindings.BindActivation(button)
-            return button
-        }
 
+        if let createRoot = createRoot { return Finish(createRoot(resolved, text), resolved, theme) }
         let root = Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
@@ -148,7 +133,7 @@ public data struct ActionButton {
             BorderWidth: resolved.BorderWidth!!,
             BorderRadius: resolved.BorderRadius!!,
             BorderColor: resolved.BorderColor!!,
-            BackgroundColor: Pressed == true ? resolved.ActiveBackgroundColor!!: resolved.BackgroundColor!!,
+            BackgroundColor: Pressed == true ? ActiveBackgroundColor ?? theme.ActiveColor: resolved.BackgroundColor!!,
             Color: resolved.TextColor!!,
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
@@ -160,28 +145,12 @@ public data struct ActionButton {
             OnClick: resolved.OnClick,
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
-            Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-            Active: Style{BackgroundColor: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
-            Focus: Style{OutlineColor: resolved.FocusBorderColor!!, OutlineWidth: theme.FocusRingWidth, OutlineOffset: theme.FocusRingOffset},
-            DisabledStyle: Style{
-                BackgroundColor: resolved.DisabledBackgroundColor!!,
-                Color: Loading ? resolved.TextColor!!: resolved.DisabledTextColor!!,
-            },
-            Accessibility: Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: resolved.AccessibilityName!!,
-                Busy: Loading,
-                Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
-                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
-            },
+            TransitionProperties: ActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
         }
         let contents = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
-        }
-        if Loading {
-            text.Opacity = 0.6
         }
         var leadingSlot Container?
         if let leading = Leading {
@@ -217,6 +186,25 @@ public data struct ActionButton {
                 indicator.Width = resolved.PaddingHorizontal!!
                 root.Children.Add(indicator)
             }
+        }
+        return Finish(root, resolved, theme)
+    }
+
+    private func Finish(root Button, resolved ActionButton, theme Theme) Blob {
+        if let color = HoverBackgroundColor { root.Hover = Style{BackgroundColor: color, BasedOn: root.Hover} }
+        if let color = ActiveBackgroundColor { root.Active = Style{BackgroundColor: color, BasedOn: root.Active} }
+        if let transform = ActiveTransform { root.Active = Style{Transform: transform, BasedOn: root.Active} }
+        if let color = FocusBorderColor { root.Focus = Style{OutlineColor: color, BasedOn: root.Focus} }
+        if let color = DisabledBackgroundColor { root.DisabledStyle = Style{BackgroundColor: color, BasedOn: root.DisabledStyle} }
+        if let color = DisabledTextColor { root.DisabledStyle = Style{Color: color, BasedOn: root.DisabledStyle} }
+        theme.ApplyInteraction(root, InteractionFamily.Button, Pressed == true)
+        root.Disabled = resolved.Disabled
+        root.Focusable = !resolved.Disabled
+        root.OnClick = resolved.Disabled ? nil: root.OnClick ?? resolved.OnClick
+        root.Accessibility = Accessibility{
+            Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Busy: Loading,
+            Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
+                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
         }
         WidgetKeyBindings.BindActivation(root)
         return root

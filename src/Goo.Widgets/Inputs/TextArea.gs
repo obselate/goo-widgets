@@ -168,9 +168,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             BorderWidth = theme.BorderWidth,
             BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,
             BorderRadius = theme.ControlRadius!!,
-            Focus = Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
-            DisabledStyle = Style{BackgroundColor: theme.PanelColor, Color: theme.FaintTextColor},
+            Focus = Style{BasedOn: theme.FocusStyle, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs = theme.TransitionMs,
+            TransitionEasing = Easing.EaseOut,
+            TransitionProperties = theme.InteractionTransitions,
             LineHeight = theme.LineHeight,
             ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
@@ -184,6 +185,11 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         if let create = input.CreateEditor {
             editor = create(input, editor)
         }
+        if invalid {
+            editor.Hover = Style{BasedOn: editor.Hover, BorderColor: input.InvalidColor!!}
+            editor.Active = Style{BasedOn: editor.Active, BorderColor: input.InvalidColor!!}
+        }
+        theme.ApplyInteraction(editor, InteractionFamily.Field)
         if editor.Controller != editorController {
             throw ArgumentException("CreateEditor must preserve the TextArea controller")
         }

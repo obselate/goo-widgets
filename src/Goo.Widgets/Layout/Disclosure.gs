@@ -75,7 +75,7 @@ public data struct Disclosure {
             BorderColor = BorderColor ?? theme.BorderColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
-            DisabledOpacity = DisabledOpacity ?? 0.5,
+            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             CreateIndicator = nil,
             CreateHeader = nil,
             CreateContent = nil,
@@ -125,19 +125,19 @@ public data struct Disclosure {
             JustifyContent: JustifyContent.FlexStart,
             BackgroundColor: Color.Transparent,
             Color: resolved.TextColor!!,
-            BorderWidth: 0,
+            BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+            BorderColor: Color.Transparent,
             BorderRadius: 0,
             BorderTopLeftRadius: headerRadius,
             BorderTopRightRadius: headerRadius,
             BorderBottomLeftRadius: resolved.Expanded ? 0.0: headerRadius,
             BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
-            Hover: Style{BackgroundColor: resolved.HoverColor!!},
-            Focus: theme.InsetFocusStyle,
-            Opacity: if resolved.Disabled {
-                resolved.DisabledOpacity!!
-            } else {
-                1.0
-            },
+            Hover: HoverColor == nil ? nil: Style{BackgroundColor: HoverColor!!},
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             Cursor: if resolved.Disabled {
@@ -157,6 +157,8 @@ public data struct Disclosure {
         if let create = createHeader {
             header = create(resolved, header)
         }
+        theme.ApplyInteraction(header, InteractionFamily.Row)
+        header.Disabled = Disabled
         WidgetKeyBindings.BindActivation(header)
         var body = Container{
             Key: "content",

@@ -151,8 +151,8 @@ public data struct TextField {
             LabelTextTransform = LabelTextTransform ?? TextTransform.None,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
-            FocusRingWidth = FocusRingWidth ?? theme.FocusRingWidth,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            FocusRingWidth = Math.Max(1.0, FocusRingWidth ?? theme.FocusRingWidth),
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
@@ -185,11 +185,6 @@ public data struct TextField {
             Color: resolved.MutedTextColor!!,
             FontSize: theme.CaptionFontSize,
         }
-        let accent = if resolved.Invalid {
-            resolved.InvalidColor!!
-        } else {
-            resolved.FocusColor!!
-        }
         var entry TextEntry? = nil
         if let createEntry = createEntry {
             entry = createEntry(resolved)
@@ -220,15 +215,17 @@ public data struct TextField {
                 Password: resolved.Password,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
-                Focus: Style{OutlineColor: accent, OutlineWidth: resolved.FocusRingWidth!!, OutlineOffset: theme.FocusRingOffset},
-                DisabledStyle: Style{
-                    BackgroundColor: resolved.DisabledBackgroundColor!!,
-                    Color: resolved.DisabledTextColor!!
-                },
+                TransitionProperties: theme.InteractionTransitions,
+                Focus: FocusColor == nil ? nil: Style{OutlineColor: FocusColor!!},
+                DisabledStyle: Style{BackgroundColor: resolved.DisabledBackgroundColor!!, Color: resolved.DisabledTextColor!!},
             }
             if resolved.FontFamily != nil {
                 entry.FontFamily = resolved.FontFamily!!
             }
+        }
+        if resolved.Invalid {
+            entry!!.Hover = Style{BasedOn: entry!!.Hover, BorderColor: resolved.InvalidColor!!}
+            entry!!.Active = Style{BasedOn: entry!!.Active, BorderColor: resolved.InvalidColor!!}
         }
         if let bindings = EntryKeyBindings {
             let existing = entry!!.KeyBindings
@@ -287,8 +284,10 @@ public data struct TextField {
             entry!!.OnFocus = state.Focused
             entry!!.OnBlur = state.Blurred
         }
+        let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
         if let createRoot = createRoot {
             let content = createRoot(resolved, label, entry!!, issue)
+            interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)
             if let description = description {
                 content.Children.Add(description)
             }
@@ -339,12 +338,8 @@ public data struct TextField {
             entry!!.BorderWidth = 0
             entry!!.BorderRadius = 0
             entry!!.BackgroundColor = Color.Transparent
-            entry!!.DisabledStyle = Style{Color: resolved.DisabledTextColor!!}
-            entry!!.Focus = Style{
-                OutlineColor: accent,
-                OutlineWidth: resolved.FocusRingWidth!!,
-                OutlineOffset: -resolved.FocusRingWidth!!
-            }
+            entry!!.DisabledStyle = Style{Color: resolved.DisabledTextColor!!, BackgroundColor: Color.Transparent}
+            entry!!.Focus = Style{BasedOn: entry!!.Focus, OutlineOffset: -resolved.FocusRingWidth!!}
             if let addon = resolved.PrefixAddon {
                 content.Children.Add(Addon(addon, resolved))
             }
@@ -392,6 +387,7 @@ public data struct TextField {
         } else {
             root.Children.Add(entry!!)
         }
+        interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)
         var counter = resolved.CounterText
         if counter == nil && resolved.MaxLength != nil {
             counter = value.Length.ToString() + " / " + resolved.MaxLength!!.ToString()
@@ -500,11 +496,14 @@ internal class TextFieldState : Cell[TextField] {
             TabStop: false,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
             OnClick: action,
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             ControlIcons.Create(icon, 16, theme.MutedTextColor),
         }
+        theme.ApplyInteraction(button, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(button)
         return button
     }

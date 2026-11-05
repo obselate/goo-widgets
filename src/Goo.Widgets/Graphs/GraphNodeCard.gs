@@ -114,7 +114,11 @@ public data struct GraphNodeCard {
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Focusable: true,
-            Focus: theme.FocusStyle,
+            Hover: Style{BackgroundColor: Selected ? SelectedBackgroundColor ?? theme.AccentColor: BackgroundColor ?? theme.PanelColor},
+            Active: Style{BackgroundColor: Selected ? SelectedBackgroundColor ?? theme.AccentColor: BackgroundColor ?? theme.PanelColor},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             BasedOn: RootStyle,
             Cursor: Cursor.Pointer,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: Node.Label, Selected: Selected,},
@@ -125,6 +129,7 @@ public data struct GraphNodeCard {
             OnPointerCancel: OnPointerCancel,
             content,
         }
+        theme.ApplyInteraction(card, InteractionFamily.Button, Selected)
         WidgetKeyBindings.BindActivation(card)
         return card
     }

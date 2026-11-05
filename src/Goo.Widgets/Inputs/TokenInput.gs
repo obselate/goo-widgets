@@ -144,7 +144,9 @@ public open class TokenInput : Cell[TokenInputInput] {
                 let action = Button{
                     Height: theme.ControlHeight,
                     Padding: 6,
-                    Focus: theme.FocusStyle,
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Add {0}", value)},
                     OnClick: () -> {
                         Commit(value)
@@ -152,6 +154,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                     },
                     Text{Content: value, Color: theme.TextColor},
                 }
+                theme.ApplyInteraction(action, InteractionFamily.Button)
                 WidgetKeyBindings.BindActivation(action)
                 return action
             }

@@ -41,7 +41,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
                     Trailing = input.Button.Trailing ?? ControlIcons.Create(
                         ControlIcon.ExpandMore,
                         16,
-                        input.Button.Disabled ? theme.FaintTextColor: theme.MutedTextColor
+                        input.Button.Disabled ? theme.DisabledTextColor: theme.MutedTextColor
                     ),
                 }
             ).Build() as Button

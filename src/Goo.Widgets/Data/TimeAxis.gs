@@ -273,11 +273,15 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                 BackgroundColor: selected ? theme.AccentColor: theme.PressedColor,
                 BorderRadius: theme.ControlRadius!!,
-                BorderWidth: selected ? theme.BorderWidth: 0.0,
+                BorderWidth: selected || theme.HighContrast ? theme.BorderWidth: 0.0,
                 BorderColor: theme.AccentColor,
                 Color: selected ? theme.OnAccentColor: theme.TextColor,
-                Hover: Style{Opacity: .85},
-                Focus: theme.InsetFocusStyle,
+                Hover: selected ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
+                Active: selected ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
+                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Overflow: Overflow.Hidden,
                 JustifyContent: JustifyContent.Center,
                 Text{
@@ -294,6 +298,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             if let create = input.CreateEvent {
                 blob = create(input, placement, blob)
             }
+            theme.ApplyInteraction(blob, InteractionFamily.Button, selected)
             blob.Key = "event:" + item.Id!!
             Place(blob, placement.X, 30.0 + float64(placement.Lane) * (height + gap), placement.Width, height)
             blob.Focusable = input.OnSelect != nil
@@ -318,7 +323,9 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 BackgroundColor: theme.PanelColor,
                 Color: theme.AccentColor,
                 BorderRadius: theme.ControlRadius!!,
-                Focus: theme.FocusStyle,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Overflow: Overflow.Hidden,
                 Text{
                     Content: theme.Text("+{0} more", hidden.Length),
@@ -331,6 +338,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             if let create = input.CreateOverflow {
                 blob = create(input, hidden, blob)
             }
+            theme.ApplyInteraction(blob, InteractionFamily.Button)
             blob.Key = "overflow"
             Place(blob, left, 30.0 + float64(ends.Count) * (height + gap), right - left, height)
             blob.Focusable = input.OnOverflow != nil

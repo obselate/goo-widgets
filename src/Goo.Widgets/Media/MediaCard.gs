@@ -118,18 +118,15 @@ public data struct MediaCard {
                 Children: children,
             }
         }
-        if let createRoot = createRoot {
-            let button = createRoot(resolved, thumbnail, content)
-            WidgetKeyBindings.BindActivation(button)
-            return button
-        }
-        let button = Button{
+        let button = if let createRoot = createRoot { createRoot(resolved, thumbnail, content) } else { Button{
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Height: resolved.ThumbnailHeight!! + resolved.ContentHeight!!,
             Padding: 0.0,
             BorderRadius: resolved.BorderRadius!!,
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Cursor: Cursor.Pointer,
             Disabled: resolved.Disabled,
             AlignItems: AlignItems.Stretch,
@@ -137,13 +134,16 @@ public data struct MediaCard {
             OverflowX: Overflow.Hidden,
             OverflowY: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
-            Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
+            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
             thumbnail,
             content,
-        }
+        } }
+        theme.ApplyInteraction(button, InteractionFamily.Button)
+        button.Disabled = Disabled
+        button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(button)
         return button
     }

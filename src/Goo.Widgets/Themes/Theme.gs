@@ -9,6 +9,8 @@ import System
 import System.Globalization
 import System.Runtime.CompilerServices
 
+internal enum InteractionFamily { Button; Row; Field; Toggle; Tab; }
+
 /// Selects the built-in window appearance policy.
 public enum ThemeMode {
     /// Follows the operating system appearance preference.
@@ -99,6 +101,8 @@ public data struct Theme {
     var SubtleTextColor Color
     /// Text color for disabled content. Supplied by the selected theme palette.
     var DisabledTextColor Color
+    /// Final disabled interaction opacity. Defaults to 0.5. High contrast uses 1.
+    var DisabledOpacity float64 = 0.5
     /// Foreground color for links. Supplied by the selected theme palette.
     var LinkColor Color
     /// Outline color for keyboard focus. Supplied by the selected theme palette.
@@ -242,17 +246,61 @@ public data struct Theme {
         get -> GlassColor == nil ? MutedTextColor: TextColor
     }
 
-    internal func SelectedFill(tint Color) Color -> switch Selection {
-        case SelectionStyle.Indicator: HoverColor
-        case SelectionStyle.Filled: Legible(AccentColor, Color.Black, Color.White, 4.5)
-        default: tint
+    internal func SelectedFill(tint Color) Color {
+        if HighContrast {
+            let foreground = Contrast(Color.Black, AccentColor) > Contrast(Color.White, AccentColor) ? Color.Black: Color.White
+            return Legible(AccentColor, foreground == Color.Black ? Color.White: Color.Black, foreground, 7.0)
+        }
+        return Selection == SelectionStyle.Filled ? AccentColor: Selection == SelectionStyle.Indicator ? HoverColor: tint
     }
 
-    internal func SelectedText(text Color) Color -> Selection == SelectionStyle.Filled ? Color.White: text
+    internal func SelectedText(text Color, fill Color? = nil) Color {
+        let surface = fill ?? SelectedFill(ActiveColor)
+        let target = Contrast(Color.Black, surface) > Contrast(Color.White, surface) ? Color.Black: Color.White
+        return Legible(text, target, surface, HighContrast ? 7.0: 4.5)
+    }
+
+    internal func ApplyInteraction(target Blob, family InteractionFamily, selected bool = false, interactive bool = true) {
+        let field = family == InteractionFamily.Field
+        let row = family == InteractionFamily.Row || family == InteractionFamily.Toggle
+        let tab = family == InteractionFamily.Tab
+        if interactive {
+            let fill = selected ? row ? SelectedFill(ActiveColor): ActiveColor: Color.Transparent
+            let hover = field ? Style{BorderColor: StrongBorderColor}:
+                Style{BackgroundColor: selected ? fill: HoverColor}
+            let active = field ? Style{BorderColor: AccentColor}:
+                Style{BackgroundColor: selected ? fill: PressedColor}
+            hover.BasedOn = target.Hover
+            active.BasedOn = target.Active
+            let focus = FocusStyle
+            focus.BasedOn = target.Focus
+            target.Hover = hover
+            target.Active = active
+            target.Focus = Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
+            if HighContrast {
+                target.Hover = Style{BasedOn: target.Hover, BorderColor: StrongBorderColor}
+            }
+        }
+        let disabled = Style{
+            BackgroundColor: field || family == InteractionFamily.Toggle ? SunkenColor:
+                tab ? ChromeColor: PanelColor,
+            Color: DisabledTextColor,
+            Opacity: DisabledOpacity,
+        }
+        if field { disabled.BorderColor = InputBorderColor }
+        disabled.BasedOn = target.DisabledStyle
+        target.DisabledStyle = disabled
+    }
+
+    internal prop InteractionTransitions []TransitionProperty {
+        get -> interactionTransitions
+    }
+
+    internal prop PressTransitions []TransitionProperty { get -> pressTransitions }
 
     /// Accent for the Indicator pill and rail marker, kept at 3:1 against the selected row.
     internal prop IndicatorColor Color {
-        get -> Legible(AccentColor, TextColor, HoverColor, 3.0)
+        get -> Legible(AccentColor, TextColor, HighContrast ? SelectedFill(ActiveColor): HoverColor, 3.0)
     }
 
     /// Accent bar for an Indicator row. Add it to the selected row only.
@@ -363,6 +411,8 @@ public data struct Theme {
 
     shared {
         internal let Key Context[Theme] = Context[Theme]()
+        private let interactionTransitions []TransitionProperty = []TransitionProperty{TransitionProperty.BackgroundColor, TransitionProperty.BorderColor, TransitionProperty.Color}
+        private let pressTransitions []TransitionProperty = []TransitionProperty{TransitionProperty.BackgroundColor, TransitionProperty.BorderColor, TransitionProperty.Color, TransitionProperty.Transform}
         private let attachments ConditionalWeakTable[Window, ThemeAttachment] =
         ConditionalWeakTable[Window, ThemeAttachment]()
 
@@ -800,6 +850,7 @@ public data struct Theme {
             FaintTextColor = TextColor,
             SubtleTextColor = TextColor,
             DisabledTextColor = TextColor,
+            DisabledOpacity = 1.0,
             AccentColor = accent,
             AccentHoverColor = Legible(AccentHoverColor, TextColor, surface, 7.0),
             AccentPressedColor = Legible(AccentPressedColor, TextColor, surface, 7.0),
@@ -968,10 +1019,6 @@ public data struct Theme {
             BackgroundColor: RaisedColor,
             TextColor: TextColor,
             BorderColor: InputBorderColor,
-            HoverBackgroundColor: HoverColor,
-            ActiveBackgroundColor: PressedColor,
-            DisabledBackgroundColor: PanelColor,
-            DisabledTextColor: FaintTextColor,
             Height: ControlHeight,
             MinWidth: ControlMinWidth,
             PaddingHorizontal: ControlPadding,
@@ -980,8 +1027,6 @@ public data struct Theme {
             FontWeight: LabelFontWeight,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius ?? Default.ControlRadius!!,
-            TransitionMs: TransitionMs,
-            ActiveTransform: PanelTransform{},
         }
     }
 
@@ -998,12 +1043,12 @@ public data struct Theme {
 
     /// Transparent action that gains a neutral surface on hover.
     public prop GhostButton ActionButton {
-        get -> Button with{BackgroundColor = Color.Transparent, BorderColor = Color.Transparent}
+        get -> Button with{BackgroundColor = Color.Transparent, BorderColor = Color.Transparent, DisabledBackgroundColor = Color.Transparent}
     }
 
     /// Transparent action with a visible border.
     public prop OutlineButton ActionButton {
-        get -> Button with{BackgroundColor = Color.Transparent}
+        get -> Button with{BackgroundColor = Color.Transparent, DisabledBackgroundColor = Color.Transparent}
     }
 
     /// Quiet action on a sunken surface.
@@ -1035,8 +1080,6 @@ public data struct Theme {
             MutedTextColor: MutedTextColor,
             BorderColor: InputBorderColor,
             InvalidColor: DangerColor,
-            DisabledBackgroundColor: SunkenColor,
-            DisabledTextColor: DisabledTextColor,
             EntryHeight: ControlHeight,
             PaddingHorizontal: ControlPadding,
             FontFamily: FontFamily,
@@ -1046,7 +1089,6 @@ public data struct Theme {
             LabelTextTransform: TextTransform.None,
             BorderWidth: BorderWidth,
             BorderRadius: ControlRadius ?? Default.ControlRadius!!,
-            TransitionMs: TransitionMs,
         }
     }
 
@@ -1066,7 +1108,6 @@ public data struct Theme {
             MarkColor: OnAccentColor,
             BorderWidth: BorderWidth,
             BorderRadius: (ControlRadius ?? Default.ControlRadius!!) / 2.0,
-            TransitionMs: TransitionMs,
         }
     }
 
@@ -1132,32 +1173,29 @@ public data struct Theme {
 
     /// Fresh keyboard focus declarations. Use an inset offset for clipped targets.
     public prop FocusStyle Style {
-        get -> Style{OutlineWidth: FocusRingWidth, OutlineColor: FocusColor, OutlineOffset: FocusRingOffset}
-    }
-
-    /// Creates a focus outline inside the element border using FocusRingWidth and FocusColor.
-    public prop InsetFocusStyle Style {
-        get -> Style{OutlineWidth: FocusRingWidth, OutlineColor: FocusColor, OutlineOffset: -FocusRingWidth}
+        get -> Style{OutlineWidth: Math.Max(1.0, FocusRingWidth), OutlineColor: FocusColor, OutlineOffset: FocusRingOffset}
     }
 
     /// Fresh overlay scrollbar with real pointer-controlled track and thumb parts.
     public prop Scrollbar Scrollbar {
-        get -> Goo
-            .Scrollbar{
-            Thickness: 6.0,
-            HitThickness: 12.0,
-            Inset: 2.0,
-            MinThumbLength: 24.0,
-            HideDelayMs: 1000.0,
-            FadeMs: ReducedMotion ? 0.0: 250.0,
-            ReserveSpace: false,
-            Track: Container{BackgroundColor: Color.Transparent},
-            Thumb: Container{
-                BackgroundColor: MutedTextColor.WithAlpha(0.5),
-                BorderRadius: 3.0,
-                Hover: Style{BackgroundColor: AccentColor},
-                Active: Style{BackgroundColor: AccentColor},
-            },
+        get {
+            let thumb = Container{
+                BackgroundColor: MutedTextColor.WithAlpha(0.5), BorderRadius: 3.0,
+                Hover: Style{BackgroundColor: AccentColor}, Active: Style{BackgroundColor: AccentColor},
+                TransitionMs: TransitionMs, TransitionEasing: Easing.EaseOut, TransitionProperties: InteractionTransitions,
+            }
+            ApplyInteraction(thumb, InteractionFamily.Field)
+            return Goo.Scrollbar{
+                Thickness: 6.0,
+                HitThickness: 12.0,
+                Inset: 2.0,
+                MinThumbLength: 24.0,
+                HideDelayMs: 1000.0,
+                FadeMs: ReducedMotion ? 0.0: 250.0,
+                ReserveSpace: false,
+                Track: Container{BackgroundColor: Color.Transparent},
+                Thumb: thumb,
+            }
         }
     }
 }

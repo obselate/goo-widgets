@@ -211,6 +211,8 @@ internal class MarkdownTextView : Cell, IDisposable {
                     Description: run.Title ?? ""
                 },
                 Focus: theme.FocusStyle,
+                Hover: Style{BackgroundColor: Color.Transparent},
+                Active: Style{BackgroundColor: Color.Transparent},
                 content
             }
             button.Focusable = options.OnLink != nil

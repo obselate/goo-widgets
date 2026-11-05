@@ -73,12 +73,17 @@ public data struct DonutChart {
             var shape = Shape{
                 Path: path,
                 BackgroundColor: segment.Series.Color!!,
-                Focus: theme.FocusStyle,
+                Hover: Style{BackgroundColor: segment.Series.Color!!},
+                Active: Style{BackgroundColor: segment.Series.Color!!},
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Cursor: OnClick == nil ? Cursor.Default: Cursor.Pointer
             }
             if let create = CreateSlice {
                 shape = create(resolved, segment, shape)
             }
+            theme.ApplyInteraction(shape, InteractionFamily.Button)
             shape.Path = path
             shape.Width = size
             shape.Height = size

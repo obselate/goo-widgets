@@ -98,11 +98,10 @@ public data struct NavigationRailInput {
         BackgroundColor = BackgroundColor ?? theme.ChromeColor,
         FontFamily = FontFamily ?? theme.FontFamily,
         ItemBackgroundColor = ItemBackgroundColor ?? Color.Transparent,
-        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.AccentColor),
+        SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.ActiveColor),
         HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
         TextColor = TextColor ?? theme.ChromeTextColor,
-        SelectedTextColor = SelectedTextColor ??
-            (theme.Selection == SelectionStyle.Indicator ? theme.TextColor: theme.OnAccentColor),
+        SelectedTextColor = SelectedTextColor ?? theme.SelectedText(theme.TextColor, SelectedBackgroundColor),
         FontSize = FontSize ?? theme.FontSize,
         FontWeight = FontWeight ?? theme.LabelFontWeight,
         Opacity = Opacity ?? 1.0,
@@ -182,6 +181,8 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     Padding: Edges{Right: resolved.ItemPaddingHorizontal!!, Left: resolved.ItemPaddingHorizontal!!},
                     Gap: resolved.ItemGap!!,
                     BorderRadius: resolved.ItemBorderRadius!!,
+                    BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
+                    BorderColor: Color.Transparent,
                     BackgroundColor: if selected {
                         resolved.SelectedBackgroundColor!!
                     } else {
@@ -192,8 +193,10 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     } else {
                         resolved.TextColor!!
                     },
-                    Hover: Style{BackgroundColor: resolved.HoverBackgroundColor!!},
-                    Focus: theme.FocusStyle,
+                    Hover: value.HoverBackgroundColor == nil ? nil: Style{BackgroundColor: value.HoverBackgroundColor!!},
+                    TransitionMs: theme.TransitionMs,
+                    TransitionEasing: Easing.EaseOut,
+                    TransitionProperties: theme.InteractionTransitions,
                     Cursor: if item.Disabled {
                         Cursor.Default
                     } else {
@@ -208,8 +211,8 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     },
                 }
                 if let content = item.Content {
-                    if selected && content is Shape icon {
-                        icon.BackgroundColor = resolved.SelectedTextColor!!
+                    if content is Shape icon && (selected || item.Disabled) {
+                        icon.BackgroundColor = item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!
                     }
                     button.Children.Add(content)
                 }
@@ -234,7 +237,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     FontSize: theme.CaptionFontSize,
                     MarginStart: resolved.Expanded ? theme.ControlGap: 0,
                     BackgroundColor: resolved.Expanded ? Color.Transparent: theme.PanelColor,
-                    Color: !resolved.Expanded ? theme.TextColor:
+                    Color: item.Disabled ? theme.DisabledTextColor: !resolved.Expanded ? theme.TextColor:
                     id == resolved.SelectedId ? resolved.SelectedTextColor!!: resolved.TextColor!!,
                     BorderRadius: theme.RadiusSm!!,
                 }
@@ -261,7 +264,11 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled
-            button.Opacity = item.Disabled ? .45: 1
+            if id == input.SelectedId && value.SelectedBackgroundColor != nil {
+                button.Hover = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.Hover}
+                button.Active = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.Active}
+            }
+            theme.ApplyInteraction(button, InteractionFamily.Row, id == input.SelectedId)
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
@@ -329,9 +336,12 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Focusable: input.OnGroupExpandedChange != nil,
                 OnClick: () -> input.OnGroupExpandedChange?.Invoke(group.Id, collapsed),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: group.Label, Expanded: !collapsed},
-                Focus: theme.FocusStyle,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Text{Content: resolved.Expanded ? group.Label: collapsed ? "›": "⌄", FontSize: theme.CaptionFontSize},
             }
+            theme.ApplyInteraction(heading, InteractionFamily.Row, interactive: input.OnGroupExpandedChange != nil)
             WidgetKeyBindings.BindActivation(heading)
             root.Children.Add(heading)
             if !collapsed {

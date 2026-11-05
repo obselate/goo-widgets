@@ -103,10 +103,10 @@ public data struct DismissibleContextBar {
             DismissBackgroundColor = DismissBackgroundColor ?? Color.Transparent,
             DismissTextColor = DismissTextColor ?? theme.MutedTextColor,
             DismissHoverBackgroundColor = DismissHoverBackgroundColor ?? theme.HoverColor,
-            DismissActiveBackgroundColor = DismissActiveBackgroundColor ?? theme.BorderColor,
+            DismissActiveBackgroundColor = DismissActiveBackgroundColor ?? theme.PressedColor,
             DismissFocusBorderColor = DismissFocusBorderColor ?? theme.FocusColor,
             DismissDisabledBackgroundColor = DismissDisabledBackgroundColor ?? Color.Transparent,
-            DismissDisabledTextColor = DismissDisabledTextColor ?? theme.FaintTextColor,
+            DismissDisabledTextColor = DismissDisabledTextColor ?? theme.DisabledTextColor,
             MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.PanelPadding,
             PaddingVertical = PaddingVertical ?? theme.PanelPadding,
@@ -115,7 +115,7 @@ public data struct DismissibleContextBar {
             DismissBorderWidth = DismissBorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             DismissBorderRadius = DismissBorderRadius ?? theme.ControlRadius!!,
-            TransitionMs = TransitionMs ?? theme.TransitionMs,
+            TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             DismissActiveTransform = DismissActiveTransform ?? PanelTransform{},
             Opacity = Opacity ?? 1.0,
@@ -155,20 +155,17 @@ public data struct DismissibleContextBar {
                 OnClick: resolved.OnDismiss,
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
-                Hover: Style{BackgroundColor: resolved.DismissHoverBackgroundColor!!},
-                Active: Style{
-                    BackgroundColor: resolved.DismissActiveBackgroundColor!!,
-                    Transform: resolved.DismissActiveTransform!!
-                },
-                Focus: Style{OutlineWidth: theme.FocusRingWidth, OutlineColor: resolved.DismissFocusBorderColor!!, OutlineOffset: theme.FocusRingOffset},
-                DisabledStyle: Style{
-                    BackgroundColor: resolved.DismissDisabledBackgroundColor!!,
-                    Color: resolved.DismissDisabledTextColor!!
-                },
+                TransitionProperties: DismissActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
+                Hover: DismissHoverBackgroundColor == nil ? nil: Style{BackgroundColor: DismissHoverBackgroundColor!!},
+                Active: Style{BackgroundColor: resolved.DismissActiveBackgroundColor!!, Transform: resolved.DismissActiveTransform!!},
+                Focus: DismissFocusBorderColor == nil ? nil: Style{OutlineColor: DismissFocusBorderColor!!},
+                DisabledStyle: Style{BackgroundColor: resolved.DismissDisabledBackgroundColor!!, Color: resolved.DismissDisabledTextColor!!},
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.DismissAccessibilityName!!},
                 label,
             }
         }
+        theme.ApplyInteraction(button!!, InteractionFamily.Button)
+        button!!.Disabled = Disabled
         WidgetKeyBindings.BindActivation(button!!)
         if let createRoot = createRoot {
             return createRoot(resolved, Content, button!!)

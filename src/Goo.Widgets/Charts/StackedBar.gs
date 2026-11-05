@@ -66,12 +66,18 @@ public data struct StackedBar {
             }
             var bar = Container{
                 BackgroundColor: segment.Series.Color!!,
-                Focus: theme.InsetFocusStyle,
+                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                Hover: Style{BackgroundColor: segment.Series.Color!!},
+                Active: Style{BackgroundColor: segment.Series.Color!!},
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Cursor: OnClick == nil ? Cursor.Default: Cursor.Pointer
             }
             if let create = CreateSegment {
                 bar = create(resolved, segment, bar)
             }
+            theme.ApplyInteraction(bar, InteractionFamily.Button)
             bar.Width = Percent(segment.Fraction * 100.0)
             bar.Height = Percent(100)
             bar.MinWidth = 0

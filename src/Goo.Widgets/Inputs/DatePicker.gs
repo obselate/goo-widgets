@@ -143,11 +143,15 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             SelectionColor: theme.AccentColor.WithAlpha(0.35),
             PlaceholderColor: theme.PlaceholderColor,
             Cursor: Cursor.Text,
-            Focus: theme.InsetFocusStyle,
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
         }
         if let create = current.CreateInput {
             entry = create(current, entry)
         }
+        theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Key = "entry"
         entry.Handle = entryHandle
         entry.Value = draft
@@ -180,11 +184,14 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Height: theme.ControlHeight,
             Padding: theme.Spacing * 2.0,
             BackgroundColor: Color.Transparent,
-            Focus: theme.FocusStyle,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
         }
         if let create = current.CreateButton {
             button = create(current, button)
         }
+        theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = "open"
         button.Disabled = current.Disabled || current.ReadOnly
         button.Focusable = !current.Disabled && !current.ReadOnly
