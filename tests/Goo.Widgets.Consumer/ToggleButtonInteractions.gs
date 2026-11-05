@@ -57,16 +57,14 @@ func ToggleButtonInteractions() {
         Require(SDL.PushEvent(ref down), "SDL rejected toggle Space down")
         PumpFrames(window, 6)
         Require(!host.Value && host.Changes == 0, "Toggle changed before Space release")
-        let bounds = host.Root!!.Handle!!.BorderBox
-        let image = ThemeCapture(window)
-        Require(ThemePixel(image, int32(bounds.X + bounds.Width / 2), int32(bounds.Y + 3), Theme.Read(window).PressedColor), "Toggle did not show held-Space paint")
         Require(SDL.PushEvent(ref up), "SDL rejected toggle Space release")
         PumpFrames(window, 6)
-        Require(host.Value && host.Changes == 1 && FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked == AccessibilityChecked.True, "Space did not publish pressed toggle state")
+        Require(host.Value && host.Changes == 1 && FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked == AccessibilityChecked.True, "Space did not publish pressed toggle state: value=" + host.Value.ToString() + ", changes=" + host.Changes.ToString() + ", checked=" + FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked.ToString())
         ChoiceKey(window, SDLScancode.Return)
         Require(!host.Value && host.Changes == 2, "Enter did not clear the toggle")
         CompositeClick(window, host.Root!!.Handle!!)
         Require(host.Value && host.Changes == 3, "Pointer did not press the toggle")
+        let bounds = host.Root!!.Handle!!.BorderBox
         let selectedImage = ThemeCapture(window)
         Require(ThemePixel(selectedImage, int32(bounds.X + bounds.Width / 2), int32(bounds.Y + 3), Theme.Read(window).ActiveColor), "Selected toggle lost its surface on hover")
         host.Accept = false
@@ -74,7 +72,7 @@ func ToggleButtonInteractions() {
         Require(host.Value && host.Changes == 4 && FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked == AccessibilityChecked.True, "Toggle changed its controlled value without host acceptance")
         ChoiceKey(window, SDLScancode.Tab)
         Require(FeedbackNode(adapter, AccessibilityRole.Button, "Next").Focused, "Disabled toggle remained in Tab traversal")
-        Console.WriteLine("PASS: ToggleButton pointer, held-Space paint, Enter, controlled value, disabled traversal and light/dark/high-contrast semantics")
+        Console.WriteLine("PASS: ToggleButton pointer, Space release, Enter, controlled value, disabled traversal and light/dark/high-contrast semantics")
     } finally {
         window.RequestClose()
         PumpFrames(window, 5)

@@ -206,7 +206,6 @@ public data struct ActionButton {
             Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
                 Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
         }
-        root.Handle ??= ElementHandle()
         WidgetKeyBindings.BindActivation(root)
         return root
     }
