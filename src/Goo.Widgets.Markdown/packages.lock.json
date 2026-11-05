@@ -10,12 +10,12 @@
       },
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.27.11",
-        "contentHash": "gA9hgC3ze+gebMDWCDZxOPGZ73Lv86tG9RaVYhEr6h0rohuB2WgBEy/KyxpubxSUvW8qvq4qA9yel3pVnAD37w==",
+        "resolved": "0.28.1",
+        "contentHash": "D88mj6RDok5dcekgMhCkRh+OqzspeD4Y2tISGPyzvR7TJMLZDq2EUPn3dzlwdw0fISRA9PHGWh/fJ+zC2LuRBQ==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
-          "Tmds.DBus.Protocol": "0.95.1",
-          "Unicode.Bidi": "0.3.18"
+          "Tmds.DBus.Protocol": "0.95.2",
+          "Unicode.Bidi": "0.4.0"
         }
       },
       "Hexa.NET.SDL3": {
@@ -33,18 +33,18 @@
       },
       "Tmds.DBus.Protocol": {
         "type": "Transitive",
-        "resolved": "0.95.1",
-        "contentHash": "IbGhqZAqqgB/DkT70+lAk4MNv95tZtsTMFQ+S3uGy0aTfOkGVeFjeNJsX8dBI/3+CPnO5XW6lRQKGeFEgHElKw=="
+        "resolved": "0.95.2",
+        "contentHash": "4zlJSYYZGCKnF5xE1L5VEm5YsfjLTz5jlWBgvBxHA7yk8Lnys/6WWpeD+CWmNm4QmawR+x0xIbGGZNcMxcy8nQ=="
       },
       "Unicode.Bidi": {
         "type": "Transitive",
-        "resolved": "0.3.18",
-        "contentHash": "HjVMQk+TfHDhRdavpgYS8ulyENYPSRTaViEttoPsHPUHXHk32eEAcv3YSPhTAjxd6h+6CCA+oBJWagDvOfSEZw=="
+        "resolved": "0.4.0",
+        "contentHash": "O5225Ij89vCsmz1Iq481CvVyDq7FeIsyPCdyLivDlOE7O3kH75fibI5b2Fvzym1QKvSCWMjDfAH/IheZrAfUaw=="
       },
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.27.11, )"
+          "Goo": "[0.28.1, )"
         }
       }
     }

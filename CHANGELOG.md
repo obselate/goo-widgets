@@ -4,6 +4,7 @@
 
 - Close native test windows before the next fixture starts.
 - Keep virtual rows at scroll offset zero when retained row content changes without a prepend.
+- Upgrade Goo to 0.28.1 and pause Spinner animations while fully clipped, with native checks for idle and resumed frames.
 - Resolve omitted disabled opacity in partial external themes affected by [gsharp#5296](https://github.com/DavidObando/gsharp/issues/5296).
 - Add a controlled ToggleButton with shared button paint and pressed accessibility state.
 - Add a controlled RadioButton and share its radio item with RadioGroup while keeping group navigation and one Tab stop.

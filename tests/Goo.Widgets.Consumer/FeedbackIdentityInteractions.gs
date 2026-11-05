@@ -9,6 +9,7 @@ import Hexa.NET.SDL3
 import System
 import System.Collections.Generic
 import System.Diagnostics
+import System.Reflection
 import System.Threading
 
 internal class FeedbackIdentityHost : Cell {
@@ -21,6 +22,7 @@ internal class FeedbackIdentityHost : Cell {
     internal var SpinnerRoot Container?
     internal var SpinnerBuilds int32
     internal let SpinnerFrame ElementHandle = ElementHandle()
+    internal let SpinnerViewport ElementHandle = ElementHandle()
     internal let AvatarFrames[]ElementHandle = []ElementHandle{
         ElementHandle(),
         ElementHandle(),
@@ -56,18 +58,26 @@ internal class FeedbackIdentityHost : Cell {
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Before"},
                 Text{Content: "Before"}
             },
-            Cell.Mount[SpinnerInput, Spinner](
-                "spinner",
-                SpinnerInput{
-                    Variant: SpinnerVariant.Bars,
-                    CreateRoot: (input SpinnerInput, visual Container) -> {
-                        SpinnerBuilds++
-                        SpinnerRoot = visual
-                        visual.Handle = SpinnerFrame
-                        return visual
+            Container{
+                Handle: SpinnerViewport,
+                Height: 64,
+                FlexShrink: 0,
+                OverflowY: Overflow.Scroll,
+                ScrollbarVisibilityY: ScrollbarVisibility.Hidden,
+                Cell.Mount[SpinnerInput, Spinner](
+                    "spinner",
+                    SpinnerInput{
+                        Variant: SpinnerVariant.Bars,
+                        CreateRoot: (input SpinnerInput, visual Container) -> {
+                            SpinnerBuilds++
+                            SpinnerRoot = visual
+                            visual.Handle = SpinnerFrame
+                            return visual
+                        }
                     }
-                }
-            ),
+                ),
+                Container{Height: 256, FlexShrink: 0},
+            },
         }
         let avatars = (
             AvatarGroup{
@@ -167,6 +177,24 @@ func FeedbackIdentityInteractions() {
     host.Rebuild()
     try {
         PumpFrames(window, 4)
+        var frames = 0
+        window.PresentationAccepted += (receipt WindowPresentationAccepted) -> frames++
+        let flags = BindingFlags.Instance | BindingFlags.NonPublic
+        let node = typeof(ElementHandle).GetField("node", flags)!!.GetValue(host.SpinnerFrame)!!
+        let segment = (node.GetType().GetProperty("Children", flags)!!.GetValue(node) as System.Collections.IList)!![0]!!
+        let opacity = segment.GetType().GetProperty("Opacity", flags)!!
+        let initial = float64(opacity.GetValue(segment)!!)
+        FeedbackWait(window, 150)
+        Require(Math.Abs(float64(opacity.GetValue(segment)!!) - initial) > 0.001, "Visible Spinner animation did not advance")
+        Require(host.SpinnerViewport.JumpTo(0.0, 256.0), "Spinner viewport did not scroll")
+        FeedbackWait(window, 100)
+        let clippedFrames = frames
+        FeedbackWait(window, 150)
+        Require(frames == clippedFrames, "Fully clipped Spinner continued presenting frames")
+        Require(host.SpinnerViewport.JumpTo(0.0, 0.0), "Spinner viewport did not restore")
+        let resumed = float64(opacity.GetValue(segment)!!)
+        FeedbackWait(window, 150)
+        Require(Math.Abs(float64(opacity.GetValue(segment)!!) - resumed) > 0.001, "Spinner animation did not resume after scrolling into view")
         for index in 0 ... 4 {
             let frame = host.AvatarFrames[index].BorderBox
             Require(
@@ -288,6 +316,6 @@ func FeedbackIdentityInteractions() {
         CloseNativeWindow(proof)
     }
     Console.WriteLine(
-        "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner period and range without rebuilds, reduced-motion still frame"
+        "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner clipped idle and resume, period and range without rebuilds, reduced-motion still frame"
     )
 }

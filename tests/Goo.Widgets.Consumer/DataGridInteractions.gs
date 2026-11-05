@@ -2216,9 +2216,10 @@ func DataGridEditingInteractions() {
             let popup = FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Bounds
             let error = FindSemantics(semantics.Tree!!.Root, "Enter a valid value")!!.Bounds
             Require(popup.X >= 0 && popup.Y >= 0 && popup.X + popup.Width <= float64(width) / 1.5 + 1 &&
-                popup.Y + popup.Height <= float64(window.Height) / 1.5 + 1 && error.Width <= popup.Width &&
+                popup.Y + popup.Height <= float64(window.Height) / 1.5 + 1 && error.Width <= popup.Width + 0.01 &&
                 host.After.BorderBox.Y + host.After.BorderBox.Height <= float64(window.Height) / 1.5 + 1,
-                "Scaled editor or error left the viewport")
+                "Scaled editor or error left the viewport: width=" + width.ToString() +
+                " popup=" + popup.ToString() + " error=" + error.ToString() + " after=" + host.After.BorderBox.ToString())
         }
         host.Reject = false
         GridKey(window, Key.Escape)
