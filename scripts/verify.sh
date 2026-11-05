@@ -10,6 +10,7 @@ build() {
   dotnet run --project tools/Goo.Widgets.Checks -c Release --no-build -- symbols --check
   dotnet restore Goo.Widgets.slnx --locked-mode -warnaserror -nr:false -m:1
   dotnet build Goo.Widgets.slnx "${build_flags[@]}" --no-restore --nologo
+  dotnet run --project tools/Goo.Widgets.Checks -c Release --no-build -- api-shape --check
   dotnet run --project tools/Goo.Widgets.Checks -c Release --no-build -- screenshots
   dotnet pack src/Goo.Widgets/Goo.Widgets.gsproj "${build_flags[@]}" --no-build --no-restore -o artifacts/packages
   dotnet pack src/Goo.Widgets.Markdown/Goo.Widgets.Markdown.gsproj "${build_flags[@]}" --no-build --no-restore -o artifacts/packages

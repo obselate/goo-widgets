@@ -126,7 +126,7 @@ public data struct ShortcutListInput {
 }
 
 /// Displays grouped shortcuts and an optional search field.
-public class ShortcutList : Cell[ShortcutListInput] {
+public open class ShortcutList : Cell[ShortcutListInput] {
     protected override func Build(input ShortcutListInput) Blob {
         let theme = Theme.Read()
         let root = Container{Gap: theme.ControlGap, MinWidth: 0}

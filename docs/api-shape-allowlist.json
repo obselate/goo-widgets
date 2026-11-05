@@ -58,25 +58,25 @@
     {
       "rule": "S21",
       "symbol": "Goo.Widgets.Graphs.GraphCanvasInput.Height",
-      "signature": "var Height float64",
+      "signature": "var Height float64?",
       "reason": "Graph transforms and hit testing require a fixed logical-pixel viewport height. S20 still requires nullable overrides."
     },
     {
       "rule": "S21",
       "symbol": "Goo.Widgets.Graphs.GraphCanvasInput.Width",
-      "signature": "var Width float64",
+      "signature": "var Width float64?",
       "reason": "Graph transforms and hit testing require a fixed logical-pixel viewport width. S20 still requires nullable overrides."
     },
     {
       "rule": "S21",
       "symbol": "Goo.Widgets.Graphs.GraphNodeCard.Height",
-      "signature": "var Height float64",
+      "signature": "var Height float64?",
       "reason": "The node occupies a fixed world-coordinate rectangle height. S20 still requires nullable overrides."
     },
     {
       "rule": "S21",
       "symbol": "Goo.Widgets.Graphs.GraphNodeCard.Width",
-      "signature": "var Width float64",
+      "signature": "var Width float64?",
       "reason": "The node occupies a fixed world-coordinate rectangle width. S20 still requires nullable overrides."
     },
     {
