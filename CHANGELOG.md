@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Wait for virtual Markdown blocks to remount before checking retained selection in native tests.
 - Close native test windows before the next fixture starts.
 - Keep virtual rows at scroll offset zero when retained row content changes without a prepend.
 - Upgrade Goo to 0.28.1 and pause Spinner animations while fully clipped, with native checks for idle and resumed frames.

@@ -5,6 +5,7 @@ import Goo.Widgets.Markdown
 import Hexa.NET.SDL3
 import System
 import System.Collections.Generic
+import System.Diagnostics
 import System.Text
 
 internal class MarkdownProbe : MarkdownView {
@@ -411,7 +412,10 @@ func MarkdownInteractions() {
         Require(ControllerDisposed(virtualEditor.Controller), "Virtual Markdown retained an off-screen text controller")
         Require(!host.State.ScrollToHeading("missing-heading"), "Markdown accepted an unknown heading ID")
         Require(host.State.ScrollToHeading(host.Headings[0].Id!!), "Virtual Markdown could not return to the first heading")
-        PumpFrames(window, 30)
+        let remount = Stopwatch.StartNew()
+        while !host.Editors["root/1"].Handle!!.IsMounted && window.IsOpen && remount.Elapsed.TotalSeconds < 10.0 {
+            window.Pump(0.016)
+        }
         let restored = host.Editors["root/1"]
         Require(restored.Handle!!.IsMounted && restored.Controller.Selection.Equals(selection),
             "Virtual Markdown lost per-block selection after remounting: mounted=" + restored.Handle!!.IsMounted.ToString() +
