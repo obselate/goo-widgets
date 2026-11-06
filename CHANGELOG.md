@@ -2,10 +2,11 @@
 
 ## Unreleased
 
+- Project composite focus rings to active list, tree, grid and combo-box rows through Goo, and share their interaction paint without moving keyboard or accessibility focus.
+
 ## 0.19.1 - 2026-11-06
 
 - Upgrade Goo to 0.28.2 for stable layout at fractional display scales.
-- Project composite focus rings to active list, tree, grid and combo-box rows through Goo, and share their interaction paint without moving keyboard or accessibility focus.
 
 ## 0.19.0 - 2026-11-06
 
