@@ -21,7 +21,12 @@ public open partial class DataGrid {
         }
     }
 
-    private func PruneRows(handles Dictionary[string, ElementHandle]) {
+    private func PruneRows() {
+        PruneRowHandles(rowHandles)
+        PruneRowHandles(rowFocusHandles)
+    }
+
+    private func PruneRowHandles(handles Dictionary[string, ElementHandle]) {
         for id in handles.Keys {
             if (id != activeId && !handles[id].IsMounted) || RawIndex(id) < 0 {
                 rowHandles.Remove(id)
@@ -34,8 +39,7 @@ public open partial class DataGrid {
     private func Handle(handles Dictionary[string, ElementHandle], id string) ElementHandle {
         if (Object.ReferenceEquals(handles, rowHandles) ||
             Object.ReferenceEquals(handles, rowFocusHandles)) && handles.Count >= 4096 {
-            PruneRows(rowHandles)
-            PruneRows(rowFocusHandles)
+            PruneRows()
             if input.RowAt != nil {
                 let retained = Dictionary[string, int32](rowHandles.Count, StringComparer.Ordinal)
                 for key in rowHandles.Keys {
