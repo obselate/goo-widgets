@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Upgrade Goo to 0.28.3 for virtual row recycling, retained subtree drawing and path rendering fixes.
+
 ## 0.19.2 - 2026-11-06
 
 - Fix control icon creation in trimmed builds.
