@@ -321,6 +321,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var viewport ElementHandle
     private var virtualRows VirtualRowsSource[DataGridRow]?
     private let rowHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
+    private let rowFocusHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private let resizeHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](
         StringComparer.Ordinal
     )
@@ -356,6 +357,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private let rowKey((DataGridRow) -> string) = (row DataGridRow) -> row.Id!!
     private let rowContext Func[DataGridRow, VirtualRowContext]
     private var hoveredId string?
+    private var pressedId string?
     private var anchorId string?
     private var groupExpanded HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var hasFocus bool
@@ -451,9 +453,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             AccessibilityName = value.AccessibilityName ?? theme.Text("Data grid"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
-            SelectedColor = value.SelectedColor ?? theme.SelectedFill(
-                theme.NativeLook ? theme.AccentColor.WithAlpha(0.15): theme.ActiveColor
-            ),
+            SelectedColor = value.SelectedColor ?? theme.SelectedFill(theme.ActiveColor),
             FocusColor = value.FocusColor ?? theme.FocusColor,
             ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
@@ -551,6 +551,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         } else {
             pinnedCount = 0
         }
+        if input.Disabled || pinnedCount == 0 { pressedId = nil }
         if let overrides = input.ColumnWidths {
             for pair in overrides {
                 ValidateWidth(pair.Value)
@@ -761,20 +762,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         root.Focusable = !input.Disabled
         root.TabStop = editSession == nil
         root.OnKeyDown = (e KeyEvent) -> {
-            if input.UseDefaultKeyboard ?? true {
-                pointerFocus = false
-            }
-            if e.Key == Key.Tab ||
-                e.Key == Key.Left ||
-                e.Key == Key.Right ||
-                e.Key == Key.Up ||
-                e.Key == Key.Down ||
-                e.Key == Key.Home ||
-                e.Key == Key.End ||
-                e.Key == Key.PageUp ||
-                e.Key == Key.PageDown {
-                pointerFocus = false
-            }
+            pointerFocus = false
             if input.UseDefaultKeyboard ?? true {
                 KeyDown(e)
             }
@@ -807,11 +795,10 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             pointerFocus = false
             hostBlur?.Invoke(e)
         }
-        var active ElementHandle?
-        if editSession == nil && activeId != nil {
-            active = columns.Length == 0 || NavigationIndex(activeId) < 0 || Row(NavigationIndex(activeId)).IsGroup ?
+        let active ElementHandle? = editSession != nil || activeId == nil ? nil:
+            columns.Length == 0 || NavigationIndex(activeId) < 0 || Row(NavigationIndex(activeId)).IsGroup ?
                 Handle(rowHandles, activeId!!): CellHandle(activeId!!, columns[activeColumn].Id!!)
-        }
+        root.FocusTarget = editSession == nil && activeId != nil ? Handle(rowFocusHandles, activeId!!): nil
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Grid,
             Name: input.AccessibilityName!!,

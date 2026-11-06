@@ -22,20 +22,23 @@ public open partial class DataGrid {
     }
 
     private func PruneRows() {
-        let removed = List[string]()
-        for id in rowHandles.Keys {
-            if (id != activeId && !rowHandles[id].IsMounted) || RawIndex(id) < 0 {
-                removed.Add(id)
+        PruneRowHandles(rowHandles)
+        PruneRowHandles(rowFocusHandles)
+    }
+
+    private func PruneRowHandles(handles Dictionary[string, ElementHandle]) {
+        for id in handles.Keys {
+            if (id != activeId && !handles[id].IsMounted) || RawIndex(id) < 0 {
+                rowHandles.Remove(id)
+                rowFocusHandles.Remove(id)
+                cellHandles.Remove(id)
             }
-        }
-        for id in removed {
-            rowHandles.Remove(id)
-            cellHandles.Remove(id)
         }
     }
 
     private func Handle(handles Dictionary[string, ElementHandle], id string) ElementHandle {
-        if Object.ReferenceEquals(handles, rowHandles) && rowHandles.Count >= 4096 {
+        if (Object.ReferenceEquals(handles, rowHandles) ||
+            Object.ReferenceEquals(handles, rowFocusHandles)) && handles.Count >= 4096 {
             PruneRows()
             if input.RowAt != nil {
                 let retained = Dictionary[string, int32](rowHandles.Count, StringComparer.Ordinal)
@@ -119,7 +122,8 @@ public open partial class DataGrid {
             } else {
                 Text{
                     Content: text,
-                    Color: isSelected ? theme.SelectedText(snapshot.TextColor!!): snapshot.TextColor!!,
+                    Color: row.Disabled || snapshot.Disabled ? theme.DisabledTextColor:
+                        isSelected ? theme.SelectedText(snapshot.TextColor!!, snapshot.SelectedColor): snapshot.TextColor!!,
                     TextWrap: snapshot.AutoRowHeight ? TextWrap.Wrap: TextWrap.NoWrap,
                     FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight
                 }
@@ -136,8 +140,6 @@ public open partial class DataGrid {
             Padding: session != nil && session.Presentation == DataGridEditPresentation.Inline ? Edges{}:
                 Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             JustifyContent: JustifyContent.Center, TextAlign: column.Alignment,
-            OutlineWidth: editSession == nil && activeId == id && activeColumn == index && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
-            OutlineColor: snapshot.FocusColor!!, OutlineOffset: -theme.FocusRingWidth,
             OnPointerDown: (e PointerEvent) -> {
                 if e.Button == PointerButton.Primary && !e.IsFromInteractiveChild { SetActiveColumn(index, false) }
             },
@@ -145,8 +147,12 @@ public open partial class DataGrid {
             Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
             ZIndex: index < pinnedCount ? 1: 0,
             BackgroundColor: index < pinnedCount ? (
-                isSelected ? snapshot.SelectedColor!!: hoveredId == id ? theme.HoverColor: snapshot.BackgroundColor!!
+                row.Disabled || snapshot.Disabled ? theme.PanelColor: isSelected ? snapshot.SelectedColor!!:
+                    pressedId == id ? theme.PressedColor: hoveredId == id ? theme.HoverColor: snapshot.BackgroundColor!!
             ): Color.Transparent,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Accessibility: Accessibility{
                 Role: AccessibilityRole.GridCell, Name: column.Label ?? column.Id!!, Value: text,
                 RowIndex: RawIndex(id), ColumnIndex: index + (leading > 0.0 ? 1: 0),
@@ -172,13 +178,11 @@ public open partial class DataGrid {
         }
         let cells = Container{
             Key: "cells",
+            Handle: Handle(rowFocusHandles, id),
             Width: Percent(100),
             Height: height,
             FlexShrink: 0,
             FlexDirection: FlexDirection.Row,
-            OutlineWidth: editSession == nil && activeId == id && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
-            OutlineColor: snapshot.FocusColor!!,
-            OutlineOffset: -theme.FocusRingWidth,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
         }
         if snapshot.AutoRowHeight && !(editSession?.Value.RowId == id && editSession?.Presentation == DataGridEditPresentation.Inline) {
@@ -239,6 +243,7 @@ public open partial class DataGrid {
                     var check = (
                         Checkbox{
                             Value: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
+                            DisabledOpacity: row.Disabled || snapshot.Disabled ? 1.0: nil,
                             Size: 18
                         }.Build() as Button
                     )!!
@@ -317,9 +322,13 @@ public open partial class DataGrid {
         }
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
-            Hover: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!: theme.HoverColor},
+            Hover: isSelected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            Active: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!:
+                pinnedCount == 0 || pressedId == id ? theme.PressedColor: hoveredId == id ? theme.HoverColor: Color.Transparent},
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
-            Opacity: row.Disabled ? .45: 1.0
         }
         if pinnedCount > 0 {
             root.OnPointerEnter = (e PointerEvent) -> {
@@ -328,12 +337,16 @@ public open partial class DataGrid {
             }
             root.OnPointerLeave = (e PointerEvent) -> {
                 hoveredId = nil
+                pressedId = nil
                 Rebuild()
             }
         }
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
         }
+        root.Focus = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.Focus, OutlineOffset: -theme.FocusRingWidth}
+        theme.ApplyInteraction(root, InteractionFamily.Row, isSelected)
+        cells.Focus = root.Focus
         root.Key = id
         root.Handle = Handle(rowHandles, id)
         root.Width = tableWidth
@@ -360,7 +373,20 @@ public open partial class DataGrid {
                     Select(id, false, false, false)
                 }
             }
+            if pinnedCount > 0 && e.Button == PointerButton.Primary { pressedId = id }
             hostPointerDown?.Invoke(e)
+        }
+        if pinnedCount > 0 {
+            let pointerUp = root.OnPointerUp
+            root.OnPointerUp = (e PointerEvent) -> {
+                pressedId = nil
+                pointerUp?.Invoke(e)
+            }
+            let pointerCancel = root.OnPointerCancel
+            root.OnPointerCancel = (e PointerEvent) -> {
+                pressedId = nil
+                pointerCancel?.Invoke(e)
+            }
         }
         let hostClick = root.OnClick
         root.OnClick = () -> {
@@ -456,6 +482,8 @@ public open partial class DataGrid {
         let changed = activeId != id
         activeId = id
         rootHandle.Focus()
+        let target ElementHandle? = editSession == nil ? Handle(rowFocusHandles, id): nil
+        rootHandle.SetFocusTarget(target)
         if reveal {
             Reveal()
         }
@@ -808,7 +836,7 @@ public open partial class DataGrid {
             (input.OnSelectionChange != nil || input.OnSelectionIndicesChange != nil || input.OnSelectionRequest != nil ? 16L: 0L) +
             ((row.HasDetail || row.Detail != nil) && input.OnExpandedChange != nil ? 32L: 0L) +
             (row.IsGroup && input.OnGroupExpandedChange != nil ? 64L: 0L) +
-            (editSession == nil && activeId == row.Id && hasFocus && !pointerFocus ? 128L * (int64(activeColumn) + 1L): 0L) +
+            (pressedId == row.Id ? 128L: 0L) +
             (editSession?.Value.RowId == row.Id ? editSession!!.Revision * 1048576L: 0L)
     }
 

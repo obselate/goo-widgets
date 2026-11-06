@@ -233,7 +233,9 @@ func ThemeFocusContracts() {
         Require(root.GridRoot!!.Handle!!.Focus(), "The grid did not accept keyboard focus.")
         root.GridRoot!!.OnKeyDown?.Invoke(KeyEvent{Key: Key.Home})
         ThemeFrames(host)
-        RequireFocusOutline(root.GridRow!!.Handle!!, width, -width, []int32{0})
+        RequireFocusOutline(root.GridRow!!.Handle!!, Math.Max(1.0, width), -width, []int32{0})
+        Require(root.GridRoot!!.Handle!!.IsFocusVisible && root.GridRoot!!.FocusTarget?.IsFocusVisible == true,
+            "The grid owner and active row did not share visible focus.")
     }
     Console.WriteLine("PASS theme focus geometry: minimum visible ring, header, active cell, action, tab and scope")
 }
