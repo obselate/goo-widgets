@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fix control icon creation in trimmed builds.
 - Project composite focus rings to active list, tree, grid and combo-box rows through Goo, and share their interaction paint without moving keyboard or accessibility focus.
 
 ## 0.19.1 - 2026-11-06
