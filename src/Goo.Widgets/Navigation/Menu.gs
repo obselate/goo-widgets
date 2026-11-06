@@ -190,7 +190,7 @@ public open class Menu : Cell[MenuInput] {
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
-                Color: item.Disabled ? theme.FaintTextColor: theme.TextColor,
+                Color: item.Disabled ? theme.DisabledTextColor: theme.TextColor,
             }
             let prepared = Button{
                 MinHeight: theme.ControlHeight,
@@ -198,9 +198,11 @@ public open class Menu : Cell[MenuInput] {
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: theme.ControlGap,
-                BackgroundColor: selected == id ? theme.AccentColor.WithAlpha(0.15): Color.Transparent,
+                BackgroundColor: selected == id ? theme.HoverColor: Color.Transparent,
                 BorderRadius: theme.ControlRadius!!,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
             let row = if let create = current.CreateItem {
@@ -208,6 +210,8 @@ public open class Menu : Cell[MenuInput] {
             } else {
                 prepared
             }
+            theme.ApplyInteraction(row, InteractionFamily.Row)
+            row.Focus!!.OutlineOffset = -theme.FocusRingWidth
             row.Key = id
             row.Handle = handles[id]
             row.Focusable = !item.Disabled

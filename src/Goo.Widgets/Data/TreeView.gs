@@ -150,9 +150,7 @@ public open class TreeView : Cell[TreeViewInput] {
     private let typeAhead TypeAhead = TypeAhead()
     private var input TreeViewInput
     private var theme Theme
-    private var pointerFocus bool
     private var activeId string?
-    private var hasFocus bool
     private var anchorId string?
     private var requestedSelection string?
     private var clickModifiers KeyModifiers
@@ -175,7 +173,7 @@ public open class TreeView : Cell[TreeViewInput] {
             AccessibilityName = value.AccessibilityName ?? theme.Text("Tree"),
             BackgroundColor = value.BackgroundColor ?? theme.PanelColor,
             TextColor = value.TextColor ?? theme.TextColor,
-            SelectedColor = value.SelectedColor ?? theme.SelectedFill(theme.AccentColor.WithAlpha(0.15)),
+            SelectedColor = value.SelectedColor ?? theme.SelectedFill(theme.ActiveColor),
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
         }
         if !Double.IsFinite(input.RowHeight!!) || input.RowHeight!!<= 0.0 || !Double.IsFinite(input.Indent!!) ||
@@ -331,7 +329,6 @@ public open class TreeView : Cell[TreeViewInput] {
             BackgroundColor: input.BackgroundColor!!,
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
-            Focus: theme.FocusStyle,
         }
         if let create = input.CreateRoot {
             root = create(input, root)
@@ -340,9 +337,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Direction = theme.Direction
         root.Focusable = !input.Disabled
         root.Disabled = input.Disabled
-        root.OnPointerDown = (e PointerEvent) -> pointerFocus = true
         root.OnKeyDown = (e KeyEvent) -> {
-            pointerFocus = false
             if input.OnKeyDown?.Invoke(e) ?? false {
                 e.PreventDefault()
                 e.StopPropagation()
@@ -351,20 +346,13 @@ public open class TreeView : Cell[TreeViewInput] {
             KeyDown(e)
         }
         root.OnFocus = (e FocusEvent) -> {
-            hasFocus = true
-            if !pointerFocus {
+            if rootHandle.IsFocusVisible {
                 RevealActive()
             }
         }
-        root.OnBlur = (e FocusEvent) -> {
-            hasFocus = false
-            pointerFocus = false
-            typeAhead.Reset()
-        }
-        var activeHandle ElementHandle?
-        if let id = activeId {
-            activeHandle = Handle(id)
-        }
+        root.OnBlur = (e FocusEvent) -> typeAhead.Reset()
+        let activeHandle ElementHandle? = activeId == nil ? nil: Handle(activeId!!)
+        root.FocusTarget = activeHandle
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Tree,
             Name: input.AccessibilityName!!,
@@ -432,6 +420,7 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         activeId = id
         rootHandle.Focus()
+        rootHandle.SetFocusTarget(Handle(id))
         RevealActive()
     }
 
@@ -581,6 +570,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 Checkbox{
                     Value: row.Node.CheckState,
                     Disabled: row.Disabled || snapshot.OnCheckChange == nil,
+                    DisabledOpacity: row.Disabled || snapshot.Disabled ? 1.0: nil,
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button
             )!!
@@ -600,7 +590,8 @@ public open class TreeView : Cell[TreeViewInput] {
             .Content ??
             Text{
             Content: row.Node.Label ?? id,
-            Color: row.Selected ? theme.SelectedText(snapshot.TextColor!!): snapshot.TextColor!!,
+            Color: row.Disabled || snapshot.Disabled ? theme.DisabledTextColor:
+                row.Selected ? theme.SelectedText(snapshot.TextColor!!, snapshot.SelectedColor): snapshot.TextColor!!,
             TextWrap: TextWrap.NoWrap,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
@@ -610,7 +601,6 @@ public open class TreeView : Cell[TreeViewInput] {
             label = create(snapshot, row, label)
         }
         children.Add(Container{Key: "content", FlexGrow: 1, FlexShrink: 1, MinWidth: 0, label})
-        let tinted = row.Selected || theme.Selection == SelectionStyle.Tint
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -619,11 +609,11 @@ public open class TreeView : Cell[TreeViewInput] {
             PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
-            Hover: Style{BackgroundColor: tinted ? snapshot.SelectedColor!!: theme.HoverColor},
-            OutlineWidth: row.Active && hasFocus && !pointerFocus ? theme.FocusRingWidth: 0.0,
-            OutlineColor: theme.FocusColor,
-            OutlineOffset: -theme.FocusRingWidth,
-            Opacity: row.Disabled ? .45: 1.0,
+            Hover: row.Selected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            Active: row.Selected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            TransitionMs: theme.TransitionMs,
+            TransitionEasing: Easing.EaseOut,
+            TransitionProperties: theme.InteractionTransitions,
             Overflow: Overflow.Hidden
         }
         for child in children {
@@ -635,6 +625,8 @@ public open class TreeView : Cell[TreeViewInput] {
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
         }
+        theme.ApplyInteraction(root, InteractionFamily.Row, row.Selected)
+        root.Focus!!.OutlineOffset = -theme.FocusRingWidth
         root.Key = id
         root.Handle = Handle(id)
         root.FlexDirection = FlexDirection.Row

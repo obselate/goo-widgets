@@ -100,7 +100,6 @@ public open class ListView : Cell[ListViewInput] {
     private var theme Theme
     private var activeId string?
     private var anchorId string?
-    private var focused bool
     private var modifiers KeyModifiers
     private var fromChild bool
     private var presses int32
@@ -206,7 +205,6 @@ public open class ListView : Cell[ListViewInput] {
             BackgroundColor: theme.PanelColor,
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
-            Focus: theme.FocusStyle
         }
         if let create = input.CreateRoot {
             root = create(input, root)
@@ -215,11 +213,8 @@ public open class ListView : Cell[ListViewInput] {
         root.Focusable = !input.Disabled
         root.Disabled = input.Disabled
         root.OnKeyDown = KeyDown
-        root.OnFocus = (e FocusEvent) -> focused = true
-        root.OnBlur = (e FocusEvent) -> {
-            focused = false
-            typeAhead.Reset()
-        }
+        root.OnBlur = (e FocusEvent) -> typeAhead.Reset()
+        root.FocusTarget = activeId == nil ? nil: Handle(activeId!!)
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.List,
             Name: input.AccessibilityName!!,
@@ -278,6 +273,7 @@ public open class ListView : Cell[ListViewInput] {
         activeId = id
         input.OnActiveChange?.Invoke(id)
         rootHandle.Focus()
+        rootHandle.SetFocusTarget(Handle(id))
         viewport.ScrollToItem(id)
     }
 
@@ -350,11 +346,8 @@ public open class ListView : Cell[ListViewInput] {
         root.Focusable = false
         root.TabStop = false
         root.Disabled = item.Disabled || snapshot.Disabled
-        root.Opacity = item.Disabled ? .45: 1
-        root.Hover = Style{BackgroundColor: theme.HoverColor}
-        root.OutlineWidth = activeId == id && focused ? theme.FocusRingWidth: 0.0
-        root.OutlineColor = theme.FocusColor
-        root.OutlineOffset = -theme.FocusRingWidth
+        theme.ApplyInteraction(root, InteractionFamily.Row, selected.Contains(id))
+        root.Focus!!.OutlineOffset = -theme.FocusRingWidth
         root.OnPointerDown = (e PointerEvent) -> {
             modifiers = e.Modifiers
             fromChild = e.IsFromInteractiveChild
