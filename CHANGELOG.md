@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Upgrade Goo to 0.28.2 for stable layout at fractional display scales.
+
 ## 0.19.0 - 2026-11-06
 
 - Wait for virtual Markdown blocks to remount before checking retained selection in native tests.
