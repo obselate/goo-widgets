@@ -33,6 +33,15 @@ package() {
   NUGET_PACKAGES="$subset_packages" dotnet run --project tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.gsproj \
     -c Release --no-build -p:GooWidgetsPackageVersion="$version" \
     -p:NuGetLockFilePath="$subset_packages/subset.lock.json"
+  printf '<Project><ItemGroup><TrimmerRootAssembly Include="Goo.Widgets" /></ItemGroup></Project>\n' > "$subset_packages/trimmed.targets"
+  NUGET_PACKAGES="$subset_packages" dotnet publish tests/Goo.Widgets.SubsetConsumer/Goo.Widgets.SubsetConsumer.gsproj \
+    -c Release -r linux-x64 --self-contained true -p:PublishTrimmed=true -p:TrimMode=link \
+    -p:GooWidgetsPackageVersion="$version" -p:NuGetLockFilePath="$subset_packages/subset.lock.json" \
+    -p:CustomAfterMicrosoftCommonTargets="$subset_packages/trimmed.targets" \
+    -o "$subset_packages/publish" -nr:false -m:1 -p:UseSharedCompilation=false
+  dotnet tool install dotnet-ilverify --version 10.0.10 --tool-path "$subset_packages/tools"
+  "$subset_packages/tools/ilverify" "$subset_packages/publish/Goo.Widgets.dll" \
+    -r "$subset_packages/publish/*.dll" -s System.Private.CoreLib -g '^(?!StackOverflow$)' --statistics
 }
 
 case "${1:-all}" in

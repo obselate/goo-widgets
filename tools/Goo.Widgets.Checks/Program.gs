@@ -62,7 +62,7 @@ func Symbols(args[]string) {
         File.WriteAllText(target, content)
     }
     let controls = File.ReadAllText(Path.Combine(root, "src/Goo.Widgets/Icons/ControlIcons.gs"))
-    let mappings = Regex.Matches(controls, "case ControlIcon\\.(\\w+): \"(\\w+)\"")
+    let mappings = Regex.Matches(controls, "case ControlIcon\\.(\\w+) \\{ name = \"(\\w+)\" \\}")
     let members = Regex.Match(controls, "internal enum ControlIcon \\{([^}]+)\\}").Groups[1].Value
         .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
     Require(
