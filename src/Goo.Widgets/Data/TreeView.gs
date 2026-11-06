@@ -150,6 +150,7 @@ public open class TreeView : Cell[TreeViewInput] {
     private let typeAhead TypeAhead = TypeAhead()
     private var input TreeViewInput
     private var theme Theme
+    private var pointerFocus bool
     private var activeId string?
     private var anchorId string?
     private var requestedSelection string?
@@ -337,7 +338,9 @@ public open class TreeView : Cell[TreeViewInput] {
         root.Direction = theme.Direction
         root.Focusable = !input.Disabled
         root.Disabled = input.Disabled
+        root.OnPointerDown = (e PointerEvent) -> pointerFocus = true
         root.OnKeyDown = (e KeyEvent) -> {
+            pointerFocus = false
             if input.OnKeyDown?.Invoke(e) ?? false {
                 e.PreventDefault()
                 e.StopPropagation()
@@ -346,11 +349,14 @@ public open class TreeView : Cell[TreeViewInput] {
             KeyDown(e)
         }
         root.OnFocus = (e FocusEvent) -> {
-            if rootHandle.IsFocusVisible {
+            if !pointerFocus {
                 RevealActive()
             }
         }
-        root.OnBlur = (e FocusEvent) -> typeAhead.Reset()
+        root.OnBlur = (e FocusEvent) -> {
+            pointerFocus = false
+            typeAhead.Reset()
+        }
         let activeHandle ElementHandle? = activeId == nil ? nil: Handle(activeId!!)
         root.FocusTarget = activeHandle
         root.Accessibility = Accessibility{

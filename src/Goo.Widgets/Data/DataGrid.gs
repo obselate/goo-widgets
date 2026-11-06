@@ -361,6 +361,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var anchorId string?
     private var groupExpanded HashSet[string] = HashSet[string](StringComparer.Ordinal)
     private var hasFocus bool
+    private var pointerFocus bool
     private var clickModifiers KeyModifiers
     private var clickFromInteractiveChild bool
     private var clickCount int32
@@ -627,7 +628,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         if Index(anchorId) < 0 {
             anchorId = activeId
         }
-        if controlledActiveChanged && rootHandle.IsFocusVisible {
+        if controlledActiveChanged && hasFocus && !pointerFocus {
             Reveal()
         }
         let details = hasDetails && input.ExpandColumnWidth > 0.0
@@ -754,17 +755,23 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         let hostText = root.OnTextInput
         let hostFocus = root.OnFocus
         let hostBlur = root.OnBlur
+        let hostPointer = root.OnPointerDown
         root.Handle = rootHandle
         root.FlexDirection = FlexDirection.Column
         root.Disabled = input.Disabled
         root.Focusable = !input.Disabled
         root.TabStop = editSession == nil
         root.OnKeyDown = (e KeyEvent) -> {
+            pointerFocus = false
             if input.UseDefaultKeyboard ?? true {
                 KeyDown(e)
             }
             hostKeys?.Invoke(e)
             input.OnKeyDown?.Invoke(e)
+        }
+        root.OnPointerDown = (e PointerEvent) -> {
+            pointerFocus = true
+            hostPointer?.Invoke(e)
         }
         if input.SetCellValue != nil || hostText != nil || input.OnTextInput != nil {
             root.OnTextInput = (text string) -> {
@@ -778,13 +785,14 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         }
         root.OnFocus = (e FocusEvent) -> {
             hasFocus = true
-            if rootHandle.IsFocusVisible {
+            if !pointerFocus {
                 Reveal()
             }
             hostFocus?.Invoke(e)
         }
         root.OnBlur = (e FocusEvent) -> {
             hasFocus = false
+            pointerFocus = false
             hostBlur?.Invoke(e)
         }
         let active ElementHandle? = editSession != nil || activeId == nil ? nil:

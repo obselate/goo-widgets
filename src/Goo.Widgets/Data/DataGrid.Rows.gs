@@ -359,6 +359,7 @@ public open partial class DataGrid {
             clickCount = e.Button == PointerButton.Primary ? e.ClickCount: 0
             if (e.Button == PointerButton.Primary || e.Button == PointerButton.Secondary) &&
                 (!row.IsGroup || input.OnGroupExpandedChange != nil) {
+                pointerFocus = true
                 if activeId != id {
                     activeId = id
                     input.OnActiveRowIndexChange?.Invoke(RawIndex(id))
