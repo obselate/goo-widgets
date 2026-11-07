@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.4 - 2026-11-06
+
 - Size Markdown list markers from the font size and center them on the first text line. Right-align ordered list numbers.
 - Use the theme line height for Markdown text lines. Lines were the font height times the line height, so Markdown spacing tightens from about 2.1 em to about 1.5 em with the default theme.
 - Add `MarkdownViewInput.RuleColor` for table row rules and thematic breaks. Nil keeps the muted text color.
