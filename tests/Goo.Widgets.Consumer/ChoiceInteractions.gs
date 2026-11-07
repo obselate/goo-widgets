@@ -342,6 +342,8 @@ func ChoiceInteractions() {
                     Title: page,
                     Width: width,
                     Height: height,
+                    MinWidth: width,
+                    MinHeight: height,
                     Root: gallery,
                     AccessibilityAdapter: semantics,
                 }
@@ -353,6 +355,8 @@ func ChoiceInteractions() {
                 proof.Open()
                 try {
                     PumpFrames(proof, 20)
+                    Require(proof.Width == width && proof.Height == height,
+                        "Gallery fit window did not use the requested size")
                     let content = FeedbackNode(semantics, AccessibilityRole.Group, page)
                     let nodes = List[AccessibilityNode]()
                     for role in[]AccessibilityRole{
