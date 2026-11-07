@@ -17,7 +17,9 @@ import Goo.Widgets.Gallery.Pages.Graphs
 import Goo.Widgets.Gallery.Pages.Charts
 import Goo.Widgets.Gallery.Pages.Data
 import Goo.Widgets.Gallery.Pages.Content
+import Goo.Svg
 import System.Collections.Generic
+import System.IO
 
 open class GalleryPage {
     internal var OwningWindow Window?
@@ -82,6 +84,7 @@ class Gallery : Cell, IDisposable {
     private let listHandle ElementHandle = ElementHandle()
     private let pageHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     private let stageLayout LayoutAlgorithm = GalleryStageLayout()
+    private let mark VectorAsset = Svg.Load(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMark.svg"))
 
     public init(registry GalleryRegistry, initialIndex int32, pageOnly bool = false) {
         Registry = registry
@@ -258,14 +261,7 @@ class Gallery : Cell, IDisposable {
             Container{
                 Height: 32, FlexShrink: 0, Padding: Edges{Left: 4, Right: 4}, Gap: 10,
                 FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
-                Container{
-                    Width: 26, Height: 26, BorderRadius: 7,
-                    BackgroundGradient: LinearGradient(135.0, []GradientStop{
-                        GradientStop{Offset: 0, Color: Color.Parse("#4a80f0")},
-                        GradientStop{Offset: 1, Color: Color.Parse("#2452c0")}}),
-                    AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-                    MaterialIcons.Create("widgets", 16, Color.White)
-                },
+                Container{Width: 28, Height: 28, Accessibility: Accessibility{Hidden: true}, mark.Render()},
                 Text{Content: "Goo Widgets", FontSize: 15, FontWeight: 600, LetterSpacing: -0.15}
             },
             (theme.TextField with{

@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Media
 
@@ -8,11 +9,12 @@ class AsyncImagePage : GalleryPage {
     public override func Title() string -> "AsyncImage"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let createImage Func[AsyncImage, Image] = (resolved) -> {
             return Image{
                 Width: Percent(100.0),
                 Height: Percent(100.0),
-                BackgroundColor: Color.Parse("#3f3f46"),
+                BackgroundColor: theme.HoverColor,
                 BorderRadius: resolved.BorderRadius!!,
                 BorderWidth: 1.0,
                 BorderColor: resolved.BorderColor!!,
@@ -24,7 +26,7 @@ class AsyncImagePage : GalleryPage {
                 Height: Percent(100.0),
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
-                BackgroundColor: Color.Parse("#27272a"),
+                BackgroundColor: theme.SunkenColor,
                 Text{
                     Content: "Custom",
                     Color: resolved.PlaceholderTextColor!!,
@@ -73,7 +75,7 @@ class AsyncImagePage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 Gap: 6.0,
                 failedImage.Build(),
-                Text{Content: "Failed", FontSize: 12.0, Color: "#fca5a5"},
+                Text{Content: "Failed", FontSize: 12.0, Color: theme.DangerColor},
             },
             Container{
                 Width: 150.0,

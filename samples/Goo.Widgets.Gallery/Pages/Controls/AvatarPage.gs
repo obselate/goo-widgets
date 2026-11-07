@@ -32,8 +32,8 @@ class AvatarPage : GalleryPage {
         let squareAvatar = baseAvatar with{
             AccessibilityName = "GX",
             FallbackText = "GX",
-            BackgroundColor = Color.Parse("#3f3f46"),
-            BorderColor = Color.Parse("#52525b"),
+            BackgroundColor = Theme.Read().SunkenColor,
+            BorderColor = Theme.Read().StrongBorderColor,
             Size = 72.0,
             BorderRadius = 10.0,
         }

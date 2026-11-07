@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Data
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import Goo.Widgets.Gallery
 import System
@@ -9,10 +10,11 @@ internal class TimeAxisExample : Cell {
     private var selected string?
     private var overflow bool
     private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) Button {
-        prepared.BackgroundColor = placement.Event.Id == "release" ? Color.Parse("#275d56"): Color.Parse("#393151")
+        let theme = Theme.Read()
+        prepared.BackgroundColor = placement.Event.Id == "release" ? theme.SuccessFillColor: theme.InfoFillColor
         if placement.Event.Id == selected {
             prepared.BorderWidth = 2
-            prepared.BorderColor = Color.Parse("#d1fae5")
+            prepared.BorderColor = theme.FocusColor
         }
         return prepared
     }

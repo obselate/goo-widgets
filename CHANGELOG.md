@@ -17,6 +17,8 @@
 ## 0.19.6 - 2026-11-07
 
 - Upgrade Goo to 0.28.6 for scrolled rounded images, vertical placement at unequal display scales, clamped logical scroll offsets, and deferred virtual row realization before rendering.
+- Raise `Theme.Ink` and `Theme.Bone` `BorderColor` to about 1.6:1 against `PanelColor` so dividers and panel edges stay visible. Ink is `#353a45`, Bone is `#cbcbc6`.
+- Show the Goo mark in the gallery sidebar and window icon. Gallery pages use theme tokens, so text and surfaces stay readable in Light.
 
 ## 0.19.5 - 2026-11-07
 

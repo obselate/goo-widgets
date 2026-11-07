@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
@@ -9,6 +10,7 @@ class UploadTilePage : GalleryPage {
     public override func Title() string -> "UploadTile"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let waitingTile = UploadTile{
             AccessibilityName: "Waiting file upload specimen",
             Size: 140.0,
@@ -17,15 +19,15 @@ class UploadTilePage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
                 Gap: 6.0,
-                MaterialIcons.Create("description", 28.0, Color.Parse("#a1a1aa")),
+                MaterialIcons.Create("description", 28.0, theme.MutedTextColor),
                 Text{Content: "report.pdf", FontSize: 11.0},
             },
             Status: Text{Content: "Waiting in queue...", FontSize: 11.0},
             Action: Container{
                 Padding: Edges(2.0, 6.0),
                 BorderRadius: 4.0,
-                BackgroundColor: Color.Parse("#27272a"),
-                MaterialIcons.Create("close", 12.0, Color.Parse("#a1a1aa")),
+                BackgroundColor: theme.HoverColor,
+                MaterialIcons.Create("close", 12.0, theme.MutedTextColor),
             },
         }
 
@@ -44,8 +46,8 @@ class UploadTilePage : GalleryPage {
             Action: Container{
                 Padding: Edges(2.0, 6.0),
                 BorderRadius: 4.0,
-                BackgroundColor: Color.Parse("#27272a"),
-                MaterialIcons.Create("pause", 12.0, Color.Parse("#a1a1aa")),
+                BackgroundColor: theme.HoverColor,
+                MaterialIcons.Create("pause", 12.0, theme.MutedTextColor),
             },
         }
 
@@ -58,15 +60,15 @@ class UploadTilePage : GalleryPage {
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
                 Gap: 6.0,
-                MaterialIcons.Create("raw_on", 28.0, Color.Parse("#ef4444")),
+                MaterialIcons.Create("raw_on", 28.0, theme.DangerColor),
                 Text{Content: "photo_raw.dng", FontSize: 11.0},
             },
-            Status: Text{Content: "Failed ∶ Network timeout", FontSize: 10.0, Color: "#fca5a5"},
+            Status: Text{Content: "Failed ∶ Network timeout", FontSize: 10.0, Color: theme.DangerColor},
             Action: Container{
                 Padding: Edges(2.0, 6.0),
                 BorderRadius: 4.0,
-                BackgroundColor: Color.Parse("#450a0a"),
-                Text{Content: "RETRY", FontSize: 9.0, FontWeight: 700, Color: "#fca5a5"},
+                BackgroundColor: theme.DangerQuietColor,
+                Text{Content: "RETRY", FontSize: 9.0, FontWeight: 700, Color: theme.DangerColor},
             },
         }
 

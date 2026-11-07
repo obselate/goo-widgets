@@ -34,10 +34,10 @@ internal class ManagedDialogExample : Cell {
             Key: "open",
             Width: 160.0,
             Height: 36.0,
-            BackgroundColor: "#27272a",
+            BackgroundColor: Theme.Read().AccentColor,
             BorderRadius: 6.0,
             OnClick: Open,
-            Text{Content: "Review change"}
+            Text{Content: "Review change", Color: Theme.Read().OnAccentColor}
         }
         WidgetKeyBindings.BindActivation(button)
         return button
@@ -46,7 +46,7 @@ internal class ManagedDialogExample : Cell {
     private func BuildNestedButton() Blob {
         let button = Button{
             Height: 34.0,
-            BackgroundColor: "#312e81",
+            BackgroundColor: Theme.Read().SunkenColor,
             BorderRadius: 5.0,
             OnClick: OpenNested,
             Text{Content: "Open nested confirmation"}
@@ -78,7 +78,7 @@ internal class ManagedDialogExample : Cell {
                         Width: Percent(100.0),
                         Height: 36.0,
                         Padding: 8.0,
-                        BackgroundColor: "#09090b",
+                        BackgroundColor: Theme.Read().FieldColor,
                         Accessibility: Accessibility{Name: "Change label"}
                     },
                     BuildNestedButton()

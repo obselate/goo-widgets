@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Graphs
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Graphs
 
@@ -9,9 +10,9 @@ internal open class GraphNodeCardExample : Cell {
         Width: 740.0,
         Height: 260.0,
         Position: PositionType.Relative,
-        BackgroundColor: "#09090b",
+        BackgroundColor: Theme.Read().SunkenColor,
         BorderWidth: 1.0,
-        BorderColor: Color.Parse("#27272a"),
+        BorderColor: Theme.Read().BorderColor,
         BorderRadius: 8.0,
         GraphNodeCard{
             Node: GraphNode{Id: "normal", Label: "Normal node", Position: Point{X: 140.0, Y: 96.0},},
