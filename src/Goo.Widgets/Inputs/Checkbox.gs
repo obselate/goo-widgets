@@ -173,6 +173,7 @@ public data struct Checkbox {
                 button.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
                 button.BackgroundColor = active ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor
             }
+            if Label != nil && !resolved.Card { button.AlignSelf = AlignSelf.FlexStart }
             button
         }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)

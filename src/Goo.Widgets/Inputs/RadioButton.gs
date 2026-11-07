@@ -93,6 +93,7 @@ public data struct RadioButton {
             button.Children.Add(leading)
         }
         button.Children.Add(text)
+        if !Card { button.AlignSelf = AlignSelf.FlexStart }
         if let create = CreateRoot {
             button = create(this, button)
         }
