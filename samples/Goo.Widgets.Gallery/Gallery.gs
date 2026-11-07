@@ -261,7 +261,10 @@ class Gallery : Cell, IDisposable {
             Container{
                 Height: 32, FlexShrink: 0, Padding: Edges{Left: 4, Right: 4}, Gap: 10,
                 FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
-                Container{Width: 28, Height: 28, Accessibility: Accessibility{Hidden: true}, mark.Render()},
+                Container{
+                    Width: 28, Height: 28, Padding: 4, BorderRadius: 7, BackgroundColor: Theme.Ink.CanvasColor,
+                    Accessibility: Accessibility{Hidden: true}, mark.Render()
+                },
                 Text{Content: "Goo Widgets", FontSize: 15, FontWeight: 600, LetterSpacing: -0.15}
             },
             (theme.TextField with{
