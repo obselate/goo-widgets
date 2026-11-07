@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Inset row focus rings in the shared interaction policy, so every row widget keeps its ring inside rounded and clipping hosts. Remove per-control row inset overrides.
+- Size labeled `Checkbox` and `RadioButton` choices to their content with the control radius and end padding, so the focus ring wraps the box and label without spanning the container.
+
 ## 0.19.7 - 2026-11-07
 
 - Keep the Banner dismiss button inside its bounds when long messages wrap.
