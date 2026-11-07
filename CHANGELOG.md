@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.9 - 2026-11-07
+
 - Upgrade Goo to 0.28.7 for filter performance, 12 px text, and focus outlines inside rounded clipping ancestors.
 
 ## 0.19.8 - 2026-11-07
