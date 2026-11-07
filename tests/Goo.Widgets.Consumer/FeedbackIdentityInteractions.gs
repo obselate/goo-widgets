@@ -53,6 +53,14 @@ internal class FeedbackIdentityHost : Cell {
             Width: Percent(100),
             Height: Percent(100),
             Padding: 20,
+            Banner{
+                Content: "This notification contains a long message that must wrap inside a narrow window without pushing the dismiss button outside the banner bounds.",
+                AccessibilityName: "Narrow banner",
+                DismissAccessibilityName: "Dismiss narrow banner",
+                OnDismiss: () -> {
+                    Dismisses++
+                },
+            }.Build(),
             Button{
                 Handle: Before,
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Before"},
@@ -178,6 +186,14 @@ func FeedbackIdentityInteractions() {
     host.Rebuild()
     try {
         PumpFrames(window, 4)
+        let banner = FindSemantics(semantics.Tree?.Root, "Narrow banner")!!.Bounds
+        let dismiss = FindSemantics(semantics.Tree?.Root, "Dismiss narrow banner")!!.Bounds
+        Require(
+            dismiss.X >= banner.X && dismiss.Y >= banner.Y
+            && dismiss.X + dismiss.Width <= banner.X + banner.Width
+            && dismiss.Y + dismiss.Height <= banner.Y + banner.Height,
+            "Banner dismiss button escaped its bounds after wrapping"
+        )
         var frames = 0
         window.PresentationAccepted += (receipt WindowPresentationAccepted) -> frames++
         let flags = BindingFlags.Instance | BindingFlags.NonPublic
