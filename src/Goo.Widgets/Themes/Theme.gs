@@ -1396,6 +1396,7 @@ internal sealed class ThemeAttachment {
             appBackdrop = nil
             setTransparent = false
         }
-        window.SetColors(background, value.TextColor)
+        window.Background = background
+        window.Foreground = value.TextColor
     }
 }

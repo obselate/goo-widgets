@@ -83,7 +83,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
                 anchorRect = rect
             } else if postedVersion != document!!.Version {
                 postedVersion = document!!.Version
-                Theme.Key.Window.TryPost(() -> Rebuild())
+                Theme.Key.Window.Post(() -> Rebuild())
             }
         }
         visible = found && anchorRect != nil
