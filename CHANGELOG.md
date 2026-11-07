@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.19.7 - 2026-11-07
+
+- Keep the Banner dismiss button inside its bounds when long messages wrap.
+
 ## 0.19.6 - 2026-11-07
 
 - Upgrade Goo to 0.28.6 for scrolled rounded images, vertical placement at unequal display scales, clamped logical scroll offsets, and deferred virtual row realization before rendering.

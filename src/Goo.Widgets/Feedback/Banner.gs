@@ -167,7 +167,7 @@ public data struct Banner {
             }
             root.Children.Add(ControlIcons.Create(name, resolved.FontSize!! + 4.0, theme.ToneColor(Tone)))
         }
-        let body = Container{FlexGrow: 1.0, MinWidth: 0}
+        let body = Container{FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0}
         if let title = Title {
             body.Children.Add(Text{
                 Content: title, Color: resolved.TextColor!!, FontSize: resolved.FontSize!!,
