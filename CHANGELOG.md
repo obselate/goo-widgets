@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.8 - 2026-11-07
+
 - Inset row focus rings in the shared interaction policy, so every row widget keeps its ring inside rounded and clipping hosts. Remove per-control row inset overrides.
 - Size labeled `Checkbox` and `RadioButton` choices to their content with the control radius and end padding, so the focus ring wraps the box and label without spanning the container.
 - Draw the SplitPane divider as a line of the theme border width that highlights on hover and drag. `HandleSize` now sets the pointer target, which overlaps both panes and defaults to twice the theme spacing (8 px). The panes gain the space the old divider took. The accessible value reports the controlled value exactly when the minima do not clamp it.
