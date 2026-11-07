@@ -60,6 +60,7 @@ func MarkdownContracts() {
 internal class MarkdownHost : Cell {
     internal let Viewport ElementHandle = ElementHandle()
     internal let State MarkdownViewState = MarkdownViewState()
+    internal let Marker ElementHandle = ElementHandle()
     internal var Bounded bool
     internal var ExtraText string = ""
     internal var BlockCalls int32
@@ -90,6 +91,9 @@ internal class MarkdownHost : Cell {
 
     private func Block(block MarkdownBlock, prepared Blob) Blob {
         BlockCalls++
+        if block.Kind == MarkdownBlockKind.List {
+            ((prepared as Container)!!.Children[0] as Container)!!.Children[0].Handle = Marker
+        }
         return prepared
     }
 
@@ -242,6 +246,17 @@ func MarkdownInteractions() {
         Require(
             host.Images > 0 && host.InlinePasses > 0 && host.StylePasses > 0,
             "Markdown skipped customization hooks"
+        )
+        var item ElementRect
+        for editor in host.Editors.Values {
+            if editor.Controller.Document.GetText() == "Review the package." {
+                item = editor.Handle!!.BorderBox
+            }
+        }
+        let marker = host.Marker.BorderBox
+        Require(
+            item.Height > 0.0 && Math.Abs(marker.Y + marker.Height / 2.0 - item.Y - item.Height / 2.0) < 1.5,
+            "Markdown list marker is not centered on its first text line"
         )
         let paragraph = host.Editors["root/1"]
         let controller = paragraph.Controller

@@ -51,6 +51,8 @@ public data struct SplitPaneInput {
     var Height Length?
     /// Divider size in logical pixels. Nil uses the theme spacing.
     var HandleSize float64?
+    /// Divider color. Nil uses the theme border color.
+    var HandleColor Color?
     /// Accessible separator name. Nil resolves to Resize panes.
     var AccessibilityName string?
     /// Customizes divider appearance; required identity, input, and semantics are reapplied.
@@ -137,7 +139,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             second.Children.Add(content)
         }
         var divider = Container{
-            BackgroundColor: theme.BorderColor,
+            BackgroundColor: value.HandleColor ?? theme.BorderColor,
             Hover: Style{BackgroundColor: theme.StrongBorderColor},
             Active: Style{BackgroundColor: theme.AccentColor},
             TransitionMs: theme.TransitionMs,

@@ -91,6 +91,8 @@ public data struct MarkdownViewInput {
     var CodeFontFamily string?
     var Color Color?
     var MutedColor Color?
+    /// Color of table row rules and thematic breaks. Nil uses MutedColor.
+    var RuleColor Color?
     var LinkColor Color?
     var CodeBackground Color?
     var SelectionColor Color?

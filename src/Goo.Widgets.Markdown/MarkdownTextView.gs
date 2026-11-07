@@ -69,7 +69,8 @@ internal class MarkdownTextView : Cell, IDisposable {
                 FontSize: input.Size,
                 FontWeight: input.Weight,
                 FontFamily: options.FontFamily!!,
-                Color: options.Color!!
+                Color: options.Color!!,
+                LineHeight: 0.0
             }
             if run.Bold {
                 style.FontWeight = 700.0
@@ -179,7 +180,7 @@ internal class MarkdownTextView : Cell, IDisposable {
             return nil
         }
         let options = current.Options
-        let text = Text{BasedOn: style, Content: run.Text ?? "", TextWrap: TextWrap.Wrap, MinWidth: 0.0}
+        let text = Text{BasedOn: style, LineHeight: theme.LineHeight, Content: run.Text ?? "", TextWrap: TextWrap.Wrap, MinWidth: 0.0}
         if run.Kind == MarkdownInlineKind.Link {
             if let captions = current.Model!!.Captions {
                 if captions.TryGetValue(run.Start, out var spans) {

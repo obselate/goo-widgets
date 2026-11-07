@@ -45,6 +45,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             CodeFontFamily = input.CodeFontFamily ?? nextTheme.MonoFontFamily,
             Color = input.Color ?? nextTheme.TextColor,
             MutedColor = input.MutedColor ?? nextTheme.MutedTextColor,
+            RuleColor = input.RuleColor ?? input.MutedColor ?? nextTheme.MutedTextColor,
             LinkColor = input.LinkColor ?? nextTheme.LinkColor,
             CodeBackground = input.CodeBackground ?? nextTheme.FieldColor,
             SelectionColor = input.SelectionColor ?? nextTheme.AccentColor.WithAlpha(0.35),
@@ -158,7 +159,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 Leaf(model, current.FontSize * .93, 400.0, TextAlign.Left, current, theme)
             }
         } else if info.Kind == MarkdownBlockKind.Rule {
-            content = Container{Height: 1.0, FlexShrink: 0.0, BackgroundColor: current.MutedColor!!}
+            content = Container{Height: 1.0, FlexShrink: 0.0, BackgroundColor: current.RuleColor!!}
         } else if info.Kind == MarkdownBlockKind.Table {
             content = Table(model, current, theme)
         } else if info.Kind == MarkdownBlockKind.List {
@@ -224,6 +225,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         let list = Column(theme.Spacing)
         list.Accessibility = Accessibility{Role: AccessibilityRole.List}
         var index = model.Start
+        let widest = model.Ordered ? (model.Start + model.Children.Length - 1).ToString() + ".": "•"
         for item in model.Children {
             let row = Container{
                 Key: item.Block.Id,
@@ -237,7 +239,9 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 Text{
                     Key: "bullet",
                     Content: model.Ordered ? index.ToString() + ".": "•",
-                    Width: 28.0,
+                    Width: current.FontSize * (0.2 + 0.6 * float64(widest.Length)),
+                    LineHeight: theme.LineHeight,
+                    TextAlign: model.Ordered ? TextAlign.Right: TextAlign.Left,
                     FlexShrink: 0.0,
                     FontSize: current.FontSize,
                     Color: current.MutedColor!!
@@ -275,7 +279,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                     Key: column.ToString(),
                     Padding: theme.ControlGap,
                     BorderWidth: Edges{Bottom: 1.0},
-                    BorderColor: Edges[Color]{Bottom: current.MutedColor!!},
+                    BorderColor: Edges[Color]{Bottom: current.RuleColor!!},
                     MinWidth: current.MinimumTableColumnWidth,
                     FlexGrow: 1.0,
                     FlexBasis: 0.0,
