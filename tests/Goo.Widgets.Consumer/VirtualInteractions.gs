@@ -269,12 +269,15 @@ func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualP
     }
 }
 
-func WaitVirtual(window Window, ready Func[bool]) {
+func WaitVirtual(window Window, ready Func[bool], diagnose Func[string]? = nil) {
     let waiting = Stopwatch.StartNew()
     while !ready() && window.IsOpen && waiting.Elapsed.TotalSeconds < 10.0 {
         window.Pump(0.016)
     }
-    Require(ready(), "Virtual layout did not publish the expected mount or scroll metrics.")
+    if !ready() {
+        Require(false, "Virtual layout did not publish the expected mount or scroll metrics. " +
+            "Window=${window.Title} open=${window.IsOpen} size=${window.Width}x${window.Height}. " + diagnose?.Invoke())
+    }
 }
 
 
@@ -334,7 +337,13 @@ func VirtualScrollApiInteractions() {
             let fraction = alignment == ScrollAlignment.Center ? 0.5: alignment == ScrollAlignment.End ? 1.0: 0.0
             WaitVirtual(window, () -> aligned.Handles[500].IsMounted &&
                 Math.Abs(aligned.Handles[500].BorderBox.Y - aligned.Handle.ContentBox.Y -
-                    (aligned.Handle.ContentBox.Height - aligned.Handles[500].BorderBox.Height) * fraction) < 0.01)
+                    (aligned.Handle.ContentBox.Height - aligned.Handles[500].BorderBox.Height) * fraction) < 0.01,
+                () -> "Alignment=${alignment} expected-mounted=True actual-mounted=${aligned.Handles[500].IsMounted} " +
+                    "actual-row-y=${aligned.Handles[500].BorderBox.Y - aligned.Handle.ContentBox.Y} " +
+                    "expected-row-y=${(aligned.Handle.ContentBox.Height - aligned.Handles[500].BorderBox.Height) * fraction} " +
+                    "row-height=${aligned.Handles[500].BorderBox.Height} viewport-height=${aligned.Handle.ContentBox.Height} " +
+                    "scroll-offset=${aligned.Handle.ScrollOffset.Y} scroll-range=${aligned.Handle.ScrollRange.Y} " +
+                    "settling=${aligned.Handle.IsScrollSettling}")
             PumpFrames(window, 3)
             let target = aligned.Handle.ScrollOffsetOf("row-500", alignment)!!
             Require(!aligned.Handle.IsScrollSettling && Math.Abs(target.Y - aligned.Handle.ScrollOffset.Y) < 0.01,
@@ -349,7 +358,10 @@ func VirtualScrollApiInteractions() {
             PumpFrames(window, 2)
             Require(aligned.Handle.RestoreAnchor(saved), "The saved anchor was not found.")
             WaitVirtual(window, () -> aligned.Handle.VisibleAnchor?.Key == saved.Key &&
-                Math.Abs(aligned.Handle.VisibleAnchor!!.Offset.Y - saved.Offset.Y) < 0.01)
+                Math.Abs(aligned.Handle.VisibleAnchor!!.Offset.Y - saved.Offset.Y) < 0.01,
+                () -> "Alignment=${alignment} expected-anchor=${saved.Key} expected-offset=${saved.Offset.Y} " +
+                    "actual-anchor=${aligned.Handle.VisibleAnchor?.Key} actual-offset=${aligned.Handle.VisibleAnchor?.Offset.Y} " +
+                    "scroll-offset=${aligned.Handle.ScrollOffset.Y} settling=${aligned.Handle.IsScrollSettling}")
             PumpFrames(window, 3)
             Require(aligned.Handle.VisibleAnchor?.Key == saved.Key &&
                 Math.Abs(aligned.Handle.VisibleAnchor!!.Offset.Y - saved.Offset.Y) < 0.01,
