@@ -84,7 +84,8 @@ class Gallery : Cell, IDisposable {
     private let listHandle ElementHandle = ElementHandle()
     private let pageHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     private let stageLayout LayoutAlgorithm = GalleryStageLayout()
-    private let mark VectorAsset = Svg.Load(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMark.svg"))
+    private let darkMark VectorAsset = Svg.Load(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMark.svg"))
+    private let lightMark VectorAsset = Svg.Load(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMarkLight.svg"))
 
     public init(registry GalleryRegistry, initialIndex int32, pageOnly bool = false) {
         Registry = registry
@@ -189,7 +190,7 @@ class Gallery : Cell, IDisposable {
     private func Sidebar() Blob {
         let theme = Theme.Read()
         let list = Container{
-            Key: "page-list", Handle: listHandle, FlexGrow: 1, FlexBasis: 0, MinHeight: 0, Gap: 10,
+            Key: "page-list", Handle: listHandle, FlexGrow: 1, FlexBasis: 0, MinHeight: 0, Gap: 12,
             OverflowY: Overflow.Scroll, ScrollbarY: theme.Scrollbar,
             Padding: Edges{Bottom: 40}
         }
@@ -206,18 +207,18 @@ class Gallery : Cell, IDisposable {
             list.Children.Add(Container{
                 Key: group.Name, Gap: 2,
                 Container{
-                    Height: 28, Padding: Edges{Left: 8, Right: 8}, Gap: 8,
+                    Height: 28, Padding: Edges{Left: 10, Right: 10}, Gap: 8,
                     FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
                     Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: group.Name, Level: 2},
                     MaterialIcons.Create(group.Icon, 16, theme.FaintTextColor),
                     Text{Content: group.Name, FontSize: 13, FontWeight: 600, Color: theme.TextColor}
                 },
                 Container{
-                    MarginStart: 15, BorderStartWidth: 1, BorderColor: theme.BorderColor,
+                    MarginStart: 17, BorderStartWidth: 1, BorderColor: theme.BorderColor,
                     PaddingStart: 6,
                     Cell.Mount[NavigationRailInput, NavigationRail](group.Name, NavigationRailInput{
                         Items: items.ToArray(), SelectedId: Registry.CurrentPage(currentIndex).Name(),
-                        AccessibilityName: group.Name, Expanded: true, ExpandedWidth: 202,
+                        AccessibilityName: group.Name, Expanded: true, ExpandedWidth: 202, ActiveMarker: false,
                         Height: Length.Auto, ItemHeight: 28, Gap: 1, ItemBorderRadius: 6,
                         ItemPaddingHorizontal: 10, FontSize: 13, FontWeight: 400,
                         BackgroundColor: Color.Transparent, TextColor: theme.MutedTextColor,
@@ -256,14 +257,14 @@ class Gallery : Cell, IDisposable {
             })
         }
         return Container{
-            Key: "sidebar", Width: 248, FlexShrink: 0, Padding: Edges{Top: 14, Left: 12, Right: 12, Bottom: 12},
-            Gap: 14,
+            Key: "sidebar", Width: 248, FlexShrink: 0, Padding: 12,
+            Gap: 12,
             Container{
-                Height: 32, FlexShrink: 0, Padding: Edges{Left: 4, Right: 4}, Gap: 10,
+                Height: 32, FlexShrink: 0, Padding: Edges{Left: 10, Right: 10}, Gap: 10,
                 FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
                 Container{
-                    Width: 28, Height: 28, Padding: 4, BorderRadius: 7, BackgroundColor: Theme.Ink.CanvasColor,
-                    Accessibility: Accessibility{Hidden: true}, mark.Render()
+                    Width: 28, Height: 28, Accessibility: Accessibility{Hidden: true},
+                    (theme.CanvasColor == Theme.Ink.CanvasColor ? darkMark: lightMark).Render()
                 },
                 Text{Content: "Goo Widgets", FontSize: 15, FontWeight: 600, LetterSpacing: -0.15}
             },
@@ -281,7 +282,7 @@ class Gallery : Cell, IDisposable {
                     entry.BorderWidth = 0
                     entry.BackgroundColor = Color.Transparent
                     return Container{
-                        Height: 32, FlexShrink: 0, Padding: Edges{Left: 10, Right: 10}, Gap: 8,
+                        Height: 32, FlexShrink: 0, Padding: Edges{Left: 9, Right: 9}, Gap: 8,
                         FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
                         BackgroundColor: theme.FieldColor, BorderWidth: 1, BorderColor: theme.InputBorderColor, BorderRadius: 6,
                         MaterialIcons.Create("search", 16, theme.FaintTextColor), entry
@@ -333,10 +334,10 @@ class Gallery : Cell, IDisposable {
         if !PageOnly { root.Children.Add(Sidebar()) }
         root.Children.Add(Container{
             Key: "page", Handle: panelHandle, FlexGrow: 1, FlexBasis: 0, MinWidth: 0, MinHeight: 0,
-            Margin: 8, MarginStart: PageOnly ? 8: 0,
+            Margin: 12, MarginStart: PageOnly ? 12: 0,
             BackgroundColor: theme.PanelColor, BorderColor: theme.BorderColor, BorderWidth: 1,
             BorderRadius: theme.PanelRadius!!, BoxShadow: theme.ElevationSm, Overflow: Overflow.Hidden,
-            Padding: Edges{Top: 26, Left: sidePadding, Right: sidePadding, Bottom: 32}, Gap: 20,
+            Padding: sidePadding, Gap: 20,
             Text{Content: page.Name(), FontSize: 28, FontWeight: 600, LetterSpacing: -0.4,
                 Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: page.Name(), Level: 1, Live: AccessibilityLive.Polite}},
             Container{
