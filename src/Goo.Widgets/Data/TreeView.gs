@@ -632,7 +632,6 @@ public open class TreeView : Cell[TreeViewInput] {
             root = create(snapshot, row, root)
         }
         theme.ApplyInteraction(root, InteractionFamily.Row, row.Selected)
-        root.Focus!!.OutlineOffset = -theme.FocusRingWidth
         root.Key = id
         root.Handle = Handle(id)
         root.FlexDirection = FlexDirection.Row
