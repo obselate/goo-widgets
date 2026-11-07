@@ -2,9 +2,13 @@
 
 ## Unreleased
 
+## 0.19.6 - 2026-11-07
+
 - Upgrade Goo to 0.28.6 for scrolled rounded images, vertical placement at unequal display scales, clamped logical scroll offsets, and deferred virtual row realization before rendering.
 
 ## 0.19.5 - 2026-11-07
+
+Tagged but not published to NuGet. Its changes ship in 0.19.6.
 
 - Upgrade Goo to 0.28.4 for retained scrolling, display-bounded initial windows and CPU-device presentation fixes. Preserve full-size gallery fit checks with explicit window minimums.
 
