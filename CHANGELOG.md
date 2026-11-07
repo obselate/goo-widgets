@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.19.5 - 2026-11-07
+
 - Upgrade Goo to 0.28.4 for retained scrolling, display-bounded initial windows and CPU-device presentation fixes. Preserve full-size gallery fit checks with explicit window minimums.
 
 ## 0.19.4 - 2026-11-06
