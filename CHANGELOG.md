@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Report expected and actual row alignment and anchor values when the native virtual scroll probe times out.
+- Report pump count, elapsed time, expected and actual row alignment, and anchor values when the native virtual scroll probe times out.
 
 ## 0.21.0 - 2026-11-09
 

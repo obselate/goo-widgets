@@ -269,12 +269,15 @@ func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualP
 
 func WaitVirtual(window Window, ready Func[bool], diagnose Func[string]? = nil) {
     let waiting = Stopwatch.StartNew()
+    var pumps int32
     while !ready() && window.IsOpen && waiting.Elapsed.TotalSeconds < 10.0 {
         window.Pump(0.016)
+        pumps++
     }
     if !ready() {
         Require(false, "Virtual layout did not publish the expected mount or scroll metrics. " +
-            "Window=${window.Title} open=${window.IsOpen} size=${window.Width}x${window.Height}. " + diagnose?.Invoke())
+            "Window=${window.Title} open=${window.IsOpen} size=${window.Width}x${window.Height} " +
+            "pump-calls=${pumps} elapsed-ms=${waiting.Elapsed.TotalMilliseconds}. " + diagnose?.Invoke())
     }
 }
 
