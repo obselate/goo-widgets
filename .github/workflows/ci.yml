@@ -101,7 +101,7 @@ jobs:
       matrix:
         include:
           - group: theme
-            suites: THEME
+            suites: THEME FOCUS
           - group: virtualization
             suites: VIRTUAL DATA_GRID TREE LISTS SEARCHLIST
           - group: overlays
@@ -173,6 +173,7 @@ jobs:
           path: |
             artifacts/native-dumps/*
             artifacts/native-test/*.log
+            artifacts/native-test/focus/*.png
           if-no-files-found: ignore
 
   verify:

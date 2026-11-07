@@ -338,6 +338,10 @@ func RunContracts(action Action, theme Theme? = nil, content Blob? = nil) {
 }
 
 func Main() {
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_FOCUS") == "1" {
+        FocusGoldens()
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_RETAIN_ALLOC") == "1" {
         RetainedAllocationContracts()
         return

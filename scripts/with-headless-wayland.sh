@@ -34,7 +34,7 @@ if [[ "${GOO_WAYLAND_COMPOSITOR:-}" == sway ]]; then
     setsid dbus-run-session -- sway --config "$runtime_root/sway.conf" >"$compositor_log" 2>&1 &
   compositor_pid=$!
   compositor_target=-$compositor_pid
-elif command -v weston >/dev/null 2>&1; then
+elif [[ "${GOO_WAYLAND_COMPOSITOR:-}" != kwin ]] && command -v weston >/dev/null 2>&1; then
   setsid weston --backend=headless-backend.so --renderer="${GOO_WESTON_RENDERER:-pixman}" \
     --width="${GOO_HEADLESS_WIDTH:-1400}" --height="${GOO_HEADLESS_HEIGHT:-900}" \
     --socket="$WAYLAND_DISPLAY" --idle-time=0 >"$compositor_log" 2>&1 &
