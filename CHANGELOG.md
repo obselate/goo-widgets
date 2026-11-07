@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Upgrade Goo to 0.28.5 for scrolled rounded images, vertical placement at unequal display scales, and clamped logical scroll offsets.
+- Upgrade Goo to 0.28.6 for scrolled rounded images, vertical placement at unequal display scales, clamped logical scroll offsets, and deferred virtual row realization before rendering.
 
 ## 0.19.5 - 2026-11-07
 
