@@ -109,6 +109,7 @@ internal class FocusGoldenPage : Cell {
             Padding: theme.Spacing * 8,
             BackgroundColor: theme.CanvasColor,
             Color: theme.TextColor,
+            FontFamily: theme.FontFamily,
             AlignItems: AlignItems.FlexStart,
             stage
         }
