@@ -39,6 +39,7 @@ public data struct RadioButton {
             BorderWidth: theme.BorderWidth,
             BorderColor: enabled ? selected ? theme.AccentColor: theme.InputBorderColor: theme.DisabledTextColor,
             BackgroundColor: enabled ? theme.FieldColor: theme.SunkenColor,
+            BoxShadows: enabled ? theme.FieldShadows: []BoxShadow{},
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
         }

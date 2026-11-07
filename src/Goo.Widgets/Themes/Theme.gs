@@ -133,6 +133,14 @@ public data struct Theme {
     var ElevationMd BoxShadow
     /// Shadow for large raised surfaces. Supplied by the selected theme palette.
     var ElevationLg BoxShadow
+    /// Shadows under panels and cards. Nil or empty keeps them flat. Supplied by the selected theme palette.
+    var PanelShadows[]BoxShadow
+    /// Shadows under menus, popovers, dialogs, toasts and tooltips. Supplied by the selected theme palette.
+    var OverlayShadows[]BoxShadow
+    /// Shadows under buttons at rest. Disabled buttons drop them. Supplied by the selected theme palette.
+    var ControlShadows[]BoxShadow
+    /// Inset shadows for text fields, check boxes, radio buttons and pressed buttons. Supplied by the selected theme palette.
+    var FieldShadows[]BoxShadow
     /// Text size for display typography in logical pixels. Defaults to 40.0.
     var DisplayFontSize float64 = 40.0
     /// Text size for h1 typography in logical pixels. Defaults to 32.0.
@@ -382,6 +390,10 @@ public data struct Theme {
             MotionNormalMs = ReducedMotion || MotionNormalMs != 0.0 ? MotionNormalMs: defaults.MotionNormalMs,
             MotionSlowMs = ReducedMotion || MotionSlowMs != 0.0 ? MotionSlowMs: defaults.MotionSlowMs,
             SpinnerPeriodMs = ReducedMotion || SpinnerPeriodMs != 0.0 ? SpinnerPeriodMs: defaults.SpinnerPeriodMs,
+            PanelShadows = PanelShadows ?? defaults.PanelShadows,
+            OverlayShadows = OverlayShadows ?? defaults.OverlayShadows,
+            ControlShadows = ControlShadows ?? defaults.ControlShadows,
+            FieldShadows = FieldShadows ?? defaults.FieldShadows,
             SeriesPalette = SeriesPalette ?? defaults.SeriesPalette,
             ColorBlindPalette = ColorBlindPalette ?? defaults.ColorBlindPalette,
             Syntax = Syntax == SyntaxPalette{} ? defaults.Syntax: Syntax,
@@ -537,35 +549,35 @@ public data struct Theme {
         public prop Ink Theme {
             get -> Theme{
                 CanvasColor: "#0c0d11",
-                PanelColor: "#13151b",
-                RaisedColor: "#1a1d24",
-                OverlayColor: "#1f222b",
-                FieldColor: "#0f1116",
-                HoverColor: "#262a34",
-                PressedColor: "#1e2129",
-                BorderColor: Color.Parse("#353a45"),
-                InputBorderColor: "#6b7282",
-                TextColor: "#ececf1",
-                MutedTextColor: "#b4b9c4",
-                PlaceholderColor: "#b4b9c4",
-                FaintTextColor: "#8e95a3",
+                PanelColor: "#15171d",
+                RaisedColor: "#1e2128",
+                OverlayColor: "#22252e",
+                FieldColor: "#08090c",
+                HoverColor: "#2a2e38",
+                PressedColor: "#24272f",
+                BorderColor: Color.Parse("#3b404b"),
+                InputBorderColor: "#727888",
+                TextColor: "#f7f7f9",
+                MutedTextColor: "#bdc2cb",
+                PlaceholderColor: "#bdc2cb",
+                FaintTextColor: "#969ca9",
                 AccentColor: "#2f67e0",
                 OnAccentColor: "#ffffff",
                 AccentHoverColor: "#3a6ee6",
                 AccentPressedColor: "#2858c4",
-                InfoColor: "#86b0ff",
-                SuccessColor: "#5fcf8a",
-                WarningColor: "#f0b450",
-                DangerColor: "#ff8577",
+                InfoColor: "#93b9ff",
+                SuccessColor: "#75d69a",
+                WarningColor: "#f2bf69",
+                DangerColor: "#ff9285",
                 DangerFillColor: "#c93a32",
                 DangerHoverColor: "#ce3f37",
                 SunkenColor: "#1e2026",
                 ActiveColor: "#1b2a45",
-                StrongBorderColor: "#878e9d",
-                SubtleTextColor: "#b4b9c4",
-                DisabledTextColor: "#606674",
-                LinkColor: "#8cb2ff",
-                FocusColor: "#7aa5ff",
+                StrongBorderColor: "#8e95a3",
+                SubtleTextColor: "#bdc2cb",
+                DisabledTextColor: "#666c7a",
+                LinkColor: "#99bbff",
+                FocusColor: "#87aeff",
                 InfoFillColor: "#15213a",
                 SuccessFillColor: "#11281d",
                 WarningFillColor: "#2b2213",
@@ -581,6 +593,22 @@ public data struct Theme {
                 ElevationSm: BoxShadow{OffsetY: 1.0, Blur: 2.0, Color: Color.Black.WithAlpha(0.50)},
                 ElevationMd: BoxShadow{OffsetY: 8.0, Blur: 24.0, Color: Color.Black.WithAlpha(0.45)},
                 ElevationLg: BoxShadow{OffsetY: 20.0, Blur: 48.0, Color: Color.Black.WithAlpha(0.55)},
+                PanelShadows: []BoxShadow{
+                    BoxShadow{Inset: true, OffsetY: 1.0, Color: Color.White.WithAlpha(0.06)},
+                },
+                OverlayShadows: []BoxShadow{
+                    BoxShadow{Inset: true, OffsetY: 1.0, Color: Color.White.WithAlpha(0.08)},
+                    BoxShadow{OffsetY: 16.0, Blur: 40.0, Color: Color.Black.WithAlpha(0.60)},
+                    BoxShadow{OffsetY: 2.0, Blur: 6.0, Color: Color.Black.WithAlpha(0.45)},
+                },
+                ControlShadows: []BoxShadow{
+                    BoxShadow{Inset: true, OffsetY: 1.0, Color: Color.White.WithAlpha(0.16)},
+                    BoxShadow{Inset: true, OffsetY: -1.0, Color: Color.Black.WithAlpha(0.30)},
+                    BoxShadow{OffsetY: 1.0, Color: Color.Black.WithAlpha(0.70)},
+                },
+                FieldShadows: []BoxShadow{
+                    BoxShadow{Inset: true, OffsetY: 2.0, Blur: 4.0, Color: Color.Black.WithAlpha(0.70)},
+                },
                 SeriesPalette: []Color{"#6fa6de", "#6cbc5f", "#f9a238", "#bd95dc", "#ef6a4d", "#58bdc3", "#df89ae", "#b9bd70"},
                 ColorBlindPalette: []Color{"#e69f00", "#56b4e9", "#009e73", "#f0e442", "#0072b2", "#d55e00", "#cc79a7", "#eeeeee"},
                 Syntax: SyntaxPalette{Keyword: "#bd95dc", String: "#6cbc5f", Number: "#f9a238", Comment: "#9099a8", Function: "#6fa6de", Type: "#58bdc3", Punctuation: "#b8bfc9"},
@@ -640,6 +668,23 @@ public data struct Theme {
                 ElevationSm = BoxShadow{OffsetY: 1.0, Blur: 2.0, Color: Color.Rgba(16, 18, 24, 20)},
                 ElevationMd = BoxShadow{OffsetY: 6.0, Blur: 20.0, Color: Color.Rgba(16, 18, 24, 26)},
                 ElevationLg = BoxShadow{OffsetY: 16.0, Blur: 40.0, Color: Color.Rgba(16, 18, 24, 36)},
+                PanelShadows = []BoxShadow{
+                    BoxShadow{OffsetY: 1.0, Color: Color.Rgba(16, 18, 24, 15)},
+                    BoxShadow{OffsetY: 1.0, Blur: 3.0, Color: Color.Rgba(16, 18, 24, 20)},
+                    BoxShadow{OffsetY: 10.0, Blur: 30.0, Color: Color.Rgba(16, 18, 24, 20)},
+                },
+                OverlayShadows = []BoxShadow{
+                    BoxShadow{OffsetY: 16.0, Blur: 40.0, Color: Color.Rgba(16, 18, 24, 46)},
+                    BoxShadow{OffsetY: 2.0, Blur: 6.0, Color: Color.Rgba(16, 18, 24, 31)},
+                },
+                ControlShadows = []BoxShadow{
+                    BoxShadow{OffsetY: 1.0, Color: Color.Rgba(16, 18, 24, 71)},
+                    BoxShadow{Inset: true, OffsetY: -1.0, Color: Color.Rgba(16, 18, 24, 15)},
+                    BoxShadow{OffsetY: 3.0, Blur: 8.0, Color: Color.Rgba(16, 18, 24, 26)},
+                },
+                FieldShadows = []BoxShadow{
+                    BoxShadow{Inset: true, OffsetY: 2.0, Blur: 4.0, Color: Color.Rgba(16, 18, 24, 41)},
+                },
                 SeriesPalette = []Color{"#245b91", "#30672a", "#805019", "#71468c", "#a43723", "#19666c", "#933f68", "#62651d"},
                 ColorBlindPalette = []Color{"#986800", "#24769c", "#007450", "#777000", "#0072b2", "#b64d00", "#9b4d79", "#090b10"},
                 Syntax = SyntaxPalette{Keyword: "#71468c", String: "#30672a", Number: "#805019", Comment: "#5e6676", Function: "#245b91", Type: "#19666c", Punctuation: "#4a5161"},
@@ -999,7 +1044,7 @@ public data struct Theme {
             BorderWidth: BorderWidth,
             BorderRadius: PanelRadius ?? Default.PanelRadius!!,
             BoxShadows: Glass ? []BoxShadow{ElevationSm, Highlight}:
-                GlassColor == nil ? []BoxShadow{}: []BoxShadow{ElevationMd},
+                GlassColor == nil ? PanelShadows: []BoxShadow{ElevationMd},
         }
     }
 
@@ -1008,7 +1053,7 @@ public data struct Theme {
         get -> Glass ? Style{
             BackdropBlur: 24.0,
             BoxShadows: []BoxShadow{ElevationLg, ElevationSm, Highlight},
-        }: Style{}
+        }: Style{BoxShadows: OverlayShadows}
     }
 
     private prop Glass bool { get -> GlassColor != nil && !NativeLook }
@@ -1271,6 +1316,10 @@ internal sealed class ThemeAttachment {
                 ElevationSm = palette.ElevationSm,
                 ElevationMd = palette.ElevationMd,
                 ElevationLg = palette.ElevationLg,
+                PanelShadows = palette.PanelShadows,
+                OverlayShadows = palette.OverlayShadows,
+                ControlShadows = palette.ControlShadows,
+                FieldShadows = palette.FieldShadows,
                 SeriesPalette = palette.SeriesPalette,
                 ColorBlindPalette = palette.ColorBlindPalette,
                 Syntax = palette.Syntax,

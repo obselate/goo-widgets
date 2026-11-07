@@ -399,6 +399,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
 
     private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let prepared = Container{
+            BasedOn: theme.OverlayStyle,
             BackgroundColor: theme.PanelColor,
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,

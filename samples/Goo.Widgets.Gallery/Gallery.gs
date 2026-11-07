@@ -329,8 +329,7 @@ class Gallery : Cell, IDisposable {
         root.Children.Add(Container{
             Key: "page", Handle: panelHandle, FlexGrow: 1, FlexBasis: 0, MinWidth: 0, MinHeight: 0,
             Margin: 12, MarginStart: PageOnly ? 12: 0,
-            BackgroundColor: theme.PanelColor, BorderColor: theme.BorderColor, BorderWidth: 1,
-            BorderRadius: theme.PanelRadius!!, BoxShadow: theme.ElevationSm, Overflow: Overflow.Hidden,
+            BasedOn: theme.PanelStyle, Overflow: Overflow.Hidden,
             Padding: sidePadding, Gap: 20,
             Text{Content: page.Name(), FontSize: 28, FontWeight: 600, LetterSpacing: -0.4,
                 Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: page.Name(), Level: 1, Live: AccessibilityLive.Polite}},

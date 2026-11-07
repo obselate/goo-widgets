@@ -322,6 +322,7 @@ public data struct TextField {
                 BorderColor: resolved.Invalid ? resolved.InvalidColor!!: resolved.BorderColor!!,
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
+                BoxShadows: resolved.Disabled ? []BoxShadow{}: theme.FieldShadows,
             }
             let content = Container{
                 FlexGrow: 1,
@@ -390,6 +391,7 @@ public data struct TextField {
             interactionTheme.ApplyInteraction(frame, InteractionFamily.Field)
             root.Children.Add(frame)
         } else {
+            entry!!.BoxShadows = resolved.Disabled ? []BoxShadow{}: theme.FieldShadows
             root.Children.Add(entry!!)
         }
         interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)

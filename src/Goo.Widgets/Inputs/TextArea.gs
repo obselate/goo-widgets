@@ -196,6 +196,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         editor.Key = "editor"
         editor.ReadOnly = input.ReadOnly
         editor.Disabled = input.Disabled
+        editor.BoxShadows = input.Disabled ? []BoxShadow{}: theme.FieldShadows
         editor.Focusable = !input.Disabled
         editor.TextWrap = input.Wrap
         editor.OverflowX = input.Wrap == TextWrap.NoWrap ? Overflow.Scroll: Overflow.Hidden

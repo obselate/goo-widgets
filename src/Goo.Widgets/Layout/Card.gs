@@ -83,11 +83,13 @@ public data struct Card {
             body.Children.Add(footer)
         }
         let background = Variant == CardVariant.Well ? theme.SunkenColor: Variant == CardVariant.Frame ? Color.Transparent: theme.PanelColor
+        let shadows = Variant == CardVariant.Card || Variant == CardVariant.Panel ? theme.PanelShadows: []BoxShadow{}
         let radius = Variant == CardVariant.Panel ? 0: theme.PanelRadius!!
         body.BackgroundColor = background
         body.BorderColor = theme.BorderColor
         body.BorderWidth = theme.BorderWidth
         body.BorderRadius = radius
+        body.BoxShadows = shadows
         body.Accessibility = Accessibility{Role: AccessibilityRole.Group, Name: AccessibilityName ?? Title ?? ""}
         if let create = CreateRoot {
             return create(resolved, body)
@@ -103,6 +105,7 @@ public data struct Card {
             BorderColor: theme.BorderColor,
             BorderWidth: theme.BorderWidth,
             BorderRadius: radius,
+            BoxShadows: shadows,
             Disabled: Disabled,
             OnClick: Disabled ? nil: OnClick,
             TransitionMs: theme.TransitionMs,
@@ -115,6 +118,7 @@ public data struct Card {
         theme.ApplyInteraction(root, InteractionFamily.Button)
         body.BackgroundColor = Color.Transparent
         body.BorderWidth = 0
+        body.BoxShadows = []BoxShadow{}
         WidgetKeyBindings.BindActivation(root)
         return root
     }

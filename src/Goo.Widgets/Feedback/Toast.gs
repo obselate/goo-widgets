@@ -133,6 +133,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
             )
         }
         let root = Container{
+            BasedOn: theme.OverlayStyle,
             LineHeight: theme.LineHeight,
             Gap: theme.ControlGap,
             Padding: theme.ControlPadding,
