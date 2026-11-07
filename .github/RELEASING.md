@@ -4,8 +4,7 @@ NuGet publication uses `.github/workflows/ci.yml` and the GitHub environment `re
 
 Widgets and Markdown stay below 1.0.0. Use patch increments for fixes and small
 additions. Reserve minor increments for substantial feature batches.
-Every merged change must be pushed, pass upstream CI,
-and receive a new release tag.
+Releases are milestone based and need the user's approval.
 
 ## Trusted Publishing setup
 
