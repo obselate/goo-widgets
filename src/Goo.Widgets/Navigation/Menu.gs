@@ -211,7 +211,6 @@ public open class Menu : Cell[MenuInput] {
                 prepared
             }
             theme.ApplyInteraction(row, InteractionFamily.Row)
-            row.Focus!!.OutlineOffset = -theme.FocusRingWidth
             row.Key = id
             row.Handle = handles[id]
             row.Focusable = !item.Disabled

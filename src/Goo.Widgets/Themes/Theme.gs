@@ -276,7 +276,9 @@ public data struct Theme {
             focus.BasedOn = target.Focus
             target.Hover = hover
             target.Active = active
-            target.Focus = Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
+            let ringWidth = Math.Max(1.0, FocusRingWidth)
+            target.Focus = Style{BasedOn: focus, OutlineWidth: ringWidth,
+                OutlineOffset: family == InteractionFamily.Row ? -ringWidth: FocusRingOffset}
             if HighContrast {
                 target.Hover = Style{BasedOn: target.Hover, BorderColor: StrongBorderColor}
             }

@@ -500,7 +500,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             result = create(row.Input, item, result)
         }
         theme.ApplyInteraction(result, InteractionFamily.Row, row.Selected)
-        result.Focus!!.OutlineOffset = -theme.FocusRingWidth
         result.Key = id
         result.Handle = Handle(id)
         result.Height = row.Input.RowHeight!!

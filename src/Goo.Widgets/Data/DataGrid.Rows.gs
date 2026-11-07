@@ -344,7 +344,7 @@ public open partial class DataGrid {
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
         }
-        root.Focus = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.Focus, OutlineOffset: -theme.FocusRingWidth}
+        root.Focus = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.Focus}
         theme.ApplyInteraction(root, InteractionFamily.Row, isSelected)
         cells.Focus = root.Focus
         root.Key = id

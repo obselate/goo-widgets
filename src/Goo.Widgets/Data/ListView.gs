@@ -347,7 +347,6 @@ public open class ListView : Cell[ListViewInput] {
         root.TabStop = false
         root.Disabled = item.Disabled || snapshot.Disabled
         theme.ApplyInteraction(root, InteractionFamily.Row, selected.Contains(id))
-        root.Focus!!.OutlineOffset = -theme.FocusRingWidth
         root.OnPointerDown = (e PointerEvent) -> {
             modifiers = e.Modifiers
             fromChild = e.IsFromInteractiveChild
