@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Upgrade Goo to 0.28.4 for retained scrolling, display-bounded initial windows and CPU-device presentation fixes. Preserve full-size gallery fit checks with explicit window minimums.
+
 ## 0.19.4 - 2026-11-06
 
 - Size Markdown list markers from the font size and center them on the first text line. Right-align ordered list numbers.
