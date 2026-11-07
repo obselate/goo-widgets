@@ -119,8 +119,9 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         let horizontal = input.Orientation == SplitOrientation.Horizontal
         let box = rootHandle.ContentBox
         available = Math.Max(0, (horizontal ? box.Width: box.Height) - line)
-        let pixels = Clamp(input.Unit == SplitUnit.Ratio ? available * input.Value: input.Value)
-        lastRequest = ToValue(pixels)
+        let requested = input.Unit == SplitUnit.Ratio ? available * input.Value: input.Value
+        let pixels = Clamp(requested)
+        lastRequest = pixels == requested ? input.Value: ToValue(pixels)
         let first = Container{Key: "first", MinWidth: 0, MinHeight: 0, FlexShrink: 0, Overflow: Overflow.Hidden}
         let second = Container{
             Key: "second",
