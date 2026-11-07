@@ -11,6 +11,8 @@
 - Draw the SplitPane divider as a line of the theme border width that highlights on hover and drag. `HandleSize` now sets the pointer target, which overlaps both panes and defaults to twice the theme spacing (8 px). The panes gain the space the old divider took. The accessible value reports the controlled value exactly when the minima do not clamp it.
 - Raise `Theme.Ink` and `Theme.Bone` `BorderColor` to about 1.6:1 against `PanelColor` so dividers and panel edges stay visible. Ink is `#353a45`, Bone is `#cbcbc6`.
 - Show the Goo mark in the gallery sidebar and window icon. Gallery pages use theme tokens, so text and surfaces stay readable in Light. The gallery shell uses even 12 px insets and no selected-row marker.
+- Add `TextField.Handle` for the text entry. A `TextField` with `Leading`, `Trailing`, addons, `Clearable` or `RevealButton` now shows the focus ring and hover border on the whole field, and the clear action keeps focus in the field.
+- Gallery search uses the standard `TextField` with a clear action, matches category names, and takes focus with Ctrl+F, Ctrl+K or `/`. The no-results message is announced as a status.
 
 ## 0.19.7 - 2026-11-07
 
