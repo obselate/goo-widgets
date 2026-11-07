@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Upgrade Goo to 0.28.7 for filter performance, 12 px text, and focus outlines inside rounded clipping ancestors.
+
 ## 0.19.8 - 2026-11-07
 
 - Inset row focus rings in the shared interaction policy, so every row widget keeps its ring inside rounded and clipping hosts. Remove per-control row inset overrides.
