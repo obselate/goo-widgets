@@ -20,7 +20,7 @@
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeWidgetDocumentation</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Goo" Version="0.28.4" />
+    <PackageReference Include="Goo" Version="0.28.6" />
     <ProjectReference Include="../../tools/Goo.Widgets.Checks/Goo.Widgets.Checks.gsproj" ReferenceOutputAssembly="false" PrivateAssets="all" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishAot;PublishTrimmed" />
     <EmbeddedResource Include="$(IntermediateOutputPath)MaterialSymbols.bundle" LogicalName="Goo.Widgets.MaterialSymbols.bundle" />
     <EmbeddedResource Include="Shaders/touch_magnifier.goo-effect" LogicalName="Goo.Widgets.TouchMagnifier" />

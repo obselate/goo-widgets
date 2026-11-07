@@ -4,9 +4,9 @@
     "net10.0": {
       "Goo": {
         "type": "Direct",
-        "requested": "[0.28.4, )",
-        "resolved": "0.28.4",
-        "contentHash": "hxjSuMOLzvBZfUrQfDwoEpnZJZUd+wlzQSArXMegifcjYU6wLUjJgEE8Z3sPh7ZWOmn8rC3OdP4tBo2hlTxy7A==",
+        "requested": "[0.28.6, )",
+        "resolved": "0.28.6",
+        "contentHash": "2K4yUA427eAll2UT3nxORAh3ajbaEtuhKUR1roTGl1ktBzQg0gL3/94AUAuqlXxRE3XZbo05Ie1UQuw81/WnBQ==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Tmds.DBus.Protocol": "0.95.2",
