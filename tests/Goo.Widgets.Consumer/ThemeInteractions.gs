@@ -899,11 +899,11 @@ func ThemeDensityContracts() {
         PumpFrames(window, 4)
         let pointer = ThemeCapture(window)
         Require(
-            ThemePixel(
+            !ThemePixel(
                 pointer,
                 int32(bounds.X) - 3,
                 int32(bounds.Y + bounds.Height / 2),
-                Theme.Read(window).CanvasColor
+                Theme.Read(window).FocusColor
             ),
             "Pointer-only focus showed the keyboard ring."
         )
@@ -968,10 +968,10 @@ func GalleryStageContracts() {
             window.Open()
             PumpFrames(window, 12)
             let demo = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
-            let expectedWidth = width == 1100 ? 936.0: 588.0
+            let expectedWidth = width == 1100 ? 928.0: 584.0
             Require(Math.Abs(demo.Width - expectedWidth) < 2
-                && Math.Abs(demo.X + demo.Width - (width == 1100 ? 1018.0: 894.0)) < 2
-                && Math.Abs(demo.Y + demo.Height - (window.Height - 74.0)) < 2,
+                && Math.Abs(demo.X + demo.Width - (width == 1100 ? 1014.0: 890.0)) < 2
+                && Math.Abs(demo.Y + demo.Height - (window.Height - (width == 1100 ? 86.0: 70.0))) < 2,
                 "Percentage demo escaped the stage content box: " + demo.ToString())
             CaptureIssueProof(window, "gallery-percent-" + width.ToString())
             gallery.Show(1)

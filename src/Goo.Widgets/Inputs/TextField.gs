@@ -266,7 +266,7 @@ public data struct TextField {
         }
         let readOnly = resolved.ReadOnly || entry!!.ReadOnly || (entry!!.Accessibility?.ReadOnly ?? false)
         entry!!.Key = "entry"
-        if let handle = Handle { entry!!.Handle = handle }
+        entry!!.Handle = entry!!.Handle ?? Handle
         entry!!.Disabled = resolved.Disabled
         entry!!.ReadOnly = readOnly
         entry!!.Focusable = !resolved.Disabled
@@ -286,6 +286,7 @@ public data struct TextField {
         if state != nil {
             entry!!.OnFocus = state.Focused
             entry!!.OnBlur = state.Blurred
+            state.FocusTarget = entry!!.Handle
         }
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
         if let createRoot = createRoot {
@@ -440,6 +441,7 @@ internal class TextFieldState : Cell[TextField] {
     internal var HasFocus bool
     internal var Revealed bool
     private let entryHandle ElementHandle = ElementHandle()
+    internal var FocusTarget ElementHandle?
 
     protected override func Build(input TextField) Blob {
         if source != input.Value || input.Controlled {
@@ -488,7 +490,7 @@ internal class TextFieldState : Cell[TextField] {
 
     internal func Clear() {
         Changed("")
-        current.Handle!!.Focus()
+        FocusTarget?.Focus()
     }
 
     internal func Reveal() {
