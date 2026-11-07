@@ -49,9 +49,9 @@ public data struct SplitPaneInput {
     var Width Length?
     /// Root height. Nil resolves to 100%.
     var Height Length?
-    /// Divider size in logical pixels. Nil uses the theme spacing.
+    /// Pointer target size of the divider in logical pixels. The visible line is the theme border width. Nil resolves to twice the theme spacing.
     var HandleSize float64?
-    /// Divider color. Nil uses the theme border color.
+    /// Divider line color. Nil uses the theme border color.
     var HandleColor Color?
     /// Accessible separator name. Nil resolves to Resize panes.
     var AccessibilityName string?
@@ -73,6 +73,8 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
     private var lastRequest float64
     private var disposed bool
     private var rightToLeft bool
+    private var hovered bool
+    private var line float64
 
     /// Creates the stable geometry subscription for this mounted splitter.
     public init() {
@@ -99,7 +101,8 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             throw ArgumentOutOfRangeException("Value/minimum sizes")
         }
         let step = value.Step ?? (value.Unit == SplitUnit.Ratio ? .02: theme.Spacing * 2.0)
-        let size = value.HandleSize ?? theme.Spacing * 3.0
+        let size = value.HandleSize ?? theme.Spacing * 2.0
+        line = theme.BorderWidth
         if !Double.IsFinite(step) || step <= 0.0 || !Double.IsFinite(size) || size < 0.0 {
             throw ArgumentOutOfRangeException("Step/HandleSize")
         }
@@ -115,7 +118,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         }
         let horizontal = input.Orientation == SplitOrientation.Horizontal
         let box = rootHandle.ContentBox
-        available = Math.Max(0, (horizontal ? box.Width: box.Height) - size)
+        available = Math.Max(0, (horizontal ? box.Width: box.Height) - line)
         let pixels = Clamp(input.Unit == SplitUnit.Ratio ? available * input.Value: input.Value)
         lastRequest = ToValue(pixels)
         let first = Container{Key: "first", MinWidth: 0, MinHeight: 0, FlexShrink: 0, Overflow: Overflow.Hidden}
@@ -138,19 +141,32 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         if let content = input.Second {
             second.Children.Add(content)
         }
+        let overlap = -Math.Max(0.0, size - line) / 2.0
         var divider = Container{
-            BackgroundColor: value.HandleColor ?? theme.BorderColor,
-            Hover: Style{BackgroundColor: theme.StrongBorderColor},
-            Active: Style{BackgroundColor: theme.AccentColor},
-            TransitionMs: theme.TransitionMs,
-            TransitionEasing: Easing.EaseOut,
-            TransitionProperties: theme.InteractionTransitions,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            ZIndex: 1,
+            FlexDirection: horizontal ? FlexDirection.Row: FlexDirection.Column,
+            JustifyContent: JustifyContent.Center,
+            Margin: horizontal ? Edges{Left: overlap, Right: overlap}: Edges{Top: overlap, Bottom: overlap},
+            Focus: Style{
+                BasedOn: theme.FocusStyle,
+                OutlineWidth: Math.Max(1.0, theme.FocusRingWidth),
+                OutlineOffset: -theme.FocusRingWidth
+            },
+            Container{
+                Key: "line",
+                Width: horizontal ? line: Percent(100),
+                Height: horizontal ? Percent(100): line,
+                BackgroundColor: pointer != -1L ? theme.AccentColor: hovered &&
+                    !input.Disabled ? theme.StrongBorderColor
+                : value.HandleColor ?? theme.BorderColor,
+                TransitionMs: theme.TransitionMs,
+                TransitionEasing: Easing.EaseOut,
+                TransitionProperties: theme.InteractionTransitions,
+            },
         }
         if let create = input.CreateHandle {
             divider = create(input, divider)
         }
-        theme.ApplyInteraction(divider, InteractionFamily.Field)
         divider.Key = "divider"
         divider.Handle = dividerHandle
         divider.FlexShrink = 0
@@ -166,6 +182,8 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         divider.OnPointerMove = Move
         divider.OnPointerUp = End
         divider.OnPointerCancel = Cancel
+        divider.OnPointerEnter = (e PointerEvent) -> Hover(true)
+        divider.OnPointerLeave = (e PointerEvent) -> Hover(false)
         divider.KeyBindings = []KeyBinding{
             KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
             KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
@@ -211,9 +229,9 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         }
         let next = Math.Max(
             0,
-            (input.Orientation == SplitOrientation.Horizontal ? metrics.ContentBox.Width: metrics.ContentBox.Height) - (
-                input.HandleSize ?? 6
-            )
+            (
+                input.Orientation == SplitOrientation.Horizontal ? metrics.ContentBox.Width: metrics.ContentBox.Height
+            ) - line
         )
         if Math.Abs(next - available) > .01 {
             available = next
@@ -235,8 +253,10 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         available > 0.0 ? pixels / available: 0.0
     ): pixels
 
-    private func Coordinate(e PointerEvent) float64 -> input.Orientation == SplitOrientation.Vertical ? e.WindowPosition.Y:
-        rightToLeft ? -e.WindowPosition.X: e.WindowPosition.X
+    private func Coordinate(e PointerEvent) float64 -> input.Orientation == SplitOrientation.Vertical ? e
+        .WindowPosition
+        .Y:
+    rightToLeft ? -e.WindowPosition.X: e.WindowPosition.X
 
     private func Request(pixels float64) {
         let next = ToValue(Clamp(pixels))
@@ -257,6 +277,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         e.Capture()
         e.PreventDefault()
         dividerHandle.Focus()
+        Rebuild()
     }
 
     private func Move(e PointerEvent) {
@@ -272,13 +293,20 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         e.ReleaseCapture()
         pointer = -1L
         input.OnCommit?.Invoke(lastRequest)
+        Rebuild()
     }
 
     private func Cancel(e PointerEvent) {
         if pointer == e.PointerId {
             e.ReleaseCapture()
             pointer = -1L
+            Rebuild()
         }
+    }
+
+    private func Hover(value bool) {
+        hovered = value
+        Rebuild()
     }
 
     private func KeyAction(key Key) {
