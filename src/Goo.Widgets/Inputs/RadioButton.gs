@@ -93,11 +93,18 @@ public data struct RadioButton {
             button.Children.Add(leading)
         }
         button.Children.Add(text)
-        if !Card { button.AlignSelf = AlignSelf.FlexStart }
+        if !Card {
+            button.AlignSelf = AlignSelf.FlexStart
+            button.PaddingStart = theme.Spacing * 2.0
+            button.PaddingEnd = theme.Spacing * 2.0
+        }
         if let create = CreateRoot {
             button = create(this, button)
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && Card)
+        if !Card && CreateRoot == nil {
+            button.Focus = Style{BasedOn: button.Focus, OutlineOffset: -theme.FocusRingWidth}
+        }
         button.Disabled = !enabled
         button.Focusable = enabled
         button.TabStop = enabled

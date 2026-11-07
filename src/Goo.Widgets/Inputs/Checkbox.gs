@@ -173,10 +173,18 @@ public data struct Checkbox {
                 button.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
                 button.BackgroundColor = active ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor
             }
-            if Label != nil && !resolved.Card { button.AlignSelf = AlignSelf.FlexStart }
+            if Label != nil && !resolved.Card {
+                button.AlignSelf = AlignSelf.FlexStart
+                button.BorderRadius = theme.ControlRadius!!
+                button.PaddingStart = theme.Spacing * 2.0
+                button.PaddingEnd = theme.Spacing * 2.0
+            }
             button
         }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)
+        if Label != nil && !Card && createRoot == nil {
+            root.Focus = Style{BasedOn: root.Focus, OutlineOffset: -theme.FocusRingWidth}
+        }
         root.Disabled = Disabled
         root.Focusable = !Disabled
         root.OnClick = onClick
