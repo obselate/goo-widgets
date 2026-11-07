@@ -4,8 +4,8 @@
     "net10.0": {
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.28.4",
-        "contentHash": "hxjSuMOLzvBZfUrQfDwoEpnZJZUd+wlzQSArXMegifcjYU6wLUjJgEE8Z3sPh7ZWOmn8rC3OdP4tBo2hlTxy7A==",
+        "resolved": "0.28.5",
+        "contentHash": "HPPGM+79UdEvjodQ4U5XrtXE7vTMwgOV7RhCF41Hz0aXLgRuM7waFOXw5Sa6KPl1sgZXcnMxlG08+PpyFOmx6Q==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Tmds.DBus.Protocol": "0.95.2",
@@ -43,13 +43,13 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.28.4, )"
+          "Goo": "[0.28.5, )"
         }
       },
       "goo.widgets.markdown": {
         "type": "Project",
         "dependencies": {
-          "Goo.Widgets": "[0.19.4, )",
+          "Goo.Widgets": "[0.19.5, )",
           "Markdig": "[1.6.0, )"
         }
       }
