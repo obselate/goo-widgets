@@ -505,6 +505,7 @@ internal class FocusGoldenPage : Cell {
                     CodeBlockInput{
                         Code: "let first = 1\nlet last = 2",
                         CollapsedLines: 1,
+                        FontFamily: theme.MonoFontFamily,
                         OnCopy: (value string) -> { }
                     }
                 )

@@ -188,6 +188,7 @@ func FocusGoldens() {
             Theme.Default with{
                 FontFamily = "DejaVu Sans",
                 HeadingFontFamily = "DejaVu Sans",
+                MonoFontFamily = "DejaVu Sans Mono",
                 Culture = CultureInfo.InvariantCulture
             }
         )
