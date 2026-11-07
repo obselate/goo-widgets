@@ -920,7 +920,7 @@ func ThemeDensityContracts() {
         let focused = ThemeCapture(window)
         let check = root.CheckHandle.BorderBox
         Require(
-            ThemePixel(focused, int32(check.X) - 3, int32(check.Y + check.Height / 2), Theme.Read(window).FocusColor),
+            ThemePixel(focused, int32(check.X) + 1, int32(check.Y + check.Height / 2), Theme.Read(window).FocusColor),
             "Real Tab traversal did not paint the theme focus ring."
         )
         Console.WriteLine(
