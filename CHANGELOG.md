@@ -3,11 +3,11 @@
 ## Unreleased
 
 - Upgrade Goo to 0.28.7 for filter performance, 12 px text, and focus outlines inside rounded clipping ancestors.
-- Raise `Theme.Ink` and `Theme.Bone` `BorderColor` so dividers and panel edges stay visible: about 1.7:1 against `PanelColor` in Ink (`#3b404b`) and 1.6:1 in Bone (`#cbcbc6`).
+- Raise `Theme.Ink` and `Theme.Bone` `BorderColor` so dividers and panel edges stay visible: about 1.8:1 against `PanelColor` in Ink (`#3d424d`) and 1.6:1 in Bone (`#cbcbc6`).
 - Show the Goo mark in the gallery sidebar and window icon. Gallery pages use theme tokens, so text and surfaces stay readable in Light. The gallery shell uses even 12 px insets and no selected-row marker.
 - Add `TextField.Handle` for the text entry. A `TextField` with `Leading`, `Trailing`, addons, `Clearable` or `RevealButton` now shows the focus ring and hover border on the whole field, and the clear action keeps focus in the field.
 - Gallery search uses the standard `TextField` with a clear action, matches category names, and takes focus with Ctrl+F, Ctrl+K or `/`. The no-results message is announced as a status.
-- Add theme depth. `Theme.Ink` uses tonal elevation: panel `#15171d`, raised `#1e2128`, overlay `#22252e`, and fields `#08090c` below the canvas. Ink text, border, link, focus and status colors are lighter, so no text or field-border contrast falls below its earlier value. New `PanelShadows`, `OverlayShadows`, `ControlShadows` and `FieldShadows` tokens drive `PanelStyle`, `OverlayStyle`, `Card`, popovers, menus, dialogs, toasts, tooltips, filled buttons, and the inset look of text fields, check boxes, radio buttons, number inputs and combo boxes. Pressed buttons show the inset shadow. Rows and list items get no shadow.
+- Add theme depth. `Theme.Ink` uses tonal elevation: canvas `#08090c`, panel `#16181e`, raised `#1f2229`, overlay `#22252e`, and fields `#040506` below the canvas. Ink text, border, link, focus and status colors are lighter, so no text or field-border contrast falls below its earlier value. New `PanelShadows`, `OverlayShadows`, `ControlShadows` and `FieldShadows` tokens drive `PanelStyle`, `OverlayStyle`, `Card`, popovers, menus, dialogs, toasts, tooltips, filled buttons, and the inset look of text fields, check boxes, radio buttons, number inputs and combo boxes. Raised controls, cards and floating surfaces have a 1 px top highlight. Pressed buttons show the inset shadow. Rows and list items get no shadow.
 
 ## 0.19.8 - 2026-11-07
 
