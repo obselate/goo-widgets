@@ -218,13 +218,22 @@ public data struct SearchList {
 }
 
 internal class SearchListState : Cell[SearchList] {
+    private var current SearchList
+    private let changeQuery Action[string]
+    private let selectItem Action[string]
     private var items[]?SelectionItem
     private var query string?
     private var prepared bool
     private var indices[]int32 = []int32{}
     private var positions Dictionary[string, int32] = Dictionary[string, int32](StringComparer.Ordinal)
 
+    public init() {
+        changeQuery = value -> InvokeInputCallback(current.OnQueryChange, value)
+        selectItem = id -> InvokeInputCallback(current.OnSelect, id)
+    }
+
     protected override func Build(input SearchList) Blob {
+        current = input
         if input.ItemAt == nil &&
             (!prepared || !Object.ReferenceEquals(items, input.Items) || query != input.Query) {
             let filtered = List[int32]()
@@ -253,8 +262,8 @@ internal class SearchListState : Cell[SearchList] {
             prepared = true
         }
         return (input with{
-            OnQueryChange = value -> InvokeInputCallback(input.OnQueryChange, value),
-            OnSelect = id -> InvokeInputCallback(input.OnSelect, id),
+            OnQueryChange = changeQuery,
+            OnSelect = selectItem,
         }).BuildContent(indices, positions)
     }
 }
