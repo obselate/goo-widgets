@@ -68,6 +68,6 @@ class RadioDemo : Cell {
                 reminders = state
                 Rebuild()
             },
-        }.Build(),
+        },
     }
 }

@@ -75,11 +75,11 @@ internal class ThemeScopePage : GalleryPage {
             Value: theme.WithHighContrast().WithTextScale(1.25),
             Content: () -> Container{
                 FlexDirection: FlexDirection.Row, Gap: 12.0, AlignItems: AlignItems.Center,
-                ActionButton{Content: "High contrast + 125% text"}.Build(),
+                ActionButton{Content: "High contrast + 125% text"},
                 Text{Content: "Scaled caption", FontSize: Theme.Read().CaptionFontSize,
                     Color: Theme.Read().TextColor}
             }
-        }.Build())
+        })
         root.Children.Add(Text{
             Content: "Motion: " + theme.MotionFastMs.ToString() + " / " + theme.MotionNormalMs.ToString() +
                 " / " + theme.MotionSlowMs.ToString() + " ms. Spinner: " + theme.SpinnerPeriodMs.ToString() + " ms.",

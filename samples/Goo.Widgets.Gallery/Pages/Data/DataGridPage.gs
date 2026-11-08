@@ -83,19 +83,19 @@ internal class DataGridExample : Cell {
         Container{
             FlexGrow: 1,
             Gap: 4,
-            Typography{Content: "Environment", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+            Typography{Content: "Environment", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor},
             Text{Content: "Production", FontSize: Theme.Read().FontSize}
         },
         Container{
             FlexGrow: 1,
             Gap: 4,
-            Typography{Content: "Region", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+            Typography{Content: "Region", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor},
             Text{Content: "Europe West", FontSize: Theme.Read().FontSize}
         },
         Container{
             FlexGrow: 1,
             Gap: 4,
-            Typography{Content: "Last checked", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+            Typography{Content: "Last checked", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor},
             Text{Content: "2 minutes ago", FontSize: Theme.Read().FontSize}
         }
     }
@@ -127,7 +127,7 @@ internal class DataGridExample : Cell {
                     EntryHeight: 36,
                     Leading: MaterialIcons.Create("search", 16, Theme.Read().MutedTextColor),
                     Clearable: true
-                }.Build(),
+                },
                 ActionButton{
                     Content: selected.Length > 0 ? "Clear selection": "Select all",
                     Height: 36,
@@ -142,7 +142,7 @@ internal class DataGridExample : Cell {
                         }
                         Select(ids.ToArray())
                     }
-                }.Build()
+                }
             },
             Cell.Mount[DataGridInput, DataGrid](
                 "inventory",
@@ -157,7 +157,7 @@ internal class DataGridExample : Cell {
                         Gap: 8,
                         AlignItems: AlignItems.Center,
                         MaterialIcons.Create("search_off", 24, Theme.Read().MutedTextColor),
-                        Typography{Content: "No hosts found", Variant: TextVariant.Subtitle}.Build()
+                        Typography{Content: "No hosts found", Variant: TextVariant.Subtitle}
                     },
                     Columns: []DataGridColumn{
                         DataGridColumn{
@@ -186,12 +186,12 @@ internal class DataGridExample : Cell {
                     Footer: Container{
                         FlexDirection: FlexDirection.Row,
                         JustifyContent: JustifyContent.SpaceBetween,
-                        Typography{Content: selected.Length.ToString() + " selected", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor}.Build(),
+                        Typography{Content: selected.Length.ToString() + " selected", Variant: TextVariant.Caption, Color: Theme.Read().MutedTextColor},
                         Typography{
                             Content: rows.Length == 0 ? "No load data": "Average load " + (total / rows.Length).ToString() + "%",
                             Variant: TextVariant.Caption,
                             Color: Theme.Read().MutedTextColor
-                        }.Build()
+                        }
                     },
                     CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) -> {
                         if column.Id != "load" {

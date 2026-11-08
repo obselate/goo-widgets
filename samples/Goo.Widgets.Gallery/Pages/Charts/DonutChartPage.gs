@@ -25,18 +25,18 @@ internal class DonutChartPage : GalleryPage {
                 ChartSeries{Id: "used", Label: "Used", Value: 28.5, Color: "#818cf8"},
                 ChartSeries{Id: "reserved", Label: "Reserved", Value: 7.5, Color: "#fbbf24"}
             },
-        }.Build(),
+        },
         Container{
             FlexDirection: FlexDirection.Row,
             JustifyContent: JustifyContent.Center,
             Gap: 50,
-            DonutChart{Size: 100, Thickness: 14, Center: Text{Content: "Empty", FontSize: 12}}.Build(),
+            DonutChart{Size: 100, Thickness: 14, Center: Text{Content: "Empty", FontSize: 12}},
             DonutChart{
                 Size: 100,
                 Thickness: 14,
                 Center: Text{Content: "100%", FontSize: 16},
                 Series: []ChartSeries{ChartSeries{Id: "all", Label: "Complete", Value: .5, Color: "#2dd4bf"}}
-            }.Build()
+            }
         }
     }
 }

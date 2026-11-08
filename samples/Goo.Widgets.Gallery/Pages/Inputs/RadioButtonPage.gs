@@ -16,9 +16,9 @@ internal open class RadioButtonExample : Cell {
             OnChange: (value bool) -> {
                 selected = value
             }
-        }.Build(),
-        RadioButton{Label: "Standard", Value: true, Card: true}.Build(),
-        RadioButton{Label: "Archived", Value: true, Disabled: true}.Build(),
+        },
+        RadioButton{Label: "Standard", Value: true, Card: true},
+        RadioButton{Label: "Archived", Value: true, Disabled: true},
     }
 }
 

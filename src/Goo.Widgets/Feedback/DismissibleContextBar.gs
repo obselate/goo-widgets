@@ -197,3 +197,6 @@ public data struct DismissibleContextBar {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w DismissibleContextBar) Blob -> w.Build()

@@ -23,7 +23,7 @@ internal class PropertyGridExample : Cell {
             OnChange: state -> {
                 compact = state == AccessibilityChecked.True
             }
-        }.Build(),
+        },
         PropertyGrid{
             Layout: compact ? PropertyGridLayout.Compact: PropertyGridLayout.Stacked,
             Query: query,
@@ -59,7 +59,7 @@ internal class PropertyGridExample : Cell {
                         OnChange: value -> {
                             name = value
                         }
-                    }.Build()
+                    }
                 },
                 PropertyGridItem{
                     Id: "sync",
@@ -72,17 +72,17 @@ internal class PropertyGridExample : Cell {
                         OnChange: state -> {
                             enabled = state == AccessibilityChecked.True
                         }
-                    }.Build()
+                    }
                 },
                 PropertyGridItem{
                     Id: "path",
                     Label: "Location",
                     Section: "Storage",
                     Disabled: true,
-                    Editor: TextField{Value: "/home/studio", Disabled: true}.Build()
+                    Editor: TextField{Value: "/home/studio", Disabled: true}
                 }
             }
-        }.Build()
+        }
     }
 }
 

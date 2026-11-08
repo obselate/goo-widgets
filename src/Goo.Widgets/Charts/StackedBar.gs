@@ -107,3 +107,6 @@ public data struct StackedBar {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w StackedBar) Blob -> w.Build()

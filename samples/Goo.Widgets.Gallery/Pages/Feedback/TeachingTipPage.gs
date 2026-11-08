@@ -23,16 +23,16 @@ internal class TeachingTipExample : Cell {
             Container{Handle: anchor, ActionButton{Content: "Bookmark", OnClick: () -> {
                 anchored = true
                 SetOpen(true)
-            }}.Build()},
+            }}},
             ActionButton{Content: "Reading list", OnClick: () -> {
                 anchored = false
                 SetOpen(true)
-            }}.Build(),
+            }},
             TeachingTip{
                 Open: isOpen, Anchor: anchored ? anchor: nil, OnOpenChange: SetOpen,
                 Title: "Bookmark", Subtitle: "Reading list", ActionText: "Save",
                 OnActionClick: () -> SetOpen(false), LightDismiss: true,
-            }.Build(),
+            },
         }
     }
 }

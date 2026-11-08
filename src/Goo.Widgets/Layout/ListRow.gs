@@ -319,3 +319,6 @@ internal class InteractiveListRow : Cell[ListRow] {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w ListRow) Blob -> w.Build()

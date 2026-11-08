@@ -152,3 +152,6 @@ public data struct SplitButton {
         }
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w SplitButton) Blob -> w.Build()

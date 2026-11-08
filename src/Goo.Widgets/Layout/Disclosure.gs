@@ -195,3 +195,6 @@ public data struct Disclosure {
         }
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w Disclosure) Blob -> w.Build()

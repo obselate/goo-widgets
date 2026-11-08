@@ -10,7 +10,7 @@ internal open class WindowChromeExample : Cell {
     private var status string = "none"
 
     public override func Build() Blob {
-        let chrome = WindowChrome{
+        let chrome Blob = WindowChrome{
             IsMaximized: maximized,
             EnableDoubleClick: true,
             EnableContextMenu: true,
@@ -44,7 +44,7 @@ internal open class WindowChromeExample : Cell {
                 status = "Close"
                 Rebuild()
             },
-        }.Build()
+        }
         chrome.Key = "chrome"
         return Container{
             Width: 640.0,

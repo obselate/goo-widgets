@@ -34,10 +34,10 @@ class FeedbackIdentityDemo(Page ToastPage) : Cell {
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: 16,
-                StatusIndicator{State: StatusState.Running, Label: "Syncing"}.Build(),
-                StatusIndicator{State: StatusState.Done, Variant: StatusVariant.Icon, Label: "Saved"}.Build(),
-                StatusIndicator{State: StatusState.Waiting, Variant: StatusVariant.Pill, Label: "Waiting"}.Build(),
-                Badge{Count: 128, Tone: Tone.Danger}.Build(),
+                StatusIndicator{State: StatusState.Running, Label: "Syncing"},
+                StatusIndicator{State: StatusState.Done, Variant: StatusVariant.Icon, Label: "Saved"},
+                StatusIndicator{State: StatusState.Waiting, Variant: StatusVariant.Pill, Label: "Waiting"},
+                Badge{Count: 128, Tone: Tone.Danger},
             },
             AvatarGroup{
                 Max: 3,
@@ -51,14 +51,14 @@ class FeedbackIdentityDemo(Page ToastPage) : Cell {
                     Avatar{FallbackText: "DM"},
                     Avatar{FallbackText: "ES"},
                 },
-            }.Build(),
+            },
             ActionButton{
                 Content: restored ? "Restored": "Show toast",
                 OnClick: () -> {
                     visible = true
                     restored = false
                 }
-            }.Build(),
+            },
         }
         if let window = Page.OwningWindow {
             root.Children.Add(

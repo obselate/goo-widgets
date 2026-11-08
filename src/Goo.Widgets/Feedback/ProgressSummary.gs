@@ -111,3 +111,6 @@ public data struct ProgressSummary {
         }
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w ProgressSummary) Blob -> w.Build()

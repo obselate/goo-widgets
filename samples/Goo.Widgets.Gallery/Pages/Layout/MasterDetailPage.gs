@@ -22,13 +22,13 @@ internal open class MasterDetailExample : Cell {
                 OnClick: () -> {
                     narrow = !narrow
                 }
-            }.Build(),
+            },
             ActionButton{
                 Content: "Select item",
                 OnClick: () -> {
                     selected = true
                 }
-            }.Build(),
+            },
         },
         Container{Height: 316.0, MasterDetail{
             Narrow: narrow,
@@ -38,7 +38,7 @@ internal open class MasterDetailExample : Cell {
             },
             Master: Container{Padding: 16.0, Text{Content: "Inbox"},},
             Detail: Container{Padding: 16.0, Text{Content: "Message from Alex"},},
-        }.Build()},
+        }},
     }
 }
 

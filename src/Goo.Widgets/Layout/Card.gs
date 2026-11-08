@@ -134,3 +134,6 @@ public data struct Card {
         }
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w Card) Blob -> w.Build()

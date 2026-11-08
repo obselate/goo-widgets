@@ -48,7 +48,7 @@ class AvatarPage : GalleryPage {
                 Max: 2,
                 Size: 40,
                 Items: []Avatar{defaultAvatar, successAvatar, warningAvatar, squareAvatar},
-            }.Build(),
+            },
             Container{
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,

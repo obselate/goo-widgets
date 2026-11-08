@@ -68,7 +68,7 @@ internal class GridExample : Cell {
                     }
                 },
             },
-        }.Build()
+        }
     }
 }
 

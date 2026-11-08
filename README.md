@@ -25,8 +25,8 @@ import Goo.Widgets.Feedback
 
 let content = Container{
     Gap: 12,
-    ActionButton{Content: "Save", OnClick: () -> Save()}.Build(),
-    ProgressBar{Value: 0.6}.Build(),
+    ActionButton{Content: "Save", OnClick: () -> Save()},
+    ProgressBar{Value: 0.6},
 }
 ```
 

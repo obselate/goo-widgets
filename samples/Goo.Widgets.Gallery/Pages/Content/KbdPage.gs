@@ -13,11 +13,11 @@ internal class KbdPage : GalleryPage {
         Kbd{
             Keys: []KeyBinding{KeyBinding{Key: Key.K, Modifiers: KeyModifiers{Ctrl: true, Shift: true}}},
             Platform: KbdPlatform.Linux
-        }.Build(),
+        },
         Kbd{
             Keys: []KeyBinding{KeyBinding{Key: Key.K, Modifiers: KeyModifiers{Super: true, Shift: true}}},
             Platform: KbdPlatform.MacOS
-        }.Build(),
+        },
         Cell.Mount[ShortcutListInput, ShortcutList](
             "shortcuts",
             ShortcutListInput{

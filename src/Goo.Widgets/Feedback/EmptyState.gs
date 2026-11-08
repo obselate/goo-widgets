@@ -191,3 +191,6 @@ public data struct EmptyState {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w EmptyState) Blob -> w.Build()

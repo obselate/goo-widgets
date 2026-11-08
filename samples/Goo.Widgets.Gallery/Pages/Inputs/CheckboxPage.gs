@@ -19,8 +19,8 @@ internal open class CheckboxExample : Cell {
             OnChange: (next AccessibilityChecked) -> {
                 state = next
             },
-        }.Build(),
-        Checkbox{Label: "Unavailable option", Value: AccessibilityChecked.False, Disabled: true,}.Build(),
+        },
+        Checkbox{Label: "Unavailable option", Value: AccessibilityChecked.False, Disabled: true,},
     }
 }
 

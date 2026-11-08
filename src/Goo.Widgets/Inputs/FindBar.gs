@@ -306,3 +306,6 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
         return button
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w FindBar) Blob -> w.Build()

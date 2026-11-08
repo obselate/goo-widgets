@@ -152,3 +152,8 @@ public data struct FormSection {
         return CreateRoot?.Invoke(this, root) ?? root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w FormField) Blob -> w.Build()
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w FormSection) Blob -> w.Build()

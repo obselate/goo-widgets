@@ -29,7 +29,7 @@ internal class SkeletonExample : Cell {
             ActionButton{Content: animated ? "Pause": "Resume", OnClick: () -> {
                 animated = !animated
                 Rebuild()
-            }}.Build(),
+            }},
         }
     }
 }

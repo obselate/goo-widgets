@@ -158,3 +158,6 @@ public data struct MediaCard {
         TextTrimming: TextTrimming.Ellipsis,
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w MediaCard) Blob -> w.Build()

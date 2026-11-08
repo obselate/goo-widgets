@@ -63,9 +63,9 @@ class BadgePage : GalleryPage {
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 Gap: 24,
-                StatusIndicator{State: StatusState.Running}.Build(),
-                StatusIndicator{State: StatusState.Done, Variant: StatusVariant.Icon}.Build(),
-                StatusIndicator{State: StatusState.Waiting, Variant: StatusVariant.Pill}.Build(),
+                StatusIndicator{State: StatusState.Running},
+                StatusIndicator{State: StatusState.Done, Variant: StatusVariant.Icon},
+                StatusIndicator{State: StatusState.Waiting, Variant: StatusVariant.Pill},
             },
         }
     }

@@ -36,8 +36,8 @@ internal class ListRowExample : Cell {
                         Rebuild()
                     },
                     AccessibilityName: "Pin inbox",
-                }.Build()
-            }.Build(),
+                }
+            },
             ListRow{
                 Title: "Selected workspace",
                 Caption: "Shared with 4 people",
@@ -53,8 +53,8 @@ internal class ListRowExample : Cell {
                         message = "Workspace saved"
                         Rebuild()
                     },
-                }.Build()
-            }.Build(),
+                }
+            },
             ListRow{
                 Title: "Unavailable archive",
                 Caption: "Read only",
@@ -64,12 +64,12 @@ internal class ListRowExample : Cell {
                     Rebuild()
                 },
                 Leading: MaterialIcons.Create("lock", 24, theme.MutedTextColor)
-            }.Build(),
+            },
             ListRow{
                 Title: "Plain information",
                 Caption: "Updated today",
                 Trailing: Text{Content: "12 items", Color: theme.MutedTextColor}
-            }.Build(),
+            },
             Text{Content: "Last action " + message, Color: theme.MutedTextColor}
         }
     }

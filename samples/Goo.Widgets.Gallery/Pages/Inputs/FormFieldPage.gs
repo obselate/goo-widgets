@@ -25,7 +25,7 @@ internal class FormFieldPage : GalleryPage {
                         return Container{Width: Percent(100), entry}
                     },
                 }.Build(),
-            }.Build(),
+            },
             FormField{
                 Label: "Email",
                 Error: "Enter a valid email address.",
@@ -39,12 +39,12 @@ internal class FormFieldPage : GalleryPage {
                         return Container{Width: Percent(100), entry}
                     },
                 }.Build(),
-            }.Build(),
+            },
             FormField{
                 Label: "Notifications",
                 Description: "Receive updates by email.",
-                Content: Checkbox{Label: "Email updates", Value: AccessibilityChecked.True}.Build()
-            }.Build(),
+                Content: Checkbox{Label: "Email updates", Value: AccessibilityChecked.True}
+            },
         },
-    }.Build()
+    }
 }

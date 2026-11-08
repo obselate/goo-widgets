@@ -38,7 +38,7 @@ internal open class MediaCardExample : Cell {
             selected = title
             Rebuild()
         },
-    }.Build()
+    }
 }
 
 internal class MediaCardPage : GalleryPage {

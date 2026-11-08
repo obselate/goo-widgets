@@ -28,7 +28,7 @@ internal open class SearchListExample : Cell {
             OnSelect: (value string) -> {
                 selected = value
             },
-        }.Build(),
+        },
         Text{Content: "Selected: " + selected},
     }
 }

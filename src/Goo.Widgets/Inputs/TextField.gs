@@ -521,3 +521,6 @@ internal class TextFieldState : Cell[TextField] {
         return button
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w TextField) Blob -> w.Build()

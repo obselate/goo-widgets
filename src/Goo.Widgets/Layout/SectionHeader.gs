@@ -171,3 +171,6 @@ public data struct SectionHeader {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w SectionHeader) Blob -> w.Build()
