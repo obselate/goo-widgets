@@ -155,8 +155,9 @@ internal class FieldCallbackHost : Cell {
 func FieldCallbackOwnership() {
     let host = FieldCallbackHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 500, Height: 500, AccessibilityAdapter: semantics}.Open()
-    try {
+    let window = Window{Root: ApplicationRoot(host), Width: 500, Height: 500, AccessibilityAdapter: semantics}
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 10)
         let id = OnlyNativeWindow()
         Require(FindSemantics(semantics.Tree?.Root, "initial") != nil, "Parent Text was not exposed")
@@ -213,9 +214,7 @@ func FieldCallbackOwnership() {
         Require(host.Value == "button" && FindSemantics(semantics.Tree?.Root, "button") != nil, "Button OnClick did not rebuild parent Text")
         Console.WriteLine("PASS: Button OnClick rebuilds parent Text without Rebuild")
         Require(changed && submitted && areaChanged && numberChanged && slotChanged && menuChanged, "Field callbacks did not rebuild their parent Cell")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 func FieldInteractions() {
