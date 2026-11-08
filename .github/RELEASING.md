@@ -2,9 +2,9 @@
 
 NuGet publication uses `.github/workflows/ci.yml` and the GitHub environment `release`.
 
-Widgets and Markdown stay below 1.0.0. Use patch increments for fixes and small
-additions. Reserve minor increments for substantial feature batches.
-Releases are milestone based and need the user's approval.
+Widgets and Markdown stay below 1.0.0. Use patch increments for fixes and small additions. Reserve minor increments for substantial feature batches.
+
+Releases are milestones approved by the repository owner. Merged changes and consumer requests do not trigger a release. Before approval, present the milestone contents, regression evidence and open known issues. Do not open a release PR, bump a version, tag or publish until the owner approves the milestone.
 
 ## Trusted Publishing setup
 
@@ -21,11 +21,11 @@ Set the GitHub repository variable `NUGET_USER` to `obselate`.
 
 ## Release
 
-1. Publish any new Goo dependency version first.
-2. Update both library project versions, dependency pins and lock files, installation documentation, and the dated `CHANGELOG.md` entry.
+1. Confirm approval for the Widgets milestone. If it needs an unreleased Goo change, ask the owner for the approved dependency path. Do not create a stable Goo release only to unblock this package.
+2. After milestone approval, update both library project versions, dependency pins and lock files, installation documentation, and the dated `CHANGELOG.md` entry.
 3. Run `bash scripts/verify.sh`.
 4. Commit and push to `main`. Require a green CI run for that commit.
-5. Create an annotated matching tag and push it.
+5. After milestone approval and green CI on the exact release commit, create the matching annotated tag and push it.
 6. The tag run verifies and packs both libraries, publishes them through NuGet Trusted Publishing, and creates a GitHub release with both packages and their checksums. Portable debug symbols are embedded in the libraries.
 7. Confirm the version is available from NuGet.org and install it in a clean package consumer.
 
