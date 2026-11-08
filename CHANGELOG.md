@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Remove redundant input callback rebuilds from the QuickStart sample and update the usage guide for automatic host rebuilds.
+
 ## 0.20.0 - 2026-11-08
 
 - Use `Post` for queued UI work. Requires Goo 0.29.0.
