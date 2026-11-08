@@ -40,8 +40,8 @@ func ToggleButtonInteractions() {
     let host = ToggleButtonHost()
     let adapter = SearchListSemantics()
     let window = Window{Title: "Toggle value", Width: 420, Height: 240, Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         for palette in []Theme{Theme.Bone, Theme.Ink, Theme.Ink.WithHighContrast()} {
             Theme.Attach(window, palette with{TransitionMs = 0.0})
@@ -74,7 +74,5 @@ func ToggleButtonInteractions() {
         ChoiceKey(window, SDLScancode.Tab)
         Require(FeedbackNode(adapter, AccessibilityRole.Button, "Next").Focused, "Disabled toggle remained in Tab traversal")
         Console.WriteLine("PASS: ToggleButton pointer, Space release, Enter, controlled value, disabled traversal and light/dark/high-contrast semantics")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

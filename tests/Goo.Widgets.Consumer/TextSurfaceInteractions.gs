@@ -161,8 +161,8 @@ func TextSurfaceInteractions() {
         host.HighlightColor = palette.Keyword
         layer.SetStyle("keyword", TextRange(0, 3), Style{Color: palette.Keyword})
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let id = OnlyNativeWindow()
         Require(host.QueryHandle.Focus(), "Find query did not focus")
@@ -317,9 +317,7 @@ func TextSurfaceInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(!host.QueryHandle.Focus() && !host.AreaHandle.Focus(), "Disabled text surfaces accepted focus")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     TextSurfaceLongCodeProof()
     TextSurfaceGalleryProof()
     Console.WriteLine(
@@ -330,8 +328,8 @@ func TextSurfaceInteractions() {
 func TextSurfaceLongCodeProof() {
     let host = TextSurfaceLongCode()
     let window = Window{Root: ApplicationRoot(host), Width: 760, Height: 600, Title: "Long code"}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 8)
         let first = TextPosition{Offset: 0, Affinity: TextAffinity.Downstream}
         let last = TextPosition{Offset: host.Source.Length, Affinity: TextAffinity.Downstream}
@@ -361,9 +359,7 @@ func TextSurfaceLongCodeProof() {
             host.Handle.TryGetTextCaretRect(last, TextCoordinateSpace.Element, out var end),
             "Long CodeBlock did not lay out scrolled lines"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 func TextSurfaceGalleryProof() {
@@ -375,8 +371,8 @@ func TextSurfaceGalleryProof() {
             let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
-            window.Open()
-            try {
+            RunNativeWindow(window, () -> {
+                window.Open()
                 PumpFrames(window, 15)
                 if title == "Text area" && mode == ThemeMode.Light {
                     VerifyEditorKeys(window, semantics, "Notes", true)
@@ -386,9 +382,7 @@ func TextSurfaceGalleryProof() {
                     window,
                     "gallery-" + title.ToLowerInvariant().Replace(" ", "-") + "-" + mode.ToString().ToLowerInvariant()
                 )
-            } finally {
-                CloseNativeWindow(window)
-            }
+            })
         }
     }
 }

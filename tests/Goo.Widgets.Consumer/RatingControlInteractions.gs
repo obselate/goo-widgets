@@ -54,8 +54,9 @@ func RatingAccentPixels(window Window, node AccessibilityNode, color Color) int3
 func RatingControlInteractions() {
     let host = RatingControlHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 480, Height: 180, AccessibilityAdapter: semantics}.Open()
-    try {
+    let window = Window{Root: ApplicationRoot(host), Width: 480, Height: 180, AccessibilityAdapter: semantics}
+    RunNativeWindow(window, () -> {
+        window.Open()
         let id = OnlyNativeWindow()
         for palette in []Theme{Theme.Bone, Theme.Ink, Theme.Ink.WithHighContrast()} {
             Theme.Attach(window, palette with{Culture = CultureInfo.GetCultureInfo("fr-FR")})
@@ -188,7 +189,5 @@ func RatingControlInteractions() {
             CaptureIssueProof(window, "rating-control-150-" + width.ToString())
         }
         Console.WriteLine("PASS: RatingControl half whole steps pointer preview leave commit arrows Home End controlled read-only disabled slider accessibility light dark high-contrast 150-percent fit")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

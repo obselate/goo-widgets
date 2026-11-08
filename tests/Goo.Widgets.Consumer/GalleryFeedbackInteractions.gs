@@ -425,36 +425,36 @@ func GalleryFeedbackInteractions() {
             Root: Gallery(registry, registry.IndexOf(page)),
             AccessibilityAdapter: adapter
         }
-        window.Open()
         try {
-            PumpFrames(window, 24)
-            if page == "Combo box" {
-                FeedbackCombo(window, adapter)
-            } else if page == "Split pane" {
-                FeedbackSplit(window, adapter)
-            } else if page == "Window chrome" {
-                FeedbackChrome(window, adapter)
-            } else if page == "Disclosure" {
-                FeedbackDisclosure(window, adapter)
-            } else if page == "Media transport" {
-                FeedbackMedia(window, adapter)
-            } else if page == "Data grid" {
-                if Environment.GetEnvironmentVariable("GOO_WIDGETS_GALLERY_FIT") == "1" {
-                    FeedbackGridFit(window, adapter)
-                } else {
-                    FeedbackGrid(window, adapter)
+            RunNativeWindow(window, () -> {
+                window.Open()
+                PumpFrames(window, 24)
+                if page == "Combo box" {
+                    FeedbackCombo(window, adapter)
+                } else if page == "Split pane" {
+                    FeedbackSplit(window, adapter)
+                } else if page == "Window chrome" {
+                    FeedbackChrome(window, adapter)
+                } else if page == "Disclosure" {
+                    FeedbackDisclosure(window, adapter)
+                } else if page == "Media transport" {
+                    FeedbackMedia(window, adapter)
+                } else if page == "Data grid" {
+                    if Environment.GetEnvironmentVariable("GOO_WIDGETS_GALLERY_FIT") == "1" {
+                        FeedbackGridFit(window, adapter)
+                    } else {
+                        FeedbackGrid(window, adapter)
+                    }
+                } else if page == "Tree view" {
+                    FeedbackTree(window, adapter)
+                } else if page == "Menu" {
+                    FeedbackMenu(window, adapter)
                 }
-            } else if page == "Tree view" {
-                FeedbackTree(window, adapter)
-            } else if page == "Menu" {
-                FeedbackMenu(window, adapter)
-            }
-            Console.WriteLine("PASS gallery feedback: " + page)
+                Console.WriteLine("PASS gallery feedback: " + page)
+            })
         } catch (error Exception) {
             failures.Add(page + ": " + error.Message)
             Console.WriteLine("FAIL gallery feedback: " + page + ": " + error.ToString())
-        } finally {
-            CloseNativeWindow(window)
         }
     }
     Require(visited, "Set GOO_WIDGETS_GALLERY_FEEDBACK_PAGE to a supported page")

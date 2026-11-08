@@ -280,8 +280,8 @@ func RailInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         Require(
@@ -328,9 +328,7 @@ func RailInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(host.Buttons.Length == 0, "Rail retained removed items")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: rail single Tab stop, disabled skipping, wrap, Home/End, Enter/Space and controlled selection"
     )
@@ -349,8 +347,8 @@ func CompositeInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         Require(host.Tabs["one"].TabStop && !host.Tabs["three"].TabStop, "TabBar did not establish one roving stop")
@@ -499,9 +497,7 @@ func CompositeInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         Require(ControllerDisposed(controller), "Mounted TextArea did not dispose its default controller on removal")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Require(!window.IsOpen, "Composite widget window failed to close")
     PointerCommitCancellation()
     Console.WriteLine(
@@ -561,8 +557,8 @@ internal class PointerCommitHost : Cell {
 func PointerCommitCancellation() {
     let host = PointerCommitHost()
     let window = Window{Title: "Pointer commit cancellation", Root: host, Width: 320, Height: 350}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 8)
         let input = window.PlatformInput
         let roots = []Blob{host.SliderRoot!!, host.Wheel!!}
@@ -582,8 +578,6 @@ func PointerCommitCancellation() {
             PumpFrames(window, 3)
             Require(host.Commits[index] == 1, "Slider or ColorPicker did not commit the later drag exactly once")
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: mounted Slider and ColorPicker cancel without commit, then drag/up commits once")
 }

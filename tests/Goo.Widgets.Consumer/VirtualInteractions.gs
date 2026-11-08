@@ -259,14 +259,12 @@ func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualP
     let window = Window{Title: name, Width: 400, Height: 300, Root: host}
     window.AccessibilityAdapter = semantics
     window.SmoothScrolling = false
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 6)
         body(window, semantics)
         Console.WriteLine("PASS: " + name)
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 func WaitVirtual(window Window, ready Func[bool]) {

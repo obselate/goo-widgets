@@ -180,6 +180,21 @@ func PumpFrames(window Window, frames int32) {
     }
 }
 
+func RunNativeWindow(window Window, body Action) {
+    var failed = false
+    try {
+        body()
+    } catch {
+        failed = true
+        rethrow
+    } finally {
+        try {
+            CloseNativeWindow(window)
+        } catch when failed {
+        }
+    }
+}
+
 func CloseNativeWindow(window Window) {
     window.RequestClose()
     let closing = Stopwatch.StartNew()
@@ -252,8 +267,8 @@ func MouseMove(windowId uint32, x float32, y float32) {
 func IconButtonInteractions() {
     let host = IconButtonHost{}
     let window = Window{Title: "Goo Widgets icon button verification", Width: 120, Height: 120, Root: host}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let windowId = OnlyNativeWindow()
         let button = host.Root!!
@@ -266,9 +281,7 @@ func IconButtonInteractions() {
         MouseButton(windowId, x, y, false)
         PumpFrames(window, 3)
         Require(host.Activations == 1, "Native icon button activation did not fire exactly once.")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Require(!window.IsOpen, "Icon button test window did not close.")
 }
 
@@ -307,8 +320,8 @@ func WindowInteractions() {
     IconButtonInteractions()
     let host = InteractiveHost{}
     let window = Window{Title: "Goo Widgets input verification", Width: 620, Height: 480, Root: host}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 30)
         let windowId = OnlyNativeWindow()
         let slider = host.SliderRoot!!
@@ -398,8 +411,6 @@ func WindowInteractions() {
         Console.WriteLine(
             "PASS: actual window, native keyboard, captured pointer, disabled input, color change, resize, disposal/remount, graph selection/drag."
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Require(!window.IsOpen, "Widget test window did not close.")
 }

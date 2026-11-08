@@ -318,8 +318,8 @@ func DataGridHeightInteractions() {
     let measured = DataGridInitialHost()
     let initial = Window{Title: "DataGrid initial measurement", Width: 1540, Height: 960, Root: measured, SmoothScrolling: false}
     Theme.Attach(initial, Theme.Default)
-    initial.Open()
-    try {
+    RunNativeWindow(initial, () -> {
+        initial.Open()
         WaitVirtual(initial, () -> measured.Header.IsMounted && measured.First?.Handle?.IsMounted == true)
         PumpFrames(initial, 12)
         Require(measured.Viewport.ScrollOffset.Y == 0.0 &&
@@ -338,14 +338,12 @@ func DataGridHeightInteractions() {
                 " row=" + first.Y.ToString() + " body=" + body.Y.ToString()
         )
         Console.WriteLine("PASS: DataGrid initial measured rows stay at zero with the first row at the body top")
-    } finally {
-        CloseNativeWindow(initial)
-    }
+    })
     let host = DataGridHeightHost()
     let window = Window{Title: "DataGrid mixed heights", Width: 400, Height: 300, Root: host, SmoothScrolling: false}
     Theme.Attach(window, Theme.Default)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         Require(Math.Abs(host.Viewport.ScrollRange.Y + host.Viewport.ContentBox.Height - 6200.0) < .1, "Mixed heights did not seed the full extent")
         Require(host.FullWidthIds.Count < 12, "Full-width factory ran for off-screen rows")
@@ -595,9 +593,7 @@ func DataGridHeightInteractions() {
                 Math.Abs(host.WidthB.BorderBox.Width + headerPadding - (host.Root!!.Handle!!.ContentBox.Width - 500.0)) < .1,
             "Mixed star bounds overflowed the viewport"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: DataGrid mixed offsets, bounded visible rows, scroll into view, measured cap and lazy group headers"
     )
@@ -1148,8 +1144,8 @@ func DataGridNavigationInteractions() {
         SmoothScrolling: false
     }
     Theme.Attach(window, Theme.Default)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         Require(host.Root!!.Handle!!.Focus(), "Navigation grid did not focus")
         GridKey(window, Key.Home, KeyModifiers{Ctrl: true})
@@ -1340,9 +1336,7 @@ func DataGridNavigationInteractions() {
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Insert, KeyModifiers{Ctrl: true})
         Require(host.CopyRequests == 2 && host.EditorCopyRequests == 2, "Grid stole composed editor copy bindings")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS DataGrid navigation: held-key repeat, row retention, additive ranges, corners, pages, columns, select-all, groups and copy")
 }
 
@@ -1362,8 +1356,8 @@ func DataGridInteractions() {
         AccessibilityAdapter: semantics
     }
     Theme.Attach(window, Theme.Default)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         GridAligned(host, "name")
@@ -1678,9 +1672,7 @@ func DataGridInteractions() {
                 tinyWidths[2] >= 140.0,
             "Fitted grid failed to preserve minimum widths when viewport was too narrow"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: DataGrid shared columns, controlled sort/selection, range/disabled input, captured and fitted resize, measured detail, horizontal overflow and 1500-row virtualization"
     )
@@ -1880,8 +1872,8 @@ func DataGridEditingInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{Title: "DataGrid cell editing", Width: 520, Height: 340, Root: host, SmoothScrolling: false, AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Default)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         Require(window.RequestActivation() == WindowOperationResult.Accepted, "Editing window activation failed")
         PumpFrames(window, 12)
         Require(host.Root.Focus(), "Editing grid did not focus")
@@ -2257,8 +2249,6 @@ func DataGridEditingInteractions() {
         Require(rowHeight >= 84 && Math.Abs(host.RowBlobs["0"].Handle!!.BorderBox.Height - rowHeight) < 1,
             "Inline editing changed the measured row height")
         GridKey(window, Key.Escape)
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS DataGrid editing: one-row entry, values, lifecycle, chords, native text, validation, focus, popup, retained rows and indexed source changes")
 }

@@ -158,8 +158,8 @@ func ListViewInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 15)
         host.Root!!.Handle!!.Focus()
         PumpFrames(window, 6)
@@ -276,9 +276,7 @@ func ListViewInteractions() {
                 "Tree drop position was incorrect"
             )
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: List/tree native selection, type-ahead, invoke, lazy loading, rename and drop contracts")
     ListRowInteractions()
 }
@@ -336,8 +334,8 @@ func ListRowInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         host.After.Focus()
         let outside = host.After.BorderBox
@@ -367,8 +365,6 @@ func ListRowInteractions() {
         Require(FindSemantics(semantics.Tree!!.Root, "Row action") != nil, "Hovered row did not reveal actions")
         CompositeClick(window, host.DisabledRow)
         Require(host.Clicks == 0, "Disabled row accepted a click")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: ListRow focus/hover actions, invoke, child action routing and disabled input")
 }

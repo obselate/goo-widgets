@@ -180,8 +180,8 @@ func TimeAxisInteractions() {
         Root: host,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         let handle = host.Root!!.Handle!!
@@ -230,9 +230,7 @@ func TimeAxisInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         Require(!handle.IsMounted, "TimeAxis removal retained its viewport")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: TimeAxis collision/overflow/point/clipping, native selection, initial centering, user/host scroll, marker/scale/resize and removal"
     )
