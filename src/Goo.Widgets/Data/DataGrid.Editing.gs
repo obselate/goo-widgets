@@ -236,7 +236,7 @@ public open partial class DataGrid {
                 editRevision++
                 session.Revision = editRevision
                 Rebuild()
-                window?.TryPost(() -> {
+                window?.Post(() -> {
                     if editSession == session && window?.IsFocused == true { session.Editor.Focus() }
                 })
                 return false
@@ -258,7 +258,7 @@ public open partial class DataGrid {
 
     private func ReturnEditFocus(session DataGridEditSession, traverse bool, forward bool) {
         session.OnUnmount = () -> {
-            window?.TryPost(() -> {
+            window?.Post(() -> {
                 if disposed || editSession != nil { return }
                 Reveal()
                 if rootHandle.Focus() && traverse { window!!.PlatformInput.MoveFocus(forward) }
@@ -319,7 +319,7 @@ public open partial class DataGrid {
 
     private func EditBlur(session DataGridEditSession) {
         session.Focused = false
-        window?.TryPost(() -> {
+        window?.Post(() -> {
             if editSession == session && !session.Focused && !editTransition { CommitEdit(false) }
         })
     }

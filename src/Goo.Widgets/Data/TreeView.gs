@@ -251,7 +251,7 @@ public open class TreeView : Cell[TreeViewInput] {
             Theme
                 .Key
                 .Window
-                .TryPost(
+                .Post(
                 () -> {
                     if activeId == selectedId && input.SelectedId == selectedId {
                         RevealActive(true)
