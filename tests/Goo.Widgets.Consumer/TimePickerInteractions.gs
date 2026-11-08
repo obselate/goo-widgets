@@ -40,8 +40,9 @@ internal class TimePickerHost : Cell {
 func TimePickerInteractions() {
     let host = TimePickerHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 420, Height: 180, AccessibilityAdapter: semantics}.Open()
-    try {
+    let window = Window{Root: ApplicationRoot(host), Width: 420, Height: 180, AccessibilityAdapter: semantics}
+    RunNativeWindow(window, () -> {
+        window.Open()
         let id = OnlyNativeWindow()
         for palette in []Theme{Theme.Bone, Theme.Ink, Theme.Ink.WithHighContrast()} {
             Theme.Attach(window, palette with{Culture = CultureInfo.GetCultureInfo("en-GB")})
@@ -131,7 +132,5 @@ func TimePickerInteractions() {
             CaptureIssueProof(window, "time-picker-150-" + width.ToString())
         }
         Console.WriteLine("PASS: TimePicker culture 12/24 hour segment spin minute increment clear controlled read-only disabled accessibility light dark high-contrast")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

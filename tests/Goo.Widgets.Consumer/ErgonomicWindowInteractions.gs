@@ -136,8 +136,8 @@ func ErgonomicWindowInteractions() {
         Root: host,
         AccessibilityAdapter: semantics,
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let windowId = OnlyNativeWindow()
         ClickNativeButton(window, windowId, host.CheckboxRoot!!.Children[1])
@@ -274,8 +274,6 @@ func ErgonomicWindowInteractions() {
         Console.WriteLine(
             "PASS: native checkbox/switch Space across rebuild and Enter, label click, slider width/focus/value, color modes/preview, disabled input, compact/full transition, color wheel pointer focus."
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Require(!window.IsOpen, "Ergonomic input window did not close.")
 }

@@ -321,8 +321,8 @@ func CalendarInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 15)
         let id = OnlyNativeWindow()
         host.CalendarHandle.Focus()
@@ -531,9 +531,7 @@ func CalendarInteractions() {
         PumpFrames(window, 8)
         Require(host.Before.Focus(), "Removing DatePicker left focus trapped")
         Require(host.MonthChanges >= 4, "Calendar did not report visible-month changes")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: native Calendar leap/year/bounds/locale/disabled navigation and DatePicker commit/cancel/empty/invalid/parser/formatter/blur/focus/unmount"
     )

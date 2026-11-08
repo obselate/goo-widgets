@@ -153,8 +153,8 @@ func SearchListInteractions() {
     let semantics = SearchListSemantics{}
     let window = Window{Title: "SearchList retained selection", Width: 520, Height: 390, Root: host}
     window.AccessibilityAdapter = semantics
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let alpha = FindSemantics(semantics.Tree?.Root, "Alpha")!!
         let beta = FindSemantics(semantics.Tree?.Root, "Beta")!!
@@ -229,8 +229,6 @@ func SearchListInteractions() {
         Console.WriteLine(
             "PASS: SearchList retained selection, stable identity, unchanged row reuse, updated colors/height/callback/customization, disabled input."
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Require(!window.IsOpen, "SearchList verification window did not close.")
 }

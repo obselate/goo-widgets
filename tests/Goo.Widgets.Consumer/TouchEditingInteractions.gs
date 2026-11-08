@@ -71,8 +71,9 @@ func TouchEditingInteractions() {
     let host = TouchEditingHost()
     let semantics = SearchListSemantics()
     let window = Window{Root: host, Width: 500, Height: 300, AccessibilityAdapter: semantics,
-        Title: "Goo touch editing check"}.Open()
-    try {
+        Title: "Goo touch editing check"}
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 15)
         TouchHoldWord(window, host)
         Require(FindSemantics(semantics.Tree?.Root, "Cut") != nil
@@ -154,8 +155,6 @@ func TouchEditingInteractions() {
             && FindSemantics(semantics.Tree?.Root, "Copy") == nil,
             "Password touch editing exposed text export")
         CaptureIssueProof(window, "touch-editing-password")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: touch word selection, crossing handles, focus-safe clipboard, read-only/password and 150% fit")
 }

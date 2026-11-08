@@ -6,8 +6,9 @@ import System
 
 func GraphTouchInteractions() {
     let host = GraphHost()
-    let window = Window{Root: host, Width: 620, Height: 420, Title: "Goo graph touch check"}.Open()
-    try {
+    let window = Window{Root: host, Width: 620, Height: 420, Title: "Goo graph touch check"}
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         TouchPressAt(window, 601, Point{X: 350, Y: 240})
         TouchMoveAt(window, 601, Point{X: 370, Y: 250})
@@ -44,8 +45,6 @@ func GraphTouchInteractions() {
         let id = OnlyNativeWindow()
         GraphViewportInteractions(window, host, id)
         CaptureIssueProof(window, "graph-touch-navigation")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: graph pan, pinch without contact-join jump, cancellation, node drag and controlled mouse zoom")
 }

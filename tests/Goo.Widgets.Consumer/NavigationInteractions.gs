@@ -183,8 +183,8 @@ func NavigationInteractions() {
     let window = Window{Title: "Navigation acceptance", Width: 800, Height: 650, Root: root}
     window.AccessibilityAdapter = semantics
     Theme.Attach(window)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 16)
         let native = OnlyNativeWindow()
         let trigger = FindSemantics(semantics.Tree?.Root, "File actions")!!
@@ -320,7 +320,5 @@ func NavigationInteractions() {
         Console.WriteLine(
             "PASS: menu expanded/first/last/focus, editor tab close and overflow, palette open/filter/rank/arrows/Enter/Escape in light and dark"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

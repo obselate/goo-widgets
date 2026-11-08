@@ -207,8 +207,8 @@ func LayoutInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Title: "Layout contracts", Width: 900, Height: 640, Root: root, AccessibilityAdapter: semantics}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let id = OnlyNativeWindow()
         Require(
@@ -326,9 +326,7 @@ func LayoutInteractions() {
             FindSemantics(semantics.Tree?.Root, "Last synchronized thirty seconds ago") != nil,
             "Status bar did not restore its hidden detail"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: dialog preset focus and Escape, property search and reset, settings search and narrow stack"
     )

@@ -72,8 +72,8 @@ func PopupInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Title: "Popup verification", Width: 720, Height: 520, Root: root, AccessibilityAdapter: semantics}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let id = OnlyNativeWindow()
         Require(host.Editor.Focus(), "Trigger editor did not focus")
@@ -123,9 +123,7 @@ func PopupInteractions() {
             "Pointer pick did not replace the trigger range in the focused editor"
         )
         Console.WriteLine("PASS: trigger menu focus, placement, keyboard and pointer picks, Escape")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     HoverCardInteractions()
 }
 
@@ -134,8 +132,8 @@ func HoverCardInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Title: "Hover card verification", Width: 640, Height: 420, Root: root, AccessibilityAdapter: semantics}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let id = OnlyNativeWindow()
         let target = host.Target.BorderBox
@@ -183,7 +181,5 @@ func HoverCardInteractions() {
         PumpFrames(window, 4)
         Require(host.Action.IsMounted && OverlayFocus(semantics, "Message"), "Tab did not reach the open card content")
         Console.WriteLine("PASS: hover card delays, pointer on card, press, focus, Tab and Escape")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

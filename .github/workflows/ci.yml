@@ -177,16 +177,26 @@ jobs:
           if-no-files-found: ignore
 
   verify:
-    if: always()
+    if: ${{ !cancelled() }}
     needs: [build, package, native]
     runs-on: ubuntu-26.04
     outputs:
       version: ${{ needs.build.outputs.version }}
     steps:
-      - run: |
-          test '${{ needs.build.result }}' = success
-          test '${{ needs.package.result }}' = success
-          test '${{ needs.native.result }}' = success
+      - name: Check dependency results
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          failed=false
+          while IFS=$'\t' read -r job result; do
+            if [[ "$result" != success ]]; then
+              printf '%s: %s\n' "$job" "$result"
+              failed=true
+            fi
+          done < <(jq -r 'to_entries[] | [.key, .value.result] | @tsv' <<< "$NEEDS")
+          if $failed; then
+            exit 1
+          fi
 
   release:
     if: github.repository == 'obselate/goo-widgets' && startsWith(github.ref, 'refs/tags/v')

@@ -281,8 +281,8 @@ func TextFieldAccessibility() {
     let host = TextFieldSemanticHost()
     let semantics = SearchListSemantics()
     let window = Window{Root: host, Width: 300, Height: 200, AccessibilityAdapter: semantics}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 8)
         let labelId = SelectorFindRole(semantics.Tree?.Root, AccessibilityRole.Text)!!.Id
         let issueId = FindSemantics(semantics.Tree?.Root, "Required")!!.Id
@@ -307,8 +307,6 @@ func TextFieldAccessibility() {
                 "TextField relationships target nodes outside the mounted snapshot"
             )
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: mounted TextField error-implied invalid state and stable description relationships with default and custom entries")
 }

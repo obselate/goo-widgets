@@ -209,8 +209,8 @@ func MarkdownInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 25)
         let caption = host.LinkCaption!!
         Require(
@@ -445,9 +445,7 @@ func MarkdownInteractions() {
         host.Rebuild()
         PumpFrames(window, 8)
         Require(ControllerDisposed(lastController) && host.Before.Focus(), "Markdown removal leaked its owned editor")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: native Markdown parsing, intrinsic resize/font measurement, keyboard copy/read-only selection, accessible links/headings, host images, ToC, content refresh, virtual block mounting/navigation/selection and disposal"
     )

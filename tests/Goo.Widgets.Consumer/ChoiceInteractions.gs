@@ -159,8 +159,8 @@ func RadioButtonInteractions() {
     let host = RadioButtonHost()
     let adapter = SearchListSemantics()
     let window = Window{Title: "Radio choice", Width: 420, Height: 240, Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         for palette in []Theme{Theme.Bone, Theme.Ink, Theme.Ink.WithHighContrast()} {
             Theme.Attach(window, palette)
@@ -185,9 +185,7 @@ func RadioButtonInteractions() {
         ChoiceKey(window, SDLScancode.Tab)
         Require(FeedbackNode(adapter, AccessibilityRole.Button, "Next").Focused, "Disabled radio remained in Tab traversal")
         Console.WriteLine("PASS: standalone RadioButton pointer, keyboard, controlled value, disabled traversal and light/dark/high-contrast semantics")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 func ChoiceKey(window Window, key SDLScancode) {
@@ -218,8 +216,8 @@ func ChoiceInteractions() {
         Root: root,
         AccessibilityAdapter: adapter
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         Require(
             FeedbackNode(adapter, AccessibilityRole.Group, "Radio choices").Role == AccessibilityRole.Group,
@@ -326,9 +324,7 @@ func ChoiceInteractions() {
         CompositeClick(window, host.ActionHandle)
         CompositeClick(window, host.PlainHandle)
         Require(host.Clicks == 1, "Busy action accepted input")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     RadioButtonInteractions()
     for page in[]string{"Action button", "Toggle button", "Radio button", "Radio group", "Toggle group"} {
         for dark in[]bool{false, true} {
@@ -352,8 +348,8 @@ func ChoiceInteractions() {
                 if size == 2 {
                     Theme.Attach(proof, Theme.Read(proof).WithTextScale(1.5))
                 }
-                proof.Open()
-                try {
+                RunNativeWindow(proof, () -> {
+                    proof.Open()
                     PumpFrames(proof, 20)
                     Require(proof.Width == width && proof.Height == height,
                         "Gallery fit window did not use the requested size")
@@ -380,10 +376,7 @@ func ChoiceInteractions() {
                         page.Replace(' ', '-') + (dark ? "-dark": "-light")
                         + (size == 0 ? "": size == 1 ? "-compact": "-150pct")
                     )
-                } finally {
-                    proof.RequestClose()
-                    PumpFrames(proof, 5)
-                }
+                })
             }
         }
     }

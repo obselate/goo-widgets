@@ -103,8 +103,8 @@ func FieldInteractions() {
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
     let window = Window{Root: root, Width: 500, Height: 400, AccessibilityAdapter: semantics, Title: "Field contracts"}
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 10)
         let id = OnlyNativeWindow()
         Require(host.PasswordHandle.Focus(), "Password did not focus before Tab")
@@ -272,9 +272,7 @@ func FieldInteractions() {
         PumpFrames(window, 5)
         Require(!host.NumberHandle.Focus(), "Disabled NumberInput accepted focus")
         Require(FindSemantics(semantics.Tree?.Root, "Clear Password") == nil, "Disabled field exposed a clear button")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     FieldCultureContract()
     AddonFramePixels()
     FieldGalleryProof()
@@ -287,26 +285,27 @@ func FieldCultureContract() {
     let host = FieldHost()
     let root = ApplicationRoot(host)
     let window = Window{Root: root, Width: 500, Height: 400}
-    window.Open()
     try {
-        PumpFrames(window, 8)
-        host.NumberHandle.Focus()
-        let id = OnlyNativeWindow()
-        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
-        SelectorType(window, id, "2,5")
-        SendKey(id, SDLScancode.Return)
-        PumpFrames(window, 5)
-        Require(host.Number == 2.5 && host.Entry!!.Value == "2,5", "Number input ignored the current culture")
-        SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
-        SelectorType(window, id, "invalid")
-        SendKey(id, SDLScancode.Return)
-        PumpFrames(window, 5)
-        Require(
-            host.Number == 2.5 && host.Entry!!.Value == "invalid" && host.Entry!!.Accessibility!!.Invalid == true,
-            "Invalid numeric draft was committed or discarded"
-        )
+        RunNativeWindow(window, () -> {
+            window.Open()
+            PumpFrames(window, 8)
+            host.NumberHandle.Focus()
+            let id = OnlyNativeWindow()
+            SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+            SelectorType(window, id, "2,5")
+            SendKey(id, SDLScancode.Return)
+            PumpFrames(window, 5)
+            Require(host.Number == 2.5 && host.Entry!!.Value == "2,5", "Number input ignored the current culture")
+            SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
+            SelectorType(window, id, "invalid")
+            SendKey(id, SDLScancode.Return)
+            PumpFrames(window, 5)
+            Require(
+                host.Number == 2.5 && host.Entry!!.Value == "invalid" && host.Entry!!.Accessibility!!.Invalid == true,
+                "Invalid numeric draft was committed or discarded"
+            )
+        })
     } finally {
-        CloseNativeWindow(window)
         CultureInfo.CurrentCulture = previous
     }
 }
@@ -320,8 +319,8 @@ func FieldGalleryProof() {
             let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
-            window.Open()
-            try {
+            RunNativeWindow(window, () -> {
+                window.Open()
                 PumpFrames(window, 15)
                 if title == "Text field" && mode == ThemeMode.Light {
                     VerifyEditorKeys(window, semantics, "Email address", false)
@@ -331,9 +330,7 @@ func FieldGalleryProof() {
                     "gallery-" + title.ToLowerInvariant().Replace(" ", "-")
                     + "-" + mode.ToString().ToLowerInvariant()
                 )
-            } finally {
-                CloseNativeWindow(window)
-            }
+            })
         }
     }
 }
@@ -432,8 +429,9 @@ internal class AddonFrameHost : Cell {
 func AddonFramePixels() {
     let host = AddonFrameHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 360, Height: 240, AccessibilityAdapter: semantics}.Open()
-    try {
+    let window = Window{Root: host, Width: 360, Height: 240, AccessibilityAdapter: semantics}
+    RunNativeWindow(window, () -> {
+        window.Open()
         for palette in[]Theme{Theme.Bone, Theme.Ink} {
             Theme.Attach(window, palette)
             for invalid in[]bool{false, true} {
@@ -492,8 +490,6 @@ func AddonFramePixels() {
                 "TextField adornment slots lost their horizontal inset or fixed width"
             )
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: addon frame pixels in light, dark, focused and invalid fields")
 }

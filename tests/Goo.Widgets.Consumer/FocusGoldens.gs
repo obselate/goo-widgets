@@ -182,7 +182,7 @@ func FocusGoldens() {
     page.Window = window
     var captures = 0
     var failures = 0
-    try {
+    RunNativeWindow(window, () -> {
         Theme.Attach(
             window,
             Theme.Default with{
@@ -280,9 +280,7 @@ func FocusGoldens() {
                 }
             }
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     timer.Stop()
     Console.WriteLine(
         "FOCUS controls=" + page.Controls.Length.ToString() + " crops=" + captures.ToString() +
