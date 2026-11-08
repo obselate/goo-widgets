@@ -110,8 +110,8 @@ func TokenInteractions() {
         AccessibilityAdapter: semantics,
         Title: "Token and multiple selection contracts",
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let id = OnlyNativeWindow()
         Require(host.Entry!!.Handle!!.Focus(), "Token editor did not focus")
@@ -219,7 +219,5 @@ func TokenInteractions() {
         Console.WriteLine(
             "PASS: token keyboard editing, paste, invalid values, chip removal, multiple selection and creation"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

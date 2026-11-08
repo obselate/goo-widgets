@@ -111,8 +111,8 @@ func PathActionsInteractions() {
         AccessibilityAdapter: semantics
     }
     Theme.Attach(window, Theme.Default)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let nativeId = OnlyNativeWindow()
         let heading = FindSemantics(semantics.Tree!!.Root, "Path actions")!!
@@ -193,9 +193,7 @@ func PathActionsInteractions() {
             FindSemantics(semantics.Tree!!.Root, "First")!!.Bounds.Height < Theme.Read(window).ControlHeight,
             "Compact density did not reduce row height"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: Typography headings, Kbd platform labels, breadcrumb keyboard/overflow, DataGrid invoke and table options"
     )

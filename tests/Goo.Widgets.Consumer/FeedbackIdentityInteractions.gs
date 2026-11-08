@@ -181,10 +181,10 @@ func FeedbackIdentityInteractions() {
         Root: host,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    host.Window = window
-    host.Rebuild()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
+        host.Window = window
+        host.Rebuild()
         PumpFrames(window, 4)
         let banner = FindSemantics(semantics.Tree?.Root, "Narrow banner")!!.Bounds
         let dismiss = FindSemantics(semantics.Tree?.Root, "Dismiss narrow banner")!!.Bounds
@@ -299,9 +299,7 @@ func FeedbackIdentityInteractions() {
         Require(host.Dismisses == 4, "Toast exit ended before its duration")
         FeedbackWait(window, 300)
         Require(!host.Panel.IsMounted && host.Dismisses == 5, "Externally removed toast did not finish its exit")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 
     using let embedded = ThemePreferenceHost()
     embedded.Resize(400, 300, 400, 300)
@@ -320,18 +318,16 @@ func FeedbackIdentityInteractions() {
     let registry = CreateRegistry()
     let gallery = Gallery(registry, registry.IndexOf("Toast"))
     let proof = Window{Title: "Feedback gallery", Width: 1100, Height: 760, Root: gallery}
-    proof.Open()
-    gallery.AttachWindow(proof)
-    try {
+    RunNativeWindow(proof, () -> {
+        proof.Open()
+        gallery.AttachWindow(proof)
         Theme.SetMode(proof, ThemeMode.Light)
         PumpFrames(proof, 12)
         CaptureIssueProof(proof, "feedback-identity-light")
         Theme.SetMode(proof, ThemeMode.Dark)
         PumpFrames(proof, 12)
         CaptureIssueProof(proof, "feedback-identity-dark")
-    } finally {
-        CloseNativeWindow(proof)
-    }
+    })
     Console.WriteLine(
         "PASS: avatar circle and presence bounds, toast timeout, hover/focus pause, action, retained exit, polite status, spinner clipped idle and resume, period and range without rebuilds, reduced-motion still frame"
     )
@@ -397,8 +393,8 @@ func SkeletonInteractions() {
     Theme.Attach(window, Theme.Ink)
     var presents int32
     window.PresentationAccepted += (accepted WindowPresentationAccepted) -> { presents++ }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         WaitVirtual(window, () -> host.Roots[2] != nil && FindSemantics(semantics.Tree?.Root, "Loading preview") != nil)
         let status = FindSemantics(semantics.Tree?.Root, "Loading preview")!!
         Require(status.Role == AccessibilityRole.Status, "Skeleton role: " + status.Role.ToString())
@@ -462,9 +458,7 @@ func SkeletonInteractions() {
                 }
             }
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     using let baseline = ThemePreferenceHost()
     baseline.Resize(640, 480, 640, 480)
     baseline.UpdatePreferences(PlatformPreferences{ReducedMotion: true})
@@ -508,8 +502,8 @@ func SkeletonInteractions() {
     let proof = Window{Title: "Skeleton gallery", Width: 960, Height: 640, UiScale: 1.5F,
         Root: gallery, AccessibilityAdapter: gallerySemantics}
     gallery.AttachWindow(proof)
-    proof.Open()
-    try {
+    RunNativeWindow(proof, () -> {
+        proof.Open()
         for width in []int32{960, 1600, 2560} {
             proof.Width = width
             proof.Height = width == 2560 ? 1440: 640
@@ -520,8 +514,6 @@ func SkeletonInteractions() {
                 && pause.Y + pause.Height <= card.Y + card.Height - 32,
                 "Skeleton gallery content did not fit the scaled window")
         }
-    } finally {
-        CloseNativeWindow(proof)
-    }
+    })
     Console.WriteLine("PASS: Skeleton text/circle/rectangle, moving paint without rebuilds, clipped idle and resume, static pixels, hidden or busy accessibility, pointer/Tab exclusion, Ink/Bone/high contrast, 150 percent viewport fit, reduced-motion and Animated false idle")
 }

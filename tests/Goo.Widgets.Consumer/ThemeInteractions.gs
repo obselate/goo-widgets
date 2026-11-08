@@ -306,7 +306,7 @@ func ThemeRadiusCapture() {
     }}
     let window = Window{Root: root, Width: 600, Height: 360}
     Theme.Attach(window, root.Value)
-    try {
+    RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 12)
         CaptureIssueProof(window, "zero")
@@ -315,9 +315,7 @@ func ThemeRadiusCapture() {
         root.Rebuild()
         PumpFrames(window, 12)
         CaptureIssueProof(window, "default")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 func ThemeBackgroundContracts() {
@@ -351,7 +349,7 @@ func ThemeBackgroundContracts() {
         Background: Color.Transparent, Transparent: true, Decorated: false,
     }
     Theme.Attach(opened, Theme.Bone)
-    try {
+    RunNativeWindow(opened, () -> {
         opened.Open()
         Require(
             opened.IsOpen && opened.Background == Color.Transparent,
@@ -363,9 +361,7 @@ func ThemeBackgroundContracts() {
             opened.Background == Color.Transparent && opened.Foreground == Theme.Bone.TextColor,
             "Applying a palette to an open window overwrote its transparent clear or missed its text color."
         )
-    } finally {
-        CloseNativeWindow(opened)
-    }
+    })
     using let glassHost = ThemePreferenceHost()
     using let defaultHost = ThemePreferenceHost()
     glassHost.Resize(360, 280, 360, 280)
@@ -864,7 +860,7 @@ func ThemeDensityContracts() {
     let root = ThemeDensityHost()
     let window = Window{Root: root, Width: 360, Height: 340}
     Theme.Attach(window)
-    try {
+    RunNativeWindow(window, () -> {
         window.Open()
         for density in[]Density{Density.Standard, Density.Compact, Density.Comfortable, Density.Touch} {
             root.DensityValue = density
@@ -926,9 +922,7 @@ func ThemeDensityContracts() {
         Console.WriteLine(
             "PASS theme density, explicit zero/font overrides, pointer modality and captured keyboard focus"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 func ThemeFocused(node AccessibilityNode?) AccessibilityNode? {
@@ -964,7 +958,7 @@ func GalleryStageContracts() {
         let adapter = SearchListSemantics()
         let window = Window{Root: gallery, Width: width, Height: width == 1100 ? 800: 640, AccessibilityAdapter: adapter}
         gallery.AttachWindow(window)
-        try {
+        RunNativeWindow(window, () -> {
             window.Open()
             PumpFrames(window, 12)
             let demo = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
@@ -978,9 +972,7 @@ func GalleryStageContracts() {
             PumpFrames(window, 12)
             let compact = FeedbackNode(adapter, AccessibilityRole.Group, "Percentage demo").Bounds
             Require(compact.Y + compact.Height < 400, "A small demo card grew to fill the page: " + compact.ToString())
-        } finally {
-            CloseNativeWindow(window)
-        }
+        })
     }
 }
 
@@ -1116,7 +1108,7 @@ func ThemeCatalogContracts() {
     let adapter = SearchListSemantics()
     let window = Window{Root: gallery, Width: 1100, Height: 800, AccessibilityAdapter: adapter}
     gallery.AttachWindow(window)
-    try {
+    RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 12)
         GalleryNavigationContracts(window, gallery, registry, adapter)
@@ -1194,9 +1186,7 @@ func ThemeCatalogContracts() {
                 }
             }
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 internal class ThemeCostProbe : Cell {
@@ -1370,7 +1360,7 @@ func ThemeScrollbarContracts() {
     let root = ThemeScrollbarHost()
     let window = Window{Root: root, Width: 480, Height: 240}
     Theme.Attach(window, Theme.Default)
-    try {
+    RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 8)
         let theme = Theme.Read(window)
@@ -1459,7 +1449,5 @@ func ThemeScrollbarContracts() {
         Console.WriteLine(
             "PASS captured default scrollbar, expanded hit drag, overlay layout, Auto configuration, explicit Always/Hidden/blank/custom parts and unstyled core scroller"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }

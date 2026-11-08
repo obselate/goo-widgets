@@ -359,8 +359,8 @@ func GraphActivationInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         SendKey(id, SDLScancode.Tab)
@@ -392,9 +392,7 @@ func GraphActivationInteractions() {
         window.PerformAccessibilityAction(disabled.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
         CompositeClick(window, host.Cards["disabled"].Handle!!)
         Require(host.Requests == requests, "Disabled node accepted activation")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: graph Tab/Enter/Space/accessibility activation, pointer selection and disabled activation")
 }
 
@@ -410,8 +408,8 @@ func GridChartInteractions() {
         Root: host,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let id = OnlyNativeWindow()
         let counter = host.Counter!!
@@ -494,9 +492,7 @@ func GridChartInteractions() {
             ) < .2,
             "Grid lost remaining row space, spanning gaps, or immutable track definitions"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: Grid real-font tracks/spans/wrap/min-max/focus/identity and chart normalization/pointer/keyboard/semantics/full circle"
     )

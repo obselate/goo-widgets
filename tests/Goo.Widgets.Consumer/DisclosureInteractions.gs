@@ -117,8 +117,8 @@ func DisclosureInteractions() {
     let semantics = SearchListSemantics{}
     let window = Window{Title: "Disclosure interaction verification", Width: 580, Height: 340, Root: host}
     window.AccessibilityAdapter = semantics
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         let child = host.Child!!
         let childId = FindSemantics(semantics.Tree?.Root, "Retained child")!!.Id
@@ -173,8 +173,6 @@ func DisclosureInteractions() {
         Console.WriteLine(
             "PASS: Disclosure pointer/Enter/Space, disabled input, hidden accessibility, retained child state, factories, unmount disposal."
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Require(!window.IsOpen, "Disclosure verification window did not close.")
 }

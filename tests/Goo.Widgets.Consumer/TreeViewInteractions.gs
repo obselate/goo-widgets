@@ -266,8 +266,8 @@ func TreeViewControlledReveal() {
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 12)
         Require(host.After.Focus(), "The control outside the tree did not take focus")
         let viewport = (host.Root!!.Children[0] as Container)!!.Children[0].Handle!!
@@ -313,9 +313,7 @@ func TreeViewControlledReveal() {
         host.Rebuild()
         PumpFrames(window, 8)
         Require(viewport.ScrollOffset.Y == 0.0, "An unchanged controlled selection scrolled the tree again")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: Tree external selection and expansion reveal, visible-row stability, unchanged-input stability and focus retention"
     )
@@ -334,8 +332,8 @@ func TreeViewInteractions() {
         Root: root,
         AccessibilityAdapter: semantics
     }
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         let row = host.Rows["alpha"]
         Require(
@@ -555,9 +553,7 @@ func TreeViewInteractions() {
             TreeActive(semantics, "Item 0") && host.Selected == "beta",
             "Passive tree activation changed selection or lost logical focus"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: Tree controlled expansion/checks/selection, disabled state, active-descendant keyboard/AX focus, collapse recovery, one Tab stop and 1500-node virtualization"
     )

@@ -463,8 +463,8 @@ func ModalClipboardInteractions() {
         AccessibilityAdapter: semantics,
     }
     host.AttachWindow(window)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 16)
         Require(OverlayFocus(semantics, "Dialog editor"), "Managed dialog did not focus its editor")
         let id = OnlyNativeWindow()
@@ -482,9 +482,7 @@ func ModalClipboardInteractions() {
         SendKey(id, SDLScancode.Return)
         SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
         PumpFrames(window, 4)
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: managed modal typing, Backspace, select all, copy, paste, Enter and Shift+Tab without application editing bindings")
 }
 
@@ -502,8 +500,8 @@ func OverlayInteractions() {
         AccessibilityAdapter: semantics
     }
     host.AttachWindow(window)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         let id = OnlyNativeWindow()
         Require(SDL.SyncWindow(SDL.GetWindowFromID(id)), "Overlay native window state did not settle")
         WaitVirtual(
@@ -759,9 +757,7 @@ func OverlayInteractions() {
             host.BackgroundClicks == 0 && host.Confirms == 0,
             "An overlay accidentally activated a background or confirmation action"
         )
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine(
         "PASS: native managed modal entry/containment/nesting/fallback/backdrop/unmount, popover anchor/point/flip/resize/dismiss/restore/content width, menu disabled/separator/keyboard/submenu/hover/activation policy"
     )
@@ -805,8 +801,8 @@ func TeachingTipInteractions() {
     let window = Window{Title: "Teaching tip verification", Width: 640, Height: 480,
         Root: ApplicationRoot(host), AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Ink)
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         let id = OnlyNativeWindow()
         WaitVirtual(window, () -> host.Anchor.IsMounted)
         for palette in []Theme{Theme.Ink, Theme.Bone, Theme.Ink.WithHighContrast()} {
@@ -889,8 +885,6 @@ func TeachingTipInteractions() {
                 PumpFrames(window, 4)
             }
         }
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     Console.WriteLine("PASS: TeachingTip anchored/centered, pointer close/light-dismiss, Escape, controlled Open, action keyboard/disabled, focus restore, dialog semantics, Ink/Bone/high contrast")
 }

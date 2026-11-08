@@ -110,8 +110,8 @@ func ChromePaintInteractions() {
     let host = ChromePaintHost()
     let window = Window{Title: "Chrome icon paint verification", Width: 320, Height: 200, Root: host}
     Theme.Attach(window, Theme.Ink with{OnAccentColor = Color.Black})
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 15)
         let id = OnlyNativeWindow()
         let normal = Color.Rgb(32, 32, 32)
@@ -133,9 +133,7 @@ func ChromePaintInteractions() {
         }
         CaptureIssueProof(window, "chrome-hover-reset")
         Console.WriteLine("PASS captured chrome normal tint, black close icon on pink, hover reset and custom tint")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
 
 internal class ChromeHost : Cell {
@@ -345,8 +343,8 @@ func ChromeInteractions() {
     }
     host.Host = window
     window.StateChanged += (state WindowState) -> host.Rebuild()
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 25)
         let id = OnlyNativeWindow()
         Require(
@@ -489,9 +487,7 @@ func ChromeInteractions() {
         host.Rebuild()
         PumpFrames(window, 15)
         Require(!host.Blank.IsMounted && host.BodyButton.Focus(), "Chrome removal retained a menu focus scope")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
     ChromeCallbackInteractions()
     ChromePaintInteractions()
     Console.WriteLine(
@@ -504,8 +500,8 @@ func ChromeCallbackInteractions() {
     let window = Window{Title: "Callback-only chrome verification", Width: 1000, Height: 640, Root: host}
     host.Host = window
     window.StateChanged += (state WindowState) -> host.Rebuild()
-    window.Open()
-    try {
+    RunNativeWindow(window, () -> {
+        window.Open()
         PumpFrames(window, 20)
         Require(host.Blank.IsMounted, "Callback-only chrome failed before overlay bounds were measured")
         let id = OnlyNativeWindow()
@@ -533,7 +529,5 @@ func ChromeCallbackInteractions() {
         SendKey(id, SDLScancode.Escape)
         PumpFrames(window, 10)
         Require(!host.MenuInput.Open, "Callback-only menu did not dismiss")
-    } finally {
-        CloseNativeWindow(window)
-    }
+    })
 }
