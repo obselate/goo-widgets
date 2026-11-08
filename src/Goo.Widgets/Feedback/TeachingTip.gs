@@ -85,3 +85,6 @@ public data struct TeachingTip {
         })
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w TeachingTip) Blob -> w.Build()

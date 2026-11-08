@@ -24,7 +24,7 @@ internal class TypographyPage : GalleryPage {
             TextVariant.Code
         } {
             root.Children.Add(
-                Typography{Content: variant.ToString() + "  The quick brown fox", Variant: variant}.Build()
+                Typography{Content: variant.ToString() + "  The quick brown fox", Variant: variant}
             )
         }
         return root

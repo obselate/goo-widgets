@@ -250,3 +250,6 @@ public data struct PropertyGrid {
         return row
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w PropertyGrid) Blob -> w.Build()

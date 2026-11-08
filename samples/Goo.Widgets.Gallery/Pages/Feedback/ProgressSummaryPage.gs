@@ -16,6 +16,6 @@ internal class ProgressSummaryPage : GalleryPage {
             AccessibilityName: "Compliance scan progress",
             AccessibilityValueText: "36 of 48 checks",
         },
-        Trailing: Badge{Content: "Running"}.Build(),
-    }.Build()
+        Trailing: Badge{Content: "Running"},
+    }
 }

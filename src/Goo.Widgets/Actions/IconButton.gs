@@ -93,3 +93,6 @@ public data struct IconButton {
         return button
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w IconButton) Blob -> w.Build()

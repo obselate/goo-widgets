@@ -19,7 +19,7 @@ internal class AttachmentChipPage : GalleryPage {
                 Detail: "2.4 MB",
                 OnClick: () -> { },
                 OnDownload: () -> { },
-            }.Build(),
+            },
             AttachmentChip{
                 Name: "Landscape.png",
                 Detail: "Uploading · 64%",
@@ -34,20 +34,20 @@ internal class AttachmentChipPage : GalleryPage {
                     MaterialIcons.Create("image", 24, theme.OnAccentColor),
                 },
                 OnRemove: () -> { },
-            }.Build(),
+            },
             AttachmentChip{
                 Name: "Notes.txt",
                 Detail: "Upload interrupted",
                 Failed: true,
                 Progress: 0.3,
                 OnRemove: () -> { },
-            }.Build(),
+            },
             AttachmentChip{
                 Name: "Managed-attachment.zip",
                 Detail: "12 MB",
                 Disabled: true,
                 OnDownload: () -> { },
-            }.Build(),
+            },
         }
     }
 }

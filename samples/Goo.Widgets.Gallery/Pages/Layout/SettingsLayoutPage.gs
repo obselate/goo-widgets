@@ -37,7 +37,7 @@ internal class SettingsLayoutExample : Cell {
                                 OnChange: value -> {
                                     name = value
                                 }
-                            }.Build()
+                            }
                         },
                         SettingsRow{
                             Id: "notifications",
@@ -49,7 +49,7 @@ internal class SettingsLayoutExample : Cell {
                                 OnChange: state -> {
                                     notifications = state == AccessibilityChecked.True
                                 }
-                            }.Build()
+                            }
                         }
                     }
                 },
@@ -61,7 +61,7 @@ internal class SettingsLayoutExample : Cell {
                             Id: "diagnostics",
                             Label: "Diagnostics",
                             Keywords: []string{"telemetry"},
-                            Control: Checkbox{Label: "Send usage data", Disabled: true}.Build()
+                            Control: Checkbox{Label: "Send usage data", Disabled: true}
                         }
                     }
                 }

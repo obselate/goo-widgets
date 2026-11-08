@@ -31,8 +31,8 @@ internal class SplitButtonExample : Cell {
                     MenuItem{Id: "Save as draft", Label: "Save as draft"},
                 },
             },
-        }.Build(),
-        SplitButton{Button: ActionButton{Content: "Disabled send", Disabled: true}}.Build(),
+        },
+        SplitButton{Button: ActionButton{Content: "Disabled send", Disabled: true}},
         Text{Content: "Last action " + result},
     }
 }

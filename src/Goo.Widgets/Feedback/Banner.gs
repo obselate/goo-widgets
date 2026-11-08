@@ -330,3 +330,10 @@ public data struct InlineMessage {
         PaddingHorizontal: 0.0, PaddingVertical: 0.0,
     }.Build()
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w Banner) Blob -> w.Build()
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w Alert) Blob -> w.Build()
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w InlineMessage) Blob -> w.Build()

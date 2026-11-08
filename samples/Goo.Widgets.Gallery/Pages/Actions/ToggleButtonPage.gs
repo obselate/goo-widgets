@@ -10,9 +10,9 @@ internal open class ToggleButtonExample : Cell {
 
     public override func Build() Blob -> Container{
         Gap: Theme.Read().ControlGap,
-        ToggleButton{Content: "Pinned", Value: pinned, OnChange: (value bool) -> { pinned = value }}.Build(),
-        ToggleButton{Content: "Muted", Value: true}.Build(),
-        ToggleButton{Content: "Archived", Value: true, Disabled: true}.Build(),
+        ToggleButton{Content: "Pinned", Value: pinned, OnChange: (value bool) -> { pinned = value }},
+        ToggleButton{Content: "Muted", Value: true},
+        ToggleButton{Content: "Archived", Value: true, Disabled: true},
     }
 }
 

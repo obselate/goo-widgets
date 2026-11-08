@@ -187,3 +187,6 @@ public data struct AsyncImage {
         return text
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w AsyncImage) Blob -> w.Build()

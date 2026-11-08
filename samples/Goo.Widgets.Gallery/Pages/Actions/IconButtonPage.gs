@@ -23,7 +23,7 @@ internal open class IconButtonExample : Cell {
                     count++
                     Rebuild()
                 },
-            }.Build(),
+            },
             IconButton{
                 AccessibilityName: "Pin item",
                 Active: active,
@@ -32,12 +32,12 @@ internal open class IconButtonExample : Cell {
                     active = !active
                     Rebuild()
                 },
-            }.Build(),
+            },
             IconButton{
                 AccessibilityName: "Unavailable action",
                 Disabled: true,
                 Icon: MaterialIcons.Create("close"),
-            }.Build(),
+            },
         },
         Text{Content: "Presses " + count.ToString(), FontSize: 12.0},
     }

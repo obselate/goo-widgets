@@ -99,7 +99,7 @@ class ThemeSample : Cell {
                                     ActionButton{
                                         Content: "System",
                                         OnClick: () -> Theme.SetMode(window!!, ThemeMode.System),
-                                    }.Build(),
+                                    },
                                 },
                             },
                             Container{
@@ -202,7 +202,7 @@ class ThemeSample : Cell {
                                         Content: () -> (
                                             Theme.Read().PrimaryButton with{Content = "Scoped accent"}
                                         ).Build(),
-                                    }.Build(),
+                                    },
                                 },
                             },
                             Container{
@@ -227,7 +227,7 @@ class ThemeSample : Cell {
                 },
             }
         },
-    }.Build()
+    }
 
     private func Swatch(name string, color Color) Blob -> Container{
         FlexGrow: 1.0,

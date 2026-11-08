@@ -22,19 +22,19 @@ internal class CardPage : GalleryPage {
                 Card{
                     Variant: variant,
                     Title: variant.ToString(),
-                    HeaderAction: ActionButton{Content: "Manage", Height: 28}.Build(),
+                    HeaderAction: ActionButton{Content: "Manage", Height: 28},
                     Content: Text{Content: "42.8 GB of 100 GB", Color: theme.TextColor},
                     Footer: Text{Content: "12 workspaces", Color: theme.MutedTextColor}
-                }.Build()
+                }
             )
         }
-        left.Children.Add(Card{Title: "Open workspace", OnClick: () -> { }}.Build())
+        left.Children.Add(Card{Title: "Open workspace", OnClick: () -> { }})
         right.Children.Add(
             Card{
                 Title: "Unavailable",
                 Disabled: true,
                 OnClick: () -> { }
-            }.Build()
+            }
         )
         return root
     }

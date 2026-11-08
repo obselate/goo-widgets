@@ -361,3 +361,6 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
 
     private func sameColor(a Color, b Color) bool -> a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w SearchList) Blob -> w.Build()

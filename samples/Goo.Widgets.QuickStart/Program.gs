@@ -17,7 +17,7 @@ class ColorPickerHost : Cell {
 
     override func Build() Blob {
         let theme = Theme.Read()
-        let reset = ActionButton{Content: "Reset", OnClick: () -> ResetColor()}.Build()
+        let reset Blob = ActionButton{Content: "Reset", OnClick: () -> ResetColor()}
         reset.Key = "reset"
         return Container{
             BasedOn: theme.CanvasStyle,

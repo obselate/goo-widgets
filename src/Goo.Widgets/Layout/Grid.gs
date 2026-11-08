@@ -376,3 +376,6 @@ internal class GridPolicy : LayoutAlgorithm {
         return result
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w Grid) Blob -> w.Build()

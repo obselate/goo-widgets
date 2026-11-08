@@ -12,7 +12,7 @@ internal class DisclosureCounter : Cell {
         OnClick: () -> {
             count++
         },
-    }.Build()
+    }
 }
 
 internal class DisclosureExample : Cell {

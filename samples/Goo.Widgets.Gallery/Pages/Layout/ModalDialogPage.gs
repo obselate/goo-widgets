@@ -23,7 +23,7 @@ internal open class ModalDialogExample : Cell {
             OnClick: () -> {
                 dialogOpen = true
             }
-        }.Build(),
+        },
         Text{Content: result},
         Container{
             FlexDirection: FlexDirection.Row,
@@ -34,14 +34,14 @@ internal open class ModalDialogExample : Cell {
                     preset = ModalDialogPreset.Destructive
                     dialogOpen = true
                 }
-            }.Build(),
+            },
             ActionButton{
                 Content: "Form",
                 OnClick: () -> {
                     preset = ModalDialogPreset.Form
                     dialogOpen = true
                 }
-            }.Build()
+            }
         },
         Cell.Mount[ModalDialog, ModalDialogHost](
             "preset-dialog",
@@ -51,7 +51,7 @@ internal open class ModalDialogExample : Cell {
                 AccessibilityName: "Confirm change",
                 Header: Text{Content: "Confirm change", FontSize: 18.0, FontWeight: 700},
                 Content: preset == ModalDialogPreset.Form ?
-                TextField{Label: "Project name", Value: "Studio"}.Build():
+                TextField{Label: "Project name", Value: "Studio"}:
                 Text{Content: "Apply this change to the selected items?", Color: Theme.Read().TextColor},
                 OnOpenChange: (isOpen bool) -> {
                     dialogOpen = isOpen

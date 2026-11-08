@@ -189,3 +189,6 @@ public data struct DonutChart {
         return path.Build()
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w DonutChart) Blob -> w.Build()

@@ -291,3 +291,6 @@ public data struct WindowChrome {
         default: ControlIcon.Close
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w WindowChrome) Blob -> w.Build()

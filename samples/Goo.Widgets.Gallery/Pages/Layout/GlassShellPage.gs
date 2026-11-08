@@ -54,7 +54,7 @@ internal class GlassShell : Cell {
                                 }
                             ),
                         },
-                    }.Build(),
+                    },
                 }
             ),
             Container{
@@ -224,5 +224,5 @@ internal class GlassShellPage : GalleryPage {
             BorderRadius: Theme.Read().PanelRadius!!,
             Cell.Mount[GlassShell]("glass-shell"),
         },
-    }.Build()
+    }
 }

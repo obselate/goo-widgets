@@ -18,22 +18,22 @@ class BannerPage : GalleryPage {
                 Title: tone.ToString(),
                 Content: "Two updates are ready to install.",
                 TransitionMs: 200.0,
-                Action: ActionButton{Content: "Review"}.Build(),
+                Action: ActionButton{Content: "Review"},
                 OnDismiss: () -> Console.WriteLine("Dismissed " + tone.ToString()),
                 DismissAccessibilityName: "Dismiss " + tone.ToString(),
-            }.Build())
+            })
         }
         let badges = Container{FlexDirection: FlexDirection.Row, FlexWrap: FlexWrap.Wrap, Gap: 8.0}
         for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
-            badges.Children.Add(Badge{Tone: tone, Content: tone.ToString()}.Build())
-            badges.Children.Add(Chip{Tone: tone, Label: tone.ToString()}.Build())
+            badges.Children.Add(Badge{Tone: tone, Content: tone.ToString()})
+            badges.Children.Add(Chip{Tone: tone, Label: tone.ToString()})
         }
         root.Children.Add(badges)
         root.Children.Add(Alert{
             Tone: Tone.Info, Variant: AlertVariant.Rule, Title: "Maintenance",
             Description: "Sunday 02:00 to 04:00", Live: false
-        }.Build())
-        root.Children.Add(InlineMessage{Tone: Tone.Success, Content: "Saved"}.Build())
+        })
+        root.Children.Add(InlineMessage{Tone: Tone.Success, Content: "Saved"})
         return root
     }
 }

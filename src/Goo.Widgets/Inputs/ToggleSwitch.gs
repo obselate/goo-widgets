@@ -159,3 +159,6 @@ public data struct ToggleSwitch {
         return button
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w ToggleSwitch) Blob -> w.Build()

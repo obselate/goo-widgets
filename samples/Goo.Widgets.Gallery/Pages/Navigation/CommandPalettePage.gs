@@ -22,7 +22,7 @@ internal class CommandPaletteExample : Cell {
                 query = ""
                 Rebuild()
             }
-        }.Build(),
+        },
         Text{Content: "Last action " + result},
         Cell.Mount[CommandPaletteInput, CommandPalette](
             "palette",

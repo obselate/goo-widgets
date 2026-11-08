@@ -124,3 +124,6 @@ public data struct RadioButton {
         return button
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w RadioButton) Blob -> w.Build()

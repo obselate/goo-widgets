@@ -40,7 +40,7 @@ internal class BreadcrumbExample : Cell {
                 }
             }
         ),
-        Typography{Content: "Selected: " + selected, Variant: TextVariant.Caption}.Build()
+        Typography{Content: "Selected: " + selected, Variant: TextVariant.Caption}
     }
 }
 

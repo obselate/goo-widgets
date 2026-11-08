@@ -40,3 +40,6 @@ public data struct ThemeScope {
         return Theme.Key.Scope(value, Content)
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w ThemeScope) Blob -> w.Build()

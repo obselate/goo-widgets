@@ -16,11 +16,11 @@ internal open class GraphNodeCardExample : Cell {
         BorderRadius: 8.0,
         GraphNodeCard{
             Node: GraphNode{Id: "normal", Label: "Normal node", Position: Point{X: 140.0, Y: 96.0},},
-        }.Build(),
+        },
         GraphNodeCard{
             Node: GraphNode{Id: "selected", Label: "Selected node", Position: Point{X: 370.0, Y: 96.0},},
             Selected: true,
-        }.Build(),
+        },
         GraphNodeCard{
             Node: GraphNode{
                 Id: "custom",
@@ -35,7 +35,7 @@ internal open class GraphNodeCardExample : Cell {
             },
             BackgroundColor: "#172554",
             BorderColor: Color.Parse("#60a5fa"),
-        }.Build(),
+        },
     }
 }
 

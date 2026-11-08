@@ -32,7 +32,7 @@ internal class HoverCardExample : Cell {
                         FlexDirection: FlexDirection.Row,
                         AlignItems: AlignItems.Center,
                         Gap: 12,
-                        Avatar{FallbackText: "GH", AccessibilityName: "Grace Hopper", Presence: StatusState.Done, Size: 44}.Build(),
+                        Avatar{FallbackText: "GH", AccessibilityName: "Grace Hopper", Presence: StatusState.Done, Size: 44},
                         Text{
                             Content: "Grace Hopper",
                             FontSize: theme.FontSize,
@@ -40,7 +40,7 @@ internal class HoverCardExample : Cell {
                             Color: theme.TextColor,
                             FlexGrow: 1,
                         },
-                        ActionButton{Content: "Message"}.Build(),
+                        ActionButton{Content: "Message"},
                     },
                 }
             ),

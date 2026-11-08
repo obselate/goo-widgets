@@ -93,7 +93,7 @@ internal class FindBarExample : Cell {
                         isOpen = true
                         Rebuild()
                     }
-                }.Build()
+                }
             )
         }
         return root

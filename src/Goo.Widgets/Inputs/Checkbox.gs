@@ -194,3 +194,6 @@ public data struct Checkbox {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w Checkbox) Blob -> w.Build()

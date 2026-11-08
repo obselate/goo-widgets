@@ -168,3 +168,6 @@ public data struct AttachmentChip {
         return root
     }
 }
+
+/// Builds a fresh Goo tree for a Blob slot.
+public func operator implicit (w AttachmentChip) Blob -> w.Build()

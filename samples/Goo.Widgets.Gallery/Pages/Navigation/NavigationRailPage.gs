@@ -50,7 +50,7 @@ internal open class NavigationRailExample : Cell {
                 OnClick: () -> {
                     expanded = !expanded
                 },
-            }.Build(),
+            },
         },
     }
 }

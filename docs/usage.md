@@ -6,12 +6,12 @@ Follow the [installation instructions](../README.md#install).
 
 ## Basic widgets
 
-Value widgets such as `ActionButton`, `Checkbox`, and `Badge` return a Goo `Blob` from `.Build()`. Add it to the parent container:
+Value widgets such as `ActionButton`, `Checkbox`, and `Badge` convert to a Goo `Blob`. Add them directly to the parent container:
 
 ```gsharp
 import Goo.Widgets.Actions
 
-ActionButton{Content: "Reset", OnClick: () -> ResetColor(),}.Build()
+ActionButton{Content: "Reset", OnClick: () -> ResetColor(),}
 ```
 
 `ActionButton.Content` is the visible button text and supplies the default
@@ -127,7 +127,7 @@ Checkbox{
     OnChange: (next AccessibilityChecked) -> {
         state = next
     },
-}.Build()
+}
 ```
 
 `SliderInput.Label` supplies a visible label and the default accessible name.
@@ -353,7 +353,7 @@ ThemeScope{
     Value: Theme.Read() with{AccentColor = Color.Parse("#245b91")},
     Density: Density.Compact,
     Content: () -> ActionButton{Content: "Save", OnClick: () -> Save()}.Build(),
-}.Build()
+}
 ```
 
 Scope content must be constructed in its deferred callback. A scope does not
@@ -376,9 +376,9 @@ Banner{
     Tone: Tone.Warning,
     Title: "Maintenance",
     Content: "Save your work.",
-    Action: ActionButton{Content: "Save", OnClick: Save}.Build(),
+    Action: ActionButton{Content: "Save", OnClick: Save},
     OnDismiss: Dismiss,
-}.Build()
+}
 ```
 
 `Tone` is Neutral, Info, Success, Warning or Danger. Badge and Chip also use it.
@@ -488,7 +488,7 @@ config, cache, data and bus paths. It does not use the desktop session.
 ## Touch text editing
 
 ```gsharp
-let field = TextField{Value: "Alpha beta gamma"}.Build()
+let field Blob = TextField{Value: "Alpha beta gamma"}
 let area = Cell.Mount[TextAreaInput, TextArea]("notes", TextAreaInput{Value: notes, OnChange: SaveNotes})
 ```
 
@@ -533,7 +533,7 @@ Grid{
             Content: Text("A paragraph that wraps when this grid becomes narrower.")
         },
     },
-}.Build()
+}
 ```
 
 The policy snapshots track and placement arrays. Build a new `Grid` description

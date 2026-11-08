@@ -19,11 +19,11 @@ internal class StackedBarPage : GalleryPage {
                 ChartSeries{Id: "working", Label: "Working", Value: 27, Color: "#818cf8"},
                 ChartSeries{Id: "offline", Label: "Offline", Value: 5, Color: "#fbbf24"},
             }
-        }.Build(),
+        },
         StackedBar{
             Height: 16,
             ShowLegend: true,
             Series: []ChartSeries{ChartSeries{Id: "empty", Label: "No samples", Value: 0}}
-        }.Build()
+        }
     }
 }
