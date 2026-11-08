@@ -9,6 +9,7 @@
 - Add `TextField.Handle` for the text entry. A `TextField` with `Leading`, `Trailing`, addons, `Clearable` or `RevealButton` now shows the focus ring and hover border on the whole field, and the clear action keeps focus in the field.
 - Gallery search uses the standard `TextField` with a clear action, matches category names, and takes focus with Ctrl+F, Ctrl+K or `/`. The no-results message is announced as a status.
 - Add theme depth. `Theme.Ink` uses tonal elevation: canvas `#08090c`, panel `#16181e`, raised `#1f2229`, overlay `#22252e`, and fields `#040506` below the canvas. Ink text, border, link, focus and status colors are lighter, so no text or field-border contrast falls below its earlier value. New `PanelShadows`, `OverlayShadows`, `ControlShadows` and `FieldShadows` tokens drive `PanelStyle`, `OverlayStyle`, `Card`, popovers, menus, dialogs, toasts, tooltips, filled buttons, and the inset look of text fields, check boxes, radio buttons, number inputs and combo boxes. Raised controls, cards and floating surfaces have a 1 px top highlight. Pressed buttons show the inset shadow. Rows and list items get no shadow.
+- Forward widget input callbacks to their supplying Cell, so host state changes update the host UI without an explicit Rebuild.
 
 ## 0.19.8 - 2026-11-07
 

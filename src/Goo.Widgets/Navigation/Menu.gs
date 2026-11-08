@@ -36,9 +36,9 @@ internal func forwardMenuCallbacks(source[]?MenuItem, invoke Action[Action?], de
         if item.OnClick != nil || !Object.ReferenceEquals(children, item.Children) {
             if result == nil {
                 result = [source.Length]MenuItem
-                Array.Copy(source, result!!, source.Length)
+                Array.Copy(source, result, source.Length)
             }
-            result!![index] = item with{
+            result[index] = item with{
                 OnClick = item.OnClick == nil ? nil: () -> invoke(item.OnClick),
                 Children = children,
             }
