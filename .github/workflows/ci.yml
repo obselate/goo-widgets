@@ -188,21 +188,13 @@ jobs:
           NEEDS: ${{ toJSON(needs) }}
         run: |
           failed=false
-          cancelled=false
-          skipped=false
           while IFS=$'\t' read -r job result; do
             if [[ "$result" != success ]]; then
               printf '%s: %s\n' "$job" "$result"
+              failed=true
             fi
-            case "$result" in
-              success) ;;
-              failure) failed=true ;;
-              cancelled) cancelled=true ;;
-              skipped) skipped=true ;;
-              *) failed=true ;;
-            esac
           done < <(jq -r 'to_entries[] | [.key, .value.result] | @tsv' <<< "$NEEDS")
-          if $failed || { $skipped && ! $cancelled; }; then
+          if $failed; then
             exit 1
           fi
 
