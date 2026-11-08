@@ -14,7 +14,7 @@ Each image is an actual gallery capture in Ink, 1100 wide at scale 1. Its height
 
 For full-shell captures, set `GOO_HEADLESS_WIDTH=1600` and `GOO_HEADLESS_HEIGHT=1100` so the private display has room for the window.
 
-Add `--page "Color picker"` to capture one page. Use `--theme light` for Bone. Use `--shell-screenshots <directory> --page "Action button"` for a full 1440x900 shell capture.
+Add `--page "Color picker"` to capture one page. Use `--theme light` for Bone. Use `--shell-screenshots <directory> --page "Action button"` for a full 1280x800 shell capture.
 
 Each image links to its page source. New pages need a registration, a matching PNG and an entry below.
 

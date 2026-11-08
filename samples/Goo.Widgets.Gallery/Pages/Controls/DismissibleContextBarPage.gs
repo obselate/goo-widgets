@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Feedback
 import Goo.Widgets.Gallery
 
@@ -8,6 +9,7 @@ class DismissibleContextBarPage : GalleryPage {
     public override func Title() string -> "DismissibleContextBar"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let baseContent = Text{Content: "3 items selected in current query", FontSize: 13.0, FontWeight: 600}
 
         let baseBar = DismissibleContextBar{Content: baseContent, AccessibilityName: "Selection context",}
@@ -46,9 +48,9 @@ class DismissibleContextBarPage : GalleryPage {
             AccessibilityName = "Workspace status context",
             DismissText = "Close",
             DismissAccessibilityName = "Close workspace banner",
-            BorderColor = Color.Parse("#52525b"),
-            DismissTextColor = Color.Parse("#d4d4d8"),
-            DismissFocusBorderColor = Color.Parse("#fafafa"),
+            BorderColor = theme.StrongBorderColor,
+            DismissTextColor = theme.TextColor,
+            DismissFocusBorderColor = theme.FocusColor,
             PaddingHorizontal = 16.0,
             PaddingVertical = 10.0,
             BorderRadius = 10.0,

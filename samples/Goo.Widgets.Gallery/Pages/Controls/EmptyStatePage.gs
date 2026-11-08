@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Feedback
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
@@ -9,20 +10,21 @@ class EmptyStatePage : GalleryPage {
     public override func Title() string -> "EmptyState"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let emptyIll = Container{
             Width: 36.0,
             Height: 36.0,
             BorderRadius: 8.0,
-            BackgroundColor: Color.Parse("#27272a"),
+            BackgroundColor: theme.SunkenColor,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("inventory_2", 24.0, Color.Parse("#d4d4d8")),
+            MaterialIcons.Create("inventory_2", 24.0, theme.MutedTextColor),
         }
         let emptyAct = Container{
             Padding: Edges(5.0, 12.0),
             BorderRadius: 6.0,
-            BackgroundColor: Color.Parse("#fafafa"),
-            Text{Content: "Create project", FontSize: 11.0, FontWeight: 600, Color: "#09090b"},
+            BackgroundColor: theme.AccentColor,
+            Text{Content: "Create project", FontSize: 11.0, FontWeight: 600, Color: theme.OnAccentColor},
         }
         let emptyCollection = EmptyState{
             AccessibilityName: "Empty projects collection",
@@ -44,18 +46,18 @@ class EmptyStatePage : GalleryPage {
             Width: 36.0,
             Height: 36.0,
             BorderRadius: 8.0,
-            BackgroundColor: Color.Parse("#27272a"),
+            BackgroundColor: theme.SunkenColor,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("search", 24.0, Color.Parse("#a1a1aa")),
+            MaterialIcons.Create("search", 24.0, theme.MutedTextColor),
         }
         let noResAct = Container{
             Padding: Edges(4.0, 10.0),
             BorderRadius: 6.0,
-            BackgroundColor: Color.Parse("#18181b"),
+            BackgroundColor: theme.RaisedColor,
             BorderWidth: 1.0,
-            BorderColor: Color.Parse("#3f3f46"),
-            Text{Content: "Clear filters", FontSize: 11.0, FontWeight: 600, Color: "#d4d4d8"},
+            BorderColor: theme.InputBorderColor,
+            Text{Content: "Clear filters", FontSize: 11.0, FontWeight: 600},
         }
         let noResults = EmptyState{
             AccessibilityName: "No search results found",
@@ -77,18 +79,18 @@ class EmptyStatePage : GalleryPage {
             Width: 36.0,
             Height: 36.0,
             BorderRadius: 8.0,
-            BackgroundColor: Color.Parse("#450a0a"),
+            BackgroundColor: theme.PanelColor,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("lock", 24.0, Color.Parse("#fca5a5")),
+            MaterialIcons.Create("lock", 24.0, theme.DangerColor),
         }
         let permAct = Container{
             Padding: Edges(4.0, 10.0),
             BorderRadius: 6.0,
-            BackgroundColor: Color.Parse("#450a0a"),
+            BackgroundColor: theme.PanelColor,
             BorderWidth: 1.0,
-            BorderColor: Color.Parse("#991b1b"),
-            Text{Content: "Open settings", FontSize: 11.0, FontWeight: 600, Color: "#fca5a5"},
+            BorderColor: theme.DangerColor,
+            Text{Content: "Open settings", FontSize: 11.0, FontWeight: 600, Color: theme.DangerColor},
         }
         let permission = EmptyState{
             AccessibilityName: "Permission required empty state",
@@ -103,11 +105,11 @@ class EmptyStatePage : GalleryPage {
             Gap: 10.0,
             TextGap: 4.0,
             TitleFontSize: 16.0,
-            TitleColor: Color.Parse("#fecaca"),
+            TitleColor: theme.DangerColor,
             DescriptionFontSize: 12.0,
-            DescriptionColor: Color.Parse("#fca5a5"),
-            BackgroundColor: Color.Parse("#450a0a"),
-            BorderColor: Color.Parse("#991b1b"),
+            DescriptionColor: theme.TextColor,
+            BackgroundColor: theme.DangerQuietColor,
+            BorderColor: theme.DangerColor,
             BorderWidth: 1.0,
             BorderRadius: 10.0,
         }
@@ -121,9 +123,9 @@ class EmptyStatePage : GalleryPage {
             PaddingHorizontal: 20.0,
             PaddingVertical: 18.0,
             TitleFontSize: 15.0,
-            TitleColor: Color.Parse("#d4d4d8"),
-            BackgroundColor: Color.Parse("#18181b"),
-            BorderColor: Color.Parse("#3f3f46"),
+            TitleColor: theme.MutedTextColor,
+            BackgroundColor: theme.RaisedColor,
+            BorderColor: theme.BorderColor,
             BorderWidth: 1.0,
             BorderRadius: 10.0,
         }

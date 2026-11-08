@@ -290,6 +290,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,
             BorderRadius: theme.ControlRadius!!,
+            BoxShadows: current.Disabled ? []BoxShadow{}: theme.FieldShadows,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,

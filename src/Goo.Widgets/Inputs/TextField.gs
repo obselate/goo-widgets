@@ -44,6 +44,8 @@ public data struct TextField {
     var SuffixAddon Blob?
     /// Shows a named clear action while the field is nonempty.
     var Clearable bool
+    /// Handle for the text entry, for example to focus the field from a shortcut. Nil uses an internal handle.
+    var Handle ElementHandle?
     /// Masks text until the optional reveal action is pressed.
     var Password bool
     /// Shows a password-visibility action when Password is true.
@@ -264,6 +266,7 @@ public data struct TextField {
         }
         let readOnly = resolved.ReadOnly || entry!!.ReadOnly || (entry!!.Accessibility?.ReadOnly ?? false)
         entry!!.Key = "entry"
+        entry!!.Handle = entry!!.Handle ?? Handle
         entry!!.Disabled = resolved.Disabled
         entry!!.ReadOnly = readOnly
         entry!!.Focusable = !resolved.Disabled
@@ -283,6 +286,7 @@ public data struct TextField {
         if state != nil {
             entry!!.OnFocus = state.Focused
             entry!!.OnBlur = state.Blurred
+            state.FocusTarget = entry!!.Handle
         }
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
         if let createRoot = createRoot {
@@ -307,9 +311,11 @@ public data struct TextField {
         if let label = label {
             root.Children.Add(label)
         }
-        if resolved.Leading != nil || resolved.Trailing != nil || resolved.PrefixAddon != nil
-        || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton {
+        let framed = resolved.Leading != nil || resolved.Trailing != nil || resolved.PrefixAddon != nil
+        || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton
+        if framed {
             let frame = Container{
+                BasedOn: state?.HasFocus == true ? theme.FocusStyle: nil,
                 Width: Percent(100),
                 Height: resolved.EntryHeight!!,
                 FlexDirection: FlexDirection.Column,
@@ -317,6 +323,7 @@ public data struct TextField {
                 BorderColor: resolved.Invalid ? resolved.InvalidColor!!: resolved.BorderColor!!,
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
+                BoxShadows: resolved.Disabled ? []BoxShadow{}: theme.FieldShadows,
             }
             let content = Container{
                 FlexGrow: 1,
@@ -339,7 +346,6 @@ public data struct TextField {
             entry!!.BorderRadius = 0
             entry!!.BackgroundColor = Color.Transparent
             entry!!.DisabledStyle = Style{Color: resolved.DisabledTextColor!!, BackgroundColor: Color.Transparent}
-            entry!!.Focus = Style{BasedOn: entry!!.Focus, OutlineOffset: -resolved.FocusRingWidth!!}
             if let addon = resolved.PrefixAddon {
                 content.Children.Add(Addon(addon, resolved))
             }
@@ -383,11 +389,14 @@ public data struct TextField {
             if let addon = resolved.SuffixAddon {
                 content.Children.Add(Addon(addon, resolved))
             }
+            interactionTheme.ApplyInteraction(frame, InteractionFamily.Field)
             root.Children.Add(frame)
         } else {
+            entry!!.BoxShadows = resolved.Disabled ? []BoxShadow{}: theme.FieldShadows
             root.Children.Add(entry!!)
         }
         interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)
+        if framed { entry!!.Focus = Style{BasedOn: entry!!.Focus, OutlineWidth: 0} }
         var counter = resolved.CounterText
         if counter == nil && resolved.MaxLength != nil {
             counter = value.Length.ToString() + " / " + resolved.MaxLength!!.ToString()
@@ -429,19 +438,21 @@ internal class TextFieldState : Cell[TextField] {
     private var current TextField
     private var source string?
     private var value string = ""
-    private var focused bool
+    internal var HasFocus bool
     internal var Revealed bool
+    private let entryHandle ElementHandle = ElementHandle()
+    internal var FocusTarget ElementHandle?
 
     protected override func Build(input TextField) Blob {
         if source != input.Value || input.Controlled {
             source = input.Value
-            if !focused || input.Controlled {
+            if !HasFocus || input.Controlled {
                 value = input.Value ?? ""
             }
         }
-        current = input
+        current = input with{Handle = input.Handle ?? entryHandle}
         return (
-            input with{
+            current with{
                 Value = value,
                 Controlled = true,
                 Password = input.Password && !Revealed,
@@ -464,11 +475,12 @@ internal class TextFieldState : Cell[TextField] {
     }
 
     internal func Focused(event FocusEvent) {
-        focused = true
+        HasFocus = true
+        Rebuild()
     }
 
     internal func Blurred(event FocusEvent) {
-        focused = false
+        HasFocus = false
         current.OnCommit?.Invoke(value)
         if !current.Controlled {
             value = current.Value ?? ""
@@ -478,6 +490,7 @@ internal class TextFieldState : Cell[TextField] {
 
     internal func Clear() {
         Changed("")
+        FocusTarget?.Focus()
     }
 
     internal func Reveal() {

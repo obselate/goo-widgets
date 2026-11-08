@@ -17,7 +17,9 @@ import Goo.Widgets.Gallery.Pages.Graphs
 import Goo.Widgets.Gallery.Pages.Charts
 import Goo.Widgets.Gallery.Pages.Data
 import Goo.Widgets.Gallery.Pages.Content
+import Goo.Svg
 import System.Collections.Generic
+import System.IO
 
 open class GalleryPage {
     internal var OwningWindow Window?
@@ -82,6 +84,8 @@ class Gallery : Cell, IDisposable {
     private let listHandle ElementHandle = ElementHandle()
     private let pageHandles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle]()
     private let stageLayout LayoutAlgorithm = GalleryStageLayout()
+    private let darkMark VectorAsset = Svg.Load(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMark.svg"))
+    private let lightMark VectorAsset = Svg.Load(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMarkLight.svg"))
 
     public init(registry GalleryRegistry, initialIndex int32, pageOnly bool = false) {
         Registry = registry
@@ -149,10 +153,13 @@ class Gallery : Cell, IDisposable {
         Rebuild()
     }
 
+    private func Matches(group GalleryCategory, page GalleryPage) bool ->
+        (query.Length > 0 && group.Name.Contains(query, StringComparison.OrdinalIgnoreCase)) || FuzzyMatch.Match(query, page.Name()) != nil
+
     private func FirstMatch() string? {
         for group in Registry.Groups {
             for page in group.Pages {
-                if FuzzyMatch.Match(query, page.Name()) != nil { return page.Name() }
+                if Matches(group, page) { return page.Name() }
             }
         }
         return nil
@@ -176,7 +183,9 @@ class Gallery : Cell, IDisposable {
             return true
         }
         let primary = KeyModifiers{Ctrl: !OperatingSystem.IsMacOS(), Super: OperatingSystem.IsMacOS()}
-        if key == Key.K && modifiers == primary && searchHandle.Focus() {
+        let shortcut = (key == Key.K || key == Key.F) && modifiers == primary
+        let slash = key == Key.Slash && modifiers == KeyModifiers{} && platformInput?.Selection == nil
+        if (shortcut || slash) && searchHandle.Focus() {
             platformInput?.Execute(TextCommand{Kind: TextCommandKind.SelectAll})
             return true
         }
@@ -186,7 +195,7 @@ class Gallery : Cell, IDisposable {
     private func Sidebar() Blob {
         let theme = Theme.Read()
         let list = Container{
-            Key: "page-list", Handle: listHandle, FlexGrow: 1, FlexBasis: 0, MinHeight: 0, Gap: 10,
+            Key: "page-list", Handle: listHandle, FlexGrow: 1, FlexBasis: 0, MinHeight: 0, Gap: 12,
             OverflowY: Overflow.Scroll, ScrollbarY: theme.Scrollbar,
             Padding: Edges{Bottom: 40}
         }
@@ -194,7 +203,7 @@ class Gallery : Cell, IDisposable {
         for group in Registry.Groups {
             let items = List[NavigationItem]()
             for page in group.Pages {
-                if FuzzyMatch.Match(query, page.Name()) != nil {
+                if Matches(group, page) {
                     items.Add(NavigationItem{Id: page.Name(), Label: page.Name()})
                 }
             }
@@ -203,18 +212,18 @@ class Gallery : Cell, IDisposable {
             list.Children.Add(Container{
                 Key: group.Name, Gap: 2,
                 Container{
-                    Height: 28, Padding: Edges{Left: 8, Right: 8}, Gap: 8,
+                    Height: 28, Padding: Edges{Left: 10, Right: 10}, Gap: 8,
                     FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
                     Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: group.Name, Level: 2},
                     MaterialIcons.Create(group.Icon, 16, theme.FaintTextColor),
                     Text{Content: group.Name, FontSize: 13, FontWeight: 600, Color: theme.TextColor}
                 },
                 Container{
-                    MarginStart: 15, BorderStartWidth: 1, BorderColor: theme.BorderColor,
+                    MarginStart: 17, BorderStartWidth: 1, BorderColor: theme.BorderColor,
                     PaddingStart: 6,
                     Cell.Mount[NavigationRailInput, NavigationRail](group.Name, NavigationRailInput{
                         Items: items.ToArray(), SelectedId: Registry.CurrentPage(currentIndex).Name(),
-                        AccessibilityName: group.Name, Expanded: true, ExpandedWidth: 202,
+                        AccessibilityName: group.Name, Expanded: true, ExpandedWidth: 202, ActiveMarker: false,
                         Height: Length.Auto, ItemHeight: 28, Gap: 1, ItemBorderRadius: 6,
                         ItemPaddingHorizontal: 10, FontSize: 13, FontWeight: 400,
                         BackgroundColor: Color.Transparent, TextColor: theme.MutedTextColor,
@@ -247,48 +256,33 @@ class Gallery : Cell, IDisposable {
         if matches == 0 {
             list.Children.Add(Container{
                 Padding: 8, Gap: 8,
+                Accessibility: Accessibility{Role: AccessibilityRole.Status, Live: AccessibilityLive.Polite, Name: "No widgets match \"" + query + "\""},
                 Text{Content: "No widgets match \"" + query + "\"", FontSize: 13, Color: theme.FaintTextColor,
                     TextWrap: TextWrap.NoWrap, TextTrimming: TextTrimming.Ellipsis},
                 (theme.LinkButton with{Content = "Clear search", OnClick = () -> Search("")}).Build()
             })
         }
         return Container{
-            Key: "sidebar", Width: 248, FlexShrink: 0, Padding: Edges{Top: 14, Left: 12, Right: 12, Bottom: 12},
-            Gap: 14,
+            Key: "sidebar", Width: 248, FlexShrink: 0, Padding: 12,
+            Gap: 12,
             Container{
-                Height: 32, FlexShrink: 0, Padding: Edges{Left: 4, Right: 4}, Gap: 10,
+                Height: 32, FlexShrink: 0, Padding: Edges{Left: 10, Right: 10}, Gap: 10,
                 FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
                 Container{
-                    Width: 26, Height: 26, BorderRadius: 7,
-                    BackgroundGradient: LinearGradient(135.0, []GradientStop{
-                        GradientStop{Offset: 0, Color: Color.Parse("#4a80f0")},
-                        GradientStop{Offset: 1, Color: Color.Parse("#2452c0")}}),
-                    AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center,
-                    MaterialIcons.Create("widgets", 16, Color.White)
+                    Width: 28, Height: 28, Accessibility: Accessibility{Hidden: true},
+                    (theme.CanvasColor == Theme.Ink.CanvasColor ? darkMark: lightMark).Render()
                 },
                 Text{Content: "Goo Widgets", FontSize: 15, FontWeight: 600, LetterSpacing: -0.15}
             },
-            (theme.TextField with{
-                Value = query, Controlled = true, Width = 224, EntryHeight = 32,
-                Placeholder = "Search", AccessibilityName = "Search widgets",
-                OnChange = Search,
-                CreateRoot = (input TextField, label Text?, entry TextEntry, issue Text?) -> {
-                    entry.Handle = searchHandle
-                    entry.OnKeyDown = SearchKey
-                    entry.Width = Length.Auto
-                    entry.FlexGrow = 1
-                    entry.MinWidth = 0
-                    entry.Padding = 0
-                    entry.BorderWidth = 0
-                    entry.BackgroundColor = Color.Transparent
-                    return Container{
-                        Height: 32, FlexShrink: 0, Padding: Edges{Left: 10, Right: 10}, Gap: 8,
-                        FlexDirection: FlexDirection.Row, AlignItems: AlignItems.Center,
-                        BackgroundColor: theme.FieldColor, BorderWidth: 1, BorderColor: theme.InputBorderColor, BorderRadius: 6,
-                        MaterialIcons.Create("search", 16, theme.FaintTextColor), entry
-                    }
-                }
-            }).Build(),
+            Container{
+                FlexShrink: 0, OnKeyDown: SearchKey,
+                (theme.TextField with{
+                    Value = query, Controlled = true, Width = Percent(100), EntryHeight = 32, PaddingHorizontal = 9,
+                    Placeholder = "Search", AccessibilityName = "Search widgets", Handle = searchHandle,
+                    Leading = MaterialIcons.Create("search", 16, theme.FaintTextColor), Clearable = true,
+                    OnChange = Search,
+                }).Build()
+            },
             Container{
                 FlexGrow: 1, FlexBasis: 0, MinHeight: 0, Overflow: Overflow.Hidden, Position: PositionType.Relative, list,
                 Container{Position: PositionType.Absolute, Left: 0, Right: 0, Bottom: 0, Height: 40,
@@ -334,10 +328,9 @@ class Gallery : Cell, IDisposable {
         if !PageOnly { root.Children.Add(Sidebar()) }
         root.Children.Add(Container{
             Key: "page", Handle: panelHandle, FlexGrow: 1, FlexBasis: 0, MinWidth: 0, MinHeight: 0,
-            Margin: 8, MarginStart: PageOnly ? 8: 0,
-            BackgroundColor: theme.PanelColor, BorderColor: theme.BorderColor, BorderWidth: 1,
-            BorderRadius: theme.PanelRadius!!, BoxShadow: theme.ElevationSm, Overflow: Overflow.Hidden,
-            Padding: Edges{Top: 26, Left: sidePadding, Right: sidePadding, Bottom: 32}, Gap: 20,
+            Margin: 12, MarginStart: PageOnly ? 12: 0,
+            BasedOn: theme.PanelStyle, Overflow: Overflow.Hidden,
+            Padding: sidePadding, Gap: 20,
             Text{Content: page.Name(), FontSize: 28, FontWeight: 600, LetterSpacing: -0.4,
                 Accessibility: Accessibility{Role: AccessibilityRole.Heading, Name: page.Name(), Level: 1, Live: AccessibilityLive.Polite}},
             Container{

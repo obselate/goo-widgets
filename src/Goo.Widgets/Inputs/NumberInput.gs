@@ -103,7 +103,8 @@ public open class NumberInput : Cell[NumberInputInput] {
             BackgroundColor: input.Disabled ? theme.PanelColor: theme.FieldColor,
             BorderWidth: theme.BorderWidth,
             BorderColor: invalid || input.Error != nil ? theme.DangerColor: theme.InputBorderColor,
-            BorderRadius: theme.ControlRadius!!
+            BorderRadius: theme.ControlRadius!!,
+            BoxShadows: input.Disabled ? []BoxShadow{}: theme.FieldShadows,
         }
         if let label = input.ScrubLabel {
             frame.Children.Add(

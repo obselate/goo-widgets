@@ -34,7 +34,7 @@ internal class DonutChartPage : GalleryPage {
             DonutChart{
                 Size: 100,
                 Thickness: 14,
-                Center: Text{Content: "100%", FontSize: 16, Color: "#d1fae5"},
+                Center: Text{Content: "100%", FontSize: 16},
                 Series: []ChartSeries{ChartSeries{Id: "all", Label: "Complete", Value: .5, Color: "#2dd4bf"}}
             }.Build()
         }

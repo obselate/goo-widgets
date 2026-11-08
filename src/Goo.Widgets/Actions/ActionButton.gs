@@ -197,6 +197,11 @@ public data struct ActionButton {
         if let color = FocusBorderColor { root.Focus = Style{OutlineColor: color, BasedOn: root.Focus} }
         if let color = DisabledBackgroundColor { root.DisabledStyle = Style{BackgroundColor: color, BasedOn: root.DisabledStyle} }
         if let color = DisabledTextColor { root.DisabledStyle = Style{Color: color, BasedOn: root.DisabledStyle} }
+        if resolved.BackgroundColor!!.A > 0 && Pressed != true {
+            root.BoxShadows = theme.ControlShadows
+            root.Active = Style{BoxShadows: theme.FieldShadows, BasedOn: root.Active}
+            root.DisabledStyle = Style{BoxShadows: []BoxShadow{}, BasedOn: root.DisabledStyle}
+        }
         theme.ApplyInteraction(root, InteractionFamily.Button, Pressed == true)
         root.Disabled = resolved.Disabled
         root.Focusable = !resolved.Disabled

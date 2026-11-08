@@ -136,6 +136,7 @@ public data struct Checkbox {
                 BorderRadius: resolved.BorderRadius!!,
                 BorderColor: Disabled ? theme.DisabledTextColor: active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!,
                 BackgroundColor: Disabled ? theme.SunkenColor: active ? resolved.CheckedBackgroundColor!!: resolved.BackgroundColor!!,
+                BoxShadows: Disabled || active ? []BoxShadow{}: theme.FieldShadows,
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
                 HitTestSelf: false,

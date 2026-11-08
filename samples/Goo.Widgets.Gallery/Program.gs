@@ -151,8 +151,8 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
     gallery.RightToLeft = rightToLeft
     let window = Window{
         Title: "Goo Widgets gallery screenshots",
-        Width: fullShell ? 1440: 1100,
-        Height: fullShell ? 900: 800,
+        Width: fullShell ? 1280: 1100,
+        Height: 800,
         Root: gallery
     }
     gallery.AttachWindow(window)
@@ -162,7 +162,7 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
         using let diagnostics = DevTools.Attach(window)
         for index in first ... end {
             gallery.Show(index)
-            window.Height = fullShell ? 900: 800
+            window.Height = 800
             PumpFrames(window, 30)
             if !fullShell {
                 let card = gallery.CardHandle.BorderBox
@@ -308,7 +308,10 @@ func Main(args[]string) {
     Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
     let gallery = Gallery(registry, initialIndex)
     gallery.RightToLeft = rightToLeft
-    let window = Window{Title: "Goo Widgets Gallery", Width: 1440, Height: 900, MinWidth: 960, MinHeight: 640, Root: gallery}
+    let window = Window{
+        Title: "Goo Widgets Gallery", Width: 1440, Height: 900, MinWidth: 960, MinHeight: 640, Root: gallery,
+        IconPng: File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMark.png"))
+    }
     gallery.AttachWindow(window)
     Theme.SetMode(window, mode)
     window.Run()

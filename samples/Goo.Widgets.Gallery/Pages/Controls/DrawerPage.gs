@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Layout
 
@@ -8,6 +9,7 @@ class DrawerPage : GalleryPage {
     public override func Title() string -> "Drawer"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let leftNavContent = Container{
             Gap: 6.0,
             Text{Content: "Navigation", FontSize: 13.0, FontWeight: 700},
@@ -25,7 +27,7 @@ class DrawerPage : GalleryPage {
             Gap: 6.0,
             Text{Content: "Inspector", FontSize: 13.0, FontWeight: 700},
             Text{Content: "Node ∶ #root", FontSize: 11.0},
-            Text{Content: "Status ∶ Mounted", FontSize: 11.0, Color: "#4ade80"},
+            Text{Content: "Status ∶ Mounted", FontSize: 11.0, Color: theme.SuccessColor},
         }
         let openRightDrawer = Drawer{
             Open: true,
@@ -67,8 +69,8 @@ class DrawerPage : GalleryPage {
             Height: 135.0,
             BorderRadius: 8.0,
             BorderWidth: 1.0,
-            BorderColor: Color.Parse("#3f3f46"),
-            BackgroundColor: Color.Parse("#09090b"),
+            BorderColor: theme.BorderColor,
+            BackgroundColor: theme.SunkenColor,
             openLeftDrawer.Build(),
         }
 
@@ -79,8 +81,8 @@ class DrawerPage : GalleryPage {
             Height: 135.0,
             BorderRadius: 8.0,
             BorderWidth: 1.0,
-            BorderColor: Color.Parse("#3f3f46"),
-            BackgroundColor: Color.Parse("#09090b"),
+            BorderColor: theme.BorderColor,
+            BackgroundColor: theme.SunkenColor,
             openRightDrawer.Build(),
         }
 
@@ -91,8 +93,8 @@ class DrawerPage : GalleryPage {
             Height: 135.0,
             BorderRadius: 8.0,
             BorderWidth: 1.0,
-            BorderColor: Color.Parse("#3f3f46"),
-            BackgroundColor: Color.Parse("#09090b"),
+            BorderColor: theme.BorderColor,
+            BackgroundColor: theme.SunkenColor,
             customDrawer.Build(),
         }
 

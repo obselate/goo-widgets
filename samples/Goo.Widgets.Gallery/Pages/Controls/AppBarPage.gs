@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
 import Goo.Widgets.Layout
@@ -9,15 +10,16 @@ class AppBarPage : GalleryPage {
     public override func Title() string -> "AppBar"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let minimalTitleBar = AppBar{Title: "Dashboard Overview"}
         let leadingNav = Container{
             Width: 28.0,
             Height: 28.0,
             BorderRadius: 6.0,
-            BackgroundColor: "#27272a",
+            BackgroundColor: theme.HoverColor,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            MaterialIcons.Create("menu", 20.0, Color.Parse("#d4d4d8")),
+            MaterialIcons.Create("menu", 20.0, theme.MutedTextColor),
         }
         let trailingActions = Container{
             FlexDirection: FlexDirection.Row,
@@ -26,17 +28,17 @@ class AppBarPage : GalleryPage {
             Container{
                 Padding: Edges(4.0, 10.0),
                 BorderRadius: 6.0,
-                BackgroundColor: "#fafafa",
-                Text{Content: "Share", FontSize: 12.0, FontWeight: 600, Color: "#09090b"},
+                BackgroundColor: theme.TextColor,
+                Text{Content: "Share", FontSize: 12.0, FontWeight: 600, Color: theme.CanvasColor},
             },
             Container{
                 Width: 28.0,
                 Height: 28.0,
                 BorderRadius: 14.0,
-                BackgroundColor: "#3f3f46",
+                BackgroundColor: theme.HoverColor,
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
-                Text{Content: "JD", FontSize: 11.0, FontWeight: 700, Color: "#fafafa"},
+                Text{Content: "JD", FontSize: 11.0, FontWeight: 700},
             },
         }
         let slotsBar = AppBar{
@@ -60,14 +62,14 @@ class AppBarPage : GalleryPage {
         let badgeSlot = Container{
             Padding: Edges(2.0, 8.0),
             BorderRadius: 4.0,
-            BackgroundColor: "#27272a",
-            Text{Content: "PROD", FontSize: 10.0, FontWeight: 700, Color: "#fafafa"},
+            BackgroundColor: theme.HoverColor,
+            Text{Content: "PROD", FontSize: 10.0, FontWeight: 700},
         }
         let actionSlot = Container{
             Padding: Edges(6.0, 12.0),
             BorderRadius: 6.0,
-            BackgroundColor: "#7f1d1d",
-            Text{Content: "Deploy", FontSize: 12.0, FontWeight: 700, Color: "#fafafa"},
+            BackgroundColor: theme.DangerFillColor,
+            Text{Content: "Deploy", FontSize: 12.0, FontWeight: 700, Color: theme.OnAccentColor},
         }
         let distinctCustomBar = AppBar{
             Title: "Cluster Metrics",
@@ -81,8 +83,8 @@ class AppBarPage : GalleryPage {
             TitleFontWeight: 700,
             SubtitleFontSize: 11.0,
             SubtitleFontWeight: 500,
-            BackgroundColor: Color.Parse("#18181b"),
-            BorderColor: Color.Parse("#3f3f46"),
+            BackgroundColor: theme.RaisedColor,
+            BorderColor: theme.StrongBorderColor,
             BorderWidth: 2.0,
             Leading: badgeSlot,
             Trailing: actionSlot,

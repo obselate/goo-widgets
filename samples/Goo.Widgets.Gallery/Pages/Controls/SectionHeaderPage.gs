@@ -1,6 +1,7 @@
 package Goo.Widgets.Gallery.Pages.Controls
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Layout
 
@@ -8,6 +9,7 @@ class SectionHeaderPage : GalleryPage {
     public override func Title() string -> "SectionHeader"
 
     public override func Build() Blob {
+        let theme = Theme.Read()
         let defaultHeader = SectionHeader{Label: "Overview",}
 
         let accentMetaHeader = SectionHeader{
@@ -31,10 +33,10 @@ class SectionHeaderPage : GalleryPage {
             Expanded: true,
             AccessibilityName: "System Diagnostics Header",
             HeadingLevel: 3,
-            LabelColor: Color.Parse("#bbf7d0"),
-            MetaColor: Color.Parse("#4ade80"),
-            RuleColor: Color.Parse("#166534"),
-            AccentColor: Color.Parse("#22c55e"),
+            LabelColor: theme.SuccessColor,
+            MetaColor: theme.SuccessColor,
+            RuleColor: theme.SuccessColor,
+            AccentColor: theme.SuccessColor,
             Gap: 14.0,
             AccentSize: 8.0,
             RuleHeight: 2.0,

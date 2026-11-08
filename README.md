@@ -1,5 +1,7 @@
 # Goo Widgets
 
+![Goo Widgets gallery](docs/assets/goo-widgets-gallery.png)
+
 Reusable G# widgets for [Goo](https://github.com/obselate/goo) desktop applications.
 
 Includes actions, inputs, feedback, layout, navigation, data views, charts, themes,
