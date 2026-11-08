@@ -18,9 +18,10 @@ ActionButton{Content: "Reset", OnClick: () -> ResetColor(),}
 accessible name. Set `AccessibilityName` only when assistive technology should
 announce different text.
 
-`ResetColor` changes the host Cell's state. Input callbacks rebuild that Cell
-automatically. A mounted child's callback that changes parent state must call
-the parent's `Rebuild()`. See the [complete example](../samples/Goo.Widgets.QuickStart/Program.gs).
+The Cell that builds a widget rebuilds after its input callbacks.
+Call `Rebuild()` after state changes outside input dispatch, such as `Post`,
+timers, async work, or subscriptions. Also call it when a callback changes
+another Cell's state. See the [complete example](../samples/Goo.Widgets.QuickStart/Program.gs).
 
 ### Widget categories
 
@@ -91,13 +92,11 @@ private var committedColor int32 = 0x4F8FEA
 
 private func SetLiveColor(value int32) {
     liveColor = value
-    Rebuild()
 }
 
 private func CommitColor(value int32) {
     liveColor = value
     committedColor = value
-    Rebuild()
 }
 ```
 
@@ -111,7 +110,7 @@ Container{Width: 260.0, Height: 96.0, BackgroundColor: ColorMath.GooColor(liveCo
 Text("#${ColorMath.Hex(liveColor)}")
 ```
 
-Changing `liveColor` and rebuilding the host updates the picker, as the sample's Reset button shows. The picker disposes its wheel image on unmount.
+Changing `liveColor` in an input callback updates the picker, as the sample's Reset button shows. The picker disposes its wheel image on unmount.
 
 Key the picker's siblings, as the example does for Reset and the committed-color readout.
 
@@ -181,7 +180,8 @@ side when it fits better, and clamps to Viewport (window coordinates), or the
 Window bounds by default. Its first visible frame waits for the panel measurement,
 so wrapped content is already aligned. It tracks anchor movement and resize.
 `OnOpenChange(false)` runs before OnDismiss reports Escape, OutsideClick, or AnchorRemoved.
-Apply the requested Open state and rebuild the host.
+Apply the requested Open state. Input callbacks rebuild the host.
+Call `Rebuild()` for AnchorRemoved because it comes from a metrics subscription.
 Tab stays in the popup. Closing restores eligible prior focus except on outside
 pointer clicks. Factories
 customize the panel/root while placement, handles, input, and content stay wired.
@@ -220,9 +220,10 @@ The popup uses the Window Portal overlay and does not change selector layout.
 viewport, while presentation still uses the Window overlay. Omitting it uses the
 Window bounds. Opening restores the selected option,
 and closing restores trigger focus. `Open` and `Query` can be controlled with their
-callbacks; leaving them nil uses widget-owned state. Update controlled values and
-rebuild the owning Cell in callbacks. Trigger, search, row, popup, and root factories
-customize appearance while identity, input, and accessibility wiring remain applied.
+callbacks. Leave them nil to use widget-owned state. Update controlled values in
+callbacks. Input callbacks rebuild the owning Cell. Call `Rebuild()` for anchor
+removal because it comes from a metrics subscription. Trigger, search, row, popup,
+and root factories customize appearance while identity, input, and accessibility wiring remain applied.
 
 `Placement` defaults to `PopoverPlacement.BottomStart`. Set `TopStart` to prefer
 opening above, with downward fallback. If neither side fits, the popup shrinks
@@ -402,10 +403,10 @@ Widgets expose data, callbacks, appearance, and factories for Goo primitives.
 Use G# `with` to derive values. Each `Build()` creates a fresh tree.
 No global theme registration or initialization is required.
 
-- Build value widgets inside the host Cell's `Build`. Input callbacks automatically
-  rebuild that Cell. Mount stateful widgets such as Slider, ColorPicker,
-  MediaTransport, and GraphCanvas with `Cell.Mount[Input, Widget]` and stable keys.
-  When a mounted widget's callback changes parent state, call the parent's `Rebuild()`.
+- Build value widgets inside the host Cell's `Build`. Input callbacks rebuild
+  the Cell that builds the widget, including mounted widgets.
+  Mount stateful widgets such as Slider, ColorPicker, MediaTransport, and
+  GraphCanvas with `Cell.Mount[Input, Widget]` and stable keys.
 - Goo siblings must be all keyed or all unkeyed. Give siblings keys when composing
   mounted cells. Replacement factories must preserve required keys, handlers,
   handles, accessibility semantics, and layout properties.
@@ -444,8 +445,8 @@ No global theme registration or initialization is required.
 ## Controlled split panes, tabs, and multiline fields
 
 Mount `SplitPaneInput/SplitPane`, `TabBarInput/TabBar`, and `TextAreaInput/TextArea`
-with stable keys. In the host callback, update the value and call `Rebuild()`.
-Each mounted control retains its interaction state.
+with stable keys. In the host input callback, update the value.
+The host rebuilds after the callback. Each mounted control retains its interaction state.
 
 `SplitPane` accepts first/second content, horizontal or vertical orientation, and
 a controlled ratio or pixel value. Minima are in logical pixels. When their sum
@@ -579,9 +580,10 @@ selection with the host. Event semantics include labels and time intervals.
 using `InitialAlignment` (Center, Start, or Nearest). Unknown initial IDs are
 ignored. Subsequent marker, data, scale, and size changes do not restart centering.
 The scroll viewport supports Left/Right and Home/End. `OnViewportChange` reports
-later offsets and visible instants on the UI thread; a host that displays those
-values should call its `Rebuild()`. A root factory can retain the prepared
-`ElementHandle` for later `JumpTo` or `ScrollTo` requests from host actions.
+later offsets and visible instants on the UI thread. Call the host's `Rebuild()`
+after these changes because metrics subscriptions run outside input dispatch.
+A root factory can retain the prepared `ElementHandle` for later `JumpTo` or
+`ScrollTo` requests from host actions.
 The mounted widget releases its metrics subscription on removal.
 
 Tick, marker, event, overflow, and root factories customize prepared Goo blobs.
@@ -618,9 +620,9 @@ C#, F# and VB can call the same measured-row policy through the named CLR type
 `Goo.Widgets.Data.VirtualLists.Rows<T>`. The G# `VirtualRows` function remains available.
 
 Keys must be stable, nonempty, and unique in the collection. Keep item values
-immutable and rebuild the owning Cell after a change. An item that equals its
-previous value is not built again. `VirtualRows` also needs the same builder
-delegate on each build to reuse rows.
+immutable. Call `Rebuild()` after changes outside input dispatch, such as data
+subscriptions. An item that equals its previous value is not built again.
+`VirtualRows` also needs the same builder delegate on each build to reuse rows.
 Pass `version: rowsVersion` to skip scans while the list reference and version stay the same. Change the version after each in-place edit. Omit it to keep detecting edits on every rebuild.
 
 `VirtualRows` keeps the first visible row and its retained content in place after layout.
@@ -630,7 +632,7 @@ A change that only removes rows from the start and adds
 rows at the end is applied in place: only the added rows are keyed and built.
 `followEnd: true` follows new inputs and holds a pinned end through viewport and row size changes. It does not block user scrolling.
 In `viewport.MetricsChanged`, set `follow` to `metrics.ScrollOffset.Y >= metrics.ScrollRange.Y - 0.5`
-and rebuild when it changes. Start with `follow = true` for a live log.
+and call `Rebuild()` when it changes because metrics subscriptions run outside input dispatch. Start with `follow = true` for a live log.
 `ElementHandle.ScrollToItem(key)` jumps to an item of either function.
 
 ```gsharp
@@ -669,8 +671,8 @@ Mount `TreeViewInput/TreeView` with unique `TreeNode.Id` values, including colla
 descendants. Nodes supply a label or custom content, optional check state, and
 children. Disabling a node disables its descendants. Cycles and shared/duplicate
 identities are rejected. Control expansion with `ExpandedIds`/`OnExpandedChange`
-and single-row selection with `SelectedId`/`OnSelect`. Callbacks must update inputs
-and rebuild the host.
+and single-row selection with `SelectedId`/`OnSelect`. Update inputs in the
+callbacks. The host rebuilds after input callbacks.
 Changing `SelectedId` from outside the tree activates and reveals that row without
 taking focus. Supply `ExpandedIds` in the same update to open its ancestors.
 `SelectedId` is also the reveal driver when `SelectedIds` controls selection.
@@ -736,8 +738,8 @@ grows to fit headers and realized cells without shrinking on scroll. Flex column
 share the remaining viewport width above their minimums. Minimum widths may
 overflow horizontally. Controlled `ColumnWidths` override individual columns in
 pixels. `OnColumnWidthChange` requests a finite clamped width and
-`OnColumnWidthCommit` reports pointer-up or keyboard completion. The host must
-update its width map and rebuild. Cancellation stops capture without a commit.
+`OnColumnWidthCommit` reports pointer-up or keyboard completion. Update the
+width map in the callback. The host rebuilds after input callbacks. Cancellation stops capture without a commit.
 Earlier live change requests remain applied. Resizers support Left/Right,
 Home/End, and accessible value changes. Headers, filters, and virtual cells share
 one width array. `ViewportHandle` scrolls both body axes. The clipped header and
@@ -751,7 +753,7 @@ short. If the minimums cannot fit, horizontal scrolling remains available.
 Only boundaries between columns have resize handles in this mode. Pointer,
 keyboard, and accessibility resizing transfer width into or out of columns to
 the right within their bounds. `OnFittedColumnWidthsChange` receives one map
-containing every resolved column width; replace the controlled map and rebuild.
+containing every resolved column width. Replace the controlled map in the callback.
 `OnFittedColumnWidthsCommit` receives that map when resizing completes.
 
 `SortColumnId`/`SortDirection` and `OnSort` cycle None → Ascending → Descending →
@@ -769,8 +771,8 @@ For selection shared with another view, supply `ActiveRowId` and handle
 `OnActiveRowChange` to keep the active row in the host. Set `OnSelectionRequest`
 to receive the row ID, toggle flag, and extend flag from pointer, keyboard,
 checkbox, and accessibility actions. When this callback is set, the host owns
-the selected IDs and range anchor; update `SelectedIds` and rebuild after each
-request. `ActiveRowId: nil` keeps the grid's internal active row. Set
+the selected IDs and range anchor. Update `SelectedIds` after each request.
+The host rebuilds after input callbacks. `ActiveRowId: nil` keeps the grid's internal active row. Set
 `UseDefaultKeyboard: false` when the host handles grid navigation itself.
 
 The grid keeps keyboard focus on its root and exposes its active row through

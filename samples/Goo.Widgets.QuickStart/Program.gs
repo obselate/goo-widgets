@@ -49,13 +49,11 @@ class ColorPickerHost : Cell {
 
     private func SetLiveColor(value int32) {
         liveColor = value
-        Rebuild()
     }
 
     private func CommitColor(value int32) {
         liveColor = value
         committedColor = value
-        Rebuild()
     }
 
     private func ResetColor() {
