@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Value widgets convert implicitly to `Blob`. Add widget literals directly to child collections and content slots without calling `Build()`.
+- Upgrade Goo to 0.29.0 for callback ownership and controlled text synchronization during Build.
 - Upgrade Goo to 0.28.7 for filter performance, 12 px text, and focus outlines inside rounded clipping ancestors.
 - Raise `Theme.Ink` and `Theme.Bone` `BorderColor` so dividers and panel edges stay visible: about 1.8:1 against `PanelColor` in Ink (`#3d424d`) and 1.6:1 in Bone (`#cbcbc6`).
 - Show the Goo mark in the gallery sidebar and window icon. Gallery pages use theme tokens, so text and surfaces stay readable in Light. The gallery shell uses even 12 px insets and no selected-row marker.
