@@ -427,7 +427,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         if disposed {
             return
         }
-        if editSession != nil { CancelEdit(DataGridEditCancelReason.Unavailable, false) }
+        if editSession != nil { CancelEdit(DataGridEditCancelReason.Unavailable, false, false) }
         disposed = true
         reorderScroll?.Dispose()
         pointer = -1L

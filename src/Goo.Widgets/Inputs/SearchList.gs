@@ -262,8 +262,8 @@ internal class SearchListState : Cell[SearchList] {
             prepared = true
         }
         return (input with{
-            OnQueryChange = changeQuery,
-            OnSelect = selectItem,
+            OnQueryChange = input.OnQueryChange == nil ? nil: changeQuery,
+            OnSelect = input.OnSelect == nil ? nil: selectItem,
         }).BuildContent(indices, positions)
     }
 }

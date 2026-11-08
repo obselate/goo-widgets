@@ -31,9 +31,22 @@ public open class MenuButton : Cell[MenuButtonInput] {
     private let trigger ElementHandle = ElementHandle()
     private var current MenuButtonInput
     private var initialId string?
+    private var sourceItems[]?MenuItem
+    private var forwardedItems[]?MenuItem
+    private let activateItem Action[string]
+    private let invokeItemCallback Action[Action?]
+
+    public init() {
+        activateItem = id -> InvokeInputCallback(current.OnClick, id)
+        invokeItemCallback = callback -> InvokeInputCallback(callback)
+    }
 
     protected override func Build(input MenuButtonInput) Blob {
         current = input
+        if !Object.ReferenceEquals(input.Items, sourceItems) {
+            sourceItems = input.Items
+            forwardedItems = forwardMenuCallbacks(input.Items, invokeItemCallback)
+        }
         let theme = Theme.Read()
         let button = (
             (
@@ -66,10 +79,10 @@ public open class MenuButton : Cell[MenuButtonInput] {
         var menu = MenuInput{
             Open: input.Open,
             Anchor: trigger,
-            Items: forwardMenuCallbacks(input.Items, callback -> InvokeInputCallback(callback)),
+            Items: forwardedItems,
             InitialFocusId: initialId,
             Placement: input.Placement,
-            OnClick: id -> InvokeInputCallback(input.OnClick, id),
+            OnClick: input.OnClick == nil ? nil: activateItem,
             OnOpenChange: (isOpen bool) -> Change(isOpen, false),
         }
         if let create = input.CreateMenu {
@@ -78,7 +91,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
                 Anchor = trigger,
                 Items = menu.Items,
                 InitialFocusId = initialId,
-                OnClick = id -> InvokeInputCallback(input.OnClick, id),
+                OnClick = input.OnClick == nil ? nil: activateItem,
                 OnOpenChange = (isOpen bool) -> Change(isOpen, false)
             }
         }

@@ -135,10 +135,14 @@ internal class FieldCallbackHost : Cell {
         }.Build(),
         Cell.Mount[MenuButtonInput, MenuButton]("callback-menu", MenuButtonInput{
             Button: ActionButton{Content: "Callback menu"},
-            Items: []MenuItem{MenuItem{Id: "callback-item", Label: "Callback menu item"}},
+            Items: []MenuItem{
+                MenuItem{Id: "callback-item", Label: "Callback menu item"},
+                MenuItem{Id: "owned-item", Label: "Owned callback menu item", OnClick: () -> Value = "menu-item"},
+            },
             Open: MenuOpen,
             OnOpenChange: value -> MenuOpen = value,
             OnClick: id -> Value = "menu:" + id,
+            CreateMenu: (input, menu) -> menu with{DismissOnActivate = false},
         }),
         Button{
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Callback button"},
@@ -195,6 +199,15 @@ func FieldCallbackOwnership() {
         Require(host.Value == "menu:callback-item", "MenuButton OnClick did not change parent state")
         let menuChanged = FindSemantics(semantics.Tree?.Root, host.Value) != nil
         Console.WriteLine((menuChanged ? "PASS: " : "FAIL: ") + "MenuButton pass-through OnClick rebuilds parent Text without Rebuild")
+        Require(menuChanged && host.MenuOpen, "MenuButton pass-through OnClick did not rebuild parent Text while the menu stayed open")
+        FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Owned callback menu item")!!.Bounds)
+        PumpFrames(window, 5)
+        Require(host.Value == "menu-item" && FindSemantics(semantics.Tree?.Root, host.Value) != nil && host.MenuOpen,
+            "MenuItem OnClick did not rebuild parent Text while the menu stayed open")
+        Console.WriteLine("PASS: MenuItem pass-through OnClick rebuilds parent Text without Rebuild")
+        SendKey(id, SDLScancode.Escape)
+        PumpFrames(window, 5)
+        Require(!host.MenuOpen, "Callback menu did not close on Escape")
         FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Callback button")!!.Bounds)
         PumpFrames(window, 5)
         Require(host.Value == "button" && FindSemantics(semantics.Tree?.Root, "button") != nil, "Button OnClick did not rebuild parent Text")

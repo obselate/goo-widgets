@@ -65,7 +65,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         }
         backdrop.Key = "backdrop"
         backdrop.Focusable = false
-        backdrop.OnClick = resolved.CanDismissBackdrop ? () -> InvokeInputCallback(resolved.OnOpenChange, false): nil
+        backdrop.OnClick = resolved.CanDismissBackdrop ? () -> resolved.OnOpenChange?.Invoke(false): nil
         panel.Key = "dialog"
         panel.Focusable = false
         panel.TabStop = false

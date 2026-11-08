@@ -54,9 +54,7 @@ internal class VirtualItemsSource[T] : VirtualSource {
     internal let Items IReadOnlyList[T]
     internal let Width float32
     internal let Height float32
-    /// Hosts must not change state in this callback.
     internal let Key((T) -> string)
-    /// Hosts must not change state in this callback.
     internal let Build((T) -> Blob)
 
     internal init(items IReadOnlyList[T], width float32, height float32, key((T) -> string), build((T) -> Blob)) {

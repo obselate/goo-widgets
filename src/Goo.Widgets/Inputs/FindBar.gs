@@ -189,8 +189,8 @@ internal class FindBarState : Cell[FindBar] {
         || previous.CreateEntry != input.CreateEntry {
             QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{
                 Value: input with{
-                    OnQueryChange = value -> InvokeInputCallback(current.OnQueryChange, value),
-                    OnOptionsChange = value -> InvokeInputCallback(current.OnOptionsChange, value),
+                    OnQueryChange = input.OnQueryChange == nil ? nil: value -> InvokeInputCallback(current.OnQueryChange, value),
+                    OnOptionsChange = input.OnOptionsChange == nil ? nil: value -> InvokeInputCallback(current.OnOptionsChange, value),
                 },
                 Bindings: Bindings,
             })
@@ -203,13 +203,13 @@ internal class FindBarState : Cell[FindBar] {
             previous.Disabled != input.Disabled ||
             previous.OnClose != input.OnClose ||
             size != nextSize {
-            CloseButton = input.Icon("Close", ControlIcon.Close, nextSize, input.Disabled, Close)
+            CloseButton = input.Icon("Close", ControlIcon.Close, nextSize, input.Disabled, input.OnClose == nil ? nil: Close)
         }
         size = nextSize
         return (input with{
-            OnReplacementChange = value -> InvokeInputCallback(current.OnReplacementChange, value),
-            OnReplace = () -> InvokeInputCallback(current.OnReplace),
-            OnReplaceAll = () -> InvokeInputCallback(current.OnReplaceAll),
+            OnReplacementChange = input.OnReplacementChange == nil ? nil: value -> InvokeInputCallback(current.OnReplacementChange, value),
+            OnReplace = input.OnReplace == nil ? nil: () -> InvokeInputCallback(current.OnReplace),
+            OnReplaceAll = input.OnReplaceAll == nil ? nil: () -> InvokeInputCallback(current.OnReplaceAll),
         }).BuildContent(this)
     }
 }
@@ -247,7 +247,7 @@ internal class FindBarField : Cell[FindBarFieldInput] {
             Disabled: input.Disabled,
             Invalid: input.Error != nil,
             Error: input.Error,
-            OnChange: value -> InvokeInputCallback(input.OnQueryChange, value),
+            OnChange: input.OnQueryChange == nil ? nil: value -> InvokeInputCallback(input.OnQueryChange, value),
             CreateEntry: input.CreateEntry == nil ? nil: createEntry,
             EntryKeyBindings: field.Bindings,
             Trailing: Container{

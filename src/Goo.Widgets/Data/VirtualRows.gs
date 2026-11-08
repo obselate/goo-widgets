@@ -107,15 +107,10 @@ internal data struct VirtualRowContext {
 internal class VirtualRowsSource[T] : VirtualSource {
     internal let Items IReadOnlyList[T]
     internal let Estimate float32
-    /// Hosts must not change state in this callback.
     internal let Key((T) -> string)
-    /// Hosts must not change state in this callback.
     internal let Build((T) -> Blob)
-    /// Hosts must not change state in this callback.
     internal let Height Func[T, float64]?
-    /// Hosts must not change state in this callback.
     internal var Get Func[int32, T]?
-    /// Hosts must not change state in this callback.
     internal var Index Func[string, int32]?
     internal var Count int32
     internal var Version int64
@@ -129,7 +124,6 @@ internal class VirtualRowsSource[T] : VirtualSource {
     }
     internal var Current VirtualRowsStorage[T]?
     internal var Equality IEqualityComparer[T] = EqualityComparer[T].Default
-    /// Hosts must not change state in this callback.
     internal var Context Func[T, VirtualRowContext]?
     internal var RetainedKey string?
 

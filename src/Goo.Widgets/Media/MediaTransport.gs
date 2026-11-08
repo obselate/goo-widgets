@@ -109,7 +109,21 @@ public data struct MediaTransportInput {
 
 /// A compact media transport composed from action buttons and mounted sliders.
 public open class MediaTransport : Cell[MediaTransportInput] {
+    private var current MediaTransportInput
+    private let changePosition Action[float64]
+    private let commitPosition Action[float64]
+    private let changeVolume Action[float64]
+    private let commitVolume Action[float64]
+
+    public init() {
+        changePosition = value -> InvokeInputCallback(current.OnPositionChange, value)
+        commitPosition = value -> InvokeInputCallback(current.OnPositionCommit, value)
+        changeVolume = value -> InvokeInputCallback(current.OnVolumeChange, value)
+        commitVolume = value -> InvokeInputCallback(current.OnVolumeCommit, value)
+    }
+
     protected override func Build(input MediaTransportInput) Blob {
+        current = input
         let theme = Theme.Read()
         let createRoot = input.CreateRoot
         let resolved = Resolve(input, theme)
@@ -157,8 +171,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                             Disabled: !resolved.CanSeek!!,
                             AccessibilityName: theme.Text("Media position"),
                             FormatValue: (value float64) -> FormatTime(value),
-                            OnChange: value -> InvokeInputCallback(resolved.OnPositionChange, value),
-                            OnCommit: value -> InvokeInputCallback(resolved.OnPositionCommit, value),
+                            OnChange: resolved.OnPositionChange == nil ? nil: changePosition,
+                            OnCommit: resolved.OnPositionCommit == nil ? nil: commitPosition,
                             TrackColor: resolved.TrackColor,
                             FillColor: resolved.FillColor,
                             ThumbColor: resolved.FillColor,
@@ -207,8 +221,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                                 Disabled: !resolved.CanSetVolume!!,
                                 AccessibilityName: theme.Text("Volume"),
                                 FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
-                                OnChange: value -> InvokeInputCallback(resolved.OnVolumeChange, value),
-                                OnCommit: value -> InvokeInputCallback(resolved.OnVolumeCommit, value),
+                                OnChange: resolved.OnVolumeChange == nil ? nil: changeVolume,
+                                OnCommit: resolved.OnVolumeCommit == nil ? nil: commitVolume,
                                 TrackColor: resolved.TrackColor,
                                 FillColor: resolved.FillColor,
                                 ThumbColor: resolved.FillColor,

@@ -26,13 +26,12 @@ public data struct MenuItem {
     var OnClick Action?
 }
 
-internal func forwardMenuCallbacks(source[]?MenuItem, invoke Action[Action?], depth int32 = 0) []?MenuItem {
+internal func forwardMenuCallbacks(source[]?MenuItem, invoke Action[Action?]) []?MenuItem {
     guard let source = source else { return nil }
-    if depth > 64 { throw ArgumentException("Menus support at most 64 submenu levels") }
     var result[]?MenuItem
     for index in 0 ... source.Length {
         let item = source[index]
-        let children = forwardMenuCallbacks(item.Children, invoke, depth + 1)
+        let children = forwardMenuCallbacks(item.Children, invoke)
         if item.OnClick != nil || !Object.ReferenceEquals(children, item.Children) {
             if result == nil {
                 result = [source.Length]MenuItem

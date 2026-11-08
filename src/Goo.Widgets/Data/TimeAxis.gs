@@ -101,8 +101,7 @@ public data struct TimeAxisInput {
     var InitialEventId string?
     /// Initial placement. Defaults to Center. Later scroll offsets remain under user/host control.
     var InitialAlignment TimeAxisAlignment
-    /// Reports layout-time scroll and viewport changes on the UI thread.
-    /// Hosts must not change state in this callback.
+    /// Reports subsequent scroll/viewport changes on the UI thread, including handle scrolling. Hosts displaying the result should Rebuild.
     var OnViewportChange Action[TimeAxisViewport]?
     /// Root width. Nil resolves to 100%.
     var Width Length?

@@ -118,7 +118,6 @@ public data struct MarkdownViewInput {
     var CreateRoot Func[MarkdownViewInput, Container, Container]?
     /// Runs when the heading list or this callback changes. Only mounted headings have mounted handles.
     /// Use State.ScrollToHeading to reach an off-screen heading in a bounded view.
-    /// Hosts must not change state in this callback.
     var OnHeadings Action[IReadOnlyList[MarkdownHeading]]?
 }
 
