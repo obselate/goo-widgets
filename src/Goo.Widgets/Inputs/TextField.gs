@@ -107,9 +107,11 @@ public data struct TextField {
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
     /// Creates the entry from resolved props.
+    /// Hosts must not change state in this callback.
     var CreateEntry Func[TextField, TextEntry]?
     internal var EntryKeyBindings([]KeyBinding)?
     /// Creates the root from resolved props and selected primitives.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
     public func Build() Blob {
@@ -465,13 +467,13 @@ internal class TextFieldState : Cell[TextField] {
 
     private func Changed(text string) {
         value = text
-        current.OnChange?.Invoke(text)
+        InvokeInputCallback(current.OnChange, text)
         Rebuild()
     }
 
     private func Submitted(text string) {
-        current.OnSubmit?.Invoke(text)
-        current.OnCommit?.Invoke(text)
+        InvokeInputCallback(current.OnSubmit, text)
+        InvokeInputCallback(current.OnCommit, text)
     }
 
     internal func Focused(event FocusEvent) {
@@ -481,7 +483,7 @@ internal class TextFieldState : Cell[TextField] {
 
     internal func Blurred(event FocusEvent) {
         HasFocus = false
-        current.OnCommit?.Invoke(value)
+        InvokeInputCallback(current.OnCommit, value)
         if !current.Controlled {
             value = current.Value ?? ""
         }

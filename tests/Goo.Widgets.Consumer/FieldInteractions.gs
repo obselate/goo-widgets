@@ -5,6 +5,8 @@ import Goo.Widgets
 import Goo.Widgets.Gallery
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
+import Goo.Widgets.Actions
+import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
 import System
 import System.Globalization
@@ -100,6 +102,7 @@ internal class FieldHost : Cell {
 
 internal class FieldCallbackHost : Cell {
     internal var Value string = "initial"
+    internal var MenuOpen bool
 
     public override func Build() Blob -> Container{
         Width: Percent(100),
@@ -130,6 +133,13 @@ internal class FieldCallbackHost : Cell {
                 },
             },
         }.Build(),
+        Cell.Mount[MenuButtonInput, MenuButton]("callback-menu", MenuButtonInput{
+            Button: ActionButton{Content: "Callback menu"},
+            Items: []MenuItem{MenuItem{Id: "callback-item", Label: "Callback menu item"}},
+            Open: MenuOpen,
+            OnOpenChange: value -> MenuOpen = value,
+            OnClick: id -> Value = "menu:" + id,
+        }),
         Button{
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Callback button"},
             OnClick: () -> Value = "button",
@@ -141,7 +151,7 @@ internal class FieldCallbackHost : Cell {
 func FieldCallbackOwnership() {
     let host = FieldCallbackHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 500, Height: 400, AccessibilityAdapter: semantics}.Open()
+    let window = Window{Root: ApplicationRoot(host), Width: 500, Height: 500, AccessibilityAdapter: semantics}.Open()
     try {
         PumpFrames(window, 10)
         let id = OnlyNativeWindow()
@@ -177,11 +187,19 @@ func FieldCallbackOwnership() {
         Require(host.Value == "slot", "Slot Button OnClick did not change parent state")
         let slotChanged = FindSemantics(semantics.Tree?.Root, "slot") != nil
         Console.WriteLine((slotChanged ? "PASS: " : "FAIL: ") + "Button OnClick in TouchTextEditing Content rebuilds parent Text without Rebuild")
+        FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Callback menu")!!.Bounds)
+        PumpFrames(window, 5)
+        Require(host.MenuOpen, "MenuButton OnOpenChange did not change parent state")
+        FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Callback menu item")!!.Bounds)
+        PumpFrames(window, 5)
+        Require(host.Value == "menu:callback-item", "MenuButton OnClick did not change parent state")
+        let menuChanged = FindSemantics(semantics.Tree?.Root, host.Value) != nil
+        Console.WriteLine((menuChanged ? "PASS: " : "FAIL: ") + "MenuButton pass-through OnClick rebuilds parent Text without Rebuild")
         FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Callback button")!!.Bounds)
         PumpFrames(window, 5)
         Require(host.Value == "button" && FindSemantics(semantics.Tree?.Root, "button") != nil, "Button OnClick did not rebuild parent Text")
         Console.WriteLine("PASS: Button OnClick rebuilds parent Text without Rebuild")
-        Require(changed && submitted && areaChanged && numberChanged && slotChanged, "Field callbacks did not rebuild their parent Cell")
+        Require(changed && submitted && areaChanged && numberChanged && slotChanged && menuChanged, "Field callbacks did not rebuild their parent Cell")
     } finally {
         CloseNativeWindow(window)
     }

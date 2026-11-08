@@ -50,6 +50,7 @@ public data struct FindBar {
     /// Root layout width. Nil fills the available width.
     var Width Length?
     /// Receives the owning find bar and field, and returns the replacement entry. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateEntry Func[FindBar, TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.
@@ -152,17 +153,17 @@ internal class FindBarState : Cell[FindBar] {
     public init() {
         Next = () -> {
             if Ready() {
-                current.OnNext?.Invoke()
+                InvokeInputCallback(current.OnNext)
             }
         }
         Previous = () -> {
             if Ready() {
-                current.OnPrevious?.Invoke()
+                InvokeInputCallback(current.OnPrevious)
             }
         }
         Close = () -> {
             if !current.Disabled {
-                current.OnClose?.Invoke()
+                InvokeInputCallback(current.OnClose)
             }
         }
         Bindings = []KeyBinding{
@@ -186,7 +187,13 @@ internal class FindBarState : Cell[FindBar] {
         || previous.Error != input.Error || previous.Disabled != input.Disabled
         || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange
         || previous.CreateEntry != input.CreateEntry {
-            QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{Value: input, Bindings: Bindings})
+            QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{
+                Value: input with{
+                    OnQueryChange = value -> InvokeInputCallback(current.OnQueryChange, value),
+                    OnOptionsChange = value -> InvokeInputCallback(current.OnOptionsChange, value),
+                },
+                Bindings: Bindings,
+            })
         }
         if NextButton == nil || previousReady != Ready() || size != nextSize {
             PreviousButton = input.Icon("Previous", ControlIcon.ArrowUpward, nextSize, !Ready(), Previous)
@@ -196,10 +203,14 @@ internal class FindBarState : Cell[FindBar] {
             previous.Disabled != input.Disabled ||
             previous.OnClose != input.OnClose ||
             size != nextSize {
-            CloseButton = input.Icon("Close", ControlIcon.Close, nextSize, input.Disabled, input.OnClose)
+            CloseButton = input.Icon("Close", ControlIcon.Close, nextSize, input.Disabled, Close)
         }
         size = nextSize
-        return input.BuildContent(this)
+        return (input with{
+            OnReplacementChange = value -> InvokeInputCallback(current.OnReplacementChange, value),
+            OnReplace = () -> InvokeInputCallback(current.OnReplace),
+            OnReplaceAll = () -> InvokeInputCallback(current.OnReplaceAll),
+        }).BuildContent(this)
     }
 }
 
@@ -217,9 +228,9 @@ internal class FindBarField : Cell[FindBarFieldInput] {
 
     public init() {
         createEntry = props -> current.CreateEntry!!(current, props)
-        matchCase = () -> current.OnOptionsChange?.Invoke(current.Options with{MatchCase = !current.Options.MatchCase})
-        wholeWord = () -> current.OnOptionsChange?.Invoke(current.Options with{WholeWord = !current.Options.WholeWord})
-        regex = () -> current.OnOptionsChange?.Invoke(current.Options with{Regex = !current.Options.Regex})
+        matchCase = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{MatchCase = !current.Options.MatchCase})
+        wholeWord = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{WholeWord = !current.Options.WholeWord})
+        regex = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{Regex = !current.Options.Regex})
     }
 
     protected override func Build(field FindBarFieldInput) Blob {
@@ -236,7 +247,7 @@ internal class FindBarField : Cell[FindBarFieldInput] {
             Disabled: input.Disabled,
             Invalid: input.Error != nil,
             Error: input.Error,
-            OnChange: input.OnQueryChange,
+            OnChange: value -> InvokeInputCallback(input.OnQueryChange, value),
             CreateEntry: input.CreateEntry == nil ? nil: createEntry,
             EntryKeyBindings: field.Bindings,
             Trailing: Container{
@@ -298,7 +309,7 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
                 Checked: on == nil ? AccessibilityChecked.Unspecified:
                 on == true ? AccessibilityChecked.True: AccessibilityChecked.False,
             },
-            OnClick: action,
+            OnClick: action == nil ? nil: () -> InvokeInputCallback(action),
             ControlIcons.Create(icon, 16, disabled ? theme.DisabledTextColor: on == true ? theme.OnAccentColor: theme.MutedTextColor),
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, on == true)

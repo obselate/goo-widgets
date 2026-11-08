@@ -158,7 +158,7 @@ public open partial class DataGrid {
         let value = DataGridEdit{RowId: rowId, ColumnId: column.Id!!, SourceIndex: index, OriginalValue: original, Draft: original + appended}
         editTransition = true
         var allowed bool
-        try { allowed = input.OnEditBegin?.Invoke(value) ?? true }
+        try { allowed = InvokeInputCallback(input.OnEditBegin, value, true) }
         finally { editTransition = false }
         if !allowed { return false }
         editRevision++
@@ -194,8 +194,8 @@ public open partial class DataGrid {
         activeId = rowId
         SetActiveColumn(columnIndex, false)
         if activeChanged {
-            input.OnActiveRowIndexChange?.Invoke(index)
-            input.OnActiveRowChange?.Invoke(rowId)
+            InvokeInputCallback(input.OnActiveRowIndexChange, index)
+            InvokeInputCallback(input.OnActiveRowChange, rowId)
         }
         Reveal()
         Rebuild()
@@ -207,9 +207,17 @@ public open partial class DataGrid {
         if editTransition { return }
         editTransition = true
         try {
-            input.OnEditCancel?.Invoke(session.Value, reason)
+            if rebuild {
+                InvokeInputCallback(input.OnEditCancel, session.Value, reason)
+            } else {
+                input.OnEditCancel?.Invoke(session.Value, reason)
+            }
             CloseEdit(session, rebuild)
-            input.OnEditEnd?.Invoke(session.Value, DataGridEditOutcome.Cancel)
+            if rebuild {
+                InvokeInputCallback(input.OnEditEnd, session.Value, DataGridEditOutcome.Cancel)
+            } else {
+                input.OnEditEnd?.Invoke(session.Value, DataGridEditOutcome.Cancel)
+            }
         } finally { editTransition = false }
         if restore { ReturnEditFocus(session, false, true) }
     }
@@ -221,7 +229,7 @@ public open partial class DataGrid {
         if editSession != session { return false }
         editTransition = true
         try {
-            let result = input.OnEditCommit?.Invoke(session.Value) ?? DataGridEditResult{}
+            let result = InvokeInputCallback(input.OnEditCommit, session.Value, DataGridEditResult{})
             if let error = result.ErrorMessage {
                 if error.Length == 0 { throw ArgumentException("Edit ErrorMessage must be nil or nonempty") }
                 session.Error = error
@@ -233,9 +241,9 @@ public open partial class DataGrid {
                 })
                 return false
             }
-            input.SetCellValue!!(session.Value)
+            InvokeInputCallback(input.SetCellValue, session.Value)
             CloseEdit(session)
-            input.OnEditEnd?.Invoke(session.Value, DataGridEditOutcome.Commit)
+            InvokeInputCallback(input.OnEditEnd, session.Value, DataGridEditOutcome.Commit)
         } finally { editTransition = false }
         if traversal != 0 && MoveEdit(session.Value, traversal) { return true }
         if restore || traversal != 0 { ReturnEditFocus(session, traversal != 0, traversal >= 0) }

@@ -72,8 +72,10 @@ public data struct ListViewInput {
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Receives the input, row item, and prepared row, and returns its replacement. Identity, row height, input routing, disabled state, and semantics are reapplied. Nil keeps the default row.
+    /// Hosts must not change state in this callback.
     var CreateRow Func[ListViewInput, ListViewItem, Container, Container]?
     /// Receives the input and prepared root, and returns its replacement. Identity, focus, handlers, children, and list semantics are reapplied. Nil keeps the default root.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ListViewInput, Container, Container]?
 }
 
@@ -271,7 +273,7 @@ public open class ListView : Cell[ListViewInput] {
             return
         }
         activeId = id
-        input.OnActiveChange?.Invoke(id)
+        InvokeInputCallback(input.OnActiveChange, id)
         rootHandle.Focus()
         rootHandle.SetFocusTarget(Handle(id))
         viewport.ScrollToItem(id)
@@ -305,7 +307,9 @@ public open class ListView : Cell[ListViewInput] {
                 ordered.Add(entry.Id)
             }
         }
-        input.OnSelectionChange?.Invoke(ordered.ToArray())
+        if let callback = input.OnSelectionChange {
+            InvokeInputCallback(callback, ordered.ToArray())
+        }
     }
 
     private func BuildRow(snapshot ListViewInput, entry ListViewEntry) Blob {
@@ -356,7 +360,7 @@ public open class ListView : Cell[ListViewInput] {
             if !fromChild {
                 Select(id, modifiers.Ctrl || modifiers.Super, modifiers.Shift)
                 if presses == 2 {
-                    input.OnClick?.Invoke(id)
+                    InvokeInputCallback(input.OnClick, id)
                 }
             }
         }
@@ -380,7 +384,7 @@ public open class ListView : Cell[ListViewInput] {
                 } else if request.Action == AccessibilityAction.Select {
                     Select(id, false, false)
                 } else if request.Action == AccessibilityAction.Activate {
-                    input.OnClick?.Invoke(id)
+                    InvokeInputCallback(input.OnClick, id)
                 } else {
                     return false
                 }
@@ -402,7 +406,9 @@ public open class ListView : Cell[ListViewInput] {
                     ids.Add(entry.Id)
                 }
             }
-            input.OnSelectionChange?.Invoke(ids.ToArray())
+            if let callback = input.OnSelectionChange {
+                InvokeInputCallback(callback, ids.ToArray())
+            }
         } else if e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End {
             let next = Next(Index(activeId), e.Key)
             if next >= 0 {
@@ -415,7 +421,7 @@ public open class ListView : Cell[ListViewInput] {
         } else if e.Key == Key.Space {
             Select(activeId!!, primary, e.Modifiers.Shift)
         } else if e.Key == Key.Enter {
-            input.OnClick?.Invoke(activeId!!)
+            InvokeInputCallback(input.OnClick, activeId!!)
         } else {
             typeAhead.ActiveId = activeId
             typeAhead.HandleKey(e)

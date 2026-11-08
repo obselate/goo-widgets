@@ -76,10 +76,13 @@ public data struct ListRow {
     /// Transform applied to the row root. Nil resolves to the identity transform.
     var Transform PanelTransform?
     /// Custom factory for the title Text. Receives resolved props.
+    /// Hosts must not change state in this callback.
     var CreateTitle Func[ListRow, Text]?
     /// Custom factory for the caption Text. Receives resolved props.
+    /// Hosts must not change state in this callback.
     var CreateCaption Func[ListRow, Text]?
     /// Custom factory for the root Container. Receives resolved props, slots, and content stack.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ListRow, Blob?, Container, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.
@@ -290,7 +293,12 @@ internal class InteractiveListRow : Cell[ListRow] {
 
     protected override func Build(value ListRow) Blob {
         let visible = value.Selected || hovered || focused || touch
-        let root = (value with{ShowActionsOnHover = false, Actions = visible ? value.Actions: nil}).Render()
+        let root = (value with{
+            ShowActionsOnHover = false,
+            Actions = visible ? value.Actions: nil,
+            OnClick = value.OnClick == nil ? nil: () -> InvokeInputCallback(value.OnClick),
+            OnInvoke = value.OnInvoke == nil ? nil: () -> InvokeInputCallback(value.OnInvoke),
+        }).Render()
         root.Focusable = !value.Disabled
         root.OnPointerEnter = (e PointerEvent) -> {
             hovered = true

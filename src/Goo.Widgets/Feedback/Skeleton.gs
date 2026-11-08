@@ -41,6 +41,7 @@ public data struct SkeletonInput {
     /// Nil hides decorative placeholders from accessibility. A name exposes one busy status node.
     var AccessibilityName string?
     /// Receives resolved input and the prepared root. Preserve its children and geometry.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[SkeletonInput, Container, Container]?
 }
 

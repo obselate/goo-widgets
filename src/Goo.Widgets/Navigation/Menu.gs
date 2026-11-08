@@ -26,6 +26,27 @@ public data struct MenuItem {
     var OnClick Action?
 }
 
+internal func forwardMenuCallbacks(source[]?MenuItem, invoke Action[Action?], depth int32 = 0) []?MenuItem {
+    guard let source = source else { return nil }
+    if depth > 64 { throw ArgumentException("Menus support at most 64 submenu levels") }
+    var result[]?MenuItem
+    for index in 0 ... source.Length {
+        let item = source[index]
+        let children = forwardMenuCallbacks(item.Children, invoke, depth + 1)
+        if item.OnClick != nil || !Object.ReferenceEquals(children, item.Children) {
+            if result == nil {
+                result = [source.Length]MenuItem
+                Array.Copy(source, result!!, source.Length)
+            }
+            result!![index] = item with{
+                OnClick = item.OnClick == nil ? nil: () -> invoke(item.OnClick),
+                Children = children,
+            }
+        }
+    }
+    return result ?? source
+}
+
 /// Use Anchor for a trigger menu or WindowPoint for a context menu; Open remains host-owned.
 public data struct MenuInput {
     /// Controlled visibility. False hides the popup.
@@ -61,12 +82,16 @@ public data struct MenuInput {
     /// Optional base style for the submenu direction indicator.
     var SubmenuArrowStyle Style?
     /// Receives the widget input, the MenuItem value, and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[MenuInput, MenuItem, Button, Button]?
     /// Receives the widget input and the MenuItem value, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateSeparator Func[MenuInput, MenuItem, Blob]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreatePanel Func[MenuInput, Container, Container]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[MenuInput, Container, Container]?
 }
 
@@ -406,18 +431,18 @@ public open class Menu : Cell[MenuInput] {
             return
         }
         if let callback = item.OnClick {
-            callback()
+            InvokeInputCallback(callback)
         } else {
-            current.OnClick?.Invoke(id)
+            InvokeInputCallback(current.OnClick, id)
         }
         if current.DismissOnActivate ?? true {
-            current.OnOpenChange?.Invoke(false)
+            InvokeInputCallback(current.OnOpenChange, false)
         }
     }
 
     private func CloseLevel(depth int32) {
         if depth == 0 {
-            current.OnOpenChange?.Invoke(false)
+            InvokeInputCallback(current.OnOpenChange, false)
             return
         }
         let parentId = path.Count >= depth ? path[depth - 1]: ""

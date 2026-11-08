@@ -54,7 +54,7 @@ public open partial class GraphCanvas {
             previousScale = event.Scale
             if next != viewport {
                 viewport = next
-                resolved.OnViewportChange?.Invoke(viewport)
+                InvokeInputCallback(resolved.OnViewportChange, viewport)
             }
         }
         if event.Phase == GesturePhase.Completed || event.Phase == GesturePhase.Canceled {
@@ -72,14 +72,14 @@ public open partial class GraphCanvas {
             draggedNodePosition = Point{X: node.Position.X + event.Translation.X / viewport.Zoom,
                 Y: node.Position.Y + event.Translation.Y / viewport.Zoom}
             previousNodePoint = event.WindowPosition
-            resolved.OnNodePositionChange?.Invoke(GraphNodePositionChange{NodeId: id, Position: draggedNodePosition})
+            InvokeInputCallback(resolved.OnNodePositionChange, GraphNodePositionChange{NodeId: id, Position: draggedNodePosition})
         } else if event.Phase != GesturePhase.Canceled && draggedNodeId == id {
             draggedNodePosition = Point{
                 X: draggedNodePosition.X + (event.WindowPosition.X - previousNodePoint.X) / viewport.Zoom,
                 Y: draggedNodePosition.Y + (event.WindowPosition.Y - previousNodePoint.Y) / viewport.Zoom,
             }
             previousNodePoint = event.WindowPosition
-            resolved.OnNodePositionChange?.Invoke(GraphNodePositionChange{NodeId: id, Position: draggedNodePosition})
+            InvokeInputCallback(resolved.OnNodePositionChange, GraphNodePositionChange{NodeId: id, Position: draggedNodePosition})
         }
         if event.Phase == GesturePhase.Completed || event.Phase == GesturePhase.Canceled {
             pointerMode = GraphPointerMode.None

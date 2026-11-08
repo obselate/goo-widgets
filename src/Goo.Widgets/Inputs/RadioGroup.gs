@@ -36,8 +36,10 @@ public data struct RadioGroupInput {
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Receives the widget input, the radio option, and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[RadioGroupInput, RadioOption, Button, Button]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[RadioGroupInput, Container, Container]?
 }
 
@@ -127,7 +129,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
 
     private func Select(id string) {
         if Enabled(id) {
-            input.OnSelect?.Invoke(id)
+            InvokeInputCallback(input.OnSelect, id)
         }
     }
 

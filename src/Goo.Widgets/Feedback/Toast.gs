@@ -38,6 +38,7 @@ public data struct ToastInput {
     /// Requests false after timeout or user action, before the exit animation and OnDismiss. Programmatic closing does not emit it.
     var OnOpenChange Action[bool]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ToastInput, Container, Container]?
 }
 
@@ -85,7 +86,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         }
         action = () -> {
             if !closing {
-                current.Item.OnAction?.Invoke()
+                InvokeInputCallback(current.Item.OnAction)
                 Dismiss()
             }
         }
@@ -192,7 +193,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         Pause()
         closing = true
         if !departing {
-            current.OnOpenChange?.Invoke(false)
+            InvokeInputCallback(current.OnOpenChange, false)
         }
         if reduced || duration <= 0.0 {
             Finish()
@@ -207,7 +208,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
             return
         }
         closed = true
-        current.OnDismiss?.Invoke(current.Item.Id)
+        InvokeInputCallback(current.OnDismiss, current.Item.Id)
         Rebuild()
     }
 }
@@ -239,6 +240,7 @@ public data struct ToastHostInput {
     /// Stack width, limited by the viewport. Nil uses 360.
     var Width Length?
     /// Receives the host input, toast input, and prepared container, and returns its replacement. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateToast Func[ToastHostInput, ToastInput, Container, Container]?
 }
 
@@ -302,7 +304,7 @@ public open class ToastHost : Cell[ToastHostInput] {
                     item.Id,
                     ToastInput{
                         Window: input.Window,
-                        Item: item,
+                        Item: item with{OnAction = item.OnAction == nil ? nil: () -> InvokeInputCallback(item.OnAction)},
                         Open: incoming.Contains(item.Id),
                         OnDismiss: finished,
                         CreateRoot: input.CreateToast == nil ? nil: createToast,
@@ -321,7 +323,7 @@ public open class ToastHost : Cell[ToastHostInput] {
             }
         }
         dismissed.Add(id)
-        current.OnDismiss?.Invoke(id)
+        InvokeInputCallback(current.OnDismiss, id)
         Rebuild()
     }
 }

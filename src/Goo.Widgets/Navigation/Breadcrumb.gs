@@ -26,10 +26,12 @@ public data struct BreadcrumbInput {
     /// Trailing segments retained during overflow. Zero uses 1.
     var KeepEnd int32
     /// Returns sibling destinations for a segment ID. Nil supplies no sibling menu.
+    /// Hosts must not change state in this callback.
     var SiblingItems Func[string, []BreadcrumbItem]?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Receives the widget input, the path segment, and the prepared content, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[BreadcrumbInput, BreadcrumbItem, Blob, Blob]?
 }
 
@@ -202,7 +204,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     FlexShrink: 0,
                     BackgroundColor: Color.Transparent,
                     TabStop: focus.TabStop(id),
-                    OnClick: () -> input.OnSelect?.Invoke(id),
+                    OnClick: () -> InvokeInputCallback(input.OnSelect, id),
                     OnFocus: (e FocusEvent) -> {
                         if active != id {
                             active = id
@@ -253,7 +255,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Anchor: menuAnchor,
                     Items: menuItems,
                     AccessibilityName: theme.Text("Path locations"),
-                    OnClick: (id string) -> input.OnSelect?.Invoke(id),
+                    OnClick: (id string) -> InvokeInputCallback(input.OnSelect, id),
                     OnOpenChange: (isOpen bool) -> {
                         menuOpen = isOpen
                         Rebuild()

@@ -72,16 +72,16 @@ public open partial class DataGrid {
             }
             lastWidth = requested
             lastFittedWidths = resolved
-            input.OnFittedColumnWidthsChange!!(resolved)
+            InvokeInputCallback(input.OnFittedColumnWidthsChange, resolved)
             if commit {
-                input.OnFittedColumnWidthsCommit?.Invoke(resolved)
+                InvokeInputCallback(input.OnFittedColumnWidthsCommit, resolved)
             }
             return
         }
         lastWidth = Clamp(index, width)
-        input.OnColumnWidthChange!!(id, lastWidth)
+        InvokeInputCallback(input.OnColumnWidthChange, id, lastWidth)
         if commit {
-            input.OnColumnWidthCommit?.Invoke(id, lastWidth)
+            InvokeInputCallback(input.OnColumnWidthCommit, id, lastWidth)
         }
     }
 
@@ -124,10 +124,10 @@ public open partial class DataGrid {
         if resizeId != nil {
             if input.FitColumnsToViewport {
                 if let resolved = lastFittedWidths {
-                    input.OnFittedColumnWidthsCommit?.Invoke(resolved)
+                    InvokeInputCallback(input.OnFittedColumnWidthsCommit, resolved)
                 }
             } else {
-                input.OnColumnWidthCommit?.Invoke(resizeId!!, lastWidth)
+                InvokeInputCallback(input.OnColumnWidthCommit, resizeId!!, lastWidth)
             }
         }
         resizeId = nil

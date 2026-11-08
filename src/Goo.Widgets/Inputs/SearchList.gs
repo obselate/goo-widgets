@@ -47,10 +47,13 @@ public data struct SearchList {
     /// Vertical visibility. Nil uses Auto.
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Final entry customization. Preserve Value and OnChange for controlled editing.
+    /// Hosts must not change state in this callback.
     var CreateEntry Func[SearchList, TextEntry, TextEntry]?
     /// Final row customization. Preserve the supplied action and disabled state.
+    /// Hosts must not change state in this callback.
     var CreateRow Func[SearchList, SelectionItem, Button, Blob]?
     /// Final root customization. Preserve the virtual viewport dimensions when resizing.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[SearchList, Container, Blob]?
     internal var ItemAt Func[int32, SelectionItem]?
     internal var ItemCount int32
@@ -249,7 +252,10 @@ internal class SearchListState : Cell[SearchList] {
             positions = lookup
             prepared = true
         }
-        return input.BuildContent(indices, positions)
+        return (input with{
+            OnQueryChange = value -> InvokeInputCallback(input.OnQueryChange, value),
+            OnSelect = id -> InvokeInputCallback(input.OnSelect, id),
+        }).BuildContent(indices, positions)
     }
 }
 

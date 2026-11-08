@@ -78,8 +78,10 @@ public data struct NavigationRailInput {
     /// Rail transform. Nil resolves to identity.
     var Transform PanelTransform?
     /// Creates an item button; required identity, focus, handlers, and semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[NavigationRailInput, NavigationItem, Button]?
     /// Creates the rail root from resolved values and item buttons.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[NavigationRailInput, []Button, Container]?
 
     internal func Resolve(theme Theme) NavigationRailInput -> this with{
@@ -334,7 +336,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Padding: theme.ControlPadding,
                 Color: theme.ChromeTextColor,
                 Focusable: input.OnGroupExpandedChange != nil,
-                OnClick: () -> input.OnGroupExpandedChange?.Invoke(group.Id, collapsed),
+                OnClick: () -> InvokeInputCallback(input.OnGroupExpandedChange, group.Id, collapsed),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: group.Label, Expanded: !collapsed},
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
@@ -370,7 +372,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
 
     private func Select(id string) {
         if Enabled(id) {
-            input.OnSelect?.Invoke(id)
+            InvokeInputCallback(input.OnSelect, id)
         }
     }
 

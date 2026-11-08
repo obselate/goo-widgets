@@ -176,7 +176,7 @@ public open class TimePicker : Cell[TimePickerInput] {
     private func Apply(value TimeOnly?) {
         if !current.Disabled && !current.ReadOnly && value != current.Value {
             requested = true
-            current.OnChange?.Invoke(value)
+            InvokeInputCallback(current.OnChange, value)
         }
     }
 }

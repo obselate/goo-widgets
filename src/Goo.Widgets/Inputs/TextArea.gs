@@ -75,8 +75,10 @@ public data struct TextAreaInput {
     /// Base root style.
     var RootStyle Style?
     /// Customizes the prepared editor. It must retain the supplied controller; field behavior is reapplied.
+    /// Hosts must not change state in this callback.
     var CreateEditor Func[TextAreaInput, TextEditor, TextEditor]?
     /// Customizes root appearance; label, editor, and error children are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[TextAreaInput, Container, Container]?
 }
 
@@ -305,7 +307,9 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
 
     private func Changed(change TextDocumentChange) {
         if !syncing && !disposed {
-            input.OnChange?.Invoke(controller!!.Document.GetText())
+            if let callback = input.OnChange {
+                InvokeInputCallback(callback, controller!!.Document.GetText())
+            }
             Rebuild()
         }
     }
@@ -315,7 +319,9 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             return
         }
         if input.SubmitOnEnter {
-            input.OnSubmit?.Invoke(controller!!.Document.GetText())
+            if let callback = input.OnSubmit {
+                InvokeInputCallback(callback, controller!!.Document.GetText())
+            }
         } else {
             controller!!.Execute(TextCommand{Kind: TextCommandKind.Insert, Text: "\n"})
         }
@@ -328,7 +334,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         if controller!!.Composition != nil {
             controller!!.Execute(TextCommand{Kind: TextCommandKind.CancelComposition})
         } else {
-            input.OnCancel?.Invoke()
+            InvokeInputCallback(input.OnCancel)
         }
     }
 

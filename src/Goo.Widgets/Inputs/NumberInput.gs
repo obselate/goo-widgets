@@ -18,8 +18,10 @@ public data struct NumberInputInput {
     /// Finite positive Page Up and Page Down increment. Nil uses ten times Step.
     var PageStep float64?
     /// Formats the numeric value for display. Nil uses the theme locale.
+    /// Hosts must not change state in this callback.
     var Format Func[float64, string]?
     /// Parses draft text to a number. A nil result rejects the draft. Nil uses theme-locale parsing.
+    /// Hosts must not change state in this callback.
     var Parse Func[string, float64?]?
     /// Content before the numeric entry. Nil leaves this slot empty.
     var Prefix Blob?
@@ -54,8 +56,10 @@ public data struct NumberInputInput {
     /// Receives the final clamped number after a user commit. Nil ignores the notification.
     var OnCommit Action[float64]?
     /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateEntry Func[NumberInputInput, TextEntry, TextEntry]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[NumberInputInput, Container, Container]?
 }
 
@@ -164,7 +168,7 @@ public open class NumberInput : Cell[NumberInputInput] {
                     ComboBoxInput{
                         Items: input.Units,
                         SelectedId: input.Unit,
-                        OnSelect: input.OnUnitChange,
+                        OnSelect: value -> InvokeInputCallback(input.OnUnitChange, value),
                         Disabled: input.Disabled || input.ReadOnly,
                         AccessibilityName: theme.Text("Unit"),
                         Width: 90,
@@ -280,7 +284,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             return
         }
         SetValue(parsed)
-        current.OnCommit?.Invoke(value)
+        InvokeInputCallback(current.OnCommit, value)
     }
 
     private func SetValue(number float64) {
@@ -291,7 +295,7 @@ public open class NumberInput : Cell[NumberInputInput] {
         invalid = false
         editing = false
         if changed {
-            current.OnChange?.Invoke(value)
+            InvokeInputCallback(current.OnChange, value)
         }
         Rebuild()
     }
@@ -372,7 +376,7 @@ public open class NumberInput : Cell[NumberInputInput] {
         scrubbing = false
         event.ReleaseCapture()
         if !current.Disabled && !current.ReadOnly {
-            current.OnCommit?.Invoke(value)
+            InvokeInputCallback(current.OnCommit, value)
         }
     }
 }

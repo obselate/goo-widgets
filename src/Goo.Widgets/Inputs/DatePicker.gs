@@ -24,6 +24,7 @@ public data struct DatePickerInput {
     /// Inclusive latest selectable civil date. Nil imposes no upper bound.
     var Maximum DateOnly?
     /// Tests whether a date is unavailable. Nil imposes no extra restriction.
+    /// Hosts must not change state in this callback.
     var IsDateDisabled Func[DateOnly, bool]?
     /// Culture for date labels and formatting. Nil uses the nearest theme locale. The calendar must be Gregorian.
     var Culture CultureInfo?
@@ -32,8 +33,10 @@ public data struct DatePickerInput {
     /// Current civil date for the calendar marker. Nil uses the local date.
     var Today DateOnly?
     /// Formats a civil date for display. Nil uses the selected culture short-date format.
+    /// Hosts must not change state in this callback.
     var Format Func[DateOnly, string]?
     /// Nil result means invalid nonempty input; empty input follows AllowEmpty.
+    /// Hosts must not change state in this callback.
     var Parse Func[string, DateOnly?]?
     /// Invalid submissions retain the draft and committed value, and call this hook.
     var OnInvalid Action[string]?
@@ -56,14 +59,19 @@ public data struct DatePickerInput {
     /// Popup stacking order. Zero uses layer 20.
     var ZIndex int32
     /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateInput Func[DatePickerInput, TextEntry, TextEntry]?
     /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateButton Func[DatePickerInput, Button, Button]?
     /// Receives the widget input and the CalendarInput value, and returns the replacement CalendarInput. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateCalendar Func[DatePickerInput, CalendarInput, CalendarInput]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreatePopup Func[DatePickerInput, Container, Container]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[DatePickerInput, Container, Container]?
 }
 
@@ -334,7 +342,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
 
     private func Reject() {
         invalid = true
-        current.OnInvalid?.Invoke(draft)
+        InvokeInputCallback(current.OnInvalid, draft)
         Rebuild()
     }
 
@@ -343,7 +351,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         dirty = false
         invalid = false
         if value != current.Value {
-            current.OnChange?.Invoke(value)
+            InvokeInputCallback(current.OnChange, value)
         }
         Rebuild()
     }
@@ -361,7 +369,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             return
         }
         ownedOpen = value
-        current.OnOpenChange?.Invoke(value)
+        InvokeInputCallback(current.OnOpenChange, value)
         Rebuild()
     }
 

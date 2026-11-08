@@ -71,6 +71,7 @@ public data struct DataGridColumn {
     /// Editor placement. Inline preserves the row height.
     var EditPresentation DataGridEditPresentation
     /// Receives this column, the edit context and the prepared editor. Preserve its handle, draft binding and lifecycle routing.
+    /// Hosts must not change state in this callback.
     var CreateEditor Func[DataGridColumn, DataGridEditContext, Blob, Blob]?
 }
 
@@ -105,10 +106,12 @@ public data struct DataGridInput {
     /// Host-owned rows in display order. Nil supplies no rows unless the indexed source is used. IDs must be unique.
     var Rows[]?DataGridRow
     /// Lazy indexed rows. Supply RowIndex and replace RowAt or increment RowVersion after data changes.
+    /// Hosts must not change state in this callback.
     var RowAt Func[int32, DataGridRow]?
     /// Nonnegative row count for RowAt. Used only when RowAt supplies the indexed source.
     var RowCount int32
     /// Returns the current index of a stable row ID, or -1 when absent.
+    /// Hosts must not change state in this callback.
     var RowIndex Func[string, int32]?
     /// Indexed-source revision. Change this after source edits so retained rows are refreshed.
     var RowVersion int64
@@ -183,6 +186,7 @@ public data struct DataGridInput {
     /// Selection column width. Nil uses the theme's control height.
     var SelectionColumnWidth float64?
     /// Optional row-header content. Its pointer gestures use the row selection policy.
+    /// Hosts must not change state in this callback.
     var CreateRowHeader Func[DataGridInput, DataGridRow, Blob]?
     /// Row-header width in logical pixels. Nil uses the theme control height.
     var RowHeaderWidth float64?
@@ -216,6 +220,7 @@ public data struct DataGridInput {
     /// Caps the measured cells area, excluding expanded details.
     var MaximumRowHeight float64?
     /// Supplies finite positive cell heights. Replace this delegate when heights change.
+    /// Hosts must not change state in this callback.
     var RowHeightProvider Func[DataGridRow, float64]?
     /// Positive column-header height in logical pixels. Nil uses the theme control height.
     var HeaderHeight float64?
@@ -252,46 +257,61 @@ public data struct DataGridInput {
     /// Base style for the resizehandle part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var ResizeHandleStyle Style?
     /// Receives the widget input, the column descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateResizeHandle Func[DataGridInput, DataGridColumn, Container, Container]?
     /// Base style for the header part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var HeaderStyle Style?
     /// Content shown when no rows exist. Nil uses the default empty-state content.
     var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
+    /// Hosts must not change state in this callback.
     var CreateCell Func[DataGridInput, DataGridRow, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the row descriptor, and the column descriptor, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateCellContent Func[DataGridInput, DataGridRow, DataGridColumn, Blob]?
     /// Replaces content inside the sortable header button.
+    /// Hosts must not change state in this callback.
     var CreateHeader Func[DataGridInput, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the column descriptor, and the prepared content, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateFilter Func[DataGridInput, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the row descriptor, and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateSelection Func[DataGridInput, DataGridRow, Button, Button]?
     /// Receives the widget input and the row descriptor, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateDetail Func[DataGridInput, DataGridRow, Blob]?
     /// Required slots, width, identity, and semantics are reapplied.
     /// A returned OnClick handler runs after the grid's selection handler.
+    /// Hosts must not change state in this callback.
     var CreateRow Func[DataGridInput, DataGridRow, Container, Container]?
     /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
     /// Set IsGroup on group headers to exclude them from selection.
+    /// Hosts must not change state in this callback.
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
     /// Receives the resolved input and prepared root, and returns the root container. Grid identity, focus, input routing, and accessibility are reapplied. Nil keeps the default root.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[DataGridInput, Container, Container]?
     /// Raw cell text getter. Nil reads Values by column ID, with empty text for missing values.
+    /// Hosts must not change state in this callback.
     var GetCellValue Func[DataGridRow, DataGridColumn, string]?
     /// Required editing setter, called after validation. Replace host rows/maps or increment RowVersion.
     var SetCellValue Action[DataGridEdit]?
     /// Overrides row and column editing defaults. Disabled, group and full-width cells always reject editing.
+    /// Hosts must not change state in this callback.
     var CanEdit Func[DataGridRow, DataGridColumn, bool]?
     /// Overrides a column's editor placement for one cell. Nil uses the column's EditPresentation.
+    /// Hosts must not change state in this callback.
     var GetEditPresentation Func[DataGridRow, DataGridColumn, DataGridEditPresentation]?
     /// Runs once before mounting an editor. Nil permits editing. False refuses without lifecycle events.
     var OnEditBegin Func[DataGridEdit, bool]?
     /// Validates each commit attempt. Nil accepts. A nonempty ErrorMessage retains the editor and draft.
     var OnEditCommit Func[DataGridEdit, DataGridEditResult]?
     /// Reports a discarded draft before the editor closes. Nil ignores cancellation.
+    /// Hosts must not change state when this callback runs during Build.
     var OnEditCancel Action[DataGridEdit, DataGridEditCancelReason]?
     /// Reports one closed session after its setter or cancellation callback. Nil ignores closure.
+    /// Hosts must not change state when this callback runs during Build.
     var OnEditEnd Action[DataGridEdit, DataGridEditOutcome]?
     /// Exact begin chords. Nil uses Enter and, outside Multiple selection, Space. An empty array disables key entry.
     var BeginEditKeys[]?DataGridEditKey
@@ -767,7 +787,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                 KeyDown(e)
             }
             hostKeys?.Invoke(e)
-            input.OnKeyDown?.Invoke(e)
+            InvokeInputCallback(input.OnKeyDown, e)
         }
         root.OnPointerDown = (e PointerEvent) -> {
             pointerFocus = true
@@ -780,7 +800,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                     BeginEdit(activeId!!, activeColumn, text)
                 }
                 hostText?.Invoke(text)
-                input.OnTextInput?.Invoke(text)
+                InvokeInputCallback(input.OnTextInput, text)
             }
         }
         root.OnFocus = (e FocusEvent) -> {

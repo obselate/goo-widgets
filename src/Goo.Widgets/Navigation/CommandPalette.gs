@@ -61,6 +61,7 @@ public data struct CommandPaletteInput {
     /// Maximum height. Short result lists use their natural height.
     var Height Length?
     /// Receives the widget input, command descriptor, match score and highlight ranges, and prepared button, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button, Blob]?
 }
 
@@ -217,7 +218,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             RowHeight: theme.ControlHeight,
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
-            OnQueryChange: input.OnQueryChange,
+            OnQueryChange: value -> InvokeInputCallback(input.OnQueryChange, value),
             CreateEntry: (owner SearchList, entry TextEntry) -> {
                 entry.Value = query
                 entry.Controlled = true
@@ -262,8 +263,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 Width: input.Width ?? defaultWidth,
                 Padding: 0,
                 Gap: 0,
-                OnOpenChange: input.OnOpenChange,
-                OnCancel: () -> input.OnOpenChange?.Invoke(false),
+                OnOpenChange: value -> InvokeInputCallback(input.OnOpenChange, value),
+                OnCancel: () -> InvokeInputCallback(input.OnOpenChange, false),
                 Content: search,
                 Footer: Container{Height: 0, HitTestSelf: false},
                 CreateRoot: (dialog ModalDialog, backdrop Button, panel Container) -> {
@@ -355,8 +356,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
 
     private func Activate(id string) {
         if commands.ContainsKey(id) && !commands[id].Disabled {
-            current.OnClick?.Invoke(id)
-            current.OnOpenChange?.Invoke(false)
+            InvokeInputCallback(current.OnClick, id)
+            InvokeInputCallback(current.OnOpenChange, false)
         }
     }
 

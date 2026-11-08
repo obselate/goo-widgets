@@ -101,17 +101,24 @@ public data struct MarkdownViewInput {
     var MinimumTableColumnWidth float64
     var OnLink Action[string]?
     /// Return an image Blob with its desired size, or nil to keep selectable alternative text.
+    /// Hosts must not change state in this callback.
     var ResolveImage Func[MarkdownInline, Blob?]?
     /// Customizes text-only style fields for every inline span.
+    /// Hosts must not change state in this callback.
     var CreateInlineStyle Func[MarkdownInline, Style, Style]?
     /// Customizes atomic link, inline-code, and resolved-image content.
+    /// Hosts must not change state in this callback.
     var CreateInline Func[MarkdownInline, Blob, Blob]?
+    /// Hosts must not change state in this callback.
     var CreateBlock Func[MarkdownBlock, Blob, Blob]?
     /// Customizes a prepared read-only editor; it must retain its supplied controller.
+    /// Hosts must not change state in this callback.
     var CreateEditor Func[MarkdownBlock, TextEditor, TextEditor]?
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[MarkdownViewInput, Container, Container]?
     /// Runs when the heading list or this callback changes. Only mounted headings have mounted handles.
     /// Use State.ScrollToHeading to reach an off-screen heading in a bounded view.
+    /// Hosts must not change state in this callback.
     var OnHeadings Action[IReadOnlyList[MarkdownHeading]]?
 }
 
