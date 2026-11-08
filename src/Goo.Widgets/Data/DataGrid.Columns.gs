@@ -466,7 +466,7 @@ public open partial class DataGrid {
         let clear = (modifiers.Ctrl || modifiers.Super) && !modifiers.Shift
         let next = clear ? DataGridSort.None:
             current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.Ascending
-        if input.OnSortsChange != nil {
+        if let callback = input.OnSortsChange {
             let sorts = List[DataGridSortColumn]()
             var found = false
             for sort in modifiers.Shift ? input.Sorts ?? []DataGridSortColumn{}: []DataGridSortColumn{} {
@@ -482,9 +482,9 @@ public open partial class DataGrid {
             if !found && next != DataGridSort.None {
                 sorts.Add(DataGridSortColumn{ColumnId: id, Direction: next})
             }
-            input.OnSortsChange?.Invoke(sorts.ToArray())
+            InvokeInputCallback(callback, sorts.ToArray())
         } else {
-            input.OnSort?.Invoke(id, next)
+            InvokeInputCallback(input.OnSort, id, next)
         }
     }
 
@@ -503,7 +503,7 @@ public open partial class DataGrid {
         }
         order[index] = columns[target].Id!!
         order[target] = id
-        input.OnColumnOrderChange?.Invoke(order)
+        InvokeInputCallback(input.OnColumnOrderChange, order)
     }
 
     private func Reorder(id string, e PointerEvent) {
@@ -526,7 +526,9 @@ public open partial class DataGrid {
         }
         order.Insert(target, id)
         reordered = true
-        input.OnColumnOrderChange?.Invoke(order.ToArray())
+        if let callback = input.OnColumnOrderChange {
+            InvokeInputCallback(callback, order.ToArray())
+        }
     }
 
     private func ReorderTarget(index int32, position float64) int32 {

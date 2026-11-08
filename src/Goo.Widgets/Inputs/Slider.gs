@@ -40,6 +40,7 @@ public data struct SliderInput {
     /// Displayed value font size. Nil uses the nearest theme caption font size.
     var ValueFontSize float64?
     /// Formats the accessible range value and optional visible value. Nil formats with the theme Culture.
+    /// Hosts must not change state in this callback.
     var FormatValue Func[float64, string]?
     /// Receives pointer and keyboard preview values.
     var OnChange Action[float64]?
@@ -84,6 +85,7 @@ public data struct SliderInput {
     /// Optional base style for the thumb.
     var ThumbStyle Style?
     /// Wraps the composed interactive root. The returned tree must retain the supplied root to preserve interaction.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[SliderInput, Container, Blob]?
 }
 
@@ -413,11 +415,11 @@ public open class Slider : Cell[SliderInput] {
             return
         }
         current = next
-        resolved.OnChange?.Invoke(next)
+        InvokeInputCallback(resolved.OnChange, next)
     }
 
     private func Commit() {
-        resolved.OnCommit?.Invoke(current)
+        InvokeInputCallback(resolved.OnCommit, current)
     }
 
     private func ValueFromPointer(e PointerEvent) float64 {

@@ -166,7 +166,7 @@ public open class StatusBar : Cell[StatusBarInput], IDisposable {
                 Leading: leading,
                 Disabled: item.Disabled,
                 AccessibilityName: item.Text,
-                OnClick: item.OnClick,
+                OnClick: () -> InvokeInputCallback(item.OnClick),
                 MinWidth: 0,
                 PaddingHorizontal: theme.ControlPadding,
                 BorderWidth: 0,
@@ -181,13 +181,13 @@ public open class StatusBar : Cell[StatusBarInput], IDisposable {
                     id,
                     MenuButtonInput{
                         Button: button,
-                        Items: item.MenuItems,
+                        Items: forwardMenuCallbacks(item.MenuItems, callback -> InvokeInputCallback(callback)),
                         Open: openId == id,
                         OnOpenChange: isOpen -> {
                             openId = isOpen ? id: nil
                             Rebuild()
                         },
-                        OnClick: item.OnMenuClick
+                        OnClick: id -> InvokeInputCallback(item.OnMenuClick, id)
                     }
                 )
             } else {

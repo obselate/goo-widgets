@@ -106,14 +106,19 @@ public data struct TreeViewInput {
     /// Selected row fill. Nil uses the nearest theme.
     var SelectedColor Color?
     /// Customizes content in the standard row slots.
+    /// Hosts must not change state in this callback.
     var CreateContent Func[TreeViewInput, TreeViewRow, Blob, Blob]?
     /// Customizes the expansion button; required identity and input wiring are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateExpander Func[TreeViewInput, TreeViewRow, Button, Button]?
     /// Customizes the composed Checkbox button; required identity and input wiring are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateCheck Func[TreeViewInput, TreeViewRow, Button, Button]?
     /// Standard slots are added before this factory. Custom children are kept; identity, input, and semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRow Func[TreeViewInput, TreeViewRow, Container, Container]?
     /// Customizes root appearance; viewport, focus, and tree semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[TreeViewInput, Container, Container]?
 }
 
@@ -341,7 +346,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.OnPointerDown = (e PointerEvent) -> pointerFocus = true
         root.OnKeyDown = (e KeyEvent) -> {
             pointerFocus = false
-            if input.OnKeyDown?.Invoke(e) ?? false {
+            if InvokeInputCallback(input.OnKeyDown, e, false) {
                 e.PreventDefault()
                 e.StopPropagation()
                 return
@@ -462,7 +467,7 @@ public open class TreeView : Cell[TreeViewInput] {
         Activate(id)
         requestedSelection = id
         if input.OnSelectionChange == nil {
-            input.OnSelect?.Invoke(id)
+            InvokeInputCallback(input.OnSelect, id)
             return
         }
         let next = HashSet[string](StringComparer.Ordinal)
@@ -489,7 +494,9 @@ public open class TreeView : Cell[TreeViewInput] {
                 values.Add(row.Node.Id!!)
             }
         }
-        input.OnSelectionChange?.Invoke(values.ToArray())
+        if let callback = input.OnSelectionChange {
+            InvokeInputCallback(callback, values.ToArray())
+        }
     }
 
     private func ActivateRow(id string) {
@@ -508,10 +515,10 @@ public open class TreeView : Cell[TreeViewInput] {
             return
         }
         Activate(id)
-        input.OnExpandedChange?.Invoke(id, expanded)
+        InvokeInputCallback(input.OnExpandedChange, id, expanded)
         let node = rows[Index(id)].Node
         if expanded && node.HasChildren && node.Children == nil && !(input.LoadingIds ?? []string{}).Contains(id) {
-            input.OnLoadChildren?.Invoke(id)
+            InvokeInputCallback(input.OnLoadChildren, id)
         }
     }
 
@@ -524,7 +531,7 @@ public open class TreeView : Cell[TreeViewInput] {
             return
         }
         Activate(id)
-        input.OnCheckChange?.Invoke(
+        InvokeInputCallback(input.OnCheckChange,
             id,
             row.Node.CheckState == AccessibilityChecked.True ? AccessibilityChecked.False: AccessibilityChecked.True
         )
@@ -681,7 +688,9 @@ public open class TreeView : Cell[TreeViewInput] {
                         let payload = (e.Data.Value as TreeDrag)!!
                         let position = e.Position.Y < snapshot.RowHeight!!/ 4.0 ? TreeDropPosition.Before:
                         e.Position.Y > snapshot.RowHeight!!* .75 ? TreeDropPosition.After: TreeDropPosition.Into
-                        snapshot.OnDrop?.Invoke(payload.Ids, id, position)
+                        if let callback = snapshot.OnDrop {
+                            InvokeInputCallback(() -> callback(payload.Ids, id, position))
+                        }
                     }
                 }
             )
@@ -790,7 +799,9 @@ public open class TreeView : Cell[TreeViewInput] {
                     ids.Add(item.Node.Id!!)
                 }
             }
-            input.OnSelectionChange?.Invoke(ids.ToArray())
+            if let callback = input.OnSelectionChange {
+                InvokeInputCallback(callback, ids.ToArray())
+            }
             e.PreventDefault()
             e.StopPropagation()
             return
@@ -841,7 +852,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 Select(row.Node.Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
             }
         } else if e.Key == Key.F2 {
-            input.OnRename?.Invoke(row.Node.Id!!)
+            InvokeInputCallback(input.OnRename, row.Node.Id!!)
         } else {
             return
         }

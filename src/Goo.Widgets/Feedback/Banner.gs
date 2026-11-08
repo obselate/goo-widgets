@@ -61,8 +61,10 @@ public data struct Banner {
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
     /// Creates Text from resolved props. Nil uses the default Text composition.
+    /// Hosts must not change state in this callback.
     var CreateText Func[Banner, Text]?
     /// Creates the root Container from resolved props and final Text.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[Banner, Text, Container]?
 
     /// Builds a fresh Goo banner tree after resolving props and factories.
@@ -227,7 +229,7 @@ internal sealed class BannerState : Cell[Banner] {
         height.Completed += (reason MotionCompletionReason) -> {
             if closing && !closed {
                 closed = true
-                current.OnDismiss?.Invoke()
+                InvokeInputCallback(current.OnDismiss)
                 Rebuild()
             }
         }
@@ -257,7 +259,7 @@ internal sealed class BannerState : Cell[Banner] {
         closing = true
         if duration <= 0.0 {
             closed = true
-            current.OnDismiss?.Invoke()
+            InvokeInputCallback(current.OnDismiss)
         } else {
             height.Snap(handle.BorderBox.Height)
             height.To(0.0, Motion.Tween(duration, current.TransitionEasing ?? Easing.EaseOut))

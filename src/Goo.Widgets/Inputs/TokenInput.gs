@@ -13,6 +13,7 @@ public data struct TokenInputInput {
     /// Receives a new token array after addition or removal. Nil ignores the request.
     var OnChange Action[[]string]?
     /// Tests each token for valid presentation. Nil accepts all tokens. Invalid tokens remain visible and removable.
+    /// Hosts must not change state in this callback.
     var Validate Func[string, bool]?
     /// Suggested token strings. Nil supplies no suggestions.
     var Suggestions[]?string
@@ -29,8 +30,10 @@ public data struct TokenInputInput {
     /// Root layout width. Nil uses 360 logical pixels.
     var Width Length?
     /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateEntry Func[TokenInputInput, TextEntry, TextEntry]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[TokenInputInput, Container, Container]?
 }
 
@@ -197,7 +200,9 @@ public open class TokenInput : Cell[TokenInputInput] {
         draft = ""
         selected = -1
         if tokens.Count != (current.Value?.Length ?? 0) {
-            current.OnChange?.Invoke(tokens.ToArray())
+            if let callback = current.OnChange {
+                InvokeInputCallback(callback, tokens.ToArray())
+            }
         }
         Rebuild()
     }
@@ -218,7 +223,9 @@ public open class TokenInput : Cell[TokenInputInput] {
         }
         tokens.RemoveAt(index)
         selected = -1
-        current.OnChange?.Invoke(tokens.ToArray())
+        if let callback = current.OnChange {
+            InvokeInputCallback(callback, tokens.ToArray())
+        }
         editor.Focus()
         Rebuild()
     }

@@ -88,8 +88,10 @@ public data struct PopoverInput {
     /// Vertical visibility. Nil uses Auto.
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Creates the panel from resolved input, window bounds, and content. Placement and identity are rewired.
+    /// Hosts must not change state in this callback.
     var CreatePanel Func[PopoverInput, ElementRect, Blob, Container]?
     /// Receives the resolved input, prepared backdrop, and prepared panel, and returns their root container. Children, geometry, input routing, and popup semantics are reapplied. Nil uses the default root.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[PopoverInput, Container, Container, Container]?
 }
 
@@ -496,8 +498,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         if reason == PopoverDismissReason.OutsideClick {
             CloseScope(false)
         }
-        current.OnOpenChange?.Invoke(false)
-        current.OnDismiss?.Invoke(reason)
+        InvokeInputCallback(current.OnOpenChange, false)
+        InvokeInputCallback(current.OnDismiss, reason)
     }
 
     private func CloseScope(restoreFocus bool = true) {

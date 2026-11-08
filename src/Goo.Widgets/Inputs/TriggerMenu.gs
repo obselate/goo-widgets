@@ -21,6 +21,7 @@ public data struct TriggerMenuInput {
     /// Characters to type after the trigger before the menu opens.
     var MinQueryLength int32
     /// Candidates for a trigger. The typed query ranks them with FuzzyMatch.
+    /// Hosts must not change state in this callback.
     var Items Func[string, []string]?
     /// Receives the trigger, the picked item and the typed range. Nil replaces the range with trigger, item and a space.
     var OnPick Action[string, string, TextRange]?
@@ -235,7 +236,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
     private func Pick(index int32) {
         let item = matches[index].Item
         if let pick = current.OnPick {
-            pick(trigger, item, typed)
+            InvokeInputCallback(() -> pick(trigger, item, typed))
         } else {
             let controller = current.Controller!!
             controller.Selection = TextSelection{

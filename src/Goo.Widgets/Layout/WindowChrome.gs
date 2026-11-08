@@ -52,6 +52,7 @@ public data struct WindowChrome {
     /// Optional mounted collision viewport for the context menu.
     var OverlayHost ElementHandle?
     /// Customizes menu presentation. Open state, actions, anchor, and dismissal are rewired.
+    /// Hosts must not change state in this callback.
     var CreateMenu Func[WindowChrome, MenuInput, MenuInput]?
     /// Chrome height. Nil uses the theme control height.
     var Height Length?
@@ -70,10 +71,13 @@ public data struct WindowChrome {
     /// Optional base style for the drag region container.
     var RootStyle Style?
     /// Creates content for a standard control.
+    /// Hosts must not change state in this callback.
     var CreateControlContent Func[WindowChrome, WindowChromeAction, Blob]?
     /// Creates a standard control from resolved props, command, content, and action.
+    /// Hosts must not change state in this callback.
     var CreateControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
     /// Creates the final container; required children and drag/input wiring are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[WindowChrome, []Blob, Container]?
 
     shared {

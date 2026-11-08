@@ -17,6 +17,7 @@ public data struct SettingsRow {
     /// Caller-built setting editor. Nil leaves the slot empty unless CreateControl supplies it.
     var Control Blob?
     /// Builds a control from the supplied accessibility relationships. Apply them to the actual editor. Nil uses Control.
+    /// Hosts must not change state in this callback.
     var CreateControl Func[AccessibilityRelationships, Blob]?
     /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?
@@ -107,7 +108,7 @@ public open class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                     Leading: ControlIcons.Create(ControlIcon.Search, 16, theme.MutedTextColor),
                     Value: value.Query,
                     Controlled: true,
-                    OnChange: value.OnQueryChange,
+                    OnChange: query -> InvokeInputCallback(value.OnQueryChange, query),
                     Clearable: true,
                     Width: Percent(100)
                 }.Build()
@@ -141,7 +142,7 @@ public open class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                 BorderColor: Color.Transparent,
                 BackgroundColor: selected == id ? theme.SelectedFill(theme.ActiveColor): Color.Transparent,
                 Color: selected == id ? theme.SelectedText(theme.TextColor): theme.TextColor,
-                OnClick: () -> value.OnSelect?.Invoke(id),
+                OnClick: () -> InvokeInputCallback(value.OnSelect, id),
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,

@@ -41,7 +41,12 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         if !current.EnableContextMenu {
             menuOpen = false
         }
-        let row = current.BuildResolved(theme, BlankPointer)
+        let row = (current with{
+            OnMinimize = current.OnMinimize == nil ? nil: () -> InvokeInputCallback(current.OnMinimize),
+            OnMaximize = current.OnMaximize == nil ? nil: () -> InvokeInputCallback(current.OnMaximize),
+            OnRestore = current.OnRestore == nil ? nil: () -> InvokeInputCallback(current.OnRestore),
+            OnClose = current.OnClose == nil ? nil: () -> InvokeInputCallback(current.OnClose),
+        }).BuildResolved(theme, BlankPointer)
         row.Key = "bar"
         let root = Container{Handle: rootHandle, FlexShrink: 0.0, OnPointerDown: PointerDown, OnKeyDown: KeyDown, row}
         if current.EnableContextMenu {
@@ -51,22 +56,22 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
                     Id: "restore",
                     Label: theme.Text("Restore"),
                     Disabled: !maximized || current.OnRestore == nil,
-                    OnClick: current.OnRestore
+                    OnClick: () -> InvokeInputCallback(current.OnRestore)
                 },
                 MenuItem{
                     Id: "minimize",
                     Label: theme.Text("Minimize"),
                     Disabled: current.OnMinimize == nil || host?.State == WindowState.Minimized,
-                    OnClick: current.OnMinimize
+                    OnClick: () -> InvokeInputCallback(current.OnMinimize)
                 },
                 MenuItem{
                     Id: "maximize",
                     Label: theme.Text("Maximize"),
                     Disabled: maximized || current.OnMaximize == nil,
-                    OnClick: current.OnMaximize
+                    OnClick: () -> InvokeInputCallback(current.OnMaximize)
                 },
                 MenuItem{Id: "separator", Separator: true},
-                MenuItem{Id: "close", Label: theme.Text("Close"), Disabled: current.OnClose == nil, OnClick: current.OnClose},
+                MenuItem{Id: "close", Label: theme.Text("Close"), Disabled: current.OnClose == nil, OnClick: () -> InvokeInputCallback(current.OnClose)},
             }
             var prepared = MenuInput{
                 Open: menuOpen,
@@ -113,9 +118,9 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
     private func Toggle() {
         let resolved = source.Resolve(theme)
         if resolved.IsMaximized!! {
-            resolved.OnRestore?.Invoke()
+            InvokeInputCallback(resolved.OnRestore)
         } else {
-            resolved.OnMaximize?.Invoke()
+            InvokeInputCallback(resolved.OnMaximize)
         }
     }
 

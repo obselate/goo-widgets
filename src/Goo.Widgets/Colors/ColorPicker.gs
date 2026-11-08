@@ -43,8 +43,10 @@ public data struct ColorPickerInput {
     /// Optional base style for the wheel marker.
     var MarkerStyle Style?
     /// Creates the marker from resolved props and current color coordinates.
+    /// Hosts must not change state in this callback.
     var CreateMarker Func[ColorPickerInput, int32, float64, float64, Blob]?
     /// Replaces the default full or compact composition from resolved props, wheel, and tone slider.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ColorPickerInput, Blob, Blob, Container]?
 }
 
@@ -364,7 +366,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         }
         currentMode = mode
         ReadCoordinates(currentRgb)
-        resolved.OnModeChange?.Invoke(mode)
+        InvokeInputCallback(resolved.OnModeChange, mode)
         Rebuild()
     }
 
@@ -396,10 +398,10 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         let next = ColorWheelSource.Sample(currentMode, hue, radius, tone)
         if next != currentRgb {
             currentRgb = next
-            resolved.OnChange?.Invoke(next)
+            InvokeInputCallback(resolved.OnChange, next)
         }
         if commit {
-            resolved.OnCommit?.Invoke(currentRgb)
+            InvokeInputCallback(resolved.OnCommit, currentRgb)
         }
     }
 

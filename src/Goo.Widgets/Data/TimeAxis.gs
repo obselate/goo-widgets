@@ -69,6 +69,7 @@ public data struct TimeAxisInput {
     /// Tick interval. Nil resolves to one hour; ranges may contain at most 4096 ticks.
     var TickInterval TimeSpan?
     /// Formats ruler ticks. Nil uses HH:mm in the current culture and the range-start offset.
+    /// Hosts must not change state in this callback.
     var FormatTick Func[DateTimeOffset, string]?
     /// Logical pixels per hour. Nil resolves to 120.
     var PixelsPerHour float64?
@@ -109,14 +110,19 @@ public data struct TimeAxisInput {
     /// Accessible group name. Nil resolves to Timeline.
     var AccessibilityName string?
     /// Customizes a ruler tick; identity and logical position are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateTick Func[TimeAxisInput, TimeAxisTick, Container, Container]?
     /// Customizes the marker; identity, position, and decorative semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateMarker Func[TimeAxisInput, Container, Container]?
     /// Customizes an event; placement, identity, selection, activation, and semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateEvent Func[TimeAxisInput, TimeAxisPlacement, Button, Button]?
     /// Customizes the chronological collapsed-event summary; wiring and placement are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateOverflow Func[TimeAxisInput, []TimeAxisEvent, Button, Button]?
     /// Customizes the scroll viewport; handle, scrolling, semantics, and canvas are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[TimeAxisInput, Container, Container]?
 }
 
@@ -302,7 +308,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             blob.Key = "event:" + item.Id!!
             Place(blob, placement.X, 30.0 + float64(placement.Lane) * (height + gap), placement.Width, height)
             blob.Focusable = input.OnSelect != nil
-            blob.OnClick = input.OnSelect == nil ? nil: () -> input.OnSelect?.Invoke(item.Id!!)
+            blob.OnClick = input.OnSelect == nil ? nil: () -> InvokeInputCallback(input.OnSelect, item.Id!!)
             WidgetKeyBindings.BindActivation(blob)
             blob.Accessibility = Accessibility{
                 Role: AccessibilityRole.Button,
@@ -342,7 +348,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             blob.Key = "overflow"
             Place(blob, left, 30.0 + float64(ends.Count) * (height + gap), right - left, height)
             blob.Focusable = input.OnOverflow != nil
-            blob.OnClick = input.OnOverflow == nil ? nil: () -> input.OnOverflow?.Invoke(hidden)
+            blob.OnClick = input.OnOverflow == nil ? nil: () -> InvokeInputCallback(input.OnOverflow, hidden)
             WidgetKeyBindings.BindActivation(blob)
             let names = List[string]()
             for item in hidden {

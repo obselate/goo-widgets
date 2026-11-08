@@ -56,8 +56,10 @@ public data struct SplitPaneInput {
     /// Accessible separator name. Nil resolves to Resize panes.
     var AccessibilityName string?
     /// Customizes divider appearance; required identity, input, and semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateHandle Func[SplitPaneInput, Container, Container]?
     /// Customizes root appearance; required identity, axis, and pane children are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[SplitPaneInput, Container, Container]?
 }
 
@@ -265,7 +267,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             return
         }
         lastRequest = next
-        input.OnChange?.Invoke(next)
+        InvokeInputCallback(input.OnChange, next)
     }
 
     private func Begin(e PointerEvent) {
@@ -293,7 +295,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         }
         e.ReleaseCapture()
         pointer = -1L
-        input.OnCommit?.Invoke(lastRequest)
+        InvokeInputCallback(input.OnCommit, lastRequest)
         Rebuild()
     }
 
@@ -323,7 +325,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         let step = input.Step!!* (input.Unit == SplitUnit.Ratio ? available: 1.0)
         let current = input.Value * (input.Unit == SplitUnit.Ratio ? available: 1.0)
         Request(key == Key.Home ? 0.0: key == Key.End ? available: current + (decrease ? -step: step))
-        input.OnCommit?.Invoke(lastRequest)
+        InvokeInputCallback(input.OnCommit, lastRequest)
     }
 
     private func AccessibilityAction(request AccessibilityActionRequest) bool {
@@ -344,7 +346,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             return false
         }
         Request(value * (input.Unit == SplitUnit.Ratio ? available: 1.0))
-        input.OnCommit?.Invoke(lastRequest)
+        InvokeInputCallback(input.OnCommit, lastRequest)
         return true
     }
 }

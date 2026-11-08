@@ -37,6 +37,7 @@ public data struct CalendarInput {
     /// Inclusive latest selectable civil date. Nil imposes no upper bound.
     var Maximum DateOnly?
     /// Tests whether a date is unavailable. Nil imposes no extra restriction.
+    /// Hosts must not change state in this callback.
     var IsDateDisabled Func[DateOnly, bool]?
     /// Rejects user interaction and applies disabled presentation. False permits interaction.
     var Disabled bool
@@ -65,12 +66,16 @@ public data struct CalendarInput {
     /// Optional stable root handle. Focusing the root enters the active eligible date.
     var Handle ElementHandle?
     /// Receives the widget input, the day date and state, and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateDay Func[CalendarInput, CalendarDay, Button, Button]?
     /// Receives the widget input, the month navigation delta, and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateNavigation Func[CalendarInput, int32, Button, Button]?
     /// Receives the widget input, the weekday, and the prepared text, and returns the replacement content. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateWeekday Func[CalendarInput, DayOfWeek, Text, Blob]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[CalendarInput, Container, Container]?
 }
 
@@ -482,7 +487,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
 
     private func ShowMonth(value DateOnly) {
         ownedMonth = Start(value)
-        current.OnMonthChange?.Invoke(ownedMonth)
+        InvokeInputCallback(current.OnMonthChange, ownedMonth)
         Rebuild()
     }
 
@@ -505,7 +510,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         if Start(date) != month {
             ShowMonth(date)
         }
-        current.OnChange?.Invoke(date)
+        InvokeInputCallback(current.OnChange, date)
     }
 
     private func KeyDown(event KeyEvent) {
@@ -513,7 +518,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             event.PreventDefault()
             event.StopPropagation()
             if !event.Repeat {
-                current.OnEscape!!()
+                InvokeInputCallback(current.OnEscape)
             }
             return
         }

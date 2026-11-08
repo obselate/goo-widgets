@@ -32,6 +32,7 @@ public data struct CodeBlockInput {
     /// Styles the owned presentation layer with the current theme palette. The layer is cleared first.
     /// Runs again only when Code, Language, the theme syntax palette or the delegate instance changes.
     /// Pass a new delegate when the result depends on other state. A new lambda on every build highlights on every build.
+    /// Hosts must not change state in this callback.
     var Highlight Action[TextPresentationLayer, SyntaxPalette]?
     /// Precomputed styles for Code. They can be built on any thread. When set, Highlight is not called.
     /// Applied again only when Code, Language, the theme syntax palette or this list reference changes.
@@ -43,8 +44,10 @@ public data struct CodeBlockInput {
     /// Code font family. Nil uses monospace.
     var FontFamily string?
     /// Receives the input and prepared header, and returns the displayed header. Nil keeps the default header.
+    /// Hosts must not change state in this callback.
     var CreateHeader Func[CodeBlockInput, Container, Blob]?
     /// Receives the input and prepared editor, and returns its replacement. Preserve the supplied controller. Read-only state and syntax layers are reapplied. Nil keeps the default editor.
+    /// Hosts must not change state in this callback.
     var CreateEditor Func[CodeBlockInput, TextEditor, TextEditor]?
 }
 
@@ -146,7 +149,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Disabled: input.Window == nil && input.OnCopy == nil,
                 OnClick: () -> {
                     if let copy = input.OnCopy {
-                        copy(code)
+                        InvokeInputCallback(copy, code)
                     } else {
                         input.Window!!.SetClipboardText(code)
                     }
@@ -237,7 +240,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Cursor: Cursor.Pointer,
                 Disabled: input.OnExpandedChange == nil,
-                OnClick: () -> input.OnExpandedChange?.Invoke(!input.Expanded),
+                OnClick: () -> InvokeInputCallback(input.OnExpandedChange, !input.Expanded),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: label, Expanded: input.Expanded},
                 ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16, theme.MutedTextColor),
                 Text{Content: label, Color: theme.MutedTextColor},

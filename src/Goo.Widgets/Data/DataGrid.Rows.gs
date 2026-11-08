@@ -203,7 +203,11 @@ public open partial class DataGrid {
                     FlexShrink: 0,
                     Focusable: false,
                     TabStop: false,
-                    OnClick: () -> input.OnGroupExpandedChange?.Invoke(id, !groupExpanded.Contains(id)),
+                    OnClick: () -> {
+                        if let callback = input.OnGroupExpandedChange {
+                            InvokeInputCallback(callback, id, !groupExpanded.Contains(id))
+                        }
+                    },
                     Accessibility: Accessibility{Hidden: true},
                     ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
                 })
@@ -366,8 +370,10 @@ public open partial class DataGrid {
                 pointerFocus = true
                 if activeId != id {
                     activeId = id
-                    input.OnActiveRowIndexChange?.Invoke(RawIndex(id))
-                    input.OnActiveRowChange?.Invoke(id)
+                    if let callback = input.OnActiveRowIndexChange {
+                        InvokeInputCallback(callback, RawIndex(id))
+                    }
+                    InvokeInputCallback(input.OnActiveRowChange, id)
                 }
                 if e.Button == PointerButton.Secondary && !row.IsGroup && !IsSelected(id) {
                     Select(id, false, false, false)
@@ -393,7 +399,9 @@ public open partial class DataGrid {
             if !clickFromInteractiveChild {
                 if row.IsGroup {
                     if clickCount == 2 {
-                        input.OnGroupExpandedChange?.Invoke(id, !groupExpanded.Contains(id))
+                        if let callback = input.OnGroupExpandedChange {
+                            InvokeInputCallback(callback, id, !groupExpanded.Contains(id))
+                        }
                     }
                 } else {
                     Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
@@ -488,8 +496,10 @@ public open partial class DataGrid {
             Reveal()
         }
         if changed {
-            input.OnActiveRowIndexChange?.Invoke(RawIndex(id))
-            input.OnActiveRowChange?.Invoke(id)
+            if let callback = input.OnActiveRowIndexChange {
+                InvokeInputCallback(callback, RawIndex(id))
+            }
+            InvokeInputCallback(input.OnActiveRowChange, id)
         }
     }
 
@@ -532,7 +542,7 @@ public open partial class DataGrid {
         }
         if !input.AllSelected {
             if let request = input.OnSelectionRequest {
-                request(id, toggle, extend)
+                InvokeInputCallback(() -> request(id, toggle, extend))
                 return
             }
         }
@@ -578,12 +588,12 @@ public open partial class DataGrid {
             return
         }
         Activate(id, reveal)
-        input.OnExpandedChange?.Invoke(id, state)
+        InvokeInputCallback(input.OnExpandedChange, id, state)
     }
 
     private func Invoke(id string) {
         if !input.Disabled && Index(id) >= 0 {
-            input.OnClick?.Invoke(id)
+            InvokeInputCallback(input.OnClick, id)
         }
     }
 
@@ -594,7 +604,7 @@ public open partial class DataGrid {
                 return true
             }
             if request.Action == AccessibilityAction.Expand || request.Action == AccessibilityAction.Collapse {
-                input.OnGroupExpandedChange?.Invoke(id, request.Action == AccessibilityAction.Expand)
+                InvokeInputCallback(input.OnGroupExpandedChange, id, request.Action == AccessibilityAction.Expand)
                 return true
             }
             return false
@@ -668,7 +678,7 @@ public open partial class DataGrid {
             }
             if input.RowAt != nil {
                 guard let request = input.OnSelectAll else { return }
-                request()
+                InvokeInputCallback(request)
             } else {
                 let ids = List[string](rows.Length)
                 for row in rows {
@@ -683,12 +693,12 @@ public open partial class DataGrid {
             e.PreventDefault()
             e.StopPropagation()
             if !e.Repeat {
-                copy()
+                InvokeInputCallback(copy)
             }
             return
         } else if e.Key == Key.Left || e.Key == Key.Right {
             if activeId != nil && current >= 0 && Row(current).IsGroup {
-                input.OnGroupExpandedChange?.Invoke(activeId!!, e.Key == Key.Right)
+                InvokeInputCallback(input.OnGroupExpandedChange, activeId!!, e.Key == Key.Right)
             } else if e.Modifiers.Alt && activeId != nil {
                 Expand(activeId!!, e.Key == Key.Right)
             } else {
@@ -790,16 +800,16 @@ public open partial class DataGrid {
             for index in 0 ... ids.Length {
                 positions[index] = RawIndex(ids[index])
             }
-            changed(positions)
+            InvokeInputCallback(changed, positions)
         }
-        input.OnSelectionChange?.Invoke(ids)
+        InvokeInputCallback(input.OnSelectionChange, ids)
     }
 
     private func SetActiveColumn(index int32, reveal bool) {
         let next = Math.Clamp(index, 0, Math.Max(0, columns.Length - 1))
         if next != activeColumn {
             activeColumn = next
-            input.OnActiveColumnChange?.Invoke(columns[next].Id!!)
+            InvokeInputCallback(input.OnActiveColumnChange, columns[next].Id!!)
         }
         if reveal {
             RevealColumn()

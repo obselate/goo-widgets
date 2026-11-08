@@ -48,8 +48,10 @@ public data struct ToggleGroupInput {
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
     /// Receives the widget input, the toggle option, and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[ToggleGroupInput, ToggleOption, Button, Button]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ToggleGroupInput, Container, Container]?
 }
 
@@ -196,7 +198,9 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             return
         }
         if !input.Multiple {
-            input.OnSelectionChange?.Invoke([]string{id})
+            if let callback = input.OnSelectionChange {
+                InvokeInputCallback(callback, []string{id})
+            }
             return
         }
         let result = List[string]()
@@ -205,7 +209,9 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 result.Add(item.Id)
             }
         }
-        input.OnSelectionChange?.Invoke(result.ToArray())
+        if let callback = input.OnSelectionChange {
+            InvokeInputCallback(callback, result.ToArray())
+        }
     }
 
     private func Move(id string, e KeyEvent) {

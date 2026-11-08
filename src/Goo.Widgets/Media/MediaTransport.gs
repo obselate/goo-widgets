@@ -97,16 +97,33 @@ public data struct MediaTransportInput {
     /// Optional base style for the primary action.
     var PrimaryActionStyle Style?
     /// Creates content for an action slot.
+    /// Hosts must not change state in this callback.
     var CreateActionContent Func[MediaTransportInput, MediaTransportAction, Blob]?
     /// Creates an action button from resolved input, slot, content, callback, and disabled state.
+    /// Hosts must not change state in this callback.
     var CreateAction Func[MediaTransportInput, MediaTransportAction, Blob, Action?, bool, Button]?
     /// Wraps the composed transport root.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[MediaTransportInput, Container, Blob]?
 }
 
 /// A compact media transport composed from action buttons and mounted sliders.
 public open class MediaTransport : Cell[MediaTransportInput] {
+    private var current MediaTransportInput
+    private let changePosition Action[float64]
+    private let commitPosition Action[float64]
+    private let changeVolume Action[float64]
+    private let commitVolume Action[float64]
+
+    public init() {
+        changePosition = value -> InvokeInputCallback(current.OnPositionChange, value)
+        commitPosition = value -> InvokeInputCallback(current.OnPositionCommit, value)
+        changeVolume = value -> InvokeInputCallback(current.OnVolumeChange, value)
+        commitVolume = value -> InvokeInputCallback(current.OnVolumeCommit, value)
+    }
+
     protected override func Build(input MediaTransportInput) Blob {
+        current = input
         let theme = Theme.Read()
         let createRoot = input.CreateRoot
         let resolved = Resolve(input, theme)
@@ -154,8 +171,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                             Disabled: !resolved.CanSeek!!,
                             AccessibilityName: theme.Text("Media position"),
                             FormatValue: (value float64) -> FormatTime(value),
-                            OnChange: resolved.OnPositionChange,
-                            OnCommit: resolved.OnPositionCommit,
+                            OnChange: resolved.OnPositionChange == nil ? nil: changePosition,
+                            OnCommit: resolved.OnPositionCommit == nil ? nil: commitPosition,
                             TrackColor: resolved.TrackColor,
                             FillColor: resolved.FillColor,
                             ThumbColor: resolved.FillColor,
@@ -204,8 +221,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                                 Disabled: !resolved.CanSetVolume!!,
                                 AccessibilityName: theme.Text("Volume"),
                                 FormatValue: (value float64) -> Math.Round(value * 100.0).ToString() + "%",
-                                OnChange: resolved.OnVolumeChange,
-                                OnCommit: resolved.OnVolumeCommit,
+                                OnChange: resolved.OnVolumeChange == nil ? nil: changeVolume,
+                                OnCommit: resolved.OnVolumeCommit == nil ? nil: commitVolume,
                                 TrackColor: resolved.TrackColor,
                                 FillColor: resolved.FillColor,
                                 ThumbColor: resolved.FillColor,
@@ -278,6 +295,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         action Action?,
         disabled bool
     ) Blob {
+        let activate Action? = action == nil ? nil: () -> InvokeInputCallback(action)
         let primary = slot == MediaTransportAction.Play || slot == MediaTransportAction.Pause
         let content = if let content = SlotContent(input, slot) {
             content
@@ -299,7 +317,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             )
         }
         let button = if let createAction = input.CreateAction {
-            createAction(input, slot, content, action, disabled)
+            createAction(input, slot, content, activate, disabled)
         } else {
             Button{
                 Width: if primary {
@@ -341,14 +359,14 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 OnClick: if disabled {
                     nil
                 } else {
-                    action
+                    activate
                 },
                 content,
             }
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = disabled
-        button.OnClick = disabled ? nil: button.OnClick ?? action
+        button.OnClick = disabled ? nil: button.OnClick ?? activate
         WidgetKeyBindings.BindActivation(button)
         return button
     }

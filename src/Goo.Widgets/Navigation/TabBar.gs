@@ -67,8 +67,10 @@ public data struct TabBarInput {
     /// Minimum tab height. Nil uses the theme's control height.
     var ItemHeight float64?
     /// Customizes item appearance; required identity, focus, handlers, and semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateItem Func[TabBarInput, NavigationItem, Button, Button]?
     /// Customizes root appearance. Ordered children and tab-list semantics are reapplied.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[TabBarInput, Container, Container]?
 }
 
@@ -254,7 +256,7 @@ public open class TabBar : Cell[TabBarInput] {
                     Disabled: item.Disabled,
                     Focusable: !item.Disabled,
                     TabStop: false,
-                    OnClick: () -> input.OnClose?.Invoke(id),
+                    OnClick: () -> InvokeInputCallback(input.OnClose, id),
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: theme.Text("Close {0}", item.Label!!)},
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
@@ -327,7 +329,7 @@ public open class TabBar : Cell[TabBarInput] {
         }
         if input.OnAdd != nil {
             outer.Children.Add(
-                ActionButton{Content: "+", AccessibilityName: theme.Text("Add tab"), MinWidth: 32, OnClick: input.OnAdd}.Build()
+                ActionButton{Content: "+", AccessibilityName: theme.Text("Add tab"), MinWidth: 32, OnClick: () -> InvokeInputCallback(input.OnAdd)}.Build()
             )
         }
         if input.OverflowMenu {
@@ -373,7 +375,7 @@ public open class TabBar : Cell[TabBarInput] {
     private func Select(id string) {
         if Enabled(id) {
             handles[id].ScrollIntoView()
-            input.OnSelect?.Invoke(id)
+            InvokeInputCallback(input.OnSelect, id)
         }
     }
 
@@ -386,7 +388,7 @@ public open class TabBar : Cell[TabBarInput] {
                 e.PreventDefault()
                 e.StopPropagation()
                 if !e.Repeat {
-                    input.OnClose?.Invoke(id)
+                    InvokeInputCallback(input.OnClose, id)
                 }
             }
             return
@@ -414,7 +416,7 @@ public open class TabBar : Cell[TabBarInput] {
         e.StopPropagation()
         if e.Modifiers.Ctrl && e.Modifiers.Shift && input.OnReorder != nil {
             if !e.Repeat {
-                input.OnReorder?.Invoke(id, next)
+                InvokeInputCallback(input.OnReorder, id, next)
             }
             return
         }

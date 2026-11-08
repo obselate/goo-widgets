@@ -33,7 +33,12 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
             CloseScope()
             return Present(input.Build())
         }
-        let visual = input with{CreateRoot = CreateMountedRoot}
+        let visual = input with{
+            CreateRoot = CreateMountedRoot,
+            OnCancel = input.OnCancel == nil ? nil: () -> InvokeInputCallback(input.OnCancel),
+            OnConfirm = input.OnConfirm == nil ? nil: () -> InvokeInputCallback(input.OnConfirm),
+            OnOpenChange = value -> InvokeInputCallback(input.OnOpenChange, value),
+        }
         return Present(visual.Build())
     }
 
@@ -89,9 +94,9 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
             event.StopPropagation()
             if !event.Repeat && current.CanEscape {
                 if let cancel = current.OnCancel {
-                    cancel()
+                    InvokeInputCallback(cancel)
                 } else {
-                    current.OnOpenChange?.Invoke(false)
+                    InvokeInputCallback(current.OnOpenChange, false)
                 }
             }
             return

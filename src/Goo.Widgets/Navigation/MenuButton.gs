@@ -22,6 +22,7 @@ public data struct MenuButtonInput {
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
     /// Transforms the prepared menu input and returns its replacement. Open state, anchor, items, initial focus, and callbacks are reapplied. Nil keeps the default input.
+    /// Hosts must not change state in this callback.
     var CreateMenu Func[MenuButtonInput, MenuInput, MenuInput]?
 }
 
@@ -30,9 +31,22 @@ public open class MenuButton : Cell[MenuButtonInput] {
     private let trigger ElementHandle = ElementHandle()
     private var current MenuButtonInput
     private var initialId string?
+    private var sourceItems[]?MenuItem
+    private var forwardedItems[]?MenuItem
+    private let activateItem Action[string]
+    private let invokeItemCallback Action[Action?]
+
+    public init() {
+        activateItem = id -> InvokeInputCallback(current.OnClick, id)
+        invokeItemCallback = callback -> InvokeInputCallback(callback)
+    }
 
     protected override func Build(input MenuButtonInput) Blob {
         current = input
+        if !Object.ReferenceEquals(input.Items, sourceItems) {
+            sourceItems = input.Items
+            forwardedItems = forwardMenuCallbacks(input.Items, invokeItemCallback)
+        }
         let theme = Theme.Read()
         let button = (
             (
@@ -65,19 +79,19 @@ public open class MenuButton : Cell[MenuButtonInput] {
         var menu = MenuInput{
             Open: input.Open,
             Anchor: trigger,
-            Items: input.Items,
+            Items: forwardedItems,
             InitialFocusId: initialId,
             Placement: input.Placement,
-            OnClick: input.OnClick,
+            OnClick: input.OnClick == nil ? nil: activateItem,
             OnOpenChange: (isOpen bool) -> Change(isOpen, false),
         }
         if let create = input.CreateMenu {
             menu = create(input, menu) with{
                 Open = input.Open,
                 Anchor = trigger,
-                Items = input.Items,
+                Items = menu.Items,
                 InitialFocusId = initialId,
-                OnClick = input.OnClick,
+                OnClick = input.OnClick == nil ? nil: activateItem,
                 OnOpenChange = (isOpen bool) -> Change(isOpen, false)
             }
         }
@@ -100,7 +114,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
         if isOpen {
             trigger.Focus()
         }
-        current.OnOpenChange?.Invoke(isOpen)
+        InvokeInputCallback(current.OnOpenChange, isOpen)
     }
 }
 

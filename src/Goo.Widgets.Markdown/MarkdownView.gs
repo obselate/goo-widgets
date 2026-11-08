@@ -204,6 +204,8 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         return root
     }
 
+    private func OpenLink(target string) -> InvokeInputCallback(current.OnLink, target)
+
     private func Leaf(model MarkdownModel, size float64, weight float64, alignment TextAlign, current MarkdownViewInput, theme Theme) Blob {
         let path = model.Path
         let text = model.Block.Text ?? ""
@@ -214,7 +216,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             stamp = MarkdownLeafStamp{Text: text, Revision: stamp.Revision + 1}
             leaves[path] = stamp
         }
-        let input = MarkdownLeafInput{Model: model, Options: current, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp}
+        let input = MarkdownLeafInput{Model: model, Options: current with{OnLink = current.OnLink == nil ? nil: OpenLink}, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp}
         return Cell.Mount[MarkdownTextView](
             path + "@" + stamp.Revision.ToString(),
             (cell MarkdownTextView) -> cell.Configure(input, theme)

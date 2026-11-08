@@ -37,6 +37,7 @@ public data struct ComboBoxInput {
     /// Allows creating an option from a nonempty query that has no exact match.
     var AllowFreeText bool
     /// Formats the create-option label from the query string. Nil uses localized create text.
+    /// Hosts must not change state in this callback.
     var FormatCreateText Func[string, string]?
     /// Receives the entered free text when the create option is activated. Nil ignores the request.
     var OnCreate Action[string]?
@@ -75,16 +76,22 @@ public data struct ComboBoxInput {
     /// Layer of the popup while open.
     var ZIndex int32
     /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateTrigger Func[ComboBoxInput, Button, Button]?
     /// Replaces the passive expansion indicator; the stable arrow key is reapplied.
+    /// Hosts must not change state in this callback.
     var CreateArrow Func[ComboBoxInput, Blob, Blob]?
     /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateSearch Func[ComboBoxInput, TextEntry, TextEntry]?
     /// Receives the widget input, the option descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRow Func[ComboBoxInput, ComboBoxOption, Container, Container]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreatePopup Func[ComboBoxInput, Container, Container]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ComboBoxInput, Container, Container]?
 }
 
@@ -609,7 +616,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if !value {
             ownedQuery = ""
         }
-        current.OnOpenChange?.Invoke(value)
+        InvokeInputCallback(current.OnOpenChange, value)
         Rebuild()
     }
 
@@ -622,7 +629,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             return
         }
         if id == createId {
-            current.OnCreate?.Invoke((current.Query ?? ownedQuery).Trim())
+            if let callback = current.OnCreate {
+                InvokeInputCallback(callback, (current.Query ?? ownedQuery).Trim())
+            }
             if !current.Multiple {
                 SetOpen(false)
             } else {
@@ -633,10 +642,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             if !values.Remove(id) {
                 values.Add(id)
             }
-            current.OnSelectionChange?.Invoke(values.ToArray())
+            if let callback = current.OnSelectionChange {
+                InvokeInputCallback(callback, values.ToArray())
+            }
             Rebuild()
         } else {
-            current.OnSelect?.Invoke(id)
+            InvokeInputCallback(current.OnSelect, id)
             SetOpen(false)
         }
     }
@@ -644,7 +655,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private func QueryChanged(value string) {
         ownedQuery = value
         viewport.JumpTo(0.0, 0.0)
-        current.OnQueryChange?.Invoke(value)
+        InvokeInputCallback(current.OnQueryChange, value)
         Rebuild()
     }
 

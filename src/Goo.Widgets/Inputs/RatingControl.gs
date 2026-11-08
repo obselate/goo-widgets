@@ -22,6 +22,7 @@ public data struct RatingControlInput {
     /// Accessible name. Nil uses the localized Rating label.
     var AccessibilityName string?
     /// Formats the accessible rating text. Nil uses the localized value and maximum.
+    /// Hosts must not change state in this callback.
     var FormatValue Func[float64, string]?
     /// Root width. Nil uses one theme control height per star.
     var Width Length?
@@ -156,7 +157,7 @@ public open class RatingControl : Cell[RatingControlInput] {
         }
         let selected = Math.Clamp(next, 0, float64(maximum))
         if selected != value {
-            current.OnChange?.Invoke(selected)
+            InvokeInputCallback(current.OnChange, selected)
         }
     }
 

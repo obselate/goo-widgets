@@ -52,10 +52,13 @@ public data struct GraphCanvasInput {
     /// Optional base style for edge strokes.
     var EdgeStyle Style?
     /// Receives the resolved input and node to create its content. Nil uses the node Content.
+    /// Hosts must not change state in this callback.
     var CreateNodeContent Func[GraphCanvasInput, GraphNode, Blob]?
     /// Receives the resolved input, node, and prepared interactive card, and returns its replacement.
+    /// Hosts must not change state in this callback.
     var CreateNode Func[GraphCanvasInput, GraphNode, Container, Blob]?
     /// Receives the resolved input, edge, and prepared stroke, and returns its replacement.
+    /// Hosts must not change state in this callback.
     var CreateEdge Func[GraphCanvasInput, GraphEdge, Container, Blob]?
     /// Receives requested controlled selection updates.
     var OnSelectionChange Action[[]string]?
@@ -473,7 +476,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
         }
         if pointerMode == GraphPointerMode.Pan {
             viewport = viewport with{PanX = viewport.PanX + e.Delta.X, PanY = viewport.PanY + e.Delta.Y}
-            resolved.OnViewportChange?.Invoke(viewport)
+            InvokeInputCallback(resolved.OnViewportChange, viewport)
             Rebuild()
         } else if pointerMode == GraphPointerMode.Marquee {
             marqueeEnd = e.Position
@@ -488,7 +491,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
                 Y: draggedNodePosition.Y + world.Y - dragPointerWorld.Y,
             }
             dragPointerWorld = world
-            resolved.OnNodePositionChange?.Invoke(
+            InvokeInputCallback(resolved.OnNodePositionChange,
                 GraphNodePositionChange{NodeId: draggedNodeId, Position: draggedNodePosition,}
             )
             Rebuild()
@@ -569,7 +572,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
     }
 
     private func EmitSelection(ids[]string) {
-        resolved.OnSelectionChange?.Invoke(ids)
+        InvokeInputCallback(resolved.OnSelectionChange, ids)
     }
 
     private func Zoom(e WheelEvent) {
@@ -587,7 +590,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             PanY: e.Position.Y - world.Y * nextZoom,
             Zoom: nextZoom,
         }
-        resolved.OnViewportChange?.Invoke(viewport)
+        InvokeInputCallback(resolved.OnViewportChange, viewport)
         e.PreventDefault()
         Rebuild()
     }

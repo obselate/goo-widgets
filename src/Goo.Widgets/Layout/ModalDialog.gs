@@ -88,10 +88,13 @@ public data struct ModalDialog {
     /// Dialog corner radius. Nil resolves to 8 and preserves explicit zero.
     var BorderRadius float64?
     /// Creates the cancel button from resolved values and final content.
+    /// Hosts must not change state in this callback.
     var CreateCancel Func[ModalDialog, Blob, Button]?
     /// Creates the confirm button from resolved values and final content.
+    /// Hosts must not change state in this callback.
     var CreateConfirm Func[ModalDialog, Blob, Button]?
     /// Creates the final overlay from resolved values, backdrop, and dialog panel.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[ModalDialog, Button, Container, Container]?
 
     internal prop CanEscape bool {

@@ -27,6 +27,7 @@ public data struct SpinnerInput {
     /// Accessible progress label. Nil uses localized loading text.
     var Label string?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Hosts must not change state in this callback.
     var CreateRoot Func[SpinnerInput, Container, Container]?
 }
 

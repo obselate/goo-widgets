@@ -135,7 +135,7 @@ public open class ShortcutList : Cell[ShortcutListInput] {
                 TextField{
                     Value: input.Query ?? "",
                     Placeholder: theme.Text("Find a shortcut"),
-                    OnChange: input.OnQueryChange
+                    OnChange: value -> InvokeInputCallback(input.OnQueryChange, value)
                 }.Build()
             )
         }
