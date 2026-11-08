@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Use `Post` for queued UI work. Requires Goo 0.29.0.
 - Value widgets convert implicitly to `Blob`. Add widget literals directly to child collections and content slots without calling `Build()`.
 - Upgrade Goo to 0.29.0 for callback ownership and controlled text synchronization during Build.
 - Upgrade Goo to 0.28.7 for filter performance, 12 px text, and focus outlines inside rounded clipping ancestors.
