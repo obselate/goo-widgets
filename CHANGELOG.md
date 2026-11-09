@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Report pump count, elapsed time, expected and actual row alignment, and anchor values when the native virtual scroll probe times out.
+
 ## 0.21.0 - 2026-11-09
 
 - Remove redundant input callback rebuilds from the QuickStart sample and update the usage guide for automatic host rebuilds.
