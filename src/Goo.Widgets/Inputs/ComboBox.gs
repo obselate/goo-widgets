@@ -374,8 +374,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let activeHandle ElementHandle? = activeId == "" ? nil: Handle(activeId)
         let relationships = AccessibilityRelationships{ActiveDescendant: activeHandle}
         let content = Container{
-            FlexBasis: height - 2.0,
-            FlexShrink: 1.0,
+            Height: height - 2.0,
             MinHeight: 0.0,
             MinWidth: 0.0,
             Padding: Edges{Top: theme.Spacing, Bottom: theme.Spacing}
