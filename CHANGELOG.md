@@ -4,6 +4,7 @@
 
 - Remove redundant input callback rebuilds from the QuickStart sample and update the usage guide for automatic host rebuilds.
 - Add `theme.Spacing` padding above and below the ComboBox popup list, like menus. The list scrolls inside the padding.
+- Draw `WindowChrome` caption buttons with crisp 10 px Windows 11 style glyphs. Apps that select `GooMaterialIcon` items no longer get `crop_square` and `filter_none` by default. Add them as `GooMaterialIcon` items if the app uses them.
 
 ## 0.20.0 - 2026-11-08
 

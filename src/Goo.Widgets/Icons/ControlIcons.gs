@@ -16,13 +16,11 @@ internal enum ControlIcon {
     ChevronRight;
     Close;
     ContentCopy;
-    CropSquare;
     DoneAll;
     Download;
     Error;
     ExpandLess;
     ExpandMore;
-    FilterNone;
     FindReplace;
     Info;
     MatchCase;
@@ -57,13 +55,11 @@ internal class ControlIcons {
                 case ControlIcon.ChevronRight { name = "chevron_right" }
                 case ControlIcon.Close { name = "close" }
                 case ControlIcon.ContentCopy { name = "content_copy" }
-                case ControlIcon.CropSquare { name = "crop_square" }
                 case ControlIcon.DoneAll { name = "done_all" }
                 case ControlIcon.Download { name = "download" }
                 case ControlIcon.Error { name = "error" }
                 case ControlIcon.ExpandLess { name = "expand_less" }
                 case ControlIcon.ExpandMore { name = "expand_more" }
-                case ControlIcon.FilterNone { name = "filter_none" }
                 case ControlIcon.FindReplace { name = "find_replace" }
                 case ControlIcon.Info { name = "info" }
                 case ControlIcon.MatchCase { name = "match_case" }

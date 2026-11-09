@@ -215,8 +215,8 @@ func Main() {
     let expected = []string{
         "arrow_downward", "arrow_upward", "attach_file", "calendar_month", "check", "check_box",
         "check_box_outline_blank", "check_circle", "chevron_left", "chevron_right", "close", "content_copy",
-        "create_new_folder", "crop_square", "done_all", "download", "error", "expand_less", "expand_more",
-        "filter_none", "find_replace", "info", "match_case", "match_word", "pause", "play_arrow",
+        "create_new_folder", "done_all", "download", "error", "expand_less", "expand_more",
+        "find_replace", "info", "match_case", "match_word", "pause", "play_arrow",
         "regular_expression", "remove", "restart_alt", "search", "skip_next", "skip_previous",
         "visibility", "visibility_off", "warning"
     }
