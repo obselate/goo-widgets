@@ -344,10 +344,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         root.Children.Add(button)
         let popupHeight = Math.Min(
             current.PopupHeight!!,
-            2.0 + ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) + Math.Max(
-                theme.ControlHeight,
-                float64(rows.Length) * current.RowHeight!!
-            )
+            2.0 +
+                2.0 * theme.Spacing +
+                ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) +
+                Math.Max(theme.ControlHeight, float64(rows.Length) * current.RowHeight!!)
         )
         var popup = PopoverInput{
             Open: isOpen,
@@ -376,7 +376,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private func BuildList(query string, height float64) Container {
         let activeHandle ElementHandle? = activeId == "" ? nil: Handle(activeId)
         let relationships = AccessibilityRelationships{ActiveDescendant: activeHandle}
-        let content = Container{Height: height - 2.0, MinHeight: 0.0, MinWidth: 0.0}
+        let content = Container{
+            Height: height - 2.0,
+            MinHeight: 0.0,
+            MinWidth: 0.0,
+            Padding: Edges{Top: theme.Spacing, Bottom: theme.Spacing}
+        }
         if current.Searchable || current.AllowFreeText {
             var entry = TextEntry{
                 Height: theme.ControlHeight,
