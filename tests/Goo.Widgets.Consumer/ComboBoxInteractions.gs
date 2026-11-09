@@ -7,6 +7,7 @@ import Goo.Widgets.Layout
 import Hexa.NET.SDL3
 import System
 import System.Collections.Generic
+import System.Linq
 import System.Runtime.InteropServices
 
 internal class ComboBoxProbe : ComboBox {
@@ -50,7 +51,7 @@ internal class ComboBoxHost : Cell {
     internal var Selected string = "beta"
     internal var Commits int32
     internal var Large bool
-    internal var Count int32
+    internal var Labels []string = []string{}
     internal var Searchable bool
     internal var Disabled bool
     internal var Empty bool
@@ -102,10 +103,10 @@ internal class ComboBoxHost : Cell {
         if Empty {
             return []ComboBoxOption{}
         }
-        if Count > 0 {
-            let items = [Count]ComboBoxOption
+        if Labels.Length > 0 {
+            let items = [Labels.Length]ComboBoxOption
             for index in 0 ... items.Length {
-                items[index] = ComboBoxOption{Id: "item-" + index.ToString(), Label: "Option " + index.ToString()}
+                items[index] = ComboBoxOption{Id: "item-" + index.ToString(), Label: Labels[index]}
             }
             return items
         }
@@ -169,7 +170,7 @@ internal class ComboBoxHost : Cell {
                         "combo",
                         ComboBoxInput{
                             Width: 320.0,
-                            PopupHeight: Count > 0 ? nil: 250.0,
+                            PopupHeight: Labels.Length > 0 ? nil: 250.0,
                             Placement: Placement,
                             SelectedId: Selected,
                             OnSelect: Select,
@@ -464,7 +465,7 @@ func ComboBoxInteractions() {
         let panel = host.Panel!!.Handle!!.BorderBox
         Require(panel.X >= 7.5 && panel.X + panel.Width <= 362.5, "ComboBox popup escaped resized overlay bounds")
         for count in []int32{10000, 50000} {
-            host.Count = count
+            host.Labels = Enumerable.Range(0, count).Select((index int32) -> "Option " + index.ToString()).ToArray()
             host.Rows.Clear()
             host.Rebuild()
             PumpFrames(window, 12)
@@ -474,6 +475,27 @@ func ComboBoxInteractions() {
                 && tall.Y + tall.Height <= float64(window.Height) - 7.5,
                 "ComboBox with " + count.ToString() + " options and no PopupHeight realized "
                 + host.Rows.Count.ToString() + " rows in " + tall.ToString()
+            )
+        }
+        window.Width = 720
+        window.Height = 520
+        let theme = Theme.Read(window)
+        let font = Text{FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight}
+        let narrow = String.Concat(Enumerable.Repeat("i", 60))
+        let wide = String.Concat(Enumerable.Repeat("W", 26))
+        Require(window.MeasureText(narrow, font) < window.MeasureText(wide, font), "Narrow label fixture is not narrower")
+        for labels in [][]string{
+            Enumerable.Range(0, 1000).Select((index int32) -> narrow + index.ToString()).Append(wide).ToArray(),
+            Enumerable.Repeat(narrow, 1000).Append(wide).ToArray()
+        } {
+            host.Labels = labels
+            host.Rebuild()
+            PumpFrames(window, 12)
+            let expected = float64(window.MeasureText(labels.Last(), font)) + 2.0 * theme.ControlPadding + 8.0 + 2.0 * theme.BorderWidth
+            let actual = host.Panel!!.Handle!!.BorderBox.Width
+            Require(
+                expected > 330.0 && Math.Abs(actual - expected) <= 1.0,
+                "ComboBox popup width " + actual.ToString() + " does not fit its widest label " + expected.ToString()
             )
         }
         host.Show = false

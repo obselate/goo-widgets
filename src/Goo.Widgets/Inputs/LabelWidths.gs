@@ -3,11 +3,10 @@ package Goo.Widgets.Inputs
 import Goo
 import System
 import System.Collections.Generic
+import System.Linq
 
-/// Finds the widest single-line label of an option set. Keeps each label width until the font changes.
-/// Measures at most the 1,000 labels with the most characters, about one frame of text shaping.
+/// Finds the widest single-line label of an option set. Keeps label widths until the font changes.
 internal class LabelWidths {
-    private let limit int32 = 1000
     private var widths Dictionary[string, float32] = Dictionary[string, float32](StringComparer.Ordinal)
     private var source object?
     private var family string = ""
@@ -15,44 +14,42 @@ internal class LabelWidths {
     private var weight int32
     private var widest float64
 
-    /// Returns the widest measured label in logical pixels. Measures only labels that are new since the last call with the same font.
+    /// Returns the widest label in logical pixels, or the first measured width that fills the popup width cap.
+    /// Measures each distinct label once, longest first, so that long labels reach the cap early.
     /// Returns the previous result when items is the same array and the font is the same.
-    internal func Widest[T](items[]T, label Func[T, string?], family string, size float64, weight int32) float64 {
-        let sameFont = family == this.family && size == this.size && weight == this.weight
+    internal func Widest[T](items[]T, label Func[T, string?], theme Theme, weight int32, chrome float64) float64 {
+        let window = Theme.Key.Window
+        let sameFont = theme.FontFamily == family && theme.FontSize * theme.PlatformTextScaleFactor == size && weight == this.weight
         if sameFont && Object.ReferenceEquals(items, source) {
             return widest
         }
-        let texts = List[string](items.Length)
+        let distinct = HashSet[string](StringComparer.Ordinal)
         for item in items {
             if let text = label(item) {
-                texts.Add(text)
+                distinct.Add(text)
             }
         }
-        let candidates = texts.ToArray()
-        if candidates.Length > limit {
-            let lengths = [candidates.Length]int32
-            for index in 0 ... candidates.Length {
-                lengths[index] = -candidates[index].Length
-            }
-            Array.Sort(lengths, candidates)
-        }
-        let style = Text{FontFamily: family, FontSize: size, FontWeight: weight}
-        let window = Theme.Key.Window
+        let texts = distinct.ToArray()
+        let lengths = texts.Select((text string) -> -text.Length).ToArray()
+        Array.Sort(lengths, texts)
+        let style = Text{FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: weight}
+        let cap = Math.Min(32.5 * theme.FontSize * theme.PlatformTextScaleFactor, float64(window.Width)) - chrome
         let measured = Dictionary[string, float32](StringComparer.Ordinal)
-        var result = 0.0F
-        for index in 0 ... Math.Min(candidates.Length, limit) {
-            let text = candidates[index]
-            if !measured.ContainsKey(text) {
-                measured.Add(text, sameFont && widths.TryGetValue(text, out var known) ? known: window.MeasureText(text, style))
+        var result = 0.0
+        for text in texts {
+            if result >= cap {
+                break
             }
-            result = MathF.Max(result, measured[text])
+            let width = sameFont && widths.TryGetValue(text, out var known) ? known: window.MeasureText(text, style)
+            measured.Add(text, width)
+            result = Math.Max(result, float64(width))
         }
         widths = measured
         source = items
-        this.family = family
-        this.size = size
+        family = theme.FontFamily
+        size = theme.FontSize * theme.PlatformTextScaleFactor
         this.weight = weight
-        widest = float64(result)
+        widest = result
         return widest
     }
 }

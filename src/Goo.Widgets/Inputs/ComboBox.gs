@@ -66,6 +66,8 @@ public data struct ComboBoxInput {
     /// Trigger layout width. Nil uses 280.
     var Width Length?
     /// Nil and true size the popup to the widest option label, at least the trigger width, limited to 65 characters and the viewport. Options with Content do not count.
+    /// The first open after Items changes to a new array measures each distinct label once, about 7 µs per label, longest first
+    /// until a label reaches the width limit. Keep the same Items array while the options do not change.
     /// False gives the popup the trigger Width.
     var MatchTriggerWidth bool?
     /// Finite popup height limit in logical pixels, greater than 42. Nil fits the options, limited by the viewport.
@@ -353,7 +355,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 Math.Max(theme.ControlHeight, float64(rows.Length) * current.RowHeight!!)
         )
         let labelWidth = isOpen && current.MatchTriggerWidth != false
-            ? optionWidths.Widest(items, OptionLabel, theme.FontFamily, theme.FontSize, theme.FontWeight): 0.0
+            ? optionWidths.Widest(items, OptionLabel, theme, theme.FontWeight, 2.0 * theme.ControlPadding + 8.0 + (current.Multiple ? 18.0: 0.0)): 0.0
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: trigger,

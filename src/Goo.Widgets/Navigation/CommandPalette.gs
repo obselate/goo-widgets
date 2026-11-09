@@ -200,7 +200,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         var defaultWidth Length = 560.0
         let readableWidth = 32.5 * theme.FontSize * theme.PlatformTextScaleFactor
         if input.Width == nil && readableWidth > 560.0 {
-            let labelWidth = labelWidths.Widest(items, (item CommandItem) -> item.Label, theme.FontFamily, theme.FontSize, theme.HeadingFontWeight)
+            let labelWidth = labelWidths.Widest(items, (item CommandItem) -> item.Label, theme, theme.HeadingFontWeight, 2.0 * theme.ControlPadding + 4.0 * theme.BorderWidth)
             defaultWidth = Math.Clamp(labelWidth + 2.0 * theme.ControlPadding + 4.0 * theme.BorderWidth, 560.0, readableWidth)
         }
         let contentHeight = inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight

@@ -105,7 +105,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             state: nil
         )
         list.Handle = listHandle
-        let labelWidth = visible ? labelWidths.Widest(candidates, (item string) -> item, theme.FontFamily, theme.FontSize, theme.HeadingFontWeight): 0.0
+        let labelWidth = visible ? labelWidths.Widest(candidates, (item string) -> item, theme, theme.HeadingFontWeight, 2.0 * theme.ControlPadding): 0.0
         list.Width = labelWidth + 2.0 * theme.ControlPadding
         list.MaxWidth = Percent(100)
         list.FlexBasis = Math.Min(limit, matches.Length * rowHeight)
