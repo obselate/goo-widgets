@@ -175,6 +175,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 Key: "month",
                 Content: title,
                 FlexGrow: 1.0,
+                FlexShrink: 0.0,
                 TextAlign: TextAlign.Center,
                 FontFamily: theme.HeadingFontFamily,
                 FontSize: theme.HeadingFontSize,
