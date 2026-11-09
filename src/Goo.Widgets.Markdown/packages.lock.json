@@ -10,8 +10,8 @@
       },
       "Goo": {
         "type": "Transitive",
-        "resolved": "0.30.0-local.1",
-        "contentHash": "OxyM8FKLnUN3EwAtxw/AhYPy7KyI5GHjwaMM4Jlt1g2FjxtKaxFvHHA0fWkejFHpSoe6Rlyvo/Wc4SjyUmArwg==",
+        "resolved": "0.30.0-local.2",
+        "contentHash": "EE2oY53tgI+v5bUD7DCMoFQSkZNxbWuIc+kACJD6aUFenvXDvx7x29HUHc/xJcB3y/xhjGZ/RzIOxFjDcU6gzw==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Tmds.DBus.Protocol": "0.95.2",
@@ -44,7 +44,7 @@
       "goo.widgets": {
         "type": "Project",
         "dependencies": {
-          "Goo": "[0.30.0-local.1, )"
+          "Goo": "[0.30.0-local.2, )"
         }
       }
     }
