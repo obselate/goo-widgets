@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Remove redundant input callback rebuilds from the QuickStart sample and update the usage guide for automatic host rebuilds.
+- Add `theme.Spacing` padding above and below the ComboBox popup list, like menus. The list scrolls inside the padding.
 
 ## 0.20.0 - 2026-11-08
 
