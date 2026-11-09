@@ -262,8 +262,9 @@ public data struct Theme {
         return Selection == SelectionStyle.Filled ? AccentColor: Selection == SelectionStyle.Indicator ? HoverColor: tint
     }
 
-    internal func SelectedText(text Color, fill Color? = nil) Color {
-        let surface = fill ?? SelectedFill(ActiveColor)
+    internal func SelectedText(text Color, fill Color? = nil, backdrop Color? = nil) Color {
+        let selected = fill ?? SelectedFill(ActiveColor)
+        let surface = selected.A < 1.0F ? Mix(backdrop ?? PanelColor, selected, selected.A): selected
         let target = Contrast(Color.Black, surface) > Contrast(Color.White, surface) ? Color.Black: Color.White
         return Legible(text, target, surface, HighContrast ? 7.0: 4.5)
     }

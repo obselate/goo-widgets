@@ -477,6 +477,7 @@ func Main() {
     }
     ThemeFocusContracts()
     ThemeRadiusContracts()
+    SelectedTextContracts()
     RunContracts(
         () -> {
             CalendarContracts()

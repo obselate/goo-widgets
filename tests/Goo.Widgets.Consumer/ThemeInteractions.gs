@@ -199,6 +199,45 @@ func RequireFocusOutline(handle ElementHandle, width float64, offset float64, pa
         + " differs from theme " + width.ToString() + "/" + offset.ToString() + ".")
 }
 
+func SelectedTextContracts() {
+    let dark = Color.Rgb(22, 24, 30)
+    let light = Color.Rgb(250, 250, 250)
+    let linear = (value float32) -> value <= 0.04045F ? float64(value) / 12.92: Math.Pow((float64(value) + 0.055) / 1.055, 2.4)
+    let luminance = (color Color) -> 0.2126 * linear(color.R) + 0.7152 * linear(color.G) + 0.0722 * linear(color.B)
+    for (backdrop, background, fill, text, unchanged) in []ValueTuple[Color, Color, Color, Color, bool]{
+        (dark, dark, Color.White.WithAlpha(0.06), Color.Rgb(230, 230, 230), true),
+        (light, light, Color.Black.WithAlpha(0.035), Color.Rgb(26, 26, 26), true),
+        (Color.White, dark, Color.White.WithAlpha(0.06), Color.Rgb(230, 230, 230), false),
+    } {
+        var actual = Color.Transparent
+        let parent = Container{BackgroundColor: backdrop}
+        RunContracts(() -> {
+            parent.Children.Add(ListRow{
+                Title: "Selected",
+                Selected: true,
+                BackgroundColor: background,
+                SelectedBackgroundColor: fill,
+                TextColor: text,
+                CreateTitle: (value ListRow) -> {
+                    actual = value.TextColor!!
+                    return Text{Content: value.Title!!, Color: actual}
+                },
+            }.Build())
+        }, Theme.Default with{PanelColor = backdrop}, parent)
+        let surface = Color.FromNormalized(
+            backdrop.R + (fill.R - backdrop.R) * fill.A,
+            backdrop.G + (fill.G - backdrop.G) * fill.A,
+            backdrop.B + (fill.B - backdrop.B) * fill.A,
+            1.0F
+        )
+        let foreground = luminance(actual) + 0.05
+        let backgroundLuminance = luminance(surface) + 0.05
+        Require(Math.Max(foreground, backgroundLuminance) / Math.Min(foreground, backgroundLuminance) >= 4.5,
+            "Selected text lacks contrast against the painted selection backdrop.")
+        Require(!unchanged || actual == text, "Legible selected text changed over a translucent fill.")
+    }
+}
+
 func ThemeFocusContracts() {
     for width in []float64{2.0, 1.0, 0.0} {
         using let host = ThemePreferenceHost()

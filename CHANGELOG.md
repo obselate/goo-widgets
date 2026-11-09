@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Report pump count, elapsed time, expected and actual row alignment, and anchor values when the native virtual scroll probe times out.
+- Selected text over a translucent selection fill now gets its contrast from the fill composed over the theme panel or popup surface. Opaque fills are unchanged.
 
 ## 0.21.0 - 2026-11-09
 
