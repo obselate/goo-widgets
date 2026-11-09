@@ -477,13 +477,13 @@ func Main() {
     }
     ThemeFocusContracts()
     ThemeRadiusContracts()
+    SelectedTextContracts()
     RunContracts(
         () -> {
             CalendarContracts()
             WindowChromeContracts()
             MarkdownContracts()
             ComboBoxContracts()
-            SelectedTextContracts()
             OverlayContracts()
             PackageComposition()
             StructDefaultContracts()
