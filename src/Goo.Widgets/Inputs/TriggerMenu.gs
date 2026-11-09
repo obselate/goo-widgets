@@ -25,7 +25,7 @@ public data struct TriggerMenuInput {
     var Items Func[string, []string]?
     /// Receives the trigger, the picked item and the typed range. Nil replaces the range with trigger, item and a space.
     var OnPick Action[string, string, TextRange]?
-    /// Nil uses 240.
+    /// Nil fits the matches, limited by the viewport.
     var MaxHeight Length?
 }
 
@@ -88,8 +88,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
         }
         visible = found && anchorRect != nil
         rowHeight = theme.ControlHeight
-        let defaultHeight Length = 240.0
-        let height = input.MaxHeight ?? defaultHeight
+        let height = input.MaxHeight ?? Length.Auto
         let limit = height.HasMagnitude && !height.IsPercent ? height.Magnitude: matches.Length * rowHeight
         let highlighted = matches.Length > 0 ? matches[active].Order: -1
         let key((FuzzyMatchItem[string]) -> string) = (match FuzzyMatchItem[string]) -> match.Item + "\0" + match.Order.ToString()
@@ -104,8 +103,12 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             state: nil
         )
         list.Handle = listHandle
-        list.Height = Math.Min(limit, matches.Length * rowHeight)
-        list.MaxHeight = height
+        list.FlexBasis = Math.Min(limit, matches.Length * rowHeight)
+        list.FlexShrink = 1
+        list.MinHeight = 0
+        if height.HasMagnitude {
+            list.MaxHeight = height
+        }
         list.Accessibility = Accessibility{Role: AccessibilityRole.List, SizeOfSet: matches.Length}
         return Container{
             MinWidth: 0,
@@ -123,6 +126,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
                     TakeFocus: false,
                     DismissOnOutsideClick: false,
                     Content: list,
+                    Width: 280.0,
                     MaxHeight: limit + 8.0,
                     Padding: 4.0,
                     AccessibilityName: theme.Text("Suggestions"),

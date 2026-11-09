@@ -54,14 +54,14 @@ public data struct PopoverInput {
     var Viewport ElementRect?
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
-    /// Width defaults to 280. Auto fits the content and Percent uses the viewport width.
-    /// Maximum height defaults to 360. Both shrink to the available viewport.
+    /// Width defaults to the content width. Percent uses the viewport width.
+    /// Width and height shrink to the available viewport.
     var Width Length?
     /// Lower width bound. Nil keeps the panel's own MinWidth.
     var MinWidth Length?
     /// Upper width bound. Nil uses the available viewport and keeps the panel's own MaxWidth unless Width is Auto.
     var MaxWidth Length?
-    /// Panel height limit. Nil uses 360. The viewport can reduce it.
+    /// Panel height limit. Nil uses the content height. The viewport can reduce it.
     var MaxHeight Length?
     /// Nonnegative anchor-to-panel gap in logical pixels. Nil uses the theme spacing.
     var Gap float64?
@@ -238,7 +238,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         if fit || current.MaxWidth != nil {
             panel.MaxWidth = maxWidth
         }
-        panel.MaxHeight = presented ? heightLimit: current.MaxHeight!!
+        panel.MaxHeight = presented || !requestedHeight.HasMagnitude ? heightLimit: requestedHeight
         panel.MinHeight = 0.0
         panel.FlexShrink = anchor == nil ? 0.0: 1.0
         panel.OverflowY = Overflow.Scroll
@@ -317,11 +317,10 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     }
 
     private func Resolve(input PopoverInput, theme Theme) PopoverInput {
-        let defaultWidth Length = 280
-        let defaultHeight Length = 360.0
+        let defaultSize Length = Length.Auto
         let result = input with{
-            Width = input.Width ?? defaultWidth,
-            MaxHeight = input.MaxHeight ?? defaultHeight,
+            Width = input.Width ?? defaultSize,
+            MaxHeight = input.MaxHeight ?? defaultSize,
             Gap = input.Gap ?? theme.Spacing,
             ViewportMargin = input.ViewportMargin ?? theme.ControlGap,
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex,

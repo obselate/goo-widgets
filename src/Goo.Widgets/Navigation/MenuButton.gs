@@ -95,7 +95,7 @@ public open class MenuButton : Cell[MenuButtonInput] {
                 OnOpenChange = (isOpen bool) -> Change(isOpen, false)
             }
         }
-        return Container{FlexDirection: FlexDirection.Row, button, Cell.Mount[MenuInput, Menu]("menu", menu),}
+        return Container{FlexDirection: FlexDirection.Row, FlexShrink: 1.0, MinWidth: 0.0, button, Cell.Mount[MenuInput, Menu]("menu", menu),}
     }
 
     private func Change(isOpen bool, last bool) {

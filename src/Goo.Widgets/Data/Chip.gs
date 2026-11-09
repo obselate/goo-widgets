@@ -76,7 +76,7 @@ public data struct Chip {
     var Transform PanelTransform?
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
-    /// Custom factory for creating the label Text primitive from resolved props.
+    /// Custom factory for creating the label Text primitive from resolved props. Nil uses one line that ends with an ellipsis when the chip is too narrow.
     var CreateText Func[Chip, Text]?
     /// Custom factory for creating the root Button primitive from resolved props, original leading, and final text.
     var CreateRoot Func[Chip, Blob?, Text, Button]?
@@ -126,7 +126,15 @@ public data struct Chip {
         let text = if let createText = createText {
             createText(resolved)
         } else {
-            let value = Text{Content: resolved.Label!!, FontSize: resolved.FontSize!!, FontWeight: resolved.FontWeight!!}
+            let value = Text{
+                Content: resolved.Label!!,
+                FontSize: resolved.FontSize!!,
+                FontWeight: resolved.FontWeight!!,
+                TextWrap: TextWrap.NoWrap,
+                TextTrimming: TextTrimming.Ellipsis,
+                MinWidth: 0.0,
+                FlexShrink: 1.0,
+            }
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
             }
@@ -157,12 +165,14 @@ public data struct Chip {
             DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
+            FlexShrink: 1.0,
+            MinWidth: 0.0,
         } }
 
         if createRoot == nil {
             if let leading = originalLeading {
                 root.Children.Add(Container(){leading})
-                root.Children.Add(Container(){text})
+                root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
         }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, Selected)
@@ -222,6 +232,8 @@ public data struct Chip {
             DisabledStyle: Style{BackgroundColor: theme.SunkenColor, Color: theme.DisabledTextColor, Opacity: input.DisabledOpacity!!},
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
+            FlexShrink: 1.0,
+            MinWidth: 0.0,
             AlignItems: AlignItems.Center,
             BackgroundColor: input.Selected ? input.SelectedBackgroundColor!!: input.BackgroundColor!!,
             BorderColor: input.Selected ? input.SelectedBorderColor!!: input.BorderColor!!,

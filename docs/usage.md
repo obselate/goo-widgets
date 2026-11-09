@@ -179,6 +179,7 @@ one Anchor handle or WindowPoint. It uses measured bounds, flips to the opposite
 side when it fits better, and clamps to Viewport (window coordinates), or the
 Window bounds by default. Its first visible frame waits for the panel measurement,
 so wrapped content is already aligned. It tracks anchor movement and resize.
+The panel fits its content by default. Width and MaxHeight set fixed limits.
 `OnOpenChange(false)` runs before OnDismiss reports Escape, OutsideClick, or AnchorRemoved.
 Apply the requested Open state. Input callbacks rebuild the host.
 Call `Rebuild()` for AnchorRemoved because it comes from a metrics subscription.
@@ -227,7 +228,8 @@ and root factories customize appearance while identity, input, and accessibility
 
 `Placement` defaults to `PopoverPlacement.BottomStart`. Set `TopStart` to prefer
 opening above, with downward fallback. If neither side fits, the popup shrinks
-to the side with more room and scrolls.
+to the side with more room and scrolls. The popup is at least as wide as the
+trigger and as tall as the options. `PopupHeight` limits its height.
 
 ## Calendar and DatePicker
 

@@ -66,7 +66,7 @@ public data struct ActionButton {
     var Transform PanelTransform?
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
-    /// Creates Text from resolved props. Nil uses the default Text composition.
+    /// Creates Text from resolved props. Nil uses one line that ends with an ellipsis when the button is too narrow.
     var CreateText Func[ActionButton, Text]?
     /// Creates the final Button from resolved props and exact final Text.
     var CreateRoot Func[ActionButton, Text, Button]?
@@ -117,6 +117,10 @@ public data struct ActionButton {
                 Content: resolved.Content!!,
                 FontSize: resolved.FontSize!!,
                 FontWeight: resolved.FontWeight!!,
+                TextWrap: TextWrap.NoWrap,
+                TextTrimming: TextTrimming.Ellipsis,
+                MinWidth: 0.0,
+                FlexShrink: 1.0,
             }
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
@@ -138,6 +142,7 @@ public data struct ActionButton {
             Opacity: resolved.Opacity!!,
             Transform: resolved.Transform!!,
             FlexDirection: FlexDirection.Row,
+            FlexShrink: 1.0,
             Gap: theme.ControlGap,
             Cursor: Cursor.Pointer,
             Focusable: true,
@@ -151,6 +156,8 @@ public data struct ActionButton {
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
+            FlexShrink: 1.0,
+            MinWidth: 0.0,
         }
         var leadingSlot Container?
         if let leading = Leading {

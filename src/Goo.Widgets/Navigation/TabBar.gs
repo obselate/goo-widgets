@@ -138,6 +138,7 @@ public open class TabBar : Cell[TabBarInput] {
                 MinHeight: input.ItemHeight!!,
                 Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                 FlexShrink: 0,
+                MaxWidth: Percent(100),
                 BorderWidth: theme.HighContrast ? theme.BorderWidth: 0,
                 BorderColor: Color.Transparent,
                 Color: active ? theme.TextColor: theme.ChromeTextColor,
@@ -155,6 +156,9 @@ public open class TabBar : Cell[TabBarInput] {
                     Text{
                     Content: item.Label!!,
                     TextWrap: TextWrap.NoWrap,
+                    TextTrimming: TextTrimming.Ellipsis,
+                    MinWidth: 0,
+                    FlexShrink: 1,
                     FontFamily: theme.FontFamily,
                     FontSize: theme.FontSize,
                     FontWeight: theme.LabelFontWeight,
@@ -228,6 +232,7 @@ public open class TabBar : Cell[TabBarInput] {
             }
             if input.OnClose != nil && !pinned {
                 button.PaddingEnd = 0
+                button.FlexShrink = 1
                 button.BackgroundColor = Color.Transparent
                 button.Hover = Style{}
                 button.Active = Style{BackgroundColor: Color.Transparent}
@@ -236,6 +241,7 @@ public open class TabBar : Cell[TabBarInput] {
                     Key: id,
                     FlexDirection: FlexDirection.Row,
                     FlexShrink: 0,
+                    MaxWidth: Percent(100),
                     AlignItems: AlignItems.Center,
                     PaddingEnd: theme.Spacing * 2,
                     BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,

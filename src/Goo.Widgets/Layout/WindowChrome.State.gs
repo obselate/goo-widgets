@@ -78,8 +78,6 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
                 Items: items,
                 OnOpenChange: (isOpen bool) -> Dismiss(),
                 WindowPoint: menuPoint,
-                Width: 200.0,
-                MaxHeight: 240.0,
                 AccessibilityName: theme.Text("Window commands")
             }
             if menuOpen && (overlay?.IsMounted ?? false) {

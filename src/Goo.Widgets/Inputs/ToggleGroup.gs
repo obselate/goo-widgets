@@ -122,6 +122,8 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 MinHeight: theme.ControlHeight,
                 Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
                 FlexGrow: input.Stretch ? 1: 0,
+                FlexShrink: 1,
+                MinWidth: 0,
                 FlexDirection: FlexDirection.Row,
                 Gap: theme.ControlGap,
                 BorderWidth: input.Variant == ToggleGroupVariant.Segmented ? Math.Max(2.0, theme.BorderWidth):
@@ -143,7 +145,17 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             if let leading = item.Leading {
                 button.Children.Add(leading)
             }
-            button.Children.Add(Text{Content: item.Label ?? id, FontFamily: theme.FontFamily, FontSize: theme.FontSize})
+            button.Children.Add(
+                Text{
+                    Content: item.Label ?? id,
+                    FontFamily: theme.FontFamily,
+                    FontSize: theme.FontSize,
+                    TextWrap: TextWrap.NoWrap,
+                    TextTrimming: TextTrimming.Ellipsis,
+                    MinWidth: 0,
+                    FlexShrink: 1,
+                }
+            )
             if let create = input.CreateItem {
                 button = create(input, item, button)
             }

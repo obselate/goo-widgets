@@ -70,9 +70,9 @@ public data struct MenuInput {
     var Placement PopoverPlacement
     /// Preferred submenu side; LeftStart or RightStart. Nil opens toward the end edge of the theme direction.
     var SubmenuPlacement PopoverPlacement?
-    /// Menu width. Nil uses the Popover default of 280.
+    /// Menu width. Nil fits the widest item, limited by the viewport.
     var Width Length?
-    /// Height limit. Nil uses the Popover default of 360.
+    /// Height limit. Nil fits the items, limited by the viewport.
     var MaxHeight Length?
     /// Overlay stacking order. Zero selects the widget default layer.
     var ZIndex int32
@@ -215,6 +215,8 @@ public open class Menu : Cell[MenuInput] {
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
                 Color: item.Disabled ? theme.DisabledTextColor: theme.TextColor,
+                TextWrap: TextWrap.NoWrap,
+                TextTrimming: TextTrimming.Ellipsis,
             }
             let prepared = Button{
                 MinHeight: theme.ControlHeight,
@@ -255,7 +257,7 @@ public open class Menu : Cell[MenuInput] {
             row.OnPointerEnter = (event PointerEvent) -> Hover(depth, id)
             row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
             row.Children.Clear()
-            row.Children.Add(Container{Key: "content", FlexGrow: 1.0, MinWidth: 0.0, content})
+            row.Children.Add(Container{Key: "content", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, content})
             if let shortcut = item.Shortcut {
                 row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false}.Build())
             }

@@ -606,6 +606,7 @@ public open class TreeView : Cell[TreeViewInput] {
             Color: row.Disabled || snapshot.Disabled ? theme.DisabledTextColor:
                 row.Selected ? theme.SelectedText(snapshot.TextColor!!, snapshot.SelectedColor): snapshot.TextColor!!,
             TextWrap: TextWrap.NoWrap,
+            TextTrimming: TextTrimming.Ellipsis,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.FontWeight,

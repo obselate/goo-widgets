@@ -54,7 +54,7 @@ public data struct DatePickerInput {
     var OnOpenChange Action[bool]?
     /// Editor layout width. Nil uses 280 logical pixels.
     var Width Length?
-    /// Finite calendar-popup width in logical pixels, greater than 40. Nil uses 300.
+    /// Finite calendar-popup width in logical pixels, greater than 40. Nil uses 300. The popup is at least as wide as the field.
     var PopupWidth float64?
     /// Popup stacking order. Zero uses layer 20.
     var ZIndex int32
@@ -278,8 +278,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: fieldHandle,
-            Width: current.PopupWidth!!,
-            MaxHeight: 360.0,
+            Width: Math.Max(current.PopupWidth!!, fieldHandle.IsMounted ? fieldHandle.BorderBox.Width: 0.0),
             Content: Cell.Mount[CalendarInput, Calendar]("calendar", calendar),
             Padding: 0.0,
             AccessibilityName: current.AccessibilityName!!+ " popup",

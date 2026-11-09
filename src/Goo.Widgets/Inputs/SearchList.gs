@@ -328,7 +328,10 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
                 Content: item.Label ?? "",
                 Color: item.Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(options.Foreground, options.Selection): options.Foreground,
                 FlexGrow: 1,
+                FlexShrink: 1,
                 MinWidth: 0,
+                TextWrap: TextWrap.NoWrap,
+                TextTrimming: TextTrimming.Ellipsis,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
@@ -336,6 +339,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             Text{
                 Content: item.Detail ?? "",
                 Color: item.Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(options.Muted, options.Selection): options.Muted,
+                TextWrap: TextWrap.NoWrap,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.CaptionFontSize,
                 FontWeight: theme.CaptionFontWeight,
