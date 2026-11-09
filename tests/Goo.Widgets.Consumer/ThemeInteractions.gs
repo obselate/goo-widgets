@@ -199,6 +199,29 @@ func RequireFocusOutline(handle ElementHandle, width float64, offset float64, pa
         + " differs from theme " + width.ToString() + "/" + offset.ToString() + ".")
 }
 
+func SelectedTextContracts() {
+    let dark = Color.Rgb(22, 24, 30)
+    let light = Color.Rgb(250, 250, 250)
+    for (background, fill, text) in []ValueTuple[Color, Color, Color]{
+        (dark, Color.White.WithAlpha(0.06), Color.Rgb(230, 230, 230)),
+        (light, Color.Black.WithAlpha(0.035), Color.Rgb(26, 26, 26)),
+    } {
+        let resolved = List[Color]()
+        ListRow{
+            Title: "Selected",
+            Selected: true,
+            BackgroundColor: background,
+            SelectedBackgroundColor: fill,
+            TextColor: text,
+            CreateRoot: (value ListRow, leading Blob?, content Container, trailing Blob?) -> {
+                resolved.Add(value.TextColor!!)
+                return content
+            }
+        }.Build()
+        Require(resolved[0] == text, "Selected text over a translucent fill ignored the row background.")
+    }
+}
+
 func ThemeFocusContracts() {
     for width in []float64{2.0, 1.0, 0.0} {
         using let host = ThemePreferenceHost()

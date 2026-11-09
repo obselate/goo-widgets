@@ -143,7 +143,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             AlignItems: AlignItems.Center,
             BorderRadius: theme.ControlRadius!!,
             BackgroundColor: match.Order == highlighted ? theme.SelectedFill(theme.ActiveColor): Color.Transparent,
-            Color: match.Order == highlighted ? theme.SelectedText(theme.TextColor): theme.TextColor,
+            Color: match.Order == highlighted ? theme.SelectedText(theme.TextColor, backdrop: theme.OverlayColor): theme.TextColor,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,

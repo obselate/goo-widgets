@@ -552,7 +552,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             item.Content ??
                 Text{
                 Content: item.Label ?? id,
-                Color: item.Disabled ? theme.DisabledTextColor: row.Selected ? theme.SelectedText(theme.TextColor): theme.TextColor,
+                Color: item.Disabled ? theme.DisabledTextColor: row.Selected ? theme.SelectedText(theme.TextColor, backdrop: theme.OverlayColor): theme.TextColor,
                 TextWrap: TextWrap.NoWrap,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,

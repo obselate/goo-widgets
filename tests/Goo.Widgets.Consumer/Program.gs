@@ -483,6 +483,7 @@ func Main() {
             WindowChromeContracts()
             MarkdownContracts()
             ComboBoxContracts()
+            SelectedTextContracts()
             OverlayContracts()
             PackageComposition()
             StructDefaultContracts()
