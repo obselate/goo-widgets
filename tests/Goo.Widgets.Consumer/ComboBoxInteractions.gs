@@ -50,6 +50,7 @@ internal class ComboBoxHost : Cell {
     internal var Selected string = "beta"
     internal var Commits int32
     internal var Large bool
+    internal var Count int32
     internal var Searchable bool
     internal var Disabled bool
     internal var Empty bool
@@ -100,6 +101,13 @@ internal class ComboBoxHost : Cell {
     private func Options()[]ComboBoxOption {
         if Empty {
             return []ComboBoxOption{}
+        }
+        if Count > 0 {
+            let items = [Count]ComboBoxOption
+            for index in 0 ... items.Length {
+                items[index] = ComboBoxOption{Id: "item-" + index.ToString(), Label: "Option " + index.ToString()}
+            }
+            return items
         }
         if !Large {
             return []ComboBoxOption{
@@ -161,7 +169,7 @@ internal class ComboBoxHost : Cell {
                         "combo",
                         ComboBoxInput{
                             Width: 320.0,
-                            PopupHeight: 250.0,
+                            PopupHeight: Count > 0 ? nil: 250.0,
                             Placement: Placement,
                             SelectedId: Selected,
                             OnSelect: Select,
@@ -455,6 +463,19 @@ func ComboBoxInteractions() {
         PumpFrames(window, 14)
         let panel = host.Panel!!.Handle!!.BorderBox
         Require(panel.X >= 7.5 && panel.X + panel.Width <= 362.5, "ComboBox popup escaped resized overlay bounds")
+        for count in []int32{10000, 50000} {
+            host.Count = count
+            host.Rows.Clear()
+            host.Rebuild()
+            PumpFrames(window, 12)
+            let tall = host.Panel!!.Handle!!.BorderBox
+            Require(
+                host.IsOpen && host.Rows.Count > 0 && host.Rows.Count < 30 && tall.Y >= 7.5
+                && tall.Y + tall.Height <= float64(window.Height) - 7.5,
+                "ComboBox with " + count.ToString() + " options and no PopupHeight realized "
+                + host.Rows.Count.ToString() + " rows in " + tall.ToString()
+            )
+        }
         host.Show = false
         host.Rebuild()
         PumpFrames(window, 8)

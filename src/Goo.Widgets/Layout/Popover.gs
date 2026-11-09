@@ -235,7 +235,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         if fit || current.MaxWidth != nil {
             panel.MaxWidth = maxWidth
         }
-        panel.MaxHeight = presented || !requestedHeight.HasMagnitude ? heightLimit: requestedHeight
+        panel.MaxHeight = presented || anchor != nil || !requestedHeight.HasMagnitude ? heightLimit: requestedHeight
         panel.MinHeight = 0.0
         panel.FlexShrink = anchor == nil ? 0.0: 1.0
         panel.OverflowY = Overflow.Scroll
