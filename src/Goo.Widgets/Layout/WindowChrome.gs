@@ -2,7 +2,6 @@ package Goo.Widgets.Layout
 
 import Goo
 import Goo.Widgets
-import Goo.Widgets.Icons
 import Goo.Widgets.Navigation
 import System
 import System.Collections.Generic
@@ -81,6 +80,23 @@ public data struct WindowChrome {
     var CreateRoot Func[WindowChrome, []Blob, Container]?
 
     shared {
+        private let minimizeGlyph VectorPath = PathBuilder(0, 0, 10, 10)
+            .MoveTo(0, 5).LineTo(10, 5).LineTo(10, 6).LineTo(0, 6).Close()
+            .Build()
+        private let maximizeGlyph VectorPath = PathBuilder(0, 0, 10, 10)
+            .MoveTo(0, 0).LineTo(10, 0).LineTo(10, 10).LineTo(0, 10).Close()
+            .MoveTo(1, 1).LineTo(1, 9).LineTo(9, 9).LineTo(9, 1).Close()
+            .Build()
+        private let restoreGlyph VectorPath = PathBuilder(0, 0, 10, 10)
+            .MoveTo(0, 2).LineTo(8, 2).LineTo(8, 10).LineTo(0, 10).Close()
+            .MoveTo(1, 3).LineTo(1, 9).LineTo(7, 9).LineTo(7, 3).Close()
+            .MoveTo(2, 2).LineTo(2, 0).LineTo(10, 0).LineTo(10, 8).LineTo(8, 8).LineTo(8, 7).LineTo(9, 7).LineTo(9, 1).LineTo(3, 1).LineTo(3, 2).Close()
+            .Build()
+        private let closeGlyph VectorPath = PathBuilder(0, 0, 10, 10)
+            .MoveTo(0, 0.7).LineTo(0.7, 0).LineTo(10, 9.3).LineTo(9.3, 10).Close()
+            .MoveTo(9.3, 0).LineTo(10, 0.7).LineTo(0.7, 10).LineTo(0, 9.3).Close()
+            .Build()
+
         /// Lets chrome replace the native title bar. Call before Open. macOS keeps its native window controls.
         public func ReplaceTitlebar(window Window) {
             if OperatingSystem.IsMacOS() {
@@ -237,7 +253,14 @@ public data struct WindowChrome {
         let content = if let createContent = createContent {
             createContent(resolved, command)
         } else {
-            ControlIcons.Create(IconName(command), 18.0, resolved.ControlColor, useCurrentColor: true)
+            Shape{
+                Path: Glyph(command),
+                Width: 10.0,
+                Height: 10.0,
+                BackgroundColor: resolved.ControlColor!!,
+                UseCurrentColor: true,
+                Accessibility: Accessibility{Hidden: true},
+            }
         }
         let prepared = Button{
             Width: resolved.ControlWidth!!,
@@ -288,11 +311,11 @@ public data struct WindowChrome {
         default: "Window control"
     }
 
-    private func IconName(command WindowChromeAction) ControlIcon -> switch command {
-        case WindowChromeAction.Minimize: ControlIcon.Remove
-        case WindowChromeAction.Maximize: ControlIcon.CropSquare
-        case WindowChromeAction.Restore: ControlIcon.FilterNone
-        default: ControlIcon.Close
+    private func Glyph(command WindowChromeAction) VectorPath -> switch command {
+        case WindowChromeAction.Minimize: minimizeGlyph
+        case WindowChromeAction.Maximize: maximizeGlyph
+        case WindowChromeAction.Restore: restoreGlyph
+        default: closeGlyph
     }
 }
 
