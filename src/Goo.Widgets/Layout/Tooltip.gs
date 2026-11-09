@@ -145,6 +145,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             } else {
                 Container{
                     Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
+                    MaxWidth: 32.5 * theme.CaptionFontSize * theme.PlatformTextScaleFactor,
                     BackgroundColor: theme.OverlayColor,
                     BorderColor: theme.BorderColor,
                     BorderWidth: theme.BorderWidth,

@@ -59,7 +59,8 @@ public data struct PopoverInput {
     var Width Length?
     /// Lower width bound. Nil keeps the panel's own MinWidth.
     var MinWidth Length?
-    /// Upper width bound. Nil uses the available viewport and keeps the panel's own MaxWidth unless Width is Auto.
+    /// Upper width bound. Nil with a nil Width uses 65 characters of the theme font size, about 32.5 em, limited by the viewport.
+    /// Nil with a Width uses the available viewport and keeps the panel's own MaxWidth unless Width is Auto.
     var MaxWidth Length?
     /// Panel height limit. Nil uses the content height. The viewport can reduce it.
     var MaxHeight Length?
@@ -318,8 +319,10 @@ public open class Popover : Cell[PopoverInput], IDisposable {
 
     private func Resolve(input PopoverInput, theme Theme) PopoverInput {
         let defaultSize Length = Length.Auto
+        let readableWidth Length? = 32.5 * theme.FontSize * theme.PlatformTextScaleFactor
         let result = input with{
             Width = input.Width ?? defaultSize,
+            MaxWidth = input.Width == nil ? input.MaxWidth ?? readableWidth: input.MaxWidth,
             MaxHeight = input.MaxHeight ?? defaultSize,
             Gap = input.Gap ?? theme.Spacing,
             ViewportMargin = input.ViewportMargin ?? theme.ControlGap,

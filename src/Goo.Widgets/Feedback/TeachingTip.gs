@@ -34,7 +34,7 @@ public data struct TeachingTip {
     var AccessibilityName string?
     /// Close button name. Nil uses localized Close text.
     var CloseText string?
-    /// Panel width. Nil uses 320 logical pixels. The host constrains it to the viewport.
+    /// Panel width. Nil fits an anchored tip to its content, up to the Popover readable width, and uses 320 logical pixels for a centered tip. The host constrains it to the viewport.
     var Width Length?
     /// Panel height limit. Nil uses 90 percent of the viewport.
     var MaxHeight Length?
@@ -74,7 +74,7 @@ public data struct TeachingTip {
             return Cell.Mount[PopoverInput, Popover]("teaching-tip-anchor", PopoverInput{
                 Open: Open, Anchor: anchor, Placement: Placement, OnOpenChange: OnOpenChange,
                 DismissOnOutsideClick: LightDismiss, Role: AccessibilityRole.Dialog, AccessibilityName: name,
-                Width: width, MaxHeight: maximum, Padding: theme.PanelPadding, Content: panel,
+                Width: Width, MaxHeight: maximum, Padding: theme.PanelPadding, Content: panel,
             })
         }
         return Cell.Mount[ModalDialog, ModalDialogHost]("teaching-tip-center", ModalDialog{
