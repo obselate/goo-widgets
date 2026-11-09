@@ -65,7 +65,8 @@ public data struct ComboBoxInput {
     var EmptyText string?
     /// Trigger layout width. Nil uses 280.
     var Width Length?
-    /// Nil and true make the popup at least as wide as the mounted trigger. False gives the popup the trigger Width.
+    /// Nil and true size the popup to the widest option label, at least the trigger width, limited to 65 characters and the viewport. Options with Content do not count.
+    /// False gives the popup the trigger Width.
     var MatchTriggerWidth bool?
     /// Finite popup height limit in logical pixels, greater than 42. Nil fits the options, limited by the viewport.
     var PopupHeight float64?
@@ -110,6 +111,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private let listHandle ElementHandle = ElementHandle()
     private let searchHandle ElementHandle = ElementHandle()
     private let viewport ElementHandle = ElementHandle()
+    private let optionWidths LabelWidths = LabelWidths()
     private let handles Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     private var overlay ElementHandle?
     private var overlayBox ElementRect
@@ -350,11 +352,13 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) +
                 Math.Max(theme.ControlHeight, float64(rows.Length) * current.RowHeight!!)
         )
+        let labelWidth = isOpen && current.MatchTriggerWidth != false
+            ? optionWidths.Widest(items, OptionLabel, theme.FontFamily, theme.FontSize, theme.FontWeight): 0.0
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: trigger,
             Placement: current.Placement,
-            Content: BuildList(query, popupHeight),
+            Content: BuildList(query, popupHeight, labelWidth),
             Width: current.MatchTriggerWidth == false ? current.Width: nil,
             MaxHeight: popupHeight,
             Padding: 0.0,
@@ -371,7 +375,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         return root
     }
 
-    private func BuildList(query string, height float64) Container {
+    private func BuildList(query string, height float64, labelWidth float64) Container {
         let activeHandle ElementHandle? = activeId == "" ? nil: Handle(activeId)
         let relationships = AccessibilityRelationships{ActiveDescendant: activeHandle}
         let content = Container{
@@ -379,6 +383,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             MinHeight: 0.0,
             MinWidth: 0.0,
             Padding: Edges{Top: theme.Spacing, Bottom: theme.Spacing}
+        }
+        if labelWidth > 0.0 {
+            content.Children.Add(Container{
+                Key: "width",
+                Width: labelWidth + 2.0 * theme.ControlPadding + 8.0 + (current.Multiple ? 18.0: 0.0),
+                MaxWidth: Percent(100),
+                Height: 0.0
+            })
         }
         if current.Searchable || current.AllowFreeText {
             var entry = TextEntry{
@@ -587,6 +599,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         return handles[id]
     }
+
+    private func OptionLabel(option ComboBoxOption) string? -> option.Content == nil ? option.Label ?? option.Id: nil
 
     private func Option(index int32) ComboBoxOption -> rows[index] < 0 ? created: current.Items!![rows[index]]
 

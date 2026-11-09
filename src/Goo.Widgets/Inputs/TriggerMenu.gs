@@ -33,12 +33,14 @@ public data struct TriggerMenuInput {
 /// Up and Down move, Enter and Tab pick, Escape closes and keeps the typed text.
 public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
     private let listHandle ElementHandle = ElementHandle()
+    private let labelWidths LabelWidths = LabelWidths()
     private var current TriggerMenuInput
     private var document TextDocument?
     private var editor ElementHandle?
     private var trigger string = ""
     private var typed TextRange
     private var anchorRect ElementRect?
+    private var candidates[]string = []string{}
     private var matches[]FuzzyMatchItem[string] = []FuzzyMatchItem[string]{}
     private var active int32
     private var visible bool
@@ -103,6 +105,9 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             state: nil
         )
         list.Handle = listHandle
+        let labelWidth = visible ? labelWidths.Widest(candidates, (item string) -> item, theme.FontFamily, theme.FontSize, theme.HeadingFontWeight): 0.0
+        list.Width = labelWidth + 2.0 * theme.ControlPadding
+        list.MaxWidth = Percent(100)
         list.FlexBasis = Math.Min(limit, matches.Length * rowHeight)
         list.FlexShrink = 1
         list.MinHeight = 0
@@ -126,7 +131,6 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
                     TakeFocus: false,
                     DismissOnOutsideClick: false,
                     Content: list,
-                    Width: 280.0,
                     MaxHeight: limit + 8.0,
                     Padding: 4.0,
                     AccessibilityName: theme.Text("Suggestions"),
@@ -205,11 +209,8 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
             if typed.Start == dismissed {
                 return false
             }
-            matches = FuzzyMatch.Rank[string](
-                current.Items?.Invoke(value) ?? []string{},
-                word.Substring(value.Length),
-                (item string) -> item
-            )
+            candidates = current.Items?.Invoke(value) ?? []string{}
+            matches = FuzzyMatch.Rank[string](candidates, word.Substring(value.Length), (item string) -> item)
             return matches.Length > 0
         }
         dismissed = -1
