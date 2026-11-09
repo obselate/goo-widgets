@@ -431,7 +431,7 @@ public open partial class DataGrid {
         if session.Error != nil { content.Children.Add(EditError(session)) }
         return Cell.Mount[PopoverInput, Popover]("grid-editor:" + session.Identity.ToString(), PopoverInput{
             Open: true, Anchor: session.Anchor, Content: content, InitialFocus: session.Editor, DismissOnOutsideClick: false,
-            AccessibilityName: theme.Text("Cell editor popup"),
+            Width: 280.0, AccessibilityName: theme.Text("Cell editor popup"),
             OnDismiss: (reason PopoverDismissReason) -> {
                 if reason == PopoverDismissReason.Escape { CancelEdit(DataGridEditCancelReason.Escape) }
                 else if reason == PopoverDismissReason.AnchorRemoved { CancelEdit(DataGridEditCancelReason.Unavailable) }

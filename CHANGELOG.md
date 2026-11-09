@@ -4,6 +4,11 @@
 
 - Report pump count, elapsed time, expected and actual row alignment, and anchor values when the native virtual scroll probe times out.
 - Selected text over a translucent selection fill now gets its contrast from the fill composed over the theme panel or popup surface. Opaque fills are unchanged.
+- Size popovers and menus to their content, limited by the viewport. The ComboBox popup, `TriggerMenu` and `CommandPalette` fit their rows in height. Remove the 280 px width and 360 px height defaults of `Popover`, the 260 px `ComboBox.PopupHeight` default, the 240 px `TriggerMenu` height default and the 360 px `CommandPalette` height default. `Width`, `MaxHeight`, `PopupHeight` and `Height` still set fixed limits.
+- Without a `Width`, `Popover`, `Menu`, `HoverCard` and anchored `TeachingTip` panels and the `Tooltip` bubble stop growing at 65 characters of the theme font size (32.5 em), so long text wraps at a readable line length. Remove the 320 px `HoverCard` and anchored `TeachingTip` width defaults. `Width` and `MaxWidth` still win.
+- `ComboBox` and `DatePicker` popups are at least as wide as the trigger. `ComboBox.MatchTriggerWidth` is now `bool?`. Nil and true use the trigger width as the minimum. False gives the popup the trigger `Width`. Long options end with an ellipsis.
+- `Tooltip.Placement` is now `PortalPlacement?` and defaults to `Top`.
+- Show single-line labels with an ellipsis when space is short: `ActionButton`, `Chip`, `TabBar` tabs, `ToggleGroup` items, `Menu` items, the `ListRow` title, `SearchList` and `ComboBox` rows, the `ComboBox` value and `TreeView` labels. These controls can shrink in a narrow container. `CreateText`, `CreateTitle` and `CreateItem` replace the label.
 
 ## 0.21.0 - 2026-11-09
 

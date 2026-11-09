@@ -16,7 +16,7 @@ public data struct HoverCardInput {
     var CloseDelayMs float64?
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
-    /// Nil uses 320.
+    /// Nil fits the content, up to the Popover readable width.
     var Width Length?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
@@ -91,7 +91,6 @@ public open class HoverCard : Cell[HoverCardInput], IDisposable {
         }
         current = input with{OpenDelayMs = openDelay, CloseDelayMs = closeDelay}
         window = Theme.Key.Window
-        let defaultWidth Length = 320
         let target = input.Target!!
         target.Handle = target.Handle ?? anchor
         return Container{
@@ -108,7 +107,7 @@ public open class HoverCard : Cell[HoverCardInput], IDisposable {
                     Open: shown,
                     Anchor: target.Handle,
                     Placement: input.Placement,
-                    Width: input.Width ?? defaultWidth,
+                    Width: input.Width,
                     TakeFocus: false,
                     DismissOnOutsideClick: pinned,
                     AccessibilityName: input.AccessibilityName,

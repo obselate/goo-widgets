@@ -16,8 +16,8 @@ public data struct TooltipInput {
     var Text string?
     /// Hover delay in milliseconds; nil uses 500 and zero shows immediately.
     var DelayMs float64?
-    /// Preferred anchored position; Goo flips it at the viewport edge.
-    var Placement PortalPlacement
+    /// Preferred anchored position. Nil uses Top. Goo flips it at the viewport edge.
+    var Placement PortalPlacement?
     /// Space around the label; nil uses the theme's gap.
     var Gap float64?
     /// Overlay order; zero uses 30.
@@ -88,7 +88,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         if !Double.IsFinite(delay) || delay < 0.0 || !Double.IsFinite(gap) || gap < 0.0 {
             throw ArgumentOutOfRangeException("input", "Tooltip delay and gap must be finite and nonnegative")
         }
-        if !Enum.IsDefined(input.Placement) {
+        if input.Placement != nil && !Enum.IsDefined(input.Placement!!) {
             throw ArgumentOutOfRangeException("Placement")
         }
         if current.Window != input.Window {
@@ -102,7 +102,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             visible = false
             suppressed = false
         }
-        current = input with{DelayMs = delay, Gap = gap, ZIndex = input.ZIndex == 0 ? 30: input.ZIndex}
+        current = input with{DelayMs = delay, Gap = gap, ZIndex = input.ZIndex == 0 ? 30: input.ZIndex, Placement = input.Placement ?? PortalPlacement.Top}
         let root = Container{
             LineHeight: theme.LineHeight,
             BasedOn: current.RootStyle,
@@ -145,6 +145,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             } else {
                 Container{
                     Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
+                    MaxWidth: 32.5 * theme.CaptionFontSize * theme.PlatformTextScaleFactor,
                     BackgroundColor: theme.OverlayColor,
                     BorderColor: theme.BorderColor,
                     BorderWidth: theme.BorderWidth,
@@ -158,7 +159,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             bubble.TabStop = false
             bubble.Accessibility = Accessibility{Role: AccessibilityRole.None, Hidden: true}
             root.Children.Add(
-                Portal{Anchor: anchor, Placement: current.Placement, ZIndex: current.ZIndex, Padding: gap, bubble,}
+                Portal{Anchor: anchor, Placement: current.Placement!!, ZIndex: current.ZIndex, Padding: gap, bubble,}
             )
         }
         return root

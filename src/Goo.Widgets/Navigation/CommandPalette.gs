@@ -58,7 +58,7 @@ public data struct CommandPaletteInput {
     var Placeholder string?
     /// Dialog width. Nil uses 560 logical pixels.
     var Width Length?
-    /// Maximum height. Short result lists use their natural height.
+    /// Maximum height. Nil fits the results, limited by the window.
     var Height Length?
     /// Receives the widget input, command descriptor, match score and highlight ranges, and prepared button, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
@@ -197,7 +197,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             }
         }
         let defaultWidth Length = 560.0
-        let defaultHeight Length = 360.0
+        let contentHeight = inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
+        let defaultHeight Length = contentHeight
         let height = input.Height ?? defaultHeight
         let search = SearchList{
             ItemCount: ordered.Count,
@@ -211,10 +212,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             SelectedId: activeId,
             OnSelect: Activate,
             Width: Percent(100),
-            Height: height.HasMagnitude && !height.IsPercent ? Math.Min(
-                height.Magnitude,
-                inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
-            ): height,
+            Height: height.HasMagnitude && !height.IsPercent ? Math.Min(height.Magnitude, contentHeight): height,
             RowHeight: theme.ControlHeight,
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
@@ -326,6 +324,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             AlignItems: AlignItems.Center,
             Gap: theme.ControlGap,
             FlexGrow: 1,
+            FlexShrink: 1,
             MinWidth: 0,
             label,
         }

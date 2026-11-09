@@ -65,9 +65,9 @@ public data struct ComboBoxInput {
     var EmptyText string?
     /// Trigger layout width. Nil uses 280.
     var Width Length?
-    /// Makes the popup at least as wide as the mounted trigger.
-    var MatchTriggerWidth bool
-    /// Finite positive popup height limit in logical pixels. Nil uses 260.
+    /// Nil and true make the popup at least as wide as the mounted trigger. False gives the popup the trigger Width.
+    var MatchTriggerWidth bool?
+    /// Finite popup height limit in logical pixels, greater than 42. Nil fits the options, limited by the viewport.
     var PopupHeight float64?
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
     var Placement PopoverPlacement
@@ -155,14 +155,13 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let defaultWidth Length = 280.0
         current = input with{
             Width = input.Width ?? defaultWidth,
-            PopupHeight = input.PopupHeight ?? 260.0,
             RowHeight = input.RowHeight ?? theme.ControlHeight,
             Placeholder = input.Placeholder ?? theme.Text("Choose an option"),
             AccessibilityName = input.AccessibilityName ?? theme.Text("Choose an option"),
             ZIndex = input.ZIndex == 0 ? 20: input.ZIndex
         }
         if (current.Width!!.HasMagnitude && !current.Width!!.IsPercent && (!Double.IsFinite(current.Width!!.Magnitude) || current.Width!!.Magnitude <= 2.0))
-        || !Double.IsFinite(current.PopupHeight!!) || current.PopupHeight!! <= 42.0
+        || current.PopupHeight != nil && (!Double.IsFinite(current.PopupHeight!!) || current.PopupHeight!! <= 42.0)
         || !Double.IsFinite(current.RowHeight!!) || current.RowHeight!! <= 0.0 {
             prepared = false
             throw ArgumentOutOfRangeException("ComboBox dimensions")
@@ -285,7 +284,8 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.FontWeight,
-            TextWrap: TextWrap.NoWrap
+            TextWrap: TextWrap.NoWrap,
+            TextTrimming: TextTrimming.Ellipsis
         }
         var button = Button{
             Height: theme.ControlHeight,
@@ -323,7 +323,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         button.Children.Clear()
         button.Children.Add(
-            Container{Key: "value", FlexGrow: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
+            Container{Key: "value", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
         var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, theme.MutedTextColor)
         if let create = current.CreateArrow {
@@ -343,7 +343,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         root.Children.Clear()
         root.Children.Add(button)
         let popupHeight = Math.Min(
-            current.PopupHeight!!,
+            current.PopupHeight ?? Double.PositiveInfinity,
             2.0 +
                 2.0 * theme.Spacing +
                 ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) +
@@ -354,7 +354,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Anchor: trigger,
             Placement: current.Placement,
             Content: BuildList(query, popupHeight),
-            Width: current.Width!!,
+            Width: current.MatchTriggerWidth == false ? current.Width: nil,
             MaxHeight: popupHeight,
             Padding: 0.0,
             AccessibilityName: current.AccessibilityName,
@@ -365,9 +365,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         if isOpen && overlay != nil {
             popup.Viewport = overlayBox
-        }
-        if current.MatchTriggerWidth && trigger.IsMounted {
-            popup.MinWidth = trigger.BorderBox.Width
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
         return root
@@ -554,6 +551,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 Content: item.Label ?? id,
                 Color: item.Disabled ? theme.DisabledTextColor: row.Selected ? theme.SelectedText(theme.TextColor, backdrop: theme.OverlayColor): theme.TextColor,
                 TextWrap: TextWrap.NoWrap,
+                TextTrimming: TextTrimming.Ellipsis,
+                MinWidth: 0.0,
+                FlexShrink: 1.0,
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
@@ -569,6 +569,9 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             BorderColor: theme.InputBorderColor,
             BorderWidth: theme.BorderWidth,
             BorderRadius: theme.PanelRadius!!,
+        }
+        if current.MatchTriggerWidth != false && trigger.IsMounted {
+            prepared.MinWidth = trigger.BorderBox.Width
         }
         return if let create = current.CreatePopup {
             create(current, prepared)

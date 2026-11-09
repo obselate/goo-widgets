@@ -75,7 +75,7 @@ public data struct ListRow {
     var FontFamily string?
     /// Transform applied to the row root. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Custom factory for the title Text. Receives resolved props.
+    /// Custom factory for the title Text. Receives resolved props. Nil uses one line that ends with an ellipsis.
     /// Hosts must not change state in this callback.
     var CreateTitle Func[ListRow, Text]?
     /// Custom factory for the caption Text. Receives resolved props.
@@ -145,7 +145,9 @@ public data struct ListRow {
                 Content: resolved.Title!!,
                 Color: resolved.TextColor!!,
                 FontSize: resolved.TitleFontSize!!,
-                FontWeight: resolved.TitleFontWeight!!
+                FontWeight: resolved.TitleFontWeight!!,
+                TextWrap: TextWrap.NoWrap,
+                TextTrimming: TextTrimming.Ellipsis
             }
             if let fontFamily = resolved.FontFamily {
                 value.FontFamily = fontFamily
@@ -176,7 +178,9 @@ public data struct ListRow {
             FlexDirection: FlexDirection.Column,
             JustifyContent: JustifyContent.Center,
             Gap: resolved.ContentGap!!,
-            FlexGrow: 1.0
+            FlexGrow: 1.0,
+            FlexShrink: 1.0,
+            MinWidth: 0.0
         }
         content.Children.Add(title)
         if let caption = caption {
