@@ -110,7 +110,9 @@ public data struct ActionButton {
             CreateRoot = nil,
         }
 
-        let text = if let createText = createText {
+        let text Text? = if createRoot == nil && createText == nil && content == "" {
+            nil
+        } else if let createText = createText {
             createText(resolved)
         } else {
             let value = Text{
@@ -128,7 +130,7 @@ public data struct ActionButton {
             value
         }
 
-        if let createRoot = createRoot { return Finish(createRoot(resolved, text), resolved, theme) }
+        if let createRoot = createRoot { return Finish(createRoot(resolved, text!!), resolved, theme) }
         let root = Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
@@ -164,7 +166,9 @@ public data struct ActionButton {
             leadingSlot = Container{Position: PositionType.Relative, Container{Opacity: Loading ? 0.0: 1.0, leading},}
             contents.Children.Add(leadingSlot)
         }
-        contents.Children.Add(text)
+        if let text = text {
+            contents.Children.Add(text)
+        }
         if let trailing = Trailing {
             contents.Children.Add(trailing)
         }
