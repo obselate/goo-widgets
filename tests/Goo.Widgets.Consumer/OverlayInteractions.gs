@@ -92,6 +92,9 @@ internal class OverlayHost : Cell {
     internal var ShowDialogs bool = true
     internal var EmptyDialog bool
     internal var KeepMenu bool
+    internal var BasisContent float64
+    internal var PopupPoint Point = Point{X: 800.0, Y: 520.0}
+    internal var PassThrough bool
     internal var MenuFocusColor Color?
     internal var AnchorX float64 = 590.0
     internal var AnchorY float64 = 430.0
@@ -398,16 +401,20 @@ internal class OverlayHost : Cell {
             },
             OnOpenChange: PopupOpenChange,
             OnDismiss: PopupDismiss,
+            DismissOnOutsideClick: !PassThrough,
             CreatePanel: CapturePanel,
             CreateRoot: CapturePopup
         }
         if PointPopup {
-            popup.WindowPoint = Point{X: 800.0, Y: 520.0}
+            popup.WindowPoint = PopupPoint
         } else {
             popup.Anchor = Anchor
         }
         if ExplicitViewport {
             popup.Viewport = ElementRect{X: 20.0, Y: 30.0, Width: 360.0, Height: 480.0}
+        }
+        if BasisContent > 0.0 {
+            popup.Content = Container{FlexBasis: BasisContent, FlexShrink: 1.0, MinHeight: 0.0}
         }
         if FitWidth {
             popup.Width = Length.Auto
@@ -455,6 +462,22 @@ internal class OverlayHost : Cell {
 
 func OverlayFocus(adapter SearchListSemantics, name string) bool -> FindSemantics(adapter.Tree?.Root, name)?.Focused ??
 false
+
+func SemanticDepth(node AccessibilityNode?, name string) int32 {
+    guard let node = node else {
+        return -1
+    }
+    if node.Name == name {
+        return 0
+    }
+    for child in node.Children {
+        let depth = SemanticDepth(child, name)
+        if depth >= 0 {
+            return depth + 1
+        }
+    }
+    return -1
+}
 
 func ModalClipboardInteractions() {
     let host = OverlayHost{DialogOpen: true}
@@ -630,6 +653,7 @@ func OverlayInteractions() {
         )
         PumpFrames(window, 4)
         Require(OverlayFocus(semantics, "Popup action"), "Popover did not enter its content")
+        let anchoredDepth = SemanticDepth(semantics.Tree?.Root, "Popup action")
         CaptureIssueProof(window, "popover-flipped")
         host.AnchorX = 100.0
         host.AnchorY = 140.0
@@ -656,6 +680,13 @@ func OverlayInteractions() {
             "Point popup escaped its explicit viewport"
         )
         CaptureIssueProof(window, "popover-point-narrow")
+        Require(
+            anchoredDepth > 0 && SemanticDepth(semantics.Tree?.Root, "Popup action") == anchoredDepth && OverlayFocus(semantics, "Popup action"),
+            "Point popup changed the accessibility depth or initial focus of its content"
+        )
+        SendKey(id, SDLScancode.Tab)
+        PumpFrames(window, 4)
+        Require(OverlayFocus(semantics, "Popup action"), "Tab left the point popup")
         MouseButton(id, 12.0F, 12.0F, true)
         MouseButton(id, 12.0F, 12.0F, false)
         PumpFrames(window, 8)
@@ -664,9 +695,82 @@ func OverlayInteractions() {
             "Outside click failed to dismiss without activating background"
         )
         Require(!OverlayFocus(semantics, "Open popup"), "Outside click restored focus to the popover trigger")
+        let background = host.Before.BorderBox
+        let pressX = background.X + background.Width / 2.0
+        let pressY = background.Y + background.Height / 2.0
+        host.BasisContent = 20.0
+        for passThrough in []bool{false, true} {
+            host.PassThrough = passThrough
+            let outcomes = []string{"", ""}
+            for covered in []bool{false, true} {
+                host.PopupPoint = covered
+                ? Point{X: background.X, Y: background.Y - 80.0}
+                : Point{X: background.X, Y: background.Y + background.Height + 20.0}
+                host.PopupOpen = true
+                host.Rebuild()
+                PumpFrames(window, 14)
+                let shortPanel = host.PopupPanel!!.Handle!!.BorderBox
+                Require(
+                    covered
+                    ? shortPanel.Y + shortPanel.Height < background.Y && shortPanel.X < pressX && shortPanel.X + shortPanel.Width > pressX
+                    : shortPanel.Y > background.Y + background.Height,
+                    "Short point popup is not placed for the press check: " + shortPanel.ToString()
+                )
+                let clicks = host.BackgroundClicks
+                MouseButton(id, float32(pressX), float32(pressY), true)
+                MouseButton(id, float32(pressX), float32(pressY), false)
+                PumpFrames(window, 8)
+                outcomes[covered ? 1: 0] = (host.PopupOpen ? "open": "closed by " + host.LastDismiss.ToString())
+                + ", background clicks " + (host.BackgroundClicks - clicks).ToString()
+                host.PopupOpen = false
+                host.Rebuild()
+                PumpFrames(window, 8)
+            }
+            Require(
+                outcomes[0] == outcomes[1] && (passThrough || outcomes[0] == "closed by OutsideClick, background clicks 0"),
+                "A press below a short point popup gave '" + outcomes[1] + "', a press outside its column gave '" + outcomes[0] + "'"
+            )
+            Console.WriteLine("Point popup press, DismissOnOutsideClick " + (!passThrough).ToString() + ": " + outcomes[1])
+        }
+        host.PassThrough = false
+        host.PopupPoint = Point{X: 800.0, Y: 520.0}
+        for basis in []float64{120.0, 400.0} {
+            host.BasisContent = basis
+            host.PopupOpen = true
+            host.Rebuild()
+            PumpFrames(window, 14)
+            let sized = host.PopupPanel!!.Handle!!.BorderBox
+            Require(
+                Math.Abs(sized.Height - Math.Min(basis + 30.0, 220.0)) < 0.5 && sized.Y < 520.0 && sized.Y + sized.Height <= 502.5,
+                "Clamped point popup with " + basis.ToString() + " px flex-basis content is " + sized.ToString()
+            )
+            host.PopupOpen = false
+            host.Rebuild()
+            PumpFrames(window, 8)
+        }
+        host.BasisContent = 0.0
         window.Width = 860
         host.PointPopup = false
         host.ExplicitViewport = false
+        host.AnchorX = 590.0
+        host.AnchorY = 430.0
+        for basis in []float64{120.0, 400.0} {
+            host.BasisContent = basis
+            host.PopupOpen = true
+            host.Rebuild()
+            PumpFrames(window, 14)
+            let flipped = host.PopupPanel!!.Handle!!.BorderBox
+            Require(
+                Math.Abs(flipped.Height - Math.Min(basis + 30.0, 220.0)) < 0.5 && flipped.Y + flipped.Height <= host.Anchor.BorderBox.Y + 0.5,
+                "Flipped anchored popup with " + basis.ToString() + " px flex-basis content is " + flipped.ToString()
+            )
+            host.PopupOpen = false
+            host.Rebuild()
+            PumpFrames(window, 8)
+        }
+        host.BasisContent = 0.0
+        host.AnchorX = 100.0
+        host.AnchorY = 140.0
         host.PopupOpen = true
         host.Rebuild()
         PumpFrames(window, 12)

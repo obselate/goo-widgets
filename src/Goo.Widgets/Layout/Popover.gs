@@ -227,11 +227,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         panel.Key = "panel"
         panel.Handle = panelHandle
-        panel.Position = anchor == nil ? PositionType.Absolute: PositionType.Relative
-        if anchor == nil {
-            panel.Left = origin.X - rootBox.X
-            panel.Top = origin.Y - rootBox.Y
-        }
+        panel.Position = PositionType.Relative
         panel.Width = fit ? Length.Auto: width
         if current.MinWidth != nil {
             panel.MinWidth = minWidth
@@ -302,7 +298,14 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 panel,
             })
         } else {
-            root.Children.Add(panel)
+            root.Children.Add(Container{
+                Position: PositionType.Absolute,
+                Left: origin.X - rootBox.X,
+                Top: origin.Y - rootBox.Y,
+                Bottom: 0.0,
+                HitTestSelf: false,
+                panel,
+            })
         }
         for overlay in current.Overlays ?? []Blob{} {
             root.Children.Add(overlay)
