@@ -1424,10 +1424,8 @@ internal sealed class ThemeAttachment {
         if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
             value = value.WithPalette(variant(dark))
-            if Mode == ThemeMode.System {
-                if let accent = preferences.AccentColor {
-                    value = value.WithAccent(accent)
-                }
+            if let accent = preferences.AccentColor {
+                value = value.WithAccent(accent)
             }
         }
         if preferences.HighContrast == true {

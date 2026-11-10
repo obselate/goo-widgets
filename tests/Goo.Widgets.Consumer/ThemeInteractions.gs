@@ -484,9 +484,9 @@ func ThemeBackgroundContracts() {
     ThemeFrames(nativeHost)
     Require(
         fluentDark.CanvasColor == Color.Parse("#202020") && fluentDark.AccentColor.G > accent.G && fluentDark.OnAccentColor == Color.Black
-        && fluentLight.CanvasColor == Theme.Fluent.CanvasColor && fluentLight.ControlRadius == 4.0
+        && fluentLight.CanvasColor == Theme.Fluent.CanvasColor && fluentLight.ControlRadius == 4.0 && fluentLight.AccentColor.G < accent.G
         && fixedInk.CanvasColor == Theme.Ink.CanvasColor && Theme.Read(native).CanvasColor == fluentLight.CanvasColor,
-        "Fluent did not follow the mode, a fixed theme changed with SetMode, or a family change lost the mode."
+        "Fluent did not follow the mode or the system accent, a fixed theme changed with SetMode, or a family change lost the mode."
     )
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"

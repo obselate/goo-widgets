@@ -314,8 +314,8 @@ Theme.SetMode(window, ThemeMode.Dark)
 Changing the family keeps the mode. Changing the mode keeps the family's typography, metrics, direction, culture and text.
 The mode replaces palette and glass colors, so `Theme.Fluent with{AccentColor = x}` loses `x` on a mode change.
 
-`Theme.Controls` selects control shapes. Fluent and Windows Native use `ControlStyle.Fluent`. Set `Controls = ControlStyle.Fluent` on any theme to use the Windows 11 shapes, or `ControlStyle.Standard` on Fluent for the Goo.Widgets shapes. In System mode a Fluent-shaped theme lightens the system accent in dark mode and darkens it in light mode.
-Families with a `Variant` follow the system accent in `System` mode, when the platform reports one.
+`Theme.Controls` selects control shapes. Fluent and Windows Native use `ControlStyle.Fluent`. Set `Controls = ControlStyle.Fluent` on any theme to use the Windows 11 shapes, or `ControlStyle.Standard` on Fluent for the Goo.Widgets shapes. A Fluent-shaped theme lightens the system accent in dark mode and darkens it in light mode.
+Families with a `Variant` follow the system accent in every mode, when the platform reports one. Without one they keep their own accent.
 For custom colors, set your own `Variant`, or set `Variant = nil` for one fixed palette:
 
 ```gsharp
