@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- FOCUS crops convert layout bounds to capture pixels with the display scale as well as `UiScale`, so crops taken at display scale 1.5 show the whole focused control and its ring. Crops at display scale 1 do not change.
 - Move loose source files into folders: `FuzzyMatch` to `Search/`, `Kbd`, `ShortcutList` and `Typography` to `Content/`, `RovingFocus`, `TypeAhead` and `WidgetKeyBindings` to `Keyboard/`, and `ILLink.Substitutions.xml` to `Icons/`. Namespaces, types and the embedded resource name do not change. The gallery shows `ShortcutList` on its own Shortcut list page.
 - Window theme attachment and `ThemeScope` apply high contrast, platform text scale and reduced motion through one shared transform. Behavior does not change.
 - Split the `Theme` source into partial files: context and attachment, resolution, color, styles, widget presets and one file per palette family. The public API, values and visuals do not change. The `Theme` type summary is missing from `Goo.Widgets.xml` until the G# SDK includes the partial-type documentation fix (DavidObando/gsharp#5762).
