@@ -395,7 +395,7 @@ func ThemeBackgroundContracts() {
             "Opening a fixed-theme window overwrote its transparent clear."
         )
         Theme.Attach(opened, Theme.Ink)
-        Theme.SetMode(opened, ThemeMode.Light)
+        Theme.Attach(opened, Theme.Bone)
         Require(
             opened.Background == Color.Transparent && opened.Foreground == Theme.Bone.TextColor,
             "Applying a palette to an open window overwrote its transparent clear or missed its text color."
@@ -469,6 +469,24 @@ func ThemeBackgroundContracts() {
         light.CanvasColor == Theme.Native.CanvasColor && dark.CanvasColor != light.CanvasColor
         && dark.AccentColor == accent && dark.OnAccentColor == Color.Black && dark.FontFamily == light.FontFamily,
         "Native did not follow the system appearance and accent with readable accent text."
+    )
+    Theme.Attach(native, Theme.Fluent)
+    ThemeFrames(nativeHost)
+    let fluentDark = Theme.Read(native)
+    Theme.SetMode(native, ThemeMode.Light)
+    ThemeFrames(nativeHost)
+    let fluentLight = Theme.Read(native)
+    Theme.Attach(native, Theme.Ink)
+    Theme.SetMode(native, ThemeMode.Light)
+    ThemeFrames(nativeHost)
+    let fixedInk = Theme.Read(native)
+    Theme.Attach(native, Theme.Fluent)
+    ThemeFrames(nativeHost)
+    Require(
+        fluentDark.CanvasColor == Color.Parse("#202020") && fluentDark.AccentColor == accent
+        && fluentLight.CanvasColor == Theme.Fluent.CanvasColor && fluentLight.ControlRadius == 4.0
+        && fixedInk.CanvasColor == Theme.Ink.CanvasColor && Theme.Read(native).CanvasColor == fluentLight.CanvasColor,
+        "Fluent did not follow the mode, a fixed theme changed with SetMode, or a family change lost the mode."
     )
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
@@ -671,7 +689,7 @@ func ThemePolicyContracts() {
         Theme.Read(window).TransitionMs == 123.0 && inside.Snapshot.TransitionMs == 77.0,
         "Reduced motion destroyed an authored window or subtree transition duration."
     )
-    Theme.Attach(window, Theme.Default with{CanvasColor = Theme.Bone.DangerColor})
+    Theme.Attach(window, Theme.Default with{CanvasColor = Theme.Bone.DangerColor, Variant = nil})
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
     ThemeFrames(first)
     Require(window.Background == Theme.Bone.DangerColor, "A custom fixed palette followed the system.")

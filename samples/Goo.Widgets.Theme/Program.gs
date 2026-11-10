@@ -98,7 +98,7 @@ class ThemeSample : Cell {
                                     ).Build(),
                                     ActionButton{
                                         Content: "System",
-                                        OnClick: () -> Theme.SetMode(window!!, ThemeMode.System),
+                                        OnClick: () -> Theme.Attach(window!!),
                                     },
                                 },
                             },

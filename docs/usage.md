@@ -295,15 +295,37 @@ The shape is decorative. Give its button an accessible name.
 
 ## Goo theme
 
-Call `Theme.Attach(window)` before `Open` to follow the system appearance.
-Light and Unknown select Bone colors. Dark selects Ink colors.
-System attachment preserves app-set window backgrounds at attachment and on appearance updates, while text color follows the theme and `Theme.Attach(window, value)` explicitly sets both colors.
-System attachment also follows the system accent color when available. An explicit
-`Theme.Attach(window, value)` or subtree `ThemeScope` keeps its application-set accent.
-`Theme.Attach(window, value)` selects a fixed snapshot, including `Theme.Default`.
-`Theme.SetMode(window, ThemeMode.Light)` or `Dark` locks the built-in palette.
-`System` resumes preference tracking. SetMode preserves typography and metrics
-but replaces all palette roles, including custom colors.
+Theme family and mode are independent. `Theme.Attach` picks the family.
+`Theme.SetMode(window, ThemeMode.Light)`, `Dark` or `System` picks the mode. The default mode is `System`.
+
+```gsharp
+Theme.Attach(window, Theme.Fluent)
+Theme.SetMode(window, ThemeMode.Dark)
+```
+
+| Family | Attach | Light and dark |
+| --- | --- | --- |
+| Default | `Theme.Attach(window)` or `Theme.Default` | Bone and Ink |
+| Native | `Theme.Attach(window, Theme.Native)` | Platform look |
+| Fluent | `Theme.Attach(window, Theme.Fluent)` | Windows 11 Fluent, toolkit font |
+| FluentMica | `Theme.Attach(window, Theme.FluentMica)` | Fluent over Mica, blurred popups. Attach before `Open`. |
+| Fixed | `Ink`, `Bone`, `GitHubDark`, or any theme with `Variant = nil` | One palette. `SetMode` does not change it. |
+
+Changing the family keeps the mode. Changing the mode keeps the family's typography, metrics, direction, culture and text.
+The mode replaces palette and glass colors, so `Theme.Fluent with{AccentColor = x}` loses `x` on a mode change.
+Families with a `Variant` follow the system accent in `System` mode, when the platform reports one.
+For custom colors, set your own `Variant`, or set `Variant = nil` for one fixed palette:
+
+```gsharp
+let brand = Color.Parse("#0f7b6c")
+Theme.Attach(window, Theme.Fluent with{
+    Variant = (dark bool) -> Theme.Fluent.Variant!!(dark) with{AccentColor = brand}
+})
+Theme.Attach(window, Theme.Fluent with{AccentColor = brand, Variant = nil})
+```
+
+Mode attachment preserves app-set window backgrounds at attachment and on appearance updates, while text color follows the theme. A fixed theme sets both colors.
+A fixed theme and a subtree `ThemeScope` keep their application-set accent.
 
 `Theme.Default` uses system fonts, 14 px body text, 32 px controls, 6 px control
 corners and 8 px panel corners. Named Ink, Bone and GitHubDark presets retain
