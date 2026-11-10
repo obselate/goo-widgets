@@ -280,7 +280,9 @@ public open class ListView : Cell[ListViewInput] {
         InvokeInputCallback(input.OnActiveChange, id)
         rootHandle.Focus()
         rootHandle.SetFocusTarget(Handle(id))
-        viewport.ScrollToItem(id)
+        if !Handle(id).ScrollIntoView() {
+            viewport.ScrollToItem(id)
+        }
     }
 
     private func Select(id string, toggle bool, extend bool) {
