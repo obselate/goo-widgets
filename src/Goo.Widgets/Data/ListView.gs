@@ -65,7 +65,7 @@ public data struct ListViewInput {
     var Disabled bool
     /// Root layout width. Nil fills the available width.
     var Width Length?
-    /// Root layout height. Nil grows to fill the free space of the parent. Set it when the parent has no bounded height.
+    /// Root layout height. Nil uses 280 and grows or shrinks to fill the free space of the parent.
     var Height Length?
     /// Finite positive row height in logical pixels. Nil uses the theme control height.
     var RowHeight float64?
@@ -110,8 +110,10 @@ public open class ListView : Cell[ListViewInput] {
         let prepare = !prepared || !Object.ReferenceEquals(input.Items, value.Items) ||
             !Object.ReferenceEquals(input.Sections, value.Sections) || input.Query != value.Query
         theme = Theme.Read()
+        let height Length = 280
         input = value with{
             Width = value.Width ?? Percent(100),
+            Height = value.Height ?? height,
             RowHeight = value.RowHeight ?? theme.ControlHeight,
             AccessibilityName = value.AccessibilityName ?? theme.Text("List")
         }
@@ -199,16 +201,16 @@ public open class ListView : Cell[ListViewInput] {
         rows.ScrollbarY = theme.Scrollbar
         var root = Container{
             Width: input.Width!!,
-            Height: input.Height ?? Length.Auto,
+            Height: input.Height!!,
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: theme.PanelColor,
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
         }
-        if input.Height == nil {
+        if value.Height == nil {
             root.FlexGrow = 1
-            root.FlexBasis = 0
+            root.FlexShrink = 1
         }
         if let create = input.CreateRoot {
             root = create(input, root)

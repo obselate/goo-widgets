@@ -375,6 +375,7 @@ internal class ListFillHost : Cell {
     internal let Header ElementHandle = ElementHandle()
     internal let Rows Dictionary[string, Container] = Dictionary[string, Container]()
     internal var Root Container?
+    internal var PanelHeight Length = 600
     private let items[]ListViewItem = ListFillItems()
 
     public override func Build() Blob -> Container{
@@ -383,7 +384,7 @@ internal class ListFillHost : Cell {
         Padding: 24,
         Container{
             Handle: Panel,
-            Height: 600,
+            Height: PanelHeight,
             Container{Handle: Header, Padding: 12, Text{Content: "Inbox, 10,000 messages"}},
             Cell.Mount[ListViewInput, ListView](
                 "list",
@@ -441,9 +442,21 @@ func ListFillInteractions() {
             host.Rows.ContainsKey("9999") && host.Rows["9999"].Handle!!.IsMounted && !host.Rows["0"].Handle!!.IsMounted,
             "ListView did not scroll inside its panel"
         )
+        host.PanelHeight = 200
+        host.Rebuild()
+        PumpFrames(window, 6)
+        let small = host.Root!!.Handle!!.BorderBox.Height
+        Require(Math.Abs(small - (200.0 - header.Height)) < 1.0, "ListView without Height did not shrink in a 200 px panel")
+        host.PanelHeight = Length.Auto
+        host.Rebuild()
+        PumpFrames(window, 6)
+        CaptureIssueProof(window, "listview-fill-unbounded")
+        let unbounded = host.Root!!.Handle!!.BorderBox.Height
+        Require(Math.Abs(unbounded - 280.0) < 1.0, "ListView without Height lost its 280 px default in an unbounded parent")
         Console.WriteLine(
             "PASS: ListView without Height fills its panel and scrolls: height " + list.Height.ToString() +
-                " of panel " + panel.Height.ToString() + ", " + mounted.ToString() + " of 10,000 rows realized"
+                " of panel " + panel.Height.ToString() + ", " + mounted.ToString() + " of 10,000 rows realized, " +
+                small.ToString() + " in a 200 px panel, " + unbounded.ToString() + " in an unbounded parent"
         )
     })
 }

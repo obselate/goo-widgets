@@ -266,8 +266,7 @@ internal class FocusGoldenPage : Cell {
                     Items: []SelectionItem{
                         SelectionItem{Id: "first", Label: "First"},
                         SelectionItem{Id: "last", Label: "Last"}
-                    },
-                    Height: 240
+                    }
                 }.Build()
             }
             case "RatingControl" {
