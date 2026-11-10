@@ -23,6 +23,8 @@
 - `ListView`, `TreeView`, `DataGrid` and `SearchList` without a `Height` grow and shrink to fill the free space of the parent and scroll inside it. Their default height (280, 280, 300 and 240 px) is the starting size, so in a parent without a bounded height they keep that height.
 - Requires Goo 0.30.0 for `Window.MeasureText`.
 - The `ComboBox` popup and `TriggerMenu` are as wide as their widest option label, limited to 65 characters of the theme font size and the viewport. The `ComboBox` popup stays at least as wide as the trigger. Options with `Content` do not count. Remove the 280 px `TriggerMenu` width. Without a `Width`, `CommandPalette` grows past 560 px to its widest command label, up to 65 characters. Labels are measured once per option array and font, so pass the same array while the options do not change.
+- With `ControlStyle.Fluent`, the `ComboBox` popup opens over the trigger with the selected option, or the first option, on the trigger text row, as in WinUI. It shifts to stay in the window. `Searchable` and `AllowFreeText` popups and the Standard style still open below the trigger.
+- A `Popover` at a `WindowPoint` moves into the viewport by whole device pixels, so its content keeps the device-pixel phase of the point. A panel with less than one device pixel of free space is clamped.
 - A click or arrow key on a fully visible `ListView` row no longer scrolls the list. The list scrolls only as far as needed to show the active row.
 
 ## 0.21.0 - 2026-11-09

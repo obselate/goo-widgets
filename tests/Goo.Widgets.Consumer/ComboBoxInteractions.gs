@@ -503,7 +503,166 @@ func ComboBoxInteractions() {
         PumpFrames(window, 8)
         Require(host.Before.Focus(), "Unmounting ComboBox left a focus scope behind")
     })
+    ComboBoxFluentInteractions()
     Console.WriteLine(
         "PASS: native ComboBox placement, constrained scrolling, controlled/disabled/custom options, keyboard commit/cancel, focus restoration, long-list reveal, search, empty input, resize and unmount"
     )
+}
+
+func ComboTextInk(window Window, text string, x float64, y float64, height float64) []int32 {
+    let image = ThemeCapture(window)
+    let theme = Theme.Read(window)
+    let scale = float64(image.Width) * float64(window.UiScale) / float64(window.Width)
+    let left = x + theme.ControlPadding
+    let right = left + float64(window.MeasureText(text, Text{FontFamily: theme.FontFamily, FontSize: theme.FontSize, FontWeight: theme.FontWeight})) + 2.0
+    let x0 = int32(Math.Floor(left * scale))
+    let x1 = int32(Math.Ceiling(right * scale))
+    let y0 = int32(Math.Ceiling((y + 4.0) * scale))
+    let y1 = int32(Math.Floor((y + height - 4.0) * scale))
+    let background = (y0 + y1) / 2 * int32(image.RowBytes) + int32(Math.Ceiling((right + 6.0) * scale)) * 4
+    let distance((int32, int32) -> int32) = (x int32, row int32) -> {
+        let at = row * int32(image.RowBytes) + x * 4
+        var result = 0
+        for channel in 0 ... 3 {
+            result = Math.Max(result, Math.Abs(int32(image.Pixels[at + channel]) - int32(image.Pixels[background + channel])))
+        }
+        return result
+    }
+    var strongest = 0
+    for row in y0 ... y1 {
+        for column in x0 ... x1 {
+            strongest = Math.Max(strongest, distance(column, row))
+        }
+    }
+    var first = -1
+    var last = -1
+    for row in y0 ... y1 {
+        for column in x0 ... x1 {
+            if 2 * distance(column, row) >= strongest {
+                first = first < 0 ? row: first
+                last = row
+                break
+            }
+        }
+    }
+    Require(strongest >= 64, "No text ink for " + text + " at " + y.ToString())
+    return []int32{first, last}
+}
+
+func ComboBoxFluentInteractions() {
+    let host = ComboBoxHost()
+    let window = Window{Title: "Fluent ComboBox verification", Width: 720, Height: 520, Root: host}
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 14)
+        for scale in []float32{1.0F, 1.5F} {
+            window.UiScale = scale
+            window.Width = int32(720.0F * scale)
+            window.Height = int32(520.0F * scale)
+            let suffix = "-" + scale.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture)
+            Theme.Attach(window, Theme.Fluent)
+            for large in []bool{false, true} {
+                host.Large = large
+                host.Selected = large ? "item-1201": "beta"
+                host.IsOpen = false
+                host.Rows.Clear()
+                host.Rebuild()
+                PumpFrames(window, 12)
+                let label = large ? "Option 1201": "Beta"
+                let field = host.Trigger!!.Handle!!.BorderBox
+                let closed = ComboTextInk(window, label, field.X, field.Y, field.Height)
+                host.IsOpen = true
+                host.Rebuild()
+                PumpFrames(window, 16)
+                Require(host.Rows.ContainsKey(host.Selected), "Fluent ComboBox did not realize the selected " + label)
+                let row = host.Rows[host.Selected].Handle!!.BorderBox
+                let opened = ComboTextInk(window, label, row.X, row.Y, row.Height)
+                Require(
+                    host.Panel!!.Handle!!.BorderBox.Y < field.Y && closed[0] == opened[0] && closed[1] == opened[1],
+                    "Fluent ComboBox at scale " + scale.ToString() + " put " + label + " ink rows " + opened[0].ToString() + "-" + opened[1].ToString()
+                    + " over field ink rows " + closed[0].ToString() + "-" + closed[1].ToString() + ", panel " + host.Panel!!.Handle!!.BorderBox.ToString()
+                )
+                if !large {
+                    let theme = Theme.Read(window)
+                    let panel = host.Panel!!.Handle!!.BorderBox
+                    let border = host.Panel!!.Handle!!.ContentBox.Y - panel.Y
+                    Require(
+                        Math.Abs(panel.Height - 4.0 * theme.ControlHeight - 2.0 * theme.Spacing - 2.0 * border) * float64(scale) < 0.5,
+                        "Fluent ComboBox with 4 options is not content-sized: " + panel.ToString()
+                    )
+                }
+                CaptureIssueProof(window, (large ? "fluent-long": "fluent-short") + suffix)
+            }
+            host.Large = false
+            host.Selected = ""
+            host.IsOpen = false
+            host.Rebuild()
+            PumpFrames(window, 12)
+            let field = host.Trigger!!.Handle!!.BorderBox
+            host.IsOpen = true
+            host.Rebuild()
+            PumpFrames(window, 16)
+            let first = host.Rows["alpha"].Handle!!.BorderBox
+            Require(
+                Math.Abs(first.Y + first.Height / 2.0 - field.Y - field.Height / 2.0) * float64(scale) < 0.5,
+                "Fluent ComboBox without a selection did not align its first option: " + first.ToString() + " over " + field.ToString()
+            )
+            host.IsOpen = false
+            host.Rebuild()
+            window.Height = int32(Math.Ceiling((field.Y + field.Height + 8.0) * float64(scale)))
+            PumpFrames(window, 12)
+            host.IsOpen = true
+            host.Rebuild()
+            PumpFrames(window, 16)
+            let clamped = host.Panel!!.Handle!!.BorderBox
+            let shifted = host.Rows["alpha"].Handle!!.BorderBox
+            let fieldRaw = host.Trigger!!.Handle!!.RawBorderBox
+            let rowRaw = host.Rows["alpha"].Handle!!.RawBorderBox
+            let steps = (rowRaw.Y + rowRaw.Height / 2.0 - fieldRaw.Y - fieldRaw.Height / 2.0) * float64(window.PixelScale)
+            Require(
+                clamped.Y >= 7.5 && clamped.Y + clamped.Height <= float64(window.Height) / float64(scale) - 7.5
+                && shifted.Y + shifted.Height / 2.0 < field.Y + field.Height / 2.0 - 1.0,
+                "Fluent ComboBox near the window bottom did not shift into the window: " + clamped.ToString()
+            )
+            Require(
+                Math.Abs(steps - Math.Round(steps)) < 0.01,
+                "Fluent ComboBox near the window bottom moved its options " + steps.ToString() + " device pixels from the field"
+            )
+            CaptureIssueProof(window, "fluent-clamped" + suffix)
+            host.IsOpen = false
+            host.Large = true
+            host.Selected = "item-1201"
+            host.Rows.Clear()
+            host.Rebuild()
+            PumpFrames(window, 12)
+            host.IsOpen = true
+            host.Rebuild()
+            PumpFrames(window, 16)
+            let capped = host.Panel!!.Handle!!.BorderBox
+            Require(
+                capped.Y >= 7.5 && capped.Y + capped.Height <= float64(window.Height) / float64(scale) - 7.5,
+                "Fluent ComboBox with a viewport-height list near the window bottom left the window: " + capped.ToString()
+            )
+            CaptureIssueProof(window, "fluent-clamped-long" + suffix)
+            host.Large = false
+            host.IsOpen = false
+            host.Selected = "beta"
+            host.Rebuild()
+            window.Height = int32(520.0F * scale)
+            Theme.Attach(window, Theme.Default)
+            PumpFrames(window, 12)
+            host.IsOpen = true
+            host.Rebuild()
+            PumpFrames(window, 16)
+            let trigger = host.Trigger!!.Handle!!.BorderBox
+            Require(
+                host.Panel!!.Handle!!.BorderBox.Y >= trigger.Y + trigger.Height,
+                "Standard ComboBox did not keep its popup below the field at scale " + scale.ToString()
+            )
+            CaptureIssueProof(window, "standard" + suffix)
+            host.IsOpen = false
+            host.Rebuild()
+            PumpFrames(window, 8)
+        }
+    })
 }

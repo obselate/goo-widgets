@@ -73,6 +73,8 @@ public data struct ComboBoxInput {
     /// Finite popup height limit in logical pixels, greater than 42. Nil fits the options, limited by the viewport.
     var PopupHeight float64?
     /// Preferred anchor-relative placement. Collision handling can move the popup into view.
+    /// With ControlStyle.Fluent and no search field, the popup opens over the trigger with the selected option, or the first option,
+    /// on the trigger text row, and shifts into the viewport. Placement is then not used.
     var Placement PopoverPlacement
     /// Finite positive option height in logical pixels. Nil uses the theme control height.
     var RowHeight float64?
@@ -132,11 +134,17 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private var wasOpen bool
     private var revealPending bool
     private var disposed bool
+    private var alignField bool
+    private var fieldBox ElementRect
+    private var alignIndex int32
+    private var alignScroll float64
+    private var alignPending bool
     private var createId string = ""
 
     /// Subscribes to list viewport metrics for active-option reveal. Dispose the selector to release the subscription.
     public init() {
         viewport.MetricsChanged += ListMetrics
+        trigger.MetricsChanged += TriggerMetrics
     }
 
     /// Releases geometry subscriptions. The composed popup owns its focus scope.
@@ -146,6 +154,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         disposed = true
         viewport.MetricsChanged -= ListMetrics
+        trigger.MetricsChanged -= TriggerMetrics
         BindOverlay(nil)
     }
 
@@ -267,10 +276,13 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 }
             }
         }
+        alignField = theme.Controls == ControlStyle.Fluent && !input.Searchable && !input.AllowFreeText
         if !isOpen {
             wasOpen = false
         } else if !wasOpen {
             activeId = Index(input.SelectedId ?? "") >= 0 ? input.SelectedId!!: First(false)
+            alignIndex = Math.Max(0, Index(input.SelectedId ?? ""))
+            alignPending = alignField
             wasOpen = true
             revealPending = true
         }
@@ -347,9 +359,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         root.Children.Clear()
         root.Children.Add(button)
+        let border = trigger.IsMounted ? trigger.ContentBox.Y - trigger.BorderBox.Y: theme.BorderWidth
         let popupHeight = Math.Min(
             current.PopupHeight ?? Double.PositiveInfinity,
-            2.0 +
+            2.0 * border +
                 2.0 * theme.Spacing +
                 ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) +
                 Math.Max(theme.ControlHeight, float64(rows.Length) * current.RowHeight!!)
@@ -372,6 +385,19 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         if isOpen && overlay != nil {
             popup.Viewport = overlayBox
+        }
+        if isOpen && alignField && trigger.IsMounted {
+            let window = Theme.Key.Window
+            let viewHeight = overlay != nil ? overlayBox.Height: float64(window.Height) / float64(window.UiScale)
+            let listHeight = Math.Min(popupHeight - 2.0 * border, Math.Max(1.0, viewHeight - 2.0 * theme.ControlGap) - 2.0 * border) - 2.0 * theme.Spacing
+            let row = current.RowHeight!!
+            let density = float64(window.PixelScale)
+            let scroll = Math.Clamp(float64(alignIndex) * row - (listHeight - row) / 2.0, 0.0, Math.Max(0.0, float64(rows.Length) * row - listHeight))
+            alignScroll = Math.Floor(scroll * density) / density
+            fieldBox = trigger.RawBorderBox
+            let offset = (fieldBox.Height - row) / 2.0 - border - theme.Spacing - float64(alignIndex) * row + alignScroll
+            popup.Anchor = nil
+            popup.WindowPoint = Point{X: fieldBox.X, Y: fieldBox.Y + Math.Floor(offset * density + 0.5) / density}
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
         return root
@@ -627,7 +653,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         let handle = Handle(activeId)
         revealPending = false
-        if handle.IsMounted {
+        if alignPending {
+            alignPending = false
+            viewport.JumpTo(0.0, alignScroll)
+        } else if handle.IsMounted {
             handle.ScrollIntoView()
         } else {
             viewport.ScrollToItem(activeId)
@@ -755,6 +784,12 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     private func ListMetrics(metrics ElementMetrics) {
         if !disposed && metrics.IsMounted && revealPending {
             Reveal()
+        }
+    }
+
+    private func TriggerMetrics(metrics ElementMetrics) {
+        if !disposed && wasOpen && alignField && metrics.IsMounted && metrics.RawBorderBox != fieldBox {
+            Rebuild()
         }
     }
 }

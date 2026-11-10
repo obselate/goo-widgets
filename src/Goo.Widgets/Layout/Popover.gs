@@ -37,6 +37,7 @@ public data struct PopoverInput {
     /// Supply exactly one anchor or window point when open.
     var Anchor ElementHandle?
     /// Anchor point in window logical pixels. Nil requires Anchor when open. Supply only one anchor source.
+    /// The panel moves into the viewport by whole device pixels, unless less than one device pixel of free space remains.
     var WindowPoint Point?
     /// Part of Anchor to place against, in Anchor border-box coordinates. Placement follows Anchor scroll and layout.
     var AnchorRect ElementRect?
@@ -208,7 +209,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         }
         layoutWidth = fit ? maxWidth: width
         let height = Math.Min(heightLimit, panelHeight > 0.0 ? panelHeight: heightLimit)
-        let origin = anchor == nil ? Place(viewport, width, height): Point{}
+        let origin = anchor == nil ? Place(viewport, width, height, float64(Theme.Key.Window.PixelScale)): Point{}
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
         let content = current.Content ?? Container{HitTestSelf: false}
         let panel = if let create = current.CreatePanel {
@@ -376,7 +377,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
     private func MeasurementValid(width float64) bool ->
     hasPanelMeasurement && Math.Abs(measuredWidth - width) <= 0.01
 
-    private func Place(viewport ElementRect, width float64, height float64) Point {
+    private func Place(viewport ElementRect, width float64, height float64, density float64) Point {
         let margin = current.ViewportMargin!!
         let left = viewport.X + Math.Min(margin, viewport.Width * 0.5)
         let top = viewport.Y + Math.Min(margin, viewport.Height * 0.5)
@@ -384,9 +385,15 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let bottom = Math.Max(top, viewport.Y + viewport.Height - margin)
         let point = current.WindowPoint ?? Point{}
         return Point{
-            X: Math.Clamp(point.X, left, Math.Max(left, right - width)),
-            Y: Math.Clamp(point.Y, top, Math.Max(top, bottom - height))
+            X: Fit(point.X, left, Math.Max(left, right - width), density),
+            Y: Fit(point.Y, top, Math.Max(top, bottom - height), density)
         }
+    }
+
+    private func Fit(value float64, minimum float64, maximum float64, density float64) float64 {
+        let low = Math.Ceiling((minimum - value) * density) / density
+        let high = Math.Floor((maximum - value) * density) / density
+        return low <= high ? value + Math.Clamp(0.0, low, high): Math.Clamp(value, minimum, maximum)
     }
 
     private func BindPreview(next Window?) {
