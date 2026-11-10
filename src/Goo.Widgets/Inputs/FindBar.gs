@@ -65,7 +65,7 @@ public data struct FindBar {
         let root = Container{
             Width: Width ?? Percent(100),
             MinWidth: 0,
-            Gap: theme.ControlGap / 2.0,
+            Gap: theme.ControlGap,
             Padding: theme.ControlGap / 2.0,
             BackgroundColor: theme.PanelColor,
             BorderWidth: theme.BorderWidth,

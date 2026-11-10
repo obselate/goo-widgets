@@ -157,7 +157,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         let actions = Container{
             FlexDirection: FlexDirection.Row,
             JustifyContent: JustifyContent.FlexEnd,
-            Gap: theme.Spacing,
+            Gap: theme.ControlGap,
         }
         if let label = input.Item.ActionLabel {
             actions.Children.Add(ActionButton{Content: label, OnClick: action}.Build())
