@@ -265,6 +265,7 @@ public data struct Theme {
     /// An attached theme with a Variant follows Theme.SetMode. The built-in themes also keep colors set on the attached theme
     /// and follow the system accent. A custom Variant's output is used verbatim, accent included. It can read PlatformPreferences itself.
     var Variant Func[bool, Theme]?
+    internal var VariantDark bool
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
 
@@ -661,6 +662,7 @@ public data struct Theme {
         /// Dark Ink palette. Each access returns an independent value.
         public prop Ink Theme {
             get -> Theme{
+                VariantDark: true,
                 CanvasColor: "#08090c",
                 PanelColor: "#16181e",
                 RaisedColor: "#1f2229",
@@ -748,6 +750,7 @@ public data struct Theme {
         /// Light Bone palette, including darker semantic text colors for light surfaces.
         public prop Bone Theme {
             get -> Ink with{
+                VariantDark = false,
                 CanvasColor = "#f3f3f1",
                 PanelColor = "#fafaf9",
                 RaisedColor = "#ffffff",
@@ -897,6 +900,7 @@ public data struct Theme {
             }
             return if dark {
                 light.WithPalette(Ink, light) with{
+                    VariantDark = true,
                     CanvasColor = "#202020",
                     PanelColor = "#282828",
                     RaisedColor = "#2d2d2d",
@@ -1433,7 +1437,7 @@ internal sealed class ThemeAttachment {
         if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
             let builtIn = Theme.IsBuiltIn(variant)
-            let origin = builtIn ? variant(Value.FrameTheme == SystemTheme.Dark).ResolveDefaults(): Value
+            let origin = builtIn ? variant(Value.VariantDark).ResolveDefaults(): Value
             value = value.WithPalette(variant(dark), origin)
             let custom = builtIn && Value.AccentColor != origin.AccentColor
             var accent = builtIn ? preferences.AccentColor: nil

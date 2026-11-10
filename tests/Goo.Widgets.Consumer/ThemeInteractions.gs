@@ -532,6 +532,20 @@ func ThemeBackgroundContracts() {
         }
         Require(kept, "A theme lost its accent override or custom Variant accent, or another color stopped following the mode.")
     }
+    for (attached, firstDark, canvas) in []ValueTuple[Theme, bool, Color]{
+        (Theme.Default with{CanvasColor = Color.Black}, true, Color.Black),
+        (Theme.Ink with{CanvasColor = Color.White, Variant = Theme.Default.Variant}, false, Color.White),
+    } {
+        Theme.Attach(native, attached)
+        var kept = true
+        for isDark in []bool{firstDark, !firstDark} {
+            Theme.SetMode(native, isDark ? ThemeMode.Dark: ThemeMode.Light)
+            ThemeFrames(nativeHost)
+            let read = Theme.Read(native)
+            kept = kept && read.CanvasColor == canvas && read.PanelColor == (isDark ? Theme.Ink: Theme.Bone).PanelColor
+        }
+        Require(kept, "A canvas override changed the variant baseline, so untouched colors stopped following the mode.")
+    }
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )
