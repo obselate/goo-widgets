@@ -96,6 +96,12 @@
       "symbol": "Goo.Widgets.Inputs.TouchTextEditing",
       "signature": "public open class TouchTextEditing : Cell[TouchTextEditingInput],IDisposable",
       "reason": "G# drops XML summaries of partial types: https://github.com/DavidObando/gsharp/issues/5762"
+    },
+    {
+      "rule": "S27",
+      "symbol": "Goo.Widgets.Theme",
+      "signature": "public data struct Theme",
+      "reason": "G# drops XML summaries of partial types: https://github.com/DavidObando/gsharp/issues/5762"
     }
   ]
 }
