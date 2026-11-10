@@ -174,7 +174,7 @@ public open class TriggerMenu : Cell[TriggerMenuInput], IDisposable {
                     return true
                 }
             },
-            FuzzyMatch.Label(match.Item, match.Match, theme),
+            FuzzyMatchLabel.Create(match.Item, match.Match, theme),
         }
         theme.ApplyInteraction(row, InteractionFamily.Row, match.Order == highlighted)
         return row

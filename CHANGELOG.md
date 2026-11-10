@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Move loose source files into folders: `FuzzyMatch` to `Search/`, `Kbd`, `ShortcutList` and `Typography` to `Content/`, `RovingFocus`, `TypeAhead` and `WidgetKeyBindings` to `Keyboard/`, and `ILLink.Substitutions.xml` to `Icons/`. Namespaces, types and the embedded resource name do not change. The gallery shows `ShortcutList` on its own Shortcut list page.
 - Window theme attachment and `ThemeScope` apply high contrast, platform text scale and reduced motion through one shared transform. Behavior does not change.
 - Split the `Theme` source into partial files: context and attachment, resolution, color, styles, widget presets and one file per palette family. The public API, values and visuals do not change. The `Theme` type summary is missing from `Goo.Widgets.xml` until the G# SDK includes the partial-type documentation fix (DavidObando/gsharp#5762).
 - The OVERLAYS Popover content-height checks read the border and padding from the laid-out panel, so they hold when Goo snaps border widths to device pixels at display scale 1.5. The window-point press check presses the background control clear of the popover anchor button and requires the press to reach it when `DismissOnOutsideClick` is false.

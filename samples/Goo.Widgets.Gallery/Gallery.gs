@@ -467,6 +467,7 @@ func CreateRegistry() GalleryRegistry -> GalleryRegistry([]GalleryCategory{
         MarkdownViewPage{DisplayTitle: "Markdown view"},
         TypographyPage{DisplayTitle: "Typography"},
         KbdPage{DisplayTitle: "Kbd"},
+        ShortcutListPage{DisplayTitle: "Shortcut list"},
         CodeBlockPage{DisplayTitle: "Code block"}
     })
 })
