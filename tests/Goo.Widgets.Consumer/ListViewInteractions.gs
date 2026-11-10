@@ -415,7 +415,14 @@ func ListFillItems()[]ListViewItem {
 
 func ListFillInteractions() {
     let host = ListFillHost()
-    let window = Window{Title: "List fill verification", Width: 480, Height: 680, Root: ApplicationRoot(host)}
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "List fill verification",
+        Width: 480,
+        Height: 680,
+        Root: ApplicationRoot(host),
+        AccessibilityAdapter: semantics
+    }
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 15)
@@ -434,8 +441,22 @@ func ListFillInteractions() {
             }
         }
         Require(mounted > 0 && mounted < 40, "ListView realized " + mounted.ToString() + " of 10,000 rows")
-        host.Root!!.Handle!!.Focus()
-        PumpFrames(window, 6)
+        let scroll(() -> AccessibilityScrollInfo) = () -> FindSemantics(semantics.Tree?.Root, "Messages")!!.Children[0].ScrollInfo!!
+        CompositeClick(window, host.Rows["1"].Handle!!)
+        Require(scroll().TargetY == 0.0, "A pointer click on a visible row scrolled the list")
+        let height = host.Rows["1"].Handle!!.BorderBox.Height
+        var last = 1
+        while float64(last + 2) * height <= scroll().ViewportHeight {
+            ListKey(window, SDLScancode.Down)
+            last++
+        }
+        Require(scroll().TargetY == 0.0, "Keyboard focus on a visible row scrolled the list")
+        ListKey(window, SDLScancode.Down)
+        let expected = float64(float32(float64(last + 2) * height) - float32(scroll().ViewportHeight))
+        Require(
+            scroll().TargetY == expected,
+            "Down past the last visible row set scroll target " + scroll().TargetY.ToString() + ", expected " + expected.ToString()
+        )
         ListKey(window, SDLScancode.End)
         CaptureIssueProof(window, "listview-fill-end")
         Require(
