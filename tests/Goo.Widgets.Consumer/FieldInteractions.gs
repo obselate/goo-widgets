@@ -574,6 +574,18 @@ func AddonFramePixels() {
                     )
                     let box = host.Frame.BorderBox
                     let image = ThemeCapture(window)
+                    let pixelScale = float64(image.Width) / float64(window.Width)
+                    let pixelAt = int32(box.Y * pixelScale) * int32(image.RowBytes) + int32(box.X * pixelScale) * 4
+                    let canvas = palette.CanvasColor
+                    let focus = palette.FocusColor
+                    let coverage = focused ? (float64(image.Pixels[pixelAt]) / 255.0 - canvas.R) / (focus.R - canvas.R): 0.0
+                    let corner = Color.Rgb(
+                        int32(Math.Round((canvas.R + (focus.R - canvas.R) * coverage) * 255)),
+                        int32(Math.Round((canvas.G + (focus.G - canvas.G) * coverage) * 255)),
+                        int32(Math.Round((canvas.B + (focus.B - canvas.B) * coverage) * 255))
+                    )
+                    let cornerMatches = ThemePoint(image, window, box.X, box.Y, canvas)
+                        || focused && coverage >= 0 && coverage <= 1 && ThemePoint(image, window, box.X, box.Y, corner)
                     let border = invalid ? palette.DangerColor: palette.InputBorderColor
                     for offset in[]Point{
                         Point{X: 24, Y: 1},
@@ -591,7 +603,7 @@ func AddonFramePixels() {
                         )
                     }
                     Require(
-                        ThemePoint(image, window, box.X, box.Y, palette.CanvasColor),
+                        cornerMatches,
                         "TextField addon painted outside its rounded corner"
                     )
                 }
