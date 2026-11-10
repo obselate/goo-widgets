@@ -102,7 +102,7 @@ public data struct ListRow {
         let text = TextColor ?? theme.TextColor
         let captionColor = CaptionColor ?? theme.MutedTextColor
         let ring = if theme.Selection == SelectionStyle.Tint {
-            BoxShadow{Color: theme.AccentColor, Spread: theme.BorderWidth}
+            BoxShadow{Inset: true, Color: theme.AccentColor, Spread: theme.BorderWidth}
         } else {
             BoxShadow{}
         }

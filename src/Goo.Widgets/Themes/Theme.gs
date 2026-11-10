@@ -1389,7 +1389,7 @@ public data struct Theme {
             }
             (this with{Controls = ControlStyle.Standard}).ApplyInteraction(thumb, InteractionFamily.Field)
             return Goo.Scrollbar{
-                Thickness: 6.0,
+                Thickness: Controls == ControlStyle.Fluent ? 2.0: 6.0,
                 HitThickness: 12.0,
                 Inset: 2.0,
                 MinThumbLength: 24.0,
