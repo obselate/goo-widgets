@@ -94,6 +94,9 @@ internal class FocusGoldenPage : Cell {
         if Control == "GraphNodeCard" || Control == "MasterDetail" {
             stage.Height = theme.ControlHeight * 3
         }
+        if Control == "ModalDialog" {
+            stage.FlexGrow = 1
+        }
         if Layout != "plain" {
             stage.BorderRadius = theme.PanelRadius ??
                 throw InvalidOperationException("Theme panel radius is unresolved.")
