@@ -61,4 +61,5 @@ for _ in $(seq 1 50); do
 done
 test -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY"
 
-"$@"
+printf '%s\n' "<busconfig><type>session</type><listen>unix:dir=$runtime_root</listen><policy context=\"default\"><allow send_destination=\"*\" eavesdrop=\"true\"/><allow eavesdrop=\"true\"/><allow own=\"*\"/></policy></busconfig>" > "$runtime_root/session-bus.conf"
+dbus-run-session --config-file="$runtime_root/session-bus.conf" -- "$@"
