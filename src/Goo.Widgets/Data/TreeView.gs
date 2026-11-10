@@ -89,7 +89,7 @@ public data struct TreeViewInput {
     var Virtualize bool?
     /// Viewport width. Nil resolves to 100%.
     var Width Length?
-    /// Viewport height. Nil resolves to 280.
+    /// Root layout height. Nil grows to fill the free space of the parent. Set it when the parent has no bounded height.
     var Height Length?
     /// Optional vertical scrollbar appearance for the active scroller.
     var ScrollbarY Scrollbar?
@@ -169,11 +169,9 @@ public open class TreeView : Cell[TreeViewInput] {
             value.SelectedId != requestedSelection
         requestedSelection = nil
         theme = Theme.Read()
-        let defaultHeight Length = 280
         input = value with{
             Virtualize = value.Virtualize ?? true,
             Width = value.Width ?? Percent(100),
-            Height = value.Height ?? defaultHeight,
             RowHeight = value.RowHeight ?? theme.ControlHeight,
             Indent = value.Indent ?? theme.Spacing * 5.0,
             AccessibilityName = value.AccessibilityName ?? theme.Text("Tree"),
@@ -329,12 +327,16 @@ public open class TreeView : Cell[TreeViewInput] {
             LineHeight: theme.LineHeight,
             Handle: rootHandle,
             Width: input.Width!!,
-            Height: input.Height!!,
+            Height: input.Height ?? Length.Auto,
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
+        }
+        if input.Height == nil {
+            root.FlexGrow = 1
+            root.FlexBasis = 0
         }
         if let create = input.CreateRoot {
             root = create(input, root)

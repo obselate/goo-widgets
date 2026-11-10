@@ -28,7 +28,7 @@ public data struct SearchList {
     var EmptyText string?
     /// List width. Nil resolves to 280.
     var Width Length?
-    /// Total height. Nil resolves to 240.
+    /// Total height. Nil grows to fill the free space of the parent. Set it when the parent has no bounded height.
     var Height Length?
     /// Virtual row height in pixels. Nil uses the theme's control height.
     var RowHeight float64?
@@ -64,9 +64,8 @@ public data struct SearchList {
     internal func BuildContent(indices[]int32, positions Dictionary[string, int32]) Blob {
         let theme = Theme.Read()
         let defaultWidth Length = 280.0
-        let defaultHeight Length = 240.0
         let width = Width ?? defaultWidth
-        let height = Height ?? defaultHeight
+        let height = Height ?? Length.Auto
         let rowHeight = RowHeight ?? theme.ControlHeight
         if (width.HasMagnitude && !width.IsPercent && (!Double.IsFinite(width.Magnitude) || width.Magnitude <= 2.0))
         || (height.HasMagnitude && !height.IsPercent && (!Double.IsFinite(height.Magnitude) || height.Magnitude <= theme.ControlHeight))
@@ -194,6 +193,10 @@ public data struct SearchList {
             BorderRadius: theme.ControlRadius!!,
             Overflow: Overflow.Hidden,
             entry,
+        }
+        if Height == nil {
+            root.FlexGrow = 1
+            root.FlexBasis = 0
         }
         if count == 0 {
             root.Children.Add(

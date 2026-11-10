@@ -208,7 +208,7 @@ public data struct DataGridInput {
     var Disabled bool
     /// Root layout width. Nil fills the available width.
     var Width Length?
-    /// Scroll viewport layout height. Nil uses 300 logical pixels.
+    /// Root layout height. Nil grows to fill the free space of the parent. Set it when the parent has no bounded height.
     var Height Length?
     /// Positive row height in logical pixels. Nil uses the theme control height scaled by Density.
     var RowHeight float64?
@@ -455,10 +455,8 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             viewport = nextViewport
             viewport.MetricsChanged += HorizontalMetrics
         }
-        let defaultHeight Length = 300
         input = value with{
             Width = value.Width ?? Percent(100),
-            Height = value.Height ?? defaultHeight,
             RowHeight = value.RowHeight ?? (value.Density == Density.Touch ?
                 theme.WithDensity(Density.Touch).ControlHeight:
                 theme.ControlHeight * (value.Density == Density.Compact ? 0.8:
@@ -753,7 +751,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             LineHeight: theme.LineHeight,
             Handle: rootHandle,
             Width: input.Width!!,
-            Height: input.Height!!,
+            Height: input.Height ?? Length.Auto,
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
@@ -762,6 +760,10 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Overflow: Overflow.Hidden
+        }
+        if input.Height == nil {
+            root.FlexGrow = 1
+            root.FlexBasis = 0
         }
         if let create = input.CreateRoot {
             root = create(input, root)
