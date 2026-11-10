@@ -77,7 +77,9 @@ func FocusKey(window Window, key Key) {
     window.PlatformInput.KeyRelease(key)
 }
 
-func FocusCrop(image WindowCapture, bounds ElementRect, scale float64) ImageSource {
+func FocusCrop(window Window, bounds ElementRect, uiScale float64) ImageSource {
+    let image = ThemeCapture(window)
+    let scale = uiScale * float64(image.Width) / float64(window.Width)
     let left = Math.Max(0, int32(Math.Floor((bounds.X - 6) * scale)))
     let top = Math.Max(0, int32(Math.Floor((bounds.Y - 6) * scale)))
     let right = Math.Min(int32(image.Width), int32(Math.Ceiling((bounds.X + bounds.Width + 6) * scale)))
@@ -230,7 +232,7 @@ func FocusGoldens() {
                             let prefix = control + "-" + layout + "-" + mode.ToString().ToLowerInvariant() +
                                 "-" +
                                 scale.ToString("0.0", CultureInfo.InvariantCulture) + "-" + index.ToString()
-                            using let image = FocusCrop(ThemeCapture(window), focused.Bounds, scale)
+                            using let image = FocusCrop(window, focused.Bounds, scale)
                             failures += FocusCompare(
                                 image,
                                 Path.Combine(directory, prefix + ".png"),
@@ -262,7 +264,7 @@ func FocusGoldens() {
                                 FocusSettled(window, adapter)
                                 let lastFocused = ThemeFocused(adapter.Tree?.Root) ??
                                     throw InvalidOperationException("Keyboard focus is missing.")
-                                using let last = FocusCrop(ThemeCapture(window), lastFocused.Bounds, scale)
+                                using let last = FocusCrop(window, lastFocused.Bounds, scale)
                                 failures += FocusCompare(
                                     last,
                                     Path.Combine(directory, prefix + "-last.png"),
