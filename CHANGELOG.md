@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Split the `Theme` source into partial files: context and attachment, resolution, color, styles, widget presets and one file per palette family. The public API, values and visuals do not change. The `Theme` type summary is missing from `Goo.Widgets.xml` until the G# SDK includes the partial-type documentation fix (DavidObando/gsharp#5762).
 - The OVERLAYS Popover content-height checks read the border and padding from the laid-out panel, so they hold when Goo snaps border widths to device pixels at display scale 1.5. The window-point press check presses the background control clear of the popover anchor button and requires the press to reach it when `DismissOnOutsideClick` is false.
 - `CommandPalette` search text keeps the standard field padding, so the focus ring no longer covers the first letter. The `MediaTransport` volume slider shrinks in a narrow transport, so the Volume label no longer overlaps the next button.
 - Native suites run the test app on a private session bus without service activation, so a desktop portal accent color no longer changes local captures and local FOCUS results match CI.
