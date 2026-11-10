@@ -6,6 +6,7 @@ import Goo.Widgets.Colors
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 import System
+import System.Collections.Generic
 import System.Globalization
 import System.Runtime.CompilerServices
 
@@ -476,62 +477,66 @@ public data struct Theme {
         }
     }
 
-    internal func WithPalette(palette Theme) Theme -> this with{
-        CanvasColor = palette.CanvasColor,
-        PanelColor = palette.PanelColor,
-        RaisedColor = palette.RaisedColor,
-        OverlayColor = palette.OverlayColor,
-        FieldColor = palette.FieldColor,
-        HoverColor = palette.HoverColor,
-        PressedColor = palette.PressedColor,
-        HoverTextColor = palette.HoverTextColor,
-        BorderColor = palette.BorderColor,
-        InputBorderColor = palette.InputBorderColor,
-        TextColor = palette.TextColor,
-        MutedTextColor = palette.MutedTextColor,
-        PlaceholderColor = palette.PlaceholderColor,
-        FaintTextColor = palette.FaintTextColor,
-        AccentColor = palette.AccentColor,
-        OnAccentColor = palette.OnAccentColor,
-        AccentHoverColor = palette.AccentHoverColor,
-        AccentPressedColor = palette.AccentPressedColor,
-        InfoColor = palette.InfoColor,
-        SuccessColor = palette.SuccessColor,
-        WarningColor = palette.WarningColor,
-        DangerColor = palette.DangerColor,
-        DangerFillColor = palette.DangerFillColor,
-        DangerHoverColor = palette.DangerHoverColor,
-        SunkenColor = palette.SunkenColor,
-        ActiveColor = palette.ActiveColor,
-        StrongBorderColor = palette.StrongBorderColor,
-        SubtleTextColor = palette.SubtleTextColor,
-        DisabledTextColor = palette.DisabledTextColor,
-        LinkColor = palette.LinkColor,
-        FocusColor = palette.FocusColor,
-        InfoFillColor = palette.InfoFillColor,
-        SuccessFillColor = palette.SuccessFillColor,
-        WarningFillColor = palette.WarningFillColor,
-        DangerQuietColor = palette.DangerQuietColor,
-        ScrollbarColor = palette.ScrollbarColor,
-        GlassColor = palette.GlassColor,
-        HighlightColor = palette.HighlightColor,
-        HairlineColor = palette.HairlineColor,
-        OverlayBlur = palette.OverlayBlur,
-        ElevationSm = palette.ElevationSm,
-        ElevationMd = palette.ElevationMd,
-        ElevationLg = palette.ElevationLg,
-        PanelShadows = palette.PanelShadows,
-        OverlayShadows = palette.OverlayShadows,
-        ControlShadows = palette.ControlShadows,
-        FieldShadows = palette.FieldShadows,
-        SeriesPalette = palette.SeriesPalette,
-        ColorBlindPalette = palette.ColorBlindPalette,
-        Syntax = palette.Syntax,
-        Diff = palette.Diff,
-        Ansi = palette.Ansi,
+    internal func WithPalette(palette Theme, origin Theme) Theme -> this with{
+        CanvasColor = Pick(CanvasColor, origin.CanvasColor, palette.CanvasColor),
+        PanelColor = Pick(PanelColor, origin.PanelColor, palette.PanelColor),
+        RaisedColor = Pick(RaisedColor, origin.RaisedColor, palette.RaisedColor),
+        OverlayColor = Pick(OverlayColor, origin.OverlayColor, palette.OverlayColor),
+        FieldColor = Pick(FieldColor, origin.FieldColor, palette.FieldColor),
+        HoverColor = Pick(HoverColor, origin.HoverColor, palette.HoverColor),
+        PressedColor = Pick(PressedColor, origin.PressedColor, palette.PressedColor),
+        HoverTextColor = Pick(HoverTextColor, origin.HoverTextColor, palette.HoverTextColor),
+        BorderColor = Pick(BorderColor, origin.BorderColor, palette.BorderColor),
+        InputBorderColor = Pick(InputBorderColor, origin.InputBorderColor, palette.InputBorderColor),
+        TextColor = Pick(TextColor, origin.TextColor, palette.TextColor),
+        MutedTextColor = Pick(MutedTextColor, origin.MutedTextColor, palette.MutedTextColor),
+        PlaceholderColor = Pick(PlaceholderColor, origin.PlaceholderColor, palette.PlaceholderColor),
+        FaintTextColor = Pick(FaintTextColor, origin.FaintTextColor, palette.FaintTextColor),
+        AccentColor = Pick(AccentColor, origin.AccentColor, palette.AccentColor),
+        OnAccentColor = Pick(OnAccentColor, origin.OnAccentColor, palette.OnAccentColor),
+        AccentHoverColor = Pick(AccentHoverColor, origin.AccentHoverColor, palette.AccentHoverColor),
+        AccentPressedColor = Pick(AccentPressedColor, origin.AccentPressedColor, palette.AccentPressedColor),
+        InfoColor = Pick(InfoColor, origin.InfoColor, palette.InfoColor),
+        SuccessColor = Pick(SuccessColor, origin.SuccessColor, palette.SuccessColor),
+        WarningColor = Pick(WarningColor, origin.WarningColor, palette.WarningColor),
+        DangerColor = Pick(DangerColor, origin.DangerColor, palette.DangerColor),
+        DangerFillColor = Pick(DangerFillColor, origin.DangerFillColor, palette.DangerFillColor),
+        DangerHoverColor = Pick(DangerHoverColor, origin.DangerHoverColor, palette.DangerHoverColor),
+        SunkenColor = Pick(SunkenColor, origin.SunkenColor, palette.SunkenColor),
+        ActiveColor = Pick(ActiveColor, origin.ActiveColor, palette.ActiveColor),
+        StrongBorderColor = Pick(StrongBorderColor, origin.StrongBorderColor, palette.StrongBorderColor),
+        SubtleTextColor = Pick(SubtleTextColor, origin.SubtleTextColor, palette.SubtleTextColor),
+        DisabledTextColor = Pick(DisabledTextColor, origin.DisabledTextColor, palette.DisabledTextColor),
+        LinkColor = Pick(LinkColor, origin.LinkColor, palette.LinkColor),
+        FocusColor = Pick(FocusColor, origin.FocusColor, palette.FocusColor),
+        InfoFillColor = Pick(InfoFillColor, origin.InfoFillColor, palette.InfoFillColor),
+        SuccessFillColor = Pick(SuccessFillColor, origin.SuccessFillColor, palette.SuccessFillColor),
+        WarningFillColor = Pick(WarningFillColor, origin.WarningFillColor, palette.WarningFillColor),
+        DangerQuietColor = Pick(DangerQuietColor, origin.DangerQuietColor, palette.DangerQuietColor),
+        ScrollbarColor = Pick(ScrollbarColor, origin.ScrollbarColor, palette.ScrollbarColor),
+        GlassColor = Pick(GlassColor, origin.GlassColor, palette.GlassColor),
+        HighlightColor = Pick(HighlightColor, origin.HighlightColor, palette.HighlightColor),
+        HairlineColor = Pick(HairlineColor, origin.HairlineColor, palette.HairlineColor),
+        OverlayBlur = Pick(OverlayBlur, origin.OverlayBlur, palette.OverlayBlur),
+        ElevationSm = Pick(ElevationSm, origin.ElevationSm, palette.ElevationSm),
+        ElevationMd = Pick(ElevationMd, origin.ElevationMd, palette.ElevationMd),
+        ElevationLg = Pick(ElevationLg, origin.ElevationLg, palette.ElevationLg),
+        PanelShadows = Same(PanelShadows, origin.PanelShadows) ? palette.PanelShadows: PanelShadows,
+        OverlayShadows = Same(OverlayShadows, origin.OverlayShadows) ? palette.OverlayShadows: OverlayShadows,
+        ControlShadows = Same(ControlShadows, origin.ControlShadows) ? palette.ControlShadows: ControlShadows,
+        FieldShadows = Same(FieldShadows, origin.FieldShadows) ? palette.FieldShadows: FieldShadows,
+        SeriesPalette = Same(SeriesPalette, origin.SeriesPalette) ? palette.SeriesPalette: SeriesPalette,
+        ColorBlindPalette = Same(ColorBlindPalette, origin.ColorBlindPalette) ? palette.ColorBlindPalette: ColorBlindPalette,
+        Syntax = Pick(Syntax, origin.Syntax, palette.Syntax),
+        Diff = Pick(Diff, origin.Diff, palette.Diff),
+        Ansi = Same(Ansi.Colors, origin.Ansi.Colors) && Same(Ansi.BrightColors, origin.Ansi.BrightColors) ? palette.Ansi: Ansi,
     }
 
     shared {
+        internal func Pick[T](own T, origin T, next T) T -> EqualityComparer[T].Default.Equals(own, origin) ? next: own
+
+        private func Same[T](own []T, origin []T) bool -> System.Linq.Enumerable.SequenceEqual(own, origin)
+
         internal let Key Context[Theme] = Context[Theme]()
         private let interactionTransitions []TransitionProperty = []TransitionProperty{TransitionProperty.BackgroundColor, TransitionProperty.BorderColor, TransitionProperty.Color}
         private let pressTransitions []TransitionProperty = []TransitionProperty{TransitionProperty.BackgroundColor, TransitionProperty.BorderColor, TransitionProperty.Color, TransitionProperty.Transform}
@@ -559,7 +564,7 @@ public data struct Theme {
         /// Attaches the Bone and Ink pair in the current mode, preserving an app-set background and following the system accent.
         public func Attach(window Window) {
             let state = attachment(window)
-            state.Value = Default
+            state.Value = Default.ResolveDefaults()
             state.Apply(window.Preferences)
         }
 
@@ -887,7 +892,7 @@ public data struct Theme {
                 Variant = fluentVariant,
             }
             return if dark {
-                light.WithPalette(Ink) with{
+                light.WithPalette(Ink, light) with{
                     CanvasColor = "#202020",
                     PanelColor = "#282828",
                     RaisedColor = "#2d2d2d",
@@ -1412,7 +1417,7 @@ internal sealed class ThemeAttachment {
     private var glassFallback Color
     private var glassFrame SystemTheme
     private var setTransparent bool
-    internal var Value Theme = Theme.Default
+    internal var Value Theme = Theme.Default.ResolveDefaults()
     internal var Mode ThemeMode
 
     internal init(owner Window) {
@@ -1423,9 +1428,19 @@ internal sealed class ThemeAttachment {
         var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
         if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
-            value = value.WithPalette(variant(dark))
-            if let accent = preferences.AccentColor {
-                value = value.WithAccent(accent)
+            let origin = variant(Value.FrameTheme == SystemTheme.Dark).ResolveDefaults()
+            value = value.WithPalette(variant(dark), origin)
+            let custom = Value.AccentColor != origin.AccentColor
+            var accent = preferences.AccentColor
+            if custom {
+                accent = Value.AccentColor
+            }
+            if let accent = accent {
+                let shaded = (custom ? value with{Controls = ControlStyle.Standard}: value).WithAccent(accent)
+                value.AccentColor = shaded.AccentColor
+                value.OnAccentColor = Theme.Pick(Value.OnAccentColor, origin.OnAccentColor, shaded.OnAccentColor)
+                value.AccentHoverColor = Theme.Pick(Value.AccentHoverColor, origin.AccentHoverColor, shaded.AccentHoverColor)
+                value.AccentPressedColor = Theme.Pick(Value.AccentPressedColor, origin.AccentPressedColor, shaded.AccentPressedColor)
             }
         }
         if preferences.HighContrast == true {

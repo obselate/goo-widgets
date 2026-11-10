@@ -312,18 +312,18 @@ Theme.SetMode(window, ThemeMode.Dark)
 | Fixed | `Ink`, `Bone`, `GitHubDark`, or any theme with `Variant = nil` | One palette. `SetMode` does not change it. |
 
 Changing the family keeps the mode. Changing the mode keeps the family's typography, metrics, direction, culture and text.
-The mode replaces palette and glass colors, so `Theme.Fluent with{AccentColor = x}` loses `x` on a mode change.
+The mode replaces palette and glass colors. Colors you set on the attached theme stay in every mode, so `Theme.Fluent with{AccentColor = x}` keeps `x`, and an explicit accent wins over the system accent.
 
 `Theme.Controls` selects control shapes. Fluent and Windows Native use `ControlStyle.Fluent`. Set `Controls = ControlStyle.Fluent` on any theme to use the Windows 11 shapes, or `ControlStyle.Standard` on Fluent for the Goo.Widgets shapes. A Fluent-shaped theme lightens the system accent in dark mode and darkens it in light mode.
 Families with a `Variant` follow the system accent in every mode, when the platform reports one. Without one they keep their own accent.
-For custom colors, set your own `Variant`, or set `Variant = nil` for one fixed palette:
+For a different color per mode, set your own `Variant`. Set `Variant = nil` for one fixed palette:
 
 ```gsharp
 let brand = Color.Parse("#0f7b6c")
+Theme.Attach(window, Theme.Fluent with{AccentColor = brand})
 Theme.Attach(window, Theme.Fluent with{
-    Variant = (dark bool) -> Theme.Fluent.Variant!!(dark) with{AccentColor = brand}
+    Variant = (dark bool) -> Theme.Fluent.Variant!!(dark) with{AccentColor = dark ? Color.Parse("#5fd4c2"): brand}
 })
-Theme.Attach(window, Theme.Fluent with{AccentColor = brand, Variant = nil})
 ```
 
 Mode attachment preserves app-set window backgrounds at attachment and on appearance updates, while text color follows the theme. A fixed theme sets both colors.

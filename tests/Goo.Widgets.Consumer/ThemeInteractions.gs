@@ -223,7 +223,7 @@ func SelectedTextContracts() {
                     return Text{Content: value.Title!!, Color: actual}
                 },
             }.Build())
-        }, Theme.Default with{PanelColor = backdrop, Variant = nil}, parent)
+        }, Theme.Default with{PanelColor = backdrop}, parent)
         let surface = Color.FromNormalized(
             backdrop.R + (fill.R - backdrop.R) * fill.A,
             backdrop.G + (fill.G - backdrop.G) * fill.A,
@@ -488,6 +488,44 @@ func ThemeBackgroundContracts() {
         && fixedInk.CanvasColor == Theme.Ink.CanvasColor && Theme.Read(native).CanvasColor == fluentLight.CanvasColor,
         "Fluent did not follow the mode or the system accent, a fixed theme changed with SetMode, or a family change lost the mode."
     )
+    let fresh Func[bool, Theme] = (dark bool) -> (dark ? Theme.Ink: Theme.Bone) with{SeriesPalette = []Color{dark ? Color.White: Color.Black}}
+    for (attached, expected) in []ValueTuple[Theme, Theme]{
+        (Theme.Default, Theme.Ink),
+        (Theme.Fluent, Theme.Fluent.Variant!!(true)),
+        (fresh(false) with{Variant = fresh}, fresh(true)),
+    } {
+        Theme.Attach(native, attached)
+        Theme.SetMode(native, ThemeMode.Dark)
+        ThemeFrames(nativeHost)
+        let read = Theme.Read(native)
+        Require(
+            read.CanvasColor == expected.CanvasColor && read.HoverColor == expected.HoverColor
+            && System.Linq.Enumerable.SequenceEqual(read.ControlShadows, expected.ControlShadows)
+            && System.Linq.Enumerable.SequenceEqual(read.SeriesPalette, expected.SeriesPalette)
+            && System.Linq.Enumerable.SequenceEqual(read.Ansi.Colors, expected.Ansi.Colors),
+            "An unchanged variant theme recorded a color override."
+        )
+    }
+    let brand = Color.Rgb(200, 30, 90)
+    let warm = Color.Rgb(250, 240, 230)
+    Theme.Attach(native, Theme.Default with{AccentColor = brand, PanelColor = warm})
+    Theme.SetMode(native, ThemeMode.Light)
+    ThemeFrames(nativeHost)
+    let brandLight = Theme.Read(native)
+    Theme.SetMode(native, ThemeMode.Dark)
+    ThemeFrames(nativeHost)
+    let brandDark = Theme.Read(native)
+    Theme.SetMode(native, ThemeMode.System)
+    nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light, AccentColor: accent})
+    ThemeFrames(nativeHost)
+    let brandSystem = Theme.Read(native)
+    Require(
+        brandLight.AccentColor == brand && brandLight.PanelColor == warm && brandLight.CanvasColor == Theme.Bone.CanvasColor
+        && brandDark.AccentColor == brand && brandDark.PanelColor == warm && brandDark.CanvasColor == Theme.Ink.CanvasColor
+        && brandDark.AccentHoverColor != Theme.Ink.AccentHoverColor
+        && brandSystem.AccentColor == brand && brandSystem.PanelColor == warm && brandSystem.CanvasColor == Theme.Bone.CanvasColor,
+        "A color override was lost on attach, a mode change or the system accent, or another color stopped following the mode."
+    )
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )
@@ -689,7 +727,7 @@ func ThemePolicyContracts() {
         Theme.Read(window).TransitionMs == 123.0 && inside.Snapshot.TransitionMs == 77.0,
         "Reduced motion destroyed an authored window or subtree transition duration."
     )
-    Theme.Attach(window, Theme.Default with{CanvasColor = Theme.Bone.DangerColor, Variant = nil})
+    Theme.Attach(window, Theme.Default with{CanvasColor = Theme.Bone.DangerColor})
     first.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Dark})
     ThemeFrames(first)
     Require(window.Background == Theme.Bone.DangerColor, "A custom fixed palette followed the system.")

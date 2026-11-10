@@ -736,7 +736,6 @@ func OverlayInteractions() {
             FocusColor = Color.Black,
             ControlRadius = 0.0,
             TransitionMs = 0.0,
-            Variant = nil,
         }
         host.MenuFocusColor = Color.White
         Theme.Attach(window, classic)
