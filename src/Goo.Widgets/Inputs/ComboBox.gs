@@ -287,17 +287,18 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             TextWrap: TextWrap.NoWrap,
             TextTrimming: TextTrimming.Ellipsis
         }
+        let fluent = theme.Controls == ControlStyle.Fluent
         var button = Button{
             Height: theme.ControlHeight,
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: theme.FieldColor,
-            BorderColor: theme.InputBorderColor,
+            BackgroundColor: fluent ? theme.RaisedColor: theme.FieldColor,
+            BorderColor: theme.ControlStroke,
             BorderWidth: theme.BorderWidth,
             BorderRadius: theme.ControlRadius!!,
-            BoxShadows: current.Disabled ? []BoxShadow{}: theme.FieldShadows,
+            BoxShadows: current.Disabled ? []BoxShadow{}: fluent ? theme.ControlShadows: theme.FieldShadows,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -305,7 +306,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if let create = current.CreateTrigger {
             button = create(current, button)
         }
-        theme.ApplyInteraction(button, InteractionFamily.Field)
+        theme.ApplyInteraction(button, fluent ? InteractionFamily.Button: InteractionFamily.Field)
         button.Key = "trigger"
         button.Handle = trigger
         button.Disabled = current.Disabled
@@ -566,7 +567,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         let prepared = Container{
             BasedOn: theme.OverlayStyle,
             BackgroundColor: theme.OverlayColor,
-            BorderColor: theme.InputBorderColor,
+            BorderColor: theme.ControlStroke,
             BorderWidth: theme.BorderWidth,
             BorderRadius: theme.PanelRadius!!,
         }

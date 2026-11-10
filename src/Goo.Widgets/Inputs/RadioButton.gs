@@ -31,6 +31,7 @@ public data struct RadioButton {
         let selected = Value
         let enabled = !Disabled
         let onChange = OnChange
+        let fluentSelected = selected && theme.Controls == ControlStyle.Fluent
         let mark = Container{
             Width: theme.Spacing * 4.5,
             Height: theme.Spacing * 4.5,
@@ -38,7 +39,7 @@ public data struct RadioButton {
             BorderRadius: theme.Spacing * 2.25,
             BorderWidth: theme.BorderWidth,
             BorderColor: enabled ? selected ? theme.AccentColor: theme.InputBorderColor: theme.DisabledTextColor,
-            BackgroundColor: enabled ? theme.FieldColor: theme.SunkenColor,
+            BackgroundColor: enabled ? fluentSelected ? theme.AccentColor: theme.FieldColor: theme.SunkenColor,
             BoxShadows: enabled ? theme.FieldShadows: []BoxShadow{},
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
@@ -49,7 +50,7 @@ public data struct RadioButton {
                     Width: theme.Spacing * 2.5,
                     Height: theme.Spacing * 2.5,
                     BorderRadius: theme.Spacing * 1.25,
-                    BackgroundColor: enabled ? theme.AccentColor: theme.DisabledTextColor
+                    BackgroundColor: enabled ? fluentSelected ? theme.OnAccentColor: theme.AccentColor: theme.DisabledTextColor
                 }
             )
         }

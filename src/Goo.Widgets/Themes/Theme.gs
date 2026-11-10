@@ -6,6 +6,7 @@ import Goo.Widgets.Colors
 import Goo.Widgets.Feedback
 import Goo.Widgets.Inputs
 import System
+import System.Collections.Generic
 import System.Globalization
 import System.Runtime.CompilerServices
 
@@ -41,6 +42,15 @@ public enum SelectionStyle {
     Indicator;
     /// Accent fill with OnAccentColor text, as in macOS source lists.
     Filled
+}
+
+/// Shape of switches, sliders, radio buttons, text fields, buttons and combo boxes.
+public enum ControlStyle {
+    /// Goo.Widgets shapes.
+    Standard;
+    /// Windows 11 shapes: a faint stroke with a strong bottom edge, an accent line under a focused field,
+    /// a small switch knob, a ringed slider thumb, a filled radio mark, and system accent shades for the mode.
+    Fluent
 }
 
 /// Rounded widget presets in Ink, Bone, and GitHub Dark palettes. Copy with `with` to customize.
@@ -182,7 +192,7 @@ public data struct Theme {
     /// Default standard and bright terminal color tables.
     var Ansi AnsiPalette
     internal var HighContrast bool
-    internal var NativeLook bool
+    internal prop NativeLook bool { get -> Variant == nativeVariant }
     /// Current absolute text scale. Use WithTextScale to change it.
     var TextScaleFactor float64 = 1.0
     /// Applied platform scale, preserved by consumer copy-update expressions.
@@ -241,10 +251,20 @@ public data struct Theme {
     var RowInset float64
     /// Selected-row look in lists, trees, grids and rails.
     var Selection SelectionStyle
+    /// Shape of switches, sliders, radio buttons, text fields, buttons and combo boxes.
+    var Controls ControlStyle
     /// Light 1 px top edge of glass, panels and overlays. Set by WithGlass.
     var HighlightColor Color
     /// Dark 1 px outline that separates glass and panels from any wallpaper. Set by WithGlass.
     var HairlineColor Color
+    /// Solid scrollbar thumb. Zero keeps a half-opacity MutedTextColor thumb that turns AccentColor on hover.
+    var ScrollbarColor Color
+    /// Backdrop blur radius of glass overlays in logical pixels. Defaults to 24.
+    var OverlayBlur float64 = 24.0
+    /// Returns this theme's light or dark variant, given true for dark. Nil means a fixed theme.
+    /// An attached theme with a Variant follows Theme.SetMode. The built-in themes also keep colors set on the attached theme
+    /// and follow the system accent. A custom Variant's output is used verbatim, accent included. It can read PlatformPreferences itself.
+    var Variant Func[bool, Theme]?
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
 
@@ -271,15 +291,31 @@ public data struct Theme {
         return Legible(text, target, surface, HighContrast ? 7.0: 4.5)
     }
 
+    /// Stroke of buttons, text fields and combo boxes.
+    internal prop ControlStroke Color {
+        get -> Controls == ControlStyle.Fluent ? BorderColor: InputBorderColor
+    }
+
+    /// Text field border. Fluent adds a strong bottom edge.
+    internal func FieldBorder(color Color, bottom Color? = nil) Edges[Color] -> Controls == ControlStyle.Fluent ?
+        Edges[Color]{Top: color, Right: color, Left: color, Bottom: bottom ?? StrongBorderColor}: Edges[Color]{Top: color, Right: color, Bottom: color, Left: color}
+
+    /// Focused text field: the focus ring, or a Fluent accent line at the bottom.
+    internal prop FieldFocusStyle Style {
+        get -> Controls == ControlStyle.Fluent ? Style{BackgroundColor: FieldColor, BorderColor: FieldBorder(BorderColor, AccentColor),
+            BoxShadows: []BoxShadow{BoxShadow{Inset: true, OffsetY: -1.0, Color: AccentColor}}, OutlineColor: Color.Transparent}: FocusStyle
+    }
+
     internal func ApplyInteraction(target Blob, family InteractionFamily, selected bool = false, interactive bool = true) {
         let field = family == InteractionFamily.Field
+        let fluentField = field && Controls == ControlStyle.Fluent
         let row = family == InteractionFamily.Row || family == InteractionFamily.Toggle
         let tab = family == InteractionFamily.Tab
         if interactive {
             let fill = selected ? row ? SelectedFill(ActiveColor): ActiveColor: Color.Transparent
-            let hover = field ? Style{BorderColor: StrongBorderColor}:
+            let hover = fluentField ? Style{BackgroundColor: HoverColor}: field ? Style{BorderColor: StrongBorderColor}:
                 Style{BackgroundColor: selected ? fill: HoverColor}
-            let active = field ? Style{BorderColor: AccentColor}:
+            let active = fluentField ? Style{}: field ? Style{BorderColor: AccentColor}:
                 Style{BackgroundColor: selected ? fill: PressedColor}
             hover.BasedOn = target.Hover
             active.BasedOn = target.Active
@@ -287,7 +323,7 @@ public data struct Theme {
             focus.BasedOn = target.Focus
             target.Hover = hover
             target.Active = active
-            target.Focus = Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
+            target.Focus = fluentField ? FieldFocusStyle: Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
             if family == InteractionFamily.Row {
                 target.Focus!!.OutlineOffset = -FocusRingWidth
             }
@@ -428,14 +464,94 @@ public data struct Theme {
         }
     }
 
+    internal func WithAccent(accent Color) Theme {
+        let dark = FrameTheme == SystemTheme.Dark
+        let fill = Controls == ControlStyle.Standard ? accent:
+            Legible(Mix(accent, dark ? Color.White: Color.Black, dark ? 0.6F: 0.2F), dark ? Color.White: Color.Black, PanelColor, 3.0)
+        let white = Contrast(Color.White, fill) >= Contrast(Color.Black, fill)
+        let away = white ? Color.Black: Color.White
+        return this with{
+            AccentColor = fill,
+            OnAccentColor = white ? Color.White: Color.Black,
+            AccentHoverColor = Mix(fill, away, 0.1F),
+            AccentPressedColor = Mix(fill, away, 0.2F),
+        }
+    }
+
+    internal func WithPalette(palette Theme, origin Theme) Theme -> this with{
+        CanvasColor = Pick(CanvasColor, origin.CanvasColor, palette.CanvasColor),
+        PanelColor = Pick(PanelColor, origin.PanelColor, palette.PanelColor),
+        RaisedColor = Pick(RaisedColor, origin.RaisedColor, palette.RaisedColor),
+        OverlayColor = Pick(OverlayColor, origin.OverlayColor, palette.OverlayColor),
+        FieldColor = Pick(FieldColor, origin.FieldColor, palette.FieldColor),
+        HoverColor = Pick(HoverColor, origin.HoverColor, palette.HoverColor),
+        PressedColor = Pick(PressedColor, origin.PressedColor, palette.PressedColor),
+        HoverTextColor = Pick(HoverTextColor, origin.HoverTextColor, palette.HoverTextColor),
+        BorderColor = Pick(BorderColor, origin.BorderColor, palette.BorderColor),
+        InputBorderColor = Pick(InputBorderColor, origin.InputBorderColor, palette.InputBorderColor),
+        TextColor = Pick(TextColor, origin.TextColor, palette.TextColor),
+        MutedTextColor = Pick(MutedTextColor, origin.MutedTextColor, palette.MutedTextColor),
+        PlaceholderColor = Pick(PlaceholderColor, origin.PlaceholderColor, palette.PlaceholderColor),
+        FaintTextColor = Pick(FaintTextColor, origin.FaintTextColor, palette.FaintTextColor),
+        AccentColor = Pick(AccentColor, origin.AccentColor, palette.AccentColor),
+        OnAccentColor = Pick(OnAccentColor, origin.OnAccentColor, palette.OnAccentColor),
+        AccentHoverColor = Pick(AccentHoverColor, origin.AccentHoverColor, palette.AccentHoverColor),
+        AccentPressedColor = Pick(AccentPressedColor, origin.AccentPressedColor, palette.AccentPressedColor),
+        InfoColor = Pick(InfoColor, origin.InfoColor, palette.InfoColor),
+        SuccessColor = Pick(SuccessColor, origin.SuccessColor, palette.SuccessColor),
+        WarningColor = Pick(WarningColor, origin.WarningColor, palette.WarningColor),
+        DangerColor = Pick(DangerColor, origin.DangerColor, palette.DangerColor),
+        DangerFillColor = Pick(DangerFillColor, origin.DangerFillColor, palette.DangerFillColor),
+        DangerHoverColor = Pick(DangerHoverColor, origin.DangerHoverColor, palette.DangerHoverColor),
+        SunkenColor = Pick(SunkenColor, origin.SunkenColor, palette.SunkenColor),
+        ActiveColor = Pick(ActiveColor, origin.ActiveColor, palette.ActiveColor),
+        StrongBorderColor = Pick(StrongBorderColor, origin.StrongBorderColor, palette.StrongBorderColor),
+        SubtleTextColor = Pick(SubtleTextColor, origin.SubtleTextColor, palette.SubtleTextColor),
+        DisabledTextColor = Pick(DisabledTextColor, origin.DisabledTextColor, palette.DisabledTextColor),
+        LinkColor = Pick(LinkColor, origin.LinkColor, palette.LinkColor),
+        FocusColor = Pick(FocusColor, origin.FocusColor, palette.FocusColor),
+        InfoFillColor = Pick(InfoFillColor, origin.InfoFillColor, palette.InfoFillColor),
+        SuccessFillColor = Pick(SuccessFillColor, origin.SuccessFillColor, palette.SuccessFillColor),
+        WarningFillColor = Pick(WarningFillColor, origin.WarningFillColor, palette.WarningFillColor),
+        DangerQuietColor = Pick(DangerQuietColor, origin.DangerQuietColor, palette.DangerQuietColor),
+        ScrollbarColor = Pick(ScrollbarColor, origin.ScrollbarColor, palette.ScrollbarColor),
+        GlassColor = Pick(GlassColor, origin.GlassColor, palette.GlassColor),
+        HighlightColor = Pick(HighlightColor, origin.HighlightColor, palette.HighlightColor),
+        HairlineColor = Pick(HairlineColor, origin.HairlineColor, palette.HairlineColor),
+        OverlayBlur = Pick(OverlayBlur, origin.OverlayBlur, palette.OverlayBlur),
+        ElevationSm = Pick(ElevationSm, origin.ElevationSm, palette.ElevationSm),
+        ElevationMd = Pick(ElevationMd, origin.ElevationMd, palette.ElevationMd),
+        ElevationLg = Pick(ElevationLg, origin.ElevationLg, palette.ElevationLg),
+        PanelShadows = Same(PanelShadows, origin.PanelShadows) ? palette.PanelShadows: PanelShadows,
+        OverlayShadows = Same(OverlayShadows, origin.OverlayShadows) ? palette.OverlayShadows: OverlayShadows,
+        ControlShadows = Same(ControlShadows, origin.ControlShadows) ? palette.ControlShadows: ControlShadows,
+        FieldShadows = Same(FieldShadows, origin.FieldShadows) ? palette.FieldShadows: FieldShadows,
+        SeriesPalette = Same(SeriesPalette, origin.SeriesPalette) ? palette.SeriesPalette: SeriesPalette,
+        ColorBlindPalette = Same(ColorBlindPalette, origin.ColorBlindPalette) ? palette.ColorBlindPalette: ColorBlindPalette,
+        Syntax = Pick(Syntax, origin.Syntax, palette.Syntax),
+        Diff = Pick(Diff, origin.Diff, palette.Diff),
+        Ansi = Same(Ansi.Colors, origin.Ansi.Colors) && Same(Ansi.BrightColors, origin.Ansi.BrightColors) ? palette.Ansi: Ansi,
+    }
+
     shared {
+        internal func Pick[T](own T, origin T, next T) T -> EqualityComparer[T].Default.Equals(own, origin) ? next: own
+
+        private func Same[T](own []T, origin []T) bool -> System.Linq.Enumerable.SequenceEqual(own, origin)
+
         internal let Key Context[Theme] = Context[Theme]()
         private let interactionTransitions []TransitionProperty = []TransitionProperty{TransitionProperty.BackgroundColor, TransitionProperty.BorderColor, TransitionProperty.Color}
         private let pressTransitions []TransitionProperty = []TransitionProperty{TransitionProperty.BackgroundColor, TransitionProperty.BorderColor, TransitionProperty.Color, TransitionProperty.Transform}
         private let attachments ConditionalWeakTable[Window, ThemeAttachment] =
         ConditionalWeakTable[Window, ThemeAttachment]()
+        private let defaultVariant Func[bool, Theme] = (dark bool) -> dark ? Ink: Bone
+        private let nativeVariant Func[bool, Theme] = (dark bool) -> NativePalette(dark)
+        private let fluentVariant Func[bool, Theme] = (dark bool) -> FluentPalette(dark)
+        private let fluentMicaVariant Func[bool, Theme] = (dark bool) -> FluentMicaPalette(dark)
 
-        /// Neutral metrics with Bone colors. This is a fixed light snapshot.
+        internal func IsBuiltIn(variant Func[bool, Theme]) bool ->
+        variant == defaultVariant || variant == nativeVariant || variant == fluentVariant || variant == fluentMicaVariant
+
+        /// Neutral metrics with Bone colors in light mode and Ink colors in dark mode.
         public prop Default Theme {
             get -> Bone with{
                 FontFamily = "",
@@ -445,37 +561,31 @@ public data struct Theme {
                 FontWeight = 400,
                 ControlRadius = 6.0,
                 PanelRadius = 10.0,
+                Variant = defaultVariant,
             }
         }
 
-        /// Attaches System appearance, preserving an app-set background and following the system accent.
+        /// Attaches the Bone and Ink pair in the current mode, preserving an app-set background and following the system accent.
         public func Attach(window Window) {
             let state = attachment(window)
-            state.Value = Default
-            state.Mode = ThemeMode.System
-            state.Native = false
-            state.Fixed = false
+            state.Value = Default.ResolveDefaults()
             state.Apply(window.Preferences)
         }
 
-        /// Attaches a palette with Default fallbacks for zero metrics, opaque colors and nil fields.
-        /// Native follows the system appearance live. Glass themes also request native window blur, so attach them before Open.
+        /// Attaches a theme with Default fallbacks for zero metrics, opaque colors and nil fields.
+        /// A theme with a Variant keeps the current mode and follows it live. Other themes are fixed.
+        /// Glass themes also request native window blur, so attach them before Open.
         public func Attach(window Window, value Theme) {
             let state = attachment(window)
             state.Value = value.ResolveDefaults()
-            state.Native = value.NativeLook
-            state.Fixed = !value.NativeLook
-            if value.NativeLook {
-                state.Mode = ThemeMode.System
-            }
             state.Apply(window.Preferences)
         }
 
-        /// Replaces palette roles while preserving the current typography and metrics.
+        /// Selects the light or dark variant of the attached theme, preserving its typography and metrics.
+        /// Fixed themes stay unchanged.
         public func SetMode(window Window, mode ThemeMode) {
             let state = attachment(window)
             state.Mode = mode
-            state.Fixed = false
             state.Apply(window.Preferences)
         }
 
@@ -710,99 +820,146 @@ public data struct Theme {
             get -> Bone.WithGlass()
         }
 
-        /// The platform's own look. Follows the system appearance, accent, contrast and text scale.
+        /// The platform's own look. Follows the mode, system accent, contrast and text scale.
         /// Windows uses Fluent over Mica, macOS uses vibrancy, Linux stays opaque.
         public prop Native Theme {
-            get -> NativePalette(false) with{NativeLook = true}
+            get -> NativePalette(false) with{Variant = nativeVariant}
+        }
+
+        /// Windows 11 Fluent look with the toolkit font. Follows the mode and the system accent.
+        public prop Fluent Theme {
+            get -> FluentPalette(false)
+        }
+
+        /// Fluent over the Mica window material, with blurred acrylic menus and popups. Attach before Open.
+        public prop FluentMica Theme {
+            get -> FluentMicaPalette(false)
+        }
+
+        private func FluentPalette(dark bool) Theme {
+            let light = Default with{
+                CanvasColor = "#f3f3f3",
+                PanelColor = "#f9f9f9",
+                RaisedColor = "#fdfdfd",
+                OverlayColor = "#fcfcfc",
+                FieldColor = "#ffffff",
+                HoverColor = "#f0f0f0",
+                PressedColor = "#f3f3f3",
+                BorderColor = Color.Parse("#eaeaea"),
+                InputBorderColor = "#8d8d8d",
+                TextColor = "#1a1a1a",
+                MutedTextColor = "#5f5f5f",
+                PlaceholderColor = "#5f5f5f",
+                FaintTextColor = "#5f5f5f",
+                AccentColor = "#005fb8",
+                AccentHoverColor = "#196fbf",
+                AccentPressedColor = "#337fc6",
+                InfoColor = "#005fb7",
+                SuccessColor = "#0f7b0f",
+                WarningColor = "#9d5d00",
+                DangerColor = "#c42b1c",
+                DangerFillColor = "#c42b1c",
+                SunkenColor = "#f3f3f3",
+                ActiveColor = "#f0f0f0",
+                StrongBorderColor = "#8d8d8d",
+                SubtleTextColor = "#5f5f5f",
+                DisabledTextColor = "#9f9f9f",
+                LinkColor = "#003e92",
+                FocusColor = "#1a1a1a",
+                InfoFillColor = "#f6f6f6",
+                SuccessFillColor = "#dff6dd",
+                WarningFillColor = "#fff4ce",
+                DangerQuietColor = "#fde7e9",
+                ScrollbarColor = "#8d8d8d",
+                ElevationSm = BoxShadow{OffsetY: 2.0, Blur: 4.0, Color: Color.Black.WithAlpha(0.04)},
+                ElevationLg = BoxShadow{OffsetY: 8.0, Blur: 16.0, Color: Color.Black.WithAlpha(0.14)},
+                PanelShadows = []BoxShadow{},
+                OverlayShadows = []BoxShadow{BoxShadow{OffsetY: 8.0, Blur: 16.0, Color: Color.Black.WithAlpha(0.14)}},
+                ControlShadows = []BoxShadow{BoxShadow{Inset: true, OffsetY: -1.0, Color: Color.Rgba(0, 0, 0, 26)}},
+                FieldShadows = []BoxShadow{},
+                BackdropColor = Color.Rgba(0, 0, 0, 77),
+                LineHeight = 20.0 / 14.0,
+                LabelFontSize = 14.0,
+                LabelFontWeight = 400,
+                SubtitleFontSize = 20.0,
+                H1FontSize = 40.0,
+                DisplayFontSize = 68.0,
+                ControlRadius = 4.0,
+                PanelRadius = 8.0,
+                RadiusMd = 4.0,
+                RadiusLg = 8.0,
+                RadiusXl = 8.0,
+                RowInset = 4.0,
+                Selection = SelectionStyle.Indicator,
+                Controls = ControlStyle.Fluent,
+                TransitionMs = 83.0,
+                Variant = fluentVariant,
+            }
+            return if dark {
+                light.WithPalette(Ink, light) with{
+                    CanvasColor = "#202020",
+                    PanelColor = "#282828",
+                    RaisedColor = "#2d2d2d",
+                    OverlayColor = "#2c2c2c",
+                    FieldColor = "#2d2d2d",
+                    HoverColor = "#353535",
+                    PressedColor = "#303030",
+                    BorderColor = Color.Parse("#3a3a3a"),
+                    InputBorderColor = "#9d9d9d",
+                    TextColor = "#ffffff",
+                    MutedTextColor = "#cecece",
+                    PlaceholderColor = "#cecece",
+                    FaintTextColor = "#cecece",
+                    AccentColor = "#60cdff",
+                    OnAccentColor = "#000000",
+                    AccentHoverColor = "#5abce9",
+                    AccentPressedColor = "#53aad2",
+                    InfoColor = "#60cdff",
+                    SuccessColor = "#6ccb5f",
+                    WarningColor = "#fce100",
+                    DangerColor = "#ff99a4",
+                    SunkenColor = "#1c1c1c",
+                    ActiveColor = "#353535",
+                    StrongBorderColor = "#9d9d9d",
+                    SubtleTextColor = "#cecece",
+                    DisabledTextColor = "#767676",
+                    LinkColor = "#99ebff",
+                    FocusColor = "#ffffff",
+                    InfoFillColor = "#2e2e2e",
+                    SuccessFillColor = "#393d1b",
+                    WarningFillColor = "#433519",
+                    DangerQuietColor = "#442726",
+                    ScrollbarColor = "#9d9d9d",
+                    ElevationSm = BoxShadow{OffsetY: 2.0, Blur: 4.0, Color: Color.Black.WithAlpha(0.26)},
+                    ElevationLg = BoxShadow{OffsetY: 8.0, Blur: 16.0, Color: Color.Black.WithAlpha(0.26)},
+                    PanelShadows = []BoxShadow{},
+                    OverlayShadows = []BoxShadow{BoxShadow{OffsetY: 8.0, Blur: 16.0, Color: Color.Black.WithAlpha(0.26)}},
+                    ControlShadows = []BoxShadow{BoxShadow{Inset: true, OffsetY: 1.0, Color: Color.Rgba(255, 255, 255, 6)}},
+                    FieldShadows = []BoxShadow{},
+                }
+            } else {
+                light
+            }
+        }
+
+        private func FluentMicaPalette(dark bool) Theme {
+            let value = FluentPalette(dark)
+            return value.WithGlass() with{
+                OverlayColor = value.OverlayColor.WithAlpha(dark ? 0.5: 0.6),
+                OverlayBlur = 30.0,
+                HoverColor = dark ? Color.Rgba(255, 255, 255, 15): Color.Rgba(0, 0, 0, 9),
+                PressedColor = dark ? Color.Rgba(255, 255, 255, 10): Color.Rgba(0, 0, 0, 6),
+                ActiveColor = dark ? Color.Rgba(255, 255, 255, 15): Color.Rgba(0, 0, 0, 9),
+                HighlightColor = Color.Transparent,
+                HairlineColor = dark ? Color.Rgba(255, 255, 255, 24): Color.Rgba(0, 0, 0, 41),
+                Variant = fluentMicaVariant,
+            }
         }
 
         /// Native colors for one appearance, with Native metrics in the light palette.
         internal func NativePalette(dark bool) Theme {
             if OperatingSystem.IsWindows() {
-                return if dark {
-                    Ink with{
-                        CanvasColor = "#202020",
-                        PanelColor = "#282828",
-                        RaisedColor = "#2d2d2d",
-                        OverlayColor = "#2c2c2c",
-                        FieldColor = "#1c1c1c",
-                        HoverColor = "#353535",
-                        PressedColor = "#303030",
-                        BorderColor = Color.Parse("#3a3a3a"),
-                        InputBorderColor = "#9d9d9d",
-                        TextColor = "#ffffff",
-                        MutedTextColor = "#cecece",
-                        PlaceholderColor = "#cecece",
-                        FaintTextColor = "#cecece",
-                        AccentColor = "#60cdff",
-                        OnAccentColor = "#000000",
-                        AccentHoverColor = "#5abce9",
-                        AccentPressedColor = "#53aad2",
-                        InfoColor = "#60cdff",
-                        SuccessColor = "#6ccb5f",
-                        WarningColor = "#fce100",
-                        DangerColor = "#ff99a4",
-                        SunkenColor = "#1c1c1c",
-                        ActiveColor = "#353535",
-                        StrongBorderColor = "#9d9d9d",
-                        SubtleTextColor = "#cecece",
-                        DisabledTextColor = "#767676",
-                        LinkColor = "#99ebff",
-                        FocusColor = "#ffffff",
-                        InfoFillColor = "#2e2e2e",
-                        SuccessFillColor = "#393d1b",
-                        WarningFillColor = "#433519",
-                        DangerQuietColor = "#442726",
-                    }
-                } else {
-                    Default with{
-                        CanvasColor = "#f3f3f3",
-                        PanelColor = "#f9f9f9",
-                        RaisedColor = "#fdfdfd",
-                        OverlayColor = "#fcfcfc",
-                        FieldColor = "#ffffff",
-                        HoverColor = "#f0f0f0",
-                        PressedColor = "#f3f3f3",
-                        BorderColor = Color.Parse("#eaeaea"),
-                        InputBorderColor = "#8d8d8d",
-                        TextColor = "#1a1a1a",
-                        MutedTextColor = "#5f5f5f",
-                        PlaceholderColor = "#5f5f5f",
-                        FaintTextColor = "#5f5f5f",
-                        AccentColor = "#005fb8",
-                        AccentHoverColor = "#196fbf",
-                        AccentPressedColor = "#337fc6",
-                        InfoColor = "#005fb7",
-                        SuccessColor = "#0f7b0f",
-                        WarningColor = "#9d5d00",
-                        DangerColor = "#c42b1c",
-                        DangerFillColor = "#c42b1c",
-                        SunkenColor = "#f3f3f3",
-                        ActiveColor = "#f0f0f0",
-                        StrongBorderColor = "#8d8d8d",
-                        SubtleTextColor = "#5f5f5f",
-                        DisabledTextColor = "#9f9f9f",
-                        LinkColor = "#003e92",
-                        FocusColor = "#1a1a1a",
-                        InfoFillColor = "#f6f6f6",
-                        SuccessFillColor = "#dff6dd",
-                        WarningFillColor = "#fff4ce",
-                        DangerQuietColor = "#fde7e9",
-                        FontFamily = "Segoe UI",
-                        HeadingFontFamily = "Segoe UI",
-                        LineHeight = 20.0 / 14.0,
-                        LabelFontSize = 14.0,
-                        LabelFontWeight = 400,
-                        ControlRadius = 4.0,
-                        PanelRadius = 8.0,
-                        RadiusMd = 4.0,
-                        RadiusLg = 8.0,
-                        RadiusXl = 8.0,
-                        GlassColor = Color.Transparent,
-                        RowInset = 4.0,
-                        Selection = SelectionStyle.Indicator,
-                    }
-                }
+                return FluentPalette(dark) with{FontFamily = "Segoe UI", HeadingFontFamily = "Segoe UI", GlassColor = Color.Transparent}
             }
             if OperatingSystem.IsMacOS() {
                 return if dark {
@@ -828,6 +985,7 @@ public data struct Theme {
                         SubtleTextColor = "#9a9a9a",
                         DisabledTextColor = "#565656",
                         FocusColor = "#0a84ff",
+                        GlassColor = Color.Transparent,
                     }
                 } else {
                     Default with{
@@ -889,7 +1047,7 @@ public data struct Theme {
     public func WithHighContrast() Theme {
         var surface = CanvasColor
         for color in []Color{PanelColor, RaisedColor, OverlayColor, FieldColor, HoverColor, PressedColor, SunkenColor, ActiveColor, InfoFillColor, SuccessFillColor, WarningFillColor, DangerQuietColor} {
-            if Contrast(TextColor, color) < Contrast(TextColor, surface) {
+            if color.A == 1.0F && Contrast(TextColor, color) < Contrast(TextColor, surface) {
                 surface = color
             }
         }
@@ -1055,7 +1213,7 @@ public data struct Theme {
     /// Fresh menu, popover, tooltip and dialog declarations. WithGlass themes blur what is behind and add depth.
     public prop OverlayStyle Style {
         get -> Glass ? Style{
-            BackdropBlur: 24.0,
+            BackdropBlur: OverlayBlur,
             BoxShadows: []BoxShadow{ElevationLg, ElevationSm, Highlight},
         }: Style{BoxShadows: OverlayShadows}
     }
@@ -1071,7 +1229,7 @@ public data struct Theme {
         get -> ActionButton{
             BackgroundColor: RaisedColor,
             TextColor: TextColor,
-            BorderColor: InputBorderColor,
+            BorderColor: ControlStroke,
             Height: ControlHeight,
             MinWidth: ControlMinWidth,
             PaddingHorizontal: ControlPadding,
@@ -1131,7 +1289,7 @@ public data struct Theme {
             BackgroundColor: FieldColor,
             TextColor: TextColor,
             MutedTextColor: MutedTextColor,
-            BorderColor: InputBorderColor,
+            BorderColor: ControlStroke,
             InvalidColor: DangerColor,
             EntryHeight: ControlHeight,
             PaddingHorizontal: ControlPadding,
@@ -1233,13 +1391,14 @@ public data struct Theme {
     public prop Scrollbar Scrollbar {
         get {
             let thumb = Container{
-                BackgroundColor: MutedTextColor.WithAlpha(0.5), BorderRadius: 3.0,
-                Hover: Style{BackgroundColor: AccentColor}, Active: Style{BackgroundColor: AccentColor},
+                BackgroundColor: ScrollbarColor == Color{} ? MutedTextColor.WithAlpha(0.5): ScrollbarColor, BorderRadius: 3.0,
+                Hover: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
+                Active: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
                 TransitionMs: TransitionMs, TransitionEasing: Easing.EaseOut, TransitionProperties: InteractionTransitions,
             }
-            ApplyInteraction(thumb, InteractionFamily.Field)
+            (this with{Controls = ControlStyle.Standard}).ApplyInteraction(thumb, InteractionFamily.Field)
             return Goo.Scrollbar{
-                Thickness: 6.0,
+                Thickness: Controls == ControlStyle.Fluent ? 2.0: 6.0,
                 HitThickness: 12.0,
                 Inset: 2.0,
                 MinThumbLength: 24.0,
@@ -1262,10 +1421,8 @@ internal sealed class ThemeAttachment {
     private var glassFallback Color
     private var glassFrame SystemTheme
     private var setTransparent bool
-    internal var Value Theme = Theme.Default
+    internal var Value Theme = Theme.Default.ResolveDefaults()
     internal var Mode ThemeMode
-    internal var Fixed bool
-    internal var Native bool
 
     internal init(owner Window) {
         window = owner
@@ -1273,73 +1430,22 @@ internal sealed class ThemeAttachment {
 
     internal func Apply(preferences PlatformPreferences) {
         var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
-        if !Fixed {
+        if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
-            let palette = if Native {
-                Theme.NativePalette(dark)
-            } else if dark {
-                Theme.Ink
-            } else {
-                Theme.Bone
+            let builtIn = Theme.IsBuiltIn(variant)
+            let origin = builtIn ? variant(Value.FrameTheme == SystemTheme.Dark).ResolveDefaults(): Value
+            value = value.WithPalette(variant(dark), origin)
+            let custom = builtIn && Value.AccentColor != origin.AccentColor
+            var accent = builtIn ? preferences.AccentColor: nil
+            if custom {
+                accent = Value.AccentColor
             }
-            value = value with{
-                CanvasColor = palette.CanvasColor,
-                PanelColor = palette.PanelColor,
-                RaisedColor = palette.RaisedColor,
-                OverlayColor = palette.OverlayColor,
-                FieldColor = palette.FieldColor,
-                HoverColor = palette.HoverColor,
-                PressedColor = palette.PressedColor,
-                HoverTextColor = palette.HoverTextColor,
-                BorderColor = palette.BorderColor,
-                InputBorderColor = palette.InputBorderColor,
-                TextColor = palette.TextColor,
-                MutedTextColor = palette.MutedTextColor,
-                PlaceholderColor = palette.PlaceholderColor,
-                FaintTextColor = palette.FaintTextColor,
-                AccentColor = palette.AccentColor,
-                OnAccentColor = palette.OnAccentColor,
-                AccentHoverColor = palette.AccentHoverColor,
-                AccentPressedColor = palette.AccentPressedColor,
-                InfoColor = palette.InfoColor,
-                SuccessColor = palette.SuccessColor,
-                WarningColor = palette.WarningColor,
-                DangerColor = palette.DangerColor,
-                DangerFillColor = palette.DangerFillColor,
-                DangerHoverColor = palette.DangerHoverColor,
-                SunkenColor = palette.SunkenColor,
-                ActiveColor = palette.ActiveColor,
-                StrongBorderColor = palette.StrongBorderColor,
-                SubtleTextColor = palette.SubtleTextColor,
-                DisabledTextColor = palette.DisabledTextColor,
-                LinkColor = palette.LinkColor,
-                FocusColor = palette.FocusColor,
-                InfoFillColor = palette.InfoFillColor,
-                SuccessFillColor = palette.SuccessFillColor,
-                WarningFillColor = palette.WarningFillColor,
-                DangerQuietColor = palette.DangerQuietColor,
-                ElevationSm = palette.ElevationSm,
-                ElevationMd = palette.ElevationMd,
-                ElevationLg = palette.ElevationLg,
-                PanelShadows = palette.PanelShadows,
-                OverlayShadows = palette.OverlayShadows,
-                ControlShadows = palette.ControlShadows,
-                FieldShadows = palette.FieldShadows,
-                SeriesPalette = palette.SeriesPalette,
-                ColorBlindPalette = palette.ColorBlindPalette,
-                Syntax = palette.Syntax,
-                Diff = palette.Diff,
-                Ansi = palette.Ansi,
-            }
-            if Mode == ThemeMode.System {
-                if let accent = preferences.AccentColor {
-                    let white = value.Contrast(Color.White, accent) >= value.Contrast(Color.Black, accent)
-                    let away = white ? Color.Black: Color.White
-                    value.AccentColor = accent
-                    value.OnAccentColor = white ? Color.White: Color.Black
-                    value.AccentHoverColor = value.Mix(accent, away, 0.1F)
-                    value.AccentPressedColor = value.Mix(accent, away, 0.2F)
-                }
+            if let accent = accent {
+                let shaded = (custom ? value with{Controls = ControlStyle.Standard}: value).WithAccent(accent)
+                value.AccentColor = shaded.AccentColor
+                value.OnAccentColor = Theme.Pick(Value.OnAccentColor, origin.OnAccentColor, shaded.OnAccentColor)
+                value.AccentHoverColor = Theme.Pick(Value.AccentHoverColor, origin.AccentHoverColor, shaded.AccentHoverColor)
+                value.AccentPressedColor = Theme.Pick(Value.AccentPressedColor, origin.AccentPressedColor, shaded.AccentPressedColor)
             }
         }
         if preferences.HighContrast == true {
@@ -1357,7 +1463,7 @@ internal sealed class ThemeAttachment {
         }
         Theme.Key.Set(window, value)
         var background = window.Background
-        if (Fixed && background != Color.Transparent) || background == lastBackground {
+        if (Value.Variant == nil && background != Color.Transparent) || background == lastBackground {
             background = value.CanvasColor
             if let glass = value.GlassColor {
                 background = window.Decorated ? glass: Color.Transparent
@@ -1378,7 +1484,7 @@ internal sealed class ThemeAttachment {
             glassFrame = value.FrameTheme
             window.FrameTheme = glassFrame
             window.WindowsBackdrop = WindowsBackdropOptions{
-                Material: Native ? WindowsBackdropMaterial.Mica: WindowsBackdropMaterial.MicaAlt
+                Material: Value.Variant != nil ? WindowsBackdropMaterial.Mica: WindowsBackdropMaterial.MicaAlt
             }
             window.MacOSBackdrop = MacOSBackdropOptions{Material: MacOSBackdropMaterial.Sidebar}
             window.WaylandBackdrop = WaylandBackdropOptions{CornerRadius: value.PanelRadius!!}

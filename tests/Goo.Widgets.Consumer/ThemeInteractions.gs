@@ -395,7 +395,7 @@ func ThemeBackgroundContracts() {
             "Opening a fixed-theme window overwrote its transparent clear."
         )
         Theme.Attach(opened, Theme.Ink)
-        Theme.SetMode(opened, ThemeMode.Light)
+        Theme.Attach(opened, Theme.Bone)
         Require(
             opened.Background == Color.Transparent && opened.Foreground == Theme.Bone.TextColor,
             "Applying a palette to an open window overwrote its transparent clear or missed its text color."
@@ -470,6 +470,68 @@ func ThemeBackgroundContracts() {
         && dark.AccentColor == accent && dark.OnAccentColor == Color.Black && dark.FontFamily == light.FontFamily,
         "Native did not follow the system appearance and accent with readable accent text."
     )
+    Theme.Attach(native, Theme.Fluent)
+    ThemeFrames(nativeHost)
+    let fluentDark = Theme.Read(native)
+    Theme.SetMode(native, ThemeMode.Light)
+    ThemeFrames(nativeHost)
+    let fluentLight = Theme.Read(native)
+    Theme.Attach(native, Theme.Ink)
+    Theme.SetMode(native, ThemeMode.Light)
+    ThemeFrames(nativeHost)
+    let fixedInk = Theme.Read(native)
+    Theme.Attach(native, Theme.Fluent)
+    ThemeFrames(nativeHost)
+    Require(
+        fluentDark.CanvasColor == Color.Parse("#202020") && fluentDark.AccentColor.G > accent.G && fluentDark.OnAccentColor == Color.Black
+        && fluentLight.CanvasColor == Theme.Fluent.CanvasColor && fluentLight.ControlRadius == 4.0 && fluentLight.AccentColor.G < accent.G
+        && fixedInk.CanvasColor == Theme.Ink.CanvasColor && Theme.Read(native).CanvasColor == fluentLight.CanvasColor,
+        "Fluent did not follow the mode or the system accent, a fixed theme changed with SetMode, or a family change lost the mode."
+    )
+    let fresh Func[bool, Theme] = (dark bool) -> (dark ? Theme.Ink: Theme.Bone) with{SeriesPalette = []Color{dark ? Color.White: Color.Black}}
+    for (attached, expected) in []ValueTuple[Theme, Theme]{
+        (Theme.Default, Theme.Ink),
+        (Theme.Fluent, Theme.Fluent.Variant!!(true)),
+        (fresh(false) with{Variant = fresh}, fresh(true)),
+    } {
+        Theme.Attach(native, attached)
+        Theme.SetMode(native, ThemeMode.Dark)
+        ThemeFrames(nativeHost)
+        let read = Theme.Read(native)
+        Require(
+            read.CanvasColor == expected.CanvasColor && read.HoverColor == expected.HoverColor
+            && System.Linq.Enumerable.SequenceEqual(read.ControlShadows, expected.ControlShadows)
+            && System.Linq.Enumerable.SequenceEqual(read.SeriesPalette, expected.SeriesPalette)
+            && System.Linq.Enumerable.SequenceEqual(read.Ansi.Colors, expected.Ansi.Colors),
+            "An unchanged variant theme recorded a color override."
+        )
+    }
+    let brand = Color.Rgb(200, 30, 90)
+    let teal = Color.Rgb(95, 212, 194)
+    for (attached, light, dark, lightAccent, darkAccent) in []ValueTuple[Theme, Theme, Theme, Color, Color]{
+        (Theme.Default with{AccentColor = brand}, Theme.Bone, Theme.Ink, brand, brand),
+        (Theme.Fluent with{AccentColor = brand}, Theme.Fluent.Variant!!(false), Theme.Fluent.Variant!!(true), brand, brand),
+        (
+            Theme.Fluent with{Variant = (isDark bool) -> Theme.Fluent.Variant!!(isDark) with{AccentColor = isDark ? teal: brand}},
+            Theme.Fluent.Variant!!(false), Theme.Fluent.Variant!!(true), brand, teal
+        ),
+    } {
+        Theme.Attach(native, attached)
+        var kept = true
+        for (mode, system, isDark) in []ValueTuple[ThemeMode, SystemTheme, bool]{
+            (ThemeMode.Light, SystemTheme.Dark, false), (ThemeMode.Dark, SystemTheme.Dark, true),
+            (ThemeMode.System, SystemTheme.Dark, true), (ThemeMode.System, SystemTheme.Light, false),
+        } {
+            nativeHost.UpdatePreferences(PlatformPreferences{Theme: system, AccentColor: accent})
+            Theme.SetMode(native, mode)
+            ThemeFrames(nativeHost)
+            let read = Theme.Read(native)
+            let palette = isDark ? dark: light
+            let expected = isDark ? darkAccent: lightAccent
+            kept = kept && read.AccentColor == expected && read.CanvasColor == palette.CanvasColor
+        }
+        Require(kept, "A theme lost its accent override or custom Variant accent, or another color stopped following the mode.")
+    }
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )
