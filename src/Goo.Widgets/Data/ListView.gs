@@ -65,7 +65,7 @@ public data struct ListViewInput {
     var Disabled bool
     /// Root layout width. Nil fills the available width.
     var Width Length?
-    /// Scroll viewport layout height. Nil uses 280 logical pixels.
+    /// Root layout height. Nil uses 280 and grows or shrinks to fill the free space of the parent.
     var Height Length?
     /// Finite positive row height in logical pixels. Nil uses the theme control height.
     var RowHeight float64?
@@ -207,6 +207,10 @@ public open class ListView : Cell[ListViewInput] {
             BackgroundColor: theme.PanelColor,
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
+        }
+        if value.Height == nil {
+            root.FlexGrow = 1
+            root.FlexShrink = 1
         }
         if let create = input.CreateRoot {
             root = create(input, root)

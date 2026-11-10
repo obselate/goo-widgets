@@ -208,7 +208,7 @@ public data struct DataGridInput {
     var Disabled bool
     /// Root layout width. Nil fills the available width.
     var Width Length?
-    /// Scroll viewport layout height. Nil uses 300 logical pixels.
+    /// Root layout height. Nil uses 300 and grows or shrinks to fill the free space of the parent.
     var Height Length?
     /// Positive row height in logical pixels. Nil uses the theme control height scaled by Density.
     var RowHeight float64?
@@ -762,6 +762,10 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Overflow: Overflow.Hidden
+        }
+        if value.Height == nil {
+            root.FlexGrow = 1
+            root.FlexShrink = 1
         }
         if let create = input.CreateRoot {
             root = create(input, root)

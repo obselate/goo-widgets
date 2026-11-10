@@ -279,6 +279,7 @@ func ListViewInteractions() {
     })
     Console.WriteLine("PASS: List/tree native selection, type-ahead, invoke, lazy loading, rename and drop contracts")
     ListRowInteractions()
+    ListFillInteractions()
 }
 
 internal class ListRowHost : Cell {
@@ -367,4 +368,95 @@ func ListRowInteractions() {
         Require(host.Clicks == 0, "Disabled row accepted a click")
     })
     Console.WriteLine("PASS: ListRow focus/hover actions, invoke, child action routing and disabled input")
+}
+
+internal class ListFillHost : Cell {
+    internal let Panel ElementHandle = ElementHandle()
+    internal let Header ElementHandle = ElementHandle()
+    internal let Rows Dictionary[string, Container] = Dictionary[string, Container]()
+    internal var Root Container?
+    internal var PanelHeight Length = 600
+    private let items[]ListViewItem = ListFillItems()
+
+    public override func Build() Blob -> Container{
+        Width: Percent(100),
+        Height: Percent(100),
+        Padding: 24,
+        Container{
+            Handle: Panel,
+            Height: PanelHeight,
+            Container{Handle: Header, Padding: 12, Text{Content: "Inbox, 10,000 messages"}},
+            Cell.Mount[ListViewInput, ListView](
+                "list",
+                ListViewInput{
+                    Items: items,
+                    AccessibilityName: "Messages",
+                    CreateRoot: (input ListViewInput, root Container) -> {
+                        Root = root
+                        return root
+                    },
+                    CreateRow: (input ListViewInput, item ListViewItem, row Container) -> {
+                        Rows[item.Id!!] = row
+                        return row
+                    }
+                }
+            )
+        }
+    }
+}
+
+func ListFillItems()[]ListViewItem {
+    let items = List[ListViewItem]()
+    for index in 0 ... 10000 {
+        items.Add(ListViewItem{Id: index.ToString(), Label: "Message " + index.ToString()})
+    }
+    return items.ToArray()
+}
+
+func ListFillInteractions() {
+    let host = ListFillHost()
+    let window = Window{Title: "List fill verification", Width: 480, Height: 680, Root: ApplicationRoot(host)}
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 15)
+        CaptureIssueProof(window, "listview-fill")
+        let panel = host.Panel.BorderBox
+        let header = host.Header.BorderBox
+        let list = host.Root!!.Handle!!.BorderBox
+        Require(
+            Math.Abs(list.Height - (panel.Height - header.Height)) < 1.0 && header.Height > 24.0,
+            "ListView without Height did not fill the panel below its header"
+        )
+        var mounted int32
+        for row in host.Rows.Values {
+            if row.Handle!!.IsMounted {
+                mounted++
+            }
+        }
+        Require(mounted > 0 && mounted < 40, "ListView realized " + mounted.ToString() + " of 10,000 rows")
+        host.Root!!.Handle!!.Focus()
+        PumpFrames(window, 6)
+        ListKey(window, SDLScancode.End)
+        CaptureIssueProof(window, "listview-fill-end")
+        Require(
+            host.Rows.ContainsKey("9999") && host.Rows["9999"].Handle!!.IsMounted && !host.Rows["0"].Handle!!.IsMounted,
+            "ListView did not scroll inside its panel"
+        )
+        host.PanelHeight = 200
+        host.Rebuild()
+        PumpFrames(window, 6)
+        let small = host.Root!!.Handle!!.BorderBox.Height
+        Require(Math.Abs(small - (200.0 - header.Height)) < 1.0, "ListView without Height did not shrink in a 200 px panel")
+        host.PanelHeight = Length.Auto
+        host.Rebuild()
+        PumpFrames(window, 6)
+        CaptureIssueProof(window, "listview-fill-unbounded")
+        let unbounded = host.Root!!.Handle!!.BorderBox.Height
+        Require(Math.Abs(unbounded - 280.0) < 1.0, "ListView without Height lost its 280 px default in an unbounded parent")
+        Console.WriteLine(
+            "PASS: ListView without Height fills its panel and scrolls: height " + list.Height.ToString() +
+                " of panel " + panel.Height.ToString() + ", " + mounted.ToString() + " of 10,000 rows realized, " +
+                small.ToString() + " in a 200 px panel, " + unbounded.ToString() + " in an unbounded parent"
+        )
+    })
 }

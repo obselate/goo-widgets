@@ -89,7 +89,7 @@ public data struct TreeViewInput {
     var Virtualize bool?
     /// Viewport width. Nil resolves to 100%.
     var Width Length?
-    /// Viewport height. Nil resolves to 280.
+    /// Root layout height. Nil uses 280 and grows or shrinks to fill the free space of the parent.
     var Height Length?
     /// Optional vertical scrollbar appearance for the active scroller.
     var ScrollbarY Scrollbar?
@@ -335,6 +335,10 @@ public open class TreeView : Cell[TreeViewInput] {
             BackgroundColor: input.BackgroundColor!!,
             BorderRadius: theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
+        }
+        if value.Height == nil {
+            root.FlexGrow = 1
+            root.FlexShrink = 1
         }
         if let create = input.CreateRoot {
             root = create(input, root)

@@ -28,7 +28,7 @@ public data struct SearchList {
     var EmptyText string?
     /// List width. Nil resolves to 280.
     var Width Length?
-    /// Total height. Nil resolves to 240.
+    /// Total height. Nil uses 240 and grows or shrinks to fill the free space of the parent.
     var Height Length?
     /// Virtual row height in pixels. Nil uses the theme's control height.
     var RowHeight float64?
@@ -194,6 +194,10 @@ public data struct SearchList {
             BorderRadius: theme.ControlRadius!!,
             Overflow: Overflow.Hidden,
             entry,
+        }
+        if Height == nil {
+            root.FlexGrow = 1
+            root.FlexShrink = 1
         }
         if count == 0 {
             root.Children.Add(
