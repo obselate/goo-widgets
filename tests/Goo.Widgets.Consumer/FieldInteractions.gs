@@ -586,12 +586,12 @@ func AddonFramePixels() {
                         Point{X: box.Width - 6, Y: box.Height - 6},
                     } {
                         Require(
-                            ThemePixel(image, int32(box.X + offset.X), int32(box.Y + offset.Y), border),
+                            ThemePoint(image, window, box.X + offset.X, box.Y + offset.Y, border),
                             "TextField addon covered its frame border or rounded corner"
                         )
                     }
                     Require(
-                        ThemePixel(image, int32(box.X), int32(box.Y), palette.CanvasColor),
+                        ThemePoint(image, window, box.X, box.Y, palette.CanvasColor),
                         "TextField addon painted outside its rounded corner"
                     )
                 }

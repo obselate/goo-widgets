@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Native pixel checks convert layout coordinates to capture pixels, so the theme, choice, ComboBox, field, toggle and chrome checks also hold at display scale 1.5.
 - Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `CreateItem`, such as `Focus`, colors the label.
 - Add `Theme.Fluent` and `Theme.FluentMica`: the Windows 11 Fluent look with WinUI 3 colors, 4 px control and 8 px overlay radii, the WinUI type ramp, Indicator selection and a solid scrollbar. FluentMica adds the Mica window material and acrylic popups with 30 px blur. Both keep the toolkit font.
 - Theme family and mode are independent. `Theme.Variant` returns a theme's light or dark variant. `Theme.Default` and themes derived from it now carry the Bone and Ink variant, so `Theme.Attach(window, Theme.Default with{...})` follows the mode instead of staying fixed. Attach keeps the current mode. The default mode is System. `Theme.SetMode` switches within the attached family and leaves fixed themes (`Ink`, `Bone`, `GitHubDark`, `Variant = nil`) unchanged. Before, SetMode replaced every palette with Bone or Ink. A mode change replaces palette colors. On the built-in families, colors set on the attached theme stay in every mode, and an explicit `AccentColor` wins over the system accent. A custom `Variant` is used verbatim, accent included.
