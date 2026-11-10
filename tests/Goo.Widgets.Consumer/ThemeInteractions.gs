@@ -223,7 +223,7 @@ func SelectedTextContracts() {
                     return Text{Content: value.Title!!, Color: actual}
                 },
             }.Build())
-        }, Theme.Default with{PanelColor = backdrop}, parent)
+        }, Theme.Default with{PanelColor = backdrop, Variant = nil}, parent)
         let surface = Color.FromNormalized(
             backdrop.R + (fill.R - backdrop.R) * fill.A,
             backdrop.G + (fill.G - backdrop.G) * fill.A,
