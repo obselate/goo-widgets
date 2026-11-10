@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The FOCUS `ModalDialog` stage fills the available fixture viewport, so the dialog and action rings fit. The absolute overlay, crop padding and production dialog focus policy do not change.
 - FOCUS crops convert layout bounds to capture pixels with the display scale as well as `UiScale`, so crops taken at display scale 1.5 show the whole focused control and its ring. Crops at display scale 1 do not change.
 - Move loose source files into folders: `FuzzyMatch` to `Search/`, `Kbd`, `ShortcutList` and `Typography` to `Content/`, `RovingFocus`, `TypeAhead` and `WidgetKeyBindings` to `Keyboard/`, and `ILLink.Substitutions.xml` to `Icons/`. Namespaces, types and the embedded resource name do not change. The gallery shows `ShortcutList` on its own Shortcut list page.
 - Window theme attachment and `ThemeScope` apply high contrast, platform text scale and reduced motion through one shared transform. Behavior does not change.
