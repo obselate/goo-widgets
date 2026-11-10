@@ -180,6 +180,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
             OverflowY = scrolls ? Overflow.Scroll: Overflow.Hidden,
             ScrollbarX = theme.Scrollbar,
             ScrollbarY = theme.Scrollbar,
+            Focus = Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             Accessibility = Accessibility{
                 Role: AccessibilityRole.TextEditor,
                 Name: input.Language ?? theme.Text("Code"),
