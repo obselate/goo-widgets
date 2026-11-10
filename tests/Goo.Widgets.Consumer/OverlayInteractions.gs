@@ -734,17 +734,20 @@ func OverlayInteractions() {
             Console.WriteLine("Point popup press, DismissOnOutsideClick " + (!passThrough).ToString() + ": " + outcomes[1])
         }
         host.PassThrough = false
-        host.PopupPoint = Point{X: 800.0, Y: 520.0}
+        host.PopupPoint = Point{X: 800.2, Y: 520.2}
         for basis in []float64{120.0, 400.0} {
             host.BasisContent = basis
             host.PopupOpen = true
             host.Rebuild()
             PumpFrames(window, 14)
             let sized = host.PopupPanel!!.Handle!!.BorderBox
+            let raw = host.PopupPanel!!.Handle!!.RawBorderBox
             let chrome = 2.0 * (host.PopupPanel!!.Handle!!.ContentBox.Y - sized.Y)
+            let steps = Point{X: (raw.X - 800.2) * float64(window.PixelScale), Y: (raw.Y - 520.2) * float64(window.PixelScale)}
             Require(
-                Math.Abs(sized.Height - Math.Min(basis + chrome, 220.0)) < 0.5 && sized.Y < 520.0 && sized.Y + sized.Height <= 502.5,
-                "Clamped point popup with " + basis.ToString() + " px flex-basis content is " + sized.ToString()
+                Math.Abs(sized.Height - Math.Min(basis + chrome, 220.0)) < 0.5 && sized.Y < 520.0 && sized.Y + sized.Height <= 502.5
+                && Math.Abs(steps.X - Math.Round(steps.X)) < 0.01 && Math.Abs(steps.Y - Math.Round(steps.Y)) < 0.01,
+                "Clamped point popup with " + basis.ToString() + " px flex-basis content is " + raw.ToString()
             )
             host.PopupOpen = false
             host.Rebuild()

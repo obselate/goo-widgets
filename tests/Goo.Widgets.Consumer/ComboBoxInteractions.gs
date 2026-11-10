@@ -616,12 +616,35 @@ func ComboBoxFluentInteractions() {
             PumpFrames(window, 16)
             let clamped = host.Panel!!.Handle!!.BorderBox
             let shifted = host.Rows["alpha"].Handle!!.BorderBox
+            let fieldRaw = host.Trigger!!.Handle!!.RawBorderBox
+            let rowRaw = host.Rows["alpha"].Handle!!.RawBorderBox
+            let steps = (rowRaw.Y + rowRaw.Height / 2.0 - fieldRaw.Y - fieldRaw.Height / 2.0) * float64(window.PixelScale)
             Require(
                 clamped.Y >= 7.5 && clamped.Y + clamped.Height <= float64(window.Height) / float64(scale) - 7.5
                 && shifted.Y + shifted.Height / 2.0 < field.Y + field.Height / 2.0 - 1.0,
                 "Fluent ComboBox near the window bottom did not shift into the window: " + clamped.ToString()
             )
+            Require(
+                Math.Abs(steps - Math.Round(steps)) < 0.01,
+                "Fluent ComboBox near the window bottom moved its options " + steps.ToString() + " device pixels from the field"
+            )
             CaptureIssueProof(window, "fluent-clamped" + suffix)
+            host.IsOpen = false
+            host.Large = true
+            host.Selected = "item-1201"
+            host.Rows.Clear()
+            host.Rebuild()
+            PumpFrames(window, 12)
+            host.IsOpen = true
+            host.Rebuild()
+            PumpFrames(window, 16)
+            let capped = host.Panel!!.Handle!!.BorderBox
+            Require(
+                capped.Y >= 7.5 && capped.Y + capped.Height <= float64(window.Height) / float64(scale) - 7.5,
+                "Fluent ComboBox with a viewport-height list near the window bottom left the window: " + capped.ToString()
+            )
+            CaptureIssueProof(window, "fluent-clamped-long" + suffix)
+            host.Large = false
             host.IsOpen = false
             host.Selected = "beta"
             host.Rebuild()

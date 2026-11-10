@@ -391,13 +391,13 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             let viewHeight = overlay != nil ? overlayBox.Height: float64(window.Height) / float64(window.UiScale)
             let listHeight = Math.Min(popupHeight - 2.0 * border, Math.Max(1.0, viewHeight - 2.0 * theme.ControlGap) - 2.0 * border) - 2.0 * theme.Spacing
             let row = current.RowHeight!!
-            alignScroll = Math.Clamp(float64(alignIndex) * row - (listHeight - row) / 2.0, 0.0, Math.Max(0.0, float64(rows.Length) * row - listHeight))
-            fieldBox = trigger.BorderBox
+            let density = float64(window.PixelScale)
+            let scroll = Math.Clamp(float64(alignIndex) * row - (listHeight - row) / 2.0, 0.0, Math.Max(0.0, float64(rows.Length) * row - listHeight))
+            alignScroll = Math.Floor(scroll * density) / density
+            fieldBox = trigger.RawBorderBox
+            let offset = (fieldBox.Height - row) / 2.0 - border - theme.Spacing - float64(alignIndex) * row + alignScroll
             popup.Anchor = nil
-            popup.WindowPoint = Point{
-                X: fieldBox.X,
-                Y: fieldBox.Y + (fieldBox.Height - row) / 2.0 - border - theme.Spacing - float64(alignIndex) * row + alignScroll
-            }
+            popup.WindowPoint = Point{X: fieldBox.X, Y: fieldBox.Y + Math.Floor(offset * density + 0.5) / density}
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
         return root
@@ -788,7 +788,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
     }
 
     private func TriggerMetrics(metrics ElementMetrics) {
-        if !disposed && wasOpen && alignField && metrics.IsMounted && metrics.BorderBox != fieldBox {
+        if !disposed && wasOpen && alignField && metrics.IsMounted && metrics.RawBorderBox != fieldBox {
             Rebuild()
         }
     }
