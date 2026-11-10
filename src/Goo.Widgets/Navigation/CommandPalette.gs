@@ -316,7 +316,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             button.Children.Add(leading)
         }
         let match = FuzzyMatch.Match(snapshot.Query ?? "", command.Label)!!
-        let label = FuzzyMatch.Label(command.Label, match, theme)
+        let label = FuzzyMatchLabel.Create(command.Label, match, theme)
         let content = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

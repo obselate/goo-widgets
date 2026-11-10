@@ -17,31 +17,6 @@ internal class KbdPage : GalleryPage {
         Kbd{
             Keys: []KeyBinding{KeyBinding{Key: Key.K, Modifiers: KeyModifiers{Super: true, Shift: true}}},
             Platform: KbdPlatform.MacOS
-        },
-        Cell.Mount[ShortcutListInput, ShortcutList](
-            "shortcuts",
-            ShortcutListInput{
-                Entries: []ShortcutEntry{
-                    ShortcutEntry{
-                        Id: "open",
-                        Group: "Files",
-                        Label: "Open file",
-                        Keys: []KeyBinding{KeyBinding{Key: Key.O, Modifiers: KeyModifiers{Ctrl: true}}}
-                    },
-                    ShortcutEntry{
-                        Id: "save",
-                        Group: "Files",
-                        Label: "Save file",
-                        Keys: []KeyBinding{KeyBinding{Key: Key.S, Modifiers: KeyModifiers{Ctrl: true}}}
-                    },
-                    ShortcutEntry{
-                        Id: "search",
-                        Group: "Navigation",
-                        Label: "Find in project",
-                        Keys: []KeyBinding{KeyBinding{Key: Key.F, Modifiers: KeyModifiers{Ctrl: true, Shift: true}}}
-                    }
-                }
-            }
-        )
+        }
     }
 }

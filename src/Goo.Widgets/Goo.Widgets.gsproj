@@ -24,7 +24,7 @@
     <ProjectReference Include="../../tools/Goo.Widgets.Checks/Goo.Widgets.Checks.gsproj" ReferenceOutputAssembly="false" PrivateAssets="all" GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishAot;PublishTrimmed" />
     <EmbeddedResource Include="$(IntermediateOutputPath)MaterialSymbols.bundle" LogicalName="Goo.Widgets.MaterialSymbols.bundle" />
     <EmbeddedResource Include="Shaders/touch_magnifier.goo-effect" LogicalName="Goo.Widgets.TouchMagnifier" />
-    <EmbeddedResource Include="ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
+    <EmbeddedResource Include="Icons/ILLink.Substitutions.xml" LogicalName="ILLink.Substitutions.xml" />
     <None Include="../../buildTransitive/Goo.Widgets.targets" Pack="true" PackagePath="buildTransitive/Goo.Widgets.targets" />
     <None Include="../../buildTransitive/MaterialSymbols.Subset" Pack="true" PackagePath="buildTransitive/MaterialSymbols.Subset" />
     <None Include="../../assets/material-symbols/outlined/*.svg" Pack="true" PackagePath="buildTransitive/icons/%(Filename)%(Extension)" />

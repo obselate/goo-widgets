@@ -99,4 +99,4 @@ Each image links to its page source. New pages need a registration, a matching P
 | | | |
 | --- | --- | --- |
 | [![Markdown view](MarkdownView.png)](../Goo.Widgets.Gallery/Pages/Content/MarkdownViewPage.gs)<br>Markdown view | [![Typography](Typography.png)](../Goo.Widgets.Gallery/Pages/Content/TypographyPage.gs)<br>Typography | [![Kbd](Kbd.png)](../Goo.Widgets.Gallery/Pages/Content/KbdPage.gs)<br>Kbd |
-| [![Code block](CodeBlock.png)](../Goo.Widgets.Gallery/Pages/Content/CodeBlockPage.gs)<br>Code block | | |
+| [![Shortcut list](ShortcutList.png)](../Goo.Widgets.Gallery/Pages/Content/ShortcutListPage.gs)<br>Shortcut list | [![Code block](CodeBlock.png)](../Goo.Widgets.Gallery/Pages/Content/CodeBlockPage.gs)<br>Code block | |

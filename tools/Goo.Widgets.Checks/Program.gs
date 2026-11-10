@@ -51,7 +51,7 @@ func Main() int {
 func Symbols(args[]string) {
     Require(args.Length == 0 || (args.Length == 1 && args[0] == "--check"), "Usage: symbols [--check]")
     let root = Root()
-    let target = Path.Combine(root, "src/Goo.Widgets/ILLink.Substitutions.xml")
+    let target = Path.Combine(root, "src/Goo.Widgets/Icons/ILLink.Substitutions.xml")
     let content = "<linker>\n  <assembly fullname=\"Goo.Widgets\" feature=\"Goo.Widgets.MaterialSymbols.Subset\" featurevalue=\"true\">\n    <resource name=\"Goo.Widgets.MaterialSymbols.bundle\" action=\"remove\" />\n  </assembly>\n</linker>\n"
     if args.Length == 1 {
         Require(
