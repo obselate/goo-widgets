@@ -92,6 +92,7 @@ internal class OverlayHost : Cell {
     internal var ShowDialogs bool = true
     internal var EmptyDialog bool
     internal var KeepMenu bool
+    internal var MenuFocusColor Color?
     internal var AnchorX float64 = 590.0
     internal var AnchorY float64 = 430.0
     internal var BackgroundClicks int32
@@ -221,6 +222,9 @@ internal class OverlayHost : Cell {
 
     private func MenuRow(input MenuInput, item MenuItem, prepared Button) Button {
         MenuRows[item.Id!!] = prepared
+        if let color = MenuFocusColor {
+            prepared.Focus = Style{Color: color}
+        }
         return prepared
     }
 
@@ -727,6 +731,22 @@ func OverlayInteractions() {
         SendKey(id, SDLScancode.Home)
         PumpFrames(window, 7)
         Require(OverlayFocus(semantics, "Open"), "Menu Home failed")
+        let classic = Theme.Default with{
+            HoverColor = Color.Rgb(0, 0, 128),
+            FocusColor = Color.Black,
+            ControlRadius = 0.0,
+            TransitionMs = 0.0,
+        }
+        host.MenuFocusColor = Color.White
+        Theme.Attach(window, classic)
+        PumpFrames(window, 6)
+        Require(WhiteTextOnNavy(window, host.MenuRows["open"].Handle!!), "Menu row focus color did not reach the label")
+        host.MenuFocusColor = nil
+        Theme.Attach(window, classic with{HoverTextColor = Color.White})
+        PumpFrames(window, 6)
+        Require(WhiteTextOnNavy(window, host.MenuRows["open"].Handle!!), "Menu highlight ignored the theme text color")
+        Theme.Attach(window)
+        PumpFrames(window, 6)
         host.KeepMenu = true
         host.Rebuild()
         PumpFrames(window, 6)
@@ -761,6 +781,22 @@ func OverlayInteractions() {
     Console.WriteLine(
         "PASS: native managed modal entry/containment/nesting/fallback/backdrop/unmount, popover anchor/point/flip/resize/dismiss/restore/content width, menu disabled/separator/keyboard/submenu/hover/activation policy"
     )
+}
+
+func WhiteTextOnNavy(window Window, row ElementHandle) bool {
+    let image = ThemeCapture(window)
+    let box = row.BorderBox
+    let scale = float64(image.Width) / float64(window.Width)
+    var navy = false
+    var white = false
+    for y in int32(box.Y * scale) + 1 ... int32((box.Y + box.Height) * scale) - 1 {
+        for x in int32(box.X * scale) + 1 ... int32((box.X + box.Width) * scale) - 1 {
+            let at = y * int32(image.RowBytes) + x * 4
+            navy = navy || ThemePixel(image, x, y, Color.Rgb(0, 0, 128))
+            white = white || image.Pixels[at] >= 200 && image.Pixels[at + 1] >= 200 && image.Pixels[at + 2] >= 200
+        }
+    }
+    return navy && white
 }
 
 internal class TeachingTipHost : Cell {

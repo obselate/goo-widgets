@@ -59,6 +59,8 @@ public data struct Theme {
     var HoverColor Color
     /// Neutral pressed surface.
     var PressedColor Color
+    /// Text on highlighted and pressed menu items. Zero keeps the normal text colors.
+    var HoverTextColor Color
     /// Panel borders and dividers.
     var BorderColor Color
     /// Input borders.
@@ -1288,6 +1290,7 @@ internal sealed class ThemeAttachment {
                 FieldColor = palette.FieldColor,
                 HoverColor = palette.HoverColor,
                 PressedColor = palette.PressedColor,
+                HoverTextColor = palette.HoverTextColor,
                 BorderColor = palette.BorderColor,
                 InputBorderColor = palette.InputBorderColor,
                 TextColor = palette.TextColor,
