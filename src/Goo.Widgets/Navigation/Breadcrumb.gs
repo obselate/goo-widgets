@@ -75,6 +75,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
         let remeasure = nextTheme.FontSize != theme.FontSize ||
             nextTheme.FontFamily != theme.FontFamily ||
             nextTheme.ControlHeight != theme.ControlHeight ||
+            nextTheme.ControlPadding != theme.ControlPadding ||
+            nextTheme.Spacing != theme.Spacing ||
             !Object.Equals(input.CreateItem, value.CreateItem)
         input = value with{
             KeepStart = value.KeepStart == 0 ? 1: value.KeepStart,
@@ -134,6 +136,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                         Key: overflowId,
                         Handle: overflowHandle,
                         FlexShrink: 0,
+                        MinHeight: theme.ControlHeight,
+                        Padding: Edges(theme.Spacing, theme.ControlPadding),
                         TabStop: focus.TabStop(overflowId),
                         OnClick: OpenOverflow,
                         OnFocus: (e FocusEvent) -> {
@@ -202,6 +206,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Key: id,
                     Handle: handles[id],
                     FlexShrink: 0,
+                    MinHeight: theme.ControlHeight,
+                    Padding: Edges(theme.Spacing, theme.ControlPadding),
                     BackgroundColor: Color.Transparent,
                     TabStop: focus.TabStop(id),
                     OnClick: () -> InvokeInputCallback(input.OnSelect, id),
@@ -226,6 +232,8 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                 let sibling = Button{
                     Handle: index == 0 ? separatorHandle: nil,
                     FlexShrink: 0,
+                    MinHeight: theme.ControlHeight,
+                    Padding: Edges(theme.Spacing, theme.ControlPadding),
                     BackgroundColor: Color.Transparent,
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
@@ -334,7 +342,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
         if total > rootHandle.ContentBox.Width && items.Length > 2 {
             start = Math.Clamp(input.KeepStart, 1, items.Length - 2)
             end = items.Length - Math.Clamp(input.KeepEnd, 1, items.Length - start - 1) - 1
-            let overflowWidth = overflowHandle.IsMounted ? overflowHandle.BorderBox.Width: theme.FontSize
+            let overflowWidth = overflowHandle.IsMounted ? overflowHandle.BorderBox.Width: theme.FontSize + theme.ControlPadding * 2
             var shown = total + overflowWidth + gap
             for index in start ... end + 1 {
                 shown -= widths[items[index].Id!!] + gap
