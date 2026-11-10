@@ -546,6 +546,19 @@ func ThemeBackgroundContracts() {
         }
         Require(kept, "A canvas override changed the variant baseline, so untouched colors stopped following the mode.")
     }
+    Theme.Attach(native, Theme.Default)
+    Theme.SetMode(native, ThemeMode.Dark)
+    ThemeFrames(nativeHost)
+    Theme.Attach(native, Theme.Read(native))
+    var roundTrip = true
+    for isDark in []bool{false, true} {
+        Theme.SetMode(native, isDark ? ThemeMode.Dark: ThemeMode.Light)
+        ThemeFrames(nativeHost)
+        let read = Theme.Read(native)
+        let expected = isDark ? Theme.Ink: Theme.Bone
+        roundTrip = roundTrip && read.CanvasColor == expected.CanvasColor && read.PanelColor == expected.PanelColor
+    }
+    Require(roundTrip, "A reattached dark theme snapshot kept its dark colors in Light mode.")
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )

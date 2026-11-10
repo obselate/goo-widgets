@@ -480,6 +480,7 @@ public data struct Theme {
     }
 
     internal func WithPalette(palette Theme, origin Theme) Theme -> this with{
+        VariantDark = palette.VariantDark,
         CanvasColor = Pick(CanvasColor, origin.CanvasColor, palette.CanvasColor),
         PanelColor = Pick(PanelColor, origin.PanelColor, palette.PanelColor),
         RaisedColor = Pick(RaisedColor, origin.RaisedColor, palette.RaisedColor),
@@ -900,7 +901,6 @@ public data struct Theme {
             }
             return if dark {
                 light.WithPalette(Ink, light) with{
-                    VariantDark = true,
                     CanvasColor = "#202020",
                     PanelColor = "#282828",
                     RaisedColor = "#2d2d2d",
