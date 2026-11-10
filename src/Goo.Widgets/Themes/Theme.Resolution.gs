@@ -197,6 +197,24 @@ public data partial struct Theme {
         }
     }
 
+    internal func WithAccessibility(highContrast bool, platformScale float64, reducedMotion bool) Theme {
+        var value = this
+        if highContrast {
+            value = value.WithHighContrast()
+        }
+        value = value.WithTextScale(value.TextScaleFactor * platformScale / value.PlatformTextScaleFactor)
+        value.PlatformTextScaleFactor = platformScale
+        value.ReducedMotion = reducedMotion
+        if reducedMotion {
+            value.TransitionMs = 0.0
+            value.MotionFastMs = 0.0
+            value.MotionNormalMs = 0.0
+            value.MotionSlowMs = 0.0
+            value.SpinnerPeriodMs = 0.0
+        }
+        return value
+    }
+
     shared {
         internal func Pick[T](own T, origin T, next T) T -> EqualityComparer[T].Default.Equals(own, origin) ? next: own
 

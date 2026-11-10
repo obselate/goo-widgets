@@ -15,7 +15,6 @@ public data struct ThemeScope {
     public func Build() Blob {
         let inherited = Theme.Read()
         var value = Value?.ResolveDefaults() ?? inherited
-        value.ReducedMotion = inherited.ReducedMotion
         if value.Direction == Direction.Auto {
             value.Direction = inherited.Direction
         }
@@ -24,19 +23,7 @@ public data struct ThemeScope {
         if let density = Density {
             value = value.WithDensity(density)
         }
-        if inherited.HighContrast {
-            value = value.WithHighContrast()
-        }
-        let scale = inherited.PlatformTextScaleFactor
-        value = value.WithTextScale(value.TextScaleFactor * scale / value.PlatformTextScaleFactor)
-        value.PlatformTextScaleFactor = scale
-        if value.ReducedMotion {
-            value.TransitionMs = 0.0
-            value.MotionFastMs = 0.0
-            value.MotionNormalMs = 0.0
-            value.MotionSlowMs = 0.0
-            value.SpinnerPeriodMs = 0.0
-        }
+        value = value.WithAccessibility(inherited.HighContrast, inherited.PlatformTextScaleFactor, inherited.ReducedMotion)
         return Theme.Key.Scope(value, Content)
     }
 }
