@@ -183,6 +183,7 @@ public open class Menu : Cell[MenuInput] {
         search.Items = searchable
         search.TextForId = (id string) -> items[id].Label ?? id
         search.OnMatch = (id string) -> Focus(depth, id)
+        let highlight Color? = theme.HoverTextColor == Color{} ? nil: theme.HoverTextColor
         let rows = Container{
             Direction: theme.Direction,
             Gap: theme.Spacing / 2.0,
@@ -214,10 +215,10 @@ public open class Menu : Cell[MenuInput] {
                 FontFamily: theme.FontFamily,
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
-                Color: item.Disabled ? theme.DisabledTextColor: theme.TextColor,
                 TextWrap: TextWrap.NoWrap,
                 TextTrimming: TextTrimming.Ellipsis,
             }
+            let highlightText = selected == id ? highlight: nil
             let prepared = Button{
                 MinHeight: theme.ControlHeight,
                 Padding: Edges(theme.Spacing, theme.ControlPadding),
@@ -225,6 +226,9 @@ public open class Menu : Cell[MenuInput] {
                 AlignItems: AlignItems.Center,
                 Gap: theme.ControlGap,
                 BackgroundColor: selected == id ? theme.HoverColor: Color.Transparent,
+                Color: highlightText ?? theme.TextColor,
+                Hover: Style{Color: highlight ?? theme.TextColor},
+                Active: Style{Color: highlight ?? theme.TextColor},
                 BorderRadius: theme.ControlRadius!!,
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
@@ -259,7 +263,7 @@ public open class Menu : Cell[MenuInput] {
             row.Children.Clear()
             row.Children.Add(Container{Key: "content", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, content})
             if let shortcut = item.Shortcut {
-                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false}.Build())
+                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false, Color: highlightText}.Build())
             }
             if hasChildren {
                 row.Children.Add(
@@ -268,7 +272,7 @@ public open class Menu : Cell[MenuInput] {
                         Content: OpensLeft() == theme.RightToLeft ? "›": "‹",
                         FontFamily: theme.FontFamily,
                         FontSize: theme.HeadingFontSize,
-                        Color: theme.MutedTextColor,
+                        Color: highlightText ?? theme.MutedTextColor,
                         BasedOn: current.SubmenuArrowStyle
                     }
                 )

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `CreateItem`, such as `Focus`, colors the label.
 - Report pump count, elapsed time, expected and actual row alignment, and anchor values when the native virtual scroll probe times out.
 - Selected text over a translucent selection fill now gets its contrast from the fill composed over the theme panel or popup surface. Opaque fills are unchanged.
 - Size popovers and menus to their content, limited by the viewport. The ComboBox popup, `TriggerMenu` and `CommandPalette` fit their rows in height. Remove the 280 px width and 360 px height defaults of `Popover`, the 260 px `ComboBox.PopupHeight` default, the 240 px `TriggerMenu` height default and the 360 px `CommandPalette` height default. `Width`, `MaxHeight`, `PopupHeight` and `Height` still set fixed limits.
