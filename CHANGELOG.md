@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The OVERLAYS Popover content-height checks read the border and padding from the laid-out panel, so they hold when Goo snaps border widths to device pixels at display scale 1.5. The window-point press check presses the background control clear of the popover anchor button and requires the press to reach it when `DismissOnOutsideClick` is false.
 - `CommandPalette` search text keeps the standard field padding, so the focus ring no longer covers the first letter. The `MediaTransport` volume slider shrinks in a narrow transport, so the Volume label no longer overlaps the next button.
 - Native suites run the test app on a private session bus without service activation, so a desktop portal accent color no longer changes local captures and local FOCUS results match CI.
 - Native pixel checks convert layout coordinates to capture pixels, so the theme, choice, ComboBox, field, toggle and chrome checks also hold at display scale 1.5. The TextField adornment inset check expects the inset as Goo snaps it to device pixels, and DataGrid column widths drop float32 noise below 0.001 px.

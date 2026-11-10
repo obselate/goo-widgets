@@ -696,7 +696,7 @@ func OverlayInteractions() {
         )
         Require(!OverlayFocus(semantics, "Open popup"), "Outside click restored focus to the popover trigger")
         let background = host.Before.BorderBox
-        let pressX = background.X + background.Width / 2.0
+        let pressX = background.X + 16.0
         let pressY = background.Y + background.Height / 2.0
         host.BasisContent = 20.0
         for passThrough in []bool{false, true} {
@@ -722,12 +722,13 @@ func OverlayInteractions() {
                 PumpFrames(window, 8)
                 outcomes[covered ? 1: 0] = (host.PopupOpen ? "open": "closed by " + host.LastDismiss.ToString())
                 + ", background clicks " + (host.BackgroundClicks - clicks).ToString()
+                host.BackgroundClicks = clicks
                 host.PopupOpen = false
                 host.Rebuild()
                 PumpFrames(window, 8)
             }
             Require(
-                outcomes[0] == outcomes[1] && (passThrough || outcomes[0] == "closed by OutsideClick, background clicks 0"),
+                outcomes[0] == outcomes[1] && outcomes[0] == (passThrough ? "open, background clicks 1": "closed by OutsideClick, background clicks 0"),
                 "A press below a short point popup gave '" + outcomes[1] + "', a press outside its column gave '" + outcomes[0] + "'"
             )
             Console.WriteLine("Point popup press, DismissOnOutsideClick " + (!passThrough).ToString() + ": " + outcomes[1])
@@ -740,8 +741,9 @@ func OverlayInteractions() {
             host.Rebuild()
             PumpFrames(window, 14)
             let sized = host.PopupPanel!!.Handle!!.BorderBox
+            let chrome = 2.0 * (host.PopupPanel!!.Handle!!.ContentBox.Y - sized.Y)
             Require(
-                Math.Abs(sized.Height - Math.Min(basis + 30.0, 220.0)) < 0.5 && sized.Y < 520.0 && sized.Y + sized.Height <= 502.5,
+                Math.Abs(sized.Height - Math.Min(basis + chrome, 220.0)) < 0.5 && sized.Y < 520.0 && sized.Y + sized.Height <= 502.5,
                 "Clamped point popup with " + basis.ToString() + " px flex-basis content is " + sized.ToString()
             )
             host.PopupOpen = false
@@ -760,8 +762,9 @@ func OverlayInteractions() {
             host.Rebuild()
             PumpFrames(window, 14)
             let flipped = host.PopupPanel!!.Handle!!.BorderBox
+            let chrome = 2.0 * (host.PopupPanel!!.Handle!!.ContentBox.Y - flipped.Y)
             Require(
-                Math.Abs(flipped.Height - Math.Min(basis + 30.0, 220.0)) < 0.5 && flipped.Y + flipped.Height <= host.Anchor.BorderBox.Y + 0.5,
+                Math.Abs(flipped.Height - Math.Min(basis + chrome, 220.0)) < 0.5 && flipped.Y + flipped.Height <= host.Anchor.BorderBox.Y + 0.5,
                 "Flipped anchored popup with " + basis.ToString() + " px flex-basis content is " + flipped.ToString()
             )
             host.PopupOpen = false
