@@ -75,6 +75,7 @@ public data struct DonutChart {
                 BackgroundColor: segment.Series.Color!!,
                 Hover: Style{BackgroundColor: segment.Series.Color!!},
                 Active: Style{BackgroundColor: segment.Series.Color!!},
+                Focus: Style{BoxShadow: BoxShadow{Spread: theme.FocusRingWidth, Color: theme.FocusColor}},
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,

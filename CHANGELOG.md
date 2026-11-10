@@ -4,6 +4,7 @@
 
 - Clickable `AvatarGroup` avatars and read-only `CodeBlock` code areas show keyboard focus on the actual focus target.
 - Icon-only `ActionButton` controls omit the empty default text slot, so the `SplitButton` chevron is centered. Text and root factories keep their existing behavior.
+- Interactive `DonutChart` slices show a path-shaped keyboard focus indicator without changing their data fill or stroke. The default indicator is set before `CreateSlice`, so caller focus styles retain precedence.
 - FOCUS crops convert layout bounds to capture pixels with the display scale as well as `UiScale`, so crops taken at display scale 1.5 show the whole focused control and its ring. Crops at display scale 1 do not change.
 - Move loose source files into folders: `FuzzyMatch` to `Search/`, `Kbd`, `ShortcutList` and `Typography` to `Content/`, `RovingFocus`, `TypeAhead` and `WidgetKeyBindings` to `Keyboard/`, and `ILLink.Substitutions.xml` to `Icons/`. Namespaces, types and the embedded resource name do not change. The gallery shows `ShortcutList` on its own Shortcut list page.
 - Window theme attachment and `ThemeScope` apply high contrast, platform text scale and reduced motion through one shared transform. Behavior does not change.
