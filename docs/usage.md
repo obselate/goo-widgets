@@ -312,11 +312,11 @@ Theme.SetMode(window, ThemeMode.Dark)
 | Fixed | `Ink`, `Bone`, `GitHubDark`, or any theme with `Variant = nil` | One palette. `SetMode` does not change it. |
 
 Changing the family keeps the mode. Changing the mode keeps the family's typography, metrics, direction, culture and text.
-The mode replaces palette and glass colors. Colors you set on the attached theme stay in every mode, so `Theme.Fluent with{AccentColor = x}` keeps `x`, and an explicit accent wins over the system accent.
+The mode replaces palette and glass colors. On the built-in families, colors you set on the attached theme stay in every mode, so `Theme.Fluent with{AccentColor = x}` keeps `x`, and an explicit accent wins over the system accent.
 
 `Theme.Controls` selects control shapes. Fluent and Windows Native use `ControlStyle.Fluent`. Set `Controls = ControlStyle.Fluent` on any theme to use the Windows 11 shapes, or `ControlStyle.Standard` on Fluent for the Goo.Widgets shapes. A Fluent-shaped theme lightens the system accent in dark mode and darkens it in light mode.
-Families with a `Variant` follow the system accent in every mode, when the platform reports one. Without one they keep their own accent.
-For a different color per mode, set your own `Variant`. Set `Variant = nil` for one fixed palette:
+The built-in families follow the system accent in every mode, when the platform reports one. Without one they keep their own accent.
+For colors that differ per mode, set your own `Variant`. Its output is used verbatim, accent included, and it does not follow the system accent. It can read `PlatformPreferences` itself. Set `Variant = nil` for one fixed palette:
 
 ```gsharp
 let brand = Color.Parse("#0f7b6c")

@@ -507,25 +507,31 @@ func ThemeBackgroundContracts() {
         )
     }
     let brand = Color.Rgb(200, 30, 90)
-    let warm = Color.Rgb(250, 240, 230)
-    Theme.Attach(native, Theme.Default with{AccentColor = brand, PanelColor = warm})
-    Theme.SetMode(native, ThemeMode.Light)
-    ThemeFrames(nativeHost)
-    let brandLight = Theme.Read(native)
-    Theme.SetMode(native, ThemeMode.Dark)
-    ThemeFrames(nativeHost)
-    let brandDark = Theme.Read(native)
-    Theme.SetMode(native, ThemeMode.System)
-    nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light, AccentColor: accent})
-    ThemeFrames(nativeHost)
-    let brandSystem = Theme.Read(native)
-    Require(
-        brandLight.AccentColor == brand && brandLight.PanelColor == warm && brandLight.CanvasColor == Theme.Bone.CanvasColor
-        && brandDark.AccentColor == brand && brandDark.PanelColor == warm && brandDark.CanvasColor == Theme.Ink.CanvasColor
-        && brandDark.AccentHoverColor != Theme.Ink.AccentHoverColor
-        && brandSystem.AccentColor == brand && brandSystem.PanelColor == warm && brandSystem.CanvasColor == Theme.Bone.CanvasColor,
-        "A color override was lost on attach, a mode change or the system accent, or another color stopped following the mode."
-    )
+    let teal = Color.Rgb(95, 212, 194)
+    for (attached, light, dark, lightAccent, darkAccent) in []ValueTuple[Theme, Theme, Theme, Color, Color]{
+        (Theme.Default with{AccentColor = brand}, Theme.Bone, Theme.Ink, brand, brand),
+        (Theme.Fluent with{AccentColor = brand}, Theme.Fluent.Variant!!(false), Theme.Fluent.Variant!!(true), brand, brand),
+        (
+            Theme.Fluent with{Variant = (isDark bool) -> Theme.Fluent.Variant!!(isDark) with{AccentColor = isDark ? teal: brand}},
+            Theme.Fluent.Variant!!(false), Theme.Fluent.Variant!!(true), brand, teal
+        ),
+    } {
+        Theme.Attach(native, attached)
+        var kept = true
+        for (mode, system, isDark) in []ValueTuple[ThemeMode, SystemTheme, bool]{
+            (ThemeMode.Light, SystemTheme.Dark, false), (ThemeMode.Dark, SystemTheme.Dark, true),
+            (ThemeMode.System, SystemTheme.Dark, true), (ThemeMode.System, SystemTheme.Light, false),
+        } {
+            nativeHost.UpdatePreferences(PlatformPreferences{Theme: system, AccentColor: accent})
+            Theme.SetMode(native, mode)
+            ThemeFrames(nativeHost)
+            let read = Theme.Read(native)
+            let palette = isDark ? dark: light
+            let expected = isDark ? darkAccent: lightAccent
+            kept = kept && read.AccentColor == expected && read.CanvasColor == palette.CanvasColor
+        }
+        Require(kept, "A theme lost its accent override or custom Variant accent, or another color stopped following the mode.")
+    }
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )

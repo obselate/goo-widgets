@@ -262,7 +262,8 @@ public data struct Theme {
     /// Backdrop blur radius of glass overlays in logical pixels. Defaults to 24.
     var OverlayBlur float64 = 24.0
     /// Returns this theme's light or dark variant, given true for dark. Nil means a fixed theme.
-    /// An attached theme with a Variant follows Theme.SetMode and, in System mode, the system accent.
+    /// An attached theme with a Variant follows Theme.SetMode. The built-in themes also keep colors set on the attached theme
+    /// and follow the system accent. A custom Variant's output is used verbatim, accent included. It can read PlatformPreferences itself.
     var Variant Func[bool, Theme]?
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
@@ -546,6 +547,9 @@ public data struct Theme {
         private let nativeVariant Func[bool, Theme] = (dark bool) -> NativePalette(dark)
         private let fluentVariant Func[bool, Theme] = (dark bool) -> FluentPalette(dark)
         private let fluentMicaVariant Func[bool, Theme] = (dark bool) -> FluentMicaPalette(dark)
+
+        internal func IsBuiltIn(variant Func[bool, Theme]) bool ->
+        variant == defaultVariant || variant == nativeVariant || variant == fluentVariant || variant == fluentMicaVariant
 
         /// Neutral metrics with Bone colors in light mode and Ink colors in dark mode.
         public prop Default Theme {
@@ -1428,10 +1432,11 @@ internal sealed class ThemeAttachment {
         var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
         if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
-            let origin = variant(Value.FrameTheme == SystemTheme.Dark).ResolveDefaults()
+            let builtIn = Theme.IsBuiltIn(variant)
+            let origin = builtIn ? variant(Value.FrameTheme == SystemTheme.Dark).ResolveDefaults(): Value
             value = value.WithPalette(variant(dark), origin)
-            let custom = Value.AccentColor != origin.AccentColor
-            var accent = preferences.AccentColor
+            let custom = builtIn && Value.AccentColor != origin.AccentColor
+            var accent = builtIn ? preferences.AccentColor: nil
             if custom {
                 accent = Value.AccentColor
             }
