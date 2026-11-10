@@ -287,8 +287,16 @@ public data struct TextField {
             }
         }
         if state != nil {
-            entry!!.OnFocus = state.Focused
-            entry!!.OnBlur = state.Blurred
+            let priorFocus = entry!!.OnFocus
+            let priorBlur = entry!!.OnBlur
+            entry!!.OnFocus = (event FocusEvent) -> {
+                state.Focused(event)
+                priorFocus?.Invoke(event)
+            }
+            entry!!.OnBlur = (event FocusEvent) -> {
+                state.Blurred(event)
+                priorBlur?.Invoke(event)
+            }
             state.FocusTarget = entry!!.Handle
         }
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
