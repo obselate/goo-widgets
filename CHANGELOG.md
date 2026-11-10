@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Native suites run the test app on a private session bus without service activation, so a desktop portal accent color no longer changes local captures and local FOCUS results match CI.
 - Native pixel checks convert layout coordinates to capture pixels, so the theme, choice, ComboBox, field, toggle and chrome checks also hold at display scale 1.5. The TextField adornment inset check expects the inset as Goo snaps it to device pixels, and DataGrid column widths drop float32 noise below 0.001 px.
 - Fix `Popover` at a `WindowPoint`: content without its own height, for example a container sized by `FlexBasis`, collapsed to the panel padding. The panel now takes the content height, limited by `MaxHeight` and the viewport.
 - Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `CreateItem`, such as `Focus`, colors the label.
