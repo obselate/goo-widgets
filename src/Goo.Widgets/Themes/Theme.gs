@@ -266,6 +266,7 @@ public data struct Theme {
     /// and follow the system accent. A custom Variant's output is used verbatim, accent included. It can read PlatformPreferences itself.
     var Variant Func[bool, Theme]?
     internal var VariantDark bool
+    internal var SystemAccent ValueTuple[Color, Color, Color, Color]?
     /// Widget layout and arrow-key direction. Auto lays out left to right. Give the app root the same Direction.
     var Direction Direction
 
@@ -1437,8 +1438,17 @@ internal sealed class ThemeAttachment {
         if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
             let builtIn = Theme.IsBuiltIn(variant)
-            let origin = builtIn ? variant(Value.VariantDark).ResolveDefaults(): Value
+            var origin = builtIn ? variant(Value.VariantDark).ResolveDefaults(): Value
+            if let applied = Value.SystemAccent {
+                origin = origin with{
+                    AccentColor = Value.AccentColor == applied.Item1 ? Value.AccentColor: origin.AccentColor,
+                    AccentHoverColor = Value.AccentHoverColor == applied.Item2 ? Value.AccentHoverColor: origin.AccentHoverColor,
+                    AccentPressedColor = Value.AccentPressedColor == applied.Item3 ? Value.AccentPressedColor: origin.AccentPressedColor,
+                    OnAccentColor = Value.OnAccentColor == applied.Item4 ? Value.OnAccentColor: origin.OnAccentColor,
+                }
+            }
             value = value.WithPalette(variant(dark), origin)
+            value.SystemAccent = nil
             let custom = builtIn && Value.AccentColor != origin.AccentColor
             var accent = builtIn ? preferences.AccentColor: nil
             if custom {
@@ -1450,6 +1460,9 @@ internal sealed class ThemeAttachment {
                 value.OnAccentColor = Theme.Pick(Value.OnAccentColor, origin.OnAccentColor, shaded.OnAccentColor)
                 value.AccentHoverColor = Theme.Pick(Value.AccentHoverColor, origin.AccentHoverColor, shaded.AccentHoverColor)
                 value.AccentPressedColor = Theme.Pick(Value.AccentPressedColor, origin.AccentPressedColor, shaded.AccentPressedColor)
+                if !custom {
+                    value.SystemAccent = (shaded.AccentColor, shaded.AccentHoverColor, shaded.AccentPressedColor, shaded.OnAccentColor)
+                }
             }
         }
         if preferences.HighContrast == true {
