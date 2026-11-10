@@ -222,8 +222,6 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 entry.Controlled = true
                 entry.OnKeyDown = KeyDown
                 entry.FlexGrow = 1
-                entry.Padding = 0
-                entry.PaddingEnd = theme.ControlPadding
                 entry.BackgroundColor = Color.Transparent
                 return entry
             },
