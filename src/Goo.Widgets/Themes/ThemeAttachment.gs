@@ -19,7 +19,7 @@ internal sealed class ThemeAttachment {
     }
 
     internal func Apply(preferences PlatformPreferences) {
-        var value = Value with{ReducedMotion = preferences.ReducedMotion == true}
+        var value = Value
         if let variant = Value.Variant {
             let dark = Mode == ThemeMode.Dark || (Mode == ThemeMode.System && preferences.Theme == SystemTheme.Dark)
             let builtIn = Theme.IsBuiltIn(variant)
@@ -50,19 +50,7 @@ internal sealed class ThemeAttachment {
                 }
             }
         }
-        if preferences.HighContrast == true {
-            value = value.WithHighContrast()
-        }
-        let scale = float64(preferences.TextScaleFactor ?? 1.0F)
-        value = value.WithTextScale(value.TextScaleFactor * scale / value.PlatformTextScaleFactor)
-        value.PlatformTextScaleFactor = scale
-        if preferences.ReducedMotion == true {
-            value.TransitionMs = 0.0
-            value.MotionFastMs = 0.0
-            value.MotionNormalMs = 0.0
-            value.MotionSlowMs = 0.0
-            value.SpinnerPeriodMs = 0.0
-        }
+        value = value.WithAccessibility(preferences.HighContrast == true, float64(preferences.TextScaleFactor ?? 1.0F), preferences.ReducedMotion == true)
         Theme.Key.Set(window, value)
         var background = window.Background
         if (Value.Variant == nil && background != Color.Transparent) || background == lastBackground {
