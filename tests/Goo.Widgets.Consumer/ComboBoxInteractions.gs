@@ -585,8 +585,9 @@ func ComboBoxFluentInteractions() {
                 if !large {
                     let theme = Theme.Read(window)
                     let panel = host.Panel!!.Handle!!.BorderBox
+                    let border = host.Panel!!.Handle!!.ContentBox.Y - panel.Y
                     Require(
-                        Math.Abs(panel.Height - 4.0 * theme.ControlHeight - 2.0 * theme.Spacing - 2.0 * theme.BorderWidth) < 0.5,
+                        Math.Abs(panel.Height - 4.0 * theme.ControlHeight - 2.0 * theme.Spacing - 2.0 * border) * float64(scale) < 0.5,
                         "Fluent ComboBox with 4 options is not content-sized: " + panel.ToString()
                     )
                 }

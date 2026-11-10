@@ -359,9 +359,10 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         root.Children.Clear()
         root.Children.Add(button)
+        let border = trigger.IsMounted ? trigger.ContentBox.Y - trigger.BorderBox.Y: theme.BorderWidth
         let popupHeight = Math.Min(
             current.PopupHeight ?? Double.PositiveInfinity,
-            2.0 +
+            2.0 * border +
                 2.0 * theme.Spacing +
                 ((current.Searchable || current.AllowFreeText) ? theme.ControlHeight + 1.0: 0.0) +
                 Math.Max(theme.ControlHeight, float64(rows.Length) * current.RowHeight!!)
@@ -388,14 +389,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if isOpen && alignField && trigger.IsMounted {
             let window = Theme.Key.Window
             let viewHeight = overlay != nil ? overlayBox.Height: float64(window.Height) / float64(window.UiScale)
-            let listHeight = Math.Min(popupHeight - 2.0, Math.Max(1.0, viewHeight - 2.0 * theme.ControlGap) - 2.0 * theme.BorderWidth) - 2.0 * theme.Spacing
+            let listHeight = Math.Min(popupHeight - 2.0 * border, Math.Max(1.0, viewHeight - 2.0 * theme.ControlGap) - 2.0 * border) - 2.0 * theme.Spacing
             let row = current.RowHeight!!
             alignScroll = Math.Clamp(float64(alignIndex) * row - (listHeight - row) / 2.0, 0.0, Math.Max(0.0, float64(rows.Length) * row - listHeight))
             fieldBox = trigger.BorderBox
             popup.Anchor = nil
             popup.WindowPoint = Point{
                 X: fieldBox.X,
-                Y: fieldBox.Y + (fieldBox.Height - row) / 2.0 - theme.BorderWidth - theme.Spacing - float64(alignIndex) * row + alignScroll
+                Y: fieldBox.Y + (fieldBox.Height - row) / 2.0 - border - theme.Spacing - float64(alignIndex) * row + alignScroll
             }
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
