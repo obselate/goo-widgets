@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- `CommandPalette` search text keeps the standard field padding, so the focus ring no longer covers the first letter. The `MediaTransport` volume slider shrinks in a narrow transport, so the Volume label no longer overlaps the next button.
 - Native suites run the test app on a private session bus without service activation, so a desktop portal accent color no longer changes local captures and local FOCUS results match CI.
 - Native pixel checks convert layout coordinates to capture pixels, so the theme, choice, ComboBox, field, toggle and chrome checks also hold at display scale 1.5. The TextField adornment inset check expects the inset as Goo snaps it to device pixels, and DataGrid column widths drop float32 noise below 0.001 px.
 - Fix `Popover` at a `WindowPoint`: content without its own height, for example a container sized by `FlexBasis`, collapsed to the panel padding. The panel now takes the content height, limited by `MaxHeight` and the viewport.

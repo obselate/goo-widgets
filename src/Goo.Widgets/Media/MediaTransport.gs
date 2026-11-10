@@ -210,6 +210,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     },
                     Container{
                         Width: 120.0,
+                        MinWidth: 0.0,
+                        FlexShrink: 1.0,
                         Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                         Cell.Mount[SliderInput, Slider](
                             "media-volume",
