@@ -559,6 +559,40 @@ func ThemeBackgroundContracts() {
         roundTrip = roundTrip && read.CanvasColor == expected.CanvasColor && read.PanelColor == expected.PanelColor
     }
     Require(roundTrip, "A reattached dark theme snapshot kept its dark colors in Light mode.")
+    let hover = Color.Rgb(10, 20, 30)
+    let steps = []ValueTuple[ThemeMode, Color]{(ThemeMode.Light, accent), (ThemeMode.Light, Color.Rgb(200, 100, 0)), (ThemeMode.Dark, Color.Rgb(200, 100, 0))}
+    for (edit, fresh) in []ValueTuple[Func[Theme, Theme], Theme]{
+        ((theme Theme) -> theme, Theme.Fluent),
+        ((theme Theme) -> theme with{AccentColor = brand}, Theme.Fluent with{AccentColor = brand}),
+        ((theme Theme) -> theme with{AccentHoverColor = hover}, Theme.Fluent with{AccentHoverColor = hover}),
+    } {
+        let expected = List[Theme]()
+        for (mode, system) in steps {
+            nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light, AccentColor: system})
+            Theme.Attach(native, fresh)
+            Theme.SetMode(native, mode)
+            ThemeFrames(nativeHost)
+            expected.Add(Theme.Read(native))
+        }
+        nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light, AccentColor: accent})
+        Theme.Attach(native, Theme.Fluent)
+        Theme.SetMode(native, ThemeMode.Dark)
+        ThemeFrames(nativeHost)
+        Theme.Attach(native, edit(Theme.Read(native)))
+        var follows = true
+        var index = 0
+        for (mode, system) in steps {
+            nativeHost.UpdatePreferences(PlatformPreferences{Theme: SystemTheme.Light, AccentColor: system})
+            Theme.SetMode(native, mode)
+            ThemeFrames(nativeHost)
+            let read = Theme.Read(native)
+            let want = expected[index]
+            follows = follows && read.AccentColor == want.AccentColor && read.AccentHoverColor == want.AccentHoverColor
+            && read.AccentPressedColor == want.AccentPressedColor && read.OnAccentColor == want.OnAccentColor
+            index += 1
+        }
+        Require(follows, "A reattached snapshot kept a system accent shade, or lost an accent color the app set.")
+    }
     Console.WriteLine(
         "PASS theme background: automatic attachment, appearance updates, app takeover, explicit palette, glass undo, native"
     )
