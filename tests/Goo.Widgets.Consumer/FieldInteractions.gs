@@ -586,12 +586,12 @@ func AddonFramePixels() {
                         Point{X: box.Width - 6, Y: box.Height - 6},
                     } {
                         Require(
-                            ThemePixel(image, int32(box.X + offset.X), int32(box.Y + offset.Y), border),
+                            ThemePoint(image, window, box.X + offset.X, box.Y + offset.Y, border),
                             "TextField addon covered its frame border or rounded corner"
                         )
                     }
                     Require(
-                        ThemePixel(image, int32(box.X), int32(box.Y), palette.CanvasColor),
+                        ThemePoint(image, window, box.X, box.Y, palette.CanvasColor),
                         "TextField addon painted outside its rounded corner"
                     )
                 }
@@ -603,9 +603,11 @@ func AddonFramePixels() {
                 window,
                 "textfield-leading-" + (palette.CanvasColor == Theme.Bone.CanvasColor ? "light": "dark")
             )
+            let scale = float64(ThemeCapture(window).Width) / float64(window.Width)
+            let inset = Math.Round(13 * scale, MidpointRounding.AwayFromZero) / scale
             Require(
-                Math.Abs(leading.X - search.X - 13) < 0.1
-                && Math.Abs(search.X + search.Width - trailing.X - trailing.Width - 13) < 0.1
+                Math.Abs(leading.X - search.X - inset) < 0.1
+                && Math.Abs(search.X + search.Width - trailing.X - trailing.Width - inset) < 0.1
                 && leading.Width == 16 && trailing.Width == 16,
                 "TextField adornment slots lost their horizontal inset or fixed width"
             )

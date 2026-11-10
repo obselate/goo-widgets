@@ -1076,9 +1076,9 @@ func GridAligned(host DataGridHost, id string) {
 }
 
 func GridColumnWidths(semantics SearchListSemantics)[]float64 -> []float64{
-    FindSemantics(semantics.Tree!!.Root, "Name")!!.Bounds.Width,
-    FindSemantics(semantics.Tree!!.Root, "State")!!.Bounds.Width,
-    FindSemantics(semantics.Tree!!.Root, "Owner")!!.Bounds.Width
+    Math.Round(FindSemantics(semantics.Tree!!.Root, "Name")!!.Bounds.Width, 3),
+    Math.Round(FindSemantics(semantics.Tree!!.Root, "State")!!.Bounds.Width, 3),
+    Math.Round(FindSemantics(semantics.Tree!!.Root, "Owner")!!.Bounds.Width, 3)
 }
 
 func GridModifierKey(key SDLScancode, modifiers SDLKeymod, down bool) {

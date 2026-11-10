@@ -967,6 +967,11 @@ func ThemePixel(image WindowCapture, x int32, y int32, color Color) bool {
     && Math.Abs(int32(image.Pixels[at + 2]) - int32(Math.Round(float64(color.B) * 255.0))) <= 2
 }
 
+func ThemePoint(image WindowCapture, window Window, x float64, y float64, color Color) bool {
+    let scale = float64(image.Width) / float64(window.Width)
+    return ThemePixel(image, int32(x * scale), int32(y * scale), color)
+}
+
 internal class ThemeDensityHost : Cell {
     internal var DensityValue Density
     internal let ButtonHandle ElementHandle = ElementHandle()
@@ -1057,10 +1062,11 @@ func ThemeDensityContracts() {
         PumpFrames(window, 4)
         let pointer = ThemeCapture(window)
         Require(
-            !ThemePixel(
+            !ThemePoint(
                 pointer,
-                int32(bounds.X) - 3,
-                int32(bounds.Y + bounds.Height / 2),
+                window,
+                bounds.X - 3.0,
+                bounds.Y + bounds.Height / 2,
                 Theme.Read(window).FocusColor
             ),
             "Pointer-only focus showed the keyboard ring."
@@ -1070,7 +1076,7 @@ func ThemeDensityContracts() {
         let authored = ThemeCapture(window)
         let icon = root.IconHandle.BorderBox
         Require(
-            ThemePixel(authored, int32(icon.X) - 3, int32(icon.Y + icon.Height / 2), Theme.Read(window).FocusColor),
+            ThemePoint(authored, window, icon.X - 3.0, icon.Y + icon.Height / 2, Theme.Read(window).FocusColor),
             "An explicit zero focus declaration removed the required ring."
         )
         SendKey(id, SDLScancode.Tab)
@@ -1078,7 +1084,7 @@ func ThemeDensityContracts() {
         let focused = ThemeCapture(window)
         let check = root.CheckHandle.BorderBox
         Require(
-            ThemePixel(focused, int32(check.X) + 1, int32(check.Y + check.Height / 2), Theme.Read(window).FocusColor),
+            ThemePoint(focused, window, check.X + 1.0, check.Y + check.Height / 2, Theme.Read(window).FocusColor),
             "Real Tab traversal did not paint the theme focus ring."
         )
         Console.WriteLine(
@@ -1547,12 +1553,12 @@ func ThemeScrollbarContracts() {
         let thumb = ThemeThumbPoint(root.View)
         let image = ThemeCapture(window)
         Require(
-            !ThemePixel(image, int32(thumb.X), int32(thumb.Y), theme.FieldColor),
+            !ThemePoint(image, window, thumb.X, thumb.Y, theme.FieldColor),
             "Scrolling the default helper did not paint its real thumb."
         )
         let bare = root.Core.ContentBox
         Require(
-            ThemePixel(image, int32(bare.X + bare.Width - 5.0), int32(bare.Y + 24.0), theme.FieldColor),
+            ThemePoint(image, window, bare.X + bare.Width - 5.0, bare.Y + 24.0, theme.FieldColor),
             "A core-only scroller acquired the Widgets scrollbar paint."
         )
         let before = root.View.ScrollOffset.Y
@@ -1581,17 +1587,18 @@ func ThemeScrollbarContracts() {
                     + " range=" + root.View.ScrollRange.Y.ToString()
                 )
                 Require(
-                    ThemePixel(
+                    ThemePoint(
                         capture,
-                        int32(box.X + box.Width / 2.0),
-                        int32(box.Y + box.Height / 2.0),
+                        window,
+                        box.X + box.Width / 2.0,
+                        box.Y + box.Height / 2.0,
                         Color.Rgb(180, 20, 160)
                     ),
                     "The custom scrollbar did not keep its authored paint."
                 )
             } else {
                 let point = ThemeThumbPoint(root.View)
-                let painted = !ThemePixel(capture, int32(point.X), int32(point.Y), theme.FieldColor)
+                let painted = !ThemePoint(capture, window, point.X, point.Y, theme.FieldColor)
                 Require(painted == (mode == 1), "Scrollbar visibility precedence was lost: " + mode.ToString())
             }
         }
@@ -1605,7 +1612,7 @@ func ThemeScrollbarContracts() {
         let bounds = root.View.ContentBox
         Require(
             root.View.ScrollRange.Y == 0.0
-            && ThemePixel(empty, int32(bounds.X + bounds.Width - 5.0), int32(bounds.Y + 24.0), theme.FieldColor),
+            && ThemePoint(empty, window, bounds.X + bounds.Width - 5.0, bounds.Y + 24.0, theme.FieldColor),
             "A nonoverflowing viewport retained scrollbar paint."
         )
         Console.WriteLine(

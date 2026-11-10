@@ -67,7 +67,7 @@ func ToggleButtonInteractions() {
         Require(host.Value && host.Changes == 3, "Pointer did not press the toggle")
         let bounds = host.Root!!.Handle!!.BorderBox
         let selectedImage = ThemeCapture(window)
-        Require(ThemePixel(selectedImage, int32(bounds.X + bounds.Width / 2), int32(bounds.Y + 3), Theme.Read(window).ActiveColor), "Selected toggle lost its surface on hover")
+        Require(ThemePoint(selectedImage, window, bounds.X + bounds.Width / 2, bounds.Y + 3, Theme.Read(window).ActiveColor), "Selected toggle lost its surface on hover")
         host.Accept = false
         CompositeClick(window, host.Root!!.Handle!!)
         Require(host.Value && host.Changes == 4 && FeedbackNode(adapter, AccessibilityRole.Button, "Pinned").Checked == AccessibilityChecked.True, "Toggle changed its controlled value without host acceptance")

@@ -96,12 +96,9 @@ func ChromePaint(window Window, row ElementHandle, foreground Color, background 
     let image = ThemeCapture(window)
     let box = row.BorderBox
     let closeX = box.X + box.Width - 48.0
-    let scaleX = float64(image.Width) / float64(window.Width)
-    let scaleY = float64(image.Height) / float64(window.Height)
     Require(
-        ThemePixel(image, int32((closeX + 24.0) * scaleX),
-            int32((box.Y + box.Height / 2.0) * scaleY), foreground)
-        && ThemePixel(image, int32((closeX + 3.0) * scaleX), int32((box.Y + 3.0) * scaleY), background),
+        ThemePoint(image, window, closeX + 24.0, box.Y + box.Height / 2.0, foreground)
+        && ThemePoint(image, window, closeX + 3.0, box.Y + 3.0, background),
         "Chrome painted the wrong icon foreground or control background."
     )
 }
