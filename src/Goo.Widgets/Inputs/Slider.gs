@@ -364,7 +364,8 @@ public open class Slider : Cell[SliderInput] {
             throw ArgumentOutOfRangeException("Step")
         }
         let thumbSize = input.ThumbSize ?? theme.Spacing * 5.0
-        let trackThickness = input.TrackThickness ?? theme.Spacing * 2.0
+        let fluent = theme.Controls == ControlStyle.Fluent
+        let trackThickness = input.TrackThickness ?? (fluent ? 4.0: theme.Spacing * 2.0)
         if !Double.IsFinite(thumbSize) || thumbSize <= 0.0 {
             throw ArgumentOutOfRangeException("ThumbSize")
         }
@@ -386,12 +387,12 @@ public open class Slider : Cell[SliderInput] {
             ValueFontSize = input.ValueFontSize ?? theme.CaptionFontSize,
             ThumbSize = thumbSize,
             ThumbRadius = input.ThumbRadius ?? thumbSize / 2.0,
-            ThumbBorderWidth = input.ThumbBorderWidth ?? theme.BorderWidth,
+            ThumbBorderWidth = input.ThumbBorderWidth ?? (fluent ? 4.0: theme.BorderWidth),
             TrackRadius = input.TrackRadius ?? trackThickness / 2.0,
-            TrackColor = input.TrackColor ?? theme.BorderColor,
+            TrackColor = input.TrackColor ?? (fluent ? theme.StrongBorderColor: theme.BorderColor),
             FillColor = input.FillColor ?? theme.AccentColor,
             ThumbColor = input.ThumbColor ?? theme.AccentColor,
-            ThumbBorderColor = input.ThumbBorderColor ?? theme.OnAccentColor,
+            ThumbBorderColor = input.ThumbBorderColor ?? (fluent ? theme.Mix(theme.RaisedColor, Color.White, 0.1F): theme.OnAccentColor),
             BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
             FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
             DisabledOpacity = input.DisabledOpacity ?? theme.DisabledOpacity,

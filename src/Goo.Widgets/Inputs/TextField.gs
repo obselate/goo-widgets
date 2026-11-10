@@ -138,7 +138,7 @@ public data struct TextField {
             BackgroundColor = BackgroundColor ?? theme.FieldColor,
             TextColor = TextColor ?? theme.TextColor,
             MutedTextColor = MutedTextColor ?? theme.MutedTextColor,
-            BorderColor = BorderColor ?? theme.InputBorderColor,
+            BorderColor = BorderColor ?? theme.ControlStroke,
             FocusColor = FocusColor ?? theme.FocusColor,
             InvalidColor = InvalidColor ?? theme.DangerColor,
             DisabledBackgroundColor = DisabledBackgroundColor ?? theme.SunkenColor,
@@ -202,9 +202,9 @@ public data struct TextField {
                 SelectionColor: theme.AccentColor.WithAlpha(0.35),
                 Cursor: Cursor.Text,
                 BorderColor: if resolved.Invalid {
-                    resolved.InvalidColor!!
+                    theme.FieldBorder(resolved.InvalidColor!!, resolved.InvalidColor!!)
                 } else {
-                    resolved.BorderColor!!
+                    theme.FieldBorder(resolved.BorderColor!!)
                 },
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
@@ -317,12 +317,12 @@ public data struct TextField {
         || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton
         if framed {
             let frame = Container{
-                BasedOn: state?.HasFocus == true ? theme.FocusStyle: nil,
+                BasedOn: state?.HasFocus == true ? theme.FieldFocusStyle: nil,
                 Width: Percent(100),
                 Height: resolved.EntryHeight!!,
                 FlexDirection: FlexDirection.Column,
                 BackgroundColor: resolved.Disabled ? resolved.DisabledBackgroundColor!!: resolved.BackgroundColor!!,
-                BorderColor: resolved.Invalid ? resolved.InvalidColor!!: resolved.BorderColor!!,
+                BorderColor: resolved.Invalid ? theme.FieldBorder(resolved.InvalidColor!!, resolved.InvalidColor!!): theme.FieldBorder(resolved.BorderColor!!),
                 BorderWidth: resolved.BorderWidth!!,
                 BorderRadius: resolved.BorderRadius!!,
                 BoxShadows: resolved.Disabled ? []BoxShadow{}: theme.FieldShadows,

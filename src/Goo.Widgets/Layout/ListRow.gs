@@ -122,7 +122,7 @@ public data struct ListRow {
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
             PaddingVertical = PaddingVertical ?? theme.Spacing * 2.0,
             Gap = Gap ?? theme.ControlGap,
-            ContentGap = ContentGap ?? theme.Spacing,
+            ContentGap = ContentGap ?? (theme.Controls == ControlStyle.Fluent ? 0.0: theme.Spacing),
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             FontFamily = FontFamily ?? theme.FontFamily,

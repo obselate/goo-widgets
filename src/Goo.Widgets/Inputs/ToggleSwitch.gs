@@ -63,27 +63,28 @@ public data struct ToggleSwitch {
         let theme = Theme.Read()
         let createThumb = CreateThumb
         let createRoot = CreateRoot
-        let defaultHeight Length = theme.Spacing * 6.0
-        let defaultWidth Length = theme.Spacing * 11.0
+        let fluent = theme.Controls == ControlStyle.Fluent
+        let defaultHeight Length = fluent ? 20.0: theme.Spacing * 6.0
+        let defaultWidth Length = fluent ? 40.0: theme.Spacing * 11.0
         let height = Height ?? defaultHeight
-        let thumbSize = ThumbSize ?? theme.Spacing * 5.0
+        let thumbSize = ThumbSize ?? (fluent ? 12.0: theme.Spacing * 5.0)
         let resolved = this with{
             AccessibilityName = AccessibilityName ?? "",
             OffTrackColor = OffTrackColor ?? theme.PanelColor,
             OnTrackColor = OnTrackColor ?? theme.AccentColor,
             DisabledTrackColor = DisabledTrackColor ?? theme.SunkenColor,
-            ThumbColor = ThumbColor ?? theme.TextColor,
+            ThumbColor = ThumbColor ?? (fluent ? theme.MutedTextColor: theme.TextColor),
             OnThumbColor = OnThumbColor ?? theme.OnAccentColor,
             DisabledThumbColor = DisabledThumbColor ?? theme.DisabledTextColor,
-            BorderColor = BorderColor ?? theme.InputBorderColor,
+            BorderColor = BorderColor ?? (fluent && Value && !Disabled ? theme.AccentColor: theme.InputBorderColor),
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,
             Width = Width ?? defaultWidth,
             Height = height,
-            Padding = Padding ?? theme.Spacing / 2.0,
+            Padding = Padding ?? (fluent ? 3.0: theme.Spacing / 2.0),
             ThumbSize = thumbSize,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? (height.HasMagnitude && !height.IsPercent ? height.Magnitude / 2.0: theme.Spacing * 3.0),
-            ThumbRadius = ThumbRadius ?? thumbSize / 2.0,
+            ThumbRadius = ThumbRadius ?? (fluent ? 10.0: thumbSize / 2.0),
             TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
@@ -103,8 +104,9 @@ public data struct ToggleSwitch {
                 resolved.ThumbColor!!
             }
             Container{
-                Width: resolved.ThumbSize!!,
-                Height: resolved.ThumbSize!!,
+                Width: fluent ? Length.Auto: resolved.ThumbSize!!,
+                Height: fluent ? Percent(100.0): resolved.ThumbSize!!,
+                AspectRatio: fluent ? 1.0: 0.0,
                 BackgroundColor: thumbColor,
                 BorderRadius: resolved.ThumbRadius!!,
                 TransitionMs: resolved.TransitionMs!!,
@@ -146,7 +148,8 @@ public data struct ToggleSwitch {
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 JustifyContent: resolved.Value ? JustifyContent.FlexEnd: JustifyContent.FlexStart,
-                HitTestSelf: false,
+                HitTestSelf: fluent,
+                Hover: fluent ? Style{Padding: 2.0}: nil,
                 thumb,
             },
         } }

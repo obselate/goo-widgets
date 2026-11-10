@@ -250,7 +250,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 }
                 button.Children.Add(badge)
             }
-            if id == input.SelectedId && (input.ActiveMarker ?? !theme.NativeLook) {
+            if id == input.SelectedId && (input.ActiveMarker ?? (!theme.NativeLook || theme.Controls == ControlStyle.Fluent)) {
                 button.Children.Add(
                     Container{
                         Position: PositionType.Absolute,

@@ -87,7 +87,7 @@ public data struct ActionButton {
             AccessibilityName = AccessibilityName ?? content,
             BackgroundColor = background,
             TextColor = TextColor ?? theme.TextColor,
-            BorderColor = BorderColor ?? theme.InputBorderColor,
+            BorderColor = BorderColor ?? theme.ControlStroke,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             ActiveBackgroundColor = ActiveBackgroundColor ?? theme.PressedColor,
             FocusBorderColor = FocusBorderColor ?? theme.FocusColor,

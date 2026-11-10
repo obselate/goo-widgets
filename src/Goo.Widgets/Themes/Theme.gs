@@ -43,6 +43,15 @@ public enum SelectionStyle {
     Filled
 }
 
+/// Shape of switches, sliders, radio buttons, text fields, buttons and combo boxes.
+public enum ControlStyle {
+    /// Goo.Widgets shapes.
+    Standard;
+    /// Windows 11 shapes: a faint stroke with a strong bottom edge, an accent line under a focused field,
+    /// a small switch knob, a ringed slider thumb, a filled radio mark, and system accent shades for the mode.
+    Fluent
+}
+
 /// Rounded widget presets in Ink, Bone, and GitHub Dark palettes. Copy with `with` to customize.
 public data struct Theme {
     /// Window background.
@@ -241,6 +250,8 @@ public data struct Theme {
     var RowInset float64
     /// Selected-row look in lists, trees, grids and rails.
     var Selection SelectionStyle
+    /// Shape of switches, sliders, radio buttons, text fields, buttons and combo boxes.
+    var Controls ControlStyle
     /// Light 1 px top edge of glass, panels and overlays. Set by WithGlass.
     var HighlightColor Color
     /// Dark 1 px outline that separates glass and panels from any wallpaper. Set by WithGlass.
@@ -278,15 +289,31 @@ public data struct Theme {
         return Legible(text, target, surface, HighContrast ? 7.0: 4.5)
     }
 
+    /// Stroke of buttons, text fields and combo boxes.
+    internal prop ControlStroke Color {
+        get -> Controls == ControlStyle.Fluent ? BorderColor: InputBorderColor
+    }
+
+    /// Text field border. Fluent adds a strong bottom edge.
+    internal func FieldBorder(color Color, bottom Color? = nil) Edges[Color] -> Controls == ControlStyle.Fluent ?
+        Edges[Color]{Top: color, Right: color, Left: color, Bottom: bottom ?? StrongBorderColor}: Edges[Color]{Top: color, Right: color, Bottom: color, Left: color}
+
+    /// Focused text field: the focus ring, or a Fluent accent line at the bottom.
+    internal prop FieldFocusStyle Style {
+        get -> Controls == ControlStyle.Fluent ? Style{BackgroundColor: FieldColor, BorderColor: FieldBorder(BorderColor, AccentColor),
+            BoxShadows: []BoxShadow{BoxShadow{Inset: true, OffsetY: -1.0, Color: AccentColor}}, OutlineColor: Color.Transparent}: FocusStyle
+    }
+
     internal func ApplyInteraction(target Blob, family InteractionFamily, selected bool = false, interactive bool = true) {
         let field = family == InteractionFamily.Field
+        let fluentField = field && Controls == ControlStyle.Fluent
         let row = family == InteractionFamily.Row || family == InteractionFamily.Toggle
         let tab = family == InteractionFamily.Tab
         if interactive {
             let fill = selected ? row ? SelectedFill(ActiveColor): ActiveColor: Color.Transparent
-            let hover = field ? Style{BorderColor: StrongBorderColor}:
+            let hover = fluentField ? Style{BackgroundColor: HoverColor}: field ? Style{BorderColor: StrongBorderColor}:
                 Style{BackgroundColor: selected ? fill: HoverColor}
-            let active = field ? Style{BorderColor: AccentColor}:
+            let active = fluentField ? Style{}: field ? Style{BorderColor: AccentColor}:
                 Style{BackgroundColor: selected ? fill: PressedColor}
             hover.BasedOn = target.Hover
             active.BasedOn = target.Active
@@ -294,7 +321,7 @@ public data struct Theme {
             focus.BasedOn = target.Focus
             target.Hover = hover
             target.Active = active
-            target.Focus = Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
+            target.Focus = fluentField ? FieldFocusStyle: Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
             if family == InteractionFamily.Row {
                 target.Focus!!.OutlineOffset = -FocusRingWidth
             }
@@ -432,6 +459,20 @@ public data struct Theme {
             ControlPadding = ControlPadding == 0 ? defaults.ControlPadding: ControlPadding,
             ControlGap = ControlGap == 0 ? defaults.ControlGap: ControlGap,
             PanelPadding = PanelPadding == 0 ? defaults.PanelPadding: PanelPadding,
+        }
+    }
+
+    internal func WithAccent(accent Color) Theme {
+        let dark = FrameTheme == SystemTheme.Dark
+        let fill = Controls == ControlStyle.Standard ? accent:
+            Legible(Mix(accent, dark ? Color.White: Color.Black, dark ? 0.6F: 0.2F), dark ? Color.White: Color.Black, PanelColor, 3.0)
+        let white = Contrast(Color.White, fill) >= Contrast(Color.Black, fill)
+        let away = white ? Color.Black: Color.White
+        return this with{
+            AccentColor = fill,
+            OnAccentColor = white ? Color.White: Color.Black,
+            AccentHoverColor = Mix(fill, away, 0.1F),
+            AccentPressedColor = Mix(fill, away, 0.2F),
         }
     }
 
@@ -841,6 +882,7 @@ public data struct Theme {
                 RadiusXl = 8.0,
                 RowInset = 4.0,
                 Selection = SelectionStyle.Indicator,
+                Controls = ControlStyle.Fluent,
                 TransitionMs = 83.0,
                 Variant = fluentVariant,
             }
@@ -850,7 +892,7 @@ public data struct Theme {
                     PanelColor = "#282828",
                     RaisedColor = "#2d2d2d",
                     OverlayColor = "#2c2c2c",
-                    FieldColor = "#1c1c1c",
+                    FieldColor = "#2d2d2d",
                     HoverColor = "#353535",
                     PressedColor = "#303030",
                     BorderColor = Color.Parse("#3a3a3a"),
@@ -1178,7 +1220,7 @@ public data struct Theme {
         get -> ActionButton{
             BackgroundColor: RaisedColor,
             TextColor: TextColor,
-            BorderColor: InputBorderColor,
+            BorderColor: ControlStroke,
             Height: ControlHeight,
             MinWidth: ControlMinWidth,
             PaddingHorizontal: ControlPadding,
@@ -1238,7 +1280,7 @@ public data struct Theme {
             BackgroundColor: FieldColor,
             TextColor: TextColor,
             MutedTextColor: MutedTextColor,
-            BorderColor: InputBorderColor,
+            BorderColor: ControlStroke,
             InvalidColor: DangerColor,
             EntryHeight: ControlHeight,
             PaddingHorizontal: ControlPadding,
@@ -1345,7 +1387,7 @@ public data struct Theme {
                 Active: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
                 TransitionMs: TransitionMs, TransitionEasing: Easing.EaseOut, TransitionProperties: InteractionTransitions,
             }
-            ApplyInteraction(thumb, InteractionFamily.Field)
+            (this with{Controls = ControlStyle.Standard}).ApplyInteraction(thumb, InteractionFamily.Field)
             return Goo.Scrollbar{
                 Thickness: 6.0,
                 HitThickness: 12.0,
@@ -1384,12 +1426,7 @@ internal sealed class ThemeAttachment {
             value = value.WithPalette(variant(dark))
             if Mode == ThemeMode.System {
                 if let accent = preferences.AccentColor {
-                    let white = value.Contrast(Color.White, accent) >= value.Contrast(Color.Black, accent)
-                    let away = white ? Color.Black: Color.White
-                    value.AccentColor = accent
-                    value.OnAccentColor = white ? Color.White: Color.Black
-                    value.AccentHoverColor = value.Mix(accent, away, 0.1F)
-                    value.AccentPressedColor = value.Mix(accent, away, 0.2F)
+                    value = value.WithAccent(accent)
                 }
             }
         }
