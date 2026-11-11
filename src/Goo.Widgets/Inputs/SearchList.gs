@@ -101,14 +101,19 @@ public data struct SearchList {
         let prepared = ItemAt
         let count = prepared == nil ? indices.Length: ItemCount
 
+        let framed = CreateRoot == nil
         var entry = TextEntry{
             Key: "search",
             Height: theme.ControlHeight,
             FlexShrink: 0,
-            BorderTopLeftRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
-            BorderTopRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderRadius: framed ? theme.ControlRadius!!: 0,
+            BorderTopLeftRadius: framed ? theme.ControlRadius!!: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderTopRightRadius: framed ? theme.ControlRadius!!: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderWidth: framed ? theme.BorderWidth: 0,
+            BorderColor: theme.FieldBorder(theme.ControlStroke),
+            BoxShadows: framed ? theme.FieldShadows: []BoxShadow{},
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
-            BackgroundColor: background,
+            BackgroundColor: framed ? BackgroundColor ?? theme.FieldColor: background,
             Color: foreground,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
@@ -122,7 +127,7 @@ public data struct SearchList {
             Placeholder: Placeholder ?? theme.Text("Search"),
             PlaceholderColor: theme.PlaceholderColor,
             OnChange: Disabled ? nil: OnQueryChange,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: focus, OutlineOffset: framed ? theme.FocusRingOffset: -theme.FocusRingWidth},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -183,6 +188,7 @@ public data struct SearchList {
             Accessibility = Accessibility{Role: AccessibilityRole.List, Name: AccessibilityName ?? theme.Text("Choose an item")},
         }
 
+        let search Blob = framed ? Container{Padding: theme.ControlGap, FlexShrink: 0, entry}: entry
         let root = Container{
             LineHeight: theme.LineHeight,
             Width: width,
@@ -195,7 +201,7 @@ public data struct SearchList {
             BorderColor: selection,
             BorderRadius: theme.ControlRadius!!,
             Overflow: Overflow.Hidden,
-            entry,
+            search,
         }
         if Height == nil {
             root.FlexGrow = 1
