@@ -33,6 +33,8 @@
 - `Tooltip.Placement` is now `PortalPlacement?` and defaults to `Top`.
 - Show single-line labels with an ellipsis when space is short: `ActionButton`, `Chip`, `TabBar` tabs, `ToggleGroup` items, `Menu` items, the `ListRow` title, `SearchList` and `ComboBox` rows, the `ComboBox` value and `TreeView` labels. These controls can shrink in a narrow container. `CreateText`, `CreateTitle` and `CreateItem` replace the label.
 - `ListView`, `TreeView`, `DataGrid` and `SearchList` without a `Height` grow and shrink to fill the free space of the parent and scroll inside it. Their default height (280, 280, 300 and 240 px) is the starting size, so in a parent without a bounded height they keep that height.
+- Requires Goo 0.30.0 for `Window.MeasureText`.
+- The `ComboBox` popup and `TriggerMenu` are as wide as their widest option label, limited to 65 characters of the theme font size and the viewport. The `ComboBox` popup stays at least as wide as the trigger. Options with `Content` do not count. Remove the 280 px `TriggerMenu` width. Without a `Width`, `CommandPalette` grows past 560 px to its widest command label, up to 65 characters. Labels are measured once per option array and font, so pass the same array while the options do not change.
 - A click or arrow key on a fully visible `ListView` row no longer scrolls the list. The list scrolls only as far as needed to show the active row.
 
 ## 0.21.0 - 2026-11-09

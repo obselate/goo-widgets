@@ -56,7 +56,7 @@ public data struct CommandPaletteInput {
     var AccessibilityName string?
     /// Hint shown while the entry is empty. Nil uses the widget default text.
     var Placeholder string?
-    /// Dialog width. Nil uses 560 logical pixels.
+    /// Dialog width. Nil uses 560 logical pixels, or the widest command label when it is wider, up to 65 characters of the theme font size. The window limits it.
     var Width Length?
     /// Maximum height. Nil fits the results, limited by the window.
     var Height Length?
@@ -68,6 +68,7 @@ public data struct CommandPaletteInput {
 /// Fuzzy-ranked command search with recent groups and keyboard activation.
 public open class CommandPalette : Cell[CommandPaletteInput] {
     private let viewport ElementHandle = ElementHandle()
+    private let labelWidths LabelWidths = LabelWidths()
     private let commands Dictionary[string, CommandItem] = Dictionary[string, CommandItem](StringComparer.Ordinal)
     private let ranked List[FuzzyMatchItem[int32]] = List[FuzzyMatchItem[int32]]()
     private let indices List[int32] = List[int32]()
@@ -196,7 +197,12 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 })
             }
         }
-        let defaultWidth Length = 560.0
+        var defaultWidth Length = 560.0
+        let readableWidth = 32.5 * theme.FontSize * theme.PlatformTextScaleFactor
+        if input.Width == nil && readableWidth > 560.0 {
+            let labelWidth = labelWidths.Widest(items, (item CommandItem) -> item.Label, theme, theme.HeadingFontWeight, 2.0 * theme.ControlPadding + 4.0 * theme.BorderWidth)
+            defaultWidth = Math.Clamp(labelWidth + 2.0 * theme.ControlPadding + 4.0 * theme.BorderWidth, 560.0, readableWidth)
+        }
         let contentHeight = inputHeight + theme.BorderWidth * 3 + Math.Max(1, ordered.Count) * theme.ControlHeight
         let defaultHeight Length = contentHeight
         let height = input.Height ?? defaultHeight
