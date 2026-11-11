@@ -105,6 +105,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                         Value: props.Value!!,
                         Controlled: true,
                         Placeholder: props.Placeholder!!,
+                        BorderRadius: theme.ControlRadius!!,
                         PlaceholderColor: theme.PlaceholderColor,
                         Height: props.EntryHeight!!,
                         Padding: 4,
@@ -112,7 +113,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                         Color: theme.TextColor,
                         FontFamily: theme.FontFamily,
                         FontSize: theme.FontSize,
-                        Focus: theme.FocusStyle,
+                        Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                         OnChange: props.OnChange,
                         OnSubmit: props.OnSubmit,
                     }

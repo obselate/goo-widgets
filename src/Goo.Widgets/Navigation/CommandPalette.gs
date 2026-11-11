@@ -223,6 +223,8 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 entry.OnKeyDown = KeyDown
                 entry.FlexGrow = 1
                 entry.BackgroundColor = Color.Transparent
+                entry.BorderTopLeftRadius = 0
+                entry.BorderTopRightRadius = Math.Max(0, theme.PanelRadius!! - theme.BorderWidth * 2)
                 return entry
             },
             CreateRow: (owner SearchList, item SelectionItem, button Button) -> Row(input, item, button),

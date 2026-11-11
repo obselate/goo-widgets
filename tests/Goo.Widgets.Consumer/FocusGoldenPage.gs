@@ -95,6 +95,12 @@ internal class FocusGoldenPage : Cell {
         if Control == "GraphNodeCard" || Control == "MasterDetail" {
             stage.Height = theme.ControlHeight * 3
         }
+        if Control == "ModalDialog" {
+            stage.Height = theme.ControlHeight * 8
+        }
+        if Control == "DonutChart" {
+            stage.Padding = theme.ControlGap
+        }
         if Layout != "plain" {
             stage.BorderRadius = theme.PanelRadius ??
                 throw InvalidOperationException("Theme panel radius is unresolved.")
@@ -108,7 +114,7 @@ internal class FocusGoldenPage : Cell {
             Width: Percent(100),
             Height: Percent(100),
             Padding: theme.Spacing * 8,
-            BackgroundColor: theme.CanvasColor,
+            BackgroundColor: theme.PanelColor,
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,
             AlignItems: AlignItems.FlexStart,

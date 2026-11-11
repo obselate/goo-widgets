@@ -77,7 +77,17 @@ func FocusKey(window Window, key Key) {
     window.PlatformInput.KeyRelease(key)
 }
 
-func FocusCrop(window Window, bounds ElementRect, uiScale float64) ImageSource {
+func FocusCrop(window Window, focused ElementRect, uiScale float64, popup ElementRect? = nil) ImageSource {
+    var bounds = focused
+    if let popup = popup {
+        let left = Math.Min(bounds.X, popup.X)
+        let top = Math.Min(bounds.Y, popup.Y)
+        bounds = ElementRect{
+            X: left, Y: top,
+            Width: Math.Max(bounds.X + bounds.Width, popup.X + popup.Width) - left,
+            Height: Math.Max(bounds.Y + bounds.Height, popup.Y + popup.Height) - top,
+        }
+    }
     let image = ThemeCapture(window)
     let scale = uiScale * float64(image.Width) / float64(window.Width)
     let left = Math.Max(0, int32(Math.Floor((bounds.X - 6) * scale)))
@@ -232,7 +242,27 @@ func FocusGoldens() {
                             let prefix = control + "-" + layout + "-" + mode.ToString().ToLowerInvariant() +
                                 "-" +
                                 scale.ToString("0.0", CultureInfo.InvariantCulture) + "-" + index.ToString()
-                            using let image = FocusCrop(window, control == "TextFieldActions" ? page.FieldActionsHandle.BorderBox: focused.Bounds, scale)
+                            var bounds = control == "TextFieldActions" ? page.FieldActionsHandle.BorderBox: focused.Bounds
+                            if control == "FindBar" && focused.Name == "Find" {
+                                let options = FeedbackNode(adapter, AccessibilityRole.Button, "Regular expression").Bounds
+                                let border = Theme.Read(window).BorderWidth
+                                bounds = ElementRect{
+                                    X: bounds.X - border, Y: bounds.Y - border,
+                                    Width: options.X + options.Width - bounds.X + Theme.Read(window).ControlPadding + border * 2,
+                                    Height: bounds.Height + border * 2,
+                                }
+                            }
+                            var popup ElementRect?
+                            if control == "TriggerMenu" {
+                                if let list = SelectorFindRole(adapter.Tree?.Root, AccessibilityRole.List) {
+                                    let padding = Theme.Read(window).Spacing + Theme.Read(window).BorderWidth
+                                    popup = ElementRect{
+                                        X: list.Bounds.X - padding, Y: list.Bounds.Y - padding,
+                                        Width: list.Bounds.Width + padding * 2, Height: list.Bounds.Height + padding * 2,
+                                    }
+                                }
+                            }
+                            using let image = FocusCrop(window, bounds, scale, popup)
                             failures += FocusCompare(
                                 image,
                                 Path.Combine(directory, prefix + ".png"),

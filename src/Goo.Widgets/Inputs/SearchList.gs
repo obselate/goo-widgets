@@ -105,6 +105,8 @@ public data struct SearchList {
             Key: "search",
             Height: theme.ControlHeight,
             FlexShrink: 0,
+            BorderTopLeftRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderTopRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             BackgroundColor: background,
             Color: foreground,

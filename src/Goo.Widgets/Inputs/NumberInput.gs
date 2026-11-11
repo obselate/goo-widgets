@@ -127,12 +127,20 @@ public open class NumberInput : Cell[NumberInputInput] {
         if let prefix = input.Prefix {
             frame.Children.Add(prefix)
         }
+        let radius = Math.Max(0, theme.ControlRadius!! - theme.BorderWidth)
+        let leadingRadius = input.ScrubLabel == nil && input.Prefix == nil ? radius: 0.0
+        let trailingRadius = !(input.ShowSpinButtons ?? true) && input.Suffix == nil && input.Units == nil ? radius: 0.0
         var entry = TextEntry{
             Handle: handle,
             Width: Length.Auto,
             MinWidth: 0,
             FlexGrow: 1,
             Height: Percent(100),
+            BorderTopLeftRadius: rightToLeft ? trailingRadius: leadingRadius,
+            BorderBottomLeftRadius: rightToLeft ? trailingRadius: leadingRadius,
+            BorderTopRightRadius: rightToLeft ? leadingRadius: trailingRadius,
+            BorderBottomRightRadius: rightToLeft ? leadingRadius: trailingRadius,
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
             Value: draft,
             Controlled: true,

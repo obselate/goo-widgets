@@ -140,6 +140,8 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var entry = TextEntry{
             Height: theme.ControlHeight,
             MinWidth: 0.0,
+            BorderTopLeftRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderBottomLeftRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             FlexGrow: 1.0,
             FlexBasis: 0.0,
