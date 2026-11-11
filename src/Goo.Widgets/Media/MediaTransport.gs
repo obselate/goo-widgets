@@ -184,6 +184,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
             Container{
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
+                Gap: theme.ControlGap,
                 Container{FlexGrow: 1.0},
                 Container{
                     FlexDirection: FlexDirection.Row,
