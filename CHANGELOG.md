@@ -4,7 +4,7 @@
 
 - Requires Goo 0.30.0.
 - Switch focus rings follow the visible track while the larger pointer target stays unchanged.
-- `NumberInput`, `TimePicker`, `DatePicker`, `TokenInput`, `SearchList` and `CommandPalette` editors follow their rounded outer frame corners and keep square internal dividers.
+- `NumberInput`, `TimePicker`, `DatePicker` and `TokenInput` show editor focus outside the whole rounded frame. Their inner action buttons keep separate inset focus rings. `SearchList` and `CommandPalette` editors follow the attached list's outer corners and keep square internal dividers.
 - Clickable `AvatarGroup` avatars and read-only `CodeBlock` code areas show keyboard focus on the actual focus target.
 - Icon-only `ActionButton` controls omit the empty default text slot, so the `SplitButton` chevron is centered. Text and root factories keep their existing behavior.
 - Interactive `DonutChart` slices show a path-shaped keyboard focus indicator without changing their data fill or stroke. The default indicator is set before `CreateSlice`, so caller focus styles retain precedence.

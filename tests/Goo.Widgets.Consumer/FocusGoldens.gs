@@ -243,6 +243,11 @@ func FocusGoldens() {
                                 "-" +
                                 scale.ToString("0.0", CultureInfo.InvariantCulture) + "-" + index.ToString()
                             var bounds = control == "TextFieldActions" ? page.FieldActionsHandle.BorderBox: focused.Bounds
+                            if ((control == "NumberInput" || control == "TimePicker") && focused.Role == AccessibilityRole.SpinButton)
+                                || ((control == "DatePicker" || control == "TokenInput") && focused.Role == AccessibilityRole.TextInput)
+                                || (control == "SearchList" && index == 0) {
+                                bounds = page.FieldActionsHandle.BorderBox
+                            }
                             if control == "FindBar" && focused.Name == "Find" {
                                 let options = FeedbackNode(adapter, AccessibilityRole.Button, "Regular expression").Bounds
                                 let border = Theme.Read(window).BorderWidth

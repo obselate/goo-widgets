@@ -92,6 +92,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var invalid bool
     private var ownedOpen bool
     private var disposed bool
+    private var focused bool
 
     /// Releases the optional collision-viewport subscription.
     public func Dispose() {
@@ -140,8 +141,6 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var entry = TextEntry{
             Height: theme.ControlHeight,
             MinWidth: 0.0,
-            BorderTopLeftRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
-            BorderBottomLeftRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             FlexGrow: 1.0,
             FlexBasis: 0.0,
@@ -153,7 +152,6 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             SelectionColor: theme.AccentColor.WithAlpha(0.35),
             PlaceholderColor: theme.PlaceholderColor,
             Cursor: Cursor.Text,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -162,6 +160,13 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             entry = create(current, entry)
         }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
+        entry.Focus = Style{BasedOn: entry.Focus, OutlineWidth: 0}
+        let priorFocus = entry.OnFocus
+        entry.OnFocus = event -> {
+            focused = true
+            Rebuild()
+            priorFocus?.Invoke(event)
+        }
         entry.Key = "entry"
         entry.Handle = entryHandle
         entry.Value = draft
@@ -173,6 +178,8 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         entry.OnChange = Edited
         entry.OnSubmit = (value string) -> Submit()
         entry.OnBlur = (event FocusEvent) -> {
+            focused = false
+            Rebuild()
             if !(current.Open ?? ownedOpen) {
                 Submit()
             }
@@ -193,6 +200,9 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Width: theme.ControlHeight,
             Height: theme.ControlHeight,
             Padding: theme.Spacing * 2.0,
+            BorderTopRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderBottomRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             BackgroundColor: Color.Transparent,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
@@ -217,6 +227,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         button.Children.Clear()
         button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
         let field = Container{
+            BasedOn: focused && !current.Disabled ? theme.FieldFocusStyle: nil,
             Key: "field",
             Handle: fieldHandle,
             FlexDirection: FlexDirection.Row,

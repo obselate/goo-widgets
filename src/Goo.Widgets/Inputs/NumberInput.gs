@@ -72,6 +72,7 @@ public open class NumberInput : Cell[NumberInputInput] {
     private var invalid bool
     private var editing bool
     private var scrubbing bool
+    private var focused bool
     private var scrubX float64
     private var scrubValue float64
     private var rightToLeft bool
@@ -98,6 +99,7 @@ public open class NumberInput : Cell[NumberInputInput] {
         }
         rightToLeft = theme.RightToLeft
         let frame = Container{
+            BasedOn: focused && !input.Disabled ? theme.FieldFocusStyle: nil,
             Direction: theme.Direction,
             Width: Percent(100),
             MinWidth: 0,
@@ -127,20 +129,12 @@ public open class NumberInput : Cell[NumberInputInput] {
         if let prefix = input.Prefix {
             frame.Children.Add(prefix)
         }
-        let radius = Math.Max(0, theme.ControlRadius!! - theme.BorderWidth)
-        let leadingRadius = input.ScrubLabel == nil && input.Prefix == nil ? radius: 0.0
-        let trailingRadius = !(input.ShowSpinButtons ?? true) && input.Suffix == nil && input.Units == nil ? radius: 0.0
         var entry = TextEntry{
             Handle: handle,
             Width: Length.Auto,
             MinWidth: 0,
             FlexGrow: 1,
             Height: Percent(100),
-            BorderTopLeftRadius: rightToLeft ? trailingRadius: leadingRadius,
-            BorderBottomLeftRadius: rightToLeft ? trailingRadius: leadingRadius,
-            BorderTopRightRadius: rightToLeft ? leadingRadius: trailingRadius,
-            BorderBottomRightRadius: rightToLeft ? leadingRadius: trailingRadius,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding},
             Value: draft,
             Controlled: true,
@@ -160,6 +154,19 @@ public open class NumberInput : Cell[NumberInputInput] {
             entry = create(input, entry)
         }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
+        entry.Focus = Style{BasedOn: entry.Focus, OutlineWidth: 0}
+        let priorFocus = entry.OnFocus
+        let priorBlur = entry.OnBlur
+        entry.OnFocus = event -> {
+            focused = true
+            Rebuild()
+            priorFocus?.Invoke(event)
+        }
+        entry.OnBlur = event -> {
+            focused = false
+            Rebuild()
+            priorBlur?.Invoke(event)
+        }
         entry.Handle ??= handle
         entry.Key = "entry"
         entry.Disabled = input.Disabled
@@ -338,10 +345,15 @@ public open class NumberInput : Cell[NumberInputInput] {
 
     private func SpinButton(name string, icon ControlIcon, direction float64) Blob {
         let theme = Theme.Read()
+        let radius = Math.Max(0, theme.ControlRadius!! - theme.BorderWidth)
         let button = Button{
             Width: 26,
             Height: Percent(50),
             Padding: 0,
+            BorderTopLeftRadius: rightToLeft && direction > 0 ? radius: 0,
+            BorderBottomLeftRadius: rightToLeft && direction < 0 ? radius: 0,
+            BorderTopRightRadius: !rightToLeft && direction > 0 ? radius: 0,
+            BorderBottomRightRadius: !rightToLeft && direction < 0 ? radius: 0,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
             Disabled: current.Disabled || current.ReadOnly,

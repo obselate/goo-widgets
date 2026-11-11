@@ -43,6 +43,7 @@ public open class TokenInput : Cell[TokenInputInput] {
     private var draft string = ""
     private var selected int32 = -1
     private let editor ElementHandle = ElementHandle()
+    private var focused bool
 
     protected override func Build(input TokenInputInput) Blob {
         current = input
@@ -57,6 +58,7 @@ public open class TokenInput : Cell[TokenInputInput] {
             root = create(input, root)
         }
         let frame = Container{
+            BasedOn: focused && !input.Disabled ? theme.FieldFocusStyle: nil,
             Key: "frame",
             MinWidth: 0,
             Padding: theme.ControlPadding / 3,
@@ -86,53 +88,49 @@ public open class TokenInput : Cell[TokenInputInput] {
                 )
             )
         }
-        frame.Children.Add(
-            TextField{
-                Value: draft,
-                Controlled: true,
-                Placeholder: input.Placeholder ?? theme.Text("Add a token"),
-                AccessibilityName: input.AccessibilityName ?? theme.Text("Tokens"),
-                Disabled: input.Disabled,
-                ReadOnly: input.ReadOnly,
-                Width: Length.Auto,
-                BorderWidth: 0,
-                BackgroundColor: Color.Transparent,
-                EntryHeight: theme.ControlHeight - 8,
-                OnChange: Changed,
-                OnSubmit: value -> Commit(value),
-                CreateEntry: props -> {
-                    var entry = TextEntry{
-                        Value: props.Value!!,
-                        Controlled: true,
-                        Placeholder: props.Placeholder!!,
-                        BorderRadius: theme.ControlRadius!!,
-                        PlaceholderColor: theme.PlaceholderColor,
-                        Height: props.EntryHeight!!,
-                        Padding: 4,
-                        BackgroundColor: Color.Transparent,
-                        Color: theme.TextColor,
-                        FontFamily: theme.FontFamily,
-                        FontSize: theme.FontSize,
-                        Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
-                        OnChange: props.OnChange,
-                        OnSubmit: props.OnSubmit,
-                    }
-                    if let create = input.CreateEntry {
-                        entry = create(input, entry)
-                    }
-                    entry.Handle = editor
-                    entry.ReadOnly = input.ReadOnly
-                    entry.OnKeyDown = KeyDown
-                    return entry
-                },
-                CreateRoot: (props, label, entry, issue) -> Container{
-                    Key: "editor",
-                    FlexGrow: 1,
-                    MinWidth: 100,
-                    entry,
-                },
-            }.Build()
-        )
+        var entry = TextEntry{
+            Key: "entry",
+            Value: draft,
+            Controlled: true,
+            Placeholder: input.Placeholder ?? theme.Text("Add a token"),
+            PlaceholderColor: theme.PlaceholderColor,
+            Height: theme.ControlHeight - 8,
+            Padding: 4,
+            BackgroundColor: Color.Transparent,
+            Color: theme.TextColor,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            OnChange: Changed,
+            OnSubmit: value -> Commit(value),
+        }
+        if let create = input.CreateEntry {
+            entry = create(input, entry)
+        }
+        theme.ApplyInteraction(entry, InteractionFamily.Field)
+        entry.Focus = Style{BasedOn: entry.Focus, OutlineWidth: 0}
+        let priorFocus = entry.OnFocus
+        let priorBlur = entry.OnBlur
+        entry.OnFocus = event -> {
+            focused = true
+            Rebuild()
+            priorFocus?.Invoke(event)
+        }
+        entry.OnBlur = event -> {
+            focused = false
+            Rebuild()
+            priorBlur?.Invoke(event)
+        }
+        entry.Handle = editor
+        entry.Disabled = input.Disabled
+        entry.ReadOnly = input.ReadOnly
+        entry.Focusable = !input.Disabled
+        entry.OnKeyDown = KeyDown
+        entry.Accessibility = Accessibility{
+            Role: AccessibilityRole.TextInput,
+            Name: input.AccessibilityName ?? theme.Text("Tokens"),
+            ReadOnly: input.ReadOnly,
+        }
+        frame.Children.Add(Container{Key: "editor", FlexGrow: 1, MinWidth: 100, entry})
         root.Children.Add(frame)
         if !input.Disabled && !input.ReadOnly && draft.Length > 0 {
             let items = input.Suggestions ?? []string{}
