@@ -91,9 +91,30 @@ internal class FocusGoldenPage : Cell {
         let theme = Theme.Read()
         let sample = Sample()
         sample.Key = Control
-        let stage = Container{Width: 360, MinHeight: theme.ControlHeight, BackgroundColor: theme.PanelColor, sample}
+        let framed = Control == "NumberInput" || Control == "DatePicker" || Control == "TimePicker"
+            || Control == "TokenInput" || Control == "SearchList"
+        let content Blob = framed ? Container{
+            Handle: FieldActionsHandle,
+            AlignSelf: AlignSelf.FlexStart,
+            AlignItems: AlignItems.FlexStart,
+            sample,
+        }: sample
+        let padding = Layout == "plain" ? 0.0: theme.PanelRadius!! + theme.FocusRingWidth + Math.Max(0, theme.FocusRingOffset)
+        let stage = Container{
+            Width: 360 + padding * 2,
+            MinHeight: theme.ControlHeight + padding * 2,
+            Padding: padding,
+            BackgroundColor: theme.PanelColor,
+            content,
+        }
         if Control == "GraphNodeCard" || Control == "MasterDetail" {
-            stage.Height = theme.ControlHeight * 3
+            stage.Height = theme.ControlHeight * 3 + padding * 2
+        }
+        if Control == "ModalDialog" {
+            stage.Height = theme.ControlHeight * 8 + padding * 2
+        }
+        if Control == "DonutChart" {
+            stage.Padding = Math.Max(padding, theme.ControlGap)
         }
         if Layout != "plain" {
             stage.BorderRadius = theme.PanelRadius ??
@@ -108,7 +129,7 @@ internal class FocusGoldenPage : Cell {
             Width: Percent(100),
             Height: Percent(100),
             Padding: theme.Spacing * 8,
-            BackgroundColor: theme.CanvasColor,
+            BackgroundColor: theme.PanelColor,
             Color: theme.TextColor,
             FontFamily: theme.FontFamily,
             AlignItems: AlignItems.FlexStart,
