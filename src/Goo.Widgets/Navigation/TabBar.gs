@@ -231,7 +231,7 @@ public open class TabBar : Cell[TabBarInput] {
                 indicator = marker
             }
             if input.OnClose != nil && !pinned {
-                button.PaddingEnd = 0
+                button.PaddingEnd = theme.Spacing
                 button.FlexShrink = 1
                 button.BackgroundColor = Color.Transparent
                 button.Hover = Style{}

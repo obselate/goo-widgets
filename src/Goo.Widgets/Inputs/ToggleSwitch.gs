@@ -120,6 +120,7 @@ public data struct ToggleSwitch {
             Height: resolved.Height!!,
             MinHeight: theme.ControlHeight,
             Padding: 0.0,
+            BorderRadius: resolved.BorderRadius!!,
             BorderWidth: theme.HighContrast ? theme.BorderWidth: 0.0,
             BorderColor: Color.Transparent,
             BackgroundColor: Color.Transparent,
