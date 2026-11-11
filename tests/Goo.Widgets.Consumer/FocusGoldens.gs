@@ -232,7 +232,7 @@ func FocusGoldens() {
                             let prefix = control + "-" + layout + "-" + mode.ToString().ToLowerInvariant() +
                                 "-" +
                                 scale.ToString("0.0", CultureInfo.InvariantCulture) + "-" + index.ToString()
-                            using let image = FocusCrop(window, focused.Bounds, scale)
+                            using let image = FocusCrop(window, control == "TextFieldActions" ? page.FieldActionsHandle.BorderBox: focused.Bounds, scale)
                             failures += FocusCompare(
                                 image,
                                 Path.Combine(directory, prefix + ".png"),

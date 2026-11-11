@@ -81,6 +81,7 @@ internal class FocusGoldenPage : Cell {
     internal var Control string = "Button"
     internal var Layout string = "plain"
     internal var Window Window?
+    internal let FieldActionsHandle ElementHandle = ElementHandle()
     private let navigationItems[]NavigationItem = []NavigationItem{
         NavigationItem{Id: "first", Label: "First"},
         NavigationItem{Id: "last", Label: "Last"}
@@ -141,7 +142,12 @@ internal class FocusGoldenPage : Cell {
                 return TextField{Value: "Text field", AccessibilityName: "Text field"}.Build()
             }
             case "TextFieldActions" {
-                return TextField{Value: "Search", AccessibilityName: "Search", Clearable: true}.Build()
+                return Container{
+                    Handle: FieldActionsHandle,
+                    AlignSelf: AlignSelf.FlexStart,
+                    AlignItems: AlignItems.FlexStart,
+                    TextField{Value: "Search", AccessibilityName: "Search", Clearable: true}.Build()
+                }
             }
             case "TextArea" {
                 return Cell.Mount[TextAreaInput, TextArea](
@@ -307,7 +313,7 @@ internal class FocusGoldenPage : Cell {
             case "NavigationRail" {
                 return Cell.Mount[NavigationRailInput, NavigationRail](
                     "rail",
-                    NavigationRailInput{Items: navigationItems, Height: theme.ControlHeight * 2}
+                    NavigationRailInput{Items: navigationItems, Height: theme.ControlHeight * 2 + theme.ControlGap}
                 )
             }
             case "Breadcrumb" {
