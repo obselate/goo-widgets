@@ -496,6 +496,8 @@ func VerifyEditorKeys(window Window, semantics SearchListSemantics, name string,
 
 internal class AddonFrameHost : Cell {
     internal var Invalid bool
+    internal var FocusEvents int32
+    internal var BlurEvents int32
     internal let Frame ElementHandle = ElementHandle()
     internal let Other ElementHandle = ElementHandle()
     internal let SearchFrame ElementHandle = ElementHandle()
@@ -526,6 +528,18 @@ internal class AddonFrameHost : Cell {
                     Invalid: Invalid,
                     PrefixAddon: Text{Content: "https://"},
                     SuffixAddon: Text{Content: ".dev"},
+                    CreateEntry: input -> TextEntry{
+                        Value: input.Value ?? "",
+                        Controlled: input.Controlled,
+                        FontFamily: input.FontFamily!!,
+                        FontSize: input.FontSize!!,
+                        Color: input.TextColor!!,
+                        Padding: Edges{Left: input.PaddingHorizontal!!, Right: input.PaddingHorizontal!!},
+                        OnChange: input.OnChange,
+                        OnSubmit: input.OnSubmit,
+                        OnFocus: event -> FocusEvents++,
+                        OnBlur: event -> BlurEvents++,
+                    },
                 }.Build(),
             },
             Container{
@@ -559,6 +573,9 @@ func AddonFramePixels() {
                 host.Rebuild()
                 PumpFrames(window, 6)
                 for focused in[]bool{false, true} {
+                    let hadFocus = FindSemantics(semantics.Tree?.Root, "Addon field")!!.Focused
+                    let priorFocus = host.FocusEvents
+                    let priorBlur = host.BlurEvents
                     if focused {
                         window.PerformAccessibilityAction(
                             FindSemantics(semantics.Tree?.Root, "Addon field")!!.Id,
@@ -568,12 +585,31 @@ func AddonFramePixels() {
                         host.Other.Focus()
                     }
                     PumpFrames(window, 4)
+                    Require(host.FocusEvents == priorFocus + (focused && !hadFocus ? 1: 0)
+                        && host.BlurEvents == priorBlur + (!focused && hadFocus ? 1: 0),
+                        "TextField CreateEntry focus/blur callbacks did not fire exactly once per transition")
                     Require(
                         FindSemantics(semantics.Tree?.Root, "Addon field")!!.Focused == focused,
                         "Addon border check did not reach the requested focus state"
                     )
                     let box = host.Frame.BorderBox
                     let image = ThemeCapture(window)
+                    Require(ThemePoint(image, window, box.X + box.Width / 2,
+                        box.Y - palette.FocusRingOffset - palette.FocusRingWidth / 2,
+                        focused ? palette.FocusColor: palette.CanvasColor),
+                        "TextField factory focus callbacks did not preserve frame focus visibility")
+                    let pixelScale = float64(image.Width) / float64(window.Width)
+                    let pixelAt = int32(box.Y * pixelScale) * int32(image.RowBytes) + int32(box.X * pixelScale) * 4
+                    let canvas = palette.CanvasColor
+                    let focus = palette.FocusColor
+                    let coverage = focused ? (float64(image.Pixels[pixelAt]) / 255.0 - canvas.R) / (focus.R - canvas.R): 0.0
+                    let corner = Color.Rgb(
+                        int32(Math.Round((canvas.R + (focus.R - canvas.R) * coverage) * 255)),
+                        int32(Math.Round((canvas.G + (focus.G - canvas.G) * coverage) * 255)),
+                        int32(Math.Round((canvas.B + (focus.B - canvas.B) * coverage) * 255))
+                    )
+                    let cornerMatches = ThemePoint(image, window, box.X, box.Y, canvas)
+                        || focused && coverage >= 0 && coverage <= 1 && ThemePoint(image, window, box.X, box.Y, corner)
                     let border = invalid ? palette.DangerColor: palette.InputBorderColor
                     for offset in[]Point{
                         Point{X: 24, Y: 1},
@@ -591,7 +627,7 @@ func AddonFramePixels() {
                         )
                     }
                     Require(
-                        ThemePoint(image, window, box.X, box.Y, palette.CanvasColor),
+                        cornerMatches,
                         "TextField addon painted outside its rounded corner"
                     )
                 }

@@ -115,7 +115,8 @@ public data struct TextField {
     var CreateRoot Func[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
     public func Build() Blob {
-        if Clearable || RevealButton || OnCommit != nil || MaxLength != nil {
+        if Clearable || RevealButton || OnCommit != nil || MaxLength != nil
+        || Leading != nil || Trailing != nil || PrefixAddon != nil || SuffixAddon != nil {
             return Cell.Mount[TextField, TextFieldState](nil, this)
         }
         return BuildContent()
@@ -286,8 +287,16 @@ public data struct TextField {
             }
         }
         if state != nil {
-            entry!!.OnFocus = state.Focused
-            entry!!.OnBlur = state.Blurred
+            let priorFocus = entry!!.OnFocus
+            let priorBlur = entry!!.OnBlur
+            entry!!.OnFocus = (event FocusEvent) -> {
+                state.Focused(event)
+                priorFocus?.Invoke(event)
+            }
+            entry!!.OnBlur = (event FocusEvent) -> {
+                state.Blurred(event)
+                priorBlur?.Invoke(event)
+            }
             state.FocusTarget = entry!!.Handle
         }
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
