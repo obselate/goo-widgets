@@ -592,7 +592,7 @@ public open partial class DataGrid {
             reorderScroll = nil
             return
         }
-        reorderScroll ??= window!!.SetInterval(ScrollReorder, 16.0)
+        reorderScroll ??= window!!.Every(16.0, ScrollReorder)
         viewport.JumpTo(next, offset.Y)
         reorderTarget = ReorderTarget(ColumnIndex(reorderColumn), reorderPosition)
         Rebuild()

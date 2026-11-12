@@ -183,7 +183,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
                 movingAnchor = false
                 dragOffset = Point{}
                 dragPoint = event.WindowPosition
-                autoScroll = window.SetInterval(AutoScroll, 16.0)
+                autoScroll = window.Every(16.0, AutoScroll)
             }
         } else if event.Phase == GesturePhase.Changed && moving {
             MoveSelection(event.WindowPosition, false)
@@ -240,7 +240,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         event.PreventDefault()
         event.StopPropagation()
         autoScroll?.Dispose()
-        autoScroll = window!!.SetInterval(AutoScroll, 16.0)
+        autoScroll = window!!.Every(16.0, AutoScroll)
         Rebuild()
     }
 
