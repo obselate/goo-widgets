@@ -335,11 +335,6 @@ public open partial class DataGrid {
                 }
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
-                if snapshot.OnColumnOrderChange != nil && !snapshot.Disabled {
-                    slot.OnPointerDrag = (e PointerDragEvent) -> DragReorder(id, e)
-                    slot.PointerDragThreshold = 8
-                    slot.PointerDragAxis = PanAxis.Horizontal
-                }
                 let sort = Button{
                     Key: "content",
                     FlexGrow: 1,
@@ -375,6 +370,11 @@ public open partial class DataGrid {
                         Description: direction.ToString()
                     },
                     content
+                }
+                if snapshot.OnColumnOrderChange != nil && !snapshot.Disabled {
+                    sort.OnPointerDrag = (e PointerDragEvent) -> DragReorder(id, e)
+                    sort.PointerDragThreshold = 8
+                    sort.PointerDragAxis = PanAxis.Horizontal
                 }
                 WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
@@ -502,7 +502,13 @@ public open partial class DataGrid {
         }
         let index = ColumnIndex(id)
         let target = ReorderTarget(index, e.WindowPosition.X)
-        if index < 0 || target == index {
+        if index < 0 {
+            return
+        }
+        if target == index {
+            if e.IsOverTarget {
+                Sort(id, clickModifiers)
+            }
             return
         }
         let order = List[string](columns.Length)
