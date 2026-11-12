@@ -385,16 +385,12 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var clickModifiers KeyModifiers
     private var clickFromInteractiveChild bool
     private var clickCount int32
-    private var reorderOrigin float64
-    private var reordered bool
     private var reorderColumn string?
     private var reorderTarget int32 = -1
-    private var reorderPointer int64 = -1L
     private var reorderPosition float64
     private var reorderScroll WindowTimer?
     private var window Window?
     private var pinnedCount int32
-    private var pointer int64 = -1L
     private var resizeId string?
     private var origin float64
     private var originWidth float64
@@ -403,18 +399,12 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var lastFittedWidths Dictionary[string, float64]?
     private var disposed bool
     private let stopGridKeys Action[KeyEvent]
-    private let moveResize Action[PointerEvent]
-    private let endResize Action[PointerEvent]
-    private let cancelResize Action[PointerEvent]
 
     /// Creates retained input handlers and subscribes to grid geometry. Dispose the grid to release its subscriptions.
     public init() {
         rootHandle = defaultRootHandle
         viewport = defaultViewport
         stopGridKeys = StopGridKeys
-        moveResize = MoveResize
-        endResize = EndResize
-        cancelResize = CancelResize
         buildRow = (row DataGridRow) -> BuildRow(input, row, hasDetails && input.ExpandColumnWidth > 0.0)
         rowContext = RowContext
         rootHandle.MetricsChanged += Metrics
@@ -430,7 +420,6 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         if editSession != nil { CancelEdit(DataGridEditCancelReason.Unavailable, false, false) }
         disposed = true
         reorderScroll?.Dispose()
-        pointer = -1L
         resizeId = nil
         rootHandle.MetricsChanged -= Metrics
         viewport.MetricsChanged -= HorizontalMetrics
@@ -620,7 +609,6 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         Prune(resizeHandles, columnIds)
         if input.Disabled || !CanResize(ColumnIndex(resizeId))
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
-            pointer = -1L
             resizeId = nil
         }
         if input.ActiveRowId == nil &&

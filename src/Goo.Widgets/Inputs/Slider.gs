@@ -93,8 +93,6 @@ public data struct SliderInput {
 public open class Slider : Cell[SliderInput] {
     private let handle ElementHandle = ElementHandle{}
     private var current float64
-    private var dragging bool
-    private var pointerId int64 = -1L
     private var rightToLeft bool
     private var resolved SliderInput
 
@@ -103,10 +101,6 @@ public open class Slider : Cell[SliderInput] {
         let theme = Theme.Read()
         rightToLeft = theme.RightToLeft
         resolved = Resolve(input, theme)
-        if resolved.Disabled && dragging {
-            dragging = false
-            pointerId = -1L
-        }
         current = Quantize(input.Value)
         resolved.Value = current
         resolved.CreateRoot = nil
@@ -266,10 +260,7 @@ public open class Slider : Cell[SliderInput] {
             DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: hasHeader ? 1.0: resolved.DisabledOpacity!!},
             BasedOn: resolved.RootStyle,
             Accessibility: accessibility,
-            OnPointerDown: (e PointerEvent) -> BeginPointer(e),
-            OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            OnPointerCancel: (e PointerEvent) -> EndPointer(e, false),
+            OnPointerDrag: Drag,
             KeyBindings: []KeyBinding{
                 KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
                 KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
@@ -423,7 +414,7 @@ public open class Slider : Cell[SliderInput] {
         InvokeInputCallback(resolved.OnCommit, current)
     }
 
-    private func ValueFromPointer(e PointerEvent) float64 {
+    private func ValueFromPointer(e PointerDragEvent) float64 {
         let box = handle.BorderBox
         if resolved.Orientation == SliderOrientation.Horizontal {
             if box.Width <= 0.0 {
@@ -443,34 +434,14 @@ public open class Slider : Cell[SliderInput] {
         )
     }
 
-    private func BeginPointer(e PointerEvent) {
-        if resolved.Disabled || e.Button != PointerButton.Primary || dragging {
-            return
-        }
-        dragging = true
-        pointerId = e.PointerId
-        e.Capture()
-        e.PreventDefault()
-        Preview(ValueFromPointer(e))
-    }
-
-    private func MovePointer(e PointerEvent) {
+    private func Drag(e PointerDragEvent) {
         if resolved.Disabled {
             return
         }
-        if dragging && e.PointerId == pointerId {
+        e.PreventDefault()
+        if e.Phase == PointerDragPhase.Started || e.Phase == PointerDragPhase.Moved {
             Preview(ValueFromPointer(e))
-        }
-    }
-
-    private func EndPointer(e PointerEvent, commit bool = true) {
-        if resolved.Disabled || !dragging || e.PointerId != pointerId {
-            return
-        }
-        e.ReleaseCapture()
-        dragging = false
-        pointerId = -1L
-        if commit {
+        } else if e.Phase == PointerDragPhase.Ended {
             Commit()
         }
     }
