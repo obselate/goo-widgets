@@ -151,7 +151,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                     if let copy = input.OnCopy {
                         InvokeInputCallback(copy, code)
                     } else {
-                        input.Window!!.SetClipboardText(code)
+                        input.Window!!.Clipboard.WriteText(code)
                     }
                 },
             }.Build(),
