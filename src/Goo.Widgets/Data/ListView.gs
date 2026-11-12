@@ -192,7 +192,7 @@ public open class ListView : Cell[ListViewInput] {
             nil
         )
         source.StableItems = true
-        let rows Virtual = Virtual(source)
+        let rows Virtual = Virtual{Source: source}
         rows.Handle = viewport
         rows.FlexGrow = 1
         rows.MinHeight = 0

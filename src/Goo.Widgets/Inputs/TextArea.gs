@@ -153,7 +153,9 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         }
         let overLimit = value.MaxLength != nil && Count > value.MaxLength!!
         let invalid = value.Invalid || value.Error != nil || overLimit
-        var editor = TextEditor(editorController, value.Layers ?? []TextPresentationLayer{}){
+        var editor = TextEditor(){
+            Controller = editorController,
+            Layers = value.Layers ?? []TextPresentationLayer{},
             Width = Percent(100),
             Height = value.Height ?? minHeight,
             MinHeight = minHeight,

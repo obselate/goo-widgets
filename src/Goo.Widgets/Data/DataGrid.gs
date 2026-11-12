@@ -710,7 +710,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                 ContentWidth = tableWidth
             }
             virtualRows = source
-            Virtual(source)
+            Virtual{Source: source}
         }
         body.Key = "body"
         body.Handle = viewport

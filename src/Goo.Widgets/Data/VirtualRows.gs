@@ -50,7 +50,8 @@ public func VirtualRows[T](
         source.Identity = identity
     }
     source.FollowEnd = followEnd
-    return Virtual(source){
+    return Virtual(){
+        Source = source,
         OverflowX = Overflow.Hidden,
         ScrollbarY = theme.Scrollbar,
     }

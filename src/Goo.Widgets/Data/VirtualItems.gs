@@ -33,7 +33,8 @@ public func VirtualItems[T](
         throw ArgumentNullException("itemBuilder")
     }
     let theme = Theme.Read()
-    return Virtual(VirtualItemsSource[T](items, width, height, itemKey, itemBuilder)){
+    return Virtual(){
+        Source = VirtualItemsSource[T](items, width, height, itemKey, itemBuilder),
         ScrollbarX = theme.Scrollbar,
         ScrollbarY = theme.Scrollbar,
     }

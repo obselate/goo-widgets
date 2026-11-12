@@ -288,15 +288,15 @@ public open class TreeView : Cell[TreeViewInput] {
         let snapshot = input
         let key((TreeViewRow) -> string) = (row TreeViewRow) -> row.Node.Id!!
         let build((TreeViewRow) -> Blob) = (row TreeViewRow) -> BuildRow(snapshot, row)
-        let content Virtual = Virtual(
-            VirtualRowsSource[TreeViewRow](
+        let content Virtual = Virtual{
+            Source: VirtualRowsSource[TreeViewRow](
                 rows,
                 virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
                 key,
                 build,
                 nil
             )
-        )
+        }
         content.Key = "rows"
         content.Handle = viewport
         let fullHeight Length = float64(rows.Count) * input.RowHeight!!

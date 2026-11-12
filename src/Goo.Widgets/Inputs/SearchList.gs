@@ -169,7 +169,8 @@ public data struct SearchList {
                 return -1
             },
         }
-        let list Virtual = Virtual(source){
+        let list Virtual = Virtual(){
+            Source = source,
             Key = "items",
             FlexGrow = 1,
             FlexBasis = 0,

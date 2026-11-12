@@ -108,7 +108,9 @@ internal class MarkdownTextView : Cell, IDisposable {
         let input = current
         let model = input.Model!!
         let options = input.Options
-        var editor = TextEditor(controller!!, []TextPresentationLayer{layer!!}){
+        var editor = TextEditor(){
+            Controller = controller!!,
+            Layers = []TextPresentationLayer{layer!!},
             LineHeight = theme.LineHeight,
             FontSize = input.Size,
             FontWeight = input.Weight,

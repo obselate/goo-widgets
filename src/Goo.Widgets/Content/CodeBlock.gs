@@ -159,7 +159,9 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
         if let actions = input.Actions {
             header.Children.Add(actions)
         }
-        var editor = TextEditor(controller!!, []TextPresentationLayer{layer!!}){
+        var editor = TextEditor(){
+            Controller = controller!!,
+            Layers = []TextPresentationLayer{layer!!},
             Width = Percent(100),
             Height = Percent(100),
             MinWidth = 0,
@@ -198,7 +200,8 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
         let body = Container{Width: Percent(100), MinWidth: 0, FlexShrink: 0, Layout: layout, editor}
         if collapsed {
             body.Children.Add(
-                TextEditor(probe!!){
+                TextEditor(){
+                    Controller = probe!!,
                     Width = Percent(100),
                     Padding = theme.ControlPadding,
                     FontFamily = input.FontFamily ?? "monospace",

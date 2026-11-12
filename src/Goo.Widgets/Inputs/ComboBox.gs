@@ -448,7 +448,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             },
             Index = (id string) -> lookup.TryGetValue(id, out var index) ? index: -1,
         }
-        let virtualRows Virtual = Virtual(source)
+        let virtualRows Virtual = Virtual{Source: source}
         virtualRows.ScrollbarY = theme.Scrollbar
         virtualRows.Key = "rows"
         virtualRows.Handle = viewport
