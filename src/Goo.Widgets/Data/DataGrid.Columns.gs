@@ -39,10 +39,10 @@ public open partial class DataGrid {
         || metrics.ScrollOffset.X == horizontalOffset {
             return
         }
-        viewport.JumpTo(metrics.ScrollOffset.X, viewport.ScrollOffset.Y)
+        viewport.JumpTo(x: metrics.ScrollOffset.X)
         horizontalOffset = viewport.ScrollOffset.X
         if metrics.ScrollOffset.X != horizontalOffset {
-            horizontalViewport.JumpTo(horizontalOffset, 0)
+            horizontalViewport.JumpTo(x: horizontalOffset, y: 0)
         }
         if pinnedCount > 0 {
             Rebuild()
@@ -55,7 +55,7 @@ public open partial class DataGrid {
         }
         if metrics.ScrollOffset.X != horizontalOffset {
             horizontalOffset = metrics.ScrollOffset.X
-            horizontalViewport.JumpTo(horizontalOffset, 0)
+            horizontalViewport.JumpTo(x: horizontalOffset, y: 0)
             if pinnedCount > 0 {
                 Rebuild()
             }
