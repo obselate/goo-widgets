@@ -334,6 +334,10 @@ public open partial class DataGrid {
                 }
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
+                if snapshot.OnColumnOrderChange != nil && !snapshot.Disabled {
+                    slot.OnPointerDrag = (e PointerDragEvent) -> DragReorder(id, e)
+                    slot.PointerDragThreshold = 8
+                }
                 let sort = Button{
                     Key: "content",
                     FlexGrow: 1,
@@ -352,18 +356,8 @@ public open partial class DataGrid {
                     OnClick: () -> Sort(id, clickModifiers),
                     OnPointerDown: (e PointerEvent) -> {
                         clickModifiers = e.Modifiers
-                        reorderOrigin = e.WindowPosition.X
-                        reordered = false
-                        if snapshot.OnColumnOrderChange != nil &&
-                            e.Button == PointerButton.Primary &&
-                            !snapshot.Disabled {
-                            reorderPointer = e.PointerId
-                            e.Capture()
-                        }
+                        reorderPosition = e.WindowPosition.X
                     },
-                    OnPointerMove: (e PointerEvent) -> MoveReorder(id, e),
-                    OnPointerCancel: (e PointerEvent) -> StopReorder(),
-                    OnPointerUp: (e PointerEvent) -> Reorder(id, e),
                     OnKeyDown: (e KeyEvent) -> {
                         clickModifiers = e.Modifiers
                         if e.Modifiers.Alt && (e.Key == Key.Left || e.Key == Key.Right) {
@@ -404,10 +398,7 @@ public open partial class DataGrid {
                     handle.Cursor = Cursor.ResizeHorizontal
                     handle.Focusable = !snapshot.Disabled
                     handle.TabStop = false
-                    handle.OnPointerDown = (e PointerEvent) -> BeginResize(id, e)
-                    handle.OnPointerMove = moveResize
-                    handle.OnPointerUp = endResize
-                    handle.OnPointerCancel = cancelResize
+                    handle.OnPointerDrag = (e PointerDragEvent) -> DragResize(id, e)
                     handle.OnKeyDown = (e KeyEvent) -> ResizeKey(id, e)
                     handle.Accessibility = Accessibility{
                         Role: AccessibilityRole.Slider,
@@ -451,10 +442,6 @@ public open partial class DataGrid {
     }
 
     private func Sort(id string, modifiers KeyModifiers) {
-        if reordered {
-            reordered = false
-            return
-        }
         let index = ColumnIndex(id)
         if index < 0 || input.Disabled || !columns[index].Sortable {
             return
@@ -506,11 +493,9 @@ public open partial class DataGrid {
         InvokeInputCallback(input.OnColumnOrderChange, order)
     }
 
-    private func Reorder(id string, e PointerEvent) {
-        e.ReleaseCapture()
+    private func Reorder(id string, e PointerDragEvent) {
         StopReorder()
-        if input.Disabled || e.Button != PointerButton.Primary || Math.Abs(e.WindowPosition.X - reorderOrigin) < 8 ||
-            input.OnColumnOrderChange == nil {
+        if input.Disabled || input.OnColumnOrderChange == nil {
             return
         }
         let index = ColumnIndex(id)
@@ -525,7 +510,6 @@ public open partial class DataGrid {
             }
         }
         order.Insert(target, id)
-        reordered = true
         if let callback = input.OnColumnOrderChange {
             InvokeInputCallback(callback, order.ToArray())
         }
@@ -546,9 +530,16 @@ public open partial class DataGrid {
         return Math.Clamp(target, start, Math.Max(start, end - 1))
     }
 
-    private func MoveReorder(id string, e PointerEvent) {
-        if reorderPointer != e.PointerId || input.Disabled || input.OnColumnOrderChange == nil ||
-            Math.Abs(e.WindowPosition.X - reorderOrigin) < 8.0 {
+    private func DragReorder(id string, e PointerDragEvent) {
+        if e.Phase == PointerDragPhase.Canceled {
+            StopReorder()
+            return
+        }
+        if e.Phase == PointerDragPhase.Ended {
+            Reorder(id, e)
+            return
+        }
+        if input.Disabled || input.OnColumnOrderChange == nil {
             return
         }
         let index = ColumnIndex(id)
@@ -561,19 +552,17 @@ public open partial class DataGrid {
         if index >= pinnedCount {
             ScrollReorder()
         }
-        Rebuild()
     }
 
     private func StopReorder() {
         reorderScroll?.Dispose()
         reorderScroll = nil
-        reorderPointer = -1L
         reorderColumn = nil
         reorderTarget = -1
     }
 
     private func ScrollReorder() {
-        if reorderColumn == nil || reorderPointer < 0L || input.Disabled || !viewport.IsMounted ||
+        if reorderColumn == nil || input.Disabled || !viewport.IsMounted ||
             input.OnColumnOrderChange == nil || ColumnIndex(reorderColumn) < pinnedCount {
             StopReorder()
             return
