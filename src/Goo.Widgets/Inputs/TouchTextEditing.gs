@@ -365,7 +365,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         if request.Action != AccessibilityAction.Increment && request.Action != AccessibilityAction.Decrement {
             return false
         }
-        let input = window!!.PlatformInput
+        let input = window!!.Focus
         guard let selection = input.Selection else { return false }
         if anchor {
             input.SetSelection(TextSelection{Anchor: selection.Active, Active: selection.Anchor})
