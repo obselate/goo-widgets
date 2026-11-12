@@ -282,12 +282,12 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 BorderWidth: selected || theme.HighContrast ? theme.BorderWidth: 0.0,
                 BorderColor: theme.AccentColor,
                 Color: selected ? theme.OnAccentColor: theme.TextColor,
-                Hover: selected ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
-                Active: selected ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+                HoverStyle: selected ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
+                ActiveStyle: selected ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Overflow: Overflow.Hidden,
                 JustifyContent: JustifyContent.Center,
                 Text{
@@ -402,7 +402,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             MinWidth: 0,
             BackgroundColor: theme.CanvasColor,
             BorderRadius: theme.PanelRadius!!,
-            Focus: theme.FocusStyle,
+            FocusStyle: theme.FocusStyle,
             ScrollbarX: theme.Scrollbar,
         }
         if let create = input.CreateRoot {

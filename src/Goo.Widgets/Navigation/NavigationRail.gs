@@ -195,7 +195,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     } else {
                         resolved.TextColor!!
                     },
-                    Hover: value.HoverBackgroundColor == nil ? nil: Style{BackgroundColor: value.HoverBackgroundColor!!},
+                    HoverStyle: value.HoverBackgroundColor == nil ? nil: Style{BackgroundColor: value.HoverBackgroundColor!!},
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
                     TransitionProperties: theme.InteractionTransitions,
@@ -267,8 +267,8 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             button.Handle = handles[id]
             button.Disabled = item.Disabled
             if id == input.SelectedId && value.SelectedBackgroundColor != nil {
-                button.Hover = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.Hover}
-                button.Active = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.Active}
+                button.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.HoverStyle}
+                button.ActiveStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.ActiveStyle}
             }
             theme.ApplyInteraction(button, InteractionFamily.Row, id == input.SelectedId)
             button.Focusable = !item.Disabled

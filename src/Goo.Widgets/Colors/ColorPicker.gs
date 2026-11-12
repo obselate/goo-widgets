@@ -237,7 +237,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: Style{OutlineColor: resolved.FocusOutlineColor!!},
+            FocusStyle: Style{OutlineColor: resolved.FocusOutlineColor!!},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,

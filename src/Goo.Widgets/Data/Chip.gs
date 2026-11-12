@@ -158,10 +158,10 @@ public data struct Chip {
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             TransitionProperties: ActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
-            Hover: Selected ? Style{BackgroundColor: resolved.SelectedHoverBackgroundColor!!}:
+            HoverStyle: Selected ? Style{BackgroundColor: resolved.SelectedHoverBackgroundColor!!}:
                 HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
-            Active: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
-            Focus: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
+            ActiveStyle: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
+            FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
             DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -221,8 +221,8 @@ public data struct Chip {
             ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0
         button.BackgroundColor = Color.Transparent
-        button.Hover = Style{}
-        button.Active = Style{BackgroundColor: Color.Transparent}
+        button.HoverStyle = Style{}
+        button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
         button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
         button.Padding = 0
         button.PaddingStart = input.PaddingHorizontal!!

@@ -273,7 +273,7 @@ public data struct WindowChrome {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
             Color: resolved.ControlColor!!,
-            Hover: Style{
+            HoverStyle: Style{
                 BackgroundColor: if command == WindowChromeAction.Close {
                     resolved.CloseHoverBackgroundColor!!
                 } else {
@@ -285,7 +285,7 @@ public data struct WindowChrome {
                     resolved.ControlColor!!
                 },
             },
-            Active: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
+            ActiveStyle: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
         }
         let control = if let create = createControl {
             create(resolved, command, content, action)

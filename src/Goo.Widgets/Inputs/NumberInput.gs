@@ -339,7 +339,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             Disabled: current.Disabled || current.ReadOnly,
             Focusable: !current.Disabled && !current.ReadOnly,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             OnClick: () -> {
                 Step(direction)
             },

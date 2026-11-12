@@ -134,7 +134,7 @@ public data struct MediaCard {
             OverflowX: Overflow.Hidden,
             OverflowY: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
-            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
