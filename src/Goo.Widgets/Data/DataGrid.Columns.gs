@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Gestures
 import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
@@ -337,6 +338,7 @@ public open partial class DataGrid {
                 if snapshot.OnColumnOrderChange != nil && !snapshot.Disabled {
                     slot.OnPointerDrag = (e PointerDragEvent) -> DragReorder(id, e)
                     slot.PointerDragThreshold = 8
+                    slot.PointerDragAxis = PanAxis.Horizontal
                 }
                 let sort = Button{
                     Key: "content",
