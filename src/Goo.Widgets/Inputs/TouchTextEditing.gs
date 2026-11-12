@@ -78,8 +78,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         let owner = Theme.Key.Window
         BindWindow(owner)
         viewport = viewportHandle.IsMounted ? viewportHandle.BorderBox : ElementRect{
-            Width: float64(owner.Width) / float64(owner.UiScale),
-            Height: float64(owner.Height) / float64(owner.UiScale),
+            Width: owner.Size.Width,
+            Height: owner.Size.Height,
         }
         let next = input.Editor.Handle ?? defaultHandle
         if handle != next {
