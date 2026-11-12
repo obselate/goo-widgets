@@ -261,7 +261,7 @@ public open partial class DataGrid {
             window?.Post(() -> {
                 if disposed || editSession != nil { return }
                 Reveal()
-                if rootHandle.Focus() && traverse { window!!.PlatformInput.MoveFocus(forward) }
+                if rootHandle.Focus() && traverse { window!!.Focus.Move(forward) }
             })
         }
         if !session.Editor.IsMounted {
@@ -302,7 +302,7 @@ public open partial class DataGrid {
 
     private func EditKeyDown(e KeyEvent) {
         e.StopPropagation()
-        if e.IsComposing || (window?.PlatformInput.Editor?.CompositionStart ?? -1) >= 0 { return }
+        if e.IsComposing || (window?.Focus.Editor?.CompositionStart ?? -1) >= 0 { return }
         let commit = input.CommitEditKey ?? DataGridEditKey{Key: Key.Enter}
         if e.Key == Key.Escape || e.Key == Key.Tab || e.Key == commit.Key && e.Modifiers == commit.Modifiers {
             e.PreventDefault()
@@ -330,7 +330,7 @@ public open partial class DataGrid {
         editor.OnFocus = (e FocusEvent) -> {
             if session.FocusPending {
                 session.FocusPending = false
-                window!!.PlatformInput.SetSelection(session.Value.Draft.Length, session.Value.Draft.Length)
+                window!!.Focus.SetSelection(session.Value.Draft.Length, session.Value.Draft.Length)
             }
         }
         editor.Accessibility = Accessibility{

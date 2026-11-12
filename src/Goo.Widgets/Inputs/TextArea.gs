@@ -179,9 +179,9 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
             BasedOn = value.EditorStyle,
             KeyBindings = []KeyBinding{
-                KeyBinding{Key: Key.Enter, Action: () -> Enter()},
-                KeyBinding{Key: Key.KeypadEnter, Action: () -> Enter()},
-                KeyBinding{Key: Key.Escape, Action: () -> Cancel()},
+                KeyBinding{Key: Key.Enter, OnPress: () -> Enter()},
+                KeyBinding{Key: Key.KeypadEnter, OnPress: () -> Enter()},
+                KeyBinding{Key: Key.Escape, OnPress: () -> Cancel()},
             },
         }
         if let create = input.CreateEditor {

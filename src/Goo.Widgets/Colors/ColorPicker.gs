@@ -248,12 +248,12 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             OnPointerUp: (e PointerEvent) -> EndPointer(e),
             OnPointerCancel: (e PointerEvent) -> EndPointer(e, false),
             KeyBindings: []KeyBinding{
-                KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
-                KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
-                KeyBinding{Key: Key.Left, Repeat: true, Action: () -> KeyAction(Key.Left)},
-                KeyBinding{Key: Key.Right, Repeat: true, Action: () -> KeyAction(Key.Right)},
-                KeyBinding{Key: Key.Up, Repeat: true, Action: () -> KeyAction(Key.Up)},
-                KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
+                KeyBinding{Key: Key.Home, OnPress: () -> KeyAction(Key.Home)},
+                KeyBinding{Key: Key.End, OnPress: () -> KeyAction(Key.End)},
+                KeyBinding{Key: Key.Left, Repeat: true, OnPress: () -> KeyAction(Key.Left)},
+                KeyBinding{Key: Key.Right, Repeat: true, OnPress: () -> KeyAction(Key.Right)},
+                KeyBinding{Key: Key.Up, Repeat: true, OnPress: () -> KeyAction(Key.Up)},
+                KeyBinding{Key: Key.Down, Repeat: true, OnPress: () -> KeyAction(Key.Down)},
             },
             Image{
                 Key: "color-wheel-image",

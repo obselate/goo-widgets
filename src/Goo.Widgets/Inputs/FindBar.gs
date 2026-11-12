@@ -167,11 +167,11 @@ internal class FindBarState : Cell[FindBar] {
             }
         }
         Bindings = []KeyBinding{
-            KeyBinding{Key: Key.Enter, Action: Next},
-            KeyBinding{Key: Key.Enter, Modifiers: KeyModifiers{Shift: true}, Action: Previous},
-            KeyBinding{Key: Key.KeypadEnter, Action: Next},
-            KeyBinding{Key: Key.KeypadEnter, Modifiers: KeyModifiers{Shift: true}, Action: Previous},
-            KeyBinding{Key: Key.Escape, Action: Close},
+            KeyBinding{Key: Key.Enter, OnPress: Next},
+            KeyBinding{Key: Key.Enter, Modifiers: KeyModifiers{Shift: true}, OnPress: Previous},
+            KeyBinding{Key: Key.KeypadEnter, OnPress: Next},
+            KeyBinding{Key: Key.KeypadEnter, Modifiers: KeyModifiers{Shift: true}, OnPress: Previous},
+            KeyBinding{Key: Key.Escape, OnPress: Close},
         }
     }
 

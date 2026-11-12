@@ -96,7 +96,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
             return input.Content
         }
         if visible && focused && handle.IsMounted {
-            guard let editor = window?.PlatformInput.Editor, let selection = window?.PlatformInput.Selection else {
+            guard let editor = window?.Focus.Editor, let selection = window?.Focus.Selection else {
                 return input.Content
             }
             focusId = editor.FocusId
@@ -148,7 +148,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         editor.OnPointerUp = (event PointerEvent) -> {
             priorUp?.Invoke(event)
             if current.Enabled != false && event.Device == PointerDevice.Touch && !moving && focused {
-                focusId = window?.PlatformInput.Editor?.FocusId ?? 0L
+                focusId = window?.Focus.Editor?.FocusId ?? 0L
                 visible = true
                 Rebuild()
             }
@@ -172,12 +172,12 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         if disposed || current.Enabled == false || !handle.IsMounted || !focused { return }
         guard let window = window else { return }
         if event.Phase == GesturePhase.Started {
-            guard let editor = window.PlatformInput.Editor else { return }
+            guard let editor = window.Focus.Editor else { return }
             focusId = editor.FocusId
             if handle.TryGetTextPositionAt(event.WindowPosition, TextCoordinateSpace.Window, out var position) {
-                if !window.PlatformInput.Execute(TextCommand{Kind: TextCommandKind.SelectWord, Position: position})
+                if !window.Focus.Execute(TextCommand{Kind: TextCommandKind.SelectWord, Position: position})
                     || !ValidEditor() { return }
-                pressSelection = window.PlatformInput.Selection
+                pressSelection = window.Focus.Selection
                 visible = true
                 moving = true
                 movingAnchor = false
@@ -229,7 +229,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         pressSelection = nil
         dragPoint = event.WindowPosition
         dragOffset = Point{}
-        if let selection = window!!.PlatformInput.Selection {
+        if let selection = window!!.Focus.Selection {
             let position = anchor ? selection.Anchor : selection.Active
             if handle.TryGetTextCaretRect(position, TextCoordinateSpace.Window, out var caret) {
                 dragOffset = Point{X: caret.X - event.WindowPosition.X,
@@ -265,7 +265,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         dragPoint = point
         if !ValidEditor() { Hide()
             return }
-        guard let selection = window!!.PlatformInput.Selection else { return }
+        guard let selection = window!!.Focus.Selection else { return }
         if handle.TryGetTextPositionAt(point, TextCoordinateSpace.Window, out var position) {
             var next = TextSelection{
                 Anchor: anchor ? position : selection.Anchor,
@@ -278,7 +278,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
                     TextSelection{Anchor: original.Anchor, Active: position}
                 } else { original }
             }
-            window!!.PlatformInput.SetSelection(next)
+            window!!.Focus.SetSelection(next)
         }
         Rebuild()
     }
@@ -324,7 +324,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         if !commandHandles.ContainsKey(kind) { commandHandles.Add(kind, ElementHandle()) }
         let buttonHandle = commandHandles[kind]
         let activate = () -> {
-            if ValidEditor() { window!!.PlatformInput.Execute(TextCommand{Kind: kind}) }
+            if ValidEditor() { window!!.Focus.Execute(TextCommand{Kind: kind}) }
             Rebuild()
         }
         return Button{
@@ -386,7 +386,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
     }
 
     private func ValidEditor() bool -> !disposed && focused && handle.IsMounted
-        && window?.PlatformInput.Editor?.FocusId == focusId
+        && window?.Focus.Editor?.FocusId == focusId
 
     private func EditorChanged(editor FocusedEditorSnapshot?) {
         if !visible { return }

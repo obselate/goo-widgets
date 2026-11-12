@@ -22,14 +22,14 @@ public class WidgetKeyBindings {
                 button.Handle = handle
                 enter = KeyBinding{
                     Key: Key.Enter,
-                    Action: () -> {
+                    OnPress: () -> {
                         handle.Activate()
                     }
                 }
                 space = if heldPress {
                     KeyBinding{
                         Key: Key.Space,
-                        Action: () -> {
+                        OnPress: () -> {
                             handle.BeginPress()
                         },
                         OnRelease: () -> {
@@ -40,7 +40,7 @@ public class WidgetKeyBindings {
                     KeyBinding{Key: Key.Space, OnRelease: action}
                 }
             } else {
-                enter = KeyBinding{Key: Key.Enter, Action: action}
+                enter = KeyBinding{Key: Key.Enter, OnPress: action}
                 space = KeyBinding{Key: Key.Space, OnRelease: action}
             }
             let existing = button.KeyBindings
