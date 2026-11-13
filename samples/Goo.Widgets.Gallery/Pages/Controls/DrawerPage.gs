@@ -39,8 +39,8 @@ class DrawerPage : GalleryPage {
 
         let customContent = Container{
             Gap: 6.0,
-            Text{Content: "Custom Drawer", FontSize: 12.0, FontWeight: 800, Color: "#bbf7d0"},
-            Text{Content: "Emerald theme", FontSize: 10.0, Color: "#4ade80"},
+            Text{Content: "Custom Drawer", FontSize: 12.0, FontWeight: 800, Color: Color.Parse("#bbf7d0")},
+            Text{Content: "Emerald theme", FontSize: 10.0, Color: Color.Parse("#4ade80")},
         }
         let customDrawer = Drawer{
             Open: true,

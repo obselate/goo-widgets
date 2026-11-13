@@ -147,7 +147,7 @@ public open class RatingControl : Cell[RatingControlInput] {
         Width: size,
         Height: size,
         Fit: ShapeFit.Contain,
-        BackgroundColor: color,
+        Fill: VectorPaint(color),
         Accessibility: Accessibility{Hidden: true}
     }
 

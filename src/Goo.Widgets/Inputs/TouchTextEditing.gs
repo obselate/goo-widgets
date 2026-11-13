@@ -78,8 +78,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         let owner = Theme.Key.Window
         BindWindow(owner)
         viewport = viewportHandle.IsMounted ? viewportHandle.BorderBox : ElementRect{
-            Width: float64(owner.Width) / float64(owner.UiScale),
-            Height: float64(owner.Height) / float64(owner.UiScale),
+            Width: owner.Size.Width,
+            Height: owner.Size.Height,
         }
         let next = input.Editor.Handle ?? defaultHandle
         if handle != next {
@@ -183,7 +183,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
                 movingAnchor = false
                 dragOffset = Point{}
                 dragPoint = event.WindowPosition
-                autoScroll = window.SetInterval(AutoScroll, 16.0)
+                autoScroll = window.Every(16.0, AutoScroll)
             }
         } else if event.Phase == GesturePhase.Changed && moving {
             MoveSelection(event.WindowPosition, false)
@@ -240,7 +240,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         event.PreventDefault()
         event.StopPropagation()
         autoScroll?.Dispose()
-        autoScroll = window!!.SetInterval(AutoScroll, 16.0)
+        autoScroll = window!!.Every(16.0, AutoScroll)
         Rebuild()
     }
 

@@ -153,8 +153,7 @@ func ListViewInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "List selection verification",
-        Width: 620,
-        Height: 440,
+        Size: LayoutSize(620, 440),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -330,8 +329,7 @@ func ListRowInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "List row verification",
-        Width: 500,
-        Height: 360,
+        Size: LayoutSize(500, 360),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -418,8 +416,7 @@ func ListFillInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "List fill verification",
-        Width: 480,
-        Height: 680,
+        Size: LayoutSize(480, 680),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics
     }

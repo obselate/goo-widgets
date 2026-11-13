@@ -343,7 +343,7 @@ func ThemeRadiusCapture() {
     let root = ThemeRadiusHost(){Value = defaults with{
         ControlRadius = 0, PanelRadius = 0, RadiusSm = 0, RadiusMd = 0, RadiusLg = 0, RadiusXl = 0,
     }}
-    let window = Window{Root: root, Width: 600, Height: 360}
+    let window = Window{Root: root, Size: LayoutSize(600, 360)}
     Theme.Attach(window, root.Value)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -384,7 +384,7 @@ func ThemeBackgroundContracts() {
         }
     }
     let opened = Window{
-        Root: ThemeProbe(), Width: 360, Height: 280,
+        Root: ThemeProbe(), Size: LayoutSize(360, 280),
         Background: Color.Transparent, Transparent: true, Decorated: false,
     }
     Theme.Attach(opened, Theme.Bone)
@@ -968,7 +968,7 @@ func ThemePixel(image WindowCapture, x int32, y int32, color Color) bool {
 }
 
 func ThemePoint(image WindowCapture, window Window, x float64, y float64, color Color) bool {
-    let scale = float64(image.Width) / float64(window.Width)
+    let scale = float64(image.Width) / float64(window.NativeWidth)
     return ThemePixel(image, int32(x * scale), int32(y * scale), color)
 }
 
@@ -992,7 +992,7 @@ internal class ThemeDensityHost : Cell {
                     Height: input.Height!!,
                     Padding: 0.0,
                     BackgroundColor: Color.Transparent,
-                    Focus: Style{OutlineWidth: 0.0},
+                    FocusStyle: Style{OutlineWidth: 0.0},
                     content,
                 },
             }.Build()
@@ -1025,7 +1025,7 @@ internal class ThemeDensityHost : Cell {
 
 func ThemeDensityContracts() {
     let root = ThemeDensityHost()
-    let window = Window{Root: root, Width: 360, Height: 340}
+    let window = Window{Root: root, Size: LayoutSize(360, 340)}
     Theme.Attach(window)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -1124,7 +1124,7 @@ func GalleryStageContracts() {
         })})
         using let gallery = Gallery(registry, 0, width == 1100)
         let adapter = SearchListSemantics()
-        let window = Window{Root: gallery, Width: width, Height: width == 1100 ? 800: 640, AccessibilityAdapter: adapter}
+        let window = Window{Root: gallery, Size: LayoutSize(width, width == 1100 ? 800: 640), AccessibilityAdapter: adapter}
         gallery.AttachWindow(window)
         RunNativeWindow(window, () -> {
             window.Open()
@@ -1133,7 +1133,7 @@ func GalleryStageContracts() {
             let expectedWidth = width == 1100 ? 928.0: 584.0
             Require(Math.Abs(demo.Width - expectedWidth) < 2
                 && Math.Abs(demo.X + demo.Width - (width == 1100 ? 1014.0: 890.0)) < 2
-                && Math.Abs(demo.Y + demo.Height - (window.Height - (width == 1100 ? 86.0: 70.0))) < 2,
+                && Math.Abs(demo.Y + demo.Height - (window.NativeHeight - (width == 1100 ? 86.0: 70.0))) < 2,
                 "Percentage demo escaped the stage content box: " + demo.ToString())
             CaptureIssueProof(window, "gallery-percent-" + width.ToString())
             gallery.Show(1)
@@ -1153,7 +1153,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     PumpFrames(window, 30)
     FeedbackNode(adapter, AccessibilityRole.Heading, registry.CurrentPage(registry.Count() - 1).Name())
     let lastRow = FeedbackNode(adapter, AccessibilityRole.Tab, registry.CurrentPage(registry.Count() - 1).Name()).Bounds
-    Require(lastRow.Y >= 110 && lastRow.Y + lastRow.Height <= window.Height - 100,
+    Require(lastRow.Y >= 110 && lastRow.Y + lastRow.Height <= window.NativeHeight - 100,
         "Page navigation did not reveal the selected sidebar row: " + lastRow.Y.ToString())
     SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
     PumpFrames(window, 8)
@@ -1219,12 +1219,11 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Dark").Bounds)
     Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Dark did not restore Ink.")
     for width in[]int32{960, 1440, 1707} {
-        window.Width = width
-        window.Height = width == 960 ? 640: width == 1440 ? 900: 960
+        window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 960 ? 640: width == 1440 ? 900: 960) / float64(window.UiScale))
         PumpFrames(window, 12)
         let footer = FeedbackNode(adapter, AccessibilityRole.Button, "Light").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search widgets").Bounds
-        Require(footer.Y > search.Y + search.Height && footer.Y + footer.Height < window.Height,
+        Require(footer.Y > search.Y + search.Height && footer.Y + footer.Height < window.NativeHeight,
             "Gallery footer or search did not fit the window.")
         if width == 960 {
             gallery.Show(registry.IndexOf("Calendar"))
@@ -1240,8 +1239,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
             FeedbackNode(adapter, AccessibilityRole.Heading, "Date picker")
         }
     }
-    window.Width = 1100
-    window.Height = 800
+    window.Size = LayoutSize(float64(1100) / float64(window.UiScale), float64(800) / float64(window.UiScale))
     let menuIndex = registry.IndexOf("Menu")
     gallery.Show(menuIndex)
     PumpFrames(window, 20)
@@ -1274,7 +1272,7 @@ func ThemeCatalogContracts() {
     let registry = CreateRegistry()
     let gallery = Gallery(registry, 0)
     let adapter = SearchListSemantics()
-    let window = Window{Root: gallery, Width: 1100, Height: 800, AccessibilityAdapter: adapter}
+    let window = Window{Root: gallery, Size: LayoutSize(1100, 800), AccessibilityAdapter: adapter}
     gallery.AttachWindow(window)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -1526,7 +1524,7 @@ func ThemeThumbPoint(view ElementHandle) Point {
 
 func ThemeScrollbarContracts() {
     let root = ThemeScrollbarHost()
-    let window = Window{Root: root, Width: 480, Height: 240}
+    let window = Window{Root: root, Size: LayoutSize(480, 240)}
     Theme.Attach(window, Theme.Default)
     RunNativeWindow(window, () -> {
         window.Open()

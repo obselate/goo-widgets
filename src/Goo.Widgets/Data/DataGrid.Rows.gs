@@ -326,8 +326,8 @@ public open partial class DataGrid {
         }
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
-            Hover: isSelected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
-            Active: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!:
+            HoverStyle: isSelected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            ActiveStyle: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!:
                 pinnedCount == 0 || pressedId == id ? theme.PressedColor: hoveredId == id ? theme.HoverColor: Color.Transparent},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
@@ -348,9 +348,9 @@ public open partial class DataGrid {
         if let create = snapshot.CreateRow {
             root = create(snapshot, row, root)
         }
-        root.Focus = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.Focus}
+        root.FocusStyle = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.FocusStyle}
         theme.ApplyInteraction(root, InteractionFamily.Row, isSelected)
-        cells.Focus = root.Focus
+        cells.FocusStyle = root.FocusStyle
         root.Key = id
         root.Handle = Handle(rowHandles, id)
         root.Width = tableWidth

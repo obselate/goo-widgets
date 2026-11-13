@@ -112,7 +112,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                         Color: theme.TextColor,
                         FontFamily: theme.FontFamily,
                         FontSize: theme.FontSize,
-                        Focus: theme.FocusStyle,
+                        FocusStyle: theme.FocusStyle,
                         OnChange: props.OnChange,
                         OnSubmit: props.OnSubmit,
                     }

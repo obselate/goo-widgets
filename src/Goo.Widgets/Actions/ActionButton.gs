@@ -202,15 +202,15 @@ public data struct ActionButton {
     }
 
     private func Finish(root Button, resolved ActionButton, theme Theme) Blob {
-        if let color = HoverBackgroundColor { root.Hover = Style{BackgroundColor: color, BasedOn: root.Hover} }
-        if let color = ActiveBackgroundColor { root.Active = Style{BackgroundColor: color, BasedOn: root.Active} }
-        if let transform = ActiveTransform { root.Active = Style{Transform: transform, BasedOn: root.Active} }
-        if let color = FocusBorderColor { root.Focus = Style{OutlineColor: color, BasedOn: root.Focus} }
+        if let color = HoverBackgroundColor { root.HoverStyle = Style{BackgroundColor: color, BasedOn: root.HoverStyle} }
+        if let color = ActiveBackgroundColor { root.ActiveStyle = Style{BackgroundColor: color, BasedOn: root.ActiveStyle} }
+        if let transform = ActiveTransform { root.ActiveStyle = Style{Transform: transform, BasedOn: root.ActiveStyle} }
+        if let color = FocusBorderColor { root.FocusStyle = Style{OutlineColor: color, BasedOn: root.FocusStyle} }
         if let color = DisabledBackgroundColor { root.DisabledStyle = Style{BackgroundColor: color, BasedOn: root.DisabledStyle} }
         if let color = DisabledTextColor { root.DisabledStyle = Style{Color: color, BasedOn: root.DisabledStyle} }
         if resolved.BackgroundColor!!.A > 0 && Pressed != true {
             root.BoxShadows = theme.ControlShadows
-            root.Active = Style{BoxShadows: theme.FieldShadows, BasedOn: root.Active}
+            root.ActiveStyle = Style{BoxShadows: theme.FieldShadows, BasedOn: root.ActiveStyle}
             root.DisabledStyle = Style{BoxShadows: []BoxShadow{}, BasedOn: root.DisabledStyle}
         }
         theme.ApplyInteraction(root, InteractionFamily.Button, Pressed == true)

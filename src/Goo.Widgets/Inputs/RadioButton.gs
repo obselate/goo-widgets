@@ -105,7 +105,7 @@ public data struct RadioButton {
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && Card)
         if !Card && CreateRoot == nil {
-            button.Focus = Style{BasedOn: button.Focus, OutlineOffset: -theme.FocusRingWidth}
+            button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineOffset: -theme.FocusRingWidth}
         }
         button.Disabled = !enabled
         button.Focusable = enabled

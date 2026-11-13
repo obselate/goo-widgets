@@ -153,7 +153,7 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
 
 func FeedbackGrid(window Window, adapter SearchListSemantics) {
     window.SmoothScrolling = false
-    window.Height = 640
+    window.Size = LayoutSize(window.Size.Width, float64(640) / float64(window.UiScale))
     PumpFrames(window, 20)
     let sequenceGrid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
     for name in[]string{"atlas", "borealis", "cirrus", "ember", "fjord", "grove", "harbor"} {
@@ -236,7 +236,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         "Clicking a partially visible checkbox scrolled the row before activation"
     )
     CaptureIssueProof(window, "gallery-grid-partial-check")
-    window.Height = 800
+    window.Size = LayoutSize(window.Size.Width, float64(800) / float64(window.UiScale))
     PumpFrames(window, 20)
     FeedbackWheel(window, grid, 20.0F)
     CaptureIssueProof(window, "gallery-grid-initial")
@@ -294,15 +294,14 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
 
 func FeedbackGridFit(window Window, adapter SearchListSemantics) {
     for width in []int32{960, 1280} {
-        window.Width = width
-        window.Height = width == 960 ? 640: 800
+        window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 960 ? 640: 800) / float64(window.UiScale))
         PumpFrames(window, 20)
         let fitted = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts").Bounds
         let action = FeedbackNode(adapter, AccessibilityRole.Button, "Clear selection").Bounds
-        Require(fitted.Height > 180 && fitted.Y + fitted.Height < window.Height, "Grid did not fit the gallery height")
+        Require(fitted.Height > 180 && fitted.Y + fitted.Height < window.NativeHeight, "Grid did not fit the gallery height")
         Require(search.X >= fitted.X && search.X + search.Width <= fitted.X + fitted.Width, "Search did not fit the toolbar")
-        Require(fitted.X + fitted.Width <= window.Width - 16 && action.X + action.Width <= window.Width - 16, "Grid or action escaped the gallery viewport")
+        Require(fitted.X + fitted.Width <= window.NativeWidth - 16 && action.X + action.Width <= window.NativeWidth - 16, "Grid or action escaped the gallery viewport")
         CaptureIssueProof(window, "gallery-grid-fit-" + width.ToString())
     }
     let resize = FeedbackNode(adapter, AccessibilityRole.Slider, "Resize Host").Bounds
@@ -420,8 +419,7 @@ func GalleryFeedbackInteractions() {
         let adapter = SearchListSemantics()
         let window = Window{
             Title: "Gallery feedback · " + page,
-            Width: 1100,
-            Height: 800,
+            Size: LayoutSize(1100, 800),
             Root: Gallery(registry, registry.IndexOf(page)),
             AccessibilityAdapter: adapter
         }

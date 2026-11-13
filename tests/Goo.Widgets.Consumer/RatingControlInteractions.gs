@@ -54,7 +54,7 @@ func RatingAccentPixels(window Window, node AccessibilityNode, color Color) int3
 func RatingControlInteractions() {
     let host = RatingControlHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 480, Height: 180, AccessibilityAdapter: semantics}
+    let window = Window{Root: ApplicationRoot(host), Size: LayoutSize(480, 180), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         let id = OnlyNativeWindow()
@@ -181,8 +181,7 @@ func RatingControlInteractions() {
         host.Rebuild()
         window.UiScale = 1.5F
         for width in []int32{480, 1100, 2560} {
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 300
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 300) / float64(window.UiScale))
             PumpFrames(window, 8)
             let rating = FindSemantics(semantics.Tree?.Root, "Score")!!
             Require(rating.ValueMaximum == 7 && rating.ValueText == "6,5 of 7" && rating.Bounds.X + rating.Bounds.Width <= float64(width) / 1.5 + 1, "Rating maximum or 150-percent layout did not fit")

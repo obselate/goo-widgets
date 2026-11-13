@@ -346,8 +346,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     input.ActionBackgroundColor!!
                 },
-                Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
-                Active: primary ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+                HoverStyle: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
+                ActiveStyle: primary ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,

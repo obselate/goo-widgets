@@ -147,7 +147,7 @@ public open class TabBar : Cell[TabBarInput] {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 JustifyContent: input.Vertical ? JustifyContent.FlexStart: JustifyContent.Center,
@@ -234,8 +234,8 @@ public open class TabBar : Cell[TabBarInput] {
                 button.PaddingEnd = theme.Spacing
                 button.FlexShrink = 1
                 button.BackgroundColor = Color.Transparent
-                button.Hover = Style{}
-                button.Active = Style{BackgroundColor: Color.Transparent}
+                button.HoverStyle = Style{}
+                button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
                 button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
                 let tab = Container{
                     Key: id,
@@ -245,7 +245,7 @@ public open class TabBar : Cell[TabBarInput] {
                     AlignItems: AlignItems.Center,
                     PaddingEnd: theme.Spacing * 2,
                     BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
-                    Hover: Style{BackgroundColor: active ? theme.ActiveColor: theme.HoverColor},
+                    HoverStyle: Style{BackgroundColor: active ? theme.ActiveColor: theme.HoverColor},
                     Disabled: item.Disabled,
                     DisabledStyle: Style{Color: theme.DisabledTextColor, Opacity: theme.DisabledOpacity},
                     button

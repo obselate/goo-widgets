@@ -45,7 +45,7 @@ internal class DisclosureExample : Cell {
             HeaderPadding = 16.0,
             Content = Text{
                 Content: "Port 443 · TLS 1.3",
-                Color: "#d1fae5"
+                Color: Color.Parse("#d1fae5")
             },
         }
         return Container{

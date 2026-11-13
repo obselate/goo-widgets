@@ -66,9 +66,9 @@ public data struct StackedBar {
             }
             var bar = Container{
                 BackgroundColor: segment.Series.Color!!,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
-                Hover: Style{BackgroundColor: segment.Series.Color!!},
-                Active: Style{BackgroundColor: segment.Series.Color!!},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                HoverStyle: Style{BackgroundColor: segment.Series.Color!!},
+                ActiveStyle: Style{BackgroundColor: segment.Series.Color!!},
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,

@@ -154,7 +154,7 @@ func TextSurfaceInteractions() {
     let host = TextSurfaceHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Root: root, Width: 760, Height: 800, AccessibilityAdapter: semantics, Title: "Text surfaces"}
+    let window = Window{Root: root, Size: LayoutSize(760, 800), AccessibilityAdapter: semantics, Title: "Text surfaces"}
     host.Window = window
     host.Highlighter = (layer, palette) -> {
         host.Highlights++
@@ -239,7 +239,7 @@ func TextSurfaceInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(Math.Abs(host.AreaHandle.BorderBox.Height - initialHeight) < 1, "TextArea did not shrink")
-        window.Width = 360
+        window.Size = LayoutSize(float64(360) / float64(window.UiScale), window.Size.Height)
         host.Value = "one two three four five six seven eight nine ten eleven twelve"
         host.Rebuild()
         PumpFrames(window, 5)
@@ -251,7 +251,7 @@ func TextSurfaceInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(Math.Abs(host.AreaHandle.BorderBox.Height - cappedHeight) < 1, "Wrapped text exceeded the row cap")
-        window.Width = 760
+        window.Size = LayoutSize(float64(760) / float64(window.UiScale), window.Size.Height)
         host.Value = "one"
         host.Rebuild()
         PumpFrames(window, 5)
@@ -295,13 +295,13 @@ func TextSurfaceInteractions() {
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 5)
         Require(window.Clipboard.ReadText().Text == host.Source, "Read-only code selection copy failed")
-        window.Height = 1440
+        window.Size = LayoutSize(window.Size.Width, float64(1440) / float64(window.UiScale))
         window.UiScale = 1.5F
         for width in[]int32{320, 700, 2560} {
-            window.Width = width
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), window.Size.Height)
             WaitVirtual(
                 window,
-                () -> window.Width == width && window.Height == 1440 && Math.Abs(
+                () -> window.NativeWidth == width && window.NativeHeight == 1440 && Math.Abs(
                     host.Handle.BorderBox.Width - float64(width) / 1.5
                 ) < 1.0
             )
@@ -327,7 +327,7 @@ func TextSurfaceInteractions() {
 
 func TextSurfaceLongCodeProof() {
     let host = TextSurfaceLongCode()
-    let window = Window{Root: ApplicationRoot(host), Width: 760, Height: 600, Title: "Long code"}
+    let window = Window{Root: ApplicationRoot(host), Size: LayoutSize(760, 600), Title: "Long code"}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 8)
@@ -368,7 +368,7 @@ func TextSurfaceGalleryProof() {
             let registry = CreateRegistry()
             let gallery = Gallery(registry, registry.IndexOf(title))
             let semantics = SearchListSemantics{}
-            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
+            let window = Window{Root: gallery, Size: LayoutSize(1100, 800), Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
             RunNativeWindow(window, () -> {

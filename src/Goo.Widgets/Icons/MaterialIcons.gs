@@ -70,7 +70,7 @@ public class MaterialIcons {
                     TranslateX: -float64(asset.ViewBoxX) * scale,
                     TranslateY: -float64(asset.ViewBoxY) * scale,
                 },
-                BackgroundColor: color ?? Theme.Read().TextColor,
+                Fill: VectorPaint(color ?? Theme.Read().TextColor),
                 UseCurrentColor: useCurrentColor,
                 Accessibility: Accessibility{Hidden: true},
             }

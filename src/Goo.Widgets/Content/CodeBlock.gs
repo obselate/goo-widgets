@@ -182,7 +182,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
             OverflowY = scrolls ? Overflow.Scroll: Overflow.Hidden,
             ScrollbarX = theme.Scrollbar,
             ScrollbarY = theme.Scrollbar,
-            Focus = Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle = Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             Accessibility = Accessibility{
                 Role: AccessibilityRole.TextEditor,
                 Name: input.Language ?? theme.Text("Code"),
@@ -241,7 +241,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Cursor: Cursor.Pointer,
                 Disabled: input.OnExpandedChange == nil,
                 OnClick: () -> InvokeInputCallback(input.OnExpandedChange, !input.Expanded),

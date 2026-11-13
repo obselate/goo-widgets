@@ -118,7 +118,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         if input.Open == false && !closing && !departing {
             Pause()
             departing = true
-            timer = current.Window.SetTimeout(dismiss, 0.0)
+            timer = current.Window.After(0.0, dismiss)
         }
         if closed {
             return Container{}
@@ -182,7 +182,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         if timer == nil && !hovered && !focused && !closing && !departing
         && current.Item.DurationMs!!> 0.0 && current.Window.IsOpen {
             started = Stopwatch.GetTimestamp()
-            timer = current.Window.SetTimeout(dismiss, remaining)
+            timer = current.Window.After(remaining, dismiss)
         }
     }
 

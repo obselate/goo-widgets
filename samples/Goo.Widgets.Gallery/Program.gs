@@ -10,7 +10,7 @@ import System.Threading
 
 func VerifyGallery(registry GalleryRegistry) {
     let gallery = Gallery(registry, 0)
-    let window = Window{Title: "Goo Widgets gallery verification", Width: 1100, Height: 800, Root: gallery}
+    let window = Window{Title: "Goo Widgets gallery verification", Size: LayoutSize(1100, 800), Root: gallery}
     gallery.AttachWindow(window)
     window.Open()
     try {
@@ -151,8 +151,7 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
     gallery.RightToLeft = rightToLeft
     let window = Window{
         Title: "Goo Widgets gallery screenshots",
-        Width: fullShell ? 1280: 1100,
-        Height: 800,
+        Size: LayoutSize(fullShell ? 1280: 1100, 800),
         Root: gallery
     }
     gallery.AttachWindow(window)
@@ -162,11 +161,11 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
         using let diagnostics = DevTools.Attach(window)
         for index in first ... end {
             gallery.Show(index)
-            window.Height = 800
+            window.Size = LayoutSize(window.Size.Width, float64(800) / float64(window.UiScale))
             PumpFrames(window, 30)
             if !fullShell {
                 let card = gallery.CardHandle.BorderBox
-                window.Height = int32(Math.Max(420.0, Math.Ceiling(card.Y + card.Height + 41.0)))
+                window.Size = LayoutSize(window.Size.Width, float64(int32(Math.Max(420.0, Math.Ceiling(card.Y + card.Height + 41.0)))) / float64(window.UiScale))
                 PumpFrames(window, 30)
             }
             let page = registry.CurrentPage(index)
@@ -189,13 +188,13 @@ class Spotlight(Page GalleryPage) : Cell {
         Height: Percent(100.0),
         Padding: 24.0,
         Gap: 20.0,
-        BackgroundColor: "#09090b",
+        BackgroundColor: Color.Parse("#09090b"),
         FlexDirection: FlexDirection.Column,
         Container{
             FlexDirection: FlexDirection.Column,
             Gap: 4.0,
-            Text{Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: "#fafafa"},
-            Text{Content: Page.Name(), FontSize: 14.0, Color: "#a1a1aa"},
+            Text{Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: Color.Parse("#fafafa")},
+            Text{Content: Page.Name(), FontSize: 14.0, Color: Color.Parse("#a1a1aa")},
         },
         Container{FlexGrow: 1.0, AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center, Page.Build(),},
     }
@@ -234,8 +233,7 @@ func CaptureSpotlight(registry GalleryRegistry, directory string, requestedPage 
     let height = SpotlightHeight(page)
     let window = Window{
         Title: "Goo Widgets spotlight: " + page.Name(),
-        Width: width,
-        Height: height,
+        Size: LayoutSize(width, height),
         Root: Spotlight(page),
     }
     Theme.Attach(window)
@@ -273,31 +271,31 @@ func Main(args[]string) {
     let mode = appearance == "light" ? ThemeMode.Light: ThemeMode.Dark
     let rightToLeft = Array.IndexOf(args, "--rtl") >= 0
     if Array.IndexOf(args, "--glass") >= 0 {
-        Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+        Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
         let shell = GlassShell()
-        let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Root: shell}
+        let window = Window{Title: "Goo Widgets glass", Size: LayoutSize(1200, 760), Root: shell}
         shell.Host = window
         WindowChrome.ReplaceTitlebar(window)
         let glass = mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass
         Theme.Attach(window, appearance == "native" ? Theme.Native: glass)
-        window.Run()
+        Application.Run(window)
         return
     }
     if let directory = RequestedValue(args, "--shell-screenshots") {
-        Window.ConfigureApplication("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
+        Application.Configure("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
         CaptureGallery(registry, directory, requestedPage, mode, true, rightToLeft)
         return
     }
     if let spotlightDirectory = RequestedValue(args, "--spotlight") {
         if let title = requestedPage {
-            Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+            Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
             CaptureSpotlight(registry, spotlightDirectory, title)
             return
         }
         throw ArgumentException("--spotlight requires --page.")
     }
     if let screenshotDirectory = RequestedValue(args, "--screenshots") {
-        Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+        Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
         CaptureGallery(registry, screenshotDirectory, requestedPage, mode, false, rightToLeft)
         return
     }
@@ -305,14 +303,14 @@ func Main(args[]string) {
     if let title = requestedPage {
         initialIndex = registry.IndexOf(title)
     }
-    Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+    Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
     let gallery = Gallery(registry, initialIndex)
     gallery.RightToLeft = rightToLeft
     let window = Window{
-        Title: "Goo Widgets Gallery", Width: 1440, Height: 900, MinWidth: 960, MinHeight: 640, Root: gallery,
+        Title: "Goo Widgets Gallery", Size: LayoutSize(1440, 900), MinSize: LayoutSize(960, 640), Root: gallery,
         IconPng: File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "Assets", "GooMark.png"))
     }
     gallery.AttachWindow(window)
     Theme.SetMode(window, mode)
-    window.Run()
+    Application.Run(window)
 }

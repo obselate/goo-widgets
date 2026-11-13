@@ -78,8 +78,8 @@ public data struct IconButton {
             } else {
                 resolved.BackgroundColor!!
             },
-            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
-            Focus: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
+            HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            FocusStyle: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
             DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
             BasedOn: resolved.RootStyle,
             icon,

@@ -125,10 +125,10 @@ internal class MarkdownHost : Cell {
             Width: 240.0,
             Height: 56.0,
             BorderRadius: 6.0,
-            BackgroundColor: "#312e81",
+            BackgroundColor: Color.Parse("#312e81"),
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            Text{Content: "Host-resolved diagram", Color: "#c7d2fe", FontSize: 14.0}
+            Text{Content: "Host-resolved diagram", Color: Color.Parse("#c7d2fe"), FontSize: 14.0}
         }
     }
 
@@ -152,14 +152,14 @@ internal class MarkdownHost : Cell {
             Height: Percent(100),
             Padding: 20.0,
             Gap: 12.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Button{
                 Key: "before",
                 Handle: Before,
                 Height: 32.0,
                 Width: 190.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 Text{Content: "Markdown verification"}
             }
         }
@@ -204,8 +204,7 @@ func MarkdownInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Markdown verification",
-        Width: 820,
-        Height: 860,
+        Size: LayoutSize(820, 860),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -301,7 +300,7 @@ func MarkdownInteractions() {
         CompositeClick(window, host.LinkContent!!)
         PumpFrames(window, 8)
         Require(host.Links == 3, "Markdown pointer activation did not reach the link callback")
-        window.Width = 460
+        window.Size = LayoutSize(float64(460) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 25)
         let narrow = host.Editors["root/1"]
         Require(

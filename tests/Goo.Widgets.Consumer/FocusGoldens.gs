@@ -79,7 +79,7 @@ func FocusKey(window Window, key Key) {
 
 func FocusCrop(window Window, bounds ElementRect, uiScale float64) ImageSource {
     let image = ThemeCapture(window)
-    let scale = uiScale * float64(image.Width) / float64(window.Width)
+    let scale = uiScale * float64(image.Width) / float64(window.NativeWidth)
     let left = Math.Max(0, int32(Math.Floor((bounds.X - 6) * scale)))
     let top = Math.Max(0, int32(Math.Floor((bounds.Y - 6) * scale)))
     let right = Math.Min(int32(image.Width), int32(Math.Ceiling((bounds.X + bounds.Width + 6) * scale)))
@@ -180,7 +180,7 @@ func FocusGoldens() {
         []string{"Button", "IconButton", "ToggleButton", "Switch", "TabBar", "ToggleGroup", "MenuButton"}
     )
     let adapter = SearchListSemantics()
-    let window = Window{Root: page, Width: 720, Height: 800, VSync: false, AccessibilityAdapter: adapter}
+    let window = Window{Root: page, Size: LayoutSize(720, 800), VSync: false, AccessibilityAdapter: adapter}
     page.Window = window
     var captures = 0
     var failures = 0
