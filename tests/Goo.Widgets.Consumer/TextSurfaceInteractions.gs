@@ -287,14 +287,14 @@ func TextSurfaceInteractions() {
             "Folded CodeBlock did not show exactly two lines"
         )
         TextSurfaceActivate(window, semantics, "Copy code")
-        Require(window.GetClipboardText() == host.Source, "CodeBlock copy omitted folded lines")
+        Require(window.Clipboard.ReadText().Text == host.Source, "CodeBlock copy omitted folded lines")
         TextSurfaceActivate(window, semantics, "Show all 6 lines")
         Require(host.Expanded && host.CodeHandle.BorderBox.Height > foldedHeight, "CodeBlock did not expand")
         Require(host.CodeHandle.Focus(), "CodeBlock did not allow selection")
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 5)
-        Require(window.GetClipboardText() == host.Source, "Read-only code selection copy failed")
+        Require(window.Clipboard.ReadText().Text == host.Source, "Read-only code selection copy failed")
         window.Height = 1440
         window.UiScale = 1.5F
         for width in[]int32{320, 700, 2560} {

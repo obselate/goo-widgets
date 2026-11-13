@@ -107,9 +107,9 @@ func TouchEditingInteractions() {
         TouchPressAt(window, 503, copyPoint)
         TouchReleaseAt(window, 503, copyPoint)
         PumpFrames(window, 5)
-        Require(window.GetClipboardText() == host.Value && window.Focus.Editor?.FocusId == focus,
+        Require(window.Clipboard.ReadText().Text == host.Value && window.Focus.Editor?.FocusId == focus,
             "Touch Copy changed focus or copied the wrong selection")
-        window.SetClipboardText("replacement")
+        window.Clipboard.WriteText("replacement")
         let paste = FindSemantics(semantics.Tree?.Root, "Paste")!!
         window.PerformAccessibilityAction(paste.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
         PumpFrames(window, 5)

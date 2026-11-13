@@ -468,7 +468,7 @@ func VerifyEditorKeys(window Window, semantics SearchListSemantics, name string,
     SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
     SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
     PumpFrames(window, 4)
-    Require(window.GetClipboardText() == "keyboar", "Editor copy failed: " + name)
+    Require(window.Clipboard.ReadText().Text == "keyboar", "Editor copy failed: " + name)
     SendKey(id, SDLScancode.End)
     SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
     PumpFrames(window, 4)

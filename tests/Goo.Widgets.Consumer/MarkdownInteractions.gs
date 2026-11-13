@@ -268,11 +268,11 @@ func MarkdownInteractions() {
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 7)
         Require(
-            window.GetClipboardText() == controller.Document.GetText(),
+            window.Clipboard.ReadText().Text == controller.Document.GetText(),
             "Markdown keyboard copy did not preserve plain text"
         )
         Require(
-            !window.GetClipboardText().Contains("**") && window.GetClipboardText().Contains("release guide"),
+            !window.Clipboard.ReadText().Text.Contains("**") && window.Clipboard.ReadText().Text.Contains("release guide"),
             "Markdown copy leaked markup or dropped link text"
         )
         let original = controller.Document.GetText()

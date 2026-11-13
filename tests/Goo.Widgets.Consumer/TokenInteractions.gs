@@ -160,7 +160,7 @@ func TokenInteractions() {
         PumpFrames(window, 5)
         Require(host.Tokens.Length == 2 && host.Entry!!.Value == "draf", "Backspace in a draft removed a token")
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
-        window.SetClipboardText("third@example.com,fourth@example.com")
+        window.Clipboard.WriteText("third@example.com,fourth@example.com")
         SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
         PumpFrames(window, 10)
         Require(

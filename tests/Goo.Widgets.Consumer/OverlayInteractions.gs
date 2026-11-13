@@ -501,7 +501,7 @@ func ModalClipboardInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(window.GetClipboardText() == "keyboar", "Modal editor copy or Backspace failed")
+        Require(window.Clipboard.ReadText().Text == "keyboar", "Modal editor copy or Backspace failed")
         SendKey(id, SDLScancode.End)
         SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
