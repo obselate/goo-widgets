@@ -40,10 +40,10 @@ public open partial class DataGrid {
         || metrics.ScrollOffset.X == horizontalOffset {
             return
         }
-        viewport.JumpTo(metrics.ScrollOffset.X, viewport.ScrollOffset.Y)
+        viewport.JumpTo(x: metrics.ScrollOffset.X)
         horizontalOffset = viewport.ScrollOffset.X
         if metrics.ScrollOffset.X != horizontalOffset {
-            horizontalViewport.JumpTo(horizontalOffset, 0)
+            horizontalViewport.JumpTo(x: horizontalOffset, y: 0)
         }
         if pinnedCount > 0 {
             Rebuild()
@@ -56,7 +56,7 @@ public open partial class DataGrid {
         }
         if metrics.ScrollOffset.X != horizontalOffset {
             horizontalOffset = metrics.ScrollOffset.X
-            horizontalViewport.JumpTo(horizontalOffset, 0)
+            horizontalViewport.JumpTo(x: horizontalOffset, y: 0)
             if pinnedCount > 0 {
                 Rebuild()
             }
@@ -374,7 +374,7 @@ public open partial class DataGrid {
                 if snapshot.OnColumnOrderChange != nil && !snapshot.Disabled {
                     sort.OnPointerDrag = (e PointerDragEvent) -> DragReorder(id, e)
                     sort.PointerDragThreshold = 8
-                    sort.PointerDragAxis = PanAxis.Horizontal
+                    sort.PointerDragAxis = LayoutAxis.Horizontal
                 }
                 WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
@@ -448,11 +448,11 @@ public open partial class DataGrid {
         if index < 0 || input.Disabled || !columns[index].Sortable {
             return
         }
-        if (modifiers.Ctrl || modifiers.Super) && modifiers.Shift {
+        if modifiers.HasPrimary && modifiers.Shift {
             return
         }
         let current = SortDirection(id)
-        let clear = (modifiers.Ctrl || modifiers.Super) && !modifiers.Shift
+        let clear = modifiers.HasPrimary && !modifiers.Shift
         let next = clear ? DataGridSort.None:
             current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.Ascending
         if let callback = input.OnSortsChange {
@@ -539,11 +539,11 @@ public open partial class DataGrid {
     }
 
     private func DragReorder(id string, e PointerDragEvent) {
-        if e.Phase == PointerDragPhase.Canceled {
+        if e.Phase == GesturePhase.Canceled {
             StopReorder()
             return
         }
-        if e.Phase == PointerDragPhase.Ended {
+        if e.Phase == GesturePhase.Completed {
             Reorder(id, e)
             return
         }

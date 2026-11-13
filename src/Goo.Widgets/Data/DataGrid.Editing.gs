@@ -309,7 +309,7 @@ public open partial class DataGrid {
             if e.Repeat { return }
             if e.Key == Key.Escape { CancelEdit(DataGridEditCancelReason.Escape) }
             else if e.Key == Key.Tab {
-                if e.Modifiers.Ctrl || e.Modifiers.Super {
+                if e.Modifiers.Ctrl {
                     let session = editSession
                     if CommitEdit(false) && session != nil { ReturnEditFocus(session, true, !e.Modifiers.Shift) }
                 } else { CommitEdit(false, e.Modifiers.Shift ? -1: 1) }

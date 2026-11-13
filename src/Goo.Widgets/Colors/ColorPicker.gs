@@ -428,12 +428,12 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             return
         }
         e.PreventDefault()
-        if e.Phase == PointerDragPhase.Started {
+        if e.Phase == GesturePhase.Started {
             wheelHandle.Focus()
         }
-        if e.Phase == PointerDragPhase.Started || e.Phase == PointerDragPhase.Moved {
+        if e.Phase == GesturePhase.Started || e.Phase == GesturePhase.Changed {
             CoordinatesFromPointer(e)
-        } else if e.Phase == PointerDragPhase.Ended {
+        } else if e.Phase == GesturePhase.Completed {
             UpdateColor(true)
         }
     }

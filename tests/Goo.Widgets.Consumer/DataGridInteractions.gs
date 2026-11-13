@@ -485,7 +485,7 @@ func DataGridHeightInteractions() {
             "Auto columns shrank after scrolling to shorter content"
         )
         host.SourceWidth = true
-        window.Size = LayoutSize(float64(1200) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(1200) / window.UiScale, window.Size.Height)
         host.Version++
         host.Rebuild()
         WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
@@ -575,7 +575,7 @@ func DataGridHeightInteractions() {
         CaptureIssueProof(window, "datagrid-loading")
         host.Empty = false
         host.VirtualColumns = false
-        window.Size = LayoutSize(float64(1000) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(1000) / window.UiScale, window.Size.Height)
         host.WidthCase = 1
         host.Rebuild()
         PumpFrames(window, 12)
@@ -2197,7 +2197,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 480) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 480) / window.UiScale)
             WaitVirtual(window, () -> window.NativeWidth == width && Math.Abs(host.Root.BorderBox.Width - float64(width) / 1.5) < 1)
             host.Viewport.JumpTo(host.Viewport.ScrollRange.X, 0)
             PumpFrames(window, 8)

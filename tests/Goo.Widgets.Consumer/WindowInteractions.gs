@@ -111,8 +111,10 @@ internal class InteractiveHost : Cell {
         if ShowGraph {
             return Cell.Mount[GraphHost](
                 "graph-fixture",
-                (graph GraphHost) -> {
+                () -> {
+                    let graph = GraphHost()
                     Graph = graph
+                    return graph
                 }
             )
         }
@@ -371,7 +373,7 @@ func WindowInteractions() {
         PumpFrames(window, 4)
         Require(host.ColorValue != previousColor, "Color wheel did not process native keyboard input.")
 
-        window.Size = LayoutSize(float64(760) / float64(window.UiScale), float64(560) / float64(window.UiScale))
+        window.Size = LayoutSize(float64(760) / window.UiScale, float64(560) / window.UiScale)
         PumpFrames(window, 10)
         Require(
             host.SliderRoot!!.Handle!!.BorderBox.Width > box.Width,

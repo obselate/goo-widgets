@@ -158,12 +158,12 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
     private func BindWindow(next Window?) {
         if window == next { return }
         if let previous = window {
-            previous.PlatformInput.EditorChanged -= EditorChanged
+            previous.Focus.EditorChanged -= EditorChanged
             previous.FocusChanged -= WindowFocus
         }
         window = next
         if let next = next {
-            next.PlatformInput.EditorChanged += EditorChanged
+            next.Focus.EditorChanged += EditorChanged
             next.FocusChanged += WindowFocus
         }
     }

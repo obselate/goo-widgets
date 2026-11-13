@@ -267,8 +267,10 @@ internal class GridChartHost : Cell {
                     ColumnSpan: Swap ? 2: 1,
                     Content: Cell.Mount[GridCounter](
                         "counter",
-                        (cell GridCounter) -> {
+                        () -> {
+                            let cell = GridCounter()
                             Counter = cell
+                            return cell
                         }
                     )
                 },
@@ -424,7 +426,7 @@ func GridChartInteractions() {
             "Auto Grid column failed to remeasure changed text or respect its maximum"
         )
         CaptureIssueProof(window, "grid-charts-wide")
-        window.Size = LayoutSize(float64(400) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(400) / window.UiScale, window.Size.Height)
         PumpFrames(window, 15)
         Require(host.Paragraph.BorderBox.Height > wideHeight, "Grid did not remeasure wrapping at a narrower width")
         Require(
@@ -446,7 +448,7 @@ func GridChartInteractions() {
         PumpFrames(window, 6)
         Require(counter.Count == 2, "Moved Grid child lost keyboard input")
         CaptureIssueProof(window, "grid-charts-narrow")
-        window.Size = LayoutSize(float64(700) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(700) / window.UiScale, window.Size.Height)
         host.Large = false
         host.Rebuild()
         PumpFrames(window, 12)

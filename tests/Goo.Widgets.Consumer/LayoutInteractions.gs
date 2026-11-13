@@ -304,7 +304,7 @@ func LayoutInteractions() {
         window.PerformAccessibilityAction(settingsSearch.Id, AccessibilityActionRequest.SetValue("sound"))
         PumpFrames(window, 8)
         Require(host.SettingsQuery == "sound" && host.SettingsEditor.IsMounted, "Settings keywords did not match")
-        window.Size = LayoutSize(float64(460) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(460) / window.UiScale, window.Size.Height)
         PumpFrames(window, 18)
         let narrowNavigation = FindSemantics(semantics.Tree?.Root, "Settings sections")!!.Bounds
         let narrowEditor = host.SettingsEditor.BorderBox
@@ -319,7 +319,7 @@ func LayoutInteractions() {
             "Status bar did not hide its lowest-priority detail"
         )
         CaptureIssueProof(window, "settings-narrow")
-        window.Size = LayoutSize(float64(900) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(900) / window.UiScale, window.Size.Height)
         PumpFrames(window, 18)
         Require(host.SettingsEditor.BorderBox.X > 300, "Settings did not return to columns after widening")
         Require(

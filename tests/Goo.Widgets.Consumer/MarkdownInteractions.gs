@@ -300,7 +300,7 @@ func MarkdownInteractions() {
         CompositeClick(window, host.LinkContent!!)
         PumpFrames(window, 8)
         Require(host.Links == 3, "Markdown pointer activation did not reach the link callback")
-        window.Size = LayoutSize(float64(460) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(460) / window.UiScale, window.Size.Height)
         PumpFrames(window, 25)
         let narrow = host.Editors["root/1"]
         Require(

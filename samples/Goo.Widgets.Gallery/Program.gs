@@ -161,11 +161,11 @@ func CaptureGallery(registry GalleryRegistry, directory string, requestedPage st
         using let diagnostics = DevTools.Attach(window)
         for index in first ... end {
             gallery.Show(index)
-            window.Size = LayoutSize(window.Size.Width, float64(800) / float64(window.UiScale))
+            window.Size = LayoutSize(window.Size.Width, float64(800) / window.UiScale)
             PumpFrames(window, 30)
             if !fullShell {
                 let card = gallery.CardHandle.BorderBox
-                window.Size = LayoutSize(window.Size.Width, float64(int32(Math.Max(420.0, Math.Ceiling(card.Y + card.Height + 41.0)))) / float64(window.UiScale))
+                window.Size = LayoutSize(window.Size.Width, float64(int32(Math.Max(420.0, Math.Ceiling(card.Y + card.Height + 41.0)))) / window.UiScale)
                 PumpFrames(window, 30)
             }
             let page = registry.CurrentPage(index)

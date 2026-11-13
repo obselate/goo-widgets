@@ -669,7 +669,7 @@ func OverlayInteractions() {
         host.ExplicitViewport = true
         host.PopupOpen = true
         host.Rebuild()
-        window.Size = LayoutSize(float64(440) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(440) / window.UiScale, window.Size.Height)
         PumpFrames(window, 18)
         let narrow = host.PopupPanel!!.Handle!!.BorderBox
         Require(
@@ -749,7 +749,7 @@ func OverlayInteractions() {
             PumpFrames(window, 8)
         }
         host.BasisContent = 0.0
-        window.Size = LayoutSize(float64(860) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(860) / window.UiScale, window.Size.Height)
         host.PointPopup = false
         host.ExplicitViewport = false
         host.AnchorX = 590.0
@@ -1008,7 +1008,7 @@ func TeachingTipInteractions() {
         }
         Require(host.Requests == 24 && host.Actions == 6, "TeachingTip callback counts changed")
         for width in []int32{480, 900, 1600, 2560} {
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 480) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 480) / window.UiScale)
             window.UiScale = 1.5F
             for anchored in []bool{true, false} {
                 host.Anchored = anchored

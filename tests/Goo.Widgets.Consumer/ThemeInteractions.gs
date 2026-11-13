@@ -86,21 +86,37 @@ internal class ThemeScopeHost : Cell {
         let provider = ThemeScope{
             Value: Value,
             Density: DensityOverride,
-            Content: () -> Cell.Mount[ThemeProbe]("inside", (probe ThemeProbe) -> Inside = probe),
+            Content: () -> Cell.Mount[ThemeProbe]("inside", () -> {
+                let probe = ThemeProbe()
+                Inside = probe
+                return probe
+            }),
         }.Build()
         provider.Key = "scope"
         return Container{
             Width: Percent(100),
-            Cell.Mount[ThemeProbe]("outside", (probe ThemeProbe) -> Outside = probe),
+            Cell.Mount[ThemeProbe]("outside", () -> {
+                let probe = ThemeProbe()
+                Outside = probe
+                return probe
+            }),
             provider,
-            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", (probe ThemeProbe) -> PortalProbe = probe),},
+            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", () -> {
+                let probe = ThemeProbe()
+                PortalProbe = probe
+                return probe
+            }),},
             Cell.Mount[ModalDialog, ModalDialogHost](
                 "dialog",
                 ModalDialog{
                     Open: true,
                     Width: 280.0,
                     AccessibilityName: "Appearance dialog",
-                    Content: Cell.Mount[ThemeProbe]("dialog-content", (probe ThemeProbe) -> DialogProbe = probe),
+                    Content: Cell.Mount[ThemeProbe]("dialog-content", () -> {
+                        let probe = ThemeProbe()
+                        DialogProbe = probe
+                        return probe
+                    }),
                 }
             ),
             Cell.Mount[MenuInput, Menu](
@@ -112,7 +128,11 @@ internal class ThemeScopeHost : Cell {
                         MenuItem{
                             Id: "theme",
                             Label: "Appearance menu",
-                            Content: Cell.Mount[ThemeProbe]("menu-content", (probe ThemeProbe) -> MenuProbe = probe),
+                            Content: Cell.Mount[ThemeProbe]("menu-content", () -> {
+                                let probe = ThemeProbe()
+                                MenuProbe = probe
+                                return probe
+                            }),
                         }
                     },
                 }
@@ -804,21 +824,29 @@ func ThemePolicyContracts() {
     )
 }
 
-internal class ThemeVirtualRow : Cell {
-    internal var Id int32
+internal data struct ThemeVirtualRowInput {
+    var Id int32
+    var Rows Dictionary[int32, ThemeVirtualRow]
+}
+
+internal class ThemeVirtualRow : Cell[ThemeVirtualRowInput] {
     internal var Snapshot Theme
     internal let Handle ElementHandle = ElementHandle()
-    public override func Build() Blob {
+    protected override func InputChanged(input ThemeVirtualRowInput) {
+        input.Rows[input.Id] = this
+    }
+
+    protected override func Build(input ThemeVirtualRowInput) Blob {
         Snapshot = Theme.Read()
         return Button{
             Handle: Handle,
             Height: Snapshot.ControlHeight,
             Width: Percent(100),
             Focusable: true,
-            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + Id.ToString()},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + input.Id.ToString()},
             Color: Snapshot.TextColor,
             BackgroundColor: Snapshot.PanelColor,
-            Text{Content: Id.ToString(), FontSize: Snapshot.FontSize},
+            Text{Content: input.Id.ToString(), FontSize: Snapshot.FontSize},
         }
     }
 }
@@ -845,12 +873,9 @@ internal class ThemeVirtualHost : Cell {
         let theme = Theme.Read()
         return Container{
             Height: theme.ControlHeight,
-            Cell.Mount[ThemeVirtualRow](
+            Cell.Mount[ThemeVirtualRowInput, ThemeVirtualRow](
                 "counter",
-                (row ThemeVirtualRow) -> {
-                    row.Id = index
-                    Rows[index] = row
-                }
+                ThemeVirtualRowInput{Id: index, Rows: Rows}
             ),
         }
     }
@@ -1219,7 +1244,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Dark").Bounds)
     Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Dark did not restore Ink.")
     for width in[]int32{960, 1440, 1707} {
-        window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 960 ? 640: width == 1440 ? 900: 960) / float64(window.UiScale))
+        window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 960 ? 640: width == 1440 ? 900: 960) / window.UiScale)
         PumpFrames(window, 12)
         let footer = FeedbackNode(adapter, AccessibilityRole.Button, "Light").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search widgets").Bounds
@@ -1239,7 +1264,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
             FeedbackNode(adapter, AccessibilityRole.Heading, "Date picker")
         }
     }
-    window.Size = LayoutSize(float64(1100) / float64(window.UiScale), float64(800) / float64(window.UiScale))
+    window.Size = LayoutSize(float64(1100) / window.UiScale, float64(800) / window.UiScale)
     let menuIndex = registry.IndexOf("Menu")
     gallery.Show(menuIndex)
     PumpFrames(window, 20)
