@@ -71,7 +71,7 @@ internal class ErgonomicHost : Cell {
             Height: Percent(100),
             Padding: 24.0,
             Gap: 16.0,
-            BackgroundColor: "#18181b",
+            BackgroundColor: Color.Parse("#18181b"),
             checkbox,
             toggle,
             Cell.Mount[SliderInput, Slider](

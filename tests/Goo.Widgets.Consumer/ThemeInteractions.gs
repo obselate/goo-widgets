@@ -992,7 +992,7 @@ internal class ThemeDensityHost : Cell {
                     Height: input.Height!!,
                     Padding: 0.0,
                     BackgroundColor: Color.Transparent,
-                    Focus: Style{OutlineWidth: 0.0},
+                    FocusStyle: Style{OutlineWidth: 0.0},
                     content,
                 },
             }.Build()

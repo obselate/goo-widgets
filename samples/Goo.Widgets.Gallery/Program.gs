@@ -188,13 +188,13 @@ class Spotlight(Page GalleryPage) : Cell {
         Height: Percent(100.0),
         Padding: 24.0,
         Gap: 20.0,
-        BackgroundColor: "#09090b",
+        BackgroundColor: Color.Parse("#09090b"),
         FlexDirection: FlexDirection.Column,
         Container{
             FlexDirection: FlexDirection.Column,
             Gap: 4.0,
-            Text{Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: "#fafafa"},
-            Text{Content: Page.Name(), FontSize: 14.0, Color: "#a1a1aa"},
+            Text{Content: "Goo Widgets", FontSize: 26.0, FontWeight: 700, Color: Color.Parse("#fafafa")},
+            Text{Content: Page.Name(), FontSize: 14.0, Color: Color.Parse("#a1a1aa")},
         },
         Container{FlexGrow: 1.0, AlignItems: AlignItems.Center, JustifyContent: JustifyContent.Center, Page.Build(),},
     }

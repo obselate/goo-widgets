@@ -110,7 +110,7 @@ internal class TimeAxisHost : Cell {
     private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) Button {
         prepared.Handle = ElementHandle()
         if placement.Event.Id == "point" {
-            prepared.BackgroundColor = "#fbbf24"
+            prepared.BackgroundColor = Color.Parse("#fbbf24")
         }
         Buttons[placement.Event.Id!!] = prepared
         return prepared
@@ -127,12 +127,12 @@ internal class TimeAxisHost : Cell {
             Height: Percent(100),
             Padding: 24,
             Gap: 20,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "TimeAxis · September 14", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "TimeAxis · September 14", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Scroll the ruler or use Left/Right, Home/End. Overlapping events occupy separate lanes.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             }
         }
         if Show {

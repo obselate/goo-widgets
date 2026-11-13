@@ -73,7 +73,7 @@ public data struct DonutChart {
             var shape = Shape{
                 Path: path,
                 Fill: VectorPaint(segment.Series.Color!!),
-                Focus: Style{BoxShadow: BoxShadow{Spread: theme.FocusRingWidth, Color: theme.FocusColor}},
+                FocusStyle: Style{BoxShadow: BoxShadow{Spread: theme.FocusRingWidth, Color: theme.FocusColor}},
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,

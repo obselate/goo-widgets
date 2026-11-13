@@ -151,8 +151,8 @@ internal class CompositeHost : Cell {
             Gap: 18,
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#09090b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#09090b"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "heading", Content: "Composite widgets", FontSize: 24},
             Cell.Mount[TabBarInput, TabBar](
                 "tabs",
@@ -190,14 +190,14 @@ internal class CompositeHost : Cell {
                         Width: Percent(100),
                         Height: Percent(100),
                         Padding: 16,
-                        BackgroundColor: "#152a36",
+                        BackgroundColor: Color.Parse("#152a36"),
                         Text{Content: "First pane"}
                     },
                     Second: Container{
                         Width: Percent(100),
                         Height: Percent(100),
                         Padding: 16,
-                        BackgroundColor: "#202236",
+                        BackgroundColor: Color.Parse("#202236"),
                         Text{Content: "Second pane"}
                     },
                 }

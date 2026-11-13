@@ -231,7 +231,7 @@ public data struct AvatarGroup {
                 let button = Button{
                     MarginStart: offset,
                     BorderRadius: size / 2.0,
-                    Focus: theme.FocusStyle,
+                    FocusStyle: theme.FocusStyle,
                     OnClick: () -> activate(itemIndex),
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.Button,

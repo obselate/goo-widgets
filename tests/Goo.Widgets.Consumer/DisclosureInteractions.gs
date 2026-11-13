@@ -59,7 +59,7 @@ internal class DisclosureHost : Cell {
         BorderRadius: 8,
         BorderWidth: 1,
         BorderColor: Color.Parse("#28765c"),
-        BackgroundColor: "#102822",
+        BackgroundColor: Color.Parse("#102822"),
         header,
         body,
     }
@@ -102,12 +102,12 @@ internal class DisclosureHost : Cell {
         }
         return Container{
             Padding: 24,
-            BackgroundColor: "#09090b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#09090b"),
+            Color: Color.Parse("#fafafa"),
             Gap: 16,
             Text{Content: "Disclosure · retained content", FontSize: 22},
             section.Build(),
-            Text{Content: "Pointer, Enter, and Space share the controlled expanded state.", Color: "#a1a1aa"}
+            Text{Content: "Pointer, Enter, and Space share the controlled expanded state.", Color: Color.Parse("#a1a1aa")}
         }
     }
 }

@@ -125,10 +125,10 @@ internal class MarkdownHost : Cell {
             Width: 240.0,
             Height: 56.0,
             BorderRadius: 6.0,
-            BackgroundColor: "#312e81",
+            BackgroundColor: Color.Parse("#312e81"),
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            Text{Content: "Host-resolved diagram", Color: "#c7d2fe", FontSize: 14.0}
+            Text{Content: "Host-resolved diagram", Color: Color.Parse("#c7d2fe"), FontSize: 14.0}
         }
     }
 
@@ -152,14 +152,14 @@ internal class MarkdownHost : Cell {
             Height: Percent(100),
             Padding: 20.0,
             Gap: 12.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Button{
                 Key: "before",
                 Handle: Before,
                 Height: 32.0,
                 Width: 190.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 Text{Content: "Markdown verification"}
             }
         }

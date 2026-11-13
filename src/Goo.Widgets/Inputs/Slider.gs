@@ -256,7 +256,7 @@ public open class Slider : Cell[SliderInput] {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            Focus: input.FocusOutlineColor == nil ? nil: Style{OutlineColor: input.FocusOutlineColor!!},
+            FocusStyle: input.FocusOutlineColor == nil ? nil: Style{OutlineColor: input.FocusOutlineColor!!},
             DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: hasHeader ? 1.0: resolved.DisabledOpacity!!},
             BasedOn: resolved.RootStyle,
             Accessibility: accessibility,

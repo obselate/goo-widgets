@@ -342,7 +342,7 @@ public open partial class DataGrid {
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     AlignItems: column.Alignment == TextAlign.Right ? AlignItems.FlexEnd: column.Alignment == TextAlign.Center ? AlignItems.Center: AlignItems.FlexStart,
                     TextAlign: column.Alignment,
-                    Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                    FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                     BackgroundColor: Color.Transparent,
                     Focusable: column.Sortable &&
                         (snapshot.OnSort != nil || snapshot.OnSortsChange != nil) &&
@@ -383,8 +383,8 @@ public open partial class DataGrid {
                         BackgroundColor: Color.Transparent,
                         BorderWidth: Edges{Right: 1},
                         BorderColor: resizeId == id ? theme.FocusColor: Color.Transparent,
-                        Hover: Style{BorderColor: theme.FocusColor},
-                        Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                        HoverStyle: Style{BorderColor: theme.FocusColor},
+                        FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                         BasedOn: snapshot.ResizeHandleStyle
                     }
                     if let create = snapshot.CreateResizeHandle {
