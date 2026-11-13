@@ -60,7 +60,7 @@ public data struct DonutChart {
                 Left: 0,
                 Top: 0,
                 Path: Ring(-Math.PI / 2.0, 1.0, thickness / size),
-                BackgroundColor: resolved.TrackColor!!,
+                Fill: VectorPaint(resolved.TrackColor!!),
                 Accessibility: Accessibility{Hidden: true}
             }
         )
@@ -72,9 +72,7 @@ public data struct DonutChart {
             let path = Ring(angle, segment.Fraction, thickness / size)
             var shape = Shape{
                 Path: path,
-                BackgroundColor: segment.Series.Color!!,
-                Hover: Style{BackgroundColor: segment.Series.Color!!},
-                Active: Style{BackgroundColor: segment.Series.Color!!},
+                Fill: VectorPaint(segment.Series.Color!!),
                 Focus: Style{BoxShadow: BoxShadow{Spread: theme.FocusRingWidth, Color: theme.FocusColor}},
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
