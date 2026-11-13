@@ -39,7 +39,7 @@ internal class ToggleButtonHost : Cell {
 func ToggleButtonInteractions() {
     let host = ToggleButtonHost()
     let adapter = SearchListSemantics()
-    let window = Window{Title: "Toggle value", Width: 420, Height: 240, Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
+    let window = Window{Title: "Toggle value", Size: LayoutSize(420, 240), Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 20)

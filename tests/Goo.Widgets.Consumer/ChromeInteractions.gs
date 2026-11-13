@@ -105,7 +105,7 @@ func ChromePaint(window Window, row ElementHandle, foreground Color, background 
 
 func ChromePaintInteractions() {
     let host = ChromePaintHost()
-    let window = Window{Title: "Chrome icon paint verification", Width: 320, Height: 200, Root: host}
+    let window = Window{Title: "Chrome icon paint verification", Size: LayoutSize(320, 200), Root: host}
     Theme.Attach(window, Theme.Ink with{OnAccentColor = Color.Black})
     RunNativeWindow(window, () -> {
         window.Open()
@@ -332,8 +332,7 @@ func ChromeInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Window chrome verification",
-        Width: 1400,
-        Height: 900,
+        Size: LayoutSize(1400, 900),
         Decorated: false,
         Root: host,
         AccessibilityAdapter: semantics
@@ -494,7 +493,7 @@ func ChromeInteractions() {
 
 func ChromeCallbackInteractions() {
     let host = ChromeHost{NativeBinding: false}
-    let window = Window{Title: "Callback-only chrome verification", Width: 1000, Height: 640, Root: host}
+    let window = Window{Title: "Callback-only chrome verification", Size: LayoutSize(1000, 640), Root: host}
     host.Host = window
     window.StateChanged += (state WindowState) -> host.Rebuild()
     RunNativeWindow(window, () -> {

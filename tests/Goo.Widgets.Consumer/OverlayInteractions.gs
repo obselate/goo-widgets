@@ -484,8 +484,7 @@ func ModalClipboardInteractions() {
     let semantics = SearchListSemantics{}
     let window = Window{
         Title: "Modal clipboard verification",
-        Width: 860,
-        Height: 560,
+        Size: LayoutSize(860, 560),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics,
     }
@@ -521,8 +520,7 @@ func OverlayInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Overlay verification",
-        Width: 860,
-        Height: 560,
+        Size: LayoutSize(860, 560),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -671,7 +669,7 @@ func OverlayInteractions() {
         host.ExplicitViewport = true
         host.PopupOpen = true
         host.Rebuild()
-        window.Width = 440
+        window.Size = LayoutSize(float64(440) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 18)
         let narrow = host.PopupPanel!!.Handle!!.BorderBox
         Require(
@@ -751,7 +749,7 @@ func OverlayInteractions() {
             PumpFrames(window, 8)
         }
         host.BasisContent = 0.0
-        window.Width = 860
+        window.Size = LayoutSize(float64(860) / float64(window.UiScale), window.Size.Height)
         host.PointPopup = false
         host.ExplicitViewport = false
         host.AnchorX = 590.0
@@ -893,7 +891,7 @@ func OverlayInteractions() {
 func WhiteTextOnNavy(window Window, row ElementHandle) bool {
     let image = ThemeCapture(window)
     let box = row.BorderBox
-    let scale = float64(image.Width) / float64(window.Width)
+    let scale = float64(image.Width) / float64(window.NativeWidth)
     var navy = false
     var white = false
     for y in int32(box.Y * scale) + 1 ... int32((box.Y + box.Height) * scale) - 1 {
@@ -941,7 +939,7 @@ internal class TeachingTipHost : Cell {
 func TeachingTipInteractions() {
     let host = TeachingTipHost()
     let semantics = SearchListSemantics()
-    let window = Window{Title: "Teaching tip verification", Width: 640, Height: 480,
+    let window = Window{Title: "Teaching tip verification", Size: LayoutSize(640, 480),
         Root: ApplicationRoot(host), AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Ink)
     RunNativeWindow(window, () -> {
@@ -1010,8 +1008,7 @@ func TeachingTipInteractions() {
         }
         Require(host.Requests == 24 && host.Actions == 6, "TeachingTip callback counts changed")
         for width in []int32{480, 900, 1600, 2560} {
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 480
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 480) / float64(window.UiScale))
             window.UiScale = 1.5F
             for anchored in []bool{true, false} {
                 host.Anchored = anchored
@@ -1020,8 +1017,8 @@ func TeachingTipInteractions() {
                 PumpFrames(window, 16)
                 let panel = FindSemantics(semantics.Tree?.Root, "Save bookmark")!!.Bounds
                 Require(panel.X >= 0 && panel.Y >= 0
-                    && panel.X + panel.Width <= float64(window.Width) / window.UiScale + 1
-                    && panel.Y + panel.Height <= float64(window.Height) / window.UiScale + 1,
+                    && panel.X + panel.Width <= float64(window.NativeWidth) / window.UiScale + 1
+                    && panel.Y + panel.Height <= float64(window.NativeHeight) / window.UiScale + 1,
                     "TeachingTip escaped the scaled viewport")
                 host.Open = false
                 host.Rebuild()

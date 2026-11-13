@@ -253,8 +253,7 @@ func ComboBoxInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "ComboBox verification",
-        Width: 720,
-        Height: 520,
+        Size: LayoutSize(720, 520),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -356,7 +355,7 @@ func ComboBoxInteractions() {
                 .Height,
             "ComboBox preferred upward placement did not fall back when only below fit"
         )
-        window.Height = 320
+        window.Size = LayoutSize(window.Size.Width, float64(320) / float64(window.UiScale))
         PumpFrames(window, 14)
         for frame in 0 ... 8 {
             PumpFrames(window, 1)
@@ -379,7 +378,7 @@ func ComboBoxInteractions() {
         SendKey(id, SDLScancode.End)
         PumpFrames(window, 12)
         Require(ComboActive(semantics, "Option 1499"), "ComboBox End failed across unmounted options")
-        window.Height = 520
+        window.Size = LayoutSize(window.Size.Width, float64(520) / float64(window.UiScale))
         PumpFrames(window, 14)
         host.Placement = PopoverPlacement.BottomStart
         host.Rebuild()
@@ -395,7 +394,7 @@ func ComboBoxInteractions() {
                 .Height,
             "ComboBox did not return below after its viewport grew"
         )
-        window.Height = 320
+        window.Size = LayoutSize(window.Size.Width, float64(320) / float64(window.UiScale))
         PumpFrames(window, 14)
         let flipped = host.Panel!!.Handle!!.BorderBox
         Require(
@@ -451,7 +450,7 @@ func ComboBoxInteractions() {
         PumpFrames(window, 8)
         CompositeClick(window, host.Trigger!!.Handle!!)
         PumpFrames(window, 12)
-        window.Width = 370
+        window.Size = LayoutSize(float64(370) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 14)
         let panel = host.Panel!!.Handle!!.BorderBox
         Require(panel.X >= 7.5 && panel.X + panel.Width <= 362.5, "ComboBox popup escaped resized overlay bounds")

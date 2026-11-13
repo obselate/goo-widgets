@@ -40,7 +40,7 @@ internal class TimePickerHost : Cell {
 func TimePickerInteractions() {
     let host = TimePickerHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 420, Height: 180, AccessibilityAdapter: semantics}
+    let window = Window{Root: ApplicationRoot(host), Size: LayoutSize(420, 180), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         let id = OnlyNativeWindow()
@@ -122,8 +122,7 @@ func TimePickerInteractions() {
         host.Rebuild()
         window.UiScale = 1.5F
         for width in []int32{480, 1100, 2560} {
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 300
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 300) / float64(window.UiScale))
             PumpFrames(window, 8)
             for name in []string{"Meeting hour", "Meeting minute", "Meeting period", "Meeting Clear"} {
                 let box = FindSemantics(semantics.Tree?.Root, name)!!.Bounds

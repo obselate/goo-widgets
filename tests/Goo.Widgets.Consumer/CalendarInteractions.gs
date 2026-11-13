@@ -316,8 +316,7 @@ func CalendarInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Calendar verification",
-        Width: 850,
-        Height: 620,
+        Size: LayoutSize(850, 620),
         Root: root,
         AccessibilityAdapter: semantics
     }

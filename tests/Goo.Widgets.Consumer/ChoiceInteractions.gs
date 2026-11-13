@@ -158,7 +158,7 @@ internal class RadioButtonHost : Cell {
 func RadioButtonInteractions() {
     let host = RadioButtonHost()
     let adapter = SearchListSemantics()
-    let window = Window{Title: "Radio choice", Width: 420, Height: 240, Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
+    let window = Window{Title: "Radio choice", Size: LayoutSize(420, 240), Root: ApplicationRoot(host), AccessibilityAdapter: adapter}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 20)
@@ -211,8 +211,7 @@ func ChoiceInteractions() {
     let adapter = SearchListSemantics()
     let window = Window{
         Title: "Buttons and choices",
-        Width: 620,
-        Height: 660,
+        Size: LayoutSize(620, 660),
         Root: root,
         AccessibilityAdapter: adapter
     }
@@ -336,10 +335,8 @@ func ChoiceInteractions() {
                 let semantics = SearchListSemantics()
                 let proof = Window{
                     Title: page,
-                    Width: width,
-                    Height: height,
-                    MinWidth: width,
-                    MinHeight: height,
+                    Size: LayoutSize(width, height),
+                    MinSize: LayoutSize(width, height),
                     Root: gallery,
                     AccessibilityAdapter: semantics,
                 }
@@ -351,7 +348,7 @@ func ChoiceInteractions() {
                 RunNativeWindow(proof, () -> {
                     proof.Open()
                     PumpFrames(proof, 20)
-                    Require(proof.Width == width && proof.Height == height,
+                    Require(proof.NativeWidth == width && proof.NativeHeight == height,
                         "Gallery fit window did not use the requested size")
                     let content = FeedbackNode(semantics, AccessibilityRole.Group, page)
                     let nodes = List[AccessibilityNode]()

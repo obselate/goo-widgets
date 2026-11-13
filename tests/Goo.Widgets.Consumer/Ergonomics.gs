@@ -280,7 +280,7 @@ internal class TextFieldSemanticHost : Cell {
 func TextFieldAccessibility() {
     let host = TextFieldSemanticHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 300, Height: 200, AccessibilityAdapter: semantics}
+    let window = Window{Root: host, Size: LayoutSize(300, 200), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 8)

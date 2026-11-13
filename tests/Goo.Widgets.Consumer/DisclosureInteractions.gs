@@ -115,7 +115,7 @@ internal class DisclosureHost : Cell {
 func DisclosureInteractions() {
     let host = DisclosureHost{}
     let semantics = SearchListSemantics{}
-    let window = Window{Title: "Disclosure interaction verification", Width: 580, Height: 340, Root: host}
+    let window = Window{Title: "Disclosure interaction verification", Size: LayoutSize(580, 340), Root: host}
     window.AccessibilityAdapter = semantics
     RunNativeWindow(window, () -> {
         window.Open()

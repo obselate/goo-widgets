@@ -65,7 +65,7 @@ class ColorPickerHost : Cell {
 func Main() {
     Window.ConfigureApplication("Color picker usage", "1.0.0", "com.example.colorpicker-usage")
     let root = ColorPickerHost{}
-    let window = Window{Title: "Color picker usage", Width: 420, Height: 560, Root: root}
+    let window = Window{Title: "Color picker usage", Size: LayoutSize(420, 560), Root: root}
     root.AttachWindow(window)
     window.Run()
 }

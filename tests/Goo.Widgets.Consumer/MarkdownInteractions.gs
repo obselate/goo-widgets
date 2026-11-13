@@ -204,8 +204,7 @@ func MarkdownInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Markdown verification",
-        Width: 820,
-        Height: 860,
+        Size: LayoutSize(820, 860),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -301,7 +300,7 @@ func MarkdownInteractions() {
         CompositeClick(window, host.LinkContent!!)
         PumpFrames(window, 8)
         Require(host.Links == 3, "Markdown pointer activation did not reach the link callback")
-        window.Width = 460
+        window.Size = LayoutSize(float64(460) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 25)
         let narrow = host.Editors["root/1"]
         Require(
