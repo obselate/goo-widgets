@@ -60,15 +60,15 @@ public class MaterialIcons {
                 throw ArgumentOutOfRangeException("size")
             }
             let asset = Asset(name)
-            let scale = Math.Min(size / float64(asset.ViewBoxWidth), size / float64(asset.ViewBoxHeight))
+            let scale = Math.Min(size / asset.ViewBoxWidth, size / asset.ViewBoxHeight)
             return Shape{
                 Path: asset.PathForNode(1),
                 Width: size,
                 Height: size,
                 Fit: ShapeFit.Contain,
                 Transform: PanelTransform{
-                    TranslateX: -float64(asset.ViewBoxX) * scale,
-                    TranslateY: -float64(asset.ViewBoxY) * scale,
+                    TranslateX: -asset.ViewBoxX * scale,
+                    TranslateY: -asset.ViewBoxY * scale,
                 },
                 Fill: VectorPaint(color ?? Theme.Read().TextColor),
                 UseCurrentColor: useCurrentColor,
