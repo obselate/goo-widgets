@@ -389,7 +389,7 @@ public open class TabBar : Cell[TabBarInput] {
         if !Enabled(id) {
             return
         }
-        if e.Key == Key.Delete || (e.Key == Key.W && (e.Modifiers.Ctrl || e.Modifiers.Super)) {
+        if e.Key == Key.Delete || (e.Key == Key.W && e.Modifiers.HasPrimary) {
             if input.OnClose != nil && Array.IndexOf(input.PinnedIds!!, id) < 0 {
                 e.PreventDefault()
                 e.StopPropagation()

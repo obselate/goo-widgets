@@ -153,7 +153,7 @@ func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
 
 func FeedbackGrid(window Window, adapter SearchListSemantics) {
     window.SmoothScrolling = false
-    window.Size = LayoutSize(window.Size.Width, float64(640) / float64(window.UiScale))
+    window.Size = LayoutSize(window.Size.Width, float64(640) / window.UiScale)
     PumpFrames(window, 20)
     let sequenceGrid = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
     for name in[]string{"atlas", "borealis", "cirrus", "ember", "fjord", "grove", "harbor"} {
@@ -236,7 +236,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
         "Clicking a partially visible checkbox scrolled the row before activation"
     )
     CaptureIssueProof(window, "gallery-grid-partial-check")
-    window.Size = LayoutSize(window.Size.Width, float64(800) / float64(window.UiScale))
+    window.Size = LayoutSize(window.Size.Width, float64(800) / window.UiScale)
     PumpFrames(window, 20)
     FeedbackWheel(window, grid, 20.0F)
     CaptureIssueProof(window, "gallery-grid-initial")
@@ -294,7 +294,7 @@ func FeedbackGrid(window Window, adapter SearchListSemantics) {
 
 func FeedbackGridFit(window Window, adapter SearchListSemantics) {
     for width in []int32{960, 1280} {
-        window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 960 ? 640: 800) / float64(window.UiScale))
+        window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 960 ? 640: 800) / window.UiScale)
         PumpFrames(window, 20)
         let fitted = FeedbackNode(adapter, AccessibilityRole.Grid, "Managed hosts").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search hosts").Bounds

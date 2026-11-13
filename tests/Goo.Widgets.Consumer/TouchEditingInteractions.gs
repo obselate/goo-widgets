@@ -125,7 +125,7 @@ func TouchEditingInteractions() {
             "Read-only touch editing exposed a write command")
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440 : 300) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440 : 300) / window.UiScale)
             PumpFrames(window, 8)
             let toolbar = FindSemantics(semantics.Tree?.Root, "Edit text")!!.Bounds
             Require(toolbar.X >= 0.0 && toolbar.Y >= 0.0
@@ -135,7 +135,7 @@ func TouchEditingInteractions() {
             CaptureIssueProof(window, "touch-editing-150-" + width.ToString())
         }
         window.UiScale = 1.0F
-        window.Size = LayoutSize(float64(500) / float64(window.UiScale), float64(300) / float64(window.UiScale))
+        window.Size = LayoutSize(float64(500) / window.UiScale, float64(300) / window.UiScale)
         host.Password = true
         host.Rebuild()
         PumpFrames(window, 8)

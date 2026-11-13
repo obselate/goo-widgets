@@ -661,7 +661,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.OnClick = () -> {
             if !clickFromChild {
                 if snapshot.OnSelectionChange != nil {
-                    Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift)
+                    Select(id, clickModifiers.HasPrimary, clickModifiers.Shift)
                     if snapshot.ExpandOnActivate && branch {
                         Expand(id, !row.Expanded)
                     }
@@ -797,7 +797,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if index < 0 {
             return
         }
-        if input.Multiple && (e.Modifiers.Ctrl || e.Modifiers.Super) && e.Key == Key.A {
+        if input.Multiple && e.Modifiers.HasPrimary && e.Key == Key.A {
             let ids = List[string]()
             for item in rows {
                 if !item.Disabled {
@@ -854,7 +854,7 @@ public open class TreeView : Cell[TreeViewInput] {
             if row.Node.CheckState != AccessibilityChecked.Unspecified {
                 Check(row.Node.Id!!)
             } else {
-                Select(row.Node.Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+                Select(row.Node.Id!!, e.Modifiers.HasPrimary, e.Modifiers.Shift)
             }
         } else if e.Key == Key.F2 {
             InvokeInputCallback(input.OnRename, row.Node.Id!!)
@@ -868,8 +868,8 @@ public open class TreeView : Cell[TreeViewInput] {
             if next != index &&
                 input.OnSelectionChange != nil &&
                 (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End) &&
-                (!(e.Modifiers.Ctrl || e.Modifiers.Super) || e.Modifiers.Shift) {
-                Select(id, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+                (!e.Modifiers.HasPrimary || e.Modifiers.Shift) {
+                Select(id, e.Modifiers.HasPrimary, e.Modifiers.Shift)
             } else {
                 Activate(id)
             }

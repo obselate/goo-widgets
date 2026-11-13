@@ -88,7 +88,7 @@ public open partial class DataGrid {
     private func DragResize(id string, e PointerDragEvent) {
         e.PreventDefault()
         e.StopPropagation()
-        if e.Phase == PointerDragPhase.Started {
+        if e.Phase == GesturePhase.Started {
             let index = ColumnIndex(id)
             if index < 0 || input.Disabled || !CanResize(index) {
                 return
@@ -103,10 +103,10 @@ public open partial class DataGrid {
             }
             lastFittedWidths = nil
             Handle(resizeHandles, id).Focus()
-        } else if e.Phase == PointerDragPhase.Moved && resizeId != nil {
+        } else if e.Phase == GesturePhase.Changed && resizeId != nil {
             RequestWidth(resizeId!!, originWidth + e.WindowPosition.X - origin, false, resizeWidths)
-        } else if e.Phase == PointerDragPhase.Ended || e.Phase == PointerDragPhase.Canceled {
-            if e.Phase == PointerDragPhase.Ended && resizeId != nil {
+        } else if e.Phase == GesturePhase.Completed || e.Phase == GesturePhase.Canceled {
+            if e.Phase == GesturePhase.Completed && resizeId != nil {
                 if input.FitColumnsToViewport {
                     if let resolved = lastFittedWidths {
                         InvokeInputCallback(input.OnFittedColumnWidthsCommit, resolved)

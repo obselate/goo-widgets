@@ -444,7 +444,7 @@ func SkeletonInteractions() {
         for palette in []Theme{Theme.Ink, Theme.Bone, Theme.Ink.WithHighContrast()} {
             Theme.Attach(window, palette)
             for width in []int32{480, 900, 1600, 2560} {
-                window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 480) / float64(window.UiScale))
+                window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 480) / window.UiScale)
                 window.UiScale = 1.5F
                 PumpFrames(window, 12)
                 for name in []string{"Loading text", "Loading avatar", "Loading preview"} {
@@ -503,7 +503,7 @@ func SkeletonInteractions() {
     RunNativeWindow(proof, () -> {
         proof.Open()
         for width in []int32{960, 1600, 2560} {
-            proof.Size = LayoutSize(float64(width) / float64(proof.UiScale), float64(width == 2560 ? 1440: 640) / float64(proof.UiScale))
+            proof.Size = LayoutSize(float64(width) / proof.UiScale, float64(width == 2560 ? 1440: 640) / proof.UiScale)
             PumpFrames(proof, 16)
             let card = gallery.CardHandle.BorderBox
             let pause = FindSemantics(gallerySemantics.Tree?.Root, "Pause")!!.Bounds

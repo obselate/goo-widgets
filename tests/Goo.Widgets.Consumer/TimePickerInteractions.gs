@@ -122,7 +122,7 @@ func TimePickerInteractions() {
         host.Rebuild()
         window.UiScale = 1.5F
         for width in []int32{480, 1100, 2560} {
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 300) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 300) / window.UiScale)
             PumpFrames(window, 8)
             for name in []string{"Meeting hour", "Meeting minute", "Meeting period", "Meeting Clear"} {
                 let box = FindSemantics(semantics.Tree?.Root, name)!!.Bounds
