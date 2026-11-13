@@ -273,31 +273,31 @@ func Main(args[]string) {
     let mode = appearance == "light" ? ThemeMode.Light: ThemeMode.Dark
     let rightToLeft = Array.IndexOf(args, "--rtl") >= 0
     if Array.IndexOf(args, "--glass") >= 0 {
-        Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+        Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
         let shell = GlassShell()
         let window = Window{Title: "Goo Widgets glass", Width: 1200, Height: 760, Root: shell}
         shell.Host = window
         WindowChrome.ReplaceTitlebar(window)
         let glass = mode == ThemeMode.Light ? Theme.BoneGlass: Theme.InkGlass
         Theme.Attach(window, appearance == "native" ? Theme.Native: glass)
-        window.Run()
+        Application.Run(window)
         return
     }
     if let directory = RequestedValue(args, "--shell-screenshots") {
-        Window.ConfigureApplication("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
+        Application.Configure("Goo Widgets Gallery", "0.9.0", "com.obselate.goo-widgets.gallery")
         CaptureGallery(registry, directory, requestedPage, mode, true, rightToLeft)
         return
     }
     if let spotlightDirectory = RequestedValue(args, "--spotlight") {
         if let title = requestedPage {
-            Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+            Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
             CaptureSpotlight(registry, spotlightDirectory, title)
             return
         }
         throw ArgumentException("--spotlight requires --page.")
     }
     if let screenshotDirectory = RequestedValue(args, "--screenshots") {
-        Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+        Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
         CaptureGallery(registry, screenshotDirectory, requestedPage, mode, false, rightToLeft)
         return
     }
@@ -305,7 +305,7 @@ func Main(args[]string) {
     if let title = requestedPage {
         initialIndex = registry.IndexOf(title)
     }
-    Window.ConfigureApplication("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
+    Application.Configure("Goo Widgets Gallery", "0.1.0", "com.obselate.goo-widgets.gallery")
     let gallery = Gallery(registry, initialIndex)
     gallery.RightToLeft = rightToLeft
     let window = Window{
@@ -314,5 +314,5 @@ func Main(args[]string) {
     }
     gallery.AttachWindow(window)
     Theme.SetMode(window, mode)
-    window.Run()
+    Application.Run(window)
 }

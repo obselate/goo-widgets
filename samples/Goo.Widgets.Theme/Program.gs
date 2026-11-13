@@ -254,9 +254,9 @@ func Main() {
     using let semibold = FontSource("Vend Sans", 600, false, font, 0u, []FontVariation{FontVariation("wght", 600.0F)})
     medium.Register()
     semibold.Register()
-    Window.ConfigureApplication("Goo theme", "1.0.0", "com.example.goo-theme")
+    Application.Configure("Goo theme", "1.0.0", "com.example.goo-theme")
     let root = ThemeSample{}
     let window = Window{Title: "Goo Widgets · Goo theme", Width: 720, Height: 700, Root: root}
     root.AttachWindow(window)
-    window.Run()
+    Application.Run(window)
 }
