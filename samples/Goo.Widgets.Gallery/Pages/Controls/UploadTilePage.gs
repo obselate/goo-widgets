@@ -87,14 +87,14 @@ class UploadTilePage : GalleryPage {
                 JustifyContent: JustifyContent.Center,
                 Gap: 6.0,
                 MaterialIcons.Create("image", 28.0, Color.Parse("#4ade80")),
-                Text{Content: "banner.png", FontSize: 11.0, Color: "#f0fdf4"},
+                Text{Content: "banner.png", FontSize: 11.0, Color: Color.Parse("#f0fdf4")},
             },
-            Status: Text{Content: "Ready / 100%", FontSize: 11.0, FontWeight: 700, Color: "#4ade80"},
+            Status: Text{Content: "Ready / 100%", FontSize: 11.0, FontWeight: 700, Color: Color.Parse("#4ade80")},
             Action: Container{
                 Padding: Edges(2.0, 6.0),
                 BorderRadius: 4.0,
                 BackgroundColor: Color.Parse("#166534"),
-                Text{Content: "VIEW", FontSize: 9.0, FontWeight: 700, Color: "#bbf7d0"},
+                Text{Content: "VIEW", FontSize: 9.0, FontWeight: 700, Color: Color.Parse("#bbf7d0")},
             },
         }
 

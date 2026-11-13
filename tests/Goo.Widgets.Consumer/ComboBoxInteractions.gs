@@ -106,7 +106,7 @@ internal class ComboBoxHost : Cell {
                 ComboBoxOption{Id: "alpha", Label: "Alpha"},
                 ComboBoxOption{Id: "locked", Label: "Locked", Disabled: true},
                 ComboBoxOption{Id: "beta", Label: "Beta"},
-                ComboBoxOption{Id: "gamma", Label: "Gamma", Content: Text{Content: "Gamma · custom", Color: "#86efac"}}
+                ComboBoxOption{Id: "gamma", Label: "Gamma", Content: Text{Content: "Gamma · custom", Color: Color.Parse("#86efac")}}
             }
         }
         let items = [1500]ComboBoxOption
@@ -126,20 +126,20 @@ internal class ComboBoxHost : Cell {
             Height: Percent(100),
             Padding: 24.0,
             Gap: 16.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "title", Content: "ComboBox · controlled selection", FontSize: 24.0, FontWeight: 700},
             Text{
                 Key: "hint",
                 Content: "Open, navigate, cancel or commit. Search narrows 1,500 virtual options.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Button{
                 Key: "before",
                 Handle: Before,
                 Height: 36.0,
                 Width: 160.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 OnClick: () -> {
                     BackgroundClicks++
                 },

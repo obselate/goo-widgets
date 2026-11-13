@@ -121,8 +121,8 @@ internal class InteractiveHost : Cell {
             Height: Percent(100),
             Padding: 32,
             Gap: 20,
-            BackgroundColor: "#18181b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#18181b"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "heading", Content: "Packaged widget input checks", FontSize: 24},
             Cell.Mount[SliderInput, Slider](
                 "range",

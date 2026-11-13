@@ -228,12 +228,12 @@ internal class TreeHost : Cell {
             Height: Percent(100),
             Padding: 24,
             Gap: 18,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "TreeView · controlled hierarchy", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "TreeView · controlled hierarchy", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Arrow keys navigate. Space changes a check; Enter selects a row.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Cell.Mount[TreeViewInput, TreeView]("tree", configuration),
             Button{
@@ -241,8 +241,8 @@ internal class TreeHost : Cell {
                 Handle: After,
                 Focusable: true,
                 Padding: 10,
-                BackgroundColor: "#2d3550",
-                Color: "#e0e7ff",
+                BackgroundColor: Color.Parse("#2d3550"),
+                Color: Color.Parse("#e0e7ff"),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "After tree"},
                 Text{Content: "Next control"}
             }

@@ -192,7 +192,7 @@ internal class DataGridHeightHost : Cell {
             ScrollbarY: VirtualColumns ? Scrollbar{
                 Thickness: 10,
                 Inset: 0,
-                Thumb: Container{Handle: VerticalThumb, BackgroundColor: "#a1a1aa"}
+                Thumb: Container{Handle: VerticalThumb, BackgroundColor: Color.Parse("#a1a1aa")}
             }: nil,
             CreateHeader: Navigation ? NavigationHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
                 Container{Handle: column.Id == "a" ? WidthA: WidthB, Width: Percent(100), content},
@@ -707,8 +707,8 @@ func DataGridContracts() {
                     return Container{
                         Key: "unrelated",
                         Handle: unrelatedHandle,
-                        Hover: Style{BackgroundColor: "#18181b"},
-                        Focus: Style{BackgroundColor: "#18181b"}
+                        HoverStyle: Style{BackgroundColor: Color.Parse("#18181b")},
+                        FocusStyle: Style{BackgroundColor: Color.Parse("#18181b")}
                     }
                 },
                 RootHandle: rootHandle,
@@ -828,7 +828,7 @@ internal class DataGridHost : Cell {
         DetailBuilds++
         return Text{
             Content: "Expanded host details use measured text. A longer note wraps at the shared table width and moves the next row without a fixed detail-height estimate.",
-            Color: "#a5b4fc",
+            Color: Color.Parse("#a5b4fc"),
             FontSize: 16
         }
     }
@@ -975,8 +975,8 @@ internal class DataGridHost : Cell {
                 Width: Percent(100),
                 Height: 30,
                 Padding: 5,
-                Color: "#fafafa",
-                BackgroundColor: "#09090b"
+                Color: Color.Parse("#fafafa"),
+                BackgroundColor: Color.Parse("#09090b")
             }
         }
         let state = DataGridColumn{
@@ -1001,12 +1001,12 @@ internal class DataGridHost : Cell {
             Height: Percent(100),
             Padding: 20,
             Gap: 14,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Sort headers, drag column edges, and select rows. Details are measured.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Cell.Mount[DataGridInput, DataGrid](
                 "grid",

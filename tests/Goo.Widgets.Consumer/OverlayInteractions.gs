@@ -184,7 +184,7 @@ internal class OverlayHost : Cell {
             Handle: ElementHandle(),
             Focusable: !EmptyDialog,
             Padding: 10.0,
-            BackgroundColor: "#27272a",
+            BackgroundColor: Color.Parse("#27272a"),
             BorderRadius: 5.0,
             content
         }
@@ -197,7 +197,7 @@ internal class OverlayHost : Cell {
             Handle: ElementHandle(),
             Focusable: !EmptyDialog,
             Padding: 10.0,
-            BackgroundColor: "#6366f1",
+            BackgroundColor: Color.Parse("#6366f1"),
             BorderRadius: 5.0,
             content
         }
@@ -208,7 +208,7 @@ internal class OverlayHost : Cell {
     private func CapturePanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let result = Container{
             Padding: 14.0,
-            BackgroundColor: "#1e2130",
+            BackgroundColor: Color.Parse("#1e2130"),
             BorderWidth: 1.0,
             BorderColor: Color.Parse("#6366f1"),
             BorderRadius: 9.0
@@ -226,7 +226,7 @@ internal class OverlayHost : Cell {
     private func MenuRow(input MenuInput, item MenuItem, prepared Button) Button {
         MenuRows[item.Id!!] = prepared
         if let color = MenuFocusColor {
-            prepared.Focus = Style{Color: color}
+            prepared.FocusStyle = Style{Color: color}
         }
         return prepared
     }
@@ -239,10 +239,10 @@ internal class OverlayHost : Cell {
         let root = Container{
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#111318",
+            BackgroundColor: Color.Parse("#111318"),
             Padding: 24.0,
             Gap: 16.0,
-            Color: "#fafafa",
+            Color: Color.Parse("#fafafa"),
             OnKeyDown: (event KeyEvent) -> {
                 BackgroundKeys++
             },
@@ -251,14 +251,14 @@ internal class OverlayHost : Cell {
                 Key: "description",
                 Content: "Nested dialogs · anchored popovers · accessible context menus",
                 FontSize: 14.0,
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Button{
                 Key: "before",
                 Handle: Before,
                 Width: 180.0,
                 Height: 38.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 BorderRadius: 6.0,
                 OnKeyDown: (event KeyEvent) -> {
                     if event.Key == Key.Escape { BackgroundEscapes++ }
@@ -291,7 +291,7 @@ internal class OverlayHost : Cell {
                     Top: AnchorY,
                     Width: 180.0,
                     Height: 38.0,
-                    BackgroundColor: "#4f46e5",
+                    BackgroundColor: Color.Parse("#4f46e5"),
                     BorderRadius: 6.0,
                     OnClick: () -> {
                         PopupOpen = true
@@ -324,20 +324,20 @@ internal class OverlayHost : Cell {
             } else {
                 Container{
                     Gap: 12.0,
-                    Text{Content: "Focus stays in this dialog until it closes.", Color: "#a1a1aa"},
+                    Text{Content: "Focus stays in this dialog until it closes.", Color: Color.Parse("#a1a1aa")},
                     TextEntry{
                         Handle: Edit,
                         Value: "Release notes",
                         Width: Percent(100),
                         Height: 38.0,
                         Padding: 8.0,
-                        BackgroundColor: "#09090b",
+                        BackgroundColor: Color.Parse("#09090b"),
                         Accessibility: Accessibility{Name: "Dialog editor"}
                     },
                     Button{
                         Handle: Nested,
                         Height: 36.0,
-                        BackgroundColor: "#312e81",
+                        BackgroundColor: Color.Parse("#312e81"),
                         OnClick: () -> {
                             TopOpen = true
                             Rebuild()
@@ -372,7 +372,7 @@ internal class OverlayHost : Cell {
                         Open: TopOpen,
                         Header: Text{Content: "Nested confirmation", FontSize: 21.0, FontWeight: 700},
                         Width: 370.0,
-                        Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
+                        Content: Text{Content: "Only this top dialog receives keyboard input.", Color: Color.Parse("#a1a1aa")},
                         AccessibilityName: "Nested confirmation",
                         OnOpenChange: (isOpen bool) -> CloseTop(),
                         OnCancel: CloseTop,
@@ -390,11 +390,11 @@ internal class OverlayHost : Cell {
             Content: Container{
                 Gap: 14.0,
                 Text{Content: "Quick details", FontSize: 18.0, FontWeight: 700},
-                Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: "#c4c4cf"},
+                Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: Color.Parse("#c4c4cf")},
                 Button{
                     Handle: PopupAction,
                     Height: 34.0,
-                    BackgroundColor: "#4f46e5",
+                    BackgroundColor: Color.Parse("#4f46e5"),
                     Text{Content: "Continue"},
                     Accessibility: Accessibility{Name: "Popup action"}
                 }
@@ -429,7 +429,7 @@ internal class OverlayHost : Cell {
                     WindowPoint: Point{X: 630.0, Y: 180.0},
                     Width: 220.0,
                     AccessibilityName: "Actions",
-                    SubmenuArrowStyle: Style{Color: "#d16b42"},
+                    SubmenuArrowStyle: Style{Color: Color.Parse("#d16b42")},
                     Items: []MenuItem{
                         MenuItem{Id: "open", Label: "Open"},
                         MenuItem{Id: "disabled", Label: "Unavailable action", Disabled: true},
