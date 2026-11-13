@@ -184,7 +184,7 @@ internal class OverlayHost : Cell {
             Handle: ElementHandle(),
             Focusable: !EmptyDialog,
             Padding: 10.0,
-            BackgroundColor: "#27272a",
+            BackgroundColor: Color.Parse("#27272a"),
             BorderRadius: 5.0,
             content
         }
@@ -197,7 +197,7 @@ internal class OverlayHost : Cell {
             Handle: ElementHandle(),
             Focusable: !EmptyDialog,
             Padding: 10.0,
-            BackgroundColor: "#6366f1",
+            BackgroundColor: Color.Parse("#6366f1"),
             BorderRadius: 5.0,
             content
         }
@@ -208,7 +208,7 @@ internal class OverlayHost : Cell {
     private func CapturePanel(input PopoverInput, bounds ElementRect, content Blob) Container {
         let result = Container{
             Padding: 14.0,
-            BackgroundColor: "#1e2130",
+            BackgroundColor: Color.Parse("#1e2130"),
             BorderWidth: 1.0,
             BorderColor: Color.Parse("#6366f1"),
             BorderRadius: 9.0
@@ -226,7 +226,7 @@ internal class OverlayHost : Cell {
     private func MenuRow(input MenuInput, item MenuItem, prepared Button) Button {
         MenuRows[item.Id!!] = prepared
         if let color = MenuFocusColor {
-            prepared.Focus = Style{Color: color}
+            prepared.FocusStyle = Style{Color: color}
         }
         return prepared
     }
@@ -239,10 +239,10 @@ internal class OverlayHost : Cell {
         let root = Container{
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#111318",
+            BackgroundColor: Color.Parse("#111318"),
             Padding: 24.0,
             Gap: 16.0,
-            Color: "#fafafa",
+            Color: Color.Parse("#fafafa"),
             OnKeyDown: (event KeyEvent) -> {
                 BackgroundKeys++
             },
@@ -251,14 +251,14 @@ internal class OverlayHost : Cell {
                 Key: "description",
                 Content: "Nested dialogs · anchored popovers · accessible context menus",
                 FontSize: 14.0,
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Button{
                 Key: "before",
                 Handle: Before,
                 Width: 180.0,
                 Height: 38.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 BorderRadius: 6.0,
                 OnKeyDown: (event KeyEvent) -> {
                     if event.Key == Key.Escape { BackgroundEscapes++ }
@@ -291,7 +291,7 @@ internal class OverlayHost : Cell {
                     Top: AnchorY,
                     Width: 180.0,
                     Height: 38.0,
-                    BackgroundColor: "#4f46e5",
+                    BackgroundColor: Color.Parse("#4f46e5"),
                     BorderRadius: 6.0,
                     OnClick: () -> {
                         PopupOpen = true
@@ -324,20 +324,20 @@ internal class OverlayHost : Cell {
             } else {
                 Container{
                     Gap: 12.0,
-                    Text{Content: "Focus stays in this dialog until it closes.", Color: "#a1a1aa"},
+                    Text{Content: "Focus stays in this dialog until it closes.", Color: Color.Parse("#a1a1aa")},
                     TextEntry{
                         Handle: Edit,
                         Value: "Release notes",
                         Width: Percent(100),
                         Height: 38.0,
                         Padding: 8.0,
-                        BackgroundColor: "#09090b",
+                        BackgroundColor: Color.Parse("#09090b"),
                         Accessibility: Accessibility{Name: "Dialog editor"}
                     },
                     Button{
                         Handle: Nested,
                         Height: 36.0,
-                        BackgroundColor: "#312e81",
+                        BackgroundColor: Color.Parse("#312e81"),
                         OnClick: () -> {
                             TopOpen = true
                             Rebuild()
@@ -372,7 +372,7 @@ internal class OverlayHost : Cell {
                         Open: TopOpen,
                         Header: Text{Content: "Nested confirmation", FontSize: 21.0, FontWeight: 700},
                         Width: 370.0,
-                        Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
+                        Content: Text{Content: "Only this top dialog receives keyboard input.", Color: Color.Parse("#a1a1aa")},
                         AccessibilityName: "Nested confirmation",
                         OnOpenChange: (isOpen bool) -> CloseTop(),
                         OnCancel: CloseTop,
@@ -390,11 +390,11 @@ internal class OverlayHost : Cell {
             Content: Container{
                 Gap: 14.0,
                 Text{Content: "Quick details", FontSize: 18.0, FontWeight: 700},
-                Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: "#c4c4cf"},
+                Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: Color.Parse("#c4c4cf")},
                 Button{
                     Handle: PopupAction,
                     Height: 34.0,
-                    BackgroundColor: "#4f46e5",
+                    BackgroundColor: Color.Parse("#4f46e5"),
                     Text{Content: "Continue"},
                     Accessibility: Accessibility{Name: "Popup action"}
                 }
@@ -429,7 +429,7 @@ internal class OverlayHost : Cell {
                     WindowPoint: Point{X: 630.0, Y: 180.0},
                     Width: 220.0,
                     AccessibilityName: "Actions",
-                    SubmenuArrowStyle: Style{Color: "#d16b42"},
+                    SubmenuArrowStyle: Style{Color: Color.Parse("#d16b42")},
                     Items: []MenuItem{
                         MenuItem{Id: "open", Label: "Open"},
                         MenuItem{Id: "disabled", Label: "Unavailable action", Disabled: true},
@@ -484,8 +484,7 @@ func ModalClipboardInteractions() {
     let semantics = SearchListSemantics{}
     let window = Window{
         Title: "Modal clipboard verification",
-        Width: 860,
-        Height: 560,
+        Size: LayoutSize(860, 560),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics,
     }
@@ -521,8 +520,7 @@ func OverlayInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Overlay verification",
-        Width: 860,
-        Height: 560,
+        Size: LayoutSize(860, 560),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -671,7 +669,7 @@ func OverlayInteractions() {
         host.ExplicitViewport = true
         host.PopupOpen = true
         host.Rebuild()
-        window.Width = 440
+        window.Size = LayoutSize(float64(440) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 18)
         let narrow = host.PopupPanel!!.Handle!!.BorderBox
         Require(
@@ -751,7 +749,7 @@ func OverlayInteractions() {
             PumpFrames(window, 8)
         }
         host.BasisContent = 0.0
-        window.Width = 860
+        window.Size = LayoutSize(float64(860) / float64(window.UiScale), window.Size.Height)
         host.PointPopup = false
         host.ExplicitViewport = false
         host.AnchorX = 590.0
@@ -893,7 +891,7 @@ func OverlayInteractions() {
 func WhiteTextOnNavy(window Window, row ElementHandle) bool {
     let image = ThemeCapture(window)
     let box = row.BorderBox
-    let scale = float64(image.Width) / float64(window.Width)
+    let scale = float64(image.Width) / float64(window.NativeWidth)
     var navy = false
     var white = false
     for y in int32(box.Y * scale) + 1 ... int32((box.Y + box.Height) * scale) - 1 {
@@ -941,7 +939,7 @@ internal class TeachingTipHost : Cell {
 func TeachingTipInteractions() {
     let host = TeachingTipHost()
     let semantics = SearchListSemantics()
-    let window = Window{Title: "Teaching tip verification", Width: 640, Height: 480,
+    let window = Window{Title: "Teaching tip verification", Size: LayoutSize(640, 480),
         Root: ApplicationRoot(host), AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Ink)
     RunNativeWindow(window, () -> {
@@ -1010,8 +1008,7 @@ func TeachingTipInteractions() {
         }
         Require(host.Requests == 24 && host.Actions == 6, "TeachingTip callback counts changed")
         for width in []int32{480, 900, 1600, 2560} {
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 480
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 480) / float64(window.UiScale))
             window.UiScale = 1.5F
             for anchored in []bool{true, false} {
                 host.Anchored = anchored
@@ -1020,8 +1017,8 @@ func TeachingTipInteractions() {
                 PumpFrames(window, 16)
                 let panel = FindSemantics(semantics.Tree?.Root, "Save bookmark")!!.Bounds
                 Require(panel.X >= 0 && panel.Y >= 0
-                    && panel.X + panel.Width <= float64(window.Width) / window.UiScale + 1
-                    && panel.Y + panel.Height <= float64(window.Height) / window.UiScale + 1,
+                    && panel.X + panel.Width <= float64(window.NativeWidth) / window.UiScale + 1
+                    && panel.Y + panel.Height <= float64(window.NativeHeight) / window.UiScale + 1,
                     "TeachingTip escaped the scaled viewport")
                 host.Open = false
                 host.Rebuild()

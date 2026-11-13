@@ -21,9 +21,9 @@ internal class DonutChartPage : GalleryPage {
                 Text{Content: "available", FontSize: 11}
             },
             Series: []ChartSeries{
-                ChartSeries{Id: "available", Label: "Available", Value: 64, Color: "#2dd4bf"},
-                ChartSeries{Id: "used", Label: "Used", Value: 28.5, Color: "#818cf8"},
-                ChartSeries{Id: "reserved", Label: "Reserved", Value: 7.5, Color: "#fbbf24"}
+                ChartSeries{Id: "available", Label: "Available", Value: 64, Color: Color.Parse("#2dd4bf")},
+                ChartSeries{Id: "used", Label: "Used", Value: 28.5, Color: Color.Parse("#818cf8")},
+                ChartSeries{Id: "reserved", Label: "Reserved", Value: 7.5, Color: Color.Parse("#fbbf24")}
             },
         },
         Container{
@@ -35,7 +35,7 @@ internal class DonutChartPage : GalleryPage {
                 Size: 100,
                 Thickness: 14,
                 Center: Text{Content: "100%", FontSize: 16},
-                Series: []ChartSeries{ChartSeries{Id: "all", Label: "Complete", Value: .5, Color: "#2dd4bf"}}
+                Series: []ChartSeries{ChartSeries{Id: "all", Label: "Complete", Value: .5, Color: Color.Parse("#2dd4bf")}}
             }
         }
     }

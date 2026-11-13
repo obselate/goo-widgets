@@ -195,8 +195,8 @@ public data struct ListRow {
         var root = Container{
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled && (resolved.OnClick != nil || resolved.OnInvoke != nil),
-            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
-            Active: PressedBackgroundColor == nil ? nil: Style{BackgroundColor: PressedBackgroundColor!!},
+            HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            ActiveStyle: PressedBackgroundColor == nil ? nil: Style{BackgroundColor: PressedBackgroundColor!!},
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
@@ -223,8 +223,8 @@ public data struct ListRow {
             root = create(resolved, Leading, content, Trailing)
         }
         if Selected && SelectedBackgroundColor != nil {
-            root.Hover = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.Hover}
-            root.Active = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.Active}
+            root.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.HoverStyle}
+            root.ActiveStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.ActiveStyle}
         }
         theme.ApplyInteraction(root, InteractionFamily.Row, Selected, OnClick != nil || OnInvoke != nil)
         if resolved.Disabled {

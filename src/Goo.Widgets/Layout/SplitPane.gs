@@ -150,7 +150,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             FlexDirection: horizontal ? FlexDirection.Row: FlexDirection.Column,
             JustifyContent: JustifyContent.Center,
             Margin: horizontal ? Edges{Left: overlap, Right: overlap}: Edges{Top: overlap, Bottom: overlap},
-            Focus: Style{
+            FocusStyle: Style{
                 BasedOn: theme.FocusStyle,
                 OutlineWidth: Math.Max(1.0, theme.FocusRingWidth),
                 OutlineOffset: -theme.FocusRingWidth

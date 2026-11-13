@@ -110,7 +110,7 @@ internal class TimeAxisHost : Cell {
     private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) Button {
         prepared.Handle = ElementHandle()
         if placement.Event.Id == "point" {
-            prepared.BackgroundColor = "#fbbf24"
+            prepared.BackgroundColor = Color.Parse("#fbbf24")
         }
         Buttons[placement.Event.Id!!] = prepared
         return prepared
@@ -127,12 +127,12 @@ internal class TimeAxisHost : Cell {
             Height: Percent(100),
             Padding: 24,
             Gap: 20,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "TimeAxis · September 14", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "TimeAxis · September 14", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Scroll the ruler or use Left/Right, Home/End. Overlapping events occupy separate lanes.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             }
         }
         if Show {
@@ -175,8 +175,7 @@ func TimeAxisInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TimeAxis verification",
-        Width: 700,
-        Height: 360,
+        Size: LayoutSize(700, 360),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -222,7 +221,7 @@ func TimeAxisInteractions() {
             Math.Abs(handle.ScrollOffset.X - 300.0) < .5 && handle.ScrollRange.X > 1400.0,
             "Scale change lost the viewport or failed to change the scroll range"
         )
-        window.Width = 420
+        window.Size = LayoutSize(float64(420) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 10)
         Require(Math.Abs(handle.ScrollOffset.X - 300.0) < .5, "Resize restarted initial centering")
         CaptureIssueProof(window, "time-axis-narrow")

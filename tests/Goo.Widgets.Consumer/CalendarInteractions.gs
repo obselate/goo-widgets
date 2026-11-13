@@ -112,7 +112,7 @@ internal class CalendarHost : Cell {
 
     private func Day(input CalendarInput, day CalendarDay, prepared Button) Button {
         if Light() && day.Selected {
-            prepared.BackgroundColor = "#bfdbfe"
+            prepared.BackgroundColor = Color.Parse("#bfdbfe")
         }
         Days[day.Date.DayNumber] = prepared
         return prepared
@@ -120,8 +120,8 @@ internal class CalendarHost : Cell {
 
     private func CalendarRoot(input CalendarInput, prepared Container) Container {
         if Light() {
-            prepared.BackgroundColor = "#f8fafc"
-            prepared.Color = "#0f172a"
+            prepared.BackgroundColor = Color.Parse("#f8fafc")
+            prepared.Color = Color.Parse("#0f172a")
         }
         return prepared
     }
@@ -133,8 +133,8 @@ internal class CalendarHost : Cell {
 
     private func Nav(input CalendarInput, delta int32, prepared Button) Button {
         if Light() {
-            prepared.BackgroundColor = "#e2e8f0"
-            prepared.Color = "#0f172a"
+            prepared.BackgroundColor = Color.Parse("#e2e8f0")
+            prepared.Color = Color.Parse("#0f172a")
         }
         Navigation[delta] = prepared
         return prepared
@@ -181,7 +181,7 @@ internal class CalendarHost : Cell {
     }
 
     public override func Build() Blob {
-        let textColor = Light() ? "#1e3a8a": "#fbbf24"
+        let textColor = Color.Parse(Light() ? "#1e3a8a": "#fbbf24")
         var calendar = CalendarInput{
             Value: Selected,
             OnChange: Select,
@@ -255,13 +255,13 @@ internal class CalendarHost : Cell {
             Height: Percent(100),
             Padding: 24.0,
             Gap: 18.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "title", Content: "Calendar and DatePicker", FontSize: 25.0, FontWeight: 700},
             Text{
                 Key: "hint",
                 Content: "Localized dates, bounded navigation, and controlled text validation.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Goo
                 .Button{
@@ -269,7 +269,7 @@ internal class CalendarHost : Cell {
                 Handle: Before,
                 Width: 150.0,
                 Height: 34.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 Text{Content: "Background action"}
             },
             row
@@ -316,8 +316,7 @@ func CalendarInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Calendar verification",
-        Width: 850,
-        Height: 620,
+        Size: LayoutSize(850, 620),
         Root: root,
         AccessibilityAdapter: semantics
     }

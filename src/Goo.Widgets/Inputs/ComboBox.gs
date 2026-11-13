@@ -401,7 +401,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 entry = create(current, entry)
             }
             theme.ApplyInteraction(entry, InteractionFamily.Field)
-            entry.Focus!!.OutlineOffset = -theme.FocusRingWidth
+            entry.FocusStyle!!.OutlineOffset = -theme.FocusRingWidth
             entry.Key = "search"
             entry.Handle = searchHandle
             entry.Value = query
