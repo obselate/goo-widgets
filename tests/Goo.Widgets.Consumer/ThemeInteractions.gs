@@ -1244,7 +1244,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Dark").Bounds)
     Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Dark did not restore Ink.")
     for width in[]int32{960, 1440, 1707} {
-        window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 960 ? 640: width == 1440 ? 900: 960) / float64(window.UiScale))
+        window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 960 ? 640: width == 1440 ? 900: 960) / window.UiScale)
         PumpFrames(window, 12)
         let footer = FeedbackNode(adapter, AccessibilityRole.Button, "Light").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search widgets").Bounds
@@ -1264,7 +1264,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
             FeedbackNode(adapter, AccessibilityRole.Heading, "Date picker")
         }
     }
-    window.Size = LayoutSize(float64(1100) / float64(window.UiScale), float64(800) / float64(window.UiScale))
+    window.Size = LayoutSize(float64(1100) / window.UiScale, float64(800) / window.UiScale)
     let menuIndex = registry.IndexOf("Menu")
     gallery.Show(menuIndex)
     PumpFrames(window, 20)

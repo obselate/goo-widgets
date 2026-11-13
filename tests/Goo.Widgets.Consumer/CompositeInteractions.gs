@@ -467,7 +467,7 @@ func CompositeInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         CaptureIssueProof(window, "composites-wide")
-        window.Size = LayoutSize(float64(390) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(390) / window.UiScale, window.Size.Height)
         PumpFrames(window, 15)
         Require(
             host.TabViewport.ScrollRange.X > 0.0 && host.TabRoot!!.Children.Count == 6,

@@ -37,18 +37,18 @@ internal class TouchEditingHost : Cell {
 
 func TouchPressAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerPress(id, PointerDevice.Touch,
-        float32(point.X) * window.UiScale, float32(point.Y) * window.UiScale,
+        point.X * window.UiScale, point.Y * window.UiScale,
         PointerButton.Primary, KeyModifiers{}, 1.0F)
 }
 
 func TouchMoveAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerMove(id, PointerDevice.Touch,
-        float32(point.X) * window.UiScale, float32(point.Y) * window.UiScale, KeyModifiers{}, 1.0F)
+        point.X * window.UiScale, point.Y * window.UiScale, KeyModifiers{}, 1.0F)
 }
 
 func TouchReleaseAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerRelease(id, PointerDevice.Touch,
-        float32(point.X) * window.UiScale, float32(point.Y) * window.UiScale,
+        point.X * window.UiScale, point.Y * window.UiScale,
         PointerButton.Primary, KeyModifiers{}, 0.0F)
 }
 
@@ -125,7 +125,7 @@ func TouchEditingInteractions() {
             "Read-only touch editing exposed a write command")
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440 : 300) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440 : 300) / window.UiScale)
             PumpFrames(window, 8)
             let toolbar = FindSemantics(semantics.Tree?.Root, "Edit text")!!.Bounds
             Require(toolbar.X >= 0.0 && toolbar.Y >= 0.0
@@ -135,7 +135,7 @@ func TouchEditingInteractions() {
             CaptureIssueProof(window, "touch-editing-150-" + width.ToString())
         }
         window.UiScale = 1.0F
-        window.Size = LayoutSize(float64(500) / float64(window.UiScale), float64(300) / float64(window.UiScale))
+        window.Size = LayoutSize(float64(500) / window.UiScale, float64(300) / window.UiScale)
         host.Password = true
         host.Rebuild()
         PumpFrames(window, 8)

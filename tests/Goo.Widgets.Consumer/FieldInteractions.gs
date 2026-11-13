@@ -316,7 +316,7 @@ func FieldInteractions() {
         Require(host.TextCommit == "secret", "TextField did not commit on blur")
         for width in[]int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), window.Size.Height)
+            window.Size = LayoutSize(float64(width) / window.UiScale, window.Size.Height)
             PumpFrames(window, 5)
             for handle in[]ElementHandle{host.NumberHandle, host.PasswordHandle} {
                 let bounds = handle.BorderBox
@@ -328,7 +328,7 @@ func FieldInteractions() {
             }
         }
         window.UiScale = 1
-        window.Size = LayoutSize(float64(500) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(500) / window.UiScale, window.Size.Height)
         PumpFrames(window, 5)
         let clear = FindSemantics(semantics.Tree?.Root, "Clear Password")!!
         window.PerformAccessibilityAction(clear.Id, AccessibilityActionRequest(AccessibilityAction.Activate))

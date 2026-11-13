@@ -404,7 +404,7 @@ public open partial class DataGrid {
                         }
                     }
                 } else {
-                    Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+                    Select(id, clickModifiers.HasPrimary, clickModifiers.Shift, false)
                     if clickCount == 2 {
                         if !BeginEdit(id, activeColumn) { Invoke(id) }
                     }
@@ -653,7 +653,7 @@ public open partial class DataGrid {
                 e.Key == Key.Right ||
                 e.Key == Key.Space ||
                 e.Key == Key.Enter ||
-                (e.Modifiers.Ctrl || e.Modifiers.Super) &&
+                e.Modifiers.HasPrimary &&
                     (e.Key == Key.A || e.Key == Key.C || e.Key == Key.Insert)
         ) {
             e.StopPropagation()
@@ -669,7 +669,7 @@ public open partial class DataGrid {
             e.StopPropagation()
             return
         }
-        let control = e.Modifiers.Ctrl || e.Modifiers.Super
+        let control = e.Modifiers.HasPrimary
         let current = NavigationIndex(activeId)
         var next = current
         if control && e.Key == Key.A {

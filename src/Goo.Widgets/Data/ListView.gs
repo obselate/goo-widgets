@@ -364,7 +364,7 @@ public open class ListView : Cell[ListViewInput] {
         }
         root.OnClick = () -> {
             if !fromChild {
-                Select(id, modifiers.Ctrl || modifiers.Super, modifiers.Shift)
+                Select(id, modifiers.HasPrimary, modifiers.Shift)
                 if presses == 2 {
                     InvokeInputCallback(input.OnClick, id)
                 }
@@ -404,7 +404,7 @@ public open class ListView : Cell[ListViewInput] {
         if input.Disabled || Index(activeId) < 0 {
             return
         }
-        let primary = e.Modifiers.Ctrl || e.Modifiers.Super
+        let primary = e.Modifiers.HasPrimary
         if primary && e.Key == Key.A && input.Multiple {
             let ids = List[string]()
             for entry in entries {
