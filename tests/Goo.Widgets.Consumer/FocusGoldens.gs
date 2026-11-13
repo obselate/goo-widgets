@@ -218,7 +218,7 @@ func FocusGoldens() {
                         page.Layout = layout
                         page.Rebuild()
                         FocusSettled(window, adapter, false)
-                        window.PlatformInput.ClearFocus()
+                        window.Focus.Clear()
                         let seen = HashSet[AccessibilityId]()
                         var index = 0
                         while index < 64 {

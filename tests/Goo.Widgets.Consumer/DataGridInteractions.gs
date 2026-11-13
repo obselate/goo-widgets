@@ -119,8 +119,8 @@ internal class DataGridHeightHost : Cell {
                 Width: Percent(100),
                 Height: 32,
                 KeyBindings: []KeyBinding{
-                    KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> EditorCopyRequests++},
-                    KeyBinding{Key: Key.Insert, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> EditorCopyRequests++}
+                    KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> EditorCopyRequests++},
+                    KeyBinding{Key: Key.Insert, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> EditorCopyRequests++}
                 }
             }
         }
@@ -724,7 +724,7 @@ func DataGridContracts() {
                 CreateRoot: (input DataGridInput, prepared Container) -> {
                     prepared.OnKeyDown = (e KeyEvent) -> hostKeys++
                     prepared.OnTextInput = (value string) -> hostText = value
-                    prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, Action: () -> { }}}
+                    prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, OnPress: () -> { }}}
                     return prepared
                 }
             }
@@ -1229,7 +1229,7 @@ func DataGridNavigationInteractions() {
         Require(host.SelectedIds.Length == 0, "Space did not toggle a multiple selection")
         GridKey(window, Key.Space)
         Require(host.SelectedIds.Length == 1, "Space did not restore a multiple selection")
-        Require(host.Root!!.Handle!!.Focus() && window.PlatformInput.Editor == nil, "Row copy did not focus the grid")
+        Require(host.Root!!.Handle!!.Focus() && window.Focus.Editor == nil, "Row copy did not focus the grid")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Insert, KeyModifiers{Ctrl: true})
         Require(host.CopyRequests == 2, "Copy chords did not request the controlled row copy")
@@ -1330,7 +1330,7 @@ func DataGridNavigationInteractions() {
         Require(host.Editor.Focus(), "Composed cell editor did not focus")
         let editorSelection = host.SelectedIds
         GridKey(window, Key.A, KeyModifiers{Ctrl: true})
-        Require(window.PlatformInput.Selection!!.Active.Offset - window.PlatformInput.Selection!!.Anchor.Offset == 14 &&
+        Require(window.Focus.Selection!!.Active.Offset - window.Focus.Selection!!.Anchor.Offset == 14 &&
             Object.ReferenceEquals(editorSelection, host.SelectedIds) && !host.AllSelected &&
                 host.SelectAllRequests == 1, "Grid stole native editor select-all")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
@@ -1825,8 +1825,8 @@ func DataGridLogicalEditingFocus() {
     window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
     window.PlatformInput.KeyRelease(Key.Enter)
     ThemeFrames(embedded)
-    Require(window.PlatformInput.Editor?.Text == "Value 0" &&
-        window.PlatformInput.Selection?.Active.Offset == 7 && host.Builds == 1,
+    Require(window.Focus.Editor?.Text == "Value 0" &&
+        window.Focus.Selection?.Active.Offset == 7 && host.Builds == 1,
         "Edit entry required native window focus or rebuilt unrelated rows")
     window.PlatformInput.CommitText(" changed")
     window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
@@ -1857,7 +1857,7 @@ func DataGridLogicalEditingFocus() {
     window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
     window.PlatformInput.KeyRelease(Key.Enter)
     ThemeFrames(embedded)
-    Require(window.PlatformInput.Editor?.Text == "Popup 0" && !window.IsFocused,
+    Require(window.Focus.Editor?.Text == "Popup 0" && !window.IsFocused,
         "Popup editing required native window activation")
     window.PlatformInput.KeyPress(Key.Escape, KeyModifiers{})
     window.PlatformInput.KeyRelease(Key.Escape)
@@ -1880,12 +1880,12 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 3)
         host.Builds = 0
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor != nil && window.PlatformInput.Selection != nil)
+        WaitVirtual(window, () -> window.Focus.Editor != nil && window.Focus.Selection != nil)
         Require(host.Events.Count == 1 && host.Events[0] == "begin" && host.Context.EditorHandle.IsMounted,
             "Enter did not begin one editable cell")
         Require(host.Builds == 1, "Edit entry did not rebuild exactly one row: " + host.Builds.ToString())
         Console.WriteLine("PASS DataGrid edit entry: rebuilt exactly 1 row")
-        Require(window.PlatformInput.Editor!!.Text == "Value 0" && window.PlatformInput.Selection!!.Active.Offset == 7,
+        Require(window.Focus.Editor!!.Text == "Value 0" && window.Focus.Selection!!.Active.Offset == 7,
             "Edit entry did not retain the value and place the caret at its end")
         Require(FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Relationships.ActiveDescendant == nil,
             "Edit focus retained a navigation active descendant")
@@ -1913,8 +1913,8 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         Require(window.PlatformInput.CommitText("!"), "Navigation text was not accepted")
         PumpFrames(window, 4)
-        Require(window.PlatformInput.Editor!!.Text == "Value 0 changed!" &&
-            window.PlatformInput.Selection!!.Active.Offset == 16, "Printable entry did not append once")
+        Require(window.Focus.Editor!!.Text == "Value 0 changed!" &&
+            window.Focus.Selection!!.Active.Offset == 16, "Printable entry did not append once")
         host.Reentrant = true
         GridKey(window, Key.Escape)
         Require(String.Join(",", host.Events) == "begin,cancel,end" && host.Sets == 1 &&
@@ -1926,7 +1926,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 3)
         GridKey(window, Key.Enter)
         Require(String.Join(",", host.Events) == "begin,validate" && host.Sets == 1 &&
-            window.PlatformInput.Editor!!.Text.EndsWith(" rejected"), "Rejected edit lost its draft or closed")
+            window.Focus.Editor!!.Text.EndsWith(" rejected"), "Rejected edit lost its draft or closed")
         let invalid = FindSemantics(semantics.Tree!!.Root, "Edit Name")!!
         Require(invalid.Invalid == true && invalid.Relationships.ErrorMessage.Count == 1 &&
             invalid.Relationships.DescribedBy.Count == 1 &&
@@ -1934,11 +1934,11 @@ func DataGridEditingInteractions() {
             "Validation error relationships or announcement were absent")
         host.Reject = false
         GridKey(window, Key.Tab)
-        Require(host.Context.Edit.ColumnId == "notes" && window.PlatformInput.Editor!!.IsMultiline,
+        Require(host.Context.Edit.ColumnId == "notes" && window.Focus.Editor!!.IsMultiline,
             "Tab did not skip the read-only cell")
         GridKey(window, Key.Enter, KeyModifiers{Shift: true})
         PumpFrames(window, 2)
-        Require(window.PlatformInput.Editor!!.Text == "Notes 0\n", "Multiline Shift+Enter did not insert a newline")
+        Require(window.Focus.Editor!!.Text == "Notes 0\n", "Multiline Shift+Enter did not insert a newline")
         CaptureIssueProof(window, "datagrid-editing-inline")
         GridKey(window, Key.Escape)
         host.Input = host.Input with{BeginEditKeys = []DataGridEditKey{DataGridEditKey{Key: Key.F2, Modifiers: KeyModifiers{Ctrl: true}}},
@@ -1951,7 +1951,7 @@ func DataGridEditingInteractions() {
         GridKey(window, Key.F2, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Enter)
         GridKey(window, Key.Enter, KeyModifiers{Shift: true})
-        Require(window.PlatformInput.Editor!!.Text == "Notes 0\n\n", "Custom commit chord blocked multiline Enter")
+        Require(window.Focus.Editor!!.Text == "Notes 0\n\n", "Custom commit chord blocked multiline Enter")
         GridKey(window, Key.F3)
         Require(host.Rows[0].Values!!["notes"] == "Notes 0\n\n", "Configured commit chord did not commit")
         host.Input = host.Input with{BeginEditKeys = nil, CommitEditKey = nil, ActiveColumnId = "name"}
@@ -1961,18 +1961,18 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         window.PlatformInput.SetComposition("preedit", 0, 7)
         GridKey(window, Key.Escape)
-        Require(host.Events.Count == 0 && window.PlatformInput.Editor != nil, "Composition Escape ended the edit")
+        Require(host.Events.Count == 0 && window.Focus.Editor != nil, "Composition Escape ended the edit")
         window.PlatformInput.SetComposition("committed", 0, 9)
         GridKey(window, Key.Enter)
-        Require(host.Events.Count == 0 && window.PlatformInput.Editor != nil, "Composition Enter committed the cell")
+        Require(host.Events.Count == 0 && window.Focus.Editor != nil, "Composition Enter committed the cell")
         window.PlatformInput.CommitText("committed")
         PumpFrames(window, 3)
         GridKey(window, Key.A, KeyModifiers{Ctrl: true})
-        window.PlatformInput.Execute(TextCommand{Kind: TextCommandKind.Paste, Text: "replacement"})
+        window.Focus.Execute(TextCommand{Kind: TextCommandKind.Paste, Text: "replacement"})
         PumpFrames(window, 3)
-        Require(window.PlatformInput.Editor!!.Text == "replacement", "Native select-all or paste was intercepted")
+        Require(window.Focus.Editor!!.Text == "replacement", "Native select-all or paste was intercepted")
         GridKey(window, Key.Z, KeyModifiers{Ctrl: true})
-        Require(window.PlatformInput.Editor!!.Text != "replacement", "Native undo was intercepted")
+        Require(window.Focus.Editor!!.Text != "replacement", "Native undo was intercepted")
         Require(host.EditorAction.Focus(), "Custom editor action did not focus")
         PumpFrames(window, 4)
         Require(host.Events.Count == 0, "Moving within a custom editor committed")
@@ -1986,28 +1986,28 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         Require(host.Context.Edit.ColumnId == "popup" && FindSemantics(semantics.Tree!!.Root, "Cell editor") != nil,
             "Popover editor did not mount")
         host.Events.Clear()
         window.PlatformInput.CommitText(" draft")
         PumpFrames(window, 3)
-        Require(window.PlatformInput.Editor?.Text == "Popup 0 draft", "Popup entry did not append at the caret: " + (window.PlatformInput.Editor?.Text ?? "none"))
-        let selection = window.PlatformInput.Selection!!
+        Require(window.Focus.Editor?.Text == "Popup 0 draft", "Popup entry did not append at the caret: " + (window.Focus.Editor?.Text ?? "none"))
+        let selection = window.Focus.Selection!!
         let editor = host.Context.EditorHandle
         host.Calls = 0
         host.Viewport.JumpTo(500, 20000)
         PumpFrames(window, 8)
         Require(editor.IsMounted, "Scrolling unmounted the popup editor")
         Require(host.Events.Count == 0, "Scrolling emitted edit events: " + String.Join(",", host.Events))
-        Require(window.PlatformInput.Editor?.Text == "Popup 0 draft", "Scrolling changed popup focus or text: " + (window.PlatformInput.Editor?.Text ?? "none"))
-        Require(window.PlatformInput.Selection?.Active == selection.Active, "Scrolling changed the popup caret")
+        Require(window.Focus.Editor?.Text == "Popup 0 draft", "Scrolling changed popup focus or text: " + (window.Focus.Editor?.Text ?? "none"))
+        Require(window.Focus.Selection?.Active == selection.Active, "Scrolling changed the popup caret")
         var mounted int32
         for row in host.RowBlobs.Values { if row.Handle!!.IsMounted { mounted++ } }
         Require(mounted < 20 && host.RowBlobs["0"].Handle!!.IsMounted, "Edited-row retention realized intervening rows")
         host.Viewport.JumpTo(0, 0)
         PumpFrames(window, 8)
-        Require(window.PlatformInput.Editor!!.Text == "Popup 0 draft" && host.Events.Count == 0, "Returning to an edited anchor changed the session")
+        Require(window.Focus.Editor!!.Text == "Popup 0 draft" && host.Events.Count == 0, "Returning to an edited anchor changed the session")
         GridKey(window, Key.Tab, KeyModifiers{Ctrl: true})
         Require(FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused, "Popover Ctrl+Tab did not leave its focus scope")
         host.Input = host.Input with{ActiveRowId = "0", ActiveColumnId = "name", RowAt = host.At, RowIndex = host.Index, RowCount = host.Rows.Length}
@@ -2065,9 +2065,9 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         GridKey(window, Key.Space)
         Require(String.Join(",", host.Events) == "begin", "Single-selection Space did not begin editing")
-        let end = window.PlatformInput.Selection!!.Active.Offset
+        let end = window.Focus.Selection!!.Active.Offset
         GridKey(window, Key.Left)
-        Require(window.PlatformInput.Selection!!.Active.Offset == end - 1 && host.Input.ActiveColumnId == "name",
+        Require(window.Focus.Selection!!.Active.Offset == end - 1 && host.Input.ActiveColumnId == "name",
             "Grid navigation intercepted an editor arrow")
         GridKey(window, Key.Escape)
         host.Events.Clear()
@@ -2089,7 +2089,7 @@ func DataGridEditingInteractions() {
         host.Input = host.Input with{ColumnOrder = []string{"notes", "popup", "name", "locked"}}
         host.Refresh()
         PumpFrames(window, 4)
-        Require(window.PlatformInput.Editor!!.Text.EndsWith(" retained") && host.Context.Edit.ColumnId == "name",
+        Require(window.Focus.Editor!!.Text.EndsWith(" retained") && host.Context.Edit.ColumnId == "name",
             "Pinned-column reordering lost the edit")
         GridKey(window, Key.Tab)
         Require(host.Context.Edit.ColumnId == "notes", "Edit traversal ignored pinned visual column order")
@@ -2106,7 +2106,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 5)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         GridKey(window, Key.Tab)
         Require(FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused, "Tab at the final editable cell was trapped")
         host.Input = host.Input with{ActiveRowId = "0", ActiveColumnId = "popup"}
@@ -2114,12 +2114,12 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 5)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         GridKey(window, Key.Tab)
         Require(host.Context.Edit.RowId == "1" && host.Context.Edit.ColumnId == "name",
             "Forward edit traversal did not wrap to the next row")
         GridKey(window, Key.Tab, KeyModifiers{Shift: true})
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         Require(host.Context.Edit.RowId == "0" && host.Context.Edit.ColumnId == "popup",
             "Reverse edit traversal did not wrap to the previous row")
         GridKey(window, Key.Escape)
@@ -2149,7 +2149,7 @@ func DataGridEditingInteractions() {
         host.Refresh()
         PumpFrames(window, 4)
         GridKey(window, Key.Enter)
-        Require(host.Context.Edit.OriginalValue == "raw value" && window.PlatformInput.Editor!!.Text == "raw value",
+        Require(host.Context.Edit.OriginalValue == "raw value" && window.Focus.Editor!!.Text == "raw value",
             "CanEdit or the raw getter did not override row and display defaults")
         GridKey(window, Key.Escape)
         host.Rows[0] = host.Rows[0] with{Editable = true}
@@ -2157,7 +2157,7 @@ func DataGridEditingInteractions() {
         host.Refresh()
         PumpFrames(window, 4)
         GridKey(window, Key.Enter)
-        Require(host.Context.Edit.ColumnId == "locked" && window.PlatformInput.Editor != nil,
+        Require(host.Context.Edit.ColumnId == "locked" && window.Focus.Editor != nil,
             "Row editing override did not permit a non-editable column")
         GridKey(window, Key.Escape)
         host.Events.Clear()
@@ -2185,7 +2185,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         host.Reject = true
         GridKey(window, Key.Enter)
         let clicks = host.AfterClicks
@@ -2221,8 +2221,8 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
-        Require(window.PlatformInput.Editor!!.IsMultiline &&
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
+        Require(window.Focus.Editor!!.IsMultiline &&
             FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Relationships.LabelledBy.Count == 1,
             "Per-cell presentation did not mount a related multiline popup")
         GridKey(window, Key.Down)

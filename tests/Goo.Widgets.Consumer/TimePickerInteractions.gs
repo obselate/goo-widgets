@@ -88,7 +88,7 @@ func TimePickerInteractions() {
             let changes = host.Changes
             SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
             PumpFrames(window, 3)
-            Require(window.PlatformInput.Selection!!.Active.Offset != window.PlatformInput.Selection!!.Anchor.Offset, "Read-only time lost selection")
+            Require(window.Focus.Selection!!.Active.Offset != window.Focus.Selection!!.Anchor.Offset, "Read-only time lost selection")
             SendKey(id, SDLScancode.Up)
             SelectorType(window, id, "15")
             SendKey(id, SDLScancode.Return)

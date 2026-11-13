@@ -59,7 +59,7 @@ func TouchHoldWord(window Window, host TouchEditingHost) {
     let point = Point{X: caret.X + 1.0, Y: caret.Y + caret.Height * 0.5}
     TouchPressAt(window, 501, point)
     PumpFrames(window, 70)
-    let selection = window.PlatformInput.Selection!!
+    let selection = window.Focus.Selection!!
     Require(selection.Anchor.Offset == 0 && selection.Active.Offset == 5,
         "Long press did not select the held word")
     CaptureIssueProof(window, "touch-editing-held")
@@ -94,7 +94,7 @@ func TouchEditingInteractions() {
         PumpFrames(window, 3)
         TouchReleaseAt(window, 502, end)
         PumpFrames(window, 5)
-        let selection = window.PlatformInput.Selection!!
+        let selection = window.Focus.Selection!!
         Require(selection.Anchor.Offset == 8 && selection.Active.Offset == 5,
             "Dragging the anchor across a collapsed selection lost capture or changed the active endpoint")
         let all = FindSemantics(semantics.Tree?.Root, "Select all")!!
@@ -103,11 +103,11 @@ func TouchEditingInteractions() {
         PumpFrames(window, 5)
         let copy = FindSemantics(semantics.Tree?.Root, "Copy")!!.Bounds
         let copyPoint = Point{X: copy.X + copy.Width * 0.5, Y: copy.Y + copy.Height * 0.5}
-        let focus = window.PlatformInput.Editor!!.FocusId
+        let focus = window.Focus.Editor!!.FocusId
         TouchPressAt(window, 503, copyPoint)
         TouchReleaseAt(window, 503, copyPoint)
         PumpFrames(window, 5)
-        Require(window.GetClipboardText() == host.Value && window.PlatformInput.Editor?.FocusId == focus,
+        Require(window.GetClipboardText() == host.Value && window.Focus.Editor?.FocusId == focus,
             "Touch Copy changed focus or copied the wrong selection")
         window.SetClipboardText("replacement")
         let paste = FindSemantics(semantics.Tree?.Root, "Paste")!!

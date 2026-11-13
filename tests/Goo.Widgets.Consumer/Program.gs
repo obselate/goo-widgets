@@ -55,7 +55,7 @@ func Require(condition bool, message string) {
 func InvokeKeyBinding(blob Blob, key Key) bool {
     for binding in blob.KeyBindings ?? []KeyBinding{} {
         if binding.Key == key && NoModifiers(binding.Modifiers) {
-            binding.Action?.Invoke()
+            binding.OnPress?.Invoke()
             return true
         }
     }
@@ -65,7 +65,7 @@ func InvokeKeyBinding(blob Blob, key Key) bool {
 func HasKeyBinding(blob Blob, key Key, release bool = false) bool {
     for binding in blob.KeyBindings ?? []KeyBinding{} {
         if binding.Key == key && NoModifiers(binding.Modifiers) {
-            return (binding.Action != nil || binding.OnRelease != nil) && (!release || binding.OnRelease != nil)
+            return (binding.OnPress != nil || binding.OnRelease != nil) && (!release || binding.OnRelease != nil)
         }
     }
     return false
@@ -124,7 +124,7 @@ func PackageComposition() {
     var customBinding bool
     let customButton = Button{
         OnClick: () -> { },
-        KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, Action: () -> customBinding = true},},
+        KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, OnPress: () -> customBinding = true},},
     }
     WidgetKeyBindings.BindActivation(customButton)
     Require(

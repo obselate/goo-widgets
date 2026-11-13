@@ -143,7 +143,7 @@ internal class CalendarHost : Cell {
     private func Input(input DatePickerInput, prepared TextEntry) TextEntry {
         Entry = prepared
         prepared.KeyBindings = []KeyBinding{
-            KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+            KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
         }
         return prepared
     }
@@ -504,8 +504,8 @@ func CalendarInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
-            - window.PlatformInput.Selection!!.Anchor.Offset == original.Length, "Read-only date lost selection or copy routing")
+        Require(host.CopyRequests == 1 && window.Focus.Selection!!.Active.Offset
+            - window.Focus.Selection!!.Anchor.Offset == original.Length, "Read-only date lost selection or copy routing")
         SelectorType(window, id, "changed")
         SendKey(id, SDLScancode.F4)
         SendKey(id, SDLScancode.Return)

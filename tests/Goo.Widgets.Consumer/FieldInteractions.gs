@@ -57,7 +57,7 @@ internal class FieldHost : Cell {
                     Entry = entry
                     entry.Handle = NumberHandle
                     entry.KeyBindings = []KeyBinding{
-                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
                     }
                     return entry
                 }
@@ -88,7 +88,7 @@ internal class FieldHost : Cell {
                     OnChange: input.OnChange,
                     OnSubmit: input.OnSubmit,
                     KeyBindings: []KeyBinding{
-                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
                     },
                     Height: 36,
                     Width: Percent(100)
@@ -363,8 +363,8 @@ func FieldInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
-            - window.PlatformInput.Selection!!.Anchor.Offset == 1, "Read-only number lost selection or copy routing")
+        Require(host.CopyRequests == 1 && window.Focus.Selection!!.Active.Offset
+            - window.Focus.Selection!!.Anchor.Offset == 1, "Read-only number lost selection or copy routing")
         SelectorType(window, id, "8")
         SendKey(id, SDLScancode.Up)
         SendKey(id, SDLScancode.Pageup)
@@ -464,7 +464,7 @@ func VerifyEditorKeys(window Window, semantics SearchListSemantics, name string,
     SelectorType(window, id, "keyboard")
     SendKey(id, SDLScancode.Backspace)
     PumpFrames(window, 4)
-    Require(window.PlatformInput.Editor?.Text == "keyboar", "Editor typing or Backspace failed: " + name)
+    Require(window.Focus.Editor?.Text == "keyboar", "Editor typing or Backspace failed: " + name)
     SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
     SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
     PumpFrames(window, 4)
@@ -472,19 +472,19 @@ func VerifyEditorKeys(window Window, semantics SearchListSemantics, name string,
     SendKey(id, SDLScancode.End)
     SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
     PumpFrames(window, 4)
-    Require(window.PlatformInput.Editor?.Text == "keyboarkeyboar", "Editor paste failed: " + name)
+    Require(window.Focus.Editor?.Text == "keyboarkeyboar", "Editor paste failed: " + name)
     if multiline { SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl) }
     SendKey(id, SDLScancode.Tab)
     PumpFrames(window, 4)
     if multiline {
-        Require(window.PlatformInput.Editor?.Text != "keyboarkeyboar", "Editor Tab did not indent: " + name)
+        Require(window.Focus.Editor?.Text != "keyboarkeyboar", "Editor Tab did not indent: " + name)
     } else {
         Require(!FeedbackNode(semantics, role, name).Focused, "Tab did not leave the editor: " + name)
     }
     SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
     PumpFrames(window, 4)
     if multiline {
-        Require(window.PlatformInput.Editor?.Text == "keyboarkeyboar", "Editor Tab and Shift+Tab did not indent and outdent: " + name)
+        Require(window.Focus.Editor?.Text == "keyboarkeyboar", "Editor Tab and Shift+Tab did not indent and outdent: " + name)
     } else {
         Require(FeedbackNode(semantics, role, name).Focused, "Shift+Tab did not return to the editor: " + name)
     }
