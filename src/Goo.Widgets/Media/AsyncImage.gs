@@ -8,9 +8,7 @@ import Goo.Widgets
 public data struct AsyncImage {
     /// Accessible name. Nil keeps an unnamed ready image decorative and hidden.
     var AccessibilityName string?
-    /// Local image path retained even when ImageSource wins.
-    var ImagePath string?
-    /// Provider-backed image source. A non-nil source wins over ImagePath.
+    /// Provider-backed image source.
     var ImageSource ImageSourceProvider?
     /// Whether the loading placeholder state is selected.
     var Loading bool
@@ -136,7 +134,6 @@ public data struct AsyncImage {
             child = createImage(resolved)
         } else {
             child = Image{
-                Path: resolved.ImagePath ?? "",
                 Source: resolved.ImageSource,
                 Fit: resolved.Fit!!,
                 Width: Percent(100.0),

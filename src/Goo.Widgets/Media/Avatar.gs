@@ -10,9 +10,7 @@ import System
 public data struct Avatar {
     /// Accessible name. Nil makes the root decorative and hidden from semantics.
     var AccessibilityName string?
-    /// Local image path. A non-empty path selects image mode.
-    var ImagePath string?
-    /// Provider-backed image source. A non-nil source selects image mode and wins over the path.
+    /// Provider-backed image source. A non-nil source selects image mode.
     var ImageSource ImageSourceProvider?
     /// Fallback text. Nil renders as an empty string.
     var FallbackText string?
@@ -61,7 +59,7 @@ public data struct Avatar {
         let createImage = CreateImage
         let createFallback = CreateFallback
         let createRoot = CreateRoot
-        let imageMode = ImageSource != nil || (ImagePath ?? "") != ""
+        let imageMode = ImageSource != nil
         let size = Size ?? 40.0
         let background = BackgroundColor ?? theme.PanelColor
         let resolved = this with{
@@ -88,7 +86,6 @@ public data struct Avatar {
                 child = createImage(resolved)
             } else {
                 child = Image{
-                    Path: resolved.ImagePath ?? "",
                     Source: resolved.ImageSource,
                     Fit: resolved.Fit!!,
                     Width: Percent(100.0),
