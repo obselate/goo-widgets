@@ -37,17 +37,20 @@ internal class VirtualMountFailure : Cell {
     public override func Build() Blob -> throw InvalidOperationException("Virtual row mount failed")
 }
 
-internal class VirtualProbeMessage : Cell {
-    internal var Header bool
-    internal var Height float64 = 20.0
-    internal var Handle ElementHandle = ElementHandle{}
+internal data struct VirtualProbeMessageInput {
+    var Header bool
+    var Handle ElementHandle
+}
 
-    public override func Build() Blob {
+internal class VirtualProbeMessage : Cell[VirtualProbeMessageInput] {
+    internal var Height float64 = 20.0
+
+    protected override func Build(input VirtualProbeMessageInput) Blob {
         let row = Container{}
-        if Header {
+        if input.Header {
             row.Children.Add(Container{Key: "history-header", Height: 44, FlexShrink: 0})
         }
-        row.Children.Add(Container{Key: "message", Handle: Handle, Height: Height, FlexShrink: 0})
+        row.Children.Add(Container{Key: "message", Handle: input.Handle, Height: Height, FlexShrink: 0})
         return row
     }
 }
@@ -111,11 +114,15 @@ internal class VirtualProbeHost : Cell {
     private func BuildItem(item VirtualProbeItem) Blob {
         Builds.Add(item.Id)
         if MessageRows {
-            return Cell.Mount[VirtualProbeMessage]("row-${item.Id}", (row VirtualProbeMessage) -> {
-                row.Header = item.Id == HeaderId
-                row.Handle = Handles[item.Id]
-                Messages[item.Id] = row
-            })
+            return Cell.Mount[VirtualProbeMessageInput, VirtualProbeMessage](
+                "row-${item.Id}",
+                VirtualProbeMessageInput{Header: item.Id == HeaderId, Handle: Handles[item.Id]},
+                () -> {
+                    let row = VirtualProbeMessage()
+                    Messages[item.Id] = row
+                    return row
+                }
+            )
         }
         if item.Id == 2 {
             if Failure == 1 {

@@ -86,21 +86,37 @@ internal class ThemeScopeHost : Cell {
         let provider = ThemeScope{
             Value: Value,
             Density: DensityOverride,
-            Content: () -> Cell.Mount[ThemeProbe]("inside", (probe ThemeProbe) -> Inside = probe),
+            Content: () -> Cell.Mount[ThemeProbe]("inside", () -> {
+                let probe = ThemeProbe()
+                Inside = probe
+                return probe
+            }),
         }.Build()
         provider.Key = "scope"
         return Container{
             Width: Percent(100),
-            Cell.Mount[ThemeProbe]("outside", (probe ThemeProbe) -> Outside = probe),
+            Cell.Mount[ThemeProbe]("outside", () -> {
+                let probe = ThemeProbe()
+                Outside = probe
+                return probe
+            }),
             provider,
-            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", (probe ThemeProbe) -> PortalProbe = probe),},
+            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", () -> {
+                let probe = ThemeProbe()
+                PortalProbe = probe
+                return probe
+            }),},
             Cell.Mount[ModalDialog, ModalDialogHost](
                 "dialog",
                 ModalDialog{
                     Open: true,
                     Width: 280.0,
                     AccessibilityName: "Appearance dialog",
-                    Content: Cell.Mount[ThemeProbe]("dialog-content", (probe ThemeProbe) -> DialogProbe = probe),
+                    Content: Cell.Mount[ThemeProbe]("dialog-content", () -> {
+                        let probe = ThemeProbe()
+                        DialogProbe = probe
+                        return probe
+                    }),
                 }
             ),
             Cell.Mount[MenuInput, Menu](
@@ -112,7 +128,11 @@ internal class ThemeScopeHost : Cell {
                         MenuItem{
                             Id: "theme",
                             Label: "Appearance menu",
-                            Content: Cell.Mount[ThemeProbe]("menu-content", (probe ThemeProbe) -> MenuProbe = probe),
+                            Content: Cell.Mount[ThemeProbe]("menu-content", () -> {
+                                let probe = ThemeProbe()
+                                MenuProbe = probe
+                                return probe
+                            }),
                         }
                     },
                 }

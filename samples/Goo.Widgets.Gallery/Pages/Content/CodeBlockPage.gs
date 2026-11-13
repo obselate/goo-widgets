@@ -7,8 +7,7 @@ import Goo.Widgets.Gallery
 import System
 import System.Linq
 
-internal class CodeBlockExample : Cell {
-    internal var Window Window?
+internal class CodeBlockExample : Cell[Window?] {
     private var expanded bool
     private let code string = "package Example\n\nimport Log\n\nfunc Main() {\n    let message = \"Hello, you\"\n    Console.WriteLine(message)\n}"
     private let steps string = String.Join(
@@ -29,7 +28,7 @@ internal class CodeBlockExample : Cell {
         }
     }
 
-    public override func Build() Blob -> Container{
+    protected override func Build(window Window?) Blob -> Container{
         Width: Percent(100),
         MaxWidth: 680,
         MinWidth: 0,
@@ -39,7 +38,7 @@ internal class CodeBlockExample : Cell {
             CodeBlockInput{
                 Code: code,
                 Language: "G#",
-                Window: Window,
+                Window: window,
                 ShowLineNumbers: true,
                 CollapsedLines: 5,
                 Expanded: expanded,
@@ -60,7 +59,7 @@ internal class CodeBlockExample : Cell {
             CodeBlockInput{
                 Code: steps,
                 Language: "G#",
-                Window: Window,
+                Window: window,
                 ShowLineNumbers: true,
                 MaxHeight: 320,
                 Highlight: highlightSteps,
@@ -72,5 +71,5 @@ internal class CodeBlockExample : Cell {
 internal class CodeBlockPage : GalleryPage {
     override func Title() string -> "Code block"
 
-    override func Build() Blob -> Cell.Mount[CodeBlockExample]("code-block-example", cell -> cell.Window = OwningWindow)
+    override func Build() Blob -> Cell.Mount[Window?, CodeBlockExample]("code-block-example", OwningWindow)
 }
