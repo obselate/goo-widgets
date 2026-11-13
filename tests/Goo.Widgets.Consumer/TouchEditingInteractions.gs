@@ -40,7 +40,8 @@ internal class TouchEditingOwnershipHost : Cell {
     internal var Editing TouchTextEditing?
 
     public override func Build() Blob {
-        let content = Container{Editor}
+        let content = Container{}
+        content.Add(Editor)
         let input = TouchTextEditingInput{Content: content, Editor: Editor}
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing]("editing", input, () -> {
             let child = TouchTextEditing()

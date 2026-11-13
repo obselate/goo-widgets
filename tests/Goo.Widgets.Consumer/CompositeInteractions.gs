@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Colors
 import Goo.Widgets.Inputs
 import Goo.Widgets.Icons
