@@ -239,7 +239,7 @@ func TextSurfaceInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(Math.Abs(host.AreaHandle.BorderBox.Height - initialHeight) < 1, "TextArea did not shrink")
-        window.Size = LayoutSize(float64(360) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(360) / window.UiScale, window.Size.Height)
         host.Value = "one two three four five six seven eight nine ten eleven twelve"
         host.Rebuild()
         PumpFrames(window, 5)
@@ -251,7 +251,7 @@ func TextSurfaceInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         Require(Math.Abs(host.AreaHandle.BorderBox.Height - cappedHeight) < 1, "Wrapped text exceeded the row cap")
-        window.Size = LayoutSize(float64(760) / float64(window.UiScale), window.Size.Height)
+        window.Size = LayoutSize(float64(760) / window.UiScale, window.Size.Height)
         host.Value = "one"
         host.Rebuild()
         PumpFrames(window, 5)
@@ -295,10 +295,10 @@ func TextSurfaceInteractions() {
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 5)
         Require(window.Clipboard.ReadText().Text == host.Source, "Read-only code selection copy failed")
-        window.Size = LayoutSize(window.Size.Width, float64(1440) / float64(window.UiScale))
+        window.Size = LayoutSize(window.Size.Width, float64(1440) / window.UiScale)
         window.UiScale = 1.5F
         for width in[]int32{320, 700, 2560} {
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), window.Size.Height)
+            window.Size = LayoutSize(float64(width) / window.UiScale, window.Size.Height)
             WaitVirtual(
                 window,
                 () -> window.NativeWidth == width && window.NativeHeight == 1440 && Math.Abs(

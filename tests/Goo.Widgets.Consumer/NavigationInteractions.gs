@@ -298,13 +298,13 @@ func NavigationInteractions() {
                 "Palette Escape did not dismiss and restore focus"
             )
             ChoiceKey(window, SDLScancode.Return)
-            window.Size = LayoutSize(float64(390) / float64(window.UiScale), float64(420) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(390) / window.UiScale, float64(420) / window.UiScale)
             PumpFrames(window, 14)
             let entry = FindSemantics(semantics.Tree?.Root, "Search commands")!!.Bounds
             Require(entry.X >= 0 && entry.X + entry.Width <= 390, "Palette search clipped at the minimum window width")
             CaptureIssueProof(window, "palette-narrow-" + mode.ToString())
             ChoiceKey(window, SDLScancode.Escape)
-            window.Size = LayoutSize(float64(800) / float64(window.UiScale), float64(650) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(800) / window.UiScale, float64(650) / window.UiScale)
             PumpFrames(window, 8)
         }
         Theme.Attach(window, Theme.Default with{Direction = Direction.RightToLeft})

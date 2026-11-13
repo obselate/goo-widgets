@@ -100,8 +100,9 @@ public open class Spinner : Cell[SpinnerInput] {
                         Height: size,
                         Path: bar,
                         Fit: ShapeFit.Fill,
-                        Stroke: VectorStroke(width, VectorPaint(resolved.Color!!), StrokeCap.Round, StrokeJoin.Miter, 4.0, nil){
-                            VectorEffect = VectorEffect.NonScalingStroke,
+                        Stroke: VectorStroke(width, VectorPaint(resolved.Color!!)){
+                            .Cap: StrokeCap.Round,
+                            .VectorEffect: VectorEffect.NonScalingStroke,
                         },
                         OpacityAnim: opacities[index],
                         ScaleAnim: scales[index],

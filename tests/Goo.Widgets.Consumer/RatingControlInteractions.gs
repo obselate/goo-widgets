@@ -181,7 +181,7 @@ func RatingControlInteractions() {
         host.Rebuild()
         window.UiScale = 1.5F
         for width in []int32{480, 1100, 2560} {
-            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 300) / float64(window.UiScale))
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 300) / window.UiScale)
             PumpFrames(window, 8)
             let rating = FindSemantics(semantics.Tree?.Root, "Score")!!
             Require(rating.ValueMaximum == 7 && rating.ValueText == "6,5 of 7" && rating.Bounds.X + rating.Bounds.Width <= float64(width) / 1.5 + 1, "Rating maximum or 150-percent layout did not fit")

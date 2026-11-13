@@ -295,11 +295,11 @@ func VirtualScrollApiInteractions() {
     resized.Pin = true
     RunVirtual("VirtualRows pinned viewport resize", resized, (window, semantics) -> {
         let before = resized.Handle.ScrollOffset.Y
-        window.Size = LayoutSize(window.Size.Width, float64(200) / float64(window.UiScale))
+        window.Size = LayoutSize(window.Size.Width, float64(200) / window.UiScale)
         WaitVirtual(window, () -> resized.Handle.BorderBox.Height < 250.0 &&
             Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
         Require(resized.Handle.ScrollOffset.Y > before, "A smaller viewport lost the pinned end.")
-        window.Size = LayoutSize(window.Size.Width, float64(400) / float64(window.UiScale))
+        window.Size = LayoutSize(window.Size.Width, float64(400) / window.UiScale)
         WaitVirtual(window, () -> resized.Handle.BorderBox.Height > 350.0 &&
             Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
         Console.WriteLine("Pinned resize: viewport=" + resized.Handle.ContentBox.Height.ToString() +
