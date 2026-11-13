@@ -257,7 +257,7 @@ public data struct WindowChrome {
                 Path: Glyph(command),
                 Width: 10.0,
                 Height: 10.0,
-                BackgroundColor: resolved.ControlColor!!,
+                Fill: VectorPaint(resolved.ControlColor!!),
                 UseCurrentColor: true,
                 Accessibility: Accessibility{Hidden: true},
             }

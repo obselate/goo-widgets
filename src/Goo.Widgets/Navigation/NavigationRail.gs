@@ -214,7 +214,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 }
                 if let content = item.Content {
                     if content is Shape icon && (selected || item.Disabled) {
-                        icon.BackgroundColor = item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!
+                        icon.Fill = VectorPaint(item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!)
                     }
                     button.Children.Add(content)
                 }
