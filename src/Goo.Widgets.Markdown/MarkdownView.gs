@@ -216,10 +216,10 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             stamp = MarkdownLeafStamp{Text: text, Revision: stamp.Revision + 1}
             leaves[path] = stamp
         }
-        let input = MarkdownLeafInput{Model: model, Options: current with{OnLink = current.OnLink == nil ? nil: OpenLink}, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp}
-        return Cell.Mount[MarkdownTextView](
+        let input = MarkdownLeafInput{Model: model, Options: current with{OnLink = current.OnLink == nil ? nil: OpenLink}, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp, Theme: theme}
+        return Cell.Mount[MarkdownLeafInput, MarkdownTextView](
             path + "@" + stamp.Revision.ToString(),
-            (cell MarkdownTextView) -> cell.Configure(input, theme)
+            input
         )
     }
 

@@ -12,10 +12,11 @@ internal data struct MarkdownLeafInput {
     var Weight float64
     var Alignment TextAlign
     var Stamp MarkdownLeafStamp?
+    var Theme Theme
 }
 
 /// A leaf starts from a fresh document and mount key, preserving attached controllers and avoiding accumulated undo history.
-internal class MarkdownTextView : Cell, IDisposable {
+internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
     private var controller TextEditorController?
     private var layer TextPresentationLayer?
     private var current MarkdownLeafInput
@@ -40,10 +41,8 @@ internal class MarkdownTextView : Cell, IDisposable {
         controller?.Dispose()
     }
 
-    internal func Configure(input MarkdownLeafInput, theme Theme) {
-        if controller != nil && current.Equals(input) && presentationTheme == theme {
-            return
-        }
+    protected override func InputChanged(input MarkdownLeafInput) {
+        let theme = input.Theme
         current = input
         presentationTheme = theme
         if controller == nil {
@@ -53,7 +52,6 @@ internal class MarkdownTextView : Cell, IDisposable {
             layer = TextPresentationLayer(document)
         }
         UpdatePresentation(theme)
-        Rebuild()
     }
 
     private func UpdatePresentation(theme Theme) {
@@ -103,9 +101,8 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
     }
 
-    public override func Build() Blob {
+    protected override func Build(input MarkdownLeafInput) Blob {
         let theme = Theme.Read()
-        let input = current
         let model = input.Model!!
         let options = input.Options
         var editor = TextEditor(){
