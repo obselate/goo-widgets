@@ -391,14 +391,14 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             Padding: 0.0,
             BorderRadius: theme.ControlRadius!!,
             BackgroundColor: day.Selected ? theme.AccentColor: Color.Transparent,
-            Hover: day.Selected ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
-            Active: day.Selected ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+            HoverStyle: day.Selected ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
+            ActiveStyle: day.Selected ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
             BorderWidth: day.Today ? theme.BorderWidth: 0.0,
             BorderColor: theme.AccentColor,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
         }
         if let create = current.CreateDay {
             button = create(current, day, button)

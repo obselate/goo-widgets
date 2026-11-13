@@ -84,7 +84,7 @@ internal class ApplicationHost : Cell {
     public override func Build() Blob -> Container{
         Width: Percent(100),
         Height: Percent(100),
-        Cell.Mount[Cell](() -> content, "application-host"),
+        Cell.Mount[Cell]("application-host", () -> content),
     }
 }
 

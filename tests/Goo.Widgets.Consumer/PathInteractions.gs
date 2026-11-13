@@ -105,8 +105,7 @@ func PathActionsInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Path action verification",
-        Width: 760,
-        Height: 460,
+        Size: LayoutSize(760, 460),
         Root: host,
         AccessibilityAdapter: semantics
     }

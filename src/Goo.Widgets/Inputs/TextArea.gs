@@ -172,7 +172,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             BorderWidth = theme.BorderWidth,
             BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,
             BorderRadius = theme.ControlRadius!!,
-            Focus = Style{BasedOn: theme.FocusStyle, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle = Style{BasedOn: theme.FocusStyle, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs = theme.TransitionMs,
             TransitionEasing = Easing.EaseOut,
             TransitionProperties = theme.InteractionTransitions,
@@ -190,8 +190,8 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             editor = create(input, editor)
         }
         if invalid {
-            editor.Hover = Style{BasedOn: editor.Hover, BorderColor: input.InvalidColor!!}
-            editor.Active = Style{BasedOn: editor.Active, BorderColor: input.InvalidColor!!}
+            editor.HoverStyle = Style{BasedOn: editor.HoverStyle, BorderColor: input.InvalidColor!!}
+            editor.ActiveStyle = Style{BasedOn: editor.ActiveStyle, BorderColor: input.InvalidColor!!}
         }
         theme.ApplyInteraction(editor, InteractionFamily.Field)
         if editor.Controller != editorController {

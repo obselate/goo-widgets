@@ -100,8 +100,8 @@ internal class SearchListHost : Cell {
     public override func Build() Blob -> Container{
         Padding: 24,
         Gap: 16,
-        BackgroundColor: "#09090b",
-        Color: "#fafafa",
+        BackgroundColor: Color.Parse("#09090b"),
+        Color: Color.Parse("#fafafa"),
         Text{Content: "SearchList · controlled selection", FontSize: 22},
         SearchList{
             Items: items,
@@ -151,7 +151,7 @@ func FindSemantics(node AccessibilityNode?, name string) AccessibilityNode? {
 func SearchListInteractions() {
     let host = SearchListHost{}
     let semantics = SearchListSemantics{}
-    let window = Window{Title: "SearchList retained selection", Width: 520, Height: 390, Root: host}
+    let window = Window{Title: "SearchList retained selection", Size: LayoutSize(520, 390), Root: host}
     window.AccessibilityAdapter = semantics
     RunNativeWindow(window, () -> {
         window.Open()

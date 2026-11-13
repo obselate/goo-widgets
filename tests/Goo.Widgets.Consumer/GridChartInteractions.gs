@@ -57,7 +57,7 @@ func GridChartContracts() {
             CreateSlice: (input DonutChart, segment ChartSegment, prepared Shape) -> {
                 fraction += segment.Fraction
                 Require(segment.Series.Color == Theme.Read().SeriesPalette[segment.Index], "Donut chart ignored the series palette")
-                return Shape{BackgroundColor: "#22d3ee"}
+                return Shape{Fill: VectorPaint(Color.Parse("#22d3ee"))}
             },
         }.Build() as Container
     )!!
@@ -119,8 +119,8 @@ internal class GridCounter : Cell {
         let button = Button{
             Handle: ButtonHandle,
             Height: 32,
-            BackgroundColor: "#25636a",
-            Color: "#e0ffff",
+            BackgroundColor: Color.Parse("#25636a"),
+            Color: Color.Parse("#e0ffff"),
             Focusable: true,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Retained counter"},
             OnClick: activate,
@@ -190,7 +190,7 @@ internal class GridChartHost : Cell {
 
     private func GridRoot(input Grid, root Container) Container {
         root.Handle = RootHandle
-        root.BackgroundColor = "#202631"
+        root.BackgroundColor = Color.Parse("#202631")
         root.Padding = 14
         return root
     }
@@ -212,10 +212,10 @@ internal class GridChartHost : Cell {
             return NumericGrid()
         }
         let series = Alternate ? []ChartSeries{
-            ChartSeries{Id: "one", Label: "Everything", Value: .125, Color: "#2dd4bf"}
+            ChartSeries{Id: "one", Label: "Everything", Value: .125, Color: Color.Parse("#2dd4bf")}
         }: []ChartSeries{
-            ChartSeries{Id: "one", Label: "Available", Value: 3.5, Color: "#2dd4bf"},
-            ChartSeries{Id: "two", Label: "Busy", Value: 1.5, Color: "#a78bfa"}
+            ChartSeries{Id: "one", Label: "Available", Value: 3.5, Color: Color.Parse("#2dd4bf")},
+            ChartSeries{Id: "two", Label: "Busy", Value: 1.5, Color: Color.Parse("#a78bfa")}
         }
         let grid = Grid{
             Columns: []GridTrack{GridTrack.Auto(40.0, 155.0), GridTrack.Fraction(1, 80), GridTrack.Fixed(64)},
@@ -230,13 +230,13 @@ internal class GridChartHost : Cell {
                         Handle: Label,
                         Content: LongLabel ? "Account description": "Name",
                         FontSize: 14,
-                        Color: "#99afc2"
+                        Color: Color.Parse("#99afc2")
                     }
                 },
                 GridItem{
                     Id: "value",
                     Column: 1,
-                    Content: Text{Content: "A measured form", FontSize: 16, Color: "#e4e4e7"}
+                    Content: Text{Content: "A measured form", FontSize: 16, Color: Color.Parse("#e4e4e7")}
                 },
                 GridItem{
                     Id: "fixed",
@@ -244,9 +244,9 @@ internal class GridChartHost : Cell {
                     RowSpan: 2,
                     Content: Container{
                         Handle: Fixed,
-                        BackgroundColor: "#34334d",
+                        BackgroundColor: Color.Parse("#34334d"),
                         Padding: 5,
-                        Text{Content: "Fixed\n64px", FontSize: 12, Color: "#cabef1"}
+                        Text{Content: "Fixed\n64px", FontSize: 12, Color: Color.Parse("#cabef1")}
                     }
                 },
                 GridItem{
@@ -257,7 +257,7 @@ internal class GridChartHost : Cell {
                         Handle: Paragraph,
                         Content: "This paragraph wraps using the actual font. Resize the window to see its shared row grow while the counter keeps its state and focus.",
                         FontSize: Large ? 22.0: 15.0,
-                        Color: "#d4d4d8"
+                        Color: Color.Parse("#d4d4d8")
                     }
                 },
                 GridItem{
@@ -280,7 +280,7 @@ internal class GridChartHost : Cell {
             Size: 160,
             Thickness: 24,
             ShowLegend: true,
-            Center: Text{Content: "5.0", FontSize: 26, Color: "#f4f4f5"},
+            Center: Text{Content: "5.0", FontSize: 26, Color: Color.Parse("#f4f4f5")},
             AccessibilityName: "Capacity donut",
             OnClick: (id string) -> {
                 Selected = id
@@ -307,9 +307,9 @@ internal class GridChartHost : Cell {
             Height: Percent(100),
             Padding: 22,
             Gap: 20,
-            BackgroundColor: "#111318",
+            BackgroundColor: Color.Parse("#111318"),
             OverflowY: Overflow.Scroll,
-            Text{Key: "title", Content: "Measured Grid and quantitative charts", Color: "#fafafa", FontSize: 22},
+            Text{Key: "title", Content: "Measured Grid and quantitative charts", Color: Color.Parse("#fafafa"), FontSize: 22},
             grid,
             donut,
             bar
@@ -354,8 +354,7 @@ func GraphActivationInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Graph activation verification",
-        Width: 500,
-        Height: 250,
+        Size: LayoutSize(500, 250),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -403,8 +402,7 @@ func GridChartInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Grid and chart verification",
-        Width: 700,
-        Height: 700,
+        Size: LayoutSize(700, 700),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -426,7 +424,7 @@ func GridChartInteractions() {
             "Auto Grid column failed to remeasure changed text or respect its maximum"
         )
         CaptureIssueProof(window, "grid-charts-wide")
-        window.Width = 400
+        window.Size = LayoutSize(float64(400) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 15)
         Require(host.Paragraph.BorderBox.Height > wideHeight, "Grid did not remeasure wrapping at a narrower width")
         Require(
@@ -448,7 +446,7 @@ func GridChartInteractions() {
         PumpFrames(window, 6)
         Require(counter.Count == 2, "Moved Grid child lost keyboard input")
         CaptureIssueProof(window, "grid-charts-narrow")
-        window.Width = 700
+        window.Size = LayoutSize(float64(700) / float64(window.UiScale), window.Size.Height)
         host.Large = false
         host.Rebuild()
         PumpFrames(window, 12)

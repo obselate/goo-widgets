@@ -111,7 +111,7 @@ internal class ModalDialogHostPage : GalleryPage {
     override func Title() string -> "Managed dialog"
 
     override func Build() Blob -> Cell.Mount[ManagedDialogExample](
-        () -> ManagedDialogExample{},
-        "managed-dialog-example"
+        "managed-dialog-example",
+        () -> ManagedDialogExample{}
     )
 }

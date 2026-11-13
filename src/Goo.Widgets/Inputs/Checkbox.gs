@@ -184,7 +184,7 @@ public data struct Checkbox {
         }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)
         if Label != nil && !Card && createRoot == nil {
-            root.Focus = Style{BasedOn: root.Focus, OutlineOffset: -theme.FocusRingWidth}
+            root.FocusStyle = Style{BasedOn: root.FocusStyle, OutlineOffset: -theme.FocusRingWidth}
         }
         root.Disabled = Disabled
         root.Focusable = !Disabled

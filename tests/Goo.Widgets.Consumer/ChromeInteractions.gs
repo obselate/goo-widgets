@@ -105,7 +105,7 @@ func ChromePaint(window Window, row ElementHandle, foreground Color, background 
 
 func ChromePaintInteractions() {
     let host = ChromePaintHost()
-    let window = Window{Title: "Chrome icon paint verification", Width: 320, Height: 200, Root: host}
+    let window = Window{Title: "Chrome icon paint verification", Size: LayoutSize(320, 200), Root: host}
     Theme.Attach(window, Theme.Ink with{OnAccentColor = Color.Black})
     RunNativeWindow(window, () -> {
         window.Open()
@@ -200,7 +200,7 @@ internal class ChromeHost : Cell {
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
-            BackgroundColor: "#18181b",
+            BackgroundColor: Color.Parse("#18181b"),
             Focusable: true,
             Text{Content: "wrong"}
         }
@@ -217,8 +217,8 @@ internal class ChromeHost : Cell {
             Handle: Overlay,
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#101216",
-            Color: "#e4e4e7"
+            BackgroundColor: Color.Parse("#101216"),
+            Color: Color.Parse("#e4e4e7")
         }
         if ShowChrome {
             let window = Host!!
@@ -241,7 +241,7 @@ internal class ChromeHost : Cell {
                         Handle: Embedded,
                         Width: 120.0,
                         Height: 28.0,
-                        BackgroundColor: "#373044",
+                        BackgroundColor: Color.Parse("#373044"),
                         OnClick: () -> {
                             EmbeddedClicks++
                             Rebuild()
@@ -276,13 +276,13 @@ internal class ChromeHost : Cell {
                 Text{
                     Content: LastCommand + " · embedded: " + EmbeddedClicks.ToString(),
                     FontSize: 18.0,
-                    Color: "#a5b4fc"
+                    Color: Color.Parse("#a5b4fc")
                 },
                 Button{
                     Handle: BodyButton,
                     Width: 160.0,
                     Height: 36.0,
-                    BackgroundColor: "#27272a",
+                    BackgroundColor: Color.Parse("#27272a"),
                     Text{Content: "Body focus target"}
                 }
             }
@@ -332,8 +332,7 @@ func ChromeInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Window chrome verification",
-        Width: 1400,
-        Height: 900,
+        Size: LayoutSize(1400, 900),
         Decorated: false,
         Root: host,
         AccessibilityAdapter: semantics
@@ -494,7 +493,7 @@ func ChromeInteractions() {
 
 func ChromeCallbackInteractions() {
     let host = ChromeHost{NativeBinding: false}
-    let window = Window{Title: "Callback-only chrome verification", Width: 1000, Height: 640, Root: host}
+    let window = Window{Title: "Callback-only chrome verification", Size: LayoutSize(1000, 640), Root: host}
     host.Host = window
     window.StateChanged += (state WindowState) -> host.Rebuild()
     RunNativeWindow(window, () -> {

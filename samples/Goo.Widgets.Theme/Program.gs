@@ -256,7 +256,7 @@ func Main() {
     semibold.Register()
     Application.Configure("Goo theme", "1.0.0", "com.example.goo-theme")
     let root = ThemeSample{}
-    let window = Window{Title: "Goo Widgets · Goo theme", Width: 720, Height: 700, Root: root}
+    let window = Window{Title: "Goo Widgets · Goo theme", Size: LayoutSize(720, 700), Root: root}
     root.AttachWindow(window)
     Application.Run(window)
 }

@@ -178,7 +178,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
         if current.DelayMs!!== 0.0 {
             Show()
         } else {
-            pending = current.Window!!.SetTimeout(() -> Show(), current.DelayMs!!)
+            pending = current.Window!!.After(current.DelayMs!!, () -> Show())
         }
     }
 

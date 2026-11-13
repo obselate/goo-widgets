@@ -108,7 +108,7 @@ public open partial class GraphCanvas : Cell[GraphCanvasInput] {
             Overflow: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
             Focusable: true,
-            Focus: theme.FocusStyle,
+            FocusStyle: theme.FocusStyle,
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Graph canvas")},
             Gestures: navigation,

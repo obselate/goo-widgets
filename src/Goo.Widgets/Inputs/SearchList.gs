@@ -120,7 +120,7 @@ public data struct SearchList {
             Placeholder: Placeholder ?? theme.Text("Search"),
             PlaceholderColor: theme.PlaceholderColor,
             OnChange: Disabled ? nil: OnQueryChange,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineColor: focus, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -313,9 +313,9 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
             } else {
                 options.Background
             },
-            Hover: Selected && options.Owner.SelectedColor != nil ? Style{BackgroundColor: options.Selection}: nil,
-            Active: Selected && options.Owner.SelectedColor != nil ? Style{BackgroundColor: options.Selection}: nil,
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: options.Focus, OutlineOffset: -theme.FocusRingWidth},
+            HoverStyle: Selected && options.Owner.SelectedColor != nil ? Style{BackgroundColor: options.Selection}: nil,
+            ActiveStyle: Selected && options.Owner.SelectedColor != nil ? Style{BackgroundColor: options.Selection}: nil,
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineColor: options.Focus, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,

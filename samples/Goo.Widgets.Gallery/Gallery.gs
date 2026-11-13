@@ -234,15 +234,15 @@ class Gallery : Cell, IDisposable {
                                 Orientation: AccessibilityOrientation.Vertical}}
                             for button in buttons {
                                 pageHandles[button.Key!!] = button.Handle!!
-                                button.Hover = Style{
+                                button.HoverStyle = Style{
                                     BackgroundColor: button.Key == input.SelectedId ? theme.ActiveColor: theme.HoverColor,
                                     Color: theme.TextColor
                                 }
-                                button.Active = Style{BackgroundColor: theme.PressedColor, Color: theme.TextColor}
+                                button.ActiveStyle = Style{BackgroundColor: theme.PressedColor, Color: theme.TextColor}
                                 for child in button.Children {
                                     if child is Text { child.FontWeight = button.Key == input.SelectedId ? 500: 400 }
                                 }
-                                button.Focus = Style{OutlineColor: theme.FocusColor, OutlineWidth: 2, OutlineOffset: -2}
+                                button.FocusStyle = Style{OutlineColor: theme.FocusColor, OutlineWidth: 2, OutlineOffset: -2}
                                 root.Children.Add(button)
                             }
                             return root

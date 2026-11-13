@@ -63,8 +63,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private var radius float64
     private var tone float64
     private var initialized bool
-    private var dragging bool
-    private var pointerId int64 = -1L
 
     /// Releases the retained wheel image when Goo unmounts this cell.
     public func Dispose() {
@@ -74,10 +72,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     protected override func Build(input ColorPickerInput) Blob {
         theme = Theme.Read()
         resolved = Resolve(input)
-        if resolved.Disabled && dragging {
-            dragging = false
-            pointerId = -1L
-        }
         if !initialized {
             currentRgb = input.Value
             currentMode = input.Mode ?? ColorMode.Oklch
@@ -237,16 +231,13 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: Style{OutlineColor: resolved.FocusOutlineColor!!},
+            FocusStyle: Style{OutlineColor: resolved.FocusOutlineColor!!},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
             BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
-            OnPointerDown: (e PointerEvent) -> BeginPointer(e),
-            OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            OnPointerCancel: (e PointerEvent) -> EndPointer(e, false),
+            OnPointerDrag: Drag,
             KeyBindings: []KeyBinding{
                 KeyBinding{Key: Key.Home, OnPress: () -> KeyAction(Key.Home)},
                 KeyBinding{Key: Key.End, OnPress: () -> KeyAction(Key.End)},
@@ -417,7 +408,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         Rebuild()
     }
 
-    private func CoordinatesFromPointer(e PointerEvent) {
+    private func CoordinatesFromPointer(e PointerDragEvent) {
         let box = wheelHandle.BorderBox
         if box.Width <= 0.0 || box.Height <= 0.0 {
             return
@@ -432,35 +423,17 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         UpdateColor(false)
     }
 
-    private func BeginPointer(e PointerEvent) {
-        if resolved.Disabled || e.Button != PointerButton.Primary || dragging {
-            return
-        }
-        dragging = true
-        pointerId = e.PointerId
-        e.Capture()
-        e.PreventDefault()
-        wheelHandle.Focus()
-        CoordinatesFromPointer(e)
-    }
-
-    private func MovePointer(e PointerEvent) {
+    private func Drag(e PointerDragEvent) {
         if resolved.Disabled {
             return
         }
-        if dragging && e.PointerId == pointerId {
+        e.PreventDefault()
+        if e.Phase == PointerDragPhase.Started {
+            wheelHandle.Focus()
+        }
+        if e.Phase == PointerDragPhase.Started || e.Phase == PointerDragPhase.Moved {
             CoordinatesFromPointer(e)
-        }
-    }
-
-    private func EndPointer(e PointerEvent, commit bool = true) {
-        if resolved.Disabled || !dragging || e.PointerId != pointerId {
-            return
-        }
-        e.ReleaseCapture()
-        dragging = false
-        pointerId = -1L
-        if commit {
+        } else if e.Phase == PointerDragPhase.Ended {
             UpdateColor(true)
         }
     }

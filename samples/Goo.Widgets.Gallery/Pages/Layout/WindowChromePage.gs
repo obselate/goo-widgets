@@ -18,13 +18,13 @@ internal open class WindowChromeExample : Cell {
             TrailingContent: Button{
                 Height: 24.0,
                 MarginEnd: 8.0,
-                BackgroundColor: "#373044",
+                BackgroundColor: Color.Parse("#373044"),
                 OnClick: () -> {
                     clicks++
                     status = "Embedded " + clicks.ToString()
                     Rebuild()
                 },
-                Text{Content: "Embedded control", FontSize: 11.0, Color: "#fafafa"}
+                Text{Content: "Embedded control", FontSize: 11.0, Color: Color.Parse("#fafafa")}
             },
             OnMinimize: () -> {
                 status = "Minimize"
@@ -51,7 +51,7 @@ internal open class WindowChromeExample : Cell {
             Height: 260.0,
             BorderWidth: 1.0,
             BorderColor: Color.Parse("#3f3f46"),
-            BackgroundColor: "#09090b",
+            BackgroundColor: Color.Parse("#09090b"),
             chrome,
             Container{
                 Key: "body",
@@ -60,11 +60,11 @@ internal open class WindowChromeExample : Cell {
                 Gap: 16.0,
                 AlignItems: AlignItems.Center,
                 JustifyContent: JustifyContent.Center,
-                Text{Content: maximized ? "Maximized": "Normal", FontSize: 28.0, FontWeight: 700.0, Color: "#fafafa"},
+                Text{Content: maximized ? "Maximized": "Normal", FontSize: 28.0, FontWeight: 700.0, Color: Color.Parse("#fafafa")},
                 Text{
                     Content: "Last command " + status,
                     FontSize: 13.0,
-                    Color: "#a5b4fc",
+                    Color: Color.Parse("#a5b4fc"),
                     TextAlign: TextAlign.Center,
                     TextWrap: TextWrap.Wrap
                 },

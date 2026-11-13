@@ -221,7 +221,7 @@ public data struct TextField {
                 TransitionMs: resolved.TransitionMs!!,
                 TransitionEasing: resolved.TransitionEasing!!,
                 TransitionProperties: theme.InteractionTransitions,
-                Focus: FocusColor == nil ? nil: Style{OutlineColor: FocusColor!!},
+                FocusStyle: FocusColor == nil ? nil: Style{OutlineColor: FocusColor!!},
                 DisabledStyle: Style{BackgroundColor: resolved.DisabledBackgroundColor!!, Color: resolved.DisabledTextColor!!},
             }
             if resolved.FontFamily != nil {
@@ -229,8 +229,8 @@ public data struct TextField {
             }
         }
         if resolved.Invalid {
-            entry!!.Hover = Style{BasedOn: entry!!.Hover, BorderColor: resolved.InvalidColor!!}
-            entry!!.Active = Style{BasedOn: entry!!.Active, BorderColor: resolved.InvalidColor!!}
+            entry!!.HoverStyle = Style{BasedOn: entry!!.HoverStyle, BorderColor: resolved.InvalidColor!!}
+            entry!!.ActiveStyle = Style{BasedOn: entry!!.ActiveStyle, BorderColor: resolved.InvalidColor!!}
         }
         if let bindings = EntryKeyBindings {
             let existing = entry!!.KeyBindings
@@ -407,7 +407,7 @@ public data struct TextField {
             root.Children.Add(entry!!)
         }
         interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)
-        if framed { entry!!.Focus = Style{BasedOn: entry!!.Focus, OutlineWidth: 0} }
+        if framed { entry!!.FocusStyle = Style{BasedOn: entry!!.FocusStyle, OutlineWidth: 0} }
         var counter = resolved.CounterText
         if counter == nil && resolved.MaxLength != nil {
             counter = value.Length.ToString() + " / " + resolved.MaxLength!!.ToString()

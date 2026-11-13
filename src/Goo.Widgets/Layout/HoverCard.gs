@@ -124,11 +124,11 @@ public open class HoverCard : Cell[HoverCardInput], IDisposable {
             return
         }
         if shown {
-            pending = window!!.SetTimeout(hide, current.CloseDelayMs!!)
+            pending = window!!.After(current.CloseDelayMs!!, hide)
         } else if focused || current.OpenDelayMs!!== 0.0 {
             Show(true)
         } else {
-            pending = window!!.SetTimeout(show, current.OpenDelayMs!!)
+            pending = window!!.After(current.OpenDelayMs!!, show)
         }
     }
 

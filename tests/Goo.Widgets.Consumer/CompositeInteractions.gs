@@ -151,8 +151,8 @@ internal class CompositeHost : Cell {
             Gap: 18,
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#09090b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#09090b"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "heading", Content: "Composite widgets", FontSize: 24},
             Cell.Mount[TabBarInput, TabBar](
                 "tabs",
@@ -190,14 +190,14 @@ internal class CompositeHost : Cell {
                         Width: Percent(100),
                         Height: Percent(100),
                         Padding: 16,
-                        BackgroundColor: "#152a36",
+                        BackgroundColor: Color.Parse("#152a36"),
                         Text{Content: "First pane"}
                     },
                     Second: Container{
                         Width: Percent(100),
                         Height: Percent(100),
                         Padding: 16,
-                        BackgroundColor: "#202236",
+                        BackgroundColor: Color.Parse("#202236"),
                         Text{Content: "Second pane"}
                     },
                 }
@@ -275,8 +275,7 @@ func RailInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Rail keyboard verification",
-        Width: 250,
-        Height: 300,
+        Size: LayoutSize(250, 300),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -342,8 +341,7 @@ func CompositeInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Goo Widgets composite verification",
-        Width: 700,
-        Height: 610,
+        Size: LayoutSize(700, 610),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -469,7 +467,7 @@ func CompositeInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         CaptureIssueProof(window, "composites-wide")
-        window.Width = 390
+        window.Size = LayoutSize(float64(390) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 15)
         Require(
             host.TabViewport.ScrollRange.X > 0.0 && host.TabRoot!!.Children.Count == 6,
@@ -556,7 +554,7 @@ internal class PointerCommitHost : Cell {
 
 func PointerCommitCancellation() {
     let host = PointerCommitHost()
-    let window = Window{Title: "Pointer commit cancellation", Root: host, Width: 320, Height: 350}
+    let window = Window{Title: "Pointer commit cancellation", Root: host, Size: LayoutSize(320, 350)}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 8)

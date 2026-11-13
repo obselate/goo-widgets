@@ -192,7 +192,7 @@ internal class DataGridHeightHost : Cell {
             ScrollbarY: VirtualColumns ? Scrollbar{
                 Thickness: 10,
                 Inset: 0,
-                Thumb: Container{Handle: VerticalThumb, BackgroundColor: "#a1a1aa"}
+                Thumb: Container{Handle: VerticalThumb, BackgroundColor: Color.Parse("#a1a1aa")}
             }: nil,
             CreateHeader: Navigation ? NavigationHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
                 Container{Handle: column.Id == "a" ? WidthA: WidthB, Width: Percent(100), content},
@@ -316,7 +316,7 @@ internal class DataGridInitialHost : Cell {
 
 func DataGridHeightInteractions() {
     let measured = DataGridInitialHost()
-    let initial = Window{Title: "DataGrid initial measurement", Width: 1540, Height: 960, Root: measured, SmoothScrolling: false}
+    let initial = Window{Title: "DataGrid initial measurement", Size: LayoutSize(1540, 960), Root: measured, SmoothScrolling: false}
     Theme.Attach(initial, Theme.Default)
     RunNativeWindow(initial, () -> {
         initial.Open()
@@ -340,7 +340,7 @@ func DataGridHeightInteractions() {
         Console.WriteLine("PASS: DataGrid initial measured rows stay at zero with the first row at the body top")
     })
     let host = DataGridHeightHost()
-    let window = Window{Title: "DataGrid mixed heights", Width: 400, Height: 300, Root: host, SmoothScrolling: false}
+    let window = Window{Title: "DataGrid mixed heights", Size: LayoutSize(400, 300), Root: host, SmoothScrolling: false}
     Theme.Attach(window, Theme.Default)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -485,7 +485,7 @@ func DataGridHeightInteractions() {
             "Auto columns shrank after scrolling to shorter content"
         )
         host.SourceWidth = true
-        window.Width = 1200
+        window.Size = LayoutSize(float64(1200) / float64(window.UiScale), window.Size.Height)
         host.Version++
         host.Rebuild()
         WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
@@ -575,7 +575,7 @@ func DataGridHeightInteractions() {
         CaptureIssueProof(window, "datagrid-loading")
         host.Empty = false
         host.VirtualColumns = false
-        window.Width = 1000
+        window.Size = LayoutSize(float64(1000) / float64(window.UiScale), window.Size.Height)
         host.WidthCase = 1
         host.Rebuild()
         PumpFrames(window, 12)
@@ -707,8 +707,8 @@ func DataGridContracts() {
                     return Container{
                         Key: "unrelated",
                         Handle: unrelatedHandle,
-                        Hover: Style{BackgroundColor: "#18181b"},
-                        Focus: Style{BackgroundColor: "#18181b"}
+                        HoverStyle: Style{BackgroundColor: Color.Parse("#18181b")},
+                        FocusStyle: Style{BackgroundColor: Color.Parse("#18181b")}
                     }
                 },
                 RootHandle: rootHandle,
@@ -828,7 +828,7 @@ internal class DataGridHost : Cell {
         DetailBuilds++
         return Text{
             Content: "Expanded host details use measured text. A longer note wraps at the shared table width and moves the next row without a fixed detail-height estimate.",
-            Color: "#a5b4fc",
+            Color: Color.Parse("#a5b4fc"),
             FontSize: 16
         }
     }
@@ -975,8 +975,8 @@ internal class DataGridHost : Cell {
                 Width: Percent(100),
                 Height: 30,
                 Padding: 5,
-                Color: "#fafafa",
-                BackgroundColor: "#09090b"
+                Color: Color.Parse("#fafafa"),
+                BackgroundColor: Color.Parse("#09090b")
             }
         }
         let state = DataGridColumn{
@@ -1001,12 +1001,12 @@ internal class DataGridHost : Cell {
             Height: Percent(100),
             Padding: 20,
             Gap: 14,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Sort headers, drag column edges, and select rows. Details are measured.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Cell.Mount[DataGridInput, DataGrid](
                 "grid",
@@ -1137,8 +1137,7 @@ func DataGridNavigationInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "DataGrid navigation",
-        Width: 500,
-        Height: 320,
+        Size: LayoutSize(500, 320),
         Root: host,
         AccessibilityAdapter: semantics,
         SmoothScrolling: false
@@ -1350,8 +1349,7 @@ func DataGridInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "DataGrid verification",
-        Width: 720,
-        Height: 450,
+        Size: LayoutSize(720, 450),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -1870,7 +1868,7 @@ func DataGridLogicalEditingFocus() {
 func DataGridEditingInteractions() {
     let host = DataGridEditHost()
     let semantics = SearchListSemantics()
-    let window = Window{Title: "DataGrid cell editing", Width: 520, Height: 340, Root: host, SmoothScrolling: false, AccessibilityAdapter: semantics}
+    let window = Window{Title: "DataGrid cell editing", Size: LayoutSize(520, 340), Root: host, SmoothScrolling: false, AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Default)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -2199,17 +2197,16 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 480
-            WaitVirtual(window, () -> window.Width == width && Math.Abs(host.Root.BorderBox.Width - float64(width) / 1.5) < 1)
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440: 480) / float64(window.UiScale))
+            WaitVirtual(window, () -> window.NativeWidth == width && Math.Abs(host.Root.BorderBox.Width - float64(width) / 1.5) < 1)
             host.Viewport.JumpTo(host.Viewport.ScrollRange.X, 0)
             PumpFrames(window, 8)
             CaptureIssueProof(window, "datagrid-editing-150-" + width.ToString())
             let popup = FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Bounds
             let error = FindSemantics(semantics.Tree!!.Root, "Enter a valid value")!!.Bounds
             Require(popup.X >= 0 && popup.Y >= 0 && popup.X + popup.Width <= float64(width) / 1.5 + 1 &&
-                popup.Y + popup.Height <= float64(window.Height) / 1.5 + 1 && error.Width <= popup.Width &&
-                host.After.BorderBox.Y + host.After.BorderBox.Height <= float64(window.Height) / 1.5 + 1,
+                popup.Y + popup.Height <= float64(window.NativeHeight) / 1.5 + 1 && error.Width <= popup.Width &&
+                host.After.BorderBox.Y + host.After.BorderBox.Height <= float64(window.NativeHeight) / 1.5 + 1,
                 "Scaled editor or error left the viewport: width=" + width.ToString() +
                 " popup=" + popup.ToString() + " error=" + error.ToString() + " after=" + host.After.BorderBox.ToString())
         }
