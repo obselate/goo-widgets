@@ -35,7 +35,7 @@ public open partial class TouchTextEditing {
         let left = Math.Clamp(sourceX - width * 0.5, viewport.X, viewport.X + viewportWidth - width)
         let preferredTop = sourceY >= viewport.Y + height + 32.0 ? sourceY - height - 32.0 : sourceY + 32.0
         let top = Math.Clamp(preferredTop, viewport.Y, viewport.Y + viewportHeight - height)
-        magnifier ??= ShaderEffect(magnifierProgram.Value, samplesBackdrop: true, backdropOutset: 128.0F)
+        magnifier ??= ShaderEffect(magnifierProgram.Value, samplesBackdrop: true, backdropOutset: 128.0)
         magnifier!!.SetParameter(0, Vector4(float32((sourceX - left - width * 0.5) / width),
             float32((sourceY - top - height * 0.5) / height), 2.0F, 0.0F))
         return Container{
