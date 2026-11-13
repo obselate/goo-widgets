@@ -758,7 +758,7 @@ func DataGridContracts() {
         resizeFactoryCalled &&
             resize.Key == "resize" &&
             resize.Handle != unrelatedHandle &&
-            resize.OnPointerDown != nil &&
+            resize.OnPointerDrag != nil &&
             resize.OnKeyDown != nil &&
             resize
             .Accessibility
