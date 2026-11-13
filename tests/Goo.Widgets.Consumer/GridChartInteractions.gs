@@ -354,8 +354,7 @@ func GraphActivationInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Graph activation verification",
-        Width: 500,
-        Height: 250,
+        Size: LayoutSize(500, 250),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -403,8 +402,7 @@ func GridChartInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Grid and chart verification",
-        Width: 700,
-        Height: 700,
+        Size: LayoutSize(700, 700),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -426,7 +424,7 @@ func GridChartInteractions() {
             "Auto Grid column failed to remeasure changed text or respect its maximum"
         )
         CaptureIssueProof(window, "grid-charts-wide")
-        window.Width = 400
+        window.Size = LayoutSize(float64(400) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 15)
         Require(host.Paragraph.BorderBox.Height > wideHeight, "Grid did not remeasure wrapping at a narrower width")
         Require(
@@ -448,7 +446,7 @@ func GridChartInteractions() {
         PumpFrames(window, 6)
         Require(counter.Count == 2, "Moved Grid child lost keyboard input")
         CaptureIssueProof(window, "grid-charts-narrow")
-        window.Width = 700
+        window.Size = LayoutSize(float64(700) / float64(window.UiScale), window.Size.Height)
         host.Large = false
         host.Rebuild()
         PumpFrames(window, 12)

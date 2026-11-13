@@ -175,8 +175,7 @@ func TimeAxisInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TimeAxis verification",
-        Width: 700,
-        Height: 360,
+        Size: LayoutSize(700, 360),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -222,7 +221,7 @@ func TimeAxisInteractions() {
             Math.Abs(handle.ScrollOffset.X - 300.0) < .5 && handle.ScrollRange.X > 1400.0,
             "Scale change lost the viewport or failed to change the scroll range"
         )
-        window.Width = 420
+        window.Size = LayoutSize(float64(420) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 10)
         Require(Math.Abs(handle.ScrollOffset.X - 300.0) < .5, "Resize restarted initial centering")
         CaptureIssueProof(window, "time-axis-narrow")

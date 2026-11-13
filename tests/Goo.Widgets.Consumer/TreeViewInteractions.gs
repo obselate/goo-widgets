@@ -261,8 +261,7 @@ func TreeViewControlledReveal() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TreeView controlled reveal",
-        Width: 620,
-        Height: 480,
+        Size: LayoutSize(620, 480),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics
     }
@@ -327,8 +326,7 @@ func TreeViewInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TreeView verification",
-        Width: 620,
-        Height: 480,
+        Size: LayoutSize(620, 480),
         Root: root,
         AccessibilityAdapter: semantics
     }

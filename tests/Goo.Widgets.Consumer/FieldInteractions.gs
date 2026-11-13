@@ -155,7 +155,7 @@ internal class FieldCallbackHost : Cell {
 func FieldCallbackOwnership() {
     let host = FieldCallbackHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 500, Height: 500, AccessibilityAdapter: semantics}
+    let window = Window{Root: ApplicationRoot(host), Size: LayoutSize(500, 500), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 10)
@@ -222,7 +222,7 @@ func FieldInteractions() {
     let host = FieldHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Root: root, Width: 500, Height: 400, AccessibilityAdapter: semantics, Title: "Field contracts"}
+    let window = Window{Root: root, Size: LayoutSize(500, 400), AccessibilityAdapter: semantics, Title: "Field contracts"}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 10)
@@ -316,7 +316,7 @@ func FieldInteractions() {
         Require(host.TextCommit == "secret", "TextField did not commit on blur")
         for width in[]int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Width = width
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), window.Size.Height)
             PumpFrames(window, 5)
             for handle in[]ElementHandle{host.NumberHandle, host.PasswordHandle} {
                 let bounds = handle.BorderBox
@@ -328,7 +328,7 @@ func FieldInteractions() {
             }
         }
         window.UiScale = 1
-        window.Width = 500
+        window.Size = LayoutSize(float64(500) / float64(window.UiScale), window.Size.Height)
         PumpFrames(window, 5)
         let clear = FindSemantics(semantics.Tree?.Root, "Clear Password")!!
         window.PerformAccessibilityAction(clear.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
@@ -404,7 +404,7 @@ func FieldCultureContract() {
     CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE")
     let host = FieldHost()
     let root = ApplicationRoot(host)
-    let window = Window{Root: root, Width: 500, Height: 400}
+    let window = Window{Root: root, Size: LayoutSize(500, 400)}
     try {
         RunNativeWindow(window, () -> {
             window.Open()
@@ -436,7 +436,7 @@ func FieldGalleryProof() {
             let registry = CreateRegistry()
             let gallery = Gallery(registry, registry.IndexOf(title))
             let semantics = SearchListSemantics{}
-            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
+            let window = Window{Root: gallery, Size: LayoutSize(1100, 800), Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
             RunNativeWindow(window, () -> {
@@ -563,7 +563,7 @@ internal class AddonFrameHost : Cell {
 func AddonFramePixels() {
     let host = AddonFrameHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 360, Height: 240, AccessibilityAdapter: semantics}
+    let window = Window{Root: host, Size: LayoutSize(360, 240), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         for palette in[]Theme{Theme.Bone, Theme.Ink} {
@@ -598,7 +598,7 @@ func AddonFramePixels() {
                         box.Y - palette.FocusRingOffset - palette.FocusRingWidth / 2,
                         focused ? palette.FocusColor: palette.CanvasColor),
                         "TextField factory focus callbacks did not preserve frame focus visibility")
-                    let pixelScale = float64(image.Width) / float64(window.Width)
+                    let pixelScale = float64(image.Width) / float64(window.NativeWidth)
                     let pixelAt = int32(box.Y * pixelScale) * int32(image.RowBytes) + int32(box.X * pixelScale) * 4
                     let canvas = palette.CanvasColor
                     let focus = palette.FocusColor
@@ -639,7 +639,7 @@ func AddonFramePixels() {
                 window,
                 "textfield-leading-" + (palette.CanvasColor == Theme.Bone.CanvasColor ? "light": "dark")
             )
-            let scale = float64(ThemeCapture(window).Width) / float64(window.Width)
+            let scale = float64(ThemeCapture(window).Width) / float64(window.NativeWidth)
             let inset = Math.Round(13 * scale, MidpointRounding.AwayFromZero) / scale
             Require(
                 Math.Abs(leading.X - search.X - inset) < 0.1

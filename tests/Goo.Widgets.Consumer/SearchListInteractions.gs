@@ -151,7 +151,7 @@ func FindSemantics(node AccessibilityNode?, name string) AccessibilityNode? {
 func SearchListInteractions() {
     let host = SearchListHost{}
     let semantics = SearchListSemantics{}
-    let window = Window{Title: "SearchList retained selection", Width: 520, Height: 390, Root: host}
+    let window = Window{Title: "SearchList retained selection", Size: LayoutSize(520, 390), Root: host}
     window.AccessibilityAdapter = semantics
     RunNativeWindow(window, () -> {
         window.Open()

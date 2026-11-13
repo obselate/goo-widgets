@@ -131,8 +131,7 @@ func ErgonomicWindowInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Goo Widgets ergonomic input verification",
-        Width: 600,
-        Height: 600,
+        Size: LayoutSize(600, 600),
         Root: host,
         AccessibilityAdapter: semantics,
     }
@@ -194,7 +193,7 @@ func ErgonomicWindowInteractions() {
         Require(!host.Switched, "Enter did not toggle the switch.")
         let slider = host.SliderRoot!!
         Require(
-            Math.Abs(slider.Handle!!.BorderBox.Width - (float64(window.Width) - 48.0) * 0.5) < 1.0,
+            Math.Abs(slider.Handle!!.BorderBox.Width - (float64(window.NativeWidth) - 48.0) * 0.5) < 1.0,
             "A decorated slider applied its percentage width twice."
         )
         Require(slider.Handle!!.Focus(), "Labeled slider lost its focus target.")
