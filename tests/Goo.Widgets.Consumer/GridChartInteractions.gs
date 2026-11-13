@@ -57,7 +57,7 @@ func GridChartContracts() {
             CreateSlice: (input DonutChart, segment ChartSegment, prepared Shape) -> {
                 fraction += segment.Fraction
                 Require(segment.Series.Color == Theme.Read().SeriesPalette[segment.Index], "Donut chart ignored the series palette")
-                return Shape{BackgroundColor: "#22d3ee"}
+                return Shape{Fill: VectorPaint(Color.Parse("#22d3ee"))}
             },
         }.Build() as Container
     )!!
