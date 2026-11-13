@@ -3,6 +3,7 @@ package Goo.Widgets.Consumer
 import Goo
 import Goo.Widgets.Colors
 import Goo.Widgets.Inputs
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
@@ -241,19 +242,22 @@ internal class RailHost : Cell {
     internal var DisableSelected bool
     internal var Empty bool
     internal var Buttons[]Button = []Button{}
+    internal var Icon Blob?
+    internal var SelectedTextColor Color?
 
     public override func Build() Blob -> Cell.Mount[NavigationRailInput, NavigationRail](
         "rail",
         NavigationRailInput{
             SelectedId: Selected,
             Height: 250,
+            SelectedTextColor: SelectedTextColor,
             OnSelect: (id string) -> {
                 Selected = id
                 Requests++
                 Rebuild()
             },
             Items: Empty ? []NavigationItem{}: []NavigationItem{
-                NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected},
+                NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected, Content: Icon},
                 NavigationItem{Id: "locked", Label: "Rail locked", Disabled: true},
                 NavigationItem{Id: "three", Label: "Rail three"},
             },
@@ -267,6 +271,37 @@ internal class RailHost : Cell {
             },
         }
     )
+}
+
+func NavigationRailOwnership() {
+    using let host = ThemePreferenceHost()
+    host.Resize(400, 300, 400, 300)
+    let original = Color.Rgb(20, 80, 160)
+    let selected = Color.Rgb(200, 30, 40)
+    let handle = ElementHandle()
+    let icon = MaterialIcons.Create("check", 18.0, original)
+    icon.Handle = handle
+    let root = RailHost(){Icon = icon, Selected = "three", SelectedTextColor = selected}
+    let window = Window{Root: root}
+    Theme.Attach(window)
+    window.Attach(host)
+    ThemeFrames(host)
+    for id in []string{"one", "three", "one"} {
+        root.Selected = id
+        root.Rebuild()
+        ThemeFrames(host)
+        let displayed = (root.Buttons[0].Children[0] as Shape)!!
+        Require(icon.Fill!!.Color == original && displayed.Fill!!.Color == (id == "one" ? selected: original),
+            "Navigation rail changed the supplied icon or lost its selected tint")
+        Require(displayed.Path.Equals(icon.Path) && handle.IsMounted && Math.Abs(handle.BorderBox.Width - 18.0) < 0.01,
+            "Navigation rail tint lost icon geometry, style or handle")
+    }
+    root.DisableSelected = true
+    root.Rebuild()
+    ThemeFrames(host)
+    let disabled = (root.Buttons[0].Children[0] as Shape)!!
+    Require(icon.Fill!!.Color == original && disabled.Fill!!.Color == Theme.Read(window).DisabledTextColor,
+        "Navigation rail changed the supplied icon or lost its disabled tint")
 }
 
 func RailInteractions() {

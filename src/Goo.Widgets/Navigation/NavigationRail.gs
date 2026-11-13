@@ -214,9 +214,12 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 }
                 if let content = item.Content {
                     if content is Shape icon && (selected || item.Disabled) {
-                        icon.Fill = VectorPaint(item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!)
+                        let tinted = Shape{...icon, BasedOn: icon,
+                            Fill: VectorPaint(item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!)}
+                        button.Children.Add(tinted)
+                    } else {
+                        button.Children.Add(content)
                     }
-                    button.Children.Add(content)
                 }
                 if resolved.Expanded || item.Content == nil {
                     let text = Text{

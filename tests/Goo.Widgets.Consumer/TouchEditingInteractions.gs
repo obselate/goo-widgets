@@ -35,6 +35,57 @@ internal class TouchEditingHost : Cell {
     }
 }
 
+internal class TouchEditingOwnershipHost : Cell {
+    internal let Editor TextEntry = TextEntry{Value: "Alpha beta gamma", Width: 180, Height: 40}
+    internal var Editing TouchTextEditing?
+
+    public override func Build() Blob {
+        let content = Container{Editor}
+        let input = TouchTextEditingInput{Content: content, Editor: Editor}
+        return Cell.Mount[TouchTextEditingInput, TouchTextEditing]("editing", input, () -> {
+            let child = TouchTextEditing()
+            Editing = child
+            return child
+        })
+    }
+}
+
+func TouchEditingOwnership() {
+    using let host = ThemePreferenceHost()
+    host.Resize(400, 240, 400, 240)
+    let root = TouchEditingOwnershipHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Root: root, AccessibilityAdapter: semantics}
+    Theme.Attach(window)
+    window.Attach(host)
+    host.SetFocused(true)
+    ThemeFrames(host)
+    let handle = root.Editor.Handle!!
+    Require(handle.Focus(), "Retained touch editor did not focus")
+    ThemeFrames(host)
+    let box = handle.BorderBox
+    let point = Point{X: box.X + 20.0, Y: box.Y + box.Height * 0.5}
+    TouchPressAt(window, 501, point)
+    TouchReleaseAt(window, 501, point)
+    ThemeFrames(host)
+    Require(FindSemantics(semantics.Tree?.Root, "Edit text") != nil, "Touch toolbar did not open")
+    for iteration in 0 ... 3 {
+        root.Editing!!.Rebuild()
+        ThemeFrames(host)
+        root.Rebuild()
+        ThemeFrames(host)
+        Require(handle.IsMounted && root.Editor.Handle == handle && window.Focus.Editor != nil,
+            "Touch rebuild replaced or unfocused the retained editor")
+    }
+    Require(window.Focus.Execute(TextCommand{Kind: TextCommandKind.SelectAll}),
+        "Retained touch editor rejected selection after rebuild")
+    ThemeFrames(host)
+    Require(window.Focus.Selection?.Active.Offset == 16, "Touch rebuild lost editor selection")
+    host.SetFocused(false)
+    ThemeFrames(host)
+    Require(FindSemantics(semantics.Tree?.Root, "Edit text") == nil, "Touch toolbar did not close")
+}
+
 func TouchPressAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerPress(id, PointerDevice.Touch,
         point.X * window.UiScale, point.Y * window.UiScale,

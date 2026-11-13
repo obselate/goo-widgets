@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Touch editing rebuilds a retained overlay without changing mounted content or editor declarations.
+- `NavigationRail` tints a fresh shape declaration and keeps supplied item icons unchanged.
 - Remove `Avatar.ImagePath` and `AsyncImage.ImagePath`. Supply an owned `ImageSource` provider. Retain an `AsyncImageSource` over `ImageSourceCache.LoadAsync` to load a path.
 - Clickable `AvatarGroup` avatars and read-only `CodeBlock` code areas show keyboard focus on the actual focus target.
 - Icon-only `ActionButton` controls omit the empty default text slot, so the `SplitButton` chevron is centered. Text and root factories keep their existing behavior.

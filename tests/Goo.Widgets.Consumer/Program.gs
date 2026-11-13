@@ -478,6 +478,8 @@ func Main() {
     ThemeFocusContracts()
     ThemeRadiusContracts()
     SelectedTextContracts()
+    TouchEditingOwnership()
+    NavigationRailOwnership()
     RunContracts(
         () -> {
             CalendarContracts()

@@ -38,7 +38,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
     private var focusId int64
     private var dragPoint Point
     private var autoScroll WindowTimer?
-    private var overlay Portal?
+    private var overlayCell TouchTextEditingOverlay?
     private var hookedEditor Blob?
     private var dragOffset Point
     private var pressedCommand TextCommandKind?
@@ -68,12 +68,10 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
     }
 
     protected override func Build(input TouchTextEditingInput) Blob {
-        if input.Content == nil || !(input.Editor is TextEntry || input.Editor is TextEditor) {
+        let content = input.Content
+        if content == nil || !(input.Editor is TextEntry || input.Editor is TextEditor) {
             throw ArgumentException("TouchTextEditing requires Content and a text Editor")
         }
-        if let overlay = overlay { current.Content?.Children.Remove(overlay) }
-        overlay = nil
-        current = input
         theme = Theme.Read()
         let owner = Theme.Key.Window
         BindWindow(owner)
@@ -87,32 +85,39 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
             handle = next
             handle.MetricsChanged += Metrics
         }
-        input.Editor.Handle = handle
-        BindEditor(input.Editor)
-        BindGestures(input.Editor, input.Enabled != false)
-        if input.Enabled == false {
+        BindEditor(input.Editor, input.Enabled != false)
+        if current.Content != content {
+            let keyed = content.Children.Count > 0 && content.Children[0].Key != nil
+            let key string? = keyed ? "touch-editing" : nil
+            content.Add(Cell.Mount[TouchTextEditing, TouchTextEditingOverlay](key, this))
+        }
+        current = input
+        overlayCell?.Rebuild()
+        return content
+    }
+
+    internal func BuildOverlay(child TouchTextEditingOverlay) Blob {
+        overlayCell = child
+        let overlay = Portal{Handle: viewportHandle,
+            Width: Percent(100), Height: Percent(100), ZIndex: 40}
+        if current.Enabled == false {
             visible = false
             StopMovement()
-            return input.Content
+            return overlay
         }
         if visible && focused && handle.IsMounted {
             guard let editor = window?.Focus.Editor, let selection = window?.Focus.Selection else {
-                return input.Content
+                return overlay
             }
             focusId = editor.FocusId
-            let keyed = input.Content.Children.Count > 0 && input.Content.Children[0].Key != nil
-            let overlay = Portal{Key: keyed ? "touch-editing" : nil, Handle: viewportHandle,
-                Width: Percent(100), Height: Percent(100), ZIndex: 40}
-            this.overlay = overlay
             if moving { overlay.Add(Magnifier()) }
             if selection.Anchor.Offset != selection.Active.Offset || (moving && movingAnchor) {
                 AddHandle(overlay, selection.Anchor, true)
             }
             AddHandle(overlay, selection.Active, false)
             if !moving { overlay.Add(Toolbar(editor)) }
-            input.Content.Children.Add(overlay)
         }
-        return input.Content
+        return overlay
     }
 
     private func BindGestures(editor Blob, enabled bool) {
@@ -130,8 +135,10 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         editor.Gestures = gestures.Count == 0 ? nil : gestures
     }
 
-    private func BindEditor(editor Blob) {
+    private func BindEditor(editor Blob, enabled bool) {
         if hookedEditor == editor { return }
+        editor.Handle = handle
+        BindGestures(editor, enabled)
         hookedEditor = editor
         let priorFocus = editor.OnFocus
         let priorBlur = editor.OnBlur
@@ -422,4 +429,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         StopMovement()
         if shown && !disposed { Rebuild() }
     }
+}
+
+internal class TouchTextEditingOverlay : Cell[TouchTextEditing] {
+    protected override func Build(input TouchTextEditing) Blob -> input.BuildOverlay(this)
 }
