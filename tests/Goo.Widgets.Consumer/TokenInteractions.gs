@@ -105,8 +105,7 @@ func TokenInteractions() {
     let root = ApplicationRoot(host)
     let window = Window{
         Root: root,
-        Width: 640,
-        Height: 520,
+        Size: LayoutSize(640, 520),
         AccessibilityAdapter: semantics,
         Title: "Token and multiple selection contracts",
     }

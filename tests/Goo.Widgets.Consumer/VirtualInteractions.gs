@@ -256,7 +256,7 @@ func VirtualRollbackInteractions() {
 
 func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualProbeSemantics]) {
     let semantics = VirtualProbeSemantics{}
-    let window = Window{Title: name, Width: 400, Height: 300, Root: host}
+    let window = Window{Title: name, Size: LayoutSize(400, 300), Root: host}
     window.AccessibilityAdapter = semantics
     window.SmoothScrolling = false
     RunNativeWindow(window, () -> {
@@ -276,7 +276,7 @@ func WaitVirtual(window Window, ready Func[bool], diagnose Func[string]? = nil) 
     }
     if !ready() {
         Require(false, "Virtual layout did not publish the expected mount or scroll metrics. " +
-            "Window=${window.Title} open=${window.IsOpen} size=${window.Width}x${window.Height} " +
+            "Window=${window.Title} open=${window.IsOpen} size=${window.NativeWidth}x${window.NativeHeight} " +
             "pump-calls=${pumps} elapsed-ms=${waiting.Elapsed.TotalMilliseconds}. " + diagnose?.Invoke())
     }
 }
@@ -288,11 +288,11 @@ func VirtualScrollApiInteractions() {
     resized.Pin = true
     RunVirtual("VirtualRows pinned viewport resize", resized, (window, semantics) -> {
         let before = resized.Handle.ScrollOffset.Y
-        window.Height = 200
+        window.Size = LayoutSize(window.Size.Width, float64(200) / float64(window.UiScale))
         WaitVirtual(window, () -> resized.Handle.BorderBox.Height < 250.0 &&
             Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
         Require(resized.Handle.ScrollOffset.Y > before, "A smaller viewport lost the pinned end.")
-        window.Height = 400
+        window.Size = LayoutSize(window.Size.Width, float64(400) / float64(window.UiScale))
         WaitVirtual(window, () -> resized.Handle.BorderBox.Height > 350.0 &&
             Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
         Console.WriteLine("Pinned resize: viewport=" + resized.Handle.ContentBox.Height.ToString() +

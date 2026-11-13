@@ -70,7 +70,7 @@ func TouchHoldWord(window Window, host TouchEditingHost) {
 func TouchEditingInteractions() {
     let host = TouchEditingHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 500, Height: 300, AccessibilityAdapter: semantics,
+    let window = Window{Root: host, Size: LayoutSize(500, 300), AccessibilityAdapter: semantics,
         Title: "Goo touch editing check"}
     RunNativeWindow(window, () -> {
         window.Open()
@@ -125,19 +125,17 @@ func TouchEditingInteractions() {
             "Read-only touch editing exposed a write command")
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Width = width
-            window.Height = width == 2560 ? 1440 : 300
+            window.Size = LayoutSize(float64(width) / float64(window.UiScale), float64(width == 2560 ? 1440 : 300) / float64(window.UiScale))
             PumpFrames(window, 8)
             let toolbar = FindSemantics(semantics.Tree?.Root, "Edit text")!!.Bounds
             Require(toolbar.X >= 0.0 && toolbar.Y >= 0.0
-                && toolbar.X + toolbar.Width <= float64(window.Width) / 1.5 + 0.1
-                && toolbar.Y + toolbar.Height <= float64(window.Height) / 1.5 + 0.1,
+                && toolbar.X + toolbar.Width <= float64(window.NativeWidth) / 1.5 + 0.1
+                && toolbar.Y + toolbar.Height <= float64(window.NativeHeight) / 1.5 + 0.1,
                 "Touch edit toolbar left the scaled viewport")
             CaptureIssueProof(window, "touch-editing-150-" + width.ToString())
         }
         window.UiScale = 1.0F
-        window.Width = 500
-        window.Height = 300
+        window.Size = LayoutSize(float64(500) / float64(window.UiScale), float64(300) / float64(window.UiScale))
         host.Password = true
         host.Rebuild()
         PumpFrames(window, 8)

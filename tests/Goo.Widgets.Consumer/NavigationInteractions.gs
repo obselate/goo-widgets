@@ -180,7 +180,7 @@ func NavigationInteractions() {
     let host = NavigationHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Title: "Navigation acceptance", Width: 800, Height: 650, Root: root}
+    let window = Window{Title: "Navigation acceptance", Size: LayoutSize(800, 650), Root: root}
     window.AccessibilityAdapter = semantics
     Theme.Attach(window)
     RunNativeWindow(window, () -> {
@@ -298,15 +298,13 @@ func NavigationInteractions() {
                 "Palette Escape did not dismiss and restore focus"
             )
             ChoiceKey(window, SDLScancode.Return)
-            window.Width = 390
-            window.Height = 420
+            window.Size = LayoutSize(float64(390) / float64(window.UiScale), float64(420) / float64(window.UiScale))
             PumpFrames(window, 14)
             let entry = FindSemantics(semantics.Tree?.Root, "Search commands")!!.Bounds
             Require(entry.X >= 0 && entry.X + entry.Width <= 390, "Palette search clipped at the minimum window width")
             CaptureIssueProof(window, "palette-narrow-" + mode.ToString())
             ChoiceKey(window, SDLScancode.Escape)
-            window.Width = 800
-            window.Height = 650
+            window.Size = LayoutSize(float64(800) / float64(window.UiScale), float64(650) / float64(window.UiScale))
             PumpFrames(window, 8)
         }
         Theme.Attach(window, Theme.Default with{Direction = Direction.RightToLeft})
