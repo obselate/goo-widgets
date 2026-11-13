@@ -37,18 +37,18 @@ internal class TouchEditingHost : Cell {
 
 func TouchPressAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerPress(id, PointerDevice.Touch,
-        float32(point.X) * window.UiScale, float32(point.Y) * window.UiScale,
+        float32(point.X * window.UiScale), float32(point.Y * window.UiScale),
         PointerButton.Primary, KeyModifiers{}, 1.0F)
 }
 
 func TouchMoveAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerMove(id, PointerDevice.Touch,
-        float32(point.X) * window.UiScale, float32(point.Y) * window.UiScale, KeyModifiers{}, 1.0F)
+        float32(point.X * window.UiScale), float32(point.Y * window.UiScale), KeyModifiers{}, 1.0F)
 }
 
 func TouchReleaseAt(window Window, id int64, point Point) {
     window.PlatformInput.PointerRelease(id, PointerDevice.Touch,
-        float32(point.X) * window.UiScale, float32(point.Y) * window.UiScale,
+        float32(point.X * window.UiScale), float32(point.Y * window.UiScale),
         PointerButton.Primary, KeyModifiers{}, 0.0F)
 }
 
