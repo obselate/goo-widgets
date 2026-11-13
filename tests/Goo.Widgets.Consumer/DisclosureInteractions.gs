@@ -75,11 +75,13 @@ internal class DisclosureHost : Cell {
             HeaderPadding: 0.0,
             Content: Cell.Mount[DisclosureChild](
                 "child",
-                (child DisclosureChild) -> {
+                () -> {
+                    let child = DisclosureChild()
                     if Child != child {
                         Mounts++
                     }
                     Child = child
+                    return child
                 }
             ),
             OnExpandedChange: (expanded bool) -> {

@@ -824,21 +824,29 @@ func ThemePolicyContracts() {
     )
 }
 
-internal class ThemeVirtualRow : Cell {
-    internal var Id int32
+internal data struct ThemeVirtualRowInput {
+    var Id int32
+    var Rows Dictionary[int32, ThemeVirtualRow]
+}
+
+internal class ThemeVirtualRow : Cell[ThemeVirtualRowInput] {
     internal var Snapshot Theme
     internal let Handle ElementHandle = ElementHandle()
-    public override func Build() Blob {
+    protected override func InputChanged(input ThemeVirtualRowInput) {
+        input.Rows[input.Id] = this
+    }
+
+    protected override func Build(input ThemeVirtualRowInput) Blob {
         Snapshot = Theme.Read()
         return Button{
             Handle: Handle,
             Height: Snapshot.ControlHeight,
             Width: Percent(100),
             Focusable: true,
-            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + Id.ToString()},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + input.Id.ToString()},
             Color: Snapshot.TextColor,
             BackgroundColor: Snapshot.PanelColor,
-            Text{Content: Id.ToString(), FontSize: Snapshot.FontSize},
+            Text{Content: input.Id.ToString(), FontSize: Snapshot.FontSize},
         }
     }
 }
@@ -865,12 +873,9 @@ internal class ThemeVirtualHost : Cell {
         let theme = Theme.Read()
         return Container{
             Height: theme.ControlHeight,
-            Cell.Mount[ThemeVirtualRow](
+            Cell.Mount[ThemeVirtualRowInput, ThemeVirtualRow](
                 "counter",
-                (row ThemeVirtualRow) -> {
-                    row.Id = index
-                    Rows[index] = row
-                }
+                ThemeVirtualRowInput{Id: index, Rows: Rows}
             ),
         }
     }

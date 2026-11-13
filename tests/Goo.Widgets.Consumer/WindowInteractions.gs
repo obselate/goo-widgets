@@ -111,8 +111,10 @@ internal class InteractiveHost : Cell {
         if ShowGraph {
             return Cell.Mount[GraphHost](
                 "graph-fixture",
-                (graph GraphHost) -> {
+                () -> {
+                    let graph = GraphHost()
                     Graph = graph
+                    return graph
                 }
             )
         }

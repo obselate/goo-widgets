@@ -267,8 +267,10 @@ internal class GridChartHost : Cell {
                     ColumnSpan: Swap ? 2: 1,
                     Content: Cell.Mount[GridCounter](
                         "counter",
-                        (cell GridCounter) -> {
+                        () -> {
+                            let cell = GridCounter()
                             Counter = cell
+                            return cell
                         }
                     )
                 },
