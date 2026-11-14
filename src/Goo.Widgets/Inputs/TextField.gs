@@ -476,19 +476,25 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
+        let editingHandle = entry!!.Handle!!
         let editing = Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             MountKey ?? root.Key,
             TouchTextEditingInput{
                 Content: root,
-                Editor: entry!!.Handle!!,
+                Editor: editingHandle,
                 RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
                 Enabled: resolved.TouchEditing,
             }
         )
         let outer = Container{Width: resolved.Width!!, MinWidth: 0, HitTestSelf: false, editing}
-        configureRoot?.Invoke(resolved, label, entry!!, issue, outer)
-        if configureRoot != nil && !outer.Children.Contains(editing) {
-            throw InvalidOperationException("TextField owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot")
+        if let configure = configureRoot {
+            configure.Invoke(resolved, label, entry!!, issue, outer)
+            if entry!!.Handle != editingHandle {
+                throw InvalidOperationException("TextField owns its editor handle during ConfigureRoot; set TextField.Handle instead")
+            }
+            if !outer.Children.Contains(editing) {
+                throw InvalidOperationException("TextField owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot")
+            }
         }
         return outer
     }

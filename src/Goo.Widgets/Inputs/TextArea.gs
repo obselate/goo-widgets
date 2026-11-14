@@ -343,19 +343,25 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             )
         }
         root.FlexDirection = FlexDirection.Column
+        let editingHandle = editor.Handle!!
         let editing = Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
             TouchTextEditingInput{
                 Content: root,
-                Editor: editor.Handle!!,
+                Editor: editingHandle,
                 RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
                 Enabled: input.TouchEditing,
             }
         )
         let outer = Container{Width: input.Width!!, MinWidth: 0, BasedOn: input.RootStyle, HitTestSelf: false, editing}
-        input.ConfigureRoot?.Invoke(input, outer)
-        if input.ConfigureRoot != nil && !outer.Children.Contains(editing) {
-            throw InvalidOperationException("TextArea owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot")
+        if let configure = input.ConfigureRoot {
+            configure.Invoke(input, outer)
+            if editor.Handle != editingHandle {
+                throw InvalidOperationException("TextArea owns its editor handle during ConfigureRoot; adopt it in ConfigureEditor instead")
+            }
+            if !outer.Children.Contains(editing) {
+                throw InvalidOperationException("TextArea owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot")
+            }
         }
         return outer
     }

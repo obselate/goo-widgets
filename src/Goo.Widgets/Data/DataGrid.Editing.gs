@@ -324,8 +324,7 @@ public open partial class DataGrid {
         })
     }
 
-    private func ConfigureEditor(editor Blob, session DataGridEditSession, name string) {
-        editor.Handle = session.Editor
+    private func ConfigureEditor(editor Blob, session DataGridEditSession) {
         editor.OnKeyDown = EditKeyDown
         editor.OnFocus = (e FocusEvent) -> {
             if session.FocusPending {
@@ -333,16 +332,8 @@ public open partial class DataGrid {
                 window!!.Focus.SetSelection(session.Value.Draft.Length, session.Value.Draft.Length)
             }
         }
-        editor.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextInput,
-            Name: name,
-            Multiline: session.Multiline,
-            Invalid: session.Error != nil,
-            Relationships: AccessibilityRelationships{
-                DescribedBy: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{},
-                ErrorMessage: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{}
-            }
-        }
+        editor.Accessibility ??= Accessibility{}
+        editor.Accessibility!!.Multiline = session.Multiline
     }
 
     private func BuildEditor(session DataGridEditSession, column DataGridColumn, height float64) Blob {
@@ -353,31 +344,23 @@ public open partial class DataGrid {
         var editor Blob
         if session.Multiline {
             session.Controller ??= TextEditorController(TextDocument(session.Value.Draft))
-            var prepared TextEditor?
             editor = Cell.Mount[TextAreaInput, TextArea]("cell-editor", TextAreaInput{
                 Controller: session.Controller,
                 Width: Percent(100), Height: height, MinHeight: 0, MinimumRows: 1,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
                 ConfigureEditor: (input TextAreaInput, value TextEditor) -> {
+                    value.Handle = session.Editor
+                    ConfigureEditor(value, session)
                     if session.Presentation == DataGridEditPresentation.Inline {
                         value.Padding = Edges{Left: theme.ControlPadding, Right: theme.ControlPadding}
                     }
-                    prepared = value
-                    },
-                ConfigureRoot: (input TextAreaInput, root Container) -> {
-                    ConfigureEditor(prepared!!, session, name)
-                    }})
+                }})
         } else {
             editor = TextField{
-                Value: session.Value.Draft, Width: Percent(100), EntryHeight: height,
+                Handle: session.Editor, Value: session.Value.Draft, Width: Percent(100), EntryHeight: height,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
-                ConfigureRoot: (input TextField, label Text?, value TextEntry, error Text?, prepared Container) -> {
-                    ConfigureEditor(value, session, name)
-                                        prepared.Width = Percent(100)
-                    prepared.MinWidth = 0
-                    prepared.Children.Clear()
-                    prepared.Children.Add(value)
-}}.Build()
+                ConfigureEntry: (input TextField, value TextEntry) -> ConfigureEditor(value, session),
+            }.Build()
         }
         if let create = column.CreateEditor {
             editor = create(column, DataGridEditContext{
@@ -403,7 +386,15 @@ public open partial class DataGrid {
                 EditBlur(session)
                 e.StopPropagation()
             },
-            editor
+            AccessibilityAttachment{
+                Content: editor,
+                Target: session.Editor,
+                Invalid: session.Error != nil,
+                Relationships: AccessibilityRelationships{
+                    DescribedBy: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{},
+                    ErrorMessage: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{},
+                },
+            },
         }
     }
 

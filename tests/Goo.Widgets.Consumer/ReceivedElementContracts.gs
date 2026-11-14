@@ -102,6 +102,15 @@ internal class ConfiguredIconRoot : Cell {
             rejected = true
         }
         Require(rejected, "ConfigureRoot silently removed touch editing")
+        rejected = false
+        try {
+            TextField{ConfigureRoot: (input, label, entry, issue, root) -> entry.Handle = ElementHandle()}.Build()
+        } catch (error InvalidOperationException) {
+            Require(error.Message == "TextField owns its editor handle during ConfigureRoot; set TextField.Handle instead",
+                "ConfigureRoot did not name the editor handle input: " + error.Message)
+            rejected = true
+        }
+        Require(rejected, "ConfigureRoot silently changed the editor handle")
         return Container(){
             Button{Accessibility: Metadata},
             IconButton{
