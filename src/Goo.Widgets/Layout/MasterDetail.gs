@@ -127,7 +127,7 @@ public data struct MasterDetail {
                     }
                 }
                 theme.ApplyInteraction(back, InteractionFamily.Button)
-                WidgetKeyBindings.BindOwnedActivation(back)
+                WidgetKeyBindings.BindActivation(back)
                 pane.Children.Add(back)
             }
             if let detail = Detail {

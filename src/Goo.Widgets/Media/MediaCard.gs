@@ -52,6 +52,7 @@ public data struct MediaCard {
     var CreateContent Func[MediaCard, Blob]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries), OnClick.
     var ConfigureRoot Action[MediaCard, Blob, Blob, Button]?
 
     /// Builds a fresh Goo card tree.
@@ -148,7 +149,7 @@ public data struct MediaCard {
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = Disabled
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 

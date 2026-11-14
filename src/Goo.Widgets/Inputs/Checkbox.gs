@@ -65,6 +65,7 @@ public data struct Checkbox {
     var TransitionEasing Easing?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Description, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
     var ConfigureRoot Action[Checkbox, Blob?, Button]?
 
     /// Builds a fresh Goo checkbox button or labeled interactive row.
@@ -192,8 +193,13 @@ public data struct Checkbox {
         root.Disabled = Disabled
         root.Focusable = !Disabled
         root.OnClick = onClick
-        root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Checked: state, Description: resolved.Description ?? ""}
-        WidgetKeyBindings.BindOwnedActivation(root)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Checkbox
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Checked = state
+        rootAccessibility.Description = resolved.Description ?? ""
+        root.Accessibility = rootAccessibility
+        WidgetKeyBindings.BindActivation(root)
         return root
     }
 }

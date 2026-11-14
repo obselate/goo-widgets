@@ -82,6 +82,7 @@ public data struct Chip {
     var CreateText Func[Chip, Text]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Invalid, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
     var ConfigureRoot Action[Chip, Blob?, Text, Button]?
 
     /// Builds a fresh Goo button tree after resolving props and factories.
@@ -171,21 +172,25 @@ public data struct Chip {
             FlexShrink: 1.0,
             MinWidth: 0.0,
         }
-        configureRoot?.Invoke(resolved, originalLeading, text, root)
 
-        if configureRoot == nil {
             if let leading = originalLeading {
                 root.Children.Add(Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
-        }
+        configureRoot?.Invoke(resolved, originalLeading, text, root)
+
+
         theme.ApplyInteraction(root, InteractionFamily.Toggle, Selected)
         root.Disabled = Disabled
         root.Focusable = !Disabled
-        root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Invalid: Invalid,
-            Checked: Selected ? AccessibilityChecked.True: AccessibilityChecked.False}
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Checkbox
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Invalid = Invalid
+        rootAccessibility.Checked = Selected ? AccessibilityChecked.True: AccessibilityChecked.False
+        root.Accessibility = rootAccessibility
         root.OnClick = Disabled ? nil: root.OnClick ?? OnClick
-        WidgetKeyBindings.BindOwnedActivation(root)
+        WidgetKeyBindings.BindActivation(root)
         return RemovalRoot(root, resolved)
     }
 
@@ -220,7 +225,7 @@ public data struct Chip {
             ControlIcons.Create(ControlIcon.Close, 14, color),
         }
         theme.ApplyInteraction(action, InteractionFamily.Button)
-        WidgetKeyBindings.BindOwnedActivation(action)
+        WidgetKeyBindings.BindActivation(action)
         button.Height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent
             ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0

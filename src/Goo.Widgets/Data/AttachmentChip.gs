@@ -31,6 +31,7 @@ public data struct AttachmentChip {
     var Width Length?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Disabled.
     var ConfigureRoot Action[AttachmentChip, Container]?
 
     /// Builds the attachment and its independent transfer action.
@@ -101,7 +102,7 @@ public data struct AttachmentChip {
             text,
         }
         theme.ApplyInteraction(trigger, InteractionFamily.Button)
-        WidgetKeyBindings.BindOwnedActivation(trigger)
+        WidgetKeyBindings.BindActivation(trigger)
         let body = Container{
             Width: Percent(100),
             MinWidth: 0,

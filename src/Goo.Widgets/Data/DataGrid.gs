@@ -261,6 +261,7 @@ public data struct DataGridInput {
     var ResizeHandleStyle Style?
     /// Configures the fresh resizehandle before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.Orientation, Accessibility.Range, Accessibility.Role, Focusable, Handle, Key, OnKeyDown, TabStop.
     var ConfigureResizeHandle Action[DataGridInput, DataGridColumn, Container]?
     /// Base style for the header part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var HeaderStyle Style?
@@ -284,6 +285,7 @@ public data struct DataGridInput {
     var CreateFilter Func[DataGridInput, DataGridColumn, Blob, Blob]?
     /// Configures the fresh selection before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, Disabled, Focusable, OnClick, OnPointerDown, TabStop.
     var ConfigureSelection Action[DataGridInput, DataGridRow, Button]?
     /// Receives the widget input and the row descriptor, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
@@ -291,6 +293,7 @@ public data struct DataGridInput {
     var CreateDetail Func[DataGridInput, DataGridRow, Blob]?
     /// Configures the fresh row before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.ColumnCount, Accessibility.Expanded, Accessibility.Name, Accessibility.OnAction, Accessibility.Role, Accessibility.RowIndex, Accessibility.Selected, Disabled, Focusable, Handle, Key, OnClick, OnPointerCancel, OnPointerDown, OnPointerUp, TabStop.
     var ConfigureRow Action[DataGridInput, DataGridRow, Container]?
     /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
     /// Set IsGroup on group headers to exclude them from selection.
@@ -299,6 +302,7 @@ public data struct DataGridInput {
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.ColumnCount, Accessibility.Description, Accessibility.MultiSelectable, Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Accessibility.RowCount, Disabled, FocusTarget, Focusable, Handle, OnBlur, OnFocus, OnKeyDown, OnPointerDown, OnTextInput, TabStop.
     var ConfigureRoot Action[DataGridInput, Container]?
     /// Raw cell text getter. Nil reads Values by column ID, with empty text for missing values.
     /// Hosts must not change state in this callback.
@@ -763,6 +767,29 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
+        root.Children.Clear()
+        root.Children.Add(headers)
+        root.Children.Add(body)
+        if let session = editSession {
+            if session.Presentation == DataGridEditPresentation.Popover {
+                root.Children.Add(BuildEditPopover(session))
+            } else if session.Error != nil {
+                root.Children.Add(EditError(session))
+            }
+        }
+        if let footer = input.Footer {
+            root.Children.Add(
+                Container{
+                    Key: "footer",
+                    FlexShrink: 0,
+                    Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding, Top: theme.Spacing * 2, Bottom: theme.Spacing * 2},
+                    BorderWidth: Edges{Top: 1},
+                    BorderColor: theme.BorderColor,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Grid summary")},
+                    footer
+                }
+            )
+        }
         input.ConfigureRoot?.Invoke(input, root)
         if value.RootHandle == nil && root.Handle != nil && root.Handle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
@@ -817,38 +844,17 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             columns.Length == 0 || NavigationIndex(activeId) < 0 || Row(NavigationIndex(activeId)).IsGroup ?
                 Handle(rowHandles, activeId!!): CellHandle(activeId!!, columns[activeColumn].Id!!)
         root.FocusTarget = editSession == nil && activeId != nil ? Handle(rowFocusHandles, activeId!!): nil
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Grid,
-            Name: input.AccessibilityName!!,
-            Description: theme.Text("{0} rows, {1} columns", RowCount, columns.Length),
-            RowCount: RowCount,
-            ColumnCount: columns.Length + (leading > 0.0 ? 1: 0),
-            MultiSelectable: input.Selection == DataGridSelection.Multiple,
-            Relationships: AccessibilityRelationships{ActiveDescendant: active}
-        }
-        root.Children.Clear()
-        root.Children.Add(headers)
-        root.Children.Add(body)
-        if let session = editSession {
-            if session.Presentation == DataGridEditPresentation.Popover {
-                root.Children.Add(BuildEditPopover(session))
-            } else if session.Error != nil {
-                root.Children.Add(EditError(session))
-            }
-        }
-        if let footer = input.Footer {
-            root.Children.Add(
-                Container{
-                    Key: "footer",
-                    FlexShrink: 0,
-                    Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding, Top: theme.Spacing * 2, Bottom: theme.Spacing * 2},
-                    BorderWidth: Edges{Top: 1},
-                    BorderColor: theme.BorderColor,
-                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Grid summary")},
-                    footer
-                }
-            )
-        }
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Grid
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.Description = theme.Text("{0} rows, {1} columns", RowCount, columns.Length)
+        rootAccessibility.RowCount = RowCount
+        rootAccessibility.ColumnCount = columns.Length + (leading > 0.0 ? 1: 0)
+        rootAccessibility.MultiSelectable = input.Selection == DataGridSelection.Multiple
+        let rootRelationships = if let configured = rootAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        rootRelationships.ActiveDescendant = active
+        rootAccessibility.Relationships = rootRelationships
+        root.Accessibility = rootAccessibility
         return root
     }
 

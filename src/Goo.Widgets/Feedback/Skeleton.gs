@@ -43,6 +43,7 @@ public data struct SkeletonInput {
     var AccessibilityName string?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Busy, Accessibility.Hidden, Accessibility.Name, Accessibility.Role, Focusable, Handle, TabStop.
     var ConfigureRoot Action[SkeletonInput, Container]?
 }
 
@@ -122,10 +123,12 @@ public open class Skeleton : Cell[SkeletonInput] {
         result.Handle = handle
         result.Focusable = false
         result.TabStop = false
-        result.Accessibility = Accessibility{
-            Role: input.AccessibilityName == nil ? AccessibilityRole.None: AccessibilityRole.Status,
-            Name: input.AccessibilityName ?? "", Hidden: input.AccessibilityName == nil, Busy: true,
-        }
+        let resultAccessibility = if let configured = result.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        resultAccessibility.Role = input.AccessibilityName == nil ? AccessibilityRole.None: AccessibilityRole.Status
+        resultAccessibility.Name = input.AccessibilityName ?? ""
+        resultAccessibility.Hidden = input.AccessibilityName == nil
+        resultAccessibility.Busy = true
+        result.Accessibility = resultAccessibility
         return result
     }
 

@@ -32,9 +32,11 @@ public data struct TokenInputInput {
     var Width Length?
     /// Configures the fresh entry before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, OnKeyDown, ReadOnly.
     var ConfigureEntry Action[TokenInputInput, TextEntry]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
     var ConfigureRoot Action[TokenInputInput, Container]?
 }
 
@@ -153,7 +155,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                     Text{Content: value, Color: theme.TextColor},
                 }
                 theme.ApplyInteraction(action, InteractionFamily.Button)
-                WidgetKeyBindings.BindOwnedActivation(action)
+                WidgetKeyBindings.BindActivation(action)
                 return action
             }
             let suggestions = VirtualRows[int32](

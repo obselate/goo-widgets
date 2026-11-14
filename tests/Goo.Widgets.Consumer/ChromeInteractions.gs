@@ -50,8 +50,8 @@ func WindowChromeContracts() {
                 "A custom chrome control bypassed action availability or semantics"
             )
             Require(
-                child.Children.Count == 1 && child.Children[0] is Shape,
-                "A custom chrome control bypassed the content factory"
+                child.Children.Count == 1 && child.Children[0] is Text,
+                "Chrome discarded the configured control content"
             )
         }
     }

@@ -320,7 +320,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             },
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, currentMode == mode)
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 

@@ -2,13 +2,17 @@
 
 ## Unreleased
 
+- Breaking: replace postprocessed `Create*` element factories with `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields.
+- Breaking: `TouchTextEditingInput.Editor` is an `ElementHandle`. Set it on the editor before hand-off. `RootStyle` styles the gesture wrapper for outer flex and percentage sizing.
+- `FormField` uses Goo accessibility attachments without editing supplied controls. `HoverCard` keeps target handles unchanged. Shape interaction styles omit invalid legacy box paint.
+
 - Touch editing rebuilds a retained overlay without changing mounted content or editor declarations.
 - `NavigationRail` tints a fresh shape declaration and keeps supplied item icons unchanged.
 - Remove `Avatar.ImagePath` and `AsyncImage.ImagePath`. Supply an owned `ImageSource` provider. Retain an `AsyncImageSource` over `ImageSourceCache.LoadAsync` to load a path.
 - Clickable `AvatarGroup` avatars and read-only `CodeBlock` code areas show keyboard focus on the actual focus target.
 - Icon-only `ActionButton` controls omit the empty default text slot, so the `SplitButton` chevron is centered. Text and root factories keep their existing behavior.
-- Interactive `DonutChart` slices show a path-shaped keyboard focus indicator without changing their data fill or stroke. The default indicator is set before `CreateSlice`, so caller focus styles retain precedence.
-- `TextField` frames with leading, trailing, prefix or suffix content keep focus state and show the frame focus ring. `CreateEntry` focus and blur handlers run after the field state handler. The addon corner check distinguishes the antialiased focus stroke from addon leakage.
+- Interactive `DonutChart` slices show a path-shaped keyboard focus indicator without changing their data fill or stroke. The default indicator is set before `ConfigureSlice`, so caller focus styles retain precedence.
+- `TextField` frames with leading, trailing, prefix or suffix content keep focus state and show the frame focus ring. `ConfigureEntry` focus and blur handlers run after the field state handler. The addon corner check distinguishes the antialiased focus stroke from addon leakage.
 - Switch focus rings use the track radius. Closable `TabBar` labels keep end padding clear of the ring. `NumberInput` and `TimePicker` stepper rings stay inside their button bounds.
 - FOCUS captures the whole framed `TextFieldActions` field, including its clear action and right focus edge. The `NavigationRail` fixture includes the gap between its two items, so the last item is not clipped.
 - `Breadcrumb` and `PathBar` links and menu triggers use the standard navigation-button height and padding, so fitted focus rings stay clear of their labels. Overflow measurements follow changes to the padding and spacing tokens.
@@ -22,7 +26,7 @@
 - Native suites run the test app on a private session bus without service activation, so a desktop portal accent color no longer changes local captures and local FOCUS results match CI.
 - Native pixel checks convert layout coordinates to capture pixels, so the theme, choice, ComboBox, field, toggle and chrome checks also hold at display scale 1.5. The TextField adornment inset check expects the inset as Goo snaps it to device pixels, and DataGrid column widths drop float32 noise below 0.001 px.
 - Fix `Popover` at a `WindowPoint`: content without its own height, for example a container sized by `FlexBasis`, collapsed to the panel padding. The panel now takes the content height, limited by `MaxHeight` and the viewport.
-- Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `CreateItem`, such as `Focus`, colors the label.
+- Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `ConfigureItem`, such as `Focus`, colors the label.
 - Add `Theme.Fluent` and `Theme.FluentMica`: the Windows 11 Fluent look with WinUI 3 colors, 4 px control and 8 px overlay radii, the WinUI type ramp, Indicator selection and a solid scrollbar. FluentMica adds the Mica window material and acrylic popups with 30 px blur. Both keep the toolkit font.
 - Theme family and mode are independent. `Theme.Variant` returns a theme's light or dark variant. `Theme.Default` and themes derived from it now carry the Bone and Ink variant, so `Theme.Attach(window, Theme.Default with{...})` follows the mode instead of staying fixed. Attach keeps the current mode. The default mode is System. `Theme.SetMode` switches within the attached family and leaves fixed themes (`Ink`, `Bone`, `GitHubDark`, `Variant = nil`) unchanged. Before, SetMode replaced every palette with Bone or Ink. A mode change replaces palette colors. On the built-in families, colors set on the attached theme stay in every mode, and an explicit `AccentColor` wins over the system accent. A custom `Variant` is used verbatim, accent included.
 - Add `Theme.ScrollbarColor` for a solid scrollbar thumb and `Theme.OverlayBlur` for the glass overlay blur radius.

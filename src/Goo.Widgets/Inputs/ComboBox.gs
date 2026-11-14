@@ -78,21 +78,27 @@ public data struct ComboBoxInput {
     var ZIndex int32
     /// Configures the fresh trigger before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Expanded, Accessibility.HasPopup, Accessibility.Name, Accessibility.Relationships.Controls, Accessibility.Role, Accessibility.Value, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnClick, OnKeyDown.
     var ConfigureTrigger Action[ComboBoxInput, Button]?
     /// Configures the fresh arrow before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
     var ConfigureArrow Action[ComboBoxInput, Blob]?
     /// Configures the fresh search before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Controlled, Focusable, Handle, Key, OnChange, OnFocus, OnKeyDown, Value.
     var ConfigureSearch Action[ComboBoxInput, TextEntry]?
     /// Configures the fresh row before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Checked, Accessibility.Name, Accessibility.OnAction, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, Handle, Key, OnClick, OnPointerEnter.
     var ConfigureRow Action[ComboBoxInput, ComboBoxOption, Container]?
     /// Configures the fresh popup before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key.
     var ConfigurePopup Action[ComboBoxInput, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[ComboBoxInput, Container]?
 }
 
@@ -304,23 +310,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        current.ConfigureTrigger?.Invoke(current, button)
-        theme.ApplyInteraction(button, fluent ? InteractionFamily.Button: InteractionFamily.Field)
-        button.Key = "trigger"
-        button.Handle = trigger
-        button.Disabled = current.Disabled
-        button.Focusable = !current.Disabled
-        button.OnClick = () -> SetOpen(!isOpen)
-        WidgetKeyBindings.BindOwnedActivation(button)
-        button.OnKeyDown = TriggerKey
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.ComboBox,
-            Name: current.AccessibilityName!!,
-            Value: label,
-            Expanded: isOpen,
-            HasPopup: true,
-            Relationships: AccessibilityRelationships{Controls: []ElementHandle{listHandle}}
-        }
         button.Children.Clear()
         button.Children.Add(
             Container{Key: "value", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
@@ -329,13 +318,31 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         current.ConfigureArrow?.Invoke(current, arrow)
         arrow.Key = "arrow"
         button.Children.Add(arrow)
-        var root = Container{
+        current.ConfigureTrigger?.Invoke(current, button)
+        theme.ApplyInteraction(button, fluent ? InteractionFamily.Button: InteractionFamily.Field)
+        button.Key = "trigger"
+        button.Handle = trigger
+        button.Disabled = current.Disabled
+        button.Focusable = !current.Disabled
+        button.OnClick = () -> SetOpen(!isOpen)
+        WidgetKeyBindings.BindActivation(button)
+        button.OnKeyDown = TriggerKey
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.ComboBox
+        buttonAccessibility.Name = current.AccessibilityName!!
+        buttonAccessibility.Value = label
+        buttonAccessibility.Expanded = isOpen
+        buttonAccessibility.HasPopup = true
+        let buttonRelationships = if let configured = buttonAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        buttonRelationships.Controls = []ElementHandle{listHandle}
+        buttonAccessibility.Relationships = buttonRelationships
+        button.Accessibility = buttonAccessibility
+        let root = Container{
             Width: current.Width!!,
             MinWidth: 0.0,
             Overflow: Overflow.Visible,
             LineHeight: theme.LineHeight
         }
-        current.ConfigureRoot?.Invoke(current, root)
         root.Children.Clear()
         root.Children.Add(button)
         let popupHeight = Math.Min(
@@ -363,6 +370,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             popup.Viewport = overlayBox
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
+        current.ConfigureRoot?.Invoke(current, root)
         return root
     }
 
@@ -404,11 +412,13 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             entry.OnChange = QueryChanged
             entry.OnKeyDown = ListKey
             entry.OnFocus = (event FocusEvent) -> Reveal()
-            entry.Accessibility = Accessibility{
-                Role: AccessibilityRole.SearchBox,
-                Name: current.SearchPlaceholder ?? theme.Text("Search options"),
-                Relationships: relationships
-            }
+            let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            entryAccessibility.Role = AccessibilityRole.SearchBox
+            entryAccessibility.Name = current.SearchPlaceholder ?? theme.Text("Search options")
+            let entryRelationships = if let configured = entryAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+            entryRelationships.ActiveDescendant = relationships.ActiveDescendant
+            entryAccessibility.Relationships = entryRelationships
+            entry.Accessibility = entryAccessibility
             content.Children.Add(entry)
             content.Children.Add(Container{Height: 1.0, FlexShrink: 0.0, BackgroundColor: theme.BorderColor})
         }
@@ -500,37 +510,6 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        row.Input.ConfigureRow?.Invoke(row.Input, item, result)
-        theme.ApplyInteraction(result, InteractionFamily.Row, row.Selected)
-        result.Key = id
-        result.Handle = Handle(id)
-        result.Height = row.Input.RowHeight!!
-        result.MinHeight = row.Input.RowHeight!!
-        result.MaxHeight = row.Input.RowHeight!!
-        result.Focusable = false
-        result.Disabled = item.Disabled
-        result.OnClick = () -> Commit(id)
-        result.OnPointerEnter = (event PointerEvent) -> {
-            if !item.Disabled {
-                activeId = id
-                Rebuild()
-            }
-        }
-        result.Accessibility = Accessibility{
-            Role: row.Input.Multiple && id != createId ? AccessibilityRole.Checkbox: AccessibilityRole.ListItem,
-            Name: item.Label ?? id,
-            Selected: row.Selected,
-            Checked: row.Input.Multiple && id != createId
-            ? (row.Selected ? AccessibilityChecked.True: AccessibilityChecked.False): AccessibilityChecked.Unspecified,
-            Actions: []AccessibilityAction{AccessibilityAction.Select},
-            OnAction: (request AccessibilityActionRequest) -> {
-                if request.Action != AccessibilityAction.Select || item.Disabled {
-                    return false
-                }
-                Commit(id)
-                return true
-            }
-        }
         result.Children.Clear()
         if row.Input.Multiple && id != createId {
             result.Children.Add(
@@ -551,6 +530,37 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 FontWeight: theme.FontWeight,
             }
         )
+        row.Input.ConfigureRow?.Invoke(row.Input, item, result)
+        theme.ApplyInteraction(result, InteractionFamily.Row, row.Selected)
+        result.Key = id
+        result.Handle = Handle(id)
+        result.Height = row.Input.RowHeight!!
+        result.MinHeight = row.Input.RowHeight!!
+        result.MaxHeight = row.Input.RowHeight!!
+        result.Focusable = false
+        result.Disabled = item.Disabled
+        result.OnClick = () -> Commit(id)
+        result.OnPointerEnter = (event PointerEvent) -> {
+            if !item.Disabled {
+                activeId = id
+                Rebuild()
+            }
+        }
+        let resultAccessibility = if let configured = result.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        resultAccessibility.Role = row.Input.Multiple && id != createId ? AccessibilityRole.Checkbox: AccessibilityRole.ListItem
+        resultAccessibility.Name = item.Label ?? id
+        resultAccessibility.Selected = row.Selected
+        resultAccessibility.Checked = row.Input.Multiple && id != createId
+            ? (row.Selected ? AccessibilityChecked.True: AccessibilityChecked.False): AccessibilityChecked.Unspecified
+        resultAccessibility.Actions = []AccessibilityAction{AccessibilityAction.Select}
+        resultAccessibility.OnAction = (request AccessibilityActionRequest) -> {
+                if request.Action != AccessibilityAction.Select || item.Disabled {
+                    return false
+                }
+                Commit(id)
+                return true
+            }
+        result.Accessibility = resultAccessibility
         return result
     }
 

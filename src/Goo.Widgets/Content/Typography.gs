@@ -51,6 +51,7 @@ public data struct Typography {
     /// UTF-16 text spans with explicit styling. Nil supplies no span overrides.
     var StyleRanges[]?TextStyleRange
     /// Configures the fresh text before the widget applies its semantics.
+    /// Widget-owned fields: Accessibility.Level, Accessibility.Name, Accessibility.Role.
     var ConfigureText Action[Typography, Text]?
 
     /// Creates styled text. H1 through H6 expose their heading level.
@@ -92,11 +93,11 @@ public data struct Typography {
             StyleRanges: StyleRanges ?? []TextStyleRange{},
         }
         ConfigureText?.Invoke(this, text)
-        text.Accessibility = Accessibility{
-            Role: level > 0 ? AccessibilityRole.Heading: AccessibilityRole.Text,
-            Name: Content ?? "",
-            Level: level > 0 ? level: nil
-        }
+        let textAccessibility = if let configured = text.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        textAccessibility.Role = level > 0 ? AccessibilityRole.Heading: AccessibilityRole.Text
+        textAccessibility.Name = Content ?? ""
+        textAccessibility.Level = level > 0 ? level: nil
+        text.Accessibility = textAccessibility
         return text
     }
 }

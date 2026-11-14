@@ -74,9 +74,11 @@ public data struct ListViewInput {
     var AccessibilityName string?
     /// Configures the fresh row before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.PositionInSet, Accessibility.Role, Accessibility.Selected, Accessibility.SizeOfSet, Disabled, Focusable, Handle, OnClick, OnPointerDown, TabStop.
     var ConfigureRow Action[ListViewInput, ListViewItem, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.MultiSelectable, Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Disabled, FocusTarget, Focusable, Handle, OnBlur, OnKeyDown.
     var ConfigureRoot Action[ListViewInput, Container]?
 }
 
@@ -213,6 +215,8 @@ public open class ListView : Cell[ListViewInput] {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
+        root.Children.Clear()
+        root.Children.Add(rows)
         input.ConfigureRoot?.Invoke(input, root)
         root.Handle = rootHandle
         root.Focusable = !input.Disabled
@@ -220,14 +224,14 @@ public open class ListView : Cell[ListViewInput] {
         root.OnKeyDown = KeyDown
         root.OnBlur = (e FocusEvent) -> typeAhead.Reset()
         root.FocusTarget = activeId == nil ? nil: Handle(activeId!!)
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.List,
-            Name: input.AccessibilityName!!,
-            MultiSelectable: input.Multiple,
-            Relationships: AccessibilityRelationships{ActiveDescendant: activeId == nil ? nil: Handle(activeId!!)}
-        }
-        root.Children.Clear()
-        root.Children.Add(rows)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.List
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.MultiSelectable = input.Multiple
+        let rootRelationships = if let configured = rootAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        rootRelationships.ActiveDescendant = activeId == nil ? nil: Handle(activeId!!)
+        rootAccessibility.Relationships = rootRelationships
+        root.Accessibility = rootAccessibility
         return root
     }
 
@@ -367,18 +371,18 @@ public open class ListView : Cell[ListViewInput] {
                 }
             }
         }
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.ListItem,
-            Name: item.Label ?? id,
-            Selected: selected.Contains(id),
-            PositionInSet: entry.PositionInSet,
-            SizeOfSet: indices.Count,
-            Actions: []AccessibilityAction{
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.ListItem
+        rootAccessibility.Name = item.Label ?? id
+        rootAccessibility.Selected = selected.Contains(id)
+        rootAccessibility.PositionInSet = entry.PositionInSet
+        rootAccessibility.SizeOfSet = indices.Count
+        rootAccessibility.Actions = []AccessibilityAction{
                 AccessibilityAction.Focus,
                 AccessibilityAction.Select,
                 AccessibilityAction.Activate
-            },
-            OnAction: (request AccessibilityActionRequest) -> {
+            }
+        rootAccessibility.OnAction = (request AccessibilityActionRequest) -> {
                 if item.Disabled || snapshot.Disabled {
                     return false
                 }
@@ -393,7 +397,7 @@ public open class ListView : Cell[ListViewInput] {
                 }
                 return true
             }
-        }
+        root.Accessibility = rootAccessibility
         return root
     }
 

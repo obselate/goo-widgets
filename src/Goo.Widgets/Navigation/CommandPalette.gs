@@ -63,6 +63,7 @@ public data struct CommandPaletteInput {
     var Height Length?
     /// Configures the fresh item before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureItem Action[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button]?
 }
 

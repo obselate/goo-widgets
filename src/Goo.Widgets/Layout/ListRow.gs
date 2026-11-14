@@ -86,6 +86,7 @@ public data struct ListRow {
     var CreateCaption Func[ListRow, Text]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, Focusable, OnClick, OnKeyDown, OnPointerUp.
     var ConfigureRoot Action[ListRow, Blob?, Container, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.
@@ -222,6 +223,17 @@ public data struct ListRow {
                 Selected: resolved.Selected
             },
         }
+
+            if let leading = Leading {
+                root.Children.Add(leading)
+            }
+            root.Children.Add(content)
+            if let trailing = Trailing {
+                root.Children.Add(trailing)
+            }
+            if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
+                root.Children.Add(theme.SelectionBar())
+            }
         configureRoot?.Invoke(resolved, Leading, content, Trailing, root)
         if Selected && SelectedBackgroundColor != nil {
             root.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.HoverStyle}
@@ -262,18 +274,7 @@ public data struct ListRow {
         if resolved.Selected && configureRoot == nil {
             root.BoxShadow = resolved.SelectedBoxShadow!!
         }
-        if configureRoot == nil {
-            if let leading = Leading {
-                root.Children.Add(leading)
-            }
-            root.Children.Add(content)
-            if let trailing = Trailing {
-                root.Children.Add(trailing)
-            }
-            if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
-                root.Children.Add(theme.SelectionBar())
-            }
-        }
+
         if let actions = resolved.Actions {
             root.Children.Add(
                 Container{

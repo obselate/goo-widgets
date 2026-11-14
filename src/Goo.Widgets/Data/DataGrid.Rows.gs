@@ -263,7 +263,9 @@ public open partial class DataGrid {
                     )
                     check.OnPointerDown = (e PointerEvent) -> clickModifiers = e.Modifiers
                     check.OnClick = () -> Select(id, true, clickModifiers.Shift, false)
-                    check.Accessibility = Accessibility{Hidden: true}
+                    let checkAccessibility = if let configured = check.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                    checkAccessibility.Hidden = true
+                    check.Accessibility = checkAccessibility
                     controls.Children.Add(
                         Container{
                             Key: "selection",
@@ -342,6 +344,39 @@ public open partial class DataGrid {
                 pressedId = nil
                 Rebuild()
             }
+        }
+        root.Children.Clear()
+        root.Children.Add(cells)
+        if isSelected && theme.Selection == SelectionStyle.Indicator {
+            root.Children.Add(theme.SelectionBar())
+        }
+        if isExpanded {
+            let detail = if snapshot.CreateDetail != nil {
+                snapshot.CreateDetail!!(snapshot, row)
+            } else {
+                row.Detail ?? Container{}
+            }
+            root.Children.Add(
+                Container{
+                    Key: "detail",
+                    Width: tableWidth,
+                    Padding: Edges{
+                        Left: leading + snapshot.DetailPadding!!,
+                        Right: snapshot.DetailPadding!!,
+                        Top: snapshot.DetailPadding!!,
+                        Bottom: snapshot.DetailPadding!!
+                    },
+                    BackgroundColor: snapshot.DetailBackground!!,
+                    OnKeyDown: stopGridKeys,
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.GridCell,
+                        Name: theme.Text("Details for {0}", row.Label ?? id),
+                        RowIndex: rowIndex,
+                        ColumnIndex: 0
+                    },
+                    detail
+                }
+            )
         }
         snapshot.ConfigureRow?.Invoke(snapshot, row, root)
         root.FocusStyle = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.FocusStyle}
@@ -429,53 +464,19 @@ public open partial class DataGrid {
             actions.Add(AccessibilityAction.Focus)
             actions.Add(groupExpanded.Contains(id) ? AccessibilityAction.Collapse: AccessibilityAction.Expand)
         }
-        let semantics = Accessibility{
-            Role: AccessibilityRole.Row,
-            Name: row.Label ?? id,
-            RowIndex: rowIndex,
-            ColumnCount: columns.Length + (leading > 0.0 ? 1: 0),
-            Selected: snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected,
-            Expanded: row.IsGroup && snapshot.OnGroupExpandedChange != nil ? groupExpanded.Contains(id):
-                (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
-            Actions: actions.ToArray()
-        }
+        let semantics = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        semantics.Role = AccessibilityRole.Row
+        semantics.Name = row.Label ?? id
+        semantics.RowIndex = rowIndex
+        semantics.ColumnCount = columns.Length + (leading > 0.0 ? 1: 0)
+        semantics.Selected = snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected
+        semantics.Expanded = row.IsGroup && snapshot.OnGroupExpandedChange != nil ? groupExpanded.Contains(id):
+                (row.HasDetail || row.Detail != nil) ? isExpanded: nil
+        semantics.Actions = actions.ToArray()
         if actions.Count > 0 {
             semantics.OnAction = (request AccessibilityActionRequest) -> RowAction(id, request)
         }
         root.Accessibility = semantics
-        root.Children.Clear()
-        root.Children.Add(cells)
-        if isSelected && theme.Selection == SelectionStyle.Indicator {
-            root.Children.Add(theme.SelectionBar())
-        }
-        if isExpanded {
-            let detail = if snapshot.CreateDetail != nil {
-                snapshot.CreateDetail!!(snapshot, row)
-            } else {
-                row.Detail ?? Container{}
-            }
-            root.Children.Add(
-                Container{
-                    Key: "detail",
-                    Width: tableWidth,
-                    Padding: Edges{
-                        Left: leading + snapshot.DetailPadding!!,
-                        Right: snapshot.DetailPadding!!,
-                        Top: snapshot.DetailPadding!!,
-                        Bottom: snapshot.DetailPadding!!
-                    },
-                    BackgroundColor: snapshot.DetailBackground!!,
-                    OnKeyDown: stopGridKeys,
-                    Accessibility: Accessibility{
-                        Role: AccessibilityRole.GridCell,
-                        Name: theme.Text("Details for {0}", row.Label ?? id),
-                        RowIndex: rowIndex,
-                        ColumnIndex: 0
-                    },
-                    detail
-                }
-            )
-        }
         return root
     }
 

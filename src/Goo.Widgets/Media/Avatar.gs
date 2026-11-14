@@ -238,7 +238,7 @@ public data struct AvatarGroup {
                     },
                     avatar,
                 }
-                WidgetKeyBindings.BindOwnedActivation(button)
+                WidgetKeyBindings.BindActivation(button)
                 root.Children.Add(button)
             } else {
                 avatar.MarginStart = offset

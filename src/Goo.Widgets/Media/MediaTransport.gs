@@ -103,6 +103,7 @@ public data struct MediaTransportInput {
     var CreateActionContent Func[MediaTransportInput, MediaTransportAction, Blob]?
     /// Configures the fresh action before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries), OnClick.
     var ConfigureAction Action[MediaTransportInput, MediaTransportAction, Blob, Action?, bool, Button]?
     /// Wraps the composed transport root.
     /// Hosts must not change state in this callback.
@@ -370,7 +371,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = disabled
         button.OnClick = disabled ? nil: button.OnClick ?? activate
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 

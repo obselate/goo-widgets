@@ -49,9 +49,11 @@ public data struct SearchList {
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Configures the fresh entry before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Controlled, Disabled, Focusable, OnChange, Value.
     var ConfigureEntry Action[SearchList, TextEntry]?
     /// Configures the fresh row before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRow Action[SearchList, SelectionItem, Button]?
     /// Final root customization. Preserve the virtual viewport dimensions when resizing.
     /// Hosts must not change state in this callback.
@@ -358,7 +360,7 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
         result.Focusable = !item.Disabled
         result.OnClick = row.OnClick
         result.Accessibility = row.Accessibility
-        WidgetKeyBindings.BindOwnedActivation(result)
+        WidgetKeyBindings.BindActivation(result)
         return result
     }
 }

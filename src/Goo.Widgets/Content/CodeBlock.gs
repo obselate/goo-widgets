@@ -50,6 +50,7 @@ public data struct CodeBlockInput {
     var CreateHeader Func[CodeBlockInput, Container, Blob]?
     /// Configures the fresh editor before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Multiline, Accessibility.Name, Accessibility.Role, Controller, Layers (required layer), Layers (required syntax layer), OnChange, ReadOnly.
     var ConfigureEditor Action[CodeBlockInput, TextEditor]?
 }
 
@@ -192,10 +193,25 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
             },
         }
         input.ConfigureEditor?.Invoke(input, editor)
-        editor.Layers = []TextPresentationLayer{}
         editor.Controller = controller!!
         editor.ReadOnly = true
-        editor.Layers = []TextPresentationLayer{layer!!}
+        editor.OnChange = nil
+        if input.ConfigureEditor != nil {
+            let semantics = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            semantics.Role = AccessibilityRole.TextEditor
+            semantics.Name = input.Language ?? theme.Text("Code")
+            semantics.Multiline = true
+            editor.Accessibility = semantics
+        }
+        if input.ConfigureEditor != nil {
+            let layers = editor.Layers
+            if Array.IndexOf(layers, layer!!) < 0 {
+                let combined = [layers.Length + 1]TextPresentationLayer
+                Array.Copy(layers, combined, layers.Length)
+                combined[layers.Length] = layer!!
+                editor.Layers = combined
+            }
+        }
         let body = Container{Width: Percent(100), MinWidth: 0, FlexShrink: 0, Layout: layout, editor}
         if collapsed {
             body.Children.Add(
@@ -249,7 +265,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Text{Content: label, Color: theme.MutedTextColor},
             }
             theme.ApplyInteraction(fold, InteractionFamily.Button)
-            WidgetKeyBindings.BindOwnedActivation(fold)
+            WidgetKeyBindings.BindActivation(fold)
             root.Children.Add(fold)
         }
         return root

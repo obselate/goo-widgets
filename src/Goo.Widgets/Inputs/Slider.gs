@@ -87,6 +87,7 @@ public data struct SliderInput {
     var ThumbStyle Style?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[SliderInput, Container]?
 }
 

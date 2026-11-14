@@ -83,15 +83,19 @@ public data struct MenuInput {
     var SubmenuArrowStyle Style?
     /// Configures the fresh item before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Expanded, Accessibility.Name, Accessibility.Role, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnClick, OnFocus, OnKeyDown, OnPointerEnter, TabStop.
     var ConfigureItem Action[MenuInput, MenuItem, Button]?
     /// Configures the fresh separator before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Role, Focusable, Key.
     var ConfigureSeparator Action[MenuInput, MenuItem, Blob]?
     /// Configures the fresh panel before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key.
     var ConfigurePanel Action[MenuInput, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[MenuInput, Container]?
 }
 
@@ -201,7 +205,9 @@ public open class Menu : Cell[MenuInput] {
                 current.ConfigureSeparator?.Invoke(current, item, separator)
                 separator.Key = id
                 separator.Focusable = false
-                separator.Accessibility = Accessibility{Role: AccessibilityRole.None}
+                let separatorAccessibility = if let configured = separator.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                separatorAccessibility.Role = AccessibilityRole.None
+                separator.Accessibility = separatorAccessibility
                 rows.Children.Add(separator)
                 continue
             }
@@ -234,27 +240,6 @@ public open class Menu : Cell[MenuInput] {
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
             let row = prepared
-            current.ConfigureItem?.Invoke(current, item, row)
-            theme.ApplyInteraction(row, InteractionFamily.Row)
-            row.Key = id
-            row.Handle = handles[id]
-            row.Focusable = !item.Disabled
-            row.TabStop = selected == id && !item.Disabled
-            row.Disabled = item.Disabled
-            row.Accessibility = Accessibility{
-                Role: AccessibilityRole.MenuItem,
-                Name: label,
-                Expanded: hasChildren ? path.Count > depth && path[depth] == id: nil,
-            }
-            row.OnClick = () -> Activate(depth, id)
-            WidgetKeyBindings.BindOwnedActivation(row)
-            row.OnFocus = (event FocusEvent) -> {
-                event.StopPropagation()
-                active[depth] = id
-                Rebuild()
-            }
-            row.OnPointerEnter = (event PointerEvent) -> Hover(depth, id)
-            row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
             row.Children.Clear()
             row.Children.Add(Container{Key: "content", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, content})
             if let shortcut = item.Shortcut {
@@ -272,6 +257,27 @@ public open class Menu : Cell[MenuInput] {
                     }
                 )
             }
+            current.ConfigureItem?.Invoke(current, item, row)
+            theme.ApplyInteraction(row, InteractionFamily.Row)
+            row.Key = id
+            row.Handle = handles[id]
+            row.Focusable = !item.Disabled
+            row.TabStop = selected == id && !item.Disabled
+            row.Disabled = item.Disabled
+            let rowAccessibility = if let configured = row.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            rowAccessibility.Role = AccessibilityRole.MenuItem
+            rowAccessibility.Name = label
+            rowAccessibility.Expanded = hasChildren ? path.Count > depth && path[depth] == id: nil
+            row.Accessibility = rowAccessibility
+            row.OnClick = () -> Activate(depth, id)
+            WidgetKeyBindings.BindActivation(row)
+            row.OnFocus = (event FocusEvent) -> {
+                event.StopPropagation()
+                active[depth] = id
+                Rebuild()
+            }
+            row.OnPointerEnter = (event PointerEvent) -> Hover(depth, id)
+            row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
             rows.Children.Add(row)
         }
         var overlays[]Blob = []Blob{}

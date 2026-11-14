@@ -328,11 +328,11 @@ public open partial class DataGrid {
             }
             if filter {
                 slot.Padding = theme.Spacing
-                slot.Accessibility = Accessibility{
-                    Role: AccessibilityRole.GridCell,
-                    Name: theme.Text("Filter {0}", label),
-                    ColumnIndex: index + (leading > 0.0 ? 1: 0)
-                }
+                let slotAccessibility = if let configured = slot.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                slotAccessibility.Role = AccessibilityRole.GridCell
+                slotAccessibility.Name = theme.Text("Filter {0}", label)
+                slotAccessibility.ColumnIndex = index + (leading > 0.0 ? 1: 0)
+                slot.Accessibility = slotAccessibility
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
                 let sort = Button{
@@ -376,7 +376,7 @@ public open partial class DataGrid {
                     sort.PointerDragThreshold = 8
                     sort.PointerDragAxis = LayoutAxis.Horizontal
                 }
-                WidgetKeyBindings.BindOwnedActivation(sort)
+                WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && CanResize(index) {
                     var handle = Container{
@@ -400,22 +400,22 @@ public open partial class DataGrid {
                     handle.TabStop = false
                     handle.OnPointerDrag = (e PointerDragEvent) -> DragResize(id, e)
                     handle.OnKeyDown = (e KeyEvent) -> ResizeKey(id, e)
-                    handle.Accessibility = Accessibility{
-                        Role: AccessibilityRole.Slider,
-                        Name: theme.Text("Resize {0}", label),
-                        Orientation: AccessibilityOrientation.Horizontal,
-                        Range: AccessibilityValue{
+                    let handleAccessibility = if let configured = handle.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                    handleAccessibility.Role = AccessibilityRole.Slider
+                    handleAccessibility.Name = theme.Text("Resize {0}", label)
+                    handleAccessibility.Orientation = AccessibilityOrientation.Horizontal
+                    handleAccessibility.Range = AccessibilityValue{
                             Minimum: ResizeMinimum(index),
                             Maximum: ResizeMaximum(index),
                             Now: widths[index]
-                        },
-                        Actions: []AccessibilityAction{
+                        }
+                    handleAccessibility.Actions = []AccessibilityAction{
                             AccessibilityAction.SetValue,
                             AccessibilityAction.Increment,
                             AccessibilityAction.Decrement
-                        },
-                        OnAction: (request AccessibilityActionRequest) -> ResizeAction(id, request)
-                    }
+                        }
+                    handleAccessibility.OnAction = (request AccessibilityActionRequest) -> ResizeAction(id, request)
+                    handle.Accessibility = handleAccessibility
                     slot.Children.Add(handle)
                 }
             }

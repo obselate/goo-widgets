@@ -29,6 +29,7 @@ public data struct TooltipInput {
     var BubbleStyle Style?
     /// Configures the fresh bubble before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Hidden, Accessibility.Role, Focusable, HitTestSelf, TabStop.
     var ConfigureBubble Action[TooltipInput, Blob, Container]?
 }
 
@@ -156,7 +157,10 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
             bubble.HitTestSelf = false
             bubble.Focusable = false
             bubble.TabStop = false
-            bubble.Accessibility = Accessibility{Role: AccessibilityRole.None, Hidden: true}
+            let bubbleAccessibility = if let configured = bubble.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            bubbleAccessibility.Role = AccessibilityRole.None
+            bubbleAccessibility.Hidden = true
+            bubble.Accessibility = bubbleAccessibility
             root.Children.Add(
                 Portal{Anchor: anchor, Placement: current.Placement!!, ZIndex: current.ZIndex, Padding: gap, bubble,}
             )

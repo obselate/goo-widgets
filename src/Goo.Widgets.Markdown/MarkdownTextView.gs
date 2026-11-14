@@ -127,18 +127,25 @@ internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
             ScrollbarX = model.Block.Kind == MarkdownBlockKind.Code ? theme.Scrollbar: nil,
         }
         options.ConfigureEditor?.Invoke(model.Block, editor)
-        editor.Layers = []TextPresentationLayer{}
         editor.Controller = controller!!
         editor.ReadOnly = true
-        editor.Layers = []TextPresentationLayer{layer!!}
+        if options.ConfigureEditor != nil {
+            let layers = editor.Layers
+            if Array.IndexOf(layers, layer!!) < 0 {
+                let combined = [layers.Length + 1]TextPresentationLayer
+                Array.Copy(layers, combined, layers.Length)
+                combined[layers.Length] = layer!!
+                editor.Layers = combined
+            }
+        }
         editor.OnChange = nil
         editor.Height = Length.Auto
         editor.FlexShrink = 0.0
-        editor.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextEditor,
-            Name: model.Block.Text ?? "",
-            Multiline: true
-        }
+        let editorAccessibility = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        editorAccessibility.Role = AccessibilityRole.TextEditor
+        editorAccessibility.Name = model.Block.Text ?? ""
+        editorAccessibility.Multiline = true
+        editor.Accessibility = editorAccessibility
         return Container{
             Handle: handle,
             Layout: MarkdownIntrinsicLayout(),
@@ -219,18 +226,19 @@ internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
             if width > 0.0 {
                 button.MaxWidth = width
             }
-            return WidgetKeyBindings.WithActivation(button)
+            WidgetKeyBindings.BindActivation(button)
+        return button
         }
         if run.Kind == MarkdownInlineKind.Code {
             root.Padding = Edges{Left: theme.Spacing * .75, Right: theme.Spacing * .75}
             root.BackgroundColor = options.CodeBackground!!
             root.BorderRadius = theme.ControlRadius!! / 2.0
         } else {
-            root.Accessibility = Accessibility{
-                Role: AccessibilityRole.Image,
-                Name: run.Text ?? "",
-                Description: run.Title ?? ""
-            }
+            let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            rootAccessibility.Role = AccessibilityRole.Image
+            rootAccessibility.Name = run.Text ?? ""
+            rootAccessibility.Description = run.Title ?? ""
+            root.Accessibility = rootAccessibility
         }
         if width > 0.0 {
             root.MaxWidth = width

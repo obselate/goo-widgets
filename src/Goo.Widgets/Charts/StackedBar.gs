@@ -27,15 +27,18 @@ public data struct StackedBar {
     var OnHover Action[string?]?
     /// Configures the fresh segment before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Focusable, Key, KeyBindings (required entries), OnClick, OnPointerEnter, OnPointerLeave.
     var ConfigureSegment Action[StackedBar, ChartSegment, Container]?
     /// Receives the resolved chart, segment, and prepared legend label.
     /// Return a fresh element or the supplied default.
     var CreateLabel Func[StackedBar, ChartSegment, Text, Text]?
     /// Configures the fresh legend before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
     var ConfigureLegend Action[StackedBar, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role.
     var ConfigureRoot Action[StackedBar, Container]?
 
     /// Builds a fresh chart tree; normalization avoids overflow even for very large finite quantities.
@@ -89,12 +92,6 @@ public data struct StackedBar {
             plot.Children.Add(bar)
         }
         var root = Container{Width: resolved.Width!!, Gap: theme.Spacing * 3.0}
-        ConfigureRoot?.Invoke(resolved, root)
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: resolved.AccessibilityName!!,
-            Description: ChartParts.Summary(segments, theme)
-        }
         root.Children.Clear()
         root.Children.Add(plot)
         if ShowLegend {
@@ -103,6 +100,12 @@ public data struct StackedBar {
             legend.Key = "legend"
             root.Children.Add(legend)
         }
+        ConfigureRoot?.Invoke(resolved, root)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Description = ChartParts.Summary(segments, theme)
+        root.Accessibility = rootAccessibility
         return root
     }
 }

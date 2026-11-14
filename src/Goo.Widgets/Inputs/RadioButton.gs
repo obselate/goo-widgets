@@ -25,6 +25,7 @@ public data struct RadioButton {
     var AccessibilityName string?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Description, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick, TabStop.
     var ConfigureRoot Action[RadioButton, Button]?
 
     /// Builds one focusable radio choice. Activation never clears a checked value.
@@ -115,13 +116,13 @@ public data struct RadioButton {
                 onChange?.Invoke(true)
             }
         }
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.Radio,
-            Name: AccessibilityName ?? Label ?? theme.Text("Choices"),
-            Description: Description ?? "",
-            Checked: selected ? AccessibilityChecked.True: AccessibilityChecked.False,
-        }
-        WidgetKeyBindings.BindOwnedActivation(button)
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Radio
+        buttonAccessibility.Name = AccessibilityName ?? Label ?? theme.Text("Choices")
+        buttonAccessibility.Description = Description ?? ""
+        buttonAccessibility.Checked = selected ? AccessibilityChecked.True: AccessibilityChecked.False
+        button.Accessibility = buttonAccessibility
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 }

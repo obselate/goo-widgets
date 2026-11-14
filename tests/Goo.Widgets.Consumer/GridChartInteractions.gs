@@ -124,7 +124,8 @@ internal class GridCounter : Cell {
             OnClick: activate,
             Text{Content: "Count " + Count.ToString()}
         }
-        return WidgetKeyBindings.WithActivation(button)
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 }
 

@@ -113,12 +113,15 @@ public data struct MarkdownViewInput {
     var CreateInline Func[MarkdownInline, Blob, Blob]?
     /// Configures the fresh block before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Role (table row), Key (table row).
     var ConfigureBlock Action[MarkdownBlock, Blob]?
     /// Configures the fresh editor before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Multiline, Accessibility.Name, Accessibility.Role, Controller, Layers (required layer), OnChange, ReadOnly.
     var ConfigureEditor Action[MarkdownBlock, TextEditor]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[MarkdownViewInput, Container]?
     /// Runs when the heading list or this callback changes. Only mounted headings have mounted handles.
     /// Use State.ScrollToHeading to reach an off-screen heading in a bounded view.

@@ -126,10 +126,10 @@ func PackageComposition() {
         OnClick: () -> { },
         KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, OnPress: () -> customBinding = true},},
     }
-    let activatedButton = WidgetKeyBindings.WithActivation(customButton)
+    WidgetKeyBindings.BindActivation(customButton)
     Require(
         InvokeKeyBinding(customButton, Key.H) && customBinding
-        && HasKeyBinding(activatedButton, Key.Enter) && HasKeyBinding(activatedButton, Key.Space, true),
+        && HasKeyBinding(customButton, Key.Enter) && HasKeyBinding(customButton, Key.Space, true),
         "Activation policy replaced a custom primitive binding."
     )
 

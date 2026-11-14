@@ -50,9 +50,11 @@ public data struct ToggleGroupInput {
     var AccessibilityName string?
     /// Configures the fresh item before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Name, Accessibility.Role, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, OnKeyDown, TabStop.
     var ConfigureItem Action[ToggleGroupInput, ToggleOption, Button]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Orientation, Accessibility.Role.
     var ConfigureRoot Action[ToggleGroupInput, Container]?
 }
 
@@ -99,14 +101,6 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             Padding: input.Variant == ToggleGroupVariant.Segmented ? theme.Spacing: 0,
             BorderRadius: theme.ControlRadius!!,
             BackgroundColor: input.Variant == ToggleGroupVariant.Segmented ? theme.SunkenColor: Color.Transparent,
-        }
-        input.ConfigureRoot?.Invoke(input, root)
-        root.Direction = theme.Direction
-        root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: input.AccessibilityName ?? theme.Text("Options"),
-            Orientation: input.Orientation!!,
         }
         root.Children.Clear()
         for item in items {
@@ -173,14 +167,22 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 Rebuild()
             }
             button.OnKeyDown = (e KeyEvent) -> Move(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: item.Label ?? id,
-                Checked: active ? AccessibilityChecked.True: AccessibilityChecked.False,
-            }
-            WidgetKeyBindings.BindOwnedActivation(button)
+            let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            buttonAccessibility.Role = AccessibilityRole.Button
+            buttonAccessibility.Name = item.Label ?? id
+            buttonAccessibility.Checked = active ? AccessibilityChecked.True: AccessibilityChecked.False
+            button.Accessibility = buttonAccessibility
+            WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)
         }
+        input.ConfigureRoot?.Invoke(input, root)
+        root.Direction = theme.Direction
+        root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = input.AccessibilityName ?? theme.Text("Options")
+        rootAccessibility.Orientation = input.Orientation!!
+        root.Accessibility = rootAccessibility
         return root
     }
 

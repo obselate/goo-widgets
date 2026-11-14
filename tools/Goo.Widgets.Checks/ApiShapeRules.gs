@@ -267,12 +267,18 @@ class ApiShapeCheck {
             if []string{"Disabled", "ReadOnly", "Required"}.Contains(name) && value != "bool" { Add(16, member.Id, member.Signature, "var " + name + " bool") }
             if name == "AccessibilityName" && value != "string?" { Add(16, member.Id, member.Signature, "var AccessibilityName string?") }
             if descriptor && member.Type.Name == "Goo.Style" && (!member.Type.Optional || !name.EndsWith("Style") || name == "Style") { Add(18, member.Id, member.Signature, "a nullable RootStyle or named part Style") }
+            if name.StartsWith("Configure") {
+                let owner = member.Type.Arguments.FirstOrDefault()
+                if !value.StartsWith("Action[") || !member.Type.Optional || owner == nil || owner.Name != type.Name {
+                    Add(19, member.Id, member.Signature, "nullable Configure<Part> Action with the owner first, context next, and owned primitive last")
+                }
+            }
             if name.StartsWith("Create") || name.StartsWith("Customize") {
                 let owner = member.Type.Arguments.FirstOrDefault()
                 if name.StartsWith("Customize") || !value.StartsWith("Func[") || !member.Type.Optional || owner == nil || owner.Name != type.Name {
                     Add(19, member.Id, member.Signature, if name == "CreateText" && member.Type.Arguments.Count > 0 && member.Type.Arguments.Last().Name == "System.String" { "var FormatCreateText " + value } else { "nullable Create<Part> Func with the owner first, context next, and prepared part last" })
                 }
-                for slot in []string{"DonutChart.CreateLabel|Text", "StackedBar.CreateLabel|Text", "GraphCanvasInput.CreateNode|Container", "GraphCanvasInput.CreateEdge|Container", "SearchList.CreateEntry|TextEntry", "SearchList.CreateRow|Button", "SearchList.CreateRoot|Container", "CodeBlockInput.CreateEditor|TextEditor", "MenuButtonInput.CreateMenu|MenuInput", "PropertyGrid.CreateRow|Blob", "ToastHostInput.CreateToast|Container"} {
+                for slot in []string{"DonutChart.CreateLabel|Text", "StackedBar.CreateLabel|Text", "GraphCanvasInput.CreateNode|Container", "GraphCanvasInput.CreateEdge|Container", "SearchList.CreateRoot|Container", "MenuButtonInput.CreateMenu|MenuInput", "ToastHostInput.CreateToast|Container"} {
                     let parts = slot.Split('|')
                     if Simple(type.Name) + "." + name == parts[0] && (member.Type.Arguments.Count < 3 || Simple(member.Type.Arguments[member.Type.Arguments.Count - 2].Name) != parts[1]) {
                         Add(19, member.Id, member.Signature, "the prepared " + parts[1] + " immediately before the return type")

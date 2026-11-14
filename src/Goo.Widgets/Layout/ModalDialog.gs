@@ -90,12 +90,15 @@ public data struct ModalDialog {
     var BorderRadius float64?
     /// Configures the fresh cancel before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: AutoFocus, KeyBindings (required entries), OnClick.
     var ConfigureCancel Action[ModalDialog, Blob, Button]?
     /// Configures the fresh confirm before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries), OnClick.
     var ConfigureConfirm Action[ModalDialog, Blob, Button]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Modal (mounted dialog), Accessibility.Name (mounted dialog), Accessibility.Role (mounted dialog), Disabled (mounted dialog), Focusable (mounted dialog), Handle (mounted dialog), KeyBindings (required entries), OnKeyDown (mounted dialog), TabStop (mounted dialog).
     var ConfigureRoot Action[ModalDialog, Button, Container, Container]?
 
     internal prop CanEscape bool {
@@ -223,9 +226,9 @@ public data struct ModalDialog {
             cancel.OnClick = resolved.OnCancel
             cancel.AutoFocus = InitialFocus == nil &&
                 (Preset == ModalDialogPreset.Confirm || Preset == ModalDialogPreset.Destructive)
-            WidgetKeyBindings.BindOwnedActivation(cancel)
+            WidgetKeyBindings.BindActivation(cancel)
             confirm.OnClick = resolved.OnConfirm
-            WidgetKeyBindings.BindOwnedActivation(confirm)
+            WidgetKeyBindings.BindActivation(confirm)
             confirm.Disabled = resolved.ConfirmDisabled
 
             actions = Container{
@@ -297,7 +300,7 @@ public data struct ModalDialog {
             }
         configureRoot?.Invoke(resolved, backdrop, dialog, root)
         if resolved.KeyBindings != nil {
-            root.KeyBindings = resolved.KeyBindings
+            WidgetKeyBindings.AppendBindings(root, resolved.KeyBindings!!)
         }
         return root
     }

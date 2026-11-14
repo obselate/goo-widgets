@@ -39,6 +39,7 @@ public data struct IconButton {
     var RootStyle Style?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, KeyBindings (required entries), OnClick.
     var ConfigureRoot Action[IconButton, Blob, Button]?
 
     /// Builds a fresh Goo button tree.
@@ -90,9 +91,13 @@ public data struct IconButton {
         theme.ApplyInteraction(button, InteractionFamily.Button, Active)
         button.Disabled = Disabled
         button.Focusable = !Disabled
-        button.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Selected: Active}
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Button
+        buttonAccessibility.Name = resolved.AccessibilityName!!
+        buttonAccessibility.Selected = Active
+        button.Accessibility = buttonAccessibility
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 }

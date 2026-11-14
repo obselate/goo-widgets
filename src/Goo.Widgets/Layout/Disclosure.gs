@@ -51,6 +51,7 @@ public data struct Disclosure {
     var CreateIndicator Func[Disclosure, Blob]?
     /// Configures the fresh header before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries).
     var ConfigureHeader Action[Disclosure, Button]?
     /// Customizes the prepared body. Preserve its key, children, and collapsed display state.
     /// Return a fresh element or the supplied default.
@@ -162,7 +163,7 @@ public data struct Disclosure {
         configureHeader?.Invoke(resolved, header)
         theme.ApplyInteraction(header, InteractionFamily.Row)
         header.Disabled = Disabled
-        WidgetKeyBindings.BindOwnedActivation(header)
+        WidgetKeyBindings.BindActivation(header)
         var body = Container{
             Key: "content",
             Padding: resolved.ContentPadding!!,

@@ -2,6 +2,7 @@ package Goo.Widgets.Consumer
 
 import Goo
 import Goo.Widgets
+import Goo.Widgets.Actions
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 import System
@@ -41,6 +42,7 @@ internal class RetainedActivationRoot : Cell {
     internal let OtherHandle ElementHandle = ElementHandle()
     internal var OtherActivations int32
     internal let Content Button
+    internal let OtherContent Container
     public init() {
         Content = Button{
             Handle: Handle, Width: Percent(100), Height: 40,
@@ -48,11 +50,14 @@ internal class RetainedActivationRoot : Cell {
             KeyBindings: []KeyBinding{KeyBinding{Key: Key.A, OnPress: () -> CustomKeys++}},
             Text{Content: "Activate"},
         }
+        WidgetKeyBindings.BindActivation(Content)
+        OtherContent = Container{Handle: OtherHandle, Focusable: true, Width: Percent(100), Height: 32,
+            OnClick: () -> OtherActivations++}
+        WidgetKeyBindings.BindActivation(OtherContent)
     }
-    public override func Build() Blob -> Container{
-        WidgetKeyBindings.WithActivation(Content),
-        WidgetKeyBindings.WithActivation(Container{Handle: OtherHandle, Focusable: true, Width: Percent(100), Height: 32,
-            OnClick: () -> OtherActivations++}),
+    public override func Build() Blob -> Container(){
+        Content,
+        OtherContent,
     }
 }
 
@@ -74,6 +79,40 @@ internal class RetainedTouchRoot : Cell {
         }, () -> Editing),
         Container{Width: 80, Height: 40},
     }
+}
+
+internal class ConfiguredIconRoot : Cell {
+    internal let Metadata Accessibility = Accessibility{Expanded: true, Description: "App description"}
+    public override func Build() Blob -> Container(){
+        Button{Accessibility: Metadata},
+        IconButton{
+            AccessibilityName: "Configured icon", Icon: Text{Content: "i"},
+            ConfigureRoot: (input IconButton, content Blob, button Button) -> {
+                button.Accessibility = Metadata
+            },
+        }.Build(),
+    }
+}
+
+func ConfiguredIconSemanticsContract() {
+    using let host = ThemePreferenceHost()
+    host.Resize(320, 240, 320, 240)
+    let root = ConfiguredIconRoot()
+    let authoredName = root.Metadata.Name
+    let semantics = SearchListSemantics()
+    let window = Window{Root: root, AccessibilityAdapter: semantics}
+    Theme.Attach(window)
+    window.Attach(host)
+    try {
+        ThemeFrames(host)
+        root.Rebuild()
+        ThemeFrames(host)
+        let icon = FindSemantics(semantics.Tree?.Root, "Configured icon")
+        Require(icon?.Role == AccessibilityRole.Button && icon?.Expanded == true && icon?.Description == "App description",
+            "IconButton replaced configured accessibility fields")
+        Require(root.Metadata.Name == authoredName && root.Metadata.Expanded == true,
+            "IconButton edited the configured shared accessibility object")
+    } finally { window.RequestClose() }
 }
 
 func ReceivedElementContracts() {
@@ -103,6 +142,7 @@ func ReceivedElementContracts() {
         Require(editor.Semantics.Relationships == nil && editor.Semantics.Required != true && editor.Semantics.Invalid != true,
             "FormField edited the authored accessibility")
     } finally { window.RequestClose() }
+    ConfiguredIconSemanticsContract()
     RetainedSettingsContract()
     RetainedHoverContract()
     RetainedActivationContract()
@@ -179,13 +219,13 @@ func RetainedActivationContract() {
             window.PlatformInput.KeyRelease(key)
         }
         ThemeFrames(host)
-        Require(root.Activations == 2 && root.CustomKeys == 1 && root.Content.KeyBindings!!.Length == 1,
-            "Activation wrapper lost activation or edited the retained bindings")
+        Require(root.Activations == 2 && root.CustomKeys == 1 && root.Content.KeyBindings!!.Length == 3,
+            "Owned activation lost activation or replaced the authored binding")
         Require(root.OtherHandle.Focus(), "Clickable container did not focus")
         window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
         window.PlatformInput.KeyRelease(Key.Enter)
         ThemeFrames(host)
-        Require(root.OtherActivations == 1, "Activation tried to activate a non-Button handle")
+        Require(root.OtherActivations == 1, "Owned activation tried to activate a non-Button handle")
     } finally { window.RequestClose() }
 }
 

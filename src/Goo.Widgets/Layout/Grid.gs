@@ -78,6 +78,7 @@ public data struct Grid {
     var Height Length?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Layout.
     var ConfigureRoot Action[Grid, Container]?
 
     /// Builds a fresh immutable layout policy and a normal retained subtree.
@@ -95,8 +96,6 @@ public data struct Grid {
         }
         let policy = GridPolicy(resolved)
         var root = Container{Width: resolved.Width!!, Height: resolved.Height!!, MinWidth: 0, MinHeight: 0}
-        ConfigureRoot?.Invoke(resolved, root)
-        root.Layout = policy
         root.Children.Clear()
         for item in resolved.Items {
             let slot = Container{Key: item.Id!!, MinWidth: 0, MinHeight: 0}
@@ -105,6 +104,8 @@ public data struct Grid {
             }
             root.Children.Add(slot)
         }
+        ConfigureRoot?.Invoke(resolved, root)
+        root.Layout = policy
         return root
     }
 }

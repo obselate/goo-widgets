@@ -52,6 +52,7 @@ public data struct FindBar {
     var Width Length?
     /// Receives the owning find bar and field, and returns the replacement entry. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.ReadOnly, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Controlled, Disabled, Focusable, Key, OnChange, OnSubmit, Password, ReadOnly, Value.
     var ConfigureEntry Action[FindBar, TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.
@@ -314,7 +315,7 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
             ControlIcons.Create(icon, 16, disabled ? theme.DisabledTextColor: on == true ? theme.OnAccentColor: theme.MutedTextColor),
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, on == true)
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 }

@@ -77,9 +77,11 @@ public data struct TextAreaInput {
     var RootStyle Style?
     /// Configures the fresh editor before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Controller, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnChange, ReadOnly.
     var ConfigureEditor Action[TextAreaInput, TextEditor]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextAreaInput, Container]?
 }
 
@@ -188,13 +190,14 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 KeyBinding{Key: Key.Escape, OnPress: () -> Cancel()},
             },
         }
+        let requiredBindings = input.ConfigureEditor == nil ? nil : editor.KeyBindings
         input.ConfigureEditor?.Invoke(input, editor)
+        if requiredBindings != nil { WidgetKeyBindings.AppendBindings(editor, requiredBindings) }
         if invalid {
             editor.HoverStyle = Style{BasedOn: editor.HoverStyle, BorderColor: input.InvalidColor!!}
             editor.ActiveStyle = Style{BasedOn: editor.ActiveStyle, BorderColor: input.InvalidColor!!}
         }
         theme.ApplyInteraction(editor, InteractionFamily.Field)
-        editor.Layers = []TextPresentationLayer{}
         editor.Controller = editorController
         editor.Handle ??= editorHandle
         editor.Key = "editor"
@@ -207,18 +210,18 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         editor.OverflowY = Overflow.Scroll
         editor.Placeholder = input.Placeholder!!
         editor.OnChange = Changed
-        editor.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextEditor,
-            Name: input.AccessibilityName!!,
-            Invalid: invalid,
-            Relationships: AccessibilityRelationships{
-                LabelledBy: input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
-                DescribedBy: input.Description != nil
+        let editorAccessibility = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        editorAccessibility.Role = AccessibilityRole.TextEditor
+        editorAccessibility.Name = input.AccessibilityName!!
+        editorAccessibility.Invalid = invalid
+        let editorRelationships = if let configured = editorAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        editorRelationships.LabelledBy = input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{}
+        editorRelationships.DescribedBy = input.Description != nil
                     ? (input.Error != nil ? []ElementHandle{descriptionHandle, issueHandle}: []ElementHandle{descriptionHandle})
-                    : (input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{}),
-                ErrorMessage: invalid && input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
-            },
-        }
+                    : (input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{})
+        editorRelationships.ErrorMessage = invalid && input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
+        editorAccessibility.Relationships = editorRelationships
+        editor.Accessibility = editorAccessibility
         var root = Container{
             LineHeight: theme.LineHeight,
             Width: input.Width!!,
@@ -228,8 +231,6 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             FontFamily: input.FontFamily!!,
             BasedOn: input.RootStyle,
         }
-        input.ConfigureRoot?.Invoke(input, root)
-        root.FlexDirection = FlexDirection.Column
         root.Children.Clear()
         if let label = input.Label {
             root.Children.Add(
@@ -299,6 +300,8 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 }
             )
         }
+        input.ConfigureRoot?.Invoke(input, root)
+        root.FlexDirection = FlexDirection.Column
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
             TouchTextEditingInput{Content: root, Editor: editor.Handle!!, RootStyle: Style{Width: input.Width!!, MinWidth: 0}, Enabled: input.TouchEditing}

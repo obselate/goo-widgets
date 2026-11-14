@@ -161,7 +161,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     }
                 )
                 theme.ApplyInteraction(root.Children[root.Children.Count - 1], InteractionFamily.Button)
-                WidgetKeyBindings.BindOwnedActivation(root.Children[root.Children.Count - 1])
+                WidgetKeyBindings.BindActivation(root.Children[root.Children.Count - 1])
                 AddChevron(root)
             }
             if firstHidden >= 0 && index >= firstHidden && index <= lastHidden {
@@ -226,7 +226,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     content
                 }
                 theme.ApplyInteraction(button, InteractionFamily.Button)
-                WidgetKeyBindings.BindOwnedActivation(button)
+                WidgetKeyBindings.BindActivation(button)
                 root.Children.Add(button)
             }
             if value.SiblingItems != nil && !current {
@@ -247,7 +247,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Text{Content: "›", Color: theme.MutedTextColor}
                 }
                 theme.ApplyInteraction(sibling, InteractionFamily.Button)
-                WidgetKeyBindings.BindOwnedActivation(sibling)
+                WidgetKeyBindings.BindActivation(sibling)
                 root.Children.Add(sibling)
             } else if index < items.Length - 1 {
                 AddChevron(root)

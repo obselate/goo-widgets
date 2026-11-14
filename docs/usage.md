@@ -46,7 +46,7 @@ Escape handling, and Tab focus traversal. No application editing bindings are ne
 Widget buttons and composite controls supply activation and navigation bindings.
 Applications can add their own `KeyBinding` sets.
 `ModalDialog.KeyBindings` remains available for custom shortcuts inside a dialog.
-Use `WidgetKeyBindings.BindActivation(blob)` for custom interactive primitives.
+Use `WidgetKeyBindings.BindActivation(blob)` on a primitive you created, before returning it from `Build` or a `Configure` action. Never call it on a received element.
 It preserves existing bindings, uses `ElementHandle` press/activation for `Button`,
 and adds release activation for other clickable primitives.
 
@@ -196,7 +196,7 @@ have globally unique IDs, labels/custom content, disabled/separator state, optio
 children, and an optional per-item action overriding the shared OnClick(id).
 Up/Down/Home/End navigate; the arrows open and close submenus; Enter/Space activate;
 Escape closes the active level. Pointer hover also opens submenus. DismissOnActivate
-defaults to true. CreateItem, CreateSeparator, CreatePanel, and CreateRoot retain
+defaults to true. ConfigureItem, ConfigureSeparator, ConfigurePanel, and ConfigureRoot retain
 navigation, identity, and accessibility wiring. `SubmenuArrowStyle` styles the
 direction indicator after its default text declarations. Hosts can use Menu or Shift+F10
 key events to open the same menu from a keyboard trigger (see the gallery).
@@ -387,8 +387,7 @@ Scope content must be constructed in its deferred callback. A scope does not
 change window clear colors. Density assigns absolute control height, padding
 and gap: Compact 28/8/4, Standard 32/12/8, Comfortable 40/16/8 and Touch 44/16/8.
 Without Density, a scope preserves custom metrics such as a 23 px control.
-Explicit widget properties and final factory/style overrides take precedence.
-Replacing primitive factories own their focus and scrolling semantics.
+Configure actions receive a fresh library-owned primitive and return nothing. The widget merges its owned accessibility fields and required bindings afterward. Other configured metadata and children stay. Source API docs list the owned fields. Create callbacks remain only for pure replacement/content slots. Return a fresh element or the supplied default.
 
 Run the [complete sample](../samples/Goo.Widgets.Theme/Program.gs):
 
@@ -565,8 +564,7 @@ Grid{
 
 The policy snapshots track and placement arrays. Build a new `Grid` description
 when data or definitions change. Stable item IDs preserve child cells and focus
-when slots move or resize. `CreateRoot` receives a prepared container; required
-layout and keyed children are reapplied after customization.
+when slots move or resize. `ConfigureRoot` receives the fresh prepared container. The widget keeps its measured layout policy and keyed slots.
 
 ## Quantitative charts
 
@@ -578,9 +576,9 @@ Donuts draw a complete circle with two arcs when only one positive entry remains
 
 Customize donut `Size`, `Thickness`, `TrackColor`, and `Center`; customize bar
 `Width`, `Height`, `BorderRadius`, and `TrackColor`. `ShowLegend` enables the
-default labeled values and percentages. Both expose `CreateLabel`, `CreateLegend`,
-and `CreateRoot`; donut slices use `CreateSlice`, and bars use `CreateSegment`.
-Factories receive the resolved widget first, then `ChartSegment` data with the
+default labeled values and percentages. Both expose `CreateLabel`, `ConfigureLegend`,
+and `ConfigureRoot`; donut slices use `ConfigureSlice`, and bars use `ConfigureSegment`.
+Configure actions receive the resolved widget first, then `ChartSegment` data with the
 fraction and accessible summary. Required geometry, identity, interaction, and semantics
 are reapplied to custom segments. `OnClick` enables pointer/Enter/Space activation and Tab focus;
 `OnHover` reports a series ID or nil on leave. Omit them for passive charts.
@@ -734,9 +732,8 @@ in a full-height provider inside an outer scroll viewport; changing the mode kee
 the retained row structure and logical focus. `ScrollbarY` styles the active vertical
 scroller in either mode. Custom content follows ordinary Goo
 layout and can provide its own interaction. Content, expander, checkbox, row, and
-root factories customize prepared blobs. Standard row slots are added before
-`CreateRow`; custom children are kept. Identity, input, and tree semantics are
-reapplied. A replacement row root must supply its own slots. Use `GOO_WIDGETS_TREE=1`
+root Configure actions customize fresh prepared blobs. Standard row slots are added before
+`ConfigureRow`; custom children are kept. The widget merges its owned identity, input, and tree semantics afterward. Use `GOO_WIDGETS_TREE=1`
 with the native runner to exercise both modes, keyboard and accessibility input,
 and the 1,500-child case.
 

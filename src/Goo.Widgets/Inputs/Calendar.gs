@@ -68,15 +68,19 @@ public data struct CalendarInput {
     var Handle ElementHandle?
     /// Configures the fresh day before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, TabStop.
     var ConfigureDay Action[CalendarInput, CalendarDay, Button]?
     /// Configures the fresh navigation before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Disabled, Focusable, Key, KeyBindings (required entries), OnClick, OnFocus.
     var ConfigureNavigation Action[CalendarInput, int32, Button]?
     /// Configures the fresh weekday before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Key.
     var ConfigureWeekday Action[CalendarInput, DayOfWeek, Text]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Disabled, Focusable, Handle, OnFocus, OnKeyDown, TabStop.
     var ConfigureRoot Action[CalendarInput, Container]?
 }
 
@@ -218,10 +222,10 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             label.FlexGrow = 1.0
             label.FlexBasis = 0.0
             label.MinWidth = 0.0
-            label.Accessibility = Accessibility{
-                Role: AccessibilityRole.ColumnHeader,
-                Name: culture.DateTimeFormat.GetDayName(weekday)
-            }
+            let labelAccessibility = if let configured = label.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            labelAccessibility.Role = AccessibilityRole.ColumnHeader
+            labelAccessibility.Name = culture.DateTimeFormat.GetDayName(weekday)
+            label.Accessibility = labelAccessibility
             weekdays.Children.Add(label)
         }
         grid.Children.Add(weekdays)
@@ -286,6 +290,9 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             BorderRadius: theme.PanelRadius!!,
             Color: theme.TextColor,
         }
+        root.Children.Clear()
+        root.Children.Add(heading)
+        root.Children.Add(grid)
         current.ConfigureRoot?.Invoke(current, root)
         root.Handle = current.Handle ?? rootHandle
         root.Direction = theme.Direction
@@ -299,10 +306,10 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             }
         }
         root.OnKeyDown = KeyDown
-        root.Accessibility = Accessibility{Role: AccessibilityRole.Group, Name: current.AccessibilityName!!}
-        root.Children.Clear()
-        root.Children.Add(heading)
-        root.Children.Add(grid)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = current.AccessibilityName!!
+        root.Accessibility = rootAccessibility
         return root
     }
 
@@ -354,18 +361,6 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        current.ConfigureNavigation?.Invoke(current, delta, button)
-        theme.ApplyInteraction(button, InteractionFamily.Button)
-        button.Key = delta < 0 ? "previous": "next"
-        button.Disabled = !CanMonth(delta)
-        button.Focusable = !button.Disabled
-        button.OnClick = () -> MoveMonth(delta)
-        WidgetKeyBindings.BindOwnedActivation(button)
-        button.OnFocus = (event FocusEvent) -> event.StopPropagation()
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.Button,
-            Name: delta < 0 ? current.PreviousMonthLabel!!: current.NextMonthLabel!!
-        }
         button.Children.Clear()
         button.Children.Add(
             Text{
@@ -376,6 +371,18 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 Color: theme.TextColor,
             }
         )
+        current.ConfigureNavigation?.Invoke(current, delta, button)
+        theme.ApplyInteraction(button, InteractionFamily.Button)
+        button.Key = delta < 0 ? "previous": "next"
+        button.Disabled = !CanMonth(delta)
+        button.Focusable = !button.Disabled
+        button.OnClick = () -> MoveMonth(delta)
+        WidgetKeyBindings.BindActivation(button)
+        button.OnFocus = (event FocusEvent) -> event.StopPropagation()
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Button
+        buttonAccessibility.Name = delta < 0 ? current.PreviousMonthLabel!!: current.NextMonthLabel!!
+        button.Accessibility = buttonAccessibility
         return button
     }
 
@@ -393,36 +400,6 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             BorderWidth: day.Today ? theme.BorderWidth: 0.0,
             BorderColor: theme.AccentColor,
             FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
-        }
-        current.ConfigureDay?.Invoke(current, day, button)
-        theme.ApplyInteraction(button, InteractionFamily.Toggle, day.Selected)
-        button.Key = date.DayNumber.ToString()
-        button.Handle = Handle(date)
-        button.FlexGrow = 1.0
-        button.FlexBasis = 0.0
-        button.MinWidth = 0.0
-        button.Height = current.DayHeight!!
-        button.Disabled = day.Disabled
-        button.Focusable = !day.Disabled
-        button.TabStop = day.Active && !day.Disabled
-        button.OnClick = () -> Select(date)
-        WidgetKeyBindings.BindOwnedActivation(button)
-        button.OnFocus = (event FocusEvent) -> {
-            event.StopPropagation()
-            active = date
-            focusedDay = date
-            Rebuild()
-        }
-        button.OnBlur = (event FocusEvent) -> {
-            if focusedDay == date {
-                focusedDay = nil
-            }
-        }
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.GridCell,
-            Name: date.ToString("D", current.Culture!!),
-            Selected: day.Selected,
-            Description: day.Today ? theme.Text("Today"): ""
         }
         button.Children.Clear()
         button.Children.Add(
@@ -443,6 +420,36 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 BasedOn: current.DayTextStyle
             }
         )
+        current.ConfigureDay?.Invoke(current, day, button)
+        theme.ApplyInteraction(button, InteractionFamily.Toggle, day.Selected)
+        button.Key = date.DayNumber.ToString()
+        button.Handle = Handle(date)
+        button.FlexGrow = 1.0
+        button.FlexBasis = 0.0
+        button.MinWidth = 0.0
+        button.Height = current.DayHeight!!
+        button.Disabled = day.Disabled
+        button.Focusable = !day.Disabled
+        button.TabStop = day.Active && !day.Disabled
+        button.OnClick = () -> Select(date)
+        WidgetKeyBindings.BindActivation(button)
+        button.OnFocus = (event FocusEvent) -> {
+            event.StopPropagation()
+            active = date
+            focusedDay = date
+            Rebuild()
+        }
+        button.OnBlur = (event FocusEvent) -> {
+            if focusedDay == date {
+                focusedDay = nil
+            }
+        }
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.GridCell
+        buttonAccessibility.Name = date.ToString("D", current.Culture!!)
+        buttonAccessibility.Selected = day.Selected
+        buttonAccessibility.Description = day.Today ? theme.Text("Today"): ""
+        button.Accessibility = buttonAccessibility
         return button
     }
 

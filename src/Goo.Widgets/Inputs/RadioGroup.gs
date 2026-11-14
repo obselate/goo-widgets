@@ -38,9 +38,11 @@ public data struct RadioGroupInput {
     var AccessibilityName string?
     /// Configures the fresh item before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key, OnKeyDown, TabStop.
     var ConfigureItem Action[RadioGroupInput, RadioOption, Button]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Orientation, Accessibility.Role.
     var ConfigureRoot Action[RadioGroupInput, Container]?
 }
 
@@ -77,14 +79,6 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             handles.Remove(id)
         }
         var root = Container{Gap: theme.ControlGap}
-        input.ConfigureRoot?.Invoke(input, root)
-        root.Direction = theme.Direction
-        root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: input.AccessibilityName ?? theme.Text("Choices"),
-            Orientation: input.Orientation!!,
-        }
         root.Children.Clear()
         for item in input.Items!! {
             let id = item.Id
@@ -111,6 +105,14 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             button.OnKeyDown = (e KeyEvent) -> Move(id, e)
             root.Children.Add(button)
         }
+        input.ConfigureRoot?.Invoke(input, root)
+        root.Direction = theme.Direction
+        root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = input.AccessibilityName ?? theme.Text("Choices")
+        rootAccessibility.Orientation = input.Orientation!!
+        root.Accessibility = rootAccessibility
         return root
     }
 

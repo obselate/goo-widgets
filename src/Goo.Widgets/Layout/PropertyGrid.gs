@@ -63,6 +63,7 @@ public data struct PropertyGrid {
     var LabelWidth float64?
     /// Configures the fresh row before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
     var ConfigureRow Action[PropertyGrid, PropertyGridItem, Blob]?
 
     /// Builds the filtered sections and optional search field.
@@ -124,7 +125,7 @@ public data struct PropertyGrid {
                         Text{Content: name, FontWeight: theme.HeadingFontWeight}
                     }
                     theme.ApplyInteraction(heading, InteractionFamily.Row)
-                    WidgetKeyBindings.BindOwnedActivation(heading)
+                    WidgetKeyBindings.BindActivation(heading)
                     group.Children.Add(heading)
                 } else {
                     group.Children.Add(
@@ -195,7 +196,7 @@ public data struct PropertyGrid {
                 ControlIcons.Create(ControlIcon.RestartAlt, 16, theme.MutedTextColor)
             }
             theme.ApplyInteraction(button, InteractionFamily.Button)
-            WidgetKeyBindings.BindOwnedActivation(button)
+            WidgetKeyBindings.BindActivation(button)
             button
         } else {
             nil

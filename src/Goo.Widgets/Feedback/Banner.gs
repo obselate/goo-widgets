@@ -199,7 +199,7 @@ public data struct Banner {
                 ControlIcons.Create(ControlIcon.Close, resolved.FontSize!! + 4.0, theme.TextColor)
             }
             theme.ApplyInteraction(button, InteractionFamily.Button)
-            WidgetKeyBindings.BindOwnedActivation(button)
+            WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)
         }
         return root

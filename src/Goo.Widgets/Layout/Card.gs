@@ -120,7 +120,7 @@ public data struct Card {
         body.BackgroundColor = Color.Transparent
         body.BorderWidth = 0
         body.BoxShadows = []BoxShadow{}
-        WidgetKeyBindings.BindOwnedActivation(root)
+        WidgetKeyBindings.BindActivation(root)
         return root
     }
 

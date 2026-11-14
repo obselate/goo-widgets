@@ -61,18 +61,22 @@ public data struct DatePickerInput {
     var ZIndex int32
     /// Configures the fresh input before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.ReadOnly, Accessibility.Relationships.Controls, Accessibility.Relationships.ErrorMessage, Accessibility.Required, Accessibility.Role, Controlled, Disabled, Focusable, Handle, Key, OnBlur, OnChange, OnKeyDown, OnSubmit, ReadOnly, Value.
     var ConfigureInput Action[DatePickerInput, TextEntry]?
     /// Configures the fresh button before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Expanded, Accessibility.HasPopup, Accessibility.Name, Accessibility.Relationships.Controls, Accessibility.Role, Disabled, Focusable, Key, KeyBindings (required entries), OnClick.
     var ConfigureButton Action[DatePickerInput, Button]?
     /// Receives the widget input and the CalendarInput value, and returns the replacement CalendarInput. Nil uses the default composition.
     /// Hosts must not change state in this callback.
     var CreateCalendar Func[DatePickerInput, CalendarInput, CalendarInput]?
     /// Configures the fresh popup before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key.
     var ConfigurePopup Action[DatePickerInput, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[DatePickerInput, Container]?
 }
 
@@ -175,17 +179,17 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             }
         }
         entry.OnKeyDown = InputKey
-        entry.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextInput,
-            Name: current.AccessibilityName!!,
-            Invalid: invalid,
-            Required: !current.AllowEmpty!!,
-            ReadOnly: current.ReadOnly,
-            Relationships: AccessibilityRelationships{
-                Controls: []ElementHandle{calendarHandle},
-                ErrorMessage: invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
-            }
-        }
+        let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        entryAccessibility.Role = AccessibilityRole.TextInput
+        entryAccessibility.Name = current.AccessibilityName!!
+        entryAccessibility.Invalid = invalid
+        entryAccessibility.Required = !current.AllowEmpty!!
+        entryAccessibility.ReadOnly = current.ReadOnly
+        let entryRelationships = if let configured = entryAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        entryRelationships.Controls = []ElementHandle{calendarHandle}
+        entryRelationships.ErrorMessage = invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
+        entryAccessibility.Relationships = entryRelationships
+        entry.Accessibility = entryAccessibility
         var button = Button{
             Width: theme.ControlHeight,
             Height: theme.ControlHeight,
@@ -195,22 +199,24 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
+        button.Children.Clear()
+        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
         current.ConfigureButton?.Invoke(current, button)
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = "open"
         button.Disabled = current.Disabled || current.ReadOnly
         button.Focusable = !current.Disabled && !current.ReadOnly
         button.OnClick = () -> SetOpen(!isOpen)
-        WidgetKeyBindings.BindOwnedActivation(button)
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.Button,
-            Name: current.AccessibilityName!!+ " calendar",
-            HasPopup: true,
-            Expanded: isOpen,
-            Relationships: AccessibilityRelationships{Controls: []ElementHandle{calendarHandle}}
-        }
-        button.Children.Clear()
-        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
+        WidgetKeyBindings.BindActivation(button)
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Button
+        buttonAccessibility.Name = current.AccessibilityName!!+ " calendar"
+        buttonAccessibility.HasPopup = true
+        buttonAccessibility.Expanded = isOpen
+        let buttonRelationships = if let configured = buttonAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        buttonRelationships.Controls = []ElementHandle{calendarHandle}
+        buttonAccessibility.Relationships = buttonRelationships
+        button.Accessibility = buttonAccessibility
         let field = Container{
             Key: "field",
             Handle: fieldHandle,
@@ -223,14 +229,13 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             entry,
             button
         }
-        var root = Container{
+        let root = Container{
             Width: current.Width!!,
             MinWidth: 0.0,
             Gap: theme.ControlGap,
             Overflow: Overflow.Visible,
             LineHeight: theme.LineHeight,
         }
-        current.ConfigureRoot?.Invoke(current, root)
         root.Children.Clear()
         root.Children.Add(field)
         if invalid {
@@ -286,6 +291,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             popup.Viewport = overlayBox
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
+        current.ConfigureRoot?.Invoke(current, root)
         return root
     }
 

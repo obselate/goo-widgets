@@ -6,27 +6,11 @@ import System
 /// Provides explicit primitive activation bindings for Goo Widgets.
 public class WidgetKeyBindings {
     shared {
-        /// Returns a fresh wrapper with Enter and Space activation for the content.
-        /// The content and its existing bindings stay unchanged and take precedence.
-        /// @param content The interactive content to activate.
-        public func WithActivation(content Blob) Blob {
-            let wrapper = Container{HitTestSelf: false, content}
-            let action = content.OnClick
-            if action != nil {
-                let handle ElementHandle? = if content is Button { content.Handle } else { nil }
-                wrapper.KeyBindings = []KeyBinding{
-                    KeyBinding{Key: Key.Enter, OnPress: () -> {
-                        if handle != nil { handle.Activate() } else { action() }
-                    }},
-                    KeyBinding{Key: Key.Space, OnRelease: () -> {
-                        if handle != nil { handle.Activate() } else { action() }
-                    }},
-                }
-            }
-            return wrapper
-        }
-
-        internal func BindOwnedActivation(button Blob) {
+        /// Adds Enter and Space activation to an element you created.
+        /// Call before returning it from Build or a Configure callback. Goo rejects edits to frozen declarations.
+        /// Existing bindings take precedence.
+        /// @param button The owned primitive to configure before hand-off.
+        public func BindActivation(button Blob) {
             let action = button.OnClick
             if action == nil {
                 return
@@ -70,6 +54,26 @@ public class WidgetKeyBindings {
             result[existing.Length] = enter
             result[existing.Length + 1] = space
             button.KeyBindings = result
+        }
+        internal func AppendBindings(element Blob, bindings[]KeyBinding) {
+            let existing = element.KeyBindings
+            if existing == nil || existing.Length == 0 {
+                element.KeyBindings = bindings
+                return
+            }
+            var additions int32
+            for binding in bindings { if Array.IndexOf(existing, binding) < 0 { additions++ } }
+            if additions == 0 { return }
+            let combined = [existing.Length + additions]KeyBinding
+            Array.Copy(existing, combined, existing.Length)
+            var index = existing.Length
+            for binding in bindings {
+                if Array.IndexOf(existing, binding) < 0 {
+                    combined[index] = binding
+                    index++
+                }
+            }
+            element.KeyBindings = combined
         }
     }
 }

@@ -39,7 +39,8 @@ internal class ManagedDialogExample : Cell {
             OnClick: Open,
             Text{Content: "Review change", Color: Theme.Read().OnAccentColor}
         }
-        return WidgetKeyBindings.WithActivation(button)
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 
     private func BuildNestedButton() Blob {
@@ -50,7 +51,8 @@ internal class ManagedDialogExample : Cell {
             OnClick: OpenNested,
             Text{Content: "Open nested confirmation"}
         }
-        return WidgetKeyBindings.WithActivation(button)
+        WidgetKeyBindings.BindActivation(button)
+        return button
     }
 
     public override func Build() Blob -> Container{

@@ -58,6 +58,7 @@ public data struct NumberInputInput {
     var OnCommit Action[float64]?
     /// Configures the fresh entry before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Invalid, Accessibility.Name, Accessibility.OnAction, Accessibility.Range, Accessibility.ReadOnly, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Accessibility.Value, Controlled, Disabled, Focusable, Handle, Key, OnChange, OnSubmit, ReadOnly, Value.
     var ConfigureEntry Action[NumberInputInput, TextEntry]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     /// Hosts must not change state in this callback.
@@ -151,6 +152,10 @@ public open class NumberInput : Cell[NumberInputInput] {
             OnKeyDown: HandleKey
         }
         input.ConfigureEntry?.Invoke(input, entry)
+        entry.Value = draft
+        entry.Controlled = true
+        entry.OnChange = Changed
+        entry.OnSubmit = text -> Commit()
         theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Handle ??= handle
         entry.Key = "entry"
@@ -204,20 +209,24 @@ public open class NumberInput : Cell[NumberInputInput] {
             LabelFor: entry.Handle,
             Width: input.Width ?? defaultWidth,
             CreateContent: (relations AccessibilityRelationships) -> {
-                entry.Accessibility = Accessibility{
-                    Role: AccessibilityRole.SpinButton,
-                    Name: input.AccessibilityName ?? input.Label ?? theme.Text("Number"),
-                    Value: draft,
-                    Invalid: invalid || input.Error != nil,
-                    ReadOnly: input.ReadOnly,
-                    Relationships: relations,
-                    Range: AccessibilityValue{Now: value, Minimum: input.Minimum, Maximum: input.Maximum, Text: draft},
-                    Actions: []AccessibilityAction{
+                let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                entryAccessibility.Role = AccessibilityRole.SpinButton
+                entryAccessibility.Name = input.AccessibilityName ?? input.Label ?? theme.Text("Number")
+                entryAccessibility.Value = draft
+                entryAccessibility.Invalid = invalid || input.Error != nil
+                entryAccessibility.ReadOnly = input.ReadOnly
+                let entryRelationships = if let configured = entryAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+                entryRelationships.LabelledBy = relations.LabelledBy
+                entryRelationships.DescribedBy = relations.DescribedBy
+                entryRelationships.ErrorMessage = relations.ErrorMessage
+                entryAccessibility.Relationships = entryRelationships
+                entryAccessibility.Range = AccessibilityValue{Now: value, Minimum: input.Minimum, Maximum: input.Maximum, Text: draft}
+                entryAccessibility.Actions = []AccessibilityAction{
                         AccessibilityAction.Increment,
                         AccessibilityAction.Decrement,
                         AccessibilityAction.SetValue
-                    },
-                    OnAction: request -> {
+                    }
+                entryAccessibility.OnAction = request -> {
                         if input.Disabled || input.ReadOnly {
                             return false
                         }
@@ -237,7 +246,7 @@ public open class NumberInput : Cell[NumberInputInput] {
                         }
                         return false
                     }
-                }
+                entry.Accessibility = entryAccessibility
                 return content
             }
         }.Build()
@@ -347,7 +356,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             ControlIcons.Create(icon, 14, theme.MutedTextColor)
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 

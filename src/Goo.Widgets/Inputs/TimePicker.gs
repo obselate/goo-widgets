@@ -90,7 +90,7 @@ public open class TimePicker : Cell[TimePickerInput] {
                 ControlIcons.Create(ControlIcon.Close, theme.FontSize, theme.MutedTextColor)
             }
             theme.ApplyInteraction(clear, InteractionFamily.Button)
-            WidgetKeyBindings.BindOwnedActivation(clear)
+            WidgetKeyBindings.BindActivation(clear)
             root.Children.Add(clear)
         }
         return root

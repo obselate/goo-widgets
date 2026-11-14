@@ -57,22 +57,21 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         panel.Key = "dialog"
         panel.Focusable = false
         panel.TabStop = false
-        panel.Accessibility = Accessibility{Role: AccessibilityRole.None}
+        let panelAccessibility = if let configured = panel.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        panelAccessibility.Role = AccessibilityRole.None
+        panel.Accessibility = panelAccessibility
         rootKeyHandler = result.OnKeyDown
         result.Handle = rootHandle
         result.Focusable = true
         result.TabStop = false
         result.Disabled = false
         result.ZIndex = resolved.ZIndex + (activeScope?.Order ?? 0)
-        result.Accessibility = Accessibility{
-            Role: AccessibilityRole.Dialog,
-            Name: resolved.AccessibilityName!!,
-            Modal: true,
-        }
+        let resultAccessibility = if let configured = result.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        resultAccessibility.Role = AccessibilityRole.Dialog
+        resultAccessibility.Name = resolved.AccessibilityName!!
+        resultAccessibility.Modal = true
+        result.Accessibility = resultAccessibility
         result.OnKeyDown = HandleKey
-        result.Children.Clear()
-        result.Children.Add(backdrop)
-        result.Children.Add(panel)
     }
 
     private func HandleKey(event KeyEvent) {

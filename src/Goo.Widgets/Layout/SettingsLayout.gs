@@ -158,7 +158,7 @@ public open class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                 row.Children.Add(icon)
             }
             row.Children.Add(Text{Content: section.Title ?? id, FontWeight: selected == id ? theme.LabelFontWeight: theme.FontWeight})
-            WidgetKeyBindings.BindOwnedActivation(row)
+            WidgetKeyBindings.BindActivation(row)
             navigation.Children.Add(row)
             if query.Length == 0 && selected != id {
                 continue

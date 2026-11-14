@@ -82,6 +82,7 @@ public data struct DismissibleContextBar {
     var Transform PanelTransform?
     /// Configures the fresh dismiss before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries).
     var ConfigureDismiss Action[DismissibleContextBar, Button]?
     /// Custom factory for creating the root Container from resolved props, caller Content, and final Button.
     /// Return a fresh element or the supplied default.
@@ -168,7 +169,7 @@ public data struct DismissibleContextBar {
         configureDismiss?.Invoke(resolved, button!!)
         theme.ApplyInteraction(button!!, InteractionFamily.Button)
         button!!.Disabled = Disabled
-        WidgetKeyBindings.BindOwnedActivation(button!!)
+        WidgetKeyBindings.BindActivation(button!!)
         if let createRoot = createRoot {
             return createRoot(resolved, Content, button!!)
         }

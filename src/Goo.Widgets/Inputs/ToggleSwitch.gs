@@ -60,6 +60,7 @@ public data struct ToggleSwitch {
     var CreateThumb Func[ToggleSwitch, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
     var ConfigureRoot Action[ToggleSwitch, Container, Button]?
     /// Builds a fresh Goo switch tree after resolving props and factories.
     public func Build() Blob {
@@ -162,8 +163,12 @@ public data struct ToggleSwitch {
         button.Disabled = Disabled
         button.Focusable = !Disabled
         button.OnClick = Disabled ? nil: () -> OnChange?.Invoke(!Value)
-        button.Accessibility = Accessibility{Role: AccessibilityRole.Switch, Name: resolved.AccessibilityName!!, Checked: Value ? AccessibilityChecked.True: AccessibilityChecked.False}
-        WidgetKeyBindings.BindOwnedActivation(button)
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Switch
+        buttonAccessibility.Name = resolved.AccessibilityName!!
+        buttonAccessibility.Checked = Value ? AccessibilityChecked.True: AccessibilityChecked.False
+        button.Accessibility = buttonAccessibility
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 }

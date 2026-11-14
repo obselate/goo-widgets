@@ -112,15 +112,19 @@ public data struct TreeViewInput {
     var CreateContent Func[TreeViewInput, TreeViewRow, Blob, Blob]?
     /// Configures the fresh expander before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, Disabled, Focusable, Key, OnClick, TabStop.
     var ConfigureExpander Action[TreeViewInput, TreeViewRow, Button]?
     /// Configures the fresh check before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, Disabled, Focusable, Key, OnClick, TabStop.
     var ConfigureCheck Action[TreeViewInput, TreeViewRow, Button]?
     /// Configures the fresh row before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Disabled, Focusable, Handle, Key, OnClick, OnFocus, OnPointerDown, TabStop.
     var ConfigureRow Action[TreeViewInput, TreeViewRow, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.MultiSelectable, Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Disabled, FocusTarget, Focusable, Handle, OnBlur, OnFocus, OnKeyDown, OnPointerDown.
     var ConfigureRoot Action[TreeViewInput, Container]?
 }
 
@@ -342,6 +346,8 @@ public open class TreeView : Cell[TreeViewInput] {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
+        root.Children.Clear()
+        root.Children.Add(scroll)
         input.ConfigureRoot?.Invoke(input, root)
         root.Handle = rootHandle
         root.Direction = theme.Direction
@@ -368,14 +374,14 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let activeHandle ElementHandle? = activeId == nil ? nil: Handle(activeId!!)
         root.FocusTarget = activeHandle
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Tree,
-            Name: input.AccessibilityName!!,
-            MultiSelectable: input.Multiple || input.MultiSelectable,
-            Relationships: AccessibilityRelationships{ActiveDescendant: activeHandle}
-        }
-        root.Children.Clear()
-        root.Children.Add(scroll)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Tree
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.MultiSelectable = input.Multiple || input.MultiSelectable
+        let rootRelationships = if let configured = rootAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        rootRelationships.ActiveDescendant = activeHandle
+        rootAccessibility.Relationships = rootRelationships
+        root.Accessibility = rootAccessibility
         return root
     }
 
@@ -568,7 +574,9 @@ public open class TreeView : Cell[TreeViewInput] {
             expander.TabStop = false
             expander.Disabled = row.Disabled || snapshot.OnExpandedChange == nil
             expander.OnClick = () -> Expand(id, !row.Expanded)
-            expander.Accessibility = Accessibility{Hidden: true}
+            let expanderAccessibility = if let configured = expander.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            expanderAccessibility.Hidden = true
+            expander.Accessibility = expanderAccessibility
             children.Add(expander)
         } else {
             children.Add(
@@ -595,7 +603,9 @@ public open class TreeView : Cell[TreeViewInput] {
             check.TabStop = false
             check.Disabled = row.Disabled || snapshot.OnCheckChange == nil
             check.OnClick = () -> Check(id)
-            check.Accessibility = Accessibility{Hidden: true}
+            let checkAccessibility = if let configured = check.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            checkAccessibility.Hidden = true
+            check.Accessibility = checkAccessibility
             children.Add(check)
         }
         var label Blob = row

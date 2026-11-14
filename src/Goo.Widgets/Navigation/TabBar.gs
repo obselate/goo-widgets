@@ -69,9 +69,11 @@ public data struct TabBarInput {
     var ItemHeight float64?
     /// Configures the fresh item before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, OnKeyDown, TabStop.
     var ConfigureItem Action[TabBarInput, NavigationItem, Button]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Orientation, Accessibility.Role, Layout.
     var ConfigureRoot Action[TabBarInput, Container]?
 }
 
@@ -173,7 +175,7 @@ public open class TabBar : Cell[TabBarInput] {
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
-            WidgetKeyBindings.BindOwnedActivation(button)
+            WidgetKeyBindings.BindActivation(button)
             button.OnFocus = (e FocusEvent) -> {
                 focusedId = id
                 hasFocus = true
@@ -184,11 +186,11 @@ public open class TabBar : Cell[TabBarInput] {
                 Rebuild()
             }
             button.OnKeyDown = (e KeyEvent) -> KeyDown(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Tab,
-                Name: item.AccessibilityName!!,
-                Selected: active
-            }
+            let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            buttonAccessibility.Role = AccessibilityRole.Tab
+            buttonAccessibility.Name = item.AccessibilityName!!
+            buttonAccessibility.Selected = active
+            button.Accessibility = buttonAccessibility
             buttons.Add(button)
             let pinned = Array.IndexOf(input.PinnedIds!!, id) >= 0
             let dirty = Array.IndexOf(input.DirtyIds!!, id) >= 0
@@ -269,7 +271,7 @@ public open class TabBar : Cell[TabBarInput] {
                     Text{Content: "×", FontSize: theme.FontSize},
                 }
                 theme.ApplyInteraction(close, InteractionFamily.Button)
-                WidgetKeyBindings.BindOwnedActivation(close)
+                WidgetKeyBindings.BindActivation(close)
                 tab.Children.Add(close)
                 if let marker = indicator {
                     tab.Children.Add(marker)
@@ -289,6 +291,10 @@ public open class TabBar : Cell[TabBarInput] {
             BackgroundColor: theme.ChromeColor,
             ScrollbarX: theme.Scrollbar,
         }
+        root.Children.Clear()
+        for button in buttons {
+            root.Children.Add(button)
+        }
         input.ConfigureRoot?.Invoke(input, root)
         root.Direction = theme.Direction
         root.FlexDirection = input.Vertical ? FlexDirection.Column: FlexDirection.Row
@@ -305,15 +311,11 @@ public open class TabBar : Cell[TabBarInput] {
             root.Layout = WholeTabsLayout(visible, theme.Spacing / 2.0, rightToLeft)
         }
         root.ScrollbarY = theme.Scrollbar
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.TabList,
-            Name: input.AccessibilityName!!,
-            Orientation: input.Vertical ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal
-        }
-        root.Children.Clear()
-        for button in buttons {
-            root.Children.Add(button)
-        }
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.TabList
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.Orientation = input.Vertical ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal
+        root.Accessibility = rootAccessibility
         if !input.OverflowMenu && input.OnAdd == nil {
             return root
         }

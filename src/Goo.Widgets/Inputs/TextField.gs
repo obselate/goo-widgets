@@ -109,10 +109,12 @@ public data struct TextField {
     var Transform PanelTransform?
     /// Configures the fresh entry before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.ReadOnly, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Controlled, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnChange, OnFocus, OnSubmit, Password, ReadOnly, Value.
     var ConfigureEntry Action[TextField, TextEntry]?
     internal var EntryKeyBindings([]KeyBinding)?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
     public func Build() Blob {
@@ -232,17 +234,7 @@ public data struct TextField {
             entry!!.HoverStyle = Style{BasedOn: entry!!.HoverStyle, BorderColor: resolved.InvalidColor!!}
             entry!!.ActiveStyle = Style{BasedOn: entry!!.ActiveStyle, BorderColor: resolved.InvalidColor!!}
         }
-        if let bindings = EntryKeyBindings {
-            let existing = entry!!.KeyBindings
-            if existing == nil || existing.Length == 0 {
-                entry!!.KeyBindings = bindings
-            } else {
-                let combined = [existing.Length + bindings.Length]KeyBinding
-                Array.Copy(existing, combined, existing.Length)
-                Array.Copy(bindings, 0, combined, existing.Length, bindings.Length)
-                entry!!.KeyBindings = combined
-            }
-        }
+        if let bindings = EntryKeyBindings { WidgetKeyBindings.AppendBindings(entry!!, bindings) }
 
         if let direction = resolved.ContentDirection {
             entry!!.Direction = direction
@@ -268,24 +260,29 @@ public data struct TextField {
             }
         }
         let readOnly = resolved.ReadOnly || entry!!.ReadOnly || (entry!!.Accessibility?.ReadOnly ?? false)
+        entry!!.Value = resolved.Value!!
+        entry!!.Controlled = resolved.Controlled
+        entry!!.Password = resolved.Password
+        entry!!.OnChange = resolved.OnChange
+        entry!!.OnSubmit = resolved.OnSubmit
         entry!!.Key = "entry"
         entry!!.Handle = entry!!.Handle ?? Handle ?? ElementHandle()
         entry!!.Disabled = resolved.Disabled
         entry!!.ReadOnly = readOnly
         entry!!.Focusable = !resolved.Disabled
-        entry!!.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextInput,
-            Name: resolved.AccessibilityName!!,
-            Invalid: resolved.Invalid,
-            ReadOnly: readOnly,
-            Relationships: AccessibilityRelationships{
-                LabelledBy: label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
-                DescribedBy: resolved.Description != nil
+        let entryAccessibility = if let configured = entry!!.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        entryAccessibility.Role = AccessibilityRole.TextInput
+        entryAccessibility.Name = resolved.AccessibilityName!!
+        entryAccessibility.Invalid = resolved.Invalid
+        entryAccessibility.ReadOnly = readOnly
+        let entryRelationships = if let configured = entryAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        entryRelationships.LabelledBy = label != nil ? []ElementHandle{labelHandle}: []ElementHandle{}
+        entryRelationships.DescribedBy = resolved.Description != nil
                     ? (issue != nil ? []ElementHandle{descriptionHandle, issueHandle}: []ElementHandle{descriptionHandle})
-                    : (issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}),
-                ErrorMessage: resolved.Invalid && issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
-            }
-        }
+                    : (issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{})
+        entryRelationships.ErrorMessage = resolved.Invalid && issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
+        entryAccessibility.Relationships = entryRelationships
+        entry!!.Accessibility = entryAccessibility
         if state != nil {
             let priorFocus = entry!!.OnFocus
             let priorBlur = entry!!.OnBlur
@@ -345,7 +342,7 @@ public data struct TextField {
             entry!!.BorderWidth = 0
             entry!!.BorderRadius = 0
             entry!!.BackgroundColor = Color.Transparent
-            entry!!.DisabledStyle = Style{Color: resolved.DisabledTextColor!!, BackgroundColor: Color.Transparent}
+            entry!!.DisabledStyle = Style{BasedOn: entry!!.DisabledStyle, Color: resolved.DisabledTextColor!!, BackgroundColor: Color.Transparent}
             if let addon = resolved.PrefixAddon {
                 content.Children.Add(Addon(addon, resolved))
             }
@@ -518,7 +515,7 @@ internal class TextFieldState : Cell[TextField] {
             ControlIcons.Create(icon, 16, theme.MutedTextColor),
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
-        WidgetKeyBindings.BindOwnedActivation(button)
+        WidgetKeyBindings.BindActivation(button)
         return button
     }
 }

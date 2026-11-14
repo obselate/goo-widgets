@@ -112,18 +112,23 @@ public data struct TimeAxisInput {
     var AccessibilityName string?
     /// Configures the fresh tick before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role, Accessibility.Selected, Focusable, Key, KeyBindings (required entries), OnClick.
     var ConfigureTick Action[TimeAxisInput, TimeAxisTick, Container]?
     /// Configures the fresh marker before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, HitTestSelf, Key.
     var ConfigureMarker Action[TimeAxisInput, Container]?
     /// Configures the fresh event before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role, Accessibility.Selected, Focusable, Key, KeyBindings (required entries), OnClick.
     var ConfigureEvent Action[TimeAxisInput, TimeAxisPlacement, Button]?
     /// Configures the fresh overflow before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role, Focusable, Key, KeyBindings (required entries), OnClick.
     var ConfigureOverflow Action[TimeAxisInput, []TimeAxisEvent, Button]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Handle, OnKeyDown.
     var ConfigureRoot Action[TimeAxisInput, Container]?
 }
 
@@ -306,12 +311,12 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             Place(blob, placement.X, 30.0 + float64(placement.Lane) * (height + gap), placement.Width, height)
             blob.Focusable = input.OnSelect != nil
             blob.OnClick = input.OnSelect == nil ? nil: () -> InvokeInputCallback(input.OnSelect, item.Id!!)
-            WidgetKeyBindings.BindOwnedActivation(blob)
-            blob.Accessibility = Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: EventName(item, theme.Locale),
-                Selected: selected
-            }
+            WidgetKeyBindings.BindActivation(blob)
+            let blobAccessibility = if let configured = blob.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            blobAccessibility.Role = AccessibilityRole.Button
+            blobAccessibility.Name = EventName(item, theme.Locale)
+            blobAccessibility.Selected = selected
+            blob.Accessibility = blobAccessibility
             canvas.Children.Add(blob)
         }
         if overflow.Count > 0 {
@@ -344,16 +349,16 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             Place(blob, left, 30.0 + float64(ends.Count) * (height + gap), right - left, height)
             blob.Focusable = input.OnOverflow != nil
             blob.OnClick = input.OnOverflow == nil ? nil: () -> InvokeInputCallback(input.OnOverflow, hidden)
-            WidgetKeyBindings.BindOwnedActivation(blob)
+            WidgetKeyBindings.BindActivation(blob)
             let names = List[string]()
             for item in hidden {
                 names.Add(EventName(item, theme.Locale))
             }
-            blob.Accessibility = Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: theme.Text("{0} overlapping events", hidden.Length),
-                Description: String.Join("; ", names)
-            }
+            let blobAccessibility = if let configured = blob.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            blobAccessibility.Role = AccessibilityRole.Button
+            blobAccessibility.Name = theme.Text("{0} overlapping events", hidden.Length)
+            blobAccessibility.Description = String.Join("; ", names)
+            blob.Accessibility = blobAccessibility
             canvas.Children.Add(blob)
         }
         if let time = input.CurrentTime {
@@ -381,7 +386,9 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                 marker.Left = X(time)
                 marker.Top = 0
                 marker.HitTestSelf = false
-                marker.Accessibility = Accessibility{Hidden: true}
+                let markerAccessibility = if let configured = marker.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                markerAccessibility.Hidden = true
+                marker.Accessibility = markerAccessibility
                 canvas.Children.Add(marker)
             }
         }
@@ -398,14 +405,17 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             FocusStyle: theme.FocusStyle,
             ScrollbarX: theme.Scrollbar,
         }
+        root.Children.Clear()
+        root.Children.Add(canvas)
         input.ConfigureRoot?.Invoke(input, root)
         root.Handle = viewport
         root.OverflowX = Overflow.Scroll
         root.OverflowY = Overflow.Hidden
         root.OnKeyDown = KeyDown
-        root.Accessibility = Accessibility{Role: AccessibilityRole.Group, Name: input.AccessibilityName!!}
-        root.Children.Clear()
-        root.Children.Add(canvas)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = input.AccessibilityName!!
+        root.Accessibility = rootAccessibility
         return root
     }
 

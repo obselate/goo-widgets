@@ -58,9 +58,11 @@ public data struct SplitPaneInput {
     var AccessibilityName string?
     /// Configures the fresh handle before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.Orientation, Accessibility.Range, Accessibility.Role, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnPointerCancel, OnPointerDown, OnPointerEnter, OnPointerLeave, OnPointerMove, OnPointerUp.
     var ConfigureHandle Action[SplitPaneInput, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle.
     var ConfigureRoot Action[SplitPaneInput, Container]?
 }
 
@@ -186,40 +188,40 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         divider.OnPointerCancel = Cancel
         divider.OnPointerEnter = (e PointerEvent) -> Hover(true)
         divider.OnPointerLeave = (e PointerEvent) -> Hover(false)
-        divider.KeyBindings = []KeyBinding{
+        WidgetKeyBindings.AppendBindings(divider, []KeyBinding{
             KeyBinding{Key: Key.Home, OnPress: () -> KeyAction(Key.Home)},
             KeyBinding{Key: Key.End, OnPress: () -> KeyAction(Key.End)},
             KeyBinding{Key: Key.Left, Repeat: true, OnPress: () -> KeyAction(Key.Left)},
             KeyBinding{Key: Key.Right, Repeat: true, OnPress: () -> KeyAction(Key.Right)},
             KeyBinding{Key: Key.Up, Repeat: true, OnPress: () -> KeyAction(Key.Up)},
             KeyBinding{Key: Key.Down, Repeat: true, OnPress: () -> KeyAction(Key.Down)},
-        }
-        divider.Accessibility = Accessibility{
-            Role: AccessibilityRole.Separator,
-            Name: input.AccessibilityName!!,
-            Orientation: horizontal ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal,
-            Range: AccessibilityValue{
+        })
+        let dividerAccessibility = if let configured = divider.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        dividerAccessibility.Role = AccessibilityRole.Separator
+        dividerAccessibility.Name = input.AccessibilityName!!
+        dividerAccessibility.Orientation = horizontal ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal
+        dividerAccessibility.Range = AccessibilityValue{
                 Minimum: 0,
                 Maximum: input.Unit == SplitUnit.Ratio ? 1.0: available,
                 Now: lastRequest,
                 Text: lastRequest.ToString("0.##", CultureInfo.InvariantCulture)
-            },
-            Actions: []AccessibilityAction{
+            }
+        dividerAccessibility.Actions = []AccessibilityAction{
                 AccessibilityAction.Increment,
                 AccessibilityAction.Decrement,
                 AccessibilityAction.SetValue
-            },
-            OnAction: AccessibilityAction,
-        }
+            }
+        dividerAccessibility.OnAction = AccessibilityAction
+        divider.Accessibility = dividerAccessibility
         var root = Container{Width: input.Width!!, Height: input.Height!!, MinWidth: 0, MinHeight: 0}
-        input.ConfigureRoot?.Invoke(input, root)
-        root.Handle = rootHandle
-        root.Direction = theme.Direction
-        root.FlexDirection = horizontal ? FlexDirection.Row: FlexDirection.Column
         root.Children.Clear()
         root.Children.Add(first)
         root.Children.Add(divider)
         root.Children.Add(second)
+        input.ConfigureRoot?.Invoke(input, root)
+        root.Handle = rootHandle
+        root.Direction = theme.Direction
+        root.FlexDirection = horizontal ? FlexDirection.Row: FlexDirection.Column
         return root
     }
 

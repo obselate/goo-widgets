@@ -80,6 +80,7 @@ public data struct NavigationRailInput {
     var Transform PanelTransform?
     /// Configures the fresh item before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, OnKeyDown, TabStop.
     var ConfigureItem Action[NavigationRailInput, NavigationItem, Button]?
     /// Creates the rail root from resolved values and item buttons.
     /// Hosts must not change state in this callback.
@@ -278,7 +279,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
-            WidgetKeyBindings.BindOwnedActivation(button)
+            WidgetKeyBindings.BindActivation(button)
             button.OnFocus = (e FocusEvent) -> {
                 focusedId = id
                 hasFocus = true
@@ -289,11 +290,11 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Rebuild()
             }
             button.OnKeyDown = (e KeyEvent) -> KeyDown(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Tab,
-                Name: item.AccessibilityName!!,
-                Selected: id == input.SelectedId,
-            }
+            let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            buttonAccessibility.Role = AccessibilityRole.Tab
+            buttonAccessibility.Name = item.AccessibilityName!!
+            buttonAccessibility.Selected = id == input.SelectedId
+            button.Accessibility = buttonAccessibility
             buttons[index] = button
         }
 
@@ -348,7 +349,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Text{Content: resolved.Expanded ? group.Label: collapsed ? "›": "⌄", FontSize: theme.CaptionFontSize},
             }
             theme.ApplyInteraction(heading, InteractionFamily.Row, interactive: input.OnGroupExpandedChange != nil)
-            WidgetKeyBindings.BindOwnedActivation(heading)
+            WidgetKeyBindings.BindActivation(heading)
             root.Children.Add(heading)
             if !collapsed {
                 for item in group.Items ?? []NavigationItem{} {

@@ -74,13 +74,13 @@ internal class ChartParts {
             blob.Key = id
             blob.Focusable = activate != nil
             blob.OnClick = activate == nil ? nil: () -> activate?.Invoke(id)
-            WidgetKeyBindings.BindOwnedActivation(blob)
+            WidgetKeyBindings.BindActivation(blob)
             blob.OnPointerEnter = hover == nil ? nil: (e PointerEvent) -> hover?.Invoke(id)
             blob.OnPointerLeave = hover == nil ? nil: (e PointerEvent) -> hover?.Invoke(nil)
-            blob.Accessibility = Accessibility{
-                Role: activate == nil ? AccessibilityRole.Image: AccessibilityRole.Button,
-                Name: segment.Summary!!
-            }
+            let blobAccessibility = if let configured = blob.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            blobAccessibility.Role = activate == nil ? AccessibilityRole.Image: AccessibilityRole.Button
+            blobAccessibility.Name = segment.Summary!!
+            blob.Accessibility = blobAccessibility
         }
 
         internal func Legend[T](owner T, segments[]ChartSegment, label Func[T, ChartSegment, Text, Text]?, theme Theme) Container {

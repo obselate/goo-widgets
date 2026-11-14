@@ -72,6 +72,7 @@ public data struct ActionButton {
     var CreateText Func[ActionButton, Text]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Busy, Accessibility.Checked, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
     var ConfigureRoot Action[ActionButton, Text, Button]?
 
     /// Builds a fresh Goo button tree after resolving props and factories.
@@ -220,12 +221,14 @@ public data struct ActionButton {
         root.Disabled = resolved.Disabled
         root.Focusable = !resolved.Disabled
         root.OnClick = resolved.Disabled ? nil: root.OnClick ?? resolved.OnClick
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Busy: Loading,
-            Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
-                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
-        }
-        WidgetKeyBindings.BindOwnedActivation(root)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Button
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Busy = Loading
+        rootAccessibility.Checked = Pressed == nil ? AccessibilityChecked.Unspecified:
+                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False
+        root.Accessibility = rootAccessibility
+        WidgetKeyBindings.BindActivation(root)
         return root
     }
 }

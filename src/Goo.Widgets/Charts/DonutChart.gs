@@ -27,15 +27,18 @@ public data struct DonutChart {
     var OnHover Action[string?]?
     /// Configures the fresh slice before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Focusable, Key, KeyBindings (required entries), OnClick, OnPointerEnter, OnPointerLeave.
     var ConfigureSlice Action[DonutChart, ChartSegment, Shape]?
     /// Receives the resolved chart, segment, and prepared legend label.
     /// Return a fresh element or the supplied default.
     var CreateLabel Func[DonutChart, ChartSegment, Text, Text]?
     /// Configures the fresh legend before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
     var ConfigureLegend Action[DonutChart, Container]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role.
     var ConfigureRoot Action[DonutChart, Container]?
 
     /// Builds fresh vector slices, including a two-arc full circle and an empty track.
@@ -116,12 +119,6 @@ public data struct DonutChart {
             )
         }
         var root = Container{Gap: theme.Spacing * 3.0, AlignItems: AlignItems.Center}
-        ConfigureRoot?.Invoke(resolved, root)
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: resolved.AccessibilityName!!,
-            Description: ChartParts.Summary(segments, theme)
-        }
         root.Children.Clear()
         root.Children.Add(plot)
         if ShowLegend {
@@ -130,6 +127,12 @@ public data struct DonutChart {
             legend.Key = "legend"
             root.Children.Add(legend)
         }
+        ConfigureRoot?.Invoke(resolved, root)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Description = ChartParts.Summary(segments, theme)
+        root.Accessibility = rootAccessibility
         return root
     }
 

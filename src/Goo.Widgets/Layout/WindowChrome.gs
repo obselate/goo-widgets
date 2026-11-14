@@ -76,9 +76,11 @@ public data struct WindowChrome {
     var CreateControlContent Func[WindowChrome, WindowChromeAction, Blob]?
     /// Configures the fresh control before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
     var ConfigureControl Action[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Focusable, OnClick, OnPointerDown.
     var ConfigureRoot Action[WindowChrome, []Blob, Container]?
 
     shared {
@@ -225,7 +227,6 @@ public data struct WindowChrome {
             Children: children,
         }
         let root = prepared
-        configureRoot?.Invoke(resolved, ordered, root)
         root.Children.Clear()
         if let controls = resolved.Host?.TitlebarControlsRect {
             root.PaddingStart = controls.X + controls.Width
@@ -233,6 +234,7 @@ public data struct WindowChrome {
         for child in ordered {
             root.Children.Add(child)
         }
+        configureRoot?.Invoke(resolved, ordered, root)
         root.Focusable = false
         root.OnClick = nil
         if let handler = blankPointer {
@@ -287,15 +289,18 @@ public data struct WindowChrome {
             ActiveStyle: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
         }
         let control = prepared
+        control.Children.Clear()
+        control.Children.Add(content)
         configureControl?.Invoke(resolved, command, content, action, control)
         theme.ApplyInteraction(control, InteractionFamily.Button)
         control.Disabled = action == nil
         control.Focusable = action != nil
-        control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(Name(command))}
+        let controlAccessibility = if let configured = control.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        controlAccessibility.Role = AccessibilityRole.Button
+        controlAccessibility.Name = theme.Text(Name(command))
+        control.Accessibility = controlAccessibility
         control.OnClick = action
-        WidgetKeyBindings.BindOwnedActivation(control)
-        control.Children.Clear()
-        control.Children.Add(content)
+        WidgetKeyBindings.BindActivation(control)
         return control
     }
 

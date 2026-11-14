@@ -130,7 +130,7 @@ public data struct GraphNodeCard {
             content,
         }
         theme.ApplyInteraction(card, InteractionFamily.Button, Selected)
-        WidgetKeyBindings.BindOwnedActivation(card)
+        WidgetKeyBindings.BindActivation(card)
         return card
     }
 }
