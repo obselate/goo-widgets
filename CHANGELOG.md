@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
+- Docs: correct the `RadioGroupInput.Orientation` default to vertical. Behavior is unchanged.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 - Fixed: Markdown renders named and numeric HTML character entities as decoded inline text.
 
