@@ -5,6 +5,9 @@ import Goo.Widgets.Gallery
 import Goo.Widgets.Inputs
 
 internal class FormFieldPage : GalleryPage {
+    private let displayName ElementHandle = ElementHandle()
+    private let email ElementHandle = ElementHandle()
+
     override func Title() string -> "Form field"
 
     override func Build() Blob -> FormSection{
@@ -15,33 +18,24 @@ internal class FormFieldPage : GalleryPage {
                 Label: "Display name",
                 Required: true,
                 Description: "Visible to your team.",
-                CreateContent: relations -> TextField{
+                LabelFor: displayName,
+                Content: TextField{
+                    Handle: displayName,
                     Value: "Alex",
                     AccessibilityName: "Display name",
                     Width: Percent(100),
-                    ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
-                        entry.Accessibility!!.Relationships = relations
-                        entry.Accessibility!!.Required = true
-                                            prepared.Width = Percent(100)
-                    prepared.Children.Clear()
-                    prepared.Children.Add(entry)
-},
                 }.Build(),
             },
             FormField{
                 Label: "Email",
                 Error: "Enter a valid email address.",
-                CreateContent: relations -> TextField{
+                LabelFor: email,
+                Content: TextField{
+                    Handle: email,
                     Value: "alex@",
                     AccessibilityName: "Email",
                     Invalid: true,
                     Width: Percent(100),
-                    ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
-                        entry.Accessibility!!.Relationships = relations
-                                            prepared.Width = Percent(100)
-                    prepared.Children.Clear()
-                    prepared.Children.Add(entry)
-},
                 }.Build(),
             },
             FormField{
