@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: keep DatePicker popups at least as wide as their fields after mounting and resizing.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
