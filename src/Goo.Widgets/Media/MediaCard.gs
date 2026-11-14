@@ -6,6 +6,7 @@ import System
 
 /// A generic actionable card with supplied thumbnail content and text metadata.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct MediaCard {
     /// Thumbnail content owned by this card tree.
     var Thumbnail Blob?
@@ -145,7 +146,13 @@ public data struct MediaCard {
             thumbnail,
             content,
         }
-        configureRoot?.Invoke(resolved, thumbnail, content, button)
+        if let configure = configureRoot {
+            let originalDisabled = button.Disabled
+            configure.Invoke(resolved, thumbnail, content, button)
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("MediaCard owns Disabled; set MediaCard.Disabled instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = Disabled
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick

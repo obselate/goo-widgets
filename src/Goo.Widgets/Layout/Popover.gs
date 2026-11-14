@@ -32,6 +32,7 @@ public enum PopoverDismissReason {
 
 /// Controlled popup state. Presentation uses the Window's automatic Portal overlay.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct PopoverInput {
     /// Controlled visibility. False hides the popup.
     var Open bool
@@ -226,7 +227,17 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             }
         panel.Children.Clear()
         panel.Children.Add(content)
-        current.ConfigurePanel?.Invoke(current, bounds, content, panel)
+        if let configure = current.ConfigurePanel {
+            let originalHandle = panel.Handle
+            let originalKey = panel.Key
+            configure.Invoke(current, bounds, content, panel)
+            if panel.Handle != originalHandle {
+                throw InvalidOperationException("Popover owns Handle; configure PopoverInput instead of changing it in ConfigurePanel")
+            }
+            if panel.Key != originalKey {
+                throw InvalidOperationException("Popover owns Key; configure PopoverInput instead of changing it in ConfigurePanel")
+            }
+        }
         panel.Key = "panel"
         panel.Handle = panelHandle
         panel.Position = PositionType.Relative
@@ -296,7 +307,41 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         for overlay in current.Overlays ?? []Blob{} {
             root.Children.Add(overlay)
         }
-        current.ConfigureRoot?.Invoke(current, backdrop, panel, root)
+        if let configure = current.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalHitTestSelf = root.HitTestSelf
+            let originalOnKeyDown = root.OnKeyDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(current, backdrop, panel, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Popover owns Accessibility.Name; set PopoverInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Popover owns Accessibility.Role; set PopoverInput.Role instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Popover owns Disabled; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Popover owns Focusable; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("Popover owns Handle; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.HitTestSelf != originalHitTestSelf {
+                throw InvalidOperationException("Popover owns HitTestSelf; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("Popover owns OnKeyDown; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("Popover owns TabStop; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+        }
         rootKeyHandler = root.OnKeyDown
         root.Handle = presented ? rootHandle: measurementRootHandle
         root.Visibility = presented ? Visibility.Visible: Visibility.Hidden

@@ -6,6 +6,7 @@ import System
 
 /// A small vector donut chart with optional activation and legend composition.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct DonutChart {
     /// Stable, labeled, nonnegative entries. Nil resolves to an empty series.
     var Series[]?ChartSeries
@@ -87,7 +88,37 @@ public data struct DonutChart {
                 TransitionProperties: theme.InteractionTransitions,
                 Cursor: OnClick == nil ? Cursor.Default: Cursor.Pointer
             }
-            ConfigureSlice?.Invoke(resolved, segment, shape)
+            if let configure = ConfigureSlice {
+                let originalAccessibilityName = (shape.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (shape.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalFocusable = shape.Focusable
+                let originalKey = shape.Key
+                let originalOnClick = shape.OnClick
+                let originalOnPointerEnter = shape.OnPointerEnter
+                let originalOnPointerLeave = shape.OnPointerLeave
+                configure.Invoke(resolved, segment, shape)
+                if (shape.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("DonutChart owns Accessibility.Name; set DonutChart.AccessibilityName instead of changing it in ConfigureSlice")
+                }
+                if (shape.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("DonutChart owns Accessibility.Role; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.Focusable != originalFocusable {
+                    throw InvalidOperationException("DonutChart owns Focusable; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.Key != originalKey {
+                    throw InvalidOperationException("DonutChart owns Key; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.OnClick != originalOnClick {
+                    throw InvalidOperationException("DonutChart owns OnClick; set DonutChart.OnClick instead of changing it in ConfigureSlice")
+                }
+                if shape.OnPointerEnter != originalOnPointerEnter {
+                    throw InvalidOperationException("DonutChart owns OnPointerEnter; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.OnPointerLeave != originalOnPointerLeave {
+                    throw InvalidOperationException("DonutChart owns OnPointerLeave; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+            }
             theme.ApplyInteraction(shape, InteractionFamily.Button)
             shape.Path = path
             shape.Width = size
@@ -123,11 +154,31 @@ public data struct DonutChart {
         root.Children.Add(plot)
         if ShowLegend {
             var legend = ChartParts.Legend(resolved, segments, CreateLabel, theme)
-            ConfigureLegend?.Invoke(resolved, legend)
+            if let configure = ConfigureLegend {
+                let originalKey = legend.Key
+                configure.Invoke(resolved, legend)
+                if legend.Key != originalKey {
+                    throw InvalidOperationException("DonutChart owns Key; configure DonutChart instead of changing it in ConfigureLegend")
+                }
+            }
             legend.Key = "legend"
             root.Children.Add(legend)
         }
-        ConfigureRoot?.Invoke(resolved, root)
+        if let configure = ConfigureRoot {
+            let originalAccessibilityDescription = (root.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(resolved, root)
+            if (root.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("DonutChart owns Accessibility.Description; configure DonutChart instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DonutChart owns Accessibility.Name; set DonutChart.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DonutChart owns Accessibility.Role; configure DonutChart instead of changing it in ConfigureRoot")
+            }
+        }
         let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
         rootAccessibility.Role = AccessibilityRole.Group
         rootAccessibility.Name = resolved.AccessibilityName!!

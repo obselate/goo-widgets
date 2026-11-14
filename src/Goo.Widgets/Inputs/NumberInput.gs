@@ -7,6 +7,7 @@ import System.Globalization
 
 /// Numeric field configuration. Text is committed on Enter or blur.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct NumberInputInput {
     /// Finite controlled numeric value, clamped to Minimum and Maximum for presentation.
     var Value float64
@@ -151,7 +152,65 @@ public open class NumberInput : Cell[NumberInputInput] {
             OnBlur: event -> Commit(),
             OnKeyDown: HandleKey
         }
-        input.ConfigureEntry?.Invoke(input, entry)
+        if let configure = input.ConfigureEntry {
+            let originalAccessibilityInvalid = entry.Accessibility?.Invalid
+            let originalAccessibilityName = (entry.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = entry.Accessibility?.OnAction
+            let originalAccessibilityReadOnly = entry.Accessibility?.ReadOnly
+            let originalAccessibilityRole = (entry.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityValue = (entry.Accessibility?.Value ?? "")
+            let originalControlled = entry.Controlled
+            let originalDisabled = entry.Disabled
+            let originalFocusable = entry.Focusable
+            let originalKey = entry.Key
+            let originalOnChange = entry.OnChange
+            let originalOnSubmit = entry.OnSubmit
+            let originalReadOnly = entry.ReadOnly
+            let originalValue = entry.Value
+            configure.Invoke(input, entry)
+            if entry.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("NumberInput owns Accessibility.Invalid; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if (entry.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("NumberInput owns Accessibility.Name; set NumberInputInput.AccessibilityName instead of changing it in ConfigureEntry")
+            }
+            if entry.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("NumberInput owns Accessibility.OnAction; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("NumberInput owns Accessibility.ReadOnly; set NumberInputInput.ReadOnly instead of changing it in ConfigureEntry")
+            }
+            if (entry.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("NumberInput owns Accessibility.Role; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if (entry.Accessibility?.Value ?? "") != originalAccessibilityValue {
+                throw InvalidOperationException("NumberInput owns Accessibility.Value; set NumberInputInput.Value instead of changing it in ConfigureEntry")
+            }
+            if entry.Controlled != originalControlled {
+                throw InvalidOperationException("NumberInput owns Controlled; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.Disabled != originalDisabled {
+                throw InvalidOperationException("NumberInput owns Disabled; set NumberInputInput.Disabled instead of changing it in ConfigureEntry")
+            }
+            if entry.Focusable != originalFocusable {
+                throw InvalidOperationException("NumberInput owns Focusable; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.Key != originalKey {
+                throw InvalidOperationException("NumberInput owns Key; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.OnChange != originalOnChange {
+                throw InvalidOperationException("NumberInput owns OnChange; set NumberInputInput.OnChange instead of changing it in ConfigureEntry")
+            }
+            if entry.OnSubmit != originalOnSubmit {
+                throw InvalidOperationException("NumberInput owns OnSubmit; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("NumberInput owns ReadOnly; set NumberInputInput.ReadOnly instead of changing it in ConfigureEntry")
+            }
+            if entry.Value != originalValue {
+                throw InvalidOperationException("NumberInput owns Value; set NumberInputInput.Value instead of changing it in ConfigureEntry")
+            }
+        }
         entry.Value = draft
         entry.Controlled = true
         entry.OnChange = Changed

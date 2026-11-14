@@ -9,6 +9,7 @@ import System.Collections.Generic
 
 /// Selectable code with host-supplied syntax styles and controlled folding.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct CodeBlockInput {
     /// Code displayed in the read-only editor. Nil uses an empty document.
     var Code string?
@@ -192,7 +193,33 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Multiline: true
             },
         }
-        input.ConfigureEditor?.Invoke(input, editor)
+        if let configure = input.ConfigureEditor {
+            let originalAccessibilityMultiline = editor.Accessibility?.Multiline
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(input, editor)
+            if editor.Accessibility?.Multiline != originalAccessibilityMultiline {
+                throw InvalidOperationException("CodeBlock owns Accessibility.Multiline; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("CodeBlock owns Accessibility.Name; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("CodeBlock owns Accessibility.Role; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("CodeBlock owns Controller; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("CodeBlock owns OnChange; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("CodeBlock owns ReadOnly; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+        }
         editor.Controller = controller!!
         editor.ReadOnly = true
         editor.OnChange = nil

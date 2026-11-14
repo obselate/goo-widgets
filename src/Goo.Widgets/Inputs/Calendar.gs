@@ -8,6 +8,7 @@ import System.Globalization
 
 /// Date and state passed to a calendar day factory.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct CalendarDay {
     /// Civil date represented by this day cell.
     var Date DateOnly
@@ -217,7 +218,21 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 TextAlign: TextAlign.Center
             }
             let label = prepared
-            current.ConfigureWeekday?.Invoke(current, weekday, label)
+            if let configure = current.ConfigureWeekday {
+                let originalAccessibilityName = (label.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (label.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalKey = label.Key
+                configure.Invoke(current, weekday, label)
+                if (label.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("Calendar owns Accessibility.Name; set CalendarInput.AccessibilityName instead of changing it in ConfigureWeekday")
+                }
+                if (label.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("Calendar owns Accessibility.Role; configure CalendarInput instead of changing it in ConfigureWeekday")
+                }
+                if label.Key != originalKey {
+                    throw InvalidOperationException("Calendar owns Key; configure CalendarInput instead of changing it in ConfigureWeekday")
+                }
+            }
             label.Key = "weekday-" + column.ToString()
             label.FlexGrow = 1.0
             label.FlexBasis = 0.0
@@ -293,7 +308,41 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         root.Children.Clear()
         root.Children.Add(heading)
         root.Children.Add(grid)
-        current.ConfigureRoot?.Invoke(current, root)
+        if let configure = current.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalOnFocus = root.OnFocus
+            let originalOnKeyDown = root.OnKeyDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(current, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Calendar owns Accessibility.Name; set CalendarInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Calendar owns Accessibility.Role; configure CalendarInput instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Calendar owns Disabled; set CalendarInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Calendar owns Focusable; configure CalendarInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("Calendar owns Handle; set CalendarInput.Handle instead of changing it in ConfigureRoot")
+            }
+            if root.OnFocus != originalOnFocus {
+                throw InvalidOperationException("Calendar owns OnFocus; configure CalendarInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("Calendar owns OnKeyDown; configure CalendarInput instead of changing it in ConfigureRoot")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("Calendar owns TabStop; configure CalendarInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Handle = current.Handle ?? rootHandle
         root.Direction = theme.Direction
         root.Focusable = !current.Disabled
@@ -371,7 +420,37 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 Color: theme.TextColor,
             }
         )
-        current.ConfigureNavigation?.Invoke(current, delta, button)
+        if let configure = current.ConfigureNavigation {
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalKey = button.Key
+            let originalOnClick = button.OnClick
+            let originalOnFocus = button.OnFocus
+            configure.Invoke(current, delta, button)
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Calendar owns Accessibility.Name; set CalendarInput.AccessibilityName instead of changing it in ConfigureNavigation")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Calendar owns Accessibility.Role; configure CalendarInput instead of changing it in ConfigureNavigation")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("Calendar owns Disabled; set CalendarInput.Disabled instead of changing it in ConfigureNavigation")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("Calendar owns Focusable; configure CalendarInput instead of changing it in ConfigureNavigation")
+            }
+            if button.Key != originalKey {
+                throw InvalidOperationException("Calendar owns Key; configure CalendarInput instead of changing it in ConfigureNavigation")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("Calendar owns OnClick; configure CalendarInput instead of changing it in ConfigureNavigation")
+            }
+            if button.OnFocus != originalOnFocus {
+                throw InvalidOperationException("Calendar owns OnFocus; configure CalendarInput instead of changing it in ConfigureNavigation")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = delta < 0 ? "previous": "next"
         button.Disabled = !CanMonth(delta)
@@ -420,7 +499,57 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 BasedOn: current.DayTextStyle
             }
         )
-        current.ConfigureDay?.Invoke(current, day, button)
+        if let configure = current.ConfigureDay {
+            let originalAccessibilityDescription = (button.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilitySelected = button.Accessibility?.Selected
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalHandle = button.Handle
+            let originalKey = button.Key
+            let originalOnBlur = button.OnBlur
+            let originalOnClick = button.OnClick
+            let originalOnFocus = button.OnFocus
+            let originalTabStop = button.TabStop
+            configure.Invoke(current, day, button)
+            if (button.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("Calendar owns Accessibility.Description; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Calendar owns Accessibility.Name; set CalendarInput.AccessibilityName instead of changing it in ConfigureDay")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Calendar owns Accessibility.Role; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("Calendar owns Accessibility.Selected; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("Calendar owns Disabled; set CalendarInput.Disabled instead of changing it in ConfigureDay")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("Calendar owns Focusable; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.Handle != originalHandle {
+                throw InvalidOperationException("Calendar owns Handle; set CalendarInput.Handle instead of changing it in ConfigureDay")
+            }
+            if button.Key != originalKey {
+                throw InvalidOperationException("Calendar owns Key; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.OnBlur != originalOnBlur {
+                throw InvalidOperationException("Calendar owns OnBlur; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("Calendar owns OnClick; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.OnFocus != originalOnFocus {
+                throw InvalidOperationException("Calendar owns OnFocus; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+            if button.TabStop != originalTabStop {
+                throw InvalidOperationException("Calendar owns TabStop; configure CalendarInput instead of changing it in ConfigureDay")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, day.Selected)
         button.Key = date.DayNumber.ToString()
         button.Handle = Handle(date)

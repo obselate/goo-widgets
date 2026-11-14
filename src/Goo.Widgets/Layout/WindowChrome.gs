@@ -20,6 +20,7 @@ public enum WindowChromeAction {
 
 /// A configurable drag region with optional standard window controls.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct WindowChrome {
     /// Window controlled by default actions. Callbacks can replace it. Native controls that overlap Host pad the chrome.
     var Host Window?
@@ -234,7 +235,21 @@ public data struct WindowChrome {
         for child in ordered {
             root.Children.Add(child)
         }
-        configureRoot?.Invoke(resolved, ordered, root)
+        if let configure = configureRoot {
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            let originalOnPointerDown = root.OnPointerDown
+            configure.Invoke(resolved, ordered, root)
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("WindowChrome owns Focusable; configure WindowChrome instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("WindowChrome owns OnClick; configure WindowChrome instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("WindowChrome owns OnPointerDown; configure WindowChrome instead of changing it in ConfigureRoot")
+            }
+        }
         root.Focusable = false
         root.OnClick = nil
         if let handler = blankPointer {
@@ -291,7 +306,29 @@ public data struct WindowChrome {
         let control = prepared
         control.Children.Clear()
         control.Children.Add(content)
-        configureControl?.Invoke(resolved, command, content, action, control)
+        if let configure = configureControl {
+            let originalAccessibilityName = (control.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (control.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = control.Disabled
+            let originalFocusable = control.Focusable
+            let originalOnClick = control.OnClick
+            configure.Invoke(resolved, command, content, action, control)
+            if (control.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("WindowChrome owns Accessibility.Name; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if (control.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("WindowChrome owns Accessibility.Role; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if control.Disabled != originalDisabled {
+                throw InvalidOperationException("WindowChrome owns Disabled; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if control.Focusable != originalFocusable {
+                throw InvalidOperationException("WindowChrome owns Focusable; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if control.OnClick != originalOnClick {
+                throw InvalidOperationException("WindowChrome owns OnClick; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+        }
         theme.ApplyInteraction(control, InteractionFamily.Button)
         control.Disabled = action == nil
         control.Focusable = action != nil

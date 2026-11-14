@@ -10,6 +10,7 @@ import System.Collections.Generic
 
 /// One stable selector option; custom content retains its accessible label.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct ComboBoxOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
@@ -315,10 +316,62 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Container{Key: "value", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
         var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, theme.MutedTextColor)
-        current.ConfigureArrow?.Invoke(current, arrow)
+        if let configure = current.ConfigureArrow {
+            let originalKey = arrow.Key
+            configure.Invoke(current, arrow)
+            if arrow.Key != originalKey {
+                throw InvalidOperationException("ComboBox owns Key; configure ComboBoxInput instead of changing it in ConfigureArrow")
+            }
+        }
         arrow.Key = "arrow"
         button.Children.Add(arrow)
-        current.ConfigureTrigger?.Invoke(current, button)
+        if let configure = current.ConfigureTrigger {
+            let originalAccessibilityExpanded = button.Accessibility?.Expanded
+            let originalAccessibilityHasPopup = button.Accessibility?.HasPopup
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityValue = (button.Accessibility?.Value ?? "")
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalHandle = button.Handle
+            let originalKey = button.Key
+            let originalOnClick = button.OnClick
+            let originalOnKeyDown = button.OnKeyDown
+            configure.Invoke(current, button)
+            if button.Accessibility?.Expanded != originalAccessibilityExpanded {
+                throw InvalidOperationException("ComboBox owns Accessibility.Expanded; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if button.Accessibility?.HasPopup != originalAccessibilityHasPopup {
+                throw InvalidOperationException("ComboBox owns Accessibility.HasPopup; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ComboBox owns Accessibility.Name; set ComboBoxInput.AccessibilityName instead of changing it in ConfigureTrigger")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ComboBox owns Accessibility.Role; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if (button.Accessibility?.Value ?? "") != originalAccessibilityValue {
+                throw InvalidOperationException("ComboBox owns Accessibility.Value; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("ComboBox owns Disabled; set ComboBoxInput.Disabled instead of changing it in ConfigureTrigger")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("ComboBox owns Focusable; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if button.Handle != originalHandle {
+                throw InvalidOperationException("ComboBox owns Handle; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if button.Key != originalKey {
+                throw InvalidOperationException("ComboBox owns Key; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("ComboBox owns OnClick; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+            if button.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("ComboBox owns OnKeyDown; configure ComboBoxInput instead of changing it in ConfigureTrigger")
+            }
+        }
         theme.ApplyInteraction(button, fluent ? InteractionFamily.Button: InteractionFamily.Field)
         button.Key = "trigger"
         button.Handle = trigger
@@ -400,7 +453,49 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
             }
-            current.ConfigureSearch?.Invoke(current, entry)
+            if let configure = current.ConfigureSearch {
+                let originalAccessibilityName = (entry.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (entry.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalControlled = entry.Controlled
+                let originalFocusable = entry.Focusable
+                let originalHandle = entry.Handle
+                let originalKey = entry.Key
+                let originalOnChange = entry.OnChange
+                let originalOnFocus = entry.OnFocus
+                let originalOnKeyDown = entry.OnKeyDown
+                let originalValue = entry.Value
+                configure.Invoke(current, entry)
+                if (entry.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("ComboBox owns Accessibility.Name; set ComboBoxInput.AccessibilityName instead of changing it in ConfigureSearch")
+                }
+                if (entry.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("ComboBox owns Accessibility.Role; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.Controlled != originalControlled {
+                    throw InvalidOperationException("ComboBox owns Controlled; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.Focusable != originalFocusable {
+                    throw InvalidOperationException("ComboBox owns Focusable; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.Handle != originalHandle {
+                    throw InvalidOperationException("ComboBox owns Handle; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.Key != originalKey {
+                    throw InvalidOperationException("ComboBox owns Key; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.OnChange != originalOnChange {
+                    throw InvalidOperationException("ComboBox owns OnChange; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("ComboBox owns OnFocus; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("ComboBox owns OnKeyDown; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+                if entry.Value != originalValue {
+                    throw InvalidOperationException("ComboBox owns Value; configure ComboBoxInput instead of changing it in ConfigureSearch")
+                }
+            }
             theme.ApplyInteraction(entry, InteractionFamily.Field)
             entry.FocusStyle!!.OutlineOffset = -theme.FocusRingWidth
             entry.Key = "search"
@@ -530,7 +625,53 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 FontWeight: theme.FontWeight,
             }
         )
-        row.Input.ConfigureRow?.Invoke(row.Input, item, result)
+        if let configure = row.Input.ConfigureRow {
+            let originalAccessibilityChecked = (result.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityName = (result.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = result.Accessibility?.OnAction
+            let originalAccessibilityRole = (result.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilitySelected = result.Accessibility?.Selected
+            let originalDisabled = result.Disabled
+            let originalFocusable = result.Focusable
+            let originalHandle = result.Handle
+            let originalKey = result.Key
+            let originalOnClick = result.OnClick
+            let originalOnPointerEnter = result.OnPointerEnter
+            configure.Invoke(row.Input, item, result)
+            if (result.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("ComboBox owns Accessibility.Checked; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if (result.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ComboBox owns Accessibility.Name; set ComboBoxInput.AccessibilityName instead of changing it in ConfigureRow")
+            }
+            if result.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("ComboBox owns Accessibility.OnAction; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if (result.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ComboBox owns Accessibility.Role; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if result.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("ComboBox owns Accessibility.Selected; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if result.Disabled != originalDisabled {
+                throw InvalidOperationException("ComboBox owns Disabled; set ComboBoxInput.Disabled instead of changing it in ConfigureRow")
+            }
+            if result.Focusable != originalFocusable {
+                throw InvalidOperationException("ComboBox owns Focusable; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if result.Handle != originalHandle {
+                throw InvalidOperationException("ComboBox owns Handle; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if result.Key != originalKey {
+                throw InvalidOperationException("ComboBox owns Key; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if result.OnClick != originalOnClick {
+                throw InvalidOperationException("ComboBox owns OnClick; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+            if result.OnPointerEnter != originalOnPointerEnter {
+                throw InvalidOperationException("ComboBox owns OnPointerEnter; configure ComboBoxInput instead of changing it in ConfigureRow")
+            }
+        }
         theme.ApplyInteraction(result, InteractionFamily.Row, row.Selected)
         result.Key = id
         result.Handle = Handle(id)
@@ -573,7 +714,17 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         if current.MatchTriggerWidth != false && trigger.IsMounted {
             prepared.MinWidth = trigger.BorderBox.Width
         }
-        current.ConfigurePopup?.Invoke(current, prepared)
+        if let configure = current.ConfigurePopup {
+            let originalHandle = prepared.Handle
+            let originalKey = prepared.Key
+            configure.Invoke(current, prepared)
+            if prepared.Handle != originalHandle {
+                throw InvalidOperationException("ComboBox owns Handle; configure ComboBoxInput instead of changing it in ConfigurePopup")
+            }
+            if prepared.Key != originalKey {
+                throw InvalidOperationException("ComboBox owns Key; configure ComboBoxInput instead of changing it in ConfigurePopup")
+            }
+        }
     }
 
     private func Handle(id string) ElementHandle {

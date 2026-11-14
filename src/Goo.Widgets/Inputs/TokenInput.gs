@@ -8,6 +8,7 @@ import System.Collections.Generic
 
 /// Controlled token values. Invalid values remain visible and removable.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TokenInputInput {
     /// Controlled token strings in display order. Nil supplies an empty array.
     var Value[]?string
@@ -56,7 +57,13 @@ public open class TokenInput : Cell[TokenInputInput] {
             selected = -1
         }
         var root = Container{Width: input.Width ?? defaultWidth, MinWidth: 0, Gap: theme.ControlGap / 2,}
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalKey = root.Key
+            configure.Invoke(input, root)
+            if root.Key != originalKey {
+                throw InvalidOperationException("TokenInput owns Key; configure TokenInputInput instead of changing it in ConfigureRoot")
+            }
+        }
         let frame = Container{
             Key: "frame",
             MinWidth: 0,
@@ -115,7 +122,21 @@ public open class TokenInput : Cell[TokenInputInput] {
                     entry.FocusStyle = theme.FocusStyle
                     entry.OnChange = props.OnChange
                     entry.OnSubmit = props.OnSubmit
-                    input.ConfigureEntry?.Invoke(input, entry)
+                    if let configure = input.ConfigureEntry {
+                        let originalHandle = entry.Handle
+                        let originalOnKeyDown = entry.OnKeyDown
+                        let originalReadOnly = entry.ReadOnly
+                        configure.Invoke(input, entry)
+                        if entry.Handle != originalHandle {
+                            throw InvalidOperationException("TokenInput owns Handle; configure TokenInputInput instead of changing it in ConfigureEntry")
+                        }
+                        if entry.OnKeyDown != originalOnKeyDown {
+                            throw InvalidOperationException("TokenInput owns OnKeyDown; configure TokenInputInput instead of changing it in ConfigureEntry")
+                        }
+                        if entry.ReadOnly != originalReadOnly {
+                            throw InvalidOperationException("TokenInput owns ReadOnly; set TokenInputInput.ReadOnly instead of changing it in ConfigureEntry")
+                        }
+                    }
                     entry.Handle = editor
                     entry.ReadOnly = input.ReadOnly
                     entry.OnKeyDown = KeyDown

@@ -1,11 +1,14 @@
 package Goo.Widgets.Data
 
+import System
+
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A selectable tag/filter chip with leading element support and customizable primitive factories.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct Chip {
     /// Text label displayed by the chip. Nil resolves to an empty string.
     var Label string?
@@ -177,9 +180,33 @@ public data struct Chip {
                 root.Children.Add(Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
-        configureRoot?.Invoke(resolved, originalLeading, text, root)
-
-
+        if let configure = configureRoot {
+            let originalAccessibilityChecked = (root.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityInvalid = root.Accessibility?.Invalid
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            configure.Invoke(resolved, originalLeading, text, root)
+            if (root.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("Chip owns Accessibility.Checked; configure Chip instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("Chip owns Accessibility.Invalid; set Chip.Invalid instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Chip owns Accessibility.Name; set Chip.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Chip owns Accessibility.Role; configure Chip instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Chip owns Disabled; set Chip.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Chip owns Focusable; configure Chip instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, Selected)
         root.Disabled = Disabled
         root.Focusable = !Disabled

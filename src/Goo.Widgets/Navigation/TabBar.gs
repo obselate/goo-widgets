@@ -28,6 +28,7 @@ public enum TabPlacement {
 
 /// Controlled peer navigation. The host owns panel content and lifetime.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TabBarInput {
     /// Ordered entries with unique, nonempty IDs. Nil resolves to an empty list.
     var Items[]?NavigationItem
@@ -167,7 +168,57 @@ public open class TabBar : Cell[TabBarInput] {
                     FontWeight: theme.LabelFontWeight,
                 },
             }
-            input.ConfigureItem?.Invoke(input, item, button)
+            if let configure = input.ConfigureItem {
+                let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalAccessibilitySelected = button.Accessibility?.Selected
+                let originalDisabled = button.Disabled
+                let originalFocusable = button.Focusable
+                let originalHandle = button.Handle
+                let originalKey = button.Key
+                let originalOnBlur = button.OnBlur
+                let originalOnClick = button.OnClick
+                let originalOnFocus = button.OnFocus
+                let originalOnKeyDown = button.OnKeyDown
+                let originalTabStop = button.TabStop
+                configure.Invoke(input, item, button)
+                if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("TabBar owns Accessibility.Name; set TabBarInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("TabBar owns Accessibility.Role; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Accessibility?.Selected != originalAccessibilitySelected {
+                    throw InvalidOperationException("TabBar owns Accessibility.Selected; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Disabled != originalDisabled {
+                    throw InvalidOperationException("TabBar owns Disabled; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Focusable != originalFocusable {
+                    throw InvalidOperationException("TabBar owns Focusable; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Handle != originalHandle {
+                    throw InvalidOperationException("TabBar owns Handle; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Key != originalKey {
+                    throw InvalidOperationException("TabBar owns Key; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnBlur != originalOnBlur {
+                    throw InvalidOperationException("TabBar owns OnBlur; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnClick != originalOnClick {
+                    throw InvalidOperationException("TabBar owns OnClick; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("TabBar owns OnFocus; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("TabBar owns OnKeyDown; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.TabStop != originalTabStop {
+                    throw InvalidOperationException("TabBar owns TabStop; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+            }
             theme.ApplyInteraction(button, InteractionFamily.Tab, active)
             button.Key = id
             button.Handle = handles[id]
@@ -295,7 +346,25 @@ public open class TabBar : Cell[TabBarInput] {
         for button in buttons {
             root.Children.Add(button)
         }
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalLayout = root.Layout
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TabBar owns Accessibility.Name; set TabBarInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("TabBar owns Accessibility.Orientation; configure TabBarInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TabBar owns Accessibility.Role; configure TabBarInput instead of changing it in ConfigureRoot")
+            }
+            if root.Layout != originalLayout {
+                throw InvalidOperationException("TabBar owns Layout; configure TabBarInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Direction = theme.Direction
         root.FlexDirection = input.Vertical ? FlexDirection.Column: FlexDirection.Row
         root.OverflowX = input.Vertical || input.OverflowMenu ? Overflow.Hidden: Overflow.Scroll

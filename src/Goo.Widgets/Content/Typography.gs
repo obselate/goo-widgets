@@ -35,6 +35,7 @@ public enum TextVariant {
 
 /// Theme-styled text with optional heading semantics.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct Typography {
     /// Text to display. Nil uses an empty string.
     var Content string?
@@ -92,7 +93,21 @@ public data struct Typography {
             TextTransform: Variant == TextVariant.Overline ? TextTransform.Uppercase: TextTransform.None,
             StyleRanges: StyleRanges ?? []TextStyleRange{},
         }
-        ConfigureText?.Invoke(this, text)
+        if let configure = ConfigureText {
+            let originalAccessibilityLevel = text.Accessibility?.Level
+            let originalAccessibilityName = (text.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (text.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(this, text)
+            if text.Accessibility?.Level != originalAccessibilityLevel {
+                throw InvalidOperationException("Typography owns Accessibility.Level; configure Typography instead of changing it in ConfigureText")
+            }
+            if (text.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Typography owns Accessibility.Name; configure Typography instead of changing it in ConfigureText")
+            }
+            if (text.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Typography owns Accessibility.Role; configure Typography instead of changing it in ConfigureText")
+            }
+        }
         let textAccessibility = if let configured = text.Accessibility { Accessibility{...configured} } else { Accessibility{} }
         textAccessibility.Role = level > 0 ? AccessibilityRole.Heading: AccessibilityRole.Text
         textAccessibility.Name = Content ?? ""

@@ -6,6 +6,7 @@ import System
 
 /// Controlled multiline field values, presentation, and optional external editor ownership.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TextAreaInput {
     /// Controlled string. Nil preserves an external controller's document; an owned document starts empty.
     var Value string?
@@ -191,7 +192,45 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             },
         }
         let requiredBindings = input.ConfigureEditor == nil ? nil : editor.KeyBindings
-        input.ConfigureEditor?.Invoke(input, editor)
+        if let configure = input.ConfigureEditor {
+            let originalAccessibilityInvalid = editor.Accessibility?.Invalid
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalDisabled = editor.Disabled
+            let originalFocusable = editor.Focusable
+            let originalKey = editor.Key
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(input, editor)
+            if editor.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("TextArea owns Accessibility.Invalid; set TextAreaInput.Invalid instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TextArea owns Accessibility.Name; set TextAreaInput.AccessibilityName instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TextArea owns Accessibility.Role; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("TextArea owns Controller; set TextAreaInput.Controller instead of changing it in ConfigureEditor")
+            }
+            if editor.Disabled != originalDisabled {
+                throw InvalidOperationException("TextArea owns Disabled; set TextAreaInput.Disabled instead of changing it in ConfigureEditor")
+            }
+            if editor.Focusable != originalFocusable {
+                throw InvalidOperationException("TextArea owns Focusable; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Key != originalKey {
+                throw InvalidOperationException("TextArea owns Key; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("TextArea owns OnChange; set TextAreaInput.OnChange instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("TextArea owns ReadOnly; set TextAreaInput.ReadOnly instead of changing it in ConfigureEditor")
+            }
+        }
         if requiredBindings != nil { WidgetKeyBindings.AppendBindings(editor, requiredBindings) }
         if invalid {
             editor.HoverStyle = Style{BasedOn: editor.HoverStyle, BorderColor: input.InvalidColor!!}

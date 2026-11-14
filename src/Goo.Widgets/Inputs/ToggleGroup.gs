@@ -17,6 +17,7 @@ public enum ToggleGroupVariant {
 
 /// An identified toggle choice.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct ToggleOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -149,7 +150,57 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                     FlexShrink: 1,
                 }
             )
-            input.ConfigureItem?.Invoke(input, item, button)
+            if let configure = input.ConfigureItem {
+                let originalAccessibilityChecked = (button.Accessibility?.Checked ?? AccessibilityChecked(0))
+                let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalDisabled = button.Disabled
+                let originalFocusable = button.Focusable
+                let originalHandle = button.Handle
+                let originalKey = button.Key
+                let originalOnBlur = button.OnBlur
+                let originalOnClick = button.OnClick
+                let originalOnFocus = button.OnFocus
+                let originalOnKeyDown = button.OnKeyDown
+                let originalTabStop = button.TabStop
+                configure.Invoke(input, item, button)
+                if (button.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                    throw InvalidOperationException("ToggleGroup owns Accessibility.Checked; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("ToggleGroup owns Accessibility.Name; set ToggleGroupInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("ToggleGroup owns Accessibility.Role; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.Disabled != originalDisabled {
+                    throw InvalidOperationException("ToggleGroup owns Disabled; set ToggleGroupInput.Disabled instead of changing it in ConfigureItem")
+                }
+                if button.Focusable != originalFocusable {
+                    throw InvalidOperationException("ToggleGroup owns Focusable; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.Handle != originalHandle {
+                    throw InvalidOperationException("ToggleGroup owns Handle; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.Key != originalKey {
+                    throw InvalidOperationException("ToggleGroup owns Key; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnBlur != originalOnBlur {
+                    throw InvalidOperationException("ToggleGroup owns OnBlur; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnClick != originalOnClick {
+                    throw InvalidOperationException("ToggleGroup owns OnClick; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("ToggleGroup owns OnFocus; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("ToggleGroup owns OnKeyDown; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.TabStop != originalTabStop {
+                    throw InvalidOperationException("ToggleGroup owns TabStop; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+            }
             theme.ApplyInteraction(button, InteractionFamily.Toggle, active)
             button.Key = id
             button.Handle = handles[id]
@@ -175,7 +226,21 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)
         }
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ToggleGroup owns Accessibility.Name; set ToggleGroupInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("ToggleGroup owns Accessibility.Orientation; set ToggleGroupInput.Orientation instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ToggleGroup owns Accessibility.Role; configure ToggleGroupInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Direction = theme.Direction
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
         let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }

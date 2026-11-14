@@ -6,6 +6,7 @@ import System
 
 /// An accessible icon-only button that accepts any Goo blob as its icon.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct IconButton {
     /// Visual content shown inside the button.
     var Icon Blob?
@@ -87,7 +88,29 @@ public data struct IconButton {
             BasedOn: resolved.RootStyle,
             icon,
         }
-        configureRoot?.Invoke(resolved, icon, button)
+        if let configure = configureRoot {
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilitySelected = button.Accessibility?.Selected
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            configure.Invoke(resolved, icon, button)
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("IconButton owns Accessibility.Name; set IconButton.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("IconButton owns Accessibility.Role; configure IconButton instead of changing it in ConfigureRoot")
+            }
+            if button.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("IconButton owns Accessibility.Selected; configure IconButton instead of changing it in ConfigureRoot")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("IconButton owns Disabled; set IconButton.Disabled instead of changing it in ConfigureRoot")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("IconButton owns Focusable; configure IconButton instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button, Active)
         button.Disabled = Disabled
         button.Focusable = !Disabled

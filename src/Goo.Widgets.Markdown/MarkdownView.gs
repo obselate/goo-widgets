@@ -307,7 +307,17 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 line.Children.Add(box)
             }
             var rowContent Blob = line
-            current.ConfigureBlock?.Invoke(row.Block, rowContent)
+            if let configure = current.ConfigureBlock {
+                let originalAccessibilityRole = (rowContent.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalKey = rowContent.Key
+                configure.Invoke(row.Block, rowContent)
+                if (rowContent.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("MarkdownView owns Accessibility.Role; configure MarkdownViewInput instead of changing it in ConfigureBlock")
+                }
+                if rowContent.Key != originalKey {
+                    throw InvalidOperationException("MarkdownView owns Key; configure MarkdownViewInput instead of changing it in ConfigureBlock")
+                }
+            }
             rowContent.Key = row.Block.Id
             let rowContentAccessibility = if let configured = rowContent.Accessibility { Accessibility{...configured} } else { Accessibility{} }
             rowContentAccessibility.Role = AccessibilityRole.Row

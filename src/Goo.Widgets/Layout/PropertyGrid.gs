@@ -17,6 +17,7 @@ public enum PropertyGridLayout {
 
 /// One controlled property editor and its reset action.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct PropertyGridItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -143,7 +144,13 @@ public data struct PropertyGrid {
                     if (row.Section ?? "") == section && Matches(row, query) {
                         let content = BuildRow(row)
                         let result = content
-                        ConfigureRow?.Invoke(this, row, result)
+                        if let configure = ConfigureRow {
+                            let originalKey = result.Key
+                            configure.Invoke(this, row, result)
+                            if result.Key != originalKey {
+                                throw InvalidOperationException("PropertyGrid owns Key; set PropertyGrid.Key instead of changing it in ConfigureRow")
+                            }
+                        }
                         result.Key = "row:" + row.Id
                         group.Children.Add(result)
                     }

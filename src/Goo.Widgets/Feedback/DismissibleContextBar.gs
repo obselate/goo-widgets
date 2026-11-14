@@ -1,10 +1,13 @@
 package Goo.Widgets.Feedback
 
+import System
+
 import Goo
 import Goo.Widgets
 
 /// A horizontal context bar with caller content, an integrated dismiss button, and customizable factories.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct DismissibleContextBar {
     /// Hosted content element placed before the dismiss action.
     var Content Blob?
@@ -166,7 +169,13 @@ public data struct DismissibleContextBar {
                 label,
             }
         }
-        configureDismiss?.Invoke(resolved, button!!)
+        if let configure = configureDismiss {
+            let originalDisabled = button!!.Disabled
+            configure.Invoke(resolved, button!!)
+            if button!!.Disabled != originalDisabled {
+                throw InvalidOperationException("DismissibleContextBar owns Disabled; set DismissibleContextBar.Disabled instead of changing it in ConfigureDismiss")
+            }
+        }
         theme.ApplyInteraction(button!!, InteractionFamily.Button)
         button!!.Disabled = Disabled
         WidgetKeyBindings.BindActivation(button!!)

@@ -6,6 +6,7 @@ import System
 
 /// A semantic single-line text field with label, error, and primitive factories.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TextField {
     /// Optional label.
     var Label string?
@@ -229,7 +230,61 @@ public data struct TextField {
                 entry.FontFamily = resolved.FontFamily!!
             }
         }
-        configureEntry?.Invoke(resolved, entry!!)
+        if let configure = configureEntry {
+            let originalAccessibilityInvalid = entry!!.Accessibility?.Invalid
+            let originalAccessibilityName = (entry!!.Accessibility?.Name ?? "")
+            let originalAccessibilityReadOnly = entry!!.Accessibility?.ReadOnly
+            let originalAccessibilityRole = (entry!!.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalControlled = entry!!.Controlled
+            let originalDisabled = entry!!.Disabled
+            let originalFocusable = entry!!.Focusable
+            let originalKey = entry!!.Key
+            let originalOnChange = entry!!.OnChange
+            let originalOnSubmit = entry!!.OnSubmit
+            let originalPassword = entry!!.Password
+            let originalReadOnly = entry!!.ReadOnly
+            let originalValue = entry!!.Value
+            configure.Invoke(resolved, entry!!)
+            if entry!!.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("TextField owns Accessibility.Invalid; set TextField.Invalid instead of changing it in ConfigureEntry")
+            }
+            if (entry!!.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TextField owns Accessibility.Name; set TextField.AccessibilityName instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("TextField owns Accessibility.ReadOnly; set TextField.ReadOnly instead of changing it in ConfigureEntry")
+            }
+            if (entry!!.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TextField owns Accessibility.Role; configure TextField instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Controlled != originalControlled {
+                throw InvalidOperationException("TextField owns Controlled; set TextField.Controlled instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Disabled != originalDisabled {
+                throw InvalidOperationException("TextField owns Disabled; set TextField.Disabled instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Focusable != originalFocusable {
+                throw InvalidOperationException("TextField owns Focusable; configure TextField instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Key != originalKey {
+                throw InvalidOperationException("TextField owns Key; configure TextField instead of changing it in ConfigureEntry")
+            }
+            if entry!!.OnChange != originalOnChange {
+                throw InvalidOperationException("TextField owns OnChange; set TextField.OnChange instead of changing it in ConfigureEntry")
+            }
+            if entry!!.OnSubmit != originalOnSubmit {
+                throw InvalidOperationException("TextField owns OnSubmit; set TextField.OnSubmit instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Password != originalPassword {
+                throw InvalidOperationException("TextField owns Password; set TextField.Password instead of changing it in ConfigureEntry")
+            }
+            if entry!!.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("TextField owns ReadOnly; set TextField.ReadOnly instead of changing it in ConfigureEntry")
+            }
+            if entry!!.Value != originalValue {
+                throw InvalidOperationException("TextField owns Value; set TextField.Value instead of changing it in ConfigureEntry")
+            }
+        }
         if resolved.Invalid {
             entry!!.HoverStyle = Style{BasedOn: entry!!.HoverStyle, BorderColor: resolved.InvalidColor!!}
             entry!!.ActiveStyle = Style{BasedOn: entry!!.ActiveStyle, BorderColor: resolved.InvalidColor!!}

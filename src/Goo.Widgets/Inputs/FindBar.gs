@@ -7,6 +7,7 @@ import System
 
 /// Host-owned search options. Matching stays with the host document.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct FindOptions {
     /// Requests case-sensitive matching in the host search operation.
     var MatchCase bool

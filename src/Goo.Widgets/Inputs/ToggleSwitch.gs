@@ -1,11 +1,14 @@
 package Goo.Widgets.Inputs
 
+import System
+
 import Goo
 import Goo.Widgets
 
 /// A controlled switch composed from a Goo button track and thumb.
 /// Factories receive resolved props and may replace the final Goo primitives.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct ToggleSwitch {
     /// Whether the track displays its on state. Build does not invert this value.
     var Value bool
@@ -158,7 +161,33 @@ public data struct ToggleSwitch {
                 thumb,
             },
         }
-        configureRoot?.Invoke(resolved, thumb, button)
+        if let configure = configureRoot {
+            let originalAccessibilityChecked = (button.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalOnClick = button.OnClick
+            configure.Invoke(resolved, thumb, button)
+            if (button.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("ToggleSwitch owns Accessibility.Checked; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ToggleSwitch owns Accessibility.Name; set ToggleSwitch.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ToggleSwitch owns Accessibility.Role; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("ToggleSwitch owns Disabled; set ToggleSwitch.Disabled instead of changing it in ConfigureRoot")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("ToggleSwitch owns Focusable; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("ToggleSwitch owns OnClick; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, Value)
         button.Disabled = Disabled
         button.Focusable = !Disabled

@@ -7,6 +7,7 @@ import System
 
 /// A controlled collapsible section. Collapsed content remains mounted but is hidden from layout and input.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct Disclosure {
     /// Header label when Header is nil.
     var Label string?
@@ -160,7 +161,13 @@ public data struct Disclosure {
             indicator,
             heading,
         }
-        configureHeader?.Invoke(resolved, header)
+        if let configure = configureHeader {
+            let originalDisabled = header.Disabled
+            configure.Invoke(resolved, header)
+            if header.Disabled != originalDisabled {
+                throw InvalidOperationException("Disclosure owns Disabled; set Disclosure.Disabled instead of changing it in ConfigureHeader")
+            }
+        }
         theme.ApplyInteraction(header, InteractionFamily.Row)
         header.Disabled = Disabled
         WidgetKeyBindings.BindActivation(header)

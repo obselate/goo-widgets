@@ -6,6 +6,7 @@ import System
 
 /// A controlled radio choice. RadioGroup owns selection and navigation for grouped choices.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct RadioButton {
     /// Controlled checked value. False means unchecked.
     var Value bool
@@ -103,7 +104,41 @@ public data struct RadioButton {
             button.PaddingStart = theme.Spacing * 2.0
             button.PaddingEnd = theme.Spacing * 2.0
         }
-        ConfigureRoot?.Invoke(this, button)
+        if let configure = ConfigureRoot {
+            let originalAccessibilityChecked = (button.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityDescription = (button.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalOnClick = button.OnClick
+            let originalTabStop = button.TabStop
+            configure.Invoke(this, button)
+            if (button.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("RadioButton owns Accessibility.Checked; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("RadioButton owns Accessibility.Description; set RadioButton.Description instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("RadioButton owns Accessibility.Name; set RadioButton.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("RadioButton owns Accessibility.Role; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("RadioButton owns Disabled; set RadioButton.Disabled instead of changing it in ConfigureRoot")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("RadioButton owns Focusable; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("RadioButton owns OnClick; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if button.TabStop != originalTabStop {
+                throw InvalidOperationException("RadioButton owns TabStop; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && Card)
         if !Card && ConfigureRoot == nil {
             button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineOffset: -theme.FocusRingWidth}

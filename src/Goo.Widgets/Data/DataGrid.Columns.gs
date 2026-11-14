@@ -387,7 +387,45 @@ public open partial class DataGrid {
                         FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                         BasedOn: snapshot.ResizeHandleStyle
                     }
-                    snapshot.ConfigureResizeHandle?.Invoke(snapshot, column, handle)
+                    if let configure = snapshot.ConfigureResizeHandle {
+                        let originalAccessibilityName = (handle.Accessibility?.Name ?? "")
+                        let originalAccessibilityOnAction = handle.Accessibility?.OnAction
+                        let originalAccessibilityOrientation = (handle.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+                        let originalAccessibilityRole = (handle.Accessibility?.Role ?? AccessibilityRole(0))
+                        let originalFocusable = handle.Focusable
+                        let originalHandle = handle.Handle
+                        let originalKey = handle.Key
+                        let originalOnKeyDown = handle.OnKeyDown
+                        let originalTabStop = handle.TabStop
+                        configure.Invoke(snapshot, column, handle)
+                        if (handle.Accessibility?.Name ?? "") != originalAccessibilityName {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Name; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Accessibility?.OnAction != originalAccessibilityOnAction {
+                            throw InvalidOperationException("DataGrid owns Accessibility.OnAction; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if (handle.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Orientation; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if (handle.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Role; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Focusable != originalFocusable {
+                            throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Handle != originalHandle {
+                            throw InvalidOperationException("DataGrid owns Handle; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Key != originalKey {
+                            throw InvalidOperationException("DataGrid owns Key; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.OnKeyDown != originalOnKeyDown {
+                            throw InvalidOperationException("DataGrid owns OnKeyDown; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.TabStop != originalTabStop {
+                            throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                    }
                     handle.Key = "resize"
                     handle.Handle = Handle(resizeHandles, id)
                     handle.Position = PositionType.Absolute

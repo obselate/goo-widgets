@@ -1,5 +1,7 @@
 package Goo.Widgets.Layout
 
+import System
+
 import Goo
 import Goo.Widgets
 
@@ -29,6 +31,7 @@ public enum DialogDismissPolicy {
 
 /// A composable in-parent modal overlay with host-owned close, cancel, and confirm actions.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct ModalDialog {
     /// Whether the overlay is rendered.
     var Open bool
@@ -196,7 +199,17 @@ public data struct ModalDialog {
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: cancelText},
                     cancelContent,
                 }
-            configureCancel?.Invoke(resolved, cancelContent, cancel)
+            if let configure = configureCancel {
+                let originalAutoFocus = cancel.AutoFocus
+                let originalOnClick = cancel.OnClick
+                configure.Invoke(resolved, cancelContent, cancel)
+                if cancel.AutoFocus != originalAutoFocus {
+                    throw InvalidOperationException("ModalDialog owns AutoFocus; configure ModalDialog instead of changing it in ConfigureCancel")
+                }
+                if cancel.OnClick != originalOnClick {
+                    throw InvalidOperationException("ModalDialog owns OnClick; configure ModalDialog instead of changing it in ConfigureCancel")
+                }
+            }
             let confirm = Button{
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
@@ -219,8 +232,17 @@ public data struct ModalDialog {
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
                     confirmContent,
                 }
-            configureConfirm?.Invoke(resolved, confirmContent, confirm)
-
+            if let configure = configureConfirm {
+                let originalDisabled = confirm.Disabled
+                let originalOnClick = confirm.OnClick
+                configure.Invoke(resolved, confirmContent, confirm)
+                if confirm.Disabled != originalDisabled {
+                    throw InvalidOperationException("ModalDialog owns Disabled; configure ModalDialog instead of changing it in ConfigureConfirm")
+                }
+                if confirm.OnClick != originalOnClick {
+                    throw InvalidOperationException("ModalDialog owns OnClick; configure ModalDialog instead of changing it in ConfigureConfirm")
+                }
+            }
             theme.ApplyInteraction(cancel, InteractionFamily.Button)
             theme.ApplyInteraction(confirm, InteractionFamily.Button)
             cancel.OnClick = resolved.OnCancel
@@ -298,7 +320,41 @@ public data struct ModalDialog {
                 backdrop,
                 dialog,
             }
-        configureRoot?.Invoke(resolved, backdrop, dialog, root)
+        if let configure = configureRoot {
+            let originalAccessibilityModal = root.Accessibility?.Modal
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalOnKeyDown = root.OnKeyDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(resolved, backdrop, dialog, root)
+            if root.Accessibility?.Modal != originalAccessibilityModal {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Modal; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Name; set ModalDialog.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Role; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ModalDialog owns Disabled; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ModalDialog owns Focusable; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("ModalDialog owns Handle; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("ModalDialog owns OnKeyDown; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("ModalDialog owns TabStop; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+        }
         if resolved.KeyBindings != nil {
             WidgetKeyBindings.AppendBindings(root, resolved.KeyBindings!!)
         }

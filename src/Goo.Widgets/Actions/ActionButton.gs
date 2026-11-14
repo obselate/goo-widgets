@@ -1,11 +1,14 @@
 package Goo.Widgets.Actions
 
+import System
+
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Feedback
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct ActionButton {
     /// Visible button text and the default accessible name. Nil resolves to an empty string.
     var Content string?
@@ -201,7 +204,37 @@ public data struct ActionButton {
                 root.Children.Add(indicator)
             }
         }
-        configureRoot?.Invoke(resolved, text!!, root)
+        if let configure = configureRoot {
+            let originalAccessibilityBusy = root.Accessibility?.Busy
+            let originalAccessibilityChecked = (root.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            configure.Invoke(resolved, text!!, root)
+            if root.Accessibility?.Busy != originalAccessibilityBusy {
+                throw InvalidOperationException("ActionButton owns Accessibility.Busy; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("ActionButton owns Accessibility.Checked; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ActionButton owns Accessibility.Name; set ActionButton.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ActionButton owns Accessibility.Role; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ActionButton owns Disabled; set ActionButton.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ActionButton owns Focusable; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("ActionButton owns OnClick; set ActionButton.OnClick instead of changing it in ConfigureRoot")
+            }
+        }
         return Finish(root, resolved, theme)
     }
 

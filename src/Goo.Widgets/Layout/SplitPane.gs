@@ -23,6 +23,7 @@ public enum SplitUnit {
 
 /// Controlled split layout and callbacks. Oversubscribed minimum sizes shrink proportionally.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct SplitPaneInput {
     /// First pane content.
     var First Blob?
@@ -170,7 +171,65 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
                 TransitionProperties: theme.InteractionTransitions,
             },
         }
-        input.ConfigureHandle?.Invoke(input, divider)
+        if let configure = input.ConfigureHandle {
+            let originalAccessibilityName = (divider.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = divider.Accessibility?.OnAction
+            let originalAccessibilityOrientation = (divider.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (divider.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = divider.Disabled
+            let originalFocusable = divider.Focusable
+            let originalHandle = divider.Handle
+            let originalKey = divider.Key
+            let originalOnPointerCancel = divider.OnPointerCancel
+            let originalOnPointerDown = divider.OnPointerDown
+            let originalOnPointerEnter = divider.OnPointerEnter
+            let originalOnPointerLeave = divider.OnPointerLeave
+            let originalOnPointerMove = divider.OnPointerMove
+            let originalOnPointerUp = divider.OnPointerUp
+            configure.Invoke(input, divider)
+            if (divider.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("SplitPane owns Accessibility.Name; set SplitPaneInput.AccessibilityName instead of changing it in ConfigureHandle")
+            }
+            if divider.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("SplitPane owns Accessibility.OnAction; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if (divider.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("SplitPane owns Accessibility.Orientation; set SplitPaneInput.Orientation instead of changing it in ConfigureHandle")
+            }
+            if (divider.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("SplitPane owns Accessibility.Role; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.Disabled != originalDisabled {
+                throw InvalidOperationException("SplitPane owns Disabled; set SplitPaneInput.Disabled instead of changing it in ConfigureHandle")
+            }
+            if divider.Focusable != originalFocusable {
+                throw InvalidOperationException("SplitPane owns Focusable; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.Handle != originalHandle {
+                throw InvalidOperationException("SplitPane owns Handle; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.Key != originalKey {
+                throw InvalidOperationException("SplitPane owns Key; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.OnPointerCancel != originalOnPointerCancel {
+                throw InvalidOperationException("SplitPane owns OnPointerCancel; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("SplitPane owns OnPointerDown; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.OnPointerEnter != originalOnPointerEnter {
+                throw InvalidOperationException("SplitPane owns OnPointerEnter; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.OnPointerLeave != originalOnPointerLeave {
+                throw InvalidOperationException("SplitPane owns OnPointerLeave; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.OnPointerMove != originalOnPointerMove {
+                throw InvalidOperationException("SplitPane owns OnPointerMove; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+            if divider.OnPointerUp != originalOnPointerUp {
+                throw InvalidOperationException("SplitPane owns OnPointerUp; configure SplitPaneInput instead of changing it in ConfigureHandle")
+            }
+        }
         divider.Key = "divider"
         divider.Handle = dividerHandle
         divider.FlexShrink = 0
@@ -218,7 +277,13 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         root.Children.Add(first)
         root.Children.Add(divider)
         root.Children.Add(second)
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalHandle = root.Handle
+            configure.Invoke(input, root)
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("SplitPane owns Handle; configure SplitPaneInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Handle = rootHandle
         root.Direction = theme.Direction
         root.FlexDirection = horizontal ? FlexDirection.Row: FlexDirection.Column

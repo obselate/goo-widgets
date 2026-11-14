@@ -9,6 +9,7 @@ import System.Collections.Generic
 
 /// A host-owned tree node. IDs are unique across the entire hierarchy, including collapsed descendants.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TreeNode {
     /// Required stable identity.
     var Id string?
@@ -348,7 +349,53 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         root.Children.Clear()
         root.Children.Add(scroll)
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityMultiSelectable = root.Accessibility?.MultiSelectable
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusTarget = root.FocusTarget
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalOnBlur = root.OnBlur
+            let originalOnFocus = root.OnFocus
+            let originalOnKeyDown = root.OnKeyDown
+            let originalOnPointerDown = root.OnPointerDown
+            configure.Invoke(input, root)
+            if root.Accessibility?.MultiSelectable != originalAccessibilityMultiSelectable {
+                throw InvalidOperationException("TreeView owns Accessibility.MultiSelectable; set TreeViewInput.MultiSelectable instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TreeView owns Accessibility.Name; set TreeViewInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TreeView owns Accessibility.Role; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.FocusTarget != originalFocusTarget {
+                throw InvalidOperationException("TreeView owns FocusTarget; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("TreeView owns Handle; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnBlur != originalOnBlur {
+                throw InvalidOperationException("TreeView owns OnBlur; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnFocus != originalOnFocus {
+                throw InvalidOperationException("TreeView owns OnFocus; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("TreeView owns OnKeyDown; set TreeViewInput.OnKeyDown instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("TreeView owns OnPointerDown; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Handle = rootHandle
         root.Direction = theme.Direction
         root.Focusable = !input.Disabled
@@ -568,7 +615,33 @@ public open class TreeView : Cell[TreeViewInput] {
                 Padding: theme.Spacing / 2.0,
                 ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16, snapshot.TextColor)
             }
-            snapshot.ConfigureExpander?.Invoke(snapshot, row, expander)
+            if let configure = snapshot.ConfigureExpander {
+                let originalAccessibilityHidden = (expander.Accessibility?.Hidden ?? false)
+                let originalDisabled = expander.Disabled
+                let originalFocusable = expander.Focusable
+                let originalKey = expander.Key
+                let originalOnClick = expander.OnClick
+                let originalTabStop = expander.TabStop
+                configure.Invoke(snapshot, row, expander)
+                if (expander.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                    throw InvalidOperationException("TreeView owns Accessibility.Hidden; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.Disabled != originalDisabled {
+                    throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureExpander")
+                }
+                if expander.Focusable != originalFocusable {
+                    throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.Key != originalKey {
+                    throw InvalidOperationException("TreeView owns Key; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.OnClick != originalOnClick {
+                    throw InvalidOperationException("TreeView owns OnClick; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.TabStop != originalTabStop {
+                    throw InvalidOperationException("TreeView owns TabStop; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+            }
             expander.Key = "expander"
             expander.Focusable = false
             expander.TabStop = false
@@ -597,7 +670,33 @@ public open class TreeView : Cell[TreeViewInput] {
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button
             )!!
-            snapshot.ConfigureCheck?.Invoke(snapshot, row, check)
+            if let configure = snapshot.ConfigureCheck {
+                let originalAccessibilityHidden = (check.Accessibility?.Hidden ?? false)
+                let originalDisabled = check.Disabled
+                let originalFocusable = check.Focusable
+                let originalKey = check.Key
+                let originalOnClick = check.OnClick
+                let originalTabStop = check.TabStop
+                configure.Invoke(snapshot, row, check)
+                if (check.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                    throw InvalidOperationException("TreeView owns Accessibility.Hidden; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.Disabled != originalDisabled {
+                    throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureCheck")
+                }
+                if check.Focusable != originalFocusable {
+                    throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.Key != originalKey {
+                    throw InvalidOperationException("TreeView owns Key; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.OnClick != originalOnClick {
+                    throw InvalidOperationException("TreeView owns OnClick; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.TabStop != originalTabStop {
+                    throw InvalidOperationException("TreeView owns TabStop; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+            }
             check.Key = "check"
             check.Focusable = false
             check.TabStop = false
@@ -646,7 +745,41 @@ public open class TreeView : Cell[TreeViewInput] {
         if row.Selected && theme.Selection == SelectionStyle.Indicator {
             root.Children.Add(theme.SelectionBar())
         }
-        snapshot.ConfigureRow?.Invoke(snapshot, row, root)
+        if let configure = snapshot.ConfigureRow {
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalKey = root.Key
+            let originalOnClick = root.OnClick
+            let originalOnFocus = root.OnFocus
+            let originalOnPointerDown = root.OnPointerDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(snapshot, row, root)
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureRow")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("TreeView owns Handle; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Key != originalKey {
+                throw InvalidOperationException("TreeView owns Key; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("TreeView owns OnClick; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnFocus != originalOnFocus {
+                throw InvalidOperationException("TreeView owns OnFocus; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("TreeView owns OnPointerDown; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("TreeView owns TabStop; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+        }
         theme.ApplyInteraction(root, InteractionFamily.Row, row.Selected)
         root.Key = id
         root.Handle = Handle(id)

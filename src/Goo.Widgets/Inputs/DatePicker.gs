@@ -9,6 +9,7 @@ import System.Globalization
 
 /// Controlled civil-date input; typing is a draft until Enter or blur commits it.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct DatePickerInput {
     /// Controlled selected civil date. Nil means no date is selected.
     var Value DateOnly?
@@ -161,7 +162,73 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        current.ConfigureInput?.Invoke(current, entry)
+        if let configure = current.ConfigureInput {
+            let originalAccessibilityInvalid = entry.Accessibility?.Invalid
+            let originalAccessibilityName = (entry.Accessibility?.Name ?? "")
+            let originalAccessibilityReadOnly = entry.Accessibility?.ReadOnly
+            let originalAccessibilityRequired = entry.Accessibility?.Required
+            let originalAccessibilityRole = (entry.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalControlled = entry.Controlled
+            let originalDisabled = entry.Disabled
+            let originalFocusable = entry.Focusable
+            let originalHandle = entry.Handle
+            let originalKey = entry.Key
+            let originalOnBlur = entry.OnBlur
+            let originalOnChange = entry.OnChange
+            let originalOnKeyDown = entry.OnKeyDown
+            let originalOnSubmit = entry.OnSubmit
+            let originalReadOnly = entry.ReadOnly
+            let originalValue = entry.Value
+            configure.Invoke(current, entry)
+            if entry.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("DatePicker owns Accessibility.Invalid; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if (entry.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DatePicker owns Accessibility.Name; set DatePickerInput.AccessibilityName instead of changing it in ConfigureInput")
+            }
+            if entry.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("DatePicker owns Accessibility.ReadOnly; set DatePickerInput.ReadOnly instead of changing it in ConfigureInput")
+            }
+            if entry.Accessibility?.Required != originalAccessibilityRequired {
+                throw InvalidOperationException("DatePicker owns Accessibility.Required; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if (entry.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DatePicker owns Accessibility.Role; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Controlled != originalControlled {
+                throw InvalidOperationException("DatePicker owns Controlled; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Disabled != originalDisabled {
+                throw InvalidOperationException("DatePicker owns Disabled; set DatePickerInput.Disabled instead of changing it in ConfigureInput")
+            }
+            if entry.Focusable != originalFocusable {
+                throw InvalidOperationException("DatePicker owns Focusable; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Handle != originalHandle {
+                throw InvalidOperationException("DatePicker owns Handle; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Key != originalKey {
+                throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.OnBlur != originalOnBlur {
+                throw InvalidOperationException("DatePicker owns OnBlur; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.OnChange != originalOnChange {
+                throw InvalidOperationException("DatePicker owns OnChange; set DatePickerInput.OnChange instead of changing it in ConfigureInput")
+            }
+            if entry.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("DatePicker owns OnKeyDown; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.OnSubmit != originalOnSubmit {
+                throw InvalidOperationException("DatePicker owns OnSubmit; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("DatePicker owns ReadOnly; set DatePickerInput.ReadOnly instead of changing it in ConfigureInput")
+            }
+            if entry.Value != originalValue {
+                throw InvalidOperationException("DatePicker owns Value; set DatePickerInput.Value instead of changing it in ConfigureInput")
+            }
+        }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Key = "entry"
         entry.Handle = entryHandle
@@ -201,7 +268,41 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
         button.Children.Clear()
         button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
-        current.ConfigureButton?.Invoke(current, button)
+        if let configure = current.ConfigureButton {
+            let originalAccessibilityExpanded = button.Accessibility?.Expanded
+            let originalAccessibilityHasPopup = button.Accessibility?.HasPopup
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalKey = button.Key
+            let originalOnClick = button.OnClick
+            configure.Invoke(current, button)
+            if button.Accessibility?.Expanded != originalAccessibilityExpanded {
+                throw InvalidOperationException("DatePicker owns Accessibility.Expanded; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.Accessibility?.HasPopup != originalAccessibilityHasPopup {
+                throw InvalidOperationException("DatePicker owns Accessibility.HasPopup; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DatePicker owns Accessibility.Name; set DatePickerInput.AccessibilityName instead of changing it in ConfigureButton")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DatePicker owns Accessibility.Role; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("DatePicker owns Disabled; set DatePickerInput.Disabled instead of changing it in ConfigureButton")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("DatePicker owns Focusable; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.Key != originalKey {
+                throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("DatePicker owns OnClick; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = "open"
         button.Disabled = current.Disabled || current.ReadOnly
@@ -411,7 +512,17 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         prepared.BorderColor = theme.InputBorderColor
         prepared.BorderWidth = theme.BorderWidth
         prepared.BorderRadius = theme.PanelRadius!!
-        current.ConfigurePopup?.Invoke(current, prepared)
+        if let configure = current.ConfigurePopup {
+            let originalHandle = prepared.Handle
+            let originalKey = prepared.Key
+            configure.Invoke(current, prepared)
+            if prepared.Handle != originalHandle {
+                throw InvalidOperationException("DatePicker owns Handle; configure DatePickerInput instead of changing it in ConfigurePopup")
+            }
+            if prepared.Key != originalKey {
+                throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigurePopup")
+            }
+        }
     }
 
     private func BindOverlay(next ElementHandle?) {

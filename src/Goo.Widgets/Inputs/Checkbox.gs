@@ -1,11 +1,14 @@
 package Goo.Widgets.Inputs
 
+import System
+
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct Checkbox {
     /// Current checkbox state. Unspecified resolves to false.
     var Value AccessibilityChecked
@@ -185,7 +188,37 @@ public data struct Checkbox {
             }
             button
         }
-        configureRoot?.Invoke(resolved, content, root)
+        if let configure = configureRoot {
+            let originalAccessibilityChecked = (root.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityDescription = (root.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            configure.Invoke(resolved, content, root)
+            if (root.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("Checkbox owns Accessibility.Checked; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("Checkbox owns Accessibility.Description; set Checkbox.Description instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Checkbox owns Accessibility.Name; set Checkbox.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Checkbox owns Accessibility.Role; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Checkbox owns Disabled; set Checkbox.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Checkbox owns Focusable; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("Checkbox owns OnClick; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)
         if Label != nil && !Card && configureRoot == nil {
             root.FocusStyle = Style{BasedOn: root.FocusStyle, OutlineOffset: -theme.FocusRingWidth}

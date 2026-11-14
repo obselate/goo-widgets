@@ -7,6 +7,7 @@ import System.Collections.Generic
 
 /// A named, optionally collapsed section in a navigation rail.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct NavigationGroup {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -267,7 +268,57 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     }
                 )
             }
-            configureItem?.Invoke(resolved, item, button)
+            if let configure = configureItem {
+                let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalAccessibilitySelected = button.Accessibility?.Selected
+                let originalDisabled = button.Disabled
+                let originalFocusable = button.Focusable
+                let originalHandle = button.Handle
+                let originalKey = button.Key
+                let originalOnBlur = button.OnBlur
+                let originalOnClick = button.OnClick
+                let originalOnFocus = button.OnFocus
+                let originalOnKeyDown = button.OnKeyDown
+                let originalTabStop = button.TabStop
+                configure.Invoke(resolved, item, button)
+                if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("NavigationRail owns Accessibility.Name; set NavigationRailInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("NavigationRail owns Accessibility.Role; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Accessibility?.Selected != originalAccessibilitySelected {
+                    throw InvalidOperationException("NavigationRail owns Accessibility.Selected; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Disabled != originalDisabled {
+                    throw InvalidOperationException("NavigationRail owns Disabled; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Focusable != originalFocusable {
+                    throw InvalidOperationException("NavigationRail owns Focusable; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Handle != originalHandle {
+                    throw InvalidOperationException("NavigationRail owns Handle; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Key != originalKey {
+                    throw InvalidOperationException("NavigationRail owns Key; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnBlur != originalOnBlur {
+                    throw InvalidOperationException("NavigationRail owns OnBlur; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnClick != originalOnClick {
+                    throw InvalidOperationException("NavigationRail owns OnClick; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("NavigationRail owns OnFocus; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("NavigationRail owns OnKeyDown; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.TabStop != originalTabStop {
+                    throw InvalidOperationException("NavigationRail owns TabStop; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+            }
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled

@@ -126,7 +126,33 @@ internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
             OverflowY = Overflow.Hidden,
             ScrollbarX = model.Block.Kind == MarkdownBlockKind.Code ? theme.Scrollbar: nil,
         }
-        options.ConfigureEditor?.Invoke(model.Block, editor)
+        if let configure = options.ConfigureEditor {
+            let originalAccessibilityMultiline = editor.Accessibility?.Multiline
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(model.Block, editor)
+            if editor.Accessibility?.Multiline != originalAccessibilityMultiline {
+                throw InvalidOperationException("MarkdownView owns Accessibility.Multiline; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("MarkdownView owns Accessibility.Name; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("MarkdownView owns Accessibility.Role; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("MarkdownView owns Controller; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("MarkdownView owns OnChange; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("MarkdownView owns ReadOnly; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+        }
         editor.Controller = controller!!
         editor.ReadOnly = true
         if options.ConfigureEditor != nil {

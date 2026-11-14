@@ -16,6 +16,7 @@ public enum GridUnit {
 
 /// One immutable row or column definition. Fraction weights share space above their minima.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct GridTrack {
     /// Sizing rule. The default track fits its content.
     var Unit GridUnit
@@ -104,7 +105,13 @@ public data struct Grid {
             }
             root.Children.Add(slot)
         }
-        ConfigureRoot?.Invoke(resolved, root)
+        if let configure = ConfigureRoot {
+            let originalLayout = root.Layout
+            configure.Invoke(resolved, root)
+            if root.Layout != originalLayout {
+                throw InvalidOperationException("Grid owns Layout; configure Grid instead of changing it in ConfigureRoot")
+            }
+        }
         root.Layout = policy
         return root
     }

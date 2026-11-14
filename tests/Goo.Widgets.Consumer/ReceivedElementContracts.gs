@@ -116,6 +116,15 @@ func ConfiguredIconSemanticsContract() {
 }
 
 func ReceivedElementContracts() {
+    var rejected = false
+    try {
+        TextField{ConfigureEntry: (input TextField, entry TextEntry) -> { entry.Password = true }}.Build()
+    } catch (error InvalidOperationException) {
+        Require(error.Message == "TextField owns Password; set TextField.Password instead of changing it in ConfigureEntry",
+            "ConfigureEntry did not name the owned field and its input")
+        rejected = true
+    }
+    Require(rejected, "ConfigureEntry silently discarded a password override")
     using let host = ThemePreferenceHost()
     host.Resize(320, 480, 320, 480)
     let editor = RetainedFieldEditor()

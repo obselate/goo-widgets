@@ -8,6 +8,7 @@ import System.Collections.Generic
 
 /// A controlled, searchable virtual list. The host owns the query and selected Id.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct SearchList {
     /// Items with stable, unique identifiers. Nil resolves to an empty list.
     var Items[]?SelectionItem
@@ -130,7 +131,29 @@ public data struct SearchList {
             TransitionProperties: theme.InteractionTransitions,
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
         }
-        ConfigureEntry?.Invoke(this, entry)
+        if let configure = ConfigureEntry {
+            let originalControlled = entry.Controlled
+            let originalDisabled = entry.Disabled
+            let originalFocusable = entry.Focusable
+            let originalOnChange = entry.OnChange
+            let originalValue = entry.Value
+            configure.Invoke(this, entry)
+            if entry.Controlled != originalControlled {
+                throw InvalidOperationException("SearchList owns Controlled; configure SearchList instead of changing it in ConfigureEntry")
+            }
+            if entry.Disabled != originalDisabled {
+                throw InvalidOperationException("SearchList owns Disabled; set SearchList.Disabled instead of changing it in ConfigureEntry")
+            }
+            if entry.Focusable != originalFocusable {
+                throw InvalidOperationException("SearchList owns Focusable; configure SearchList instead of changing it in ConfigureEntry")
+            }
+            if entry.OnChange != originalOnChange {
+                throw InvalidOperationException("SearchList owns OnChange; configure SearchList instead of changing it in ConfigureEntry")
+            }
+            if entry.Value != originalValue {
+                throw InvalidOperationException("SearchList owns Value; configure SearchList instead of changing it in ConfigureEntry")
+            }
+        }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Disabled = Disabled
         entry.Focusable = !Disabled

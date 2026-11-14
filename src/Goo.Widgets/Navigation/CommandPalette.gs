@@ -10,6 +10,7 @@ import System.Collections.Generic
 
 /// A command with optional grouping, description and shortcut.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct CommandItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string

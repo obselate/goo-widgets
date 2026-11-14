@@ -8,6 +8,7 @@ import System.Collections.Generic
 
 /// IDs are unique across all levels, including separators and closed submenus.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct MenuItem {
     /// Stable, nonempty identity, unique across all menu levels, including separators.
     var Id string?
@@ -202,7 +203,21 @@ public open class Menu : Cell[MenuInput] {
                         Margin: Edges{Top: theme.Spacing, Bottom: theme.Spacing},
                         BackgroundColor: theme.BorderColor,
                     }
-                current.ConfigureSeparator?.Invoke(current, item, separator)
+                if let configure = current.ConfigureSeparator {
+                    let originalAccessibilityRole = (separator.Accessibility?.Role ?? AccessibilityRole(0))
+                    let originalFocusable = separator.Focusable
+                    let originalKey = separator.Key
+                    configure.Invoke(current, item, separator)
+                    if (separator.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                        throw InvalidOperationException("Menu owns Accessibility.Role; configure MenuInput instead of changing it in ConfigureSeparator")
+                    }
+                    if separator.Focusable != originalFocusable {
+                        throw InvalidOperationException("Menu owns Focusable; configure MenuInput instead of changing it in ConfigureSeparator")
+                    }
+                    if separator.Key != originalKey {
+                        throw InvalidOperationException("Menu owns Key; configure MenuInput instead of changing it in ConfigureSeparator")
+                    }
+                }
                 separator.Key = id
                 separator.Focusable = false
                 let separatorAccessibility = if let configured = separator.Accessibility { Accessibility{...configured} } else { Accessibility{} }
@@ -257,7 +272,57 @@ public open class Menu : Cell[MenuInput] {
                     }
                 )
             }
-            current.ConfigureItem?.Invoke(current, item, row)
+            if let configure = current.ConfigureItem {
+                let originalAccessibilityExpanded = row.Accessibility?.Expanded
+                let originalAccessibilityName = (row.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (row.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalDisabled = row.Disabled
+                let originalFocusable = row.Focusable
+                let originalHandle = row.Handle
+                let originalKey = row.Key
+                let originalOnClick = row.OnClick
+                let originalOnFocus = row.OnFocus
+                let originalOnKeyDown = row.OnKeyDown
+                let originalOnPointerEnter = row.OnPointerEnter
+                let originalTabStop = row.TabStop
+                configure.Invoke(current, item, row)
+                if row.Accessibility?.Expanded != originalAccessibilityExpanded {
+                    throw InvalidOperationException("Menu owns Accessibility.Expanded; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if (row.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("Menu owns Accessibility.Name; set MenuInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (row.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("Menu owns Accessibility.Role; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Disabled != originalDisabled {
+                    throw InvalidOperationException("Menu owns Disabled; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Focusable != originalFocusable {
+                    throw InvalidOperationException("Menu owns Focusable; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Handle != originalHandle {
+                    throw InvalidOperationException("Menu owns Handle; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Key != originalKey {
+                    throw InvalidOperationException("Menu owns Key; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.OnClick != originalOnClick {
+                    throw InvalidOperationException("Menu owns OnClick; set MenuInput.OnClick instead of changing it in ConfigureItem")
+                }
+                if row.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("Menu owns OnFocus; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("Menu owns OnKeyDown; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.OnPointerEnter != originalOnPointerEnter {
+                    throw InvalidOperationException("Menu owns OnPointerEnter; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.TabStop != originalTabStop {
+                    throw InvalidOperationException("Menu owns TabStop; configure MenuInput instead of changing it in ConfigureItem")
+                }
+            }
             theme.ApplyInteraction(row, InteractionFamily.Row)
             row.Key = id
             row.Handle = handles[id]
@@ -336,7 +401,17 @@ public open class Menu : Cell[MenuInput] {
         prepared.BorderColor = theme.BorderColor
         prepared.BorderWidth = theme.BorderWidth
         prepared.BorderRadius = theme.PanelRadius!!
-        current.ConfigurePanel?.Invoke(current, prepared)
+        if let configure = current.ConfigurePanel {
+            let originalHandle = prepared.Handle
+            let originalKey = prepared.Key
+            configure.Invoke(current, prepared)
+            if prepared.Handle != originalHandle {
+                throw InvalidOperationException("Menu owns Handle; configure MenuInput instead of changing it in ConfigurePanel")
+            }
+            if prepared.Key != originalKey {
+                throw InvalidOperationException("Menu owns Key; configure MenuInput instead of changing it in ConfigurePanel")
+            }
+        }
     }
 
     private func Root(input PopoverInput, backdrop Container, panel Container, prepared Container) {

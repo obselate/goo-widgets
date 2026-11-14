@@ -7,6 +7,7 @@ import System.Collections.Generic
 
 /// An identified radio choice with optional descriptive content.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct RadioOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -96,7 +97,25 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 OnChange: (value bool) -> Select(id),
                 ConfigureRoot: (value RadioButton, prepared Button) -> {
                     var button = prepared
-                    input.ConfigureItem?.Invoke(input, item, button)
+                    if let configure = input.ConfigureItem {
+                        let originalHandle = button.Handle
+                        let originalKey = button.Key
+                        let originalOnKeyDown = button.OnKeyDown
+                        let originalTabStop = button.TabStop
+                        configure.Invoke(input, item, button)
+                        if button.Handle != originalHandle {
+                            throw InvalidOperationException("RadioGroup owns Handle; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                        if button.Key != originalKey {
+                            throw InvalidOperationException("RadioGroup owns Key; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                        if button.OnKeyDown != originalOnKeyDown {
+                            throw InvalidOperationException("RadioGroup owns OnKeyDown; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                        if button.TabStop != originalTabStop {
+                            throw InvalidOperationException("RadioGroup owns TabStop; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                    }
                     button.Handle = handles[id]
                 },
             }.Build() as Button)!!
@@ -105,7 +124,21 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             button.OnKeyDown = (e KeyEvent) -> Move(id, e)
             root.Children.Add(button)
         }
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("RadioGroup owns Accessibility.Name; set RadioGroupInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("RadioGroup owns Accessibility.Orientation; set RadioGroupInput.Orientation instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("RadioGroup owns Accessibility.Role; configure RadioGroupInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Direction = theme.Direction
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
         let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }

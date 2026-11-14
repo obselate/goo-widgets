@@ -15,6 +15,7 @@ public enum SliderOrientation {
 
 /// Immutable input for a mounted Slider.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct SliderInput {
     /// Current external value.
     var Value float64
@@ -278,7 +279,49 @@ public open class Slider : Cell[SliderInput] {
         theme.ApplyInteraction(root, InteractionFamily.Field)
         let content Blob = root
         let requiredBindings = configureRoot == nil ? nil : root.KeyBindings
-        configureRoot?.Invoke(resolved, root)
+        if let configure = configureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = root.Accessibility?.OnAction
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityReadOnly = root.Accessibility?.ReadOnly
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalHitTestSelf = root.HitTestSelf
+            let originalOnPointerDrag = root.OnPointerDrag
+            configure.Invoke(resolved, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Slider owns Accessibility.Name; set SliderInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("Slider owns Accessibility.OnAction; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("Slider owns Accessibility.Orientation; set SliderInput.Orientation instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("Slider owns Accessibility.ReadOnly; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Slider owns Accessibility.Role; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Slider owns Disabled; set SliderInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Slider owns Focusable; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("Slider owns Handle; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.HitTestSelf != originalHitTestSelf {
+                throw InvalidOperationException("Slider owns HitTestSelf; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerDrag != originalOnPointerDrag {
+                throw InvalidOperationException("Slider owns OnPointerDrag; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+        }
         if configureRoot != nil {
             root.Handle = handle
             root.Disabled = resolved.Disabled

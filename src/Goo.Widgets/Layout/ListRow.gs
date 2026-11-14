@@ -7,6 +7,7 @@ import System
 
 /// A semantic list item row with optional slots, typography defaults, and factory customization.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct ListRow {
     /// Optional leading slot element.
     var Leading Blob?
@@ -234,7 +235,29 @@ public data struct ListRow {
             if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
                 root.Children.Add(theme.SelectionBar())
             }
-        configureRoot?.Invoke(resolved, Leading, content, Trailing, root)
+        if let configure = configureRoot {
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            let originalOnKeyDown = root.OnKeyDown
+            let originalOnPointerUp = root.OnPointerUp
+            configure.Invoke(resolved, Leading, content, Trailing, root)
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ListRow owns Disabled; set ListRow.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ListRow owns Focusable; configure ListRow instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("ListRow owns OnClick; set ListRow.OnClick instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("ListRow owns OnKeyDown; configure ListRow instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerUp != originalOnPointerUp {
+                throw InvalidOperationException("ListRow owns OnPointerUp; configure ListRow instead of changing it in ConfigureRoot")
+            }
+        }
         if Selected && SelectedBackgroundColor != nil {
             root.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.HoverStyle}
             root.ActiveStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.ActiveStyle}

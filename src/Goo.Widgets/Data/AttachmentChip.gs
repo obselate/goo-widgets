@@ -8,6 +8,7 @@ import System
 
 /// A file attachment with a persistent filename suffix and optional transfer actions.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct AttachmentChip {
     /// Attachment filename. Nil uses localized Attachment text. The suffix stays visible when space is limited.
     var Name string?
@@ -163,7 +164,13 @@ public data struct AttachmentChip {
                 }
             )
         }
-        ConfigureRoot?.Invoke(this, root)
+        if let configure = ConfigureRoot {
+            let originalDisabled = root.Disabled
+            configure.Invoke(this, root)
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("AttachmentChip owns Disabled; set AttachmentChip.Disabled instead of changing it in ConfigureRoot")
+            }
+        }
         root.Disabled = Disabled
         root.DisabledStyle = Style{BasedOn: root.DisabledStyle, Opacity: theme.DisabledOpacity}
         return root

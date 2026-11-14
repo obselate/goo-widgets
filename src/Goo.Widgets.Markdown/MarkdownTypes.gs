@@ -29,6 +29,7 @@ public enum MarkdownInlineKind {
 
 /// Describes a block passed to customization hooks.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct MarkdownBlock {
     var Kind MarkdownBlockKind
     var Id string?

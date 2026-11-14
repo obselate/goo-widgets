@@ -20,6 +20,7 @@ public enum MediaTransportAction {
 
 /// Immutable input for a mounted MediaTransport.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct MediaTransportInput {
     /// Current media position in seconds.
     var Position float64
@@ -367,7 +368,17 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 },
                 content,
             }
-        input.ConfigureAction?.Invoke(input, slot, content, activate, disabled, button)
+        if let configure = input.ConfigureAction {
+            let originalDisabled = button.Disabled
+            let originalOnClick = button.OnClick
+            configure.Invoke(input, slot, content, activate, disabled, button)
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("MediaTransport owns Disabled; set MediaTransportInput.Disabled instead of changing it in ConfigureAction")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("MediaTransport owns OnClick; configure MediaTransportInput instead of changing it in ConfigureAction")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = disabled
         button.OnClick = disabled ? nil: button.OnClick ?? activate

@@ -6,6 +6,7 @@ import System
 
 /// Passive hover and keyboard-focus label shown in the Window overlay.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TooltipInput {
     /// Open window that schedules the hover delay.
     var Window Window?
@@ -153,7 +154,29 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
                     BasedOn: current.BubbleStyle ?? theme.OverlayStyle,
                     content,
                 }
-            current.ConfigureBubble?.Invoke(current, content, bubble)
+            if let configure = current.ConfigureBubble {
+                let originalAccessibilityHidden = (bubble.Accessibility?.Hidden ?? false)
+                let originalAccessibilityRole = (bubble.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalFocusable = bubble.Focusable
+                let originalHitTestSelf = bubble.HitTestSelf
+                let originalTabStop = bubble.TabStop
+                configure.Invoke(current, content, bubble)
+                if (bubble.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                    throw InvalidOperationException("Tooltip owns Accessibility.Hidden; configure TooltipInput instead of changing it in ConfigureBubble")
+                }
+                if (bubble.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("Tooltip owns Accessibility.Role; configure TooltipInput instead of changing it in ConfigureBubble")
+                }
+                if bubble.Focusable != originalFocusable {
+                    throw InvalidOperationException("Tooltip owns Focusable; configure TooltipInput instead of changing it in ConfigureBubble")
+                }
+                if bubble.HitTestSelf != originalHitTestSelf {
+                    throw InvalidOperationException("Tooltip owns HitTestSelf; configure TooltipInput instead of changing it in ConfigureBubble")
+                }
+                if bubble.TabStop != originalTabStop {
+                    throw InvalidOperationException("Tooltip owns TabStop; configure TooltipInput instead of changing it in ConfigureBubble")
+                }
+            }
             bubble.HitTestSelf = false
             bubble.Focusable = false
             bubble.TabStop = false

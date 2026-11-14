@@ -8,6 +8,7 @@ import System.Globalization
 
 /// An identified interval on a TimeAxis. Times are compared as absolute instants.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct TimeAxisEvent {
     /// Required unique identity.
     var Id string?
@@ -269,7 +270,37 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                     TextWrap: TextWrap.NoWrap
                 }
             }
-            input.ConfigureTick?.Invoke(input, tick, blob)
+            if let configure = input.ConfigureTick {
+                let originalAccessibilityDescription = (blob.Accessibility?.Description ?? "")
+                let originalAccessibilityName = (blob.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (blob.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalAccessibilitySelected = blob.Accessibility?.Selected
+                let originalFocusable = blob.Focusable
+                let originalKey = blob.Key
+                let originalOnClick = blob.OnClick
+                configure.Invoke(input, tick, blob)
+                if (blob.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Description; configure TimeAxisInput instead of changing it in ConfigureTick")
+                }
+                if (blob.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Name; set TimeAxisInput.AccessibilityName instead of changing it in ConfigureTick")
+                }
+                if (blob.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Role; configure TimeAxisInput instead of changing it in ConfigureTick")
+                }
+                if blob.Accessibility?.Selected != originalAccessibilitySelected {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Selected; configure TimeAxisInput instead of changing it in ConfigureTick")
+                }
+                if blob.Focusable != originalFocusable {
+                    throw InvalidOperationException("TimeAxis owns Focusable; configure TimeAxisInput instead of changing it in ConfigureTick")
+                }
+                if blob.Key != originalKey {
+                    throw InvalidOperationException("TimeAxis owns Key; configure TimeAxisInput instead of changing it in ConfigureTick")
+                }
+                if blob.OnClick != originalOnClick {
+                    throw InvalidOperationException("TimeAxis owns OnClick; configure TimeAxisInput instead of changing it in ConfigureTick")
+                }
+            }
             blob.Key = "tick:" + index.ToString()
             blob.Position = PositionType.Absolute
             blob.Left = tick.X
@@ -305,7 +336,37 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             if placement.Width < 40.0 {
                 blob.Children.Clear()
             }
-            input.ConfigureEvent?.Invoke(input, placement, blob)
+            if let configure = input.ConfigureEvent {
+                let originalAccessibilityDescription = (blob.Accessibility?.Description ?? "")
+                let originalAccessibilityName = (blob.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (blob.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalAccessibilitySelected = blob.Accessibility?.Selected
+                let originalFocusable = blob.Focusable
+                let originalKey = blob.Key
+                let originalOnClick = blob.OnClick
+                configure.Invoke(input, placement, blob)
+                if (blob.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Description; configure TimeAxisInput instead of changing it in ConfigureEvent")
+                }
+                if (blob.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Name; set TimeAxisInput.AccessibilityName instead of changing it in ConfigureEvent")
+                }
+                if (blob.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Role; configure TimeAxisInput instead of changing it in ConfigureEvent")
+                }
+                if blob.Accessibility?.Selected != originalAccessibilitySelected {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Selected; configure TimeAxisInput instead of changing it in ConfigureEvent")
+                }
+                if blob.Focusable != originalFocusable {
+                    throw InvalidOperationException("TimeAxis owns Focusable; configure TimeAxisInput instead of changing it in ConfigureEvent")
+                }
+                if blob.Key != originalKey {
+                    throw InvalidOperationException("TimeAxis owns Key; configure TimeAxisInput instead of changing it in ConfigureEvent")
+                }
+                if blob.OnClick != originalOnClick {
+                    throw InvalidOperationException("TimeAxis owns OnClick; configure TimeAxisInput instead of changing it in ConfigureEvent")
+                }
+            }
             theme.ApplyInteraction(blob, InteractionFamily.Button, selected)
             blob.Key = "event:" + item.Id!!
             Place(blob, placement.X, 30.0 + float64(placement.Lane) * (height + gap), placement.Width, height)
@@ -343,7 +404,33 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                     TextWrap: TextWrap.NoWrap,
                 }
             }
-            input.ConfigureOverflow?.Invoke(input, hidden, blob)
+            if let configure = input.ConfigureOverflow {
+                let originalAccessibilityDescription = (blob.Accessibility?.Description ?? "")
+                let originalAccessibilityName = (blob.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (blob.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalFocusable = blob.Focusable
+                let originalKey = blob.Key
+                let originalOnClick = blob.OnClick
+                configure.Invoke(input, hidden, blob)
+                if (blob.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Description; configure TimeAxisInput instead of changing it in ConfigureOverflow")
+                }
+                if (blob.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Name; set TimeAxisInput.AccessibilityName instead of changing it in ConfigureOverflow")
+                }
+                if (blob.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("TimeAxis owns Accessibility.Role; configure TimeAxisInput instead of changing it in ConfigureOverflow")
+                }
+                if blob.Focusable != originalFocusable {
+                    throw InvalidOperationException("TimeAxis owns Focusable; configure TimeAxisInput instead of changing it in ConfigureOverflow")
+                }
+                if blob.Key != originalKey {
+                    throw InvalidOperationException("TimeAxis owns Key; configure TimeAxisInput instead of changing it in ConfigureOverflow")
+                }
+                if blob.OnClick != originalOnClick {
+                    throw InvalidOperationException("TimeAxis owns OnClick; configure TimeAxisInput instead of changing it in ConfigureOverflow")
+                }
+            }
             theme.ApplyInteraction(blob, InteractionFamily.Button)
             blob.Key = "overflow"
             Place(blob, left, 30.0 + float64(ends.Count) * (height + gap), right - left, height)
@@ -380,7 +467,21 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                         TextWrap: TextWrap.NoWrap
                     }
                 }
-                input.ConfigureMarker?.Invoke(input, marker)
+                if let configure = input.ConfigureMarker {
+                    let originalAccessibilityHidden = (marker.Accessibility?.Hidden ?? false)
+                    let originalHitTestSelf = marker.HitTestSelf
+                    let originalKey = marker.Key
+                    configure.Invoke(input, marker)
+                    if (marker.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                        throw InvalidOperationException("TimeAxis owns Accessibility.Hidden; configure TimeAxisInput instead of changing it in ConfigureMarker")
+                    }
+                    if marker.HitTestSelf != originalHitTestSelf {
+                        throw InvalidOperationException("TimeAxis owns HitTestSelf; configure TimeAxisInput instead of changing it in ConfigureMarker")
+                    }
+                    if marker.Key != originalKey {
+                        throw InvalidOperationException("TimeAxis owns Key; configure TimeAxisInput instead of changing it in ConfigureMarker")
+                    }
+                }
                 marker.Key = "marker"
                 marker.Position = PositionType.Absolute
                 marker.Left = X(time)
@@ -407,7 +508,25 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         }
         root.Children.Clear()
         root.Children.Add(canvas)
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalHandle = root.Handle
+            let originalOnKeyDown = root.OnKeyDown
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TimeAxis owns Accessibility.Name; set TimeAxisInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TimeAxis owns Accessibility.Role; configure TimeAxisInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("TimeAxis owns Handle; configure TimeAxisInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("TimeAxis owns OnKeyDown; configure TimeAxisInput instead of changing it in ConfigureRoot")
+            }
+        }
         root.Handle = viewport
         root.OverflowX = Overflow.Scroll
         root.OverflowY = Overflow.Hidden

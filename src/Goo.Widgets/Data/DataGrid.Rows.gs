@@ -251,7 +251,33 @@ public open partial class DataGrid {
                             Size: 18
                         }.Build() as Button
                     )!!
-                    snapshot.ConfigureSelection?.Invoke(snapshot, row, check)
+                    if let configure = snapshot.ConfigureSelection {
+                        let originalAccessibilityHidden = (check.Accessibility?.Hidden ?? false)
+                        let originalDisabled = check.Disabled
+                        let originalFocusable = check.Focusable
+                        let originalOnClick = check.OnClick
+                        let originalOnPointerDown = check.OnPointerDown
+                        let originalTabStop = check.TabStop
+                        configure.Invoke(snapshot, row, check)
+                        if (check.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Hidden; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.Disabled != originalDisabled {
+                            throw InvalidOperationException("DataGrid owns Disabled; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.Focusable != originalFocusable {
+                            throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.OnClick != originalOnClick {
+                            throw InvalidOperationException("DataGrid owns OnClick; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.OnPointerDown != originalOnPointerDown {
+                            throw InvalidOperationException("DataGrid owns OnPointerDown; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.TabStop != originalTabStop {
+                            throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                    }
                     check.Focusable = false
                     check.TabStop = false
                     check.Disabled = row.Disabled ||
@@ -378,7 +404,57 @@ public open partial class DataGrid {
                 }
             )
         }
-        snapshot.ConfigureRow?.Invoke(snapshot, row, root)
+        if let configure = snapshot.ConfigureRow {
+            let originalAccessibilityColumnCount = root.Accessibility?.ColumnCount
+            let originalAccessibilityExpanded = root.Accessibility?.Expanded
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = root.Accessibility?.OnAction
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityRowIndex = root.Accessibility?.RowIndex
+            let originalAccessibilitySelected = root.Accessibility?.Selected
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalKey = root.Key
+            let originalTabStop = root.TabStop
+            configure.Invoke(snapshot, row, root)
+            if root.Accessibility?.ColumnCount != originalAccessibilityColumnCount {
+                throw InvalidOperationException("DataGrid owns Accessibility.ColumnCount; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.Expanded != originalAccessibilityExpanded {
+                throw InvalidOperationException("DataGrid owns Accessibility.Expanded; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DataGrid owns Accessibility.Name; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("DataGrid owns Accessibility.OnAction; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DataGrid owns Accessibility.Role; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.RowIndex != originalAccessibilityRowIndex {
+                throw InvalidOperationException("DataGrid owns Accessibility.RowIndex; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("DataGrid owns Accessibility.Selected; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("DataGrid owns Disabled; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("DataGrid owns Handle; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Key != originalKey {
+                throw InvalidOperationException("DataGrid owns Key; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+        }
         root.FocusStyle = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.FocusStyle}
         theme.ApplyInteraction(root, InteractionFamily.Row, isSelected)
         cells.FocusStyle = root.FocusStyle

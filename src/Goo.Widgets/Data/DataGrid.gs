@@ -30,6 +30,7 @@ public enum DataGridSelection {
 
 /// One host-owned sort, ordered from highest to lowest priority.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct DataGridSortColumn {
     /// Stable ID of the column to sort. It must identify a current column.
     var ColumnId string?
@@ -790,7 +791,53 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                 }
             )
         }
-        input.ConfigureRoot?.Invoke(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityColumnCount = root.Accessibility?.ColumnCount
+            let originalAccessibilityDescription = (root.Accessibility?.Description ?? "")
+            let originalAccessibilityMultiSelectable = root.Accessibility?.MultiSelectable
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityRowCount = root.Accessibility?.RowCount
+            let originalDisabled = root.Disabled
+            let originalFocusTarget = root.FocusTarget
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalTabStop = root.TabStop
+            configure.Invoke(input, root)
+            if root.Accessibility?.ColumnCount != originalAccessibilityColumnCount {
+                throw InvalidOperationException("DataGrid owns Accessibility.ColumnCount; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("DataGrid owns Accessibility.Description; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.MultiSelectable != originalAccessibilityMultiSelectable {
+                throw InvalidOperationException("DataGrid owns Accessibility.MultiSelectable; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DataGrid owns Accessibility.Name; set DataGridInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DataGrid owns Accessibility.Role; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.RowCount != originalAccessibilityRowCount {
+                throw InvalidOperationException("DataGrid owns Accessibility.RowCount; set DataGridInput.RowCount instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("DataGrid owns Disabled; set DataGridInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.FocusTarget != originalFocusTarget {
+                throw InvalidOperationException("DataGrid owns FocusTarget; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if input.RootHandle != nil && root.Handle != originalHandle {
+                throw InvalidOperationException("DataGrid owns Handle; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+        }
         if value.RootHandle == nil && root.Handle != nil && root.Handle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
             rootHandle = root.Handle!!

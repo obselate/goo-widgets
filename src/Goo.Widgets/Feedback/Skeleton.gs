@@ -16,6 +16,7 @@ public enum SkeletonVariant {
 
 /// Placeholder appearance and animation policy. Loading state remains caller-owned.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct SkeletonInput {
     /// Geometry. Defaults to Text.
     var Variant SkeletonVariant
@@ -119,7 +120,37 @@ public open class Skeleton : Cell[SkeletonInput] {
             root.Children.Add(shape)
         }
         let result = root
-        input.ConfigureRoot?.Invoke(resolved, result)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityBusy = result.Accessibility?.Busy
+            let originalAccessibilityHidden = (result.Accessibility?.Hidden ?? false)
+            let originalAccessibilityName = (result.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (result.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalFocusable = result.Focusable
+            let originalHandle = result.Handle
+            let originalTabStop = result.TabStop
+            configure.Invoke(resolved, result)
+            if result.Accessibility?.Busy != originalAccessibilityBusy {
+                throw InvalidOperationException("Skeleton owns Accessibility.Busy; configure SkeletonInput instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                throw InvalidOperationException("Skeleton owns Accessibility.Hidden; configure SkeletonInput instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Skeleton owns Accessibility.Name; set SkeletonInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Skeleton owns Accessibility.Role; configure SkeletonInput instead of changing it in ConfigureRoot")
+            }
+            if result.Focusable != originalFocusable {
+                throw InvalidOperationException("Skeleton owns Focusable; configure SkeletonInput instead of changing it in ConfigureRoot")
+            }
+            if result.Handle != originalHandle {
+                throw InvalidOperationException("Skeleton owns Handle; configure SkeletonInput instead of changing it in ConfigureRoot")
+            }
+            if result.TabStop != originalTabStop {
+                throw InvalidOperationException("Skeleton owns TabStop; configure SkeletonInput instead of changing it in ConfigureRoot")
+            }
+        }
         result.Handle = handle
         result.Focusable = false
         result.TabStop = false
