@@ -5,6 +5,7 @@
 - Requires the published Goo 0.31.0 package from NuGet.org.
 - Native virtual scroll checks cover Goo 0.31.0 pending unknown-key requests and their three-frame expiry. Streaming rollback checks use key lookup without queuing scroll requests.
 - Native list select-all checks use Command on macOS and Ctrl elsewhere, and reject the other modifier.
+- Menu, ComboBox and DatePicker panel configuration starts with each control's scrollbar defaults, not the Popover scrollbar. Menu search shortcuts keep focus. App popup configuration still runs last.
 - Breaking: rename 88 postprocessed `Create*` element hooks across 45 widget families to `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields. Changes to widget-owned fields throw.
 - Breaking: `TouchTextEditingInput.Editor` is an `ElementHandle`. Set it on the editor before hand-off. `RootStyle` styles the gesture wrapper for outer flex and percentage sizing.
 - `FormField` uses Goo accessibility attachments without editing supplied controls. `HoverCard` keeps target handles unchanged. Shape interaction styles omit invalid legacy box paint.

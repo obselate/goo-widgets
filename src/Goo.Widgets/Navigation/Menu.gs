@@ -402,6 +402,7 @@ public open class Menu : Cell[MenuInput] {
         prepared.BorderColor = theme.BorderColor
         prepared.BorderWidth = theme.BorderWidth
         prepared.BorderRadius = theme.PanelRadius!!
+        prepared.ScrollbarY = nil
         if let configure = current.ConfigurePanel {
             let originalHandle = prepared.Handle
             let originalKey = prepared.Key
