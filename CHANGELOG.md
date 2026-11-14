@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: MediaTransport keeps disabled action icons visible and reserves space for the position thumb beside both time labels.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
