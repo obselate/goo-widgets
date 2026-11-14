@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: TimeAxis collision lanes include event padding and borders, so close point events do not overlap when `MinimumEventWidth` is small.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
