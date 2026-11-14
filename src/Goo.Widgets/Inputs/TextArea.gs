@@ -7,6 +7,7 @@ import System
 /// Controlled multiline field values, presentation, and optional external editor ownership.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TextAreaInput {
     /// Controlled string. Nil preserves an external controller's document; an owned document starts empty.
     var Value string?
@@ -82,6 +83,8 @@ public data struct TextAreaInput {
     var ConfigureEditor Action[TextAreaInput, TextEditor]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Root is the returned outermost layout element, including the touch wrapper.
+    /// Other supplied parts are read-only. Use their Configure hook to style them.
     /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextAreaInput, Container]?
 }
@@ -339,11 +342,10 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 }
             )
         }
-        input.ConfigureRoot?.Invoke(input, root)
         root.FlexDirection = FlexDirection.Column
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
-            TouchTextEditingInput{Content: root, Editor: editor.Handle!!, RootStyle: Style{Width: input.Width!!, MinWidth: 0}, Enabled: input.TouchEditing}
+            TouchTextEditingInput{Content: root, Editor: editor.Handle!!, RootStyle: Style{Width: input.Width!!, MinWidth: 0}, ConfigureRoot: input.ConfigureRoot == nil ? nil : (outer Container) -> input.ConfigureRoot?.Invoke(input, outer), Enabled: input.TouchEditing}
         )
     }
 

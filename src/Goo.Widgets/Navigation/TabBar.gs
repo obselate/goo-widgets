@@ -29,6 +29,7 @@ public enum TabPlacement {
 /// Controlled peer navigation. The host owns panel content and lifetime.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TabBarInput {
     /// Ordered entries with unique, nonempty IDs. Nil resolves to an empty list.
     var Items[]?NavigationItem

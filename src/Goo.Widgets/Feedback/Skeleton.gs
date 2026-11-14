@@ -17,6 +17,7 @@ public enum SkeletonVariant {
 /// Placeholder appearance and animation policy. Loading state remains caller-owned.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct SkeletonInput {
     /// Geometry. Defaults to Text.
     var Variant SkeletonVariant

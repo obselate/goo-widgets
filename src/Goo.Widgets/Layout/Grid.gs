@@ -17,6 +17,7 @@ public enum GridUnit {
 /// One immutable row or column definition. Fraction weights share space above their minima.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct GridTrack {
     /// Sizing rule. The default track fits its content.
     var Unit GridUnit

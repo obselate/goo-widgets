@@ -10,6 +10,7 @@ import System.Collections.Generic
 /// A selectable row with a stable identity and optional content slots.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ListViewItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?

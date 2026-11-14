@@ -9,6 +9,7 @@ import System.Collections.Generic
 /// IDs are unique across all levels, including separators and closed submenus.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct MenuItem {
     /// Stable, nonempty identity, unique across all menu levels, including separators.
     var Id string?

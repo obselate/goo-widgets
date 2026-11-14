@@ -8,6 +8,7 @@ import System.Collections.Generic
 /// An identified radio choice with optional descriptive content.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct RadioOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string

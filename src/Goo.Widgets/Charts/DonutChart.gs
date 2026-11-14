@@ -7,6 +7,7 @@ import System
 /// A small vector donut chart with optional activation and legend composition.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct DonutChart {
     /// Stable, labeled, nonnegative entries. Nil resolves to an empty series.
     var Series[]?ChartSeries

@@ -7,6 +7,7 @@ import System
 /// An accessible icon-only button that accepts any Goo blob as its icon.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct IconButton {
     /// Visual content shown inside the button.
     var Icon Blob?

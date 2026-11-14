@@ -31,6 +31,7 @@ public enum DataGridSelection {
 /// One host-owned sort, ordered from highest to lowest priority.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct DataGridSortColumn {
     /// Stable ID of the column to sort. It must identify a current column.
     var ColumnId string?

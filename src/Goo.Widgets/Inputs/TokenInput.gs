@@ -9,6 +9,7 @@ import System.Collections.Generic
 /// Controlled token values. Invalid values remain visible and removable.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TokenInputInput {
     /// Controlled token strings in display order. Nil supplies an empty array.
     var Value[]?string
@@ -115,6 +116,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                     entry.PlaceholderColor = theme.PlaceholderColor
                     entry.Height = props.EntryHeight!!
                     entry.Padding = 4
+                    entry.BorderRadius = 0
                     entry.BackgroundColor = Color.Transparent
                     entry.Color = theme.TextColor
                     entry.FontFamily = theme.FontFamily
@@ -138,7 +140,6 @@ public open class TokenInput : Cell[TokenInputInput] {
                         }
                     }
                     entry.Handle = editor
-                    entry.ReadOnly = input.ReadOnly
                     entry.OnKeyDown = KeyDown
                 },
                 ConfigureRoot: (props, label, entry, issue, root) -> {

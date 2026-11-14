@@ -10,6 +10,7 @@ import System.Globalization
 /// Controlled civil-date input; typing is a draft until Enter or blur commits it.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct DatePickerInput {
     /// Controlled selected civil date. Nil means no date is selected.
     var Value DateOnly?

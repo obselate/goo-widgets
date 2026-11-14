@@ -7,6 +7,7 @@ import System
 /// A semantic single-line text field with label, error, and primitive factories.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TextField {
     /// Optional label.
     var Label string?
@@ -115,6 +116,8 @@ public data struct TextField {
     internal var EntryKeyBindings([]KeyBinding)?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
+    /// Root is the returned outermost layout element, including the touch wrapper.
+    /// Other supplied parts are read-only. Use their Configure hook to style them.
     /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
@@ -470,10 +473,9 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
-        configureRoot?.Invoke(resolved, label, entry!!, issue, root)
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
-            TouchTextEditingInput{Content: root, Editor: entry!!.Handle!!, RootStyle: Style{Width: resolved.Width!!, MinWidth: 0}, Enabled: resolved.TouchEditing}
+            TouchTextEditingInput{Content: root, Editor: entry!!.Handle!!, RootStyle: Style{Width: resolved.Width!!, MinWidth: 0}, ConfigureRoot: configureRoot == nil ? nil : (outer Container) -> configureRoot?.Invoke(resolved, label, entry!!, issue, outer), Enabled: resolved.TouchEditing}
         )
     }
 

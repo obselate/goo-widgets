@@ -10,6 +10,7 @@ import System.Collections.Generic
 /// A host-owned tree node. IDs are unique across the entire hierarchy, including collapsed descendants.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TreeNode {
     /// Required stable identity.
     var Id string?

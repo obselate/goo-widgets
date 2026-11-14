@@ -9,6 +9,7 @@ import Goo.Widgets.Icons
 /// A controlled checkbox with false, true, and mixed accessibility states.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct Checkbox {
     /// Current checkbox state. Unspecified resolves to false.
     var Value AccessibilityChecked

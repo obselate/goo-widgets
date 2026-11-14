@@ -9,6 +9,7 @@ import Goo.Widgets
 /// Factories receive resolved props and may replace the final Goo primitives.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ToggleSwitch {
     /// Whether the track displays its on state. Build does not invert this value.
     var Value bool

@@ -9,6 +9,7 @@ import Goo.Widgets.Feedback
 /// A semantic button with resolved visual defaults and customizable primitive factories.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ActionButton {
     /// Visible button text and the default accessible name. Nil resolves to an empty string.
     var Content string?
@@ -172,8 +173,8 @@ public data struct ActionButton {
             leadingSlot = Container{Position: PositionType.Relative, Container{Opacity: Loading ? 0.0: 1.0, leading},}
             contents.Children.Add(leadingSlot)
         }
-        if let text = text {
-            contents.Children.Add(text)
+        if content != "" || createText != nil {
+            if let text = text { contents.Children.Add(text) }
         }
         if let trailing = Trailing {
             contents.Children.Add(trailing)

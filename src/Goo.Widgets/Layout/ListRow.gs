@@ -8,6 +8,7 @@ import System
 /// A semantic list item row with optional slots, typography defaults, and factory customization.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ListRow {
     /// Optional leading slot element.
     var Leading Blob?

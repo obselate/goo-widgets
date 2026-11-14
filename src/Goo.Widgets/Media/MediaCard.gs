@@ -7,6 +7,7 @@ import System
 /// A generic actionable card with supplied thumbnail content and text metadata.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct MediaCard {
     /// Thumbnail content owned by this card tree.
     var Thumbnail Blob?

@@ -21,6 +21,7 @@ public enum WindowChromeAction {
 /// A configurable drag region with optional standard window controls.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct WindowChrome {
     /// Window controlled by default actions. Callbacks can replace it. Native controls that overlap Host pad the chrome.
     var Host Window?

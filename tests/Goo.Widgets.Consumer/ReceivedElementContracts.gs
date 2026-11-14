@@ -84,6 +84,15 @@ internal class RetainedTouchRoot : Cell {
 internal class ConfiguredIconRoot : Cell {
     internal let Metadata Accessibility = Accessibility{Expanded: true, Description: "App description"}
     public override func Build() Blob -> Container(){
+        var rejected = false
+        try {
+            TextField{ConfigureEntry: (input TextField, entry TextEntry) -> { entry.Password = true }}.Build()
+        } catch (error InvalidOperationException) {
+            Require(error.Message == "TextField owns Password; set TextField.Password instead of changing it in ConfigureEntry",
+                "ConfigureEntry did not name the owned field and its input")
+            rejected = true
+        }
+        Require(rejected, "ConfigureEntry silently discarded a password override")
         Button{Accessibility: Metadata},
         IconButton{
             AccessibilityName: "Configured icon", Icon: Text{Content: "i"},
@@ -116,15 +125,6 @@ func ConfiguredIconSemanticsContract() {
 }
 
 func ReceivedElementContracts() {
-    var rejected = false
-    try {
-        TextField{ConfigureEntry: (input TextField, entry TextEntry) -> { entry.Password = true }}.Build()
-    } catch (error InvalidOperationException) {
-        Require(error.Message == "TextField owns Password; set TextField.Password instead of changing it in ConfigureEntry",
-            "ConfigureEntry did not name the owned field and its input")
-        rejected = true
-    }
-    Require(rejected, "ConfigureEntry silently discarded a password override")
     using let host = ThemePreferenceHost()
     host.Resize(320, 480, 320, 480)
     let editor = RetainedFieldEditor()
@@ -156,6 +156,7 @@ func ReceivedElementContracts() {
     RetainedHoverContract()
     RetainedActivationContract()
     RetainedTouchLayoutContract()
+    ConfiguredTextLayoutContract()
     Console.WriteLine("PASS retained FormField, width-320 SettingsLayout, HoverCard geometry, activation and touch layout")
 }
 
@@ -257,3 +258,47 @@ func RetainedTouchLayoutContract() {
             "Touch RootStyle lost flex growth or edited the retained declaration")
     } finally { window.RequestClose() }
 }
+internal class ConfiguredTextLayoutRoot : Cell {
+    internal let Handle ElementHandle = ElementHandle()
+    internal let Editor ElementHandle = ElementHandle()
+    internal var Grow bool
+    internal var Focuses int32
+
+    public override func Build() Blob {
+        let row = Container{Width: 320, FlexDirection: FlexDirection.Row}
+        if Grow { row.Children.Add(Container{Width: 80}) }
+        row.Children.Add(TextField{
+            Width: Length.Auto, Handle: Editor,
+            ConfigureRoot: (input, label, editor, issue, root) -> {
+                root.Handle = Handle
+                root.MinWidth = 0
+                if Grow { root.FlexGrow = 1 } else { root.Width = Percent(50) }
+                root.OnFocus = (event FocusEvent) -> { Focuses++ }
+            },
+        }.Build())
+        return row
+    }
+}
+
+func ConfiguredTextLayoutContract() {
+    using let host = ThemePreferenceHost()
+    host.Resize(320, 240, 320, 240)
+    let root = ConfiguredTextLayoutRoot()
+    let window = Window{Root: root}
+    window.Attach(host)
+    host.SetFocused(true)
+    try {
+        ThemeFrames(host)
+        Require(Math.Abs(root.Handle.BorderBox.Width - 160) < 0.5,
+            "ConfigureRoot percentage width did not reach the returned element")
+        Require(root.Editor.Focus(), "Configured text editor did not focus")
+        ThemeFrames(host)
+        Require(root.Focuses > 0, "Touch composition dropped the configured root focus handler")
+        root.Grow = true
+        root.Rebuild()
+        ThemeFrames(host)
+        Require(Math.Abs(root.Handle.BorderBox.Width - 240) < 0.5,
+            "ConfigureRoot flex growth did not reach the returned element")
+    } finally { window.RequestClose() }
+}
+

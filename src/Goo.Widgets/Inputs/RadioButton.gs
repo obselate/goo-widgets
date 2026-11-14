@@ -7,6 +7,7 @@ import System
 /// A controlled radio choice. RadioGroup owns selection and navigation for grouped choices.
 /// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 /// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct RadioButton {
     /// Controlled checked value. False means unchecked.
     var Value bool
