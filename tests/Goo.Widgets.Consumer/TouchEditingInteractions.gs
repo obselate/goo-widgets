@@ -19,10 +19,9 @@ internal class TouchEditingHost : Cell {
     public override func Build() Blob {
         let root = Container{Width: Percent(100), Height: Percent(100), Padding: 16}
         root.Children.Add(if Password {
-            TextField{Value: Value, Width: 170, OnChange: Changed,
+            TextField{Value: Value, Width: 170, Password: true, OnChange: Changed,
                 ConfigureEntry: (input TextField, prepared TextEntry) -> {
                     prepared.Value = input.Value ?? ""
-                    prepared.Password = true
                     prepared.Width = Percent(100)
                     prepared.Height = 40
                     prepared.Handle = Editor
