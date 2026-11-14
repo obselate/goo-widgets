@@ -117,7 +117,7 @@ public data struct TextField {
     internal var MountKey string?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
-    /// Root is the returned outermost layout element, including the touch wrapper.
+    /// Root contains the mounted touch wrapper. Its padding is outside the touch region.
     /// Other supplied parts are read-only. Use their Configure hook to style them.
     /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextField, Text?, TextEntry, Text?, Container]?

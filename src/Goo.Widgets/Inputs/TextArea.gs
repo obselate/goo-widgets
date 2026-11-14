@@ -83,7 +83,7 @@ public data struct TextAreaInput {
     var ConfigureEditor Action[TextAreaInput, TextEditor]?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
-    /// Root is the returned outermost layout element, including the touch wrapper.
+    /// Root contains the mounted touch wrapper. Its padding is outside the touch region.
     /// Other supplied parts are read-only. Use their Configure hook to style them.
     /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextAreaInput, Container]?
