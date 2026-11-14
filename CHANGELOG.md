@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
