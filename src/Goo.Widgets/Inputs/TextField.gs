@@ -197,6 +197,8 @@ public data struct TextField {
             Color: resolved.MutedTextColor!!,
             FontSize: theme.CaptionFontSize,
         }
+        let framed = resolved.Leading != nil || resolved.Trailing != nil || resolved.PrefixAddon != nil
+        || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton
         var entry TextEntry? = nil
         {
             entry = TextEntry{
@@ -204,7 +206,6 @@ public data struct TextField {
                 Height: resolved.EntryHeight!!,
                 Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
                 BackgroundColor: resolved.BackgroundColor!!,
-                BoxShadows: resolved.Disabled ? []BoxShadow{}: theme.FieldShadows,
                 Color: resolved.TextColor!!,
                 SelectionColor: theme.AccentColor.WithAlpha(0.35),
                 Cursor: Cursor.Text,
@@ -234,6 +235,7 @@ public data struct TextField {
                 entry.FontFamily = resolved.FontFamily!!
             }
         }
+        if !framed { entry!!.BoxShadows = resolved.Disabled ? []BoxShadow{}: theme.FieldShadows }
         if let configure = configureEntry {
             let originalAccessibilityInvalid = entry!!.Accessibility?.Invalid
             let originalAccessibilityName = (entry!!.Accessibility?.Name ?? "")
@@ -367,8 +369,7 @@ public data struct TextField {
         if let label = label {
             root.Children.Add(label)
         }
-        let framed = resolved.Leading != nil || resolved.Trailing != nil || resolved.PrefixAddon != nil
-        || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton
+
         if framed {
             let frame = Container{
                 BasedOn: state?.HasFocus == true ? theme.FieldFocusStyle: nil,
