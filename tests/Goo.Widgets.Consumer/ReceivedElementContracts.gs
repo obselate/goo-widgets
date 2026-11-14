@@ -93,6 +93,15 @@ internal class ConfiguredIconRoot : Cell {
             rejected = true
         }
         Require(rejected, "ConfigureEntry silently discarded a password override")
+        rejected = false
+        try {
+            TextField{ConfigureRoot: (input, label, entry, issue, root) -> root.Children.Clear()}.Build()
+        } catch (error InvalidOperationException) {
+            Require(error.Message == "TextField owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot",
+                "ConfigureRoot did not name its owned editor child: " + error.Message)
+            rejected = true
+        }
+        Require(rejected, "ConfigureRoot silently removed touch editing")
         return Container(){
             Button{Accessibility: Metadata},
             IconButton{

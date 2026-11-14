@@ -204,6 +204,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         let defaultHeight Length = contentHeight
         let height = input.Height ?? defaultHeight
         let search = SearchList{
+            Query: query,
             ItemCount: ordered.Count,
             ItemAt: (index int32) -> {
                 if query.Length == 0 {
@@ -221,8 +222,6 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
             OnQueryChange: value -> InvokeInputCallback(input.OnQueryChange, value),
             ConfigureEntry: (owner SearchList, entry TextEntry) -> {
-                entry.Value = query
-                entry.Controlled = true
                 entry.OnKeyDown = KeyDown
                 entry.FlexGrow = 1
                 entry.BackgroundColor = Color.Transparent

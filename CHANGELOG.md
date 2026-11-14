@@ -3,7 +3,7 @@
 ## 0.22.0 - 2026-11-14
 
 - Requires the published Goo 0.31.0 package from NuGet.org.
-- Breaking: rename 88 postprocessed `Create*` element hooks across 45 widget families to `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields. Changes to widget-owned fields throw.
+- Breaking: rename 88 postprocessed `Create*` element hooks across 45 widget families to `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields. Changes to widget-owned fields throw. `TextField` and `TextArea` root editor children must stay.
 - Breaking: `TouchTextEditingInput.Editor` is an `ElementHandle`. Set it on the editor before hand-off. `RootStyle` styles the gesture wrapper for outer flex and percentage sizing.
 - `FormField` uses Goo accessibility attachments without editing supplied controls. `HoverCard` keeps target handles unchanged. Shape interaction styles omit invalid legacy box paint.
 - Touch editing rebuilds a retained overlay without changing mounted content or editor declarations.

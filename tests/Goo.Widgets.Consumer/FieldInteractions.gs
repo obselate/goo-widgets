@@ -120,8 +120,6 @@ internal class FieldCallbackHost : Cell {
             AccessibilityName: "Slot field",
             ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
                     prepared.FlexDirection = FlexDirection.Column
-                    prepared.Children.Clear()
-                    prepared.Children.Add(entry)
                     prepared.Children.Add(Button{
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Slot button"},
                     OnClick: () -> Value = "slot",
@@ -187,7 +185,7 @@ func FieldCallbackOwnership() {
         PumpFrames(window, 5)
         Require(host.Value == "slot", "Slot Button OnClick did not change parent state")
         let slotChanged = FindSemantics(semantics.Tree?.Root, "slot") != nil
-        Console.WriteLine((slotChanged ? "PASS: " : "FAIL: ") + "Button OnClick in TouchTextEditing Content rebuilds parent Text without Rebuild")
+        Console.WriteLine((slotChanged ? "PASS: " : "FAIL: ") + "Button OnClick added by TextField.ConfigureRoot rebuilds parent Text without Rebuild")
         FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Callback menu")!!.Bounds)
         PumpFrames(window, 5)
         Require(host.MenuOpen, "MenuButton OnOpenChange did not change parent state")

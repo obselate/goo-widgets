@@ -148,8 +148,6 @@ public open class TokenInput : Cell[TokenInputInput] {
                     root.Key = "editor"
                     root.FlexGrow = 1
                     root.MinWidth = 100
-                    root.Children.Clear()
-                    root.Children.Add(entry)
                 },
             }.Build()
         )

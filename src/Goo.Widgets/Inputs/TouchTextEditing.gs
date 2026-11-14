@@ -86,36 +86,29 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         current = input
         overlayCell?.Rebuild()
         let root = Container{BasedOn: input.RootStyle, HitTestSelf: false, content}
-        if input.Enabled != false {
-            if let custom = root.Gestures {
-                let gestures = [custom.Count + 1]GestureRecognizer
-                for index in 0 ... custom.Count { gestures[index] = custom[index] }
-                gestures[custom.Count] = hold
-                root.Gestures = gestures
-            } else { root.Gestures = defaultGestures }
-        }
-        let priorFocus = root.OnFocus
-        let priorBlur = root.OnBlur
-        let priorPointerUp = root.OnPointerUp
-        root.OnFocus = (event FocusEvent) -> {
-            focused = true
-            priorFocus?.Invoke(event)
-        }
-        root.OnBlur = (event FocusEvent) -> {
-            focused = false
-            Hide()
-            priorBlur?.Invoke(event)
-        }
-        root.OnPointerUp = (event PointerEvent) -> {
-            if current.Enabled != false && event.Device == PointerDevice.Touch && !moving && focused {
-                focusId = window?.Focus.Editor?.FocusId ?? 0L
-                visible = true
-                overlayCell?.Rebuild()
-            }
-            priorPointerUp?.Invoke(event)
-        }
+        if input.Enabled != false { root.Gestures = defaultGestures }
+        root.OnFocus = Focused
+        root.OnBlur = Blurred
+        root.OnPointerUp = PointerUp
         root.Children.Add(Cell.Mount[TouchTextEditing, TouchTextEditingOverlay]("touch-editing", this))
         return root
+    }
+
+    private func Focused(event FocusEvent) {
+        focused = true
+    }
+
+    private func Blurred(event FocusEvent) {
+        focused = false
+        Hide()
+    }
+
+    private func PointerUp(event PointerEvent) {
+        if current.Enabled != false && event.Device == PointerDevice.Touch && !moving && focused {
+            focusId = window?.Focus.Editor?.FocusId ?? 0L
+            visible = true
+            overlayCell?.Rebuild()
+        }
     }
 
     internal func BuildOverlay(child TouchTextEditingOverlay) Blob {

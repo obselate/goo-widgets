@@ -116,8 +116,9 @@ public data struct TextField {
     internal var EntryKeyBindings([]KeyBinding)?
     internal var MountKey string?
     /// Configures the fresh root before required behavior is applied.
-    /// Replace its children for custom content. Edit only the supplied element.
+    /// Edit only the supplied element. Use content slots for custom child trees.
     /// Root contains the mounted touch wrapper. Its padding is outside the touch region.
+    /// Preserve the mounted editor child. Add content around it instead of replacing Children.
     /// Other supplied parts are read-only. Use their Configure hook to style them.
     /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextField, Text?, TextEntry, Text?, Container]?
@@ -475,21 +476,20 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
-        let outer = Container{
-            Width: resolved.Width!!,
-            MinWidth: 0,
-            HitTestSelf: false,
-            Cell.Mount[TouchTextEditingInput, TouchTextEditing](
-                MountKey ?? root.Key,
-                TouchTextEditingInput{
-                    Content: root,
-                    Editor: entry!!.Handle!!,
-                    RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
-                    Enabled: resolved.TouchEditing,
-                }
-            ),
-        }
+        let editing = Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+            MountKey ?? root.Key,
+            TouchTextEditingInput{
+                Content: root,
+                Editor: entry!!.Handle!!,
+                RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
+                Enabled: resolved.TouchEditing,
+            }
+        )
+        let outer = Container{Width: resolved.Width!!, MinWidth: 0, HitTestSelf: false, editing}
         configureRoot?.Invoke(resolved, label, entry!!, issue, outer)
+        if configureRoot != nil && !outer.Children.Contains(editing) {
+            throw InvalidOperationException("TextField owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot")
+        }
         return outer
     }
 

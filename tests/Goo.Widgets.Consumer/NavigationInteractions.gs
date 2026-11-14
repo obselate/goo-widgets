@@ -264,6 +264,8 @@ func NavigationInteractions() {
                 host.Query == "fr" && FindSemantics(semantics.Tree?.Root, "Open file") == nil,
                 "Palette query did not filter commands"
             )
+            Require(window.Focus.Selection?.Anchor.Offset == 2 && window.Focus.Selection?.Active.Offset == 2,
+                "Palette controlled query moved the caret during typing")
             Require(
                 FindSemantics(semantics.Tree?.Root, "Find references")!!.Selected == true,
                 "Palette did not select the highest fuzzy score"
