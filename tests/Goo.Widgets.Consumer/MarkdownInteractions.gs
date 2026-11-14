@@ -53,6 +53,19 @@ func MarkdownContracts() {
         "Bounded Markdown built blocks before virtual realization")
     probe.Render(MarkdownViewInput{Text: "", OnHeadings: input.OnHeadings})
     Require(headings!!.Count == 0, "Empty Markdown retained old headings")
+    for text in []string{"```", "x\n```"} {
+        var codeBlocks = 0
+        probe.Render(MarkdownViewInput{
+            Text: text,
+            ConfigureBlock: (block MarkdownBlock, prepared Blob) -> {
+                if block.Kind == MarkdownBlockKind.Code {
+                    codeBlocks++
+                    Require(block.Text == "", "Unterminated Markdown fence produced code content")
+                }
+            }
+        })
+        Require(codeBlocks == 1, "Unterminated Markdown fence did not render one code block")
+    }
 }
 
 internal class MarkdownHost : Cell {
