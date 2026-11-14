@@ -13,7 +13,7 @@ public class WidgetKeyBindings {
             let wrapper = Container{HitTestSelf: false, content}
             let action = content.OnClick
             if action != nil {
-                let handle = content is Button ? content.Handle : nil
+                let handle ElementHandle? = if content is Button { content.Handle } else { nil }
                 wrapper.KeyBindings = []KeyBinding{
                     KeyBinding{Key: Key.Enter, OnPress: () -> {
                         if handle != nil { handle.Activate() } else { action() }
