@@ -66,6 +66,7 @@ internal class VirtualProbeHost : Cell {
     internal var Version int64?
     internal var State VirtualRowsState[VirtualProbeItem]?
     internal var FillHeight bool
+    internal var Width float64 = 100.0
     internal var VariableHeights bool
     internal var MessageRows bool
     internal var HeaderId int32 = -1
@@ -166,7 +167,7 @@ internal class VirtualProbeHost : Cell {
     override func Build() Blob {
         let list = List()
         list.Handle = Handle
-        list.Width = 100
+        list.Width = Width
         list.Height = FillHeight ? Percent(100): 60
         let root = Container{Height: FillHeight ? Percent(100): Length.Auto}
         root.Children.Add(list)
@@ -547,6 +548,22 @@ func VirtualInteractions() {
             )
         }
     )
+
+    let widened = VirtualProbeHost(VirtualProbeKind.Grid, 122)
+    RunVirtual("VirtualItems grid wider at end", widened, (window, semantics) -> {
+        Require(widened.Handle.ScrollToItem("row-121", ScrollAlignment.End), "The grid rejected the reveal target.")
+        WaitVirtual(window, () -> widened.Handles[121].IsMounted && !widened.Handle.IsScrollSettling)
+        widened.Width = 120.0
+        widened.Rebuild()
+        PumpFrames(window, 2)
+        Require(widened.Items.Count == 122 && widened.Handles[121].IsMounted &&
+            widened.Handle.ScrollOffset.Y == widened.Handle.ScrollRange.Y,
+            "Widening the grid lost the last item.")
+        let target = widened.Handles[121].BorderBox
+        let viewport = widened.Handle.ContentBox
+        Require(target.Y >= viewport.Y && target.Y + target.Height <= viewport.Y + viewport.Height,
+            "The reveal target is outside the widened viewport.")
+    })
 
     let rows = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
     RunVirtual(
