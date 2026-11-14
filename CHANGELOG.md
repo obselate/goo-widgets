@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: ColorPicker wheel images fit inside the configured border, keeping it visible on every side.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
