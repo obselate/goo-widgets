@@ -124,15 +124,15 @@ internal class NavigationHost : Cell {
             ),
             ActionButton{
                 Content: "Open palette",
+                OnClick: () -> {
+                    PaletteOpen = true
+                    Query = ""
+                    Rebuild()
+                },
                 ConfigureRoot: (input ActionButton, text Text, prepared Button) -> {
                     prepared.Handle = Launch
                     prepared.Height = 36
                     prepared.Focusable = true
-                    prepared.OnClick = () -> {
-                        PaletteOpen = true
-                        Query = ""
-                        Rebuild()
-                    }
                     prepared.Children.Clear()
                     prepared.Children.Add(Text{Content: "Open palette"})
                 }}.Build(),
