@@ -114,6 +114,7 @@ public data struct TextField {
     /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.ReadOnly, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Controlled, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnChange, OnFocus, OnSubmit, Password, ReadOnly, Value.
     var ConfigureEntry Action[TextField, TextEntry]?
     internal var EntryKeyBindings([]KeyBinding)?
+    internal var MountKey string?
     /// Configures the fresh root before required behavior is applied.
     /// Replace its children for custom content. Edit only the supplied element.
     /// Root is the returned outermost layout element, including the touch wrapper.
@@ -475,7 +476,7 @@ public data struct TextField {
             root.Children.Add(issue)
         }
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
-            root.Key,
+            MountKey ?? root.Key,
             TouchTextEditingInput{Content: root, Editor: entry!!.Handle!!, RootStyle: Style{Width: resolved.Width!!, MinWidth: 0}, ConfigureRoot: configureRoot == nil ? nil : (outer Container) -> configureRoot?.Invoke(resolved, label, entry!!, issue, outer), Enabled: resolved.TouchEditing}
         )
     }

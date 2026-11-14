@@ -98,6 +98,7 @@ public open class TokenInput : Cell[TokenInputInput] {
         frame.Children.Add(
             TextField{
                 Value: draft,
+                MountKey: "editor",
                 Controlled: true,
                 Placeholder: input.Placeholder ?? theme.Text("Add a token"),
                 AccessibilityName: input.AccessibilityName ?? theme.Text("Tokens"),
