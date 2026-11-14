@@ -31,8 +31,7 @@ func ChromeContractRoot(input WindowChrome, children[]Blob, prepared Container) 
 }
 
 func WindowChromeContracts() {
-    let region = (WindowChrome{ConfigureRoot: ChromeContractRoot, ConfigureControl: ChromeContractControl}.Build() as Container)!!
-    let row = (region.Children[0] as Container)!!
+    let row = (WindowChrome{ConfigureRoot: ChromeContractRoot, ConfigureControl: ChromeContractControl}.Build() as Container)!!
     Require(
         !row.Focusable && row.Children.Count == 4,
         "Chrome changed the factory child order or became a focusable drag region"

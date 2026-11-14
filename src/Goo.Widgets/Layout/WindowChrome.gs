@@ -162,7 +162,7 @@ public data struct WindowChrome {
         return resolved
     }
 
-    internal func BuildResolved(theme Theme, blankPointer Action[PointerEvent]? = nil) Blob {
+    internal func BuildResolved(theme Theme, blankPointer Action[PointerEvent]? = nil) Container {
         let createContent = CreateControlContent
         let configureControl = ConfigureControl
         let configureRoot = ConfigureRoot
@@ -240,7 +240,7 @@ public data struct WindowChrome {
         if let handler = blankPointer {
             root.OnPointerDown = handler
         }
-        return Window.WithDragRegion(root)
+        return Window.DragRegion(root)
     }
 
     private func BuildControl(

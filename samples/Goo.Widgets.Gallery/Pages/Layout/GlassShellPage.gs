@@ -25,7 +25,7 @@ internal class GlassShell : Cell {
             Width: Percent(100),
             Height: Percent(100),
             Overflow: Overflow.Hidden,
-            Window.WithDragRegion(
+            Window.DragRegion(
                 Container{
                     ZIndex: 1,
                     Padding: Edges{Top: theme.Spacing * 2.0},

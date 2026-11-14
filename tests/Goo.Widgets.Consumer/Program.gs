@@ -280,8 +280,7 @@ func MaterialIconRegressions() {
         },
     }
     for maximized in[]bool{false, true} {
-        let region = ((chrome with{IsMaximized = maximized}).Build() as Container)!!
-        let row = (region.Children[0] as Container)!!
+        let row = ((chrome with{IsMaximized = maximized}).Build() as Container)!!
         for child in row.Children {
             if child is Button {
                 Require(

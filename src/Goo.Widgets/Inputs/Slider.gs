@@ -87,7 +87,7 @@ public data struct SliderInput {
     var ThumbStyle Style?
     /// Configures the fresh root before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
-    /// The widget does not replace configured metadata or children.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.Orientation, Accessibility.Range, Accessibility.ReadOnly, Accessibility.Role, Disabled, Focusable, Handle, HitTestSelf, KeyBindings (required entries), OnPointerDrag.
     var ConfigureRoot Action[SliderInput, Container]?
 }
 
@@ -277,7 +277,25 @@ public open class Slider : Cell[SliderInput] {
         }
         theme.ApplyInteraction(root, InteractionFamily.Field)
         let content Blob = root
+        let requiredBindings = configureRoot == nil ? nil : root.KeyBindings
         configureRoot?.Invoke(resolved, root)
+        if configureRoot != nil {
+            root.Handle = handle
+            root.Disabled = resolved.Disabled
+            root.Focusable = !resolved.Disabled
+            root.HitTestSelf = !resolved.Disabled
+            root.OnPointerDrag = Drag
+            if requiredBindings != nil { WidgetKeyBindings.AppendBindings(root, requiredBindings) }
+            let semantics = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            semantics.Role = accessibility.Role
+            semantics.Name = accessibility.Name
+            semantics.Orientation = accessibility.Orientation
+            semantics.ReadOnly = accessibility.ReadOnly
+            semantics.Range = accessibility.Range
+            semantics.Actions = accessibility.Actions
+            semantics.OnAction = accessibility.OnAction
+            root.Accessibility = semantics
+        }
         if !hasHeader {
             return content
         }

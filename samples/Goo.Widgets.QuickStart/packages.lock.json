@@ -5,7 +5,7 @@
       "Goo": {
         "type": "Transitive",
         "resolved": "0.31.0",
-        "contentHash": "xVMjULeNn9Unjt/exgsp+1iNQB0V5op/SZhTw4FJEz9kDDJdP4/C9Dlq1/J6GRh5HSLqXfAplu7csCSfdAFVKw==",
+        "contentHash": "R1BfLsbVWZchQ3eHRz7hdbvqlg16iu2xLszwx0HrPuVAD/mVGntDPZCnime34oou47yb94Vi8BAT5a5QMOSksA==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Tmds.DBus.Protocol": "0.95.2",
