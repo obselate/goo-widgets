@@ -54,6 +54,36 @@ func CalendarContracts() {
     )
 }
 
+func CalendarHeadingLayoutContract() {
+    let headingColor = Color.Rgb(255, 0, 0)
+    let root = RetainedContractRoot(Container{
+        AlignItems: AlignItems.FlexStart,
+        Cell.Mount[CalendarInput, Calendar]("calendar", CalendarInput{
+            Today: DateOnly(2026, 6, 15),
+            Month: DateOnly(2026, 12, 1),
+            MonthTextStyle: Style{Color: headingColor},
+            Culture: System.Globalization.CultureInfo.GetCultureInfo("en-US")
+        })
+    })
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "Calendar heading verification", Size: LayoutSize(640, 560),
+        Root: root, AccessibilityAdapter: semantics}
+    Goo.Widgets.Theme.Attach(window)
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 12)
+        let heading = FeedbackNode(semantics, AccessibilityRole.Heading, "December 2026").Bounds
+        let weekday = FeedbackNode(semantics, AccessibilityRole.ColumnHeader, "Sunday").Bounds
+        let image = ThemeCapture(window)
+        for y in int32(weekday.Y) ... int32(weekday.Y + weekday.Height) {
+            for x in int32(heading.X) ... int32(heading.X + heading.Width) {
+                Require(!ThemePoint(image, window, float64(x), float64(y), headingColor),
+                    "Calendar month heading painted over the weekday row at its default width")
+            }
+        }
+    })
+}
+
 internal class CalendarHost : Cell {
     internal let PickerSource ElementHandle = ElementHandle()
     internal let CalendarHandle ElementHandle = ElementHandle()
@@ -302,6 +332,7 @@ func PickerDraft(window Window, id uint32, host CalendarHost, value string) {
 }
 
 func CalendarInteractions() {
+    CalendarHeadingLayoutContract()
     TimePickerInteractions()
     RunContracts(CalendarContracts)
     let host = CalendarHost()

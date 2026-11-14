@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: Calendar month headings grow vertically when they wrap, so they no longer overlap the weekday row at the default width.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
