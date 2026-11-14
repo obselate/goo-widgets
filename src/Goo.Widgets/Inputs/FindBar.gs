@@ -77,7 +77,7 @@ public data struct FindBar {
             KeyBindings: state.Bindings,
             Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Find and replace")},
             Row(
-                state.QueryField!!,
+                state.QueryLayout!!,
                 Container{
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
@@ -103,16 +103,18 @@ public data struct FindBar {
         if let replacement = Replacement {
             root.Children.Add(
                 Row(
-                    TextField{
-                        Value: replacement,
-                        Controlled: true,
-                        Placeholder: theme.Text("Replace"),
-                        AccessibilityName: theme.Text("Replacement"),
-                        Width: Percent(100),
-                        Disabled: Disabled,
-                        OnChange: OnReplacementChange,
-                        EntryKeyBindings: state.Bindings,
-                    }.Build(),
+                    Container{FlexGrow: 1, FlexBasis: size * 6, MinWidth: 0,
+                        TextField{
+                            Value: replacement,
+                            Controlled: true,
+                            Placeholder: theme.Text("Replace"),
+                            AccessibilityName: theme.Text("Replacement"),
+                            Width: Percent(100),
+                            Disabled: Disabled,
+                            OnChange: OnReplacementChange,
+                            EntryKeyBindings: state.Bindings,
+                        }.Build()
+                    },
                     Container{
                         FlexDirection: FlexDirection.Row,
                         MinWidth: size * 5.0,
@@ -130,7 +132,7 @@ public data struct FindBar {
         FlexWrap: FlexWrap.Wrap,
         AlignItems: AlignItems.FlexStart,
         Gap: Theme.Read().ControlGap / 2.0,
-        Container{FlexGrow: 1, FlexBasis: Theme.Read().ControlHeight * 6.0, MinWidth: 0, field},
+        field,
         actions,
     }
 
@@ -148,6 +150,7 @@ internal class FindBarState : Cell[FindBar] {
     internal let Close Action
     internal let Bindings[]KeyBinding
     internal var QueryField Blob?
+    internal var QueryLayout Container?
     internal var PreviousButton Blob?
     internal var NextButton Blob?
     internal var CloseButton Blob?
@@ -184,6 +187,7 @@ internal class FindBarState : Cell[FindBar] {
     protected override func Build(input FindBar) Blob {
         let previousReady = Ready()
         let previous = current
+        let previousField = QueryField
         current = input
         let nextSize = Theme.Read().ControlHeight
         if QueryField == nil || previous.Query != input.Query || previous.Options != input.Options
@@ -197,6 +201,9 @@ internal class FindBarState : Cell[FindBar] {
                 },
                 Bindings: Bindings,
             })
+        }
+        if QueryLayout == nil || QueryField != previousField || size != nextSize {
+            QueryLayout = Container{FlexGrow: 1, FlexBasis: nextSize * 6, MinWidth: 0, QueryField!!}
         }
         if NextButton == nil || previousReady != Ready() || size != nextSize {
             PreviousButton = input.Icon("Previous", ControlIcon.ArrowUpward, nextSize, !Ready(), Previous)
