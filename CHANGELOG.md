@@ -8,7 +8,7 @@
 - `FormField` uses Goo accessibility attachments without editing supplied controls. `HoverCard` keeps target handles unchanged. Shape interaction styles omit invalid legacy box paint.
 - Touch editing rebuilds a retained overlay without changing mounted content or editor declarations.
 - `TextField` and `TextArea` configure their outer root before mounting touch editing, so callbacks created by `ConfigureRoot` keep the configuring Cell as their owner. The touch region fills the root content box. Root padding is outside that region.
-- `DataGrid` assigns editor handles before touch composition and keeps validation relationships on single-line and multiline editors.
+- `DataGrid` assigns editor handles before touch composition and keeps validation relationships on single-line and multiline editors. Column resizing includes movement in the drag-start sample.
 - `NavigationRail` tints a fresh shape declaration and keeps supplied item icons unchanged.
 - Remove `Avatar.ImagePath` and `AsyncImage.ImagePath`. Supply an owned `ImageSource` provider. Retain an `AsyncImageSource` over `ImageSourceCache.LoadAsync` to load a path.
 - Clickable `AvatarGroup` avatars and read-only `CodeBlock` code areas show keyboard focus on the actual focus target.

@@ -94,7 +94,7 @@ public open partial class DataGrid {
                 return
             }
             resizeId = id
-            origin = e.WindowPosition.X
+            origin = e.WindowPosition.X - e.Translation.X
             originWidth = widths[index]
             lastWidth = originWidth
             resizeWidths = [columns.Length]float64
@@ -103,6 +103,7 @@ public open partial class DataGrid {
             }
             lastFittedWidths = nil
             Handle(resizeHandles, id).Focus()
+            RequestWidth(id, originWidth + e.Translation.X, false, resizeWidths)
         } else if e.Phase == GesturePhase.Changed && resizeId != nil {
             RequestWidth(resizeId!!, originWidth + e.WindowPosition.X - origin, false, resizeWidths)
         } else if e.Phase == GesturePhase.Completed || e.Phase == GesturePhase.Canceled {
