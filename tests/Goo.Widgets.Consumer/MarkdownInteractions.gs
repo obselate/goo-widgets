@@ -77,6 +77,7 @@ internal class MarkdownHost : Cell {
     internal var BlockCalls int32
     internal let Before ElementHandle = ElementHandle()
     internal let Editors Dictionary[string, TextEditor] = Dictionary[string, TextEditor](StringComparer.Ordinal)
+    internal let Blocks Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     internal var Headings IReadOnlyList[MarkdownHeading] = []MarkdownHeading{}
     internal var HeadingCalls int32
     internal var Links int32
@@ -102,6 +103,13 @@ internal class MarkdownHost : Cell {
 
     private func Block(block MarkdownBlock, prepared Blob) {
         BlockCalls++
+        if block.Id == "deployment-notes" || block.Id == "root/1" {
+            prepared.Padding = 8.0
+            prepared.BackgroundColor = Color.Parse("#312e81")
+            let handle = ElementHandle()
+            prepared.Handle = handle
+            Blocks[block.Id!!] = handle
+        }
         if block.Kind == MarkdownBlockKind.List {
             ((prepared as Container)!!.Children[0] as Container)!!.Children[0].Handle = Marker
         }
@@ -220,6 +228,22 @@ func MarkdownInteractions() {
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 25)
+        let configured = ThemeCapture(window)
+        for id in []string{"deployment-notes", "root/1"} {
+            let block = host.Blocks[id]
+            Require(block.IsMounted, "Markdown ConfigureBlock did not configure a mounted block")
+            let box = block.BorderBox
+            let text = host.Editors[id].Handle!!.BorderBox
+            Require(
+                Math.Abs(text.X - box.X - 8.0) < .5 && Math.Abs(text.Y - box.Y - 8.0) < .5 &&
+                Math.Abs(box.Height - text.Height - 16.0) < .5,
+                "Markdown ConfigureBlock padding did not inset the text"
+            )
+            Require(
+                ThemePoint(configured, window, box.X + 4.0, box.Y + 4.0, Color.Parse("#312e81")),
+                "Markdown ConfigureBlock background did not paint"
+            )
+        }
         let caption = host.LinkCaption!!
         Require(
             caption.Handle!!.IsMounted &&
