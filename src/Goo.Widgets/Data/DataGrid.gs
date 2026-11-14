@@ -678,11 +678,11 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             Container{
                 OverflowY: Overflow.Scroll,
                 Container{
-                    Width: tableWidth,
+                    Width: Math.Max(tableWidth, available - verticalGutter),
                     FlexGrow: 1,
                     MinHeight: 0,
                     Container{
-                        Width: Math.Max(0, Math.Min(tableWidth, available - verticalGutter)),
+                        Width: Math.Max(0, available - verticalGutter),
                         FlexGrow: 1,
                         Transform: PanelTransform{TranslateX: horizontalOffset},
                         AlignItems: AlignItems.Center,

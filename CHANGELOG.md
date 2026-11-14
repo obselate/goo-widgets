@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: DataGrid empty-state content fills the viewport even when no columns exist or their total width is smaller than the viewport.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 
 ## 0.22.1 - 2026-11-14
