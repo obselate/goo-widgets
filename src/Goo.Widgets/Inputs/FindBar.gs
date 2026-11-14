@@ -75,7 +75,7 @@ public data struct FindBar {
             BorderColor: theme.BorderColor,
             BorderRadius: theme.ControlRadius!!,
             KeyBindings: state.Bindings,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Find and replace")},
+            Accessibility: state.GroupAccessibility,
             Row(
                 state.QueryLayout!!,
                 Container{
@@ -151,6 +151,7 @@ internal class FindBarState : Cell[FindBar] {
     internal let Bindings[]KeyBinding
     internal var QueryField Blob?
     internal var QueryLayout Container?
+    internal var GroupAccessibility Accessibility?
     internal var PreviousButton Blob?
     internal var NextButton Blob?
     internal var CloseButton Blob?
@@ -189,7 +190,12 @@ internal class FindBarState : Cell[FindBar] {
         let previous = current
         let previousField = QueryField
         current = input
-        let nextSize = Theme.Read().ControlHeight
+        let theme = Theme.Read()
+        let groupName = theme.Text("Find and replace")
+        if GroupAccessibility?.Name != groupName {
+            GroupAccessibility = Accessibility{Role: AccessibilityRole.Group, Name: groupName}
+        }
+        let nextSize = theme.ControlHeight
         if QueryField == nil || previous.Query != input.Query || previous.Options != input.Options
         || previous.Error != input.Error || previous.Disabled != input.Disabled
         || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange

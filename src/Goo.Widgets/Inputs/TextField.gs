@@ -204,6 +204,7 @@ public data struct TextField {
                 Height: resolved.EntryHeight!!,
                 Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
                 BackgroundColor: resolved.BackgroundColor!!,
+                BoxShadows: resolved.Disabled ? []BoxShadow{}: theme.FieldShadows,
                 Color: resolved.TextColor!!,
                 SelectionColor: theme.AccentColor.WithAlpha(0.35),
                 Cursor: Cursor.Text,
@@ -447,7 +448,6 @@ public data struct TextField {
             interactionTheme.ApplyInteraction(frame, InteractionFamily.Field)
             root.Children.Add(frame)
         } else {
-            entry!!.BoxShadows = resolved.Disabled ? []BoxShadow{}: theme.FieldShadows
             root.Children.Add(entry!!)
         }
         interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)

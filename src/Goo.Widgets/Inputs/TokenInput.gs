@@ -117,6 +117,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                     entry.Height = props.EntryHeight!!
                     entry.Padding = 4
                     entry.BorderRadius = 0
+                    entry.BoxShadows = []BoxShadow{}
                     entry.BackgroundColor = Color.Transparent
                     entry.Color = theme.TextColor
                     entry.FontFamily = theme.FontFamily
