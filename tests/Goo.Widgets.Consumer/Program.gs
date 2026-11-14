@@ -389,6 +389,11 @@ func Main() {
         ChromeInteractions()
         return
     }
+    if Environment.GetEnvironmentVariable("GOO_WIDGETS_MARKDOWN_CONTRACTS") == "1" {
+        RunContracts(MarkdownContracts)
+        Console.WriteLine("PASS: Markdown contracts, including unterminated code fences.")
+        return
+    }
     if Environment.GetEnvironmentVariable("GOO_WIDGETS_MARKDOWN") == "1" {
         MarkdownInteractions()
         return
