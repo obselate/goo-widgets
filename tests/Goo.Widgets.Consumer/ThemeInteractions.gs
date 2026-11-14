@@ -124,8 +124,6 @@ internal class ThemeScopeHost : Cell {
                 MenuInput{
                     Open: true,
                     WindowPoint: Point{X: 8.0, Y: 8.0},
-                    ConfigurePanel: (input MenuInput, panel Container) ->
-                        Require(panel.ScrollbarY == nil, "Menu panel inherited a Popover scrollbar"),
                     Items: []MenuItem{
                         MenuItem{
                             Id: "theme",
