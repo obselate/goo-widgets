@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.22.1 - 2026-11-14
+
+- Fixed: clamp the wrapped `VirtualItems` range when a grid scrolled to the end gains columns, so widening the grid no longer throws `ArgumentOutOfRangeException`.
+
 ## 0.22.0 - 2026-11-14
 
 - Requires the published Goo 0.31.0 package from NuGet.org.

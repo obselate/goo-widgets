@@ -49,7 +49,7 @@
       "goo.widgets.markdown": {
         "type": "Project",
         "dependencies": {
-          "Goo.Widgets": "[0.22.0, )",
+          "Goo.Widgets": "[0.22.1, )",
           "Markdig": "[1.6.0, )"
         }
       }
