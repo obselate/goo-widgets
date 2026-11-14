@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// A controlled radio choice. RadioGroup owns selection and navigation for grouped choices.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct RadioButton {
     /// Controlled checked value. False means unchecked.
     var Value bool
@@ -22,8 +23,9 @@ public data struct RadioButton {
     var Disabled bool
     /// Accessible name. Nil uses Label or the localized default.
     var AccessibilityName string?
-    /// Receives this descriptor and the prepared button. Required radio semantics are applied afterward.
-    var CreateRoot Func[RadioButton, Button, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[RadioButton, Button]?
 
     /// Builds one focusable radio choice. Activation never clears a checked value.
     public func Build() Blob {
@@ -100,11 +102,9 @@ public data struct RadioButton {
             button.PaddingStart = theme.Spacing * 2.0
             button.PaddingEnd = theme.Spacing * 2.0
         }
-        if let create = CreateRoot {
-            button = create(this, button)
-        }
+        ConfigureRoot?.Invoke(this, button)
         theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && Card)
-        if !Card && CreateRoot == nil {
+        if !Card && ConfigureRoot == nil {
             button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineOffset: -theme.FocusRingWidth}
         }
         button.Disabled = !enabled
@@ -121,7 +121,7 @@ public data struct RadioButton {
             Description: Description ?? "",
             Checked: selected ? AccessibilityChecked.True: AccessibilityChecked.False,
         }
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 }

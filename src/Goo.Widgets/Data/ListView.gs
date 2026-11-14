@@ -8,6 +8,7 @@ import System
 import System.Collections.Generic
 
 /// A selectable row with a stable identity and optional content slots.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct ListViewItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
@@ -71,12 +72,12 @@ public data struct ListViewInput {
     var RowHeight float64?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
-    /// Receives the input, row item, and prepared row, and returns its replacement. Identity, row height, input routing, disabled state, and semantics are reapplied. Nil keeps the default row.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[ListViewInput, ListViewItem, Container, Container]?
-    /// Receives the input and prepared root, and returns its replacement. Identity, focus, handlers, children, and list semantics are reapplied. Nil keeps the default root.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ListViewInput, Container, Container]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRow Action[ListViewInput, ListViewItem, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[ListViewInput, Container]?
 }
 
 internal data struct ListViewEntry {
@@ -212,9 +213,7 @@ public open class ListView : Cell[ListViewInput] {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Handle = rootHandle
         root.Focusable = !input.Disabled
         root.Disabled = input.Disabled
@@ -348,9 +347,7 @@ public open class ListView : Cell[ListViewInput] {
                 PaddingVertical: 0
             }.Build() as Container
         )!!
-        if let create = snapshot.CreateRow {
-            root = create(snapshot, item, root)
-        }
+        snapshot.ConfigureRow?.Invoke(snapshot, item, root)
         root.Handle = Handle(id)
         root.Height = snapshot.RowHeight!!
         root.Focusable = false

@@ -27,6 +27,7 @@ public enum TabPlacement {
 }
 
 /// Controlled peer navigation. The host owns panel content and lifetime.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TabBarInput {
     /// Ordered entries with unique, nonempty IDs. Nil resolves to an empty list.
     var Items[]?NavigationItem
@@ -66,12 +67,12 @@ public data struct TabBarInput {
     var Height Length?
     /// Minimum tab height. Nil uses the theme's control height.
     var ItemHeight float64?
-    /// Customizes item appearance; required identity, focus, handlers, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[TabBarInput, NavigationItem, Button, Button]?
-    /// Customizes root appearance. Ordered children and tab-list semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TabBarInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureItem Action[TabBarInput, NavigationItem, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[TabBarInput, Container]?
 }
 
 /// Tabs with one Tab stop and disabled-aware arrow navigation. With OverflowMenu, horizontal tabs show only whole tabs.
@@ -164,9 +165,7 @@ public open class TabBar : Cell[TabBarInput] {
                     FontWeight: theme.LabelFontWeight,
                 },
             }
-            if let create = input.CreateItem {
-                button = create(input, item, button)
-            }
+            input.ConfigureItem?.Invoke(input, item, button)
             theme.ApplyInteraction(button, InteractionFamily.Tab, active)
             button.Key = id
             button.Handle = handles[id]
@@ -174,7 +173,7 @@ public open class TabBar : Cell[TabBarInput] {
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
-            WidgetKeyBindings.BindActivation(button)
+            WidgetKeyBindings.BindOwnedActivation(button)
             button.OnFocus = (e FocusEvent) -> {
                 focusedId = id
                 hasFocus = true
@@ -270,7 +269,7 @@ public open class TabBar : Cell[TabBarInput] {
                     Text{Content: "×", FontSize: theme.FontSize},
                 }
                 theme.ApplyInteraction(close, InteractionFamily.Button)
-                WidgetKeyBindings.BindActivation(close)
+                WidgetKeyBindings.BindOwnedActivation(close)
                 tab.Children.Add(close)
                 if let marker = indicator {
                     tab.Children.Add(marker)
@@ -290,9 +289,7 @@ public open class TabBar : Cell[TabBarInput] {
             BackgroundColor: theme.ChromeColor,
             ScrollbarX: theme.Scrollbar,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Direction = theme.Direction
         root.FlexDirection = input.Vertical ? FlexDirection.Column: FlexDirection.Row
         root.OverflowX = input.Vertical || input.OverflowMenu ? Overflow.Hidden: Overflow.Scroll

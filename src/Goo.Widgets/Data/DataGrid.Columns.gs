@@ -376,7 +376,7 @@ public open partial class DataGrid {
                     sort.PointerDragThreshold = 8
                     sort.PointerDragAxis = LayoutAxis.Horizontal
                 }
-                WidgetKeyBindings.BindActivation(sort)
+                WidgetKeyBindings.BindOwnedActivation(sort)
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && CanResize(index) {
                     var handle = Container{
@@ -387,9 +387,7 @@ public open partial class DataGrid {
                         FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                         BasedOn: snapshot.ResizeHandleStyle
                     }
-                    if let create = snapshot.CreateResizeHandle {
-                        handle = create(snapshot, column, handle)
-                    }
+                    snapshot.ConfigureResizeHandle?.Invoke(snapshot, column, handle)
                     handle.Key = "resize"
                     handle.Handle = Handle(resizeHandles, id)
                     handle.Position = PositionType.Absolute

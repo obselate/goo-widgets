@@ -7,6 +7,7 @@ import System.Collections.Generic
 import System.Globalization
 
 /// An identified interval on a TimeAxis. Times are compared as absolute instants.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TimeAxisEvent {
     /// Required unique identity.
     var Id string?
@@ -109,21 +110,21 @@ public data struct TimeAxisInput {
     var Height Length?
     /// Accessible group name. Nil resolves to Timeline.
     var AccessibilityName string?
-    /// Customizes a ruler tick; identity and logical position are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateTick Func[TimeAxisInput, TimeAxisTick, Container, Container]?
-    /// Customizes the marker; identity, position, and decorative semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateMarker Func[TimeAxisInput, Container, Container]?
-    /// Customizes an event; placement, identity, selection, activation, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateEvent Func[TimeAxisInput, TimeAxisPlacement, Button, Button]?
-    /// Customizes the chronological collapsed-event summary; wiring and placement are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateOverflow Func[TimeAxisInput, []TimeAxisEvent, Button, Button]?
-    /// Customizes the scroll viewport; handle, scrolling, semantics, and canvas are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TimeAxisInput, Container, Container]?
+    /// Configures the fresh tick before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureTick Action[TimeAxisInput, TimeAxisTick, Container]?
+    /// Configures the fresh marker before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureMarker Action[TimeAxisInput, Container]?
+    /// Configures the fresh event before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEvent Action[TimeAxisInput, TimeAxisPlacement, Button]?
+    /// Configures the fresh overflow before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureOverflow Action[TimeAxisInput, []TimeAxisEvent, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[TimeAxisInput, Container]?
 }
 
 /// A mounted horizontal time axis with deterministic collision lanes and initial viewport placement.
@@ -263,9 +264,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                     TextWrap: TextWrap.NoWrap
                 }
             }
-            if let create = input.CreateTick {
-                blob = create(input, tick, blob)
-            }
+            input.ConfigureTick?.Invoke(input, tick, blob)
             blob.Key = "tick:" + index.ToString()
             blob.Position = PositionType.Absolute
             blob.Left = tick.X
@@ -301,15 +300,13 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             if placement.Width < 40.0 {
                 blob.Children.Clear()
             }
-            if let create = input.CreateEvent {
-                blob = create(input, placement, blob)
-            }
+            input.ConfigureEvent?.Invoke(input, placement, blob)
             theme.ApplyInteraction(blob, InteractionFamily.Button, selected)
             blob.Key = "event:" + item.Id!!
             Place(blob, placement.X, 30.0 + float64(placement.Lane) * (height + gap), placement.Width, height)
             blob.Focusable = input.OnSelect != nil
             blob.OnClick = input.OnSelect == nil ? nil: () -> InvokeInputCallback(input.OnSelect, item.Id!!)
-            WidgetKeyBindings.BindActivation(blob)
+            WidgetKeyBindings.BindOwnedActivation(blob)
             blob.Accessibility = Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: EventName(item, theme.Locale),
@@ -341,15 +338,13 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                     TextWrap: TextWrap.NoWrap,
                 }
             }
-            if let create = input.CreateOverflow {
-                blob = create(input, hidden, blob)
-            }
+            input.ConfigureOverflow?.Invoke(input, hidden, blob)
             theme.ApplyInteraction(blob, InteractionFamily.Button)
             blob.Key = "overflow"
             Place(blob, left, 30.0 + float64(ends.Count) * (height + gap), right - left, height)
             blob.Focusable = input.OnOverflow != nil
             blob.OnClick = input.OnOverflow == nil ? nil: () -> InvokeInputCallback(input.OnOverflow, hidden)
-            WidgetKeyBindings.BindActivation(blob)
+            WidgetKeyBindings.BindOwnedActivation(blob)
             let names = List[string]()
             for item in hidden {
                 names.Add(EventName(item, theme.Locale))
@@ -380,9 +375,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
                         TextWrap: TextWrap.NoWrap
                     }
                 }
-                if let create = input.CreateMarker {
-                    marker = create(input, marker)
-                }
+                input.ConfigureMarker?.Invoke(input, marker)
                 marker.Key = "marker"
                 marker.Position = PositionType.Absolute
                 marker.Left = X(time)
@@ -405,9 +398,7 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
             FocusStyle: theme.FocusStyle,
             ScrollbarX: theme.Scrollbar,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Handle = viewport
         root.OverflowX = Overflow.Scroll
         root.OverflowY = Overflow.Hidden

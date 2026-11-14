@@ -142,10 +142,9 @@ internal class ThemeScopeHost : Cell {
                 TextAreaInput{
                     Value: "Appearance editing",
                     MinimumRows: 1,
-                    CreateEditor: (input TextAreaInput, editor TextEditor) -> {
+                    ConfigureEditor: (input TextAreaInput, editor TextEditor) -> {
                         Editor = editor
-                        return editor
-                    },
+                        },
                 }
             ),
         }
@@ -177,10 +176,9 @@ internal class ThemeFocusHost : Cell {
                 Container{Handle: ActionHandle, Action},
                 Cell.Mount[TabBarInput, TabBar]("tabs", TabBarInput{
                     Items: []NavigationItem{NavigationItem{Id: "one", Label: "Focus tab"}},
-                    CreateItem: (input TabBarInput, item NavigationItem, button Button) -> {
+                    ConfigureItem: (input TabBarInput, item NavigationItem, button Button) -> {
                         Tab = button
-                        return button
-                    },
+                        },
                 }),
                 Cell.Mount[DataGridInput, DataGrid]("grid", DataGridInput{
                     Columns: []DataGridColumn{
@@ -191,14 +189,12 @@ internal class ThemeFocusHost : Cell {
                     ActiveRowId: "one",
                     Height: 120,
                     OnSort: (id string, direction DataGridSort) -> { },
-                    CreateRoot: (input DataGridInput, root Container) -> {
+                    ConfigureRoot: (input DataGridInput, root Container) -> {
                         GridRoot = root
-                        return root
-                    },
-                    CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+                        },
+                    ConfigureRow: (input DataGridInput, row DataGridRow, root Container) -> {
                         GridRow = root
-                        return root
-                    },
+                        },
                 }),
             }
         },
@@ -1012,13 +1008,14 @@ internal class ThemeDensityHost : Cell {
             button.Handle = ButtonHandle
             let icon = IconButton{
                 AccessibilityName: "No authored ring",
-                CreateRoot: (input IconButton, content Blob) -> Button{
-                    Width: input.Width!!,
-                    Height: input.Height!!,
-                    Padding: 0.0,
-                    BackgroundColor: Color.Transparent,
-                    FocusStyle: Style{OutlineWidth: 0.0},
-                    content,
+                ConfigureRoot: (input IconButton, content Blob, prepared Button) -> {
+                    prepared.Width = input.Width!!
+                    prepared.Height = input.Height!!
+                    prepared.Padding = 0.0
+                    prepared.BackgroundColor = Color.Transparent
+                    prepared.FocusStyle = Style{OutlineWidth: 0.0}
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
                 },
             }.Build()
             icon.Handle = IconHandle

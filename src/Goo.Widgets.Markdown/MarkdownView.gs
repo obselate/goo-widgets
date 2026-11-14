@@ -94,9 +94,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         var root = Column(state.Virtualized ? 0.0: current.BlockGap!!)
         root.Width = input.Width ?? Percent(100)
         root.Height = input.Height ?? Length.Auto
-        if let create = input.CreateRoot {
-            root = create(current, root)
-        }
+        input.ConfigureRoot?.Invoke(current, root)
         root.Children.Clear()
         if state.Virtualized {
             let rows = VirtualRows(models, current.FontSize * theme.LineHeight, BlockKey, buildRow!!, version: 0)
@@ -189,9 +187,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             }
             content = box
         }
-        if let create = current.CreateBlock {
-            content = create(info, content)
-        }
+        current.ConfigureBlock?.Invoke(info, content)
         let root = Container{Key: model.Key == "" ? info.Id: model.Key, MinWidth: 0.0, FlexShrink: 0.0, content}
         if info.Kind == MarkdownBlockKind.Heading {
             root.Handle = state.Headings[info.Id!!].Handle
@@ -303,9 +299,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 line.Children.Add(box)
             }
             var rowContent Blob = line
-            if let create = current.CreateBlock {
-                rowContent = create(row.Block, rowContent)
-            }
+            current.ConfigureBlock?.Invoke(row.Block, rowContent)
             rowContent.Key = row.Block.Id
             rowContent.Accessibility = Accessibility{Role: AccessibilityRole.Row}
             table.Children.Add(rowContent)

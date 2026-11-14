@@ -90,15 +90,14 @@ internal class DisclosureHost : Cell {
                 Rebuild()
             },
             CreateIndicator: MakeIndicator,
-            CreateHeader: (headerProps Disclosure, header Button) -> {
+            ConfigureHeader: (headerProps Disclosure, header Button) -> {
                 Require(
                     headerProps.HeaderPadding == 0.0 && headerProps.BackgroundColor != nil,
                     "Disclosure header factory did not receive resolved props or preserve explicit zero."
                 )
                 header.Handle = HeaderHandle
                 Header = header
-                return header
-            },
+                },
             CreateContent: MakeBody,
             CreateRoot: MakeRoot,
         }

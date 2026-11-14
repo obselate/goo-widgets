@@ -39,6 +39,7 @@ public data struct ToastInput {
     var OnOpenChange Action[bool]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[ToastInput, Container, Container]?
 }
 
@@ -241,6 +242,7 @@ public data struct ToastHostInput {
     var Width Length?
     /// Receives the host input, toast input, and prepared container, and returns its replacement. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateToast Func[ToastHostInput, ToastInput, Container, Container]?
 }
 

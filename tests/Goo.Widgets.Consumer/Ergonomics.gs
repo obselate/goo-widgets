@@ -273,7 +273,7 @@ internal class TextFieldSemanticHost : Cell {
         AccessibilityName: "Name entry",
         Description: "Enter your name",
         Error: "Required",
-        CreateEntry: Custom ? (input TextField) -> TextEntry{}: nil
+        ConfigureEntry: Custom ? (input TextField, entry TextEntry) -> { }: nil
     }.Build()
 }
 

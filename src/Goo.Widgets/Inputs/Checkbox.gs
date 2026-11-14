@@ -5,6 +5,7 @@ import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct Checkbox {
     /// Current checkbox state. Unspecified resolves to false.
     var Value AccessibilityChecked
@@ -62,13 +63,14 @@ public data struct Checkbox {
     var TransitionMs float64?
     /// Transition easing. Nil resolves to EaseOut.
     var TransitionEasing Easing?
-    /// Creates the final button from resolved values and selected content, replacing the default root composition.
-    var CreateRoot Func[Checkbox, Blob?, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[Checkbox, Blob?, Button]?
 
     /// Builds a fresh Goo checkbox button or labeled interactive row.
     public func Build() Blob {
         let theme = Theme.Read()
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let onChange = OnChange
         let state = if Value == AccessibilityChecked.Unspecified {
             AccessibilityChecked.False
@@ -97,7 +99,7 @@ public data struct Checkbox {
             MarkSize = MarkSize ?? theme.Spacing * 3.5,
             TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
         var content Blob? = UncheckedContent
@@ -128,7 +130,7 @@ public data struct Checkbox {
                 onClick = () -> onChange(next)
             }
         }
-        let root = if let createRoot = createRoot { createRoot(resolved, content) } else {
+        let root = {
             let markBox = Container{
                 Width: resolved.Size!!,
                 Height: resolved.Size!!,
@@ -182,15 +184,16 @@ public data struct Checkbox {
             }
             button
         }
+        configureRoot?.Invoke(resolved, content, root)
         theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)
-        if Label != nil && !Card && createRoot == nil {
+        if Label != nil && !Card && configureRoot == nil {
             root.FocusStyle = Style{BasedOn: root.FocusStyle, OutlineOffset: -theme.FocusRingWidth}
         }
         root.Disabled = Disabled
         root.Focusable = !Disabled
         root.OnClick = onClick
         root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Checked: state, Description: resolved.Description ?? ""}
-        WidgetKeyBindings.BindActivation(root)
+        WidgetKeyBindings.BindOwnedActivation(root)
         return root
     }
 }

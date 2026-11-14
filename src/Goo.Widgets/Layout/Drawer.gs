@@ -49,6 +49,7 @@ public data struct Drawer {
     /// Closed transform. Nil slides out without scaling.
     var ClosedTransform PanelTransform?
     /// Custom factory for the root Container. Receives resolved props and caller Content.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Drawer, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.
@@ -145,7 +146,7 @@ public data struct Drawer {
                     BorderRadius: 0.0,
                     Content: root,
                     Footer: Container{},
-                    CreateRoot: (dialog, backdrop, panel) -> {
+                    ConfigureRoot: (dialog, backdrop, panel, prepared Container) -> {
                         panel.Position = PositionType.Absolute
                         panel.Top = 0.0
                         panel.Width = resolved.Width!!
@@ -155,18 +156,17 @@ public data struct Drawer {
                         } else {
                             panel.Start = 0.0
                         }
-                        return Container{
-                            Position: PositionType.Absolute,
-                            Left: 0.0,
-                            Right: 0.0,
-                            Top: 0.0,
-                            Bottom: 0.0,
-                            Direction: theme.Direction,
-                            ZIndex: dialog.ZIndex,
-                            backdrop,
-                            panel,
-                        }
-                    },
+                                            prepared.Position = PositionType.Absolute
+                    prepared.Left = 0.0
+                    prepared.Right = 0.0
+                    prepared.Top = 0.0
+                    prepared.Bottom = 0.0
+                    prepared.Direction = theme.Direction
+                    prepared.ZIndex = dialog.ZIndex
+                    prepared.Children.Clear()
+                    prepared.Children.Add(backdrop)
+                    prepared.Children.Add(panel)
+},
                 }
             )
         }

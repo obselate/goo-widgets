@@ -8,6 +8,7 @@ import System
 import System.Collections.Generic
 
 /// A host-owned tree node. IDs are unique across the entire hierarchy, including collapsed descendants.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TreeNode {
     /// Required stable identity.
     var Id string?
@@ -107,19 +108,20 @@ public data struct TreeViewInput {
     var SelectedColor Color?
     /// Customizes content in the standard row slots.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[TreeViewInput, TreeViewRow, Blob, Blob]?
-    /// Customizes the expansion button; required identity and input wiring are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateExpander Func[TreeViewInput, TreeViewRow, Button, Button]?
-    /// Customizes the composed Checkbox button; required identity and input wiring are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateCheck Func[TreeViewInput, TreeViewRow, Button, Button]?
-    /// Standard slots are added before this factory. Custom children are kept; identity, input, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[TreeViewInput, TreeViewRow, Container, Container]?
-    /// Customizes root appearance; viewport, focus, and tree semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TreeViewInput, Container, Container]?
+    /// Configures the fresh expander before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureExpander Action[TreeViewInput, TreeViewRow, Button]?
+    /// Configures the fresh check before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureCheck Action[TreeViewInput, TreeViewRow, Button]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRow Action[TreeViewInput, TreeViewRow, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[TreeViewInput, Container]?
 }
 
 internal data struct TreeWalk {
@@ -340,9 +342,7 @@ public open class TreeView : Cell[TreeViewInput] {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Handle = rootHandle
         root.Direction = theme.Direction
         root.Focusable = !input.Disabled
@@ -562,9 +562,7 @@ public open class TreeView : Cell[TreeViewInput] {
                 Padding: theme.Spacing / 2.0,
                 ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16, snapshot.TextColor)
             }
-            if let create = snapshot.CreateExpander {
-                expander = create(snapshot, row, expander)
-            }
+            snapshot.ConfigureExpander?.Invoke(snapshot, row, expander)
             expander.Key = "expander"
             expander.Focusable = false
             expander.TabStop = false
@@ -591,9 +589,7 @@ public open class TreeView : Cell[TreeViewInput] {
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button
             )!!
-            if let create = snapshot.CreateCheck {
-                check = create(snapshot, row, check)
-            }
+            snapshot.ConfigureCheck?.Invoke(snapshot, row, check)
             check.Key = "check"
             check.Focusable = false
             check.TabStop = false
@@ -640,9 +636,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if row.Selected && theme.Selection == SelectionStyle.Indicator {
             root.Children.Add(theme.SelectionBar())
         }
-        if let create = snapshot.CreateRow {
-            root = create(snapshot, row, root)
-        }
+        snapshot.ConfigureRow?.Invoke(snapshot, row, root)
         theme.ApplyInteraction(root, InteractionFamily.Row, row.Selected)
         root.Key = id
         root.Handle = Handle(id)

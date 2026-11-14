@@ -126,10 +126,10 @@ func PackageComposition() {
         OnClick: () -> { },
         KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, OnPress: () -> customBinding = true},},
     }
-    WidgetKeyBindings.BindActivation(customButton)
+    let activatedButton = WidgetKeyBindings.WithActivation(customButton)
     Require(
         InvokeKeyBinding(customButton, Key.H) && customBinding
-        && HasKeyBinding(customButton, Key.Enter) && HasKeyBinding(customButton, Key.Space, true),
+        && HasKeyBinding(activatedButton, Key.Enter) && HasKeyBinding(activatedButton, Key.Space, true),
         "Activation policy replaced a custom primitive binding."
     )
 
@@ -155,10 +155,8 @@ func PackageComposition() {
         Label: "Name",
         Value: "before",
         OnChange: (value string) -> edited = value,
-        CreateEntry: (resolved TextField) -> {
-            let created = TextEntry{Value: resolved.Value ?? "", OnChange: resolved.OnChange}
-            entry = created
-            return created
+        ConfigureEntry: (resolved TextField, prepared TextEntry) -> {
+            entry = prepared
         },
     }.Build()
     entry!!.OnChange?.Invoke("after")
@@ -282,7 +280,8 @@ func MaterialIconRegressions() {
         },
     }
     for maximized in[]bool{false, true} {
-        let row = ((chrome with{IsMaximized = maximized}).Build() as Container)!!
+        let region = ((chrome with{IsMaximized = maximized}).Build() as Container)!!
+        let row = (region.Children[0] as Container)!!
         for child in row.Children {
             if child is Button {
                 Require(
@@ -479,6 +478,7 @@ func Main() {
     ThemeRadiusContracts()
     SelectedTextContracts()
     TouchEditingOwnership()
+    ReceivedElementContracts()
     NavigationRailOwnership()
     RunContracts(
         () -> {

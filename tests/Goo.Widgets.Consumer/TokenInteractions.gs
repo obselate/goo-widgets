@@ -44,13 +44,12 @@ internal class TokenHost : Cell {
                     Tokens = values
                     Rebuild()
                 },
-                CreateEntry: (input, entry) -> {
+                ConfigureEntry: (input, entry) -> {
                     Entry = entry
                     entry.KeyBindings = []KeyBinding{
                         KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
                     }
-                    return entry
-                },
+                    },
             }
         ),
         Chip{Label: "Removable chip", Invalid: true, OnRemove: () -> Removed++,}.Build(),
@@ -84,10 +83,9 @@ internal class TokenHost : Cell {
                     Selected = values.ToArray()
                     Rebuild()
                 },
-                CreateTrigger: (input, button) -> {
+                ConfigureTrigger: (input, button) -> {
                     Trigger = button
-                    return button
-                },
+                    },
             }
         ),
     }

@@ -62,13 +62,13 @@ internal class TextSurfaceHost : Cell {
             OnClose: () -> Closed++,
             OnReplace: () -> Replaced++,
             OnReplaceAll: () -> ReplacedAll++,
-            CreateEntry: (owner, input) -> TextEntry{
-                Handle: QueryHandle,
-                Value: input.Value ?? "",
-                Controlled: true,
-                OnChange: input.OnChange,
-                Height: 32,
-                Width: Percent(100)
+            ConfigureEntry: (owner, input, entry) -> {
+                entry.Handle = QueryHandle
+                entry.Value = input.Value ?? ""
+                entry.Controlled = true
+                entry.OnChange = input.OnChange
+                entry.Height = 32
+                entry.Width = Percent(100)
             },
         }.Build(),
         Cell.Mount[TextAreaInput, TextArea](
@@ -88,11 +88,10 @@ internal class TextSurfaceHost : Cell {
                 },
                 OnSubmit: value -> Submitted = value,
                 OnCancel: () -> Cancelled = true,
-                CreateEditor: (input, editor) -> {
+                ConfigureEditor: (input, editor) -> {
                     editor.Handle = AreaHandle
                     Area = editor
-                    return editor
-                },
+                    },
             }
         ),
         Cell.Mount[CodeBlockInput, CodeBlock](
@@ -109,12 +108,11 @@ internal class TextSurfaceHost : Cell {
                     Rebuild()
                 },
                 Highlight: Highlighter,
-                CreateEditor: (input, editor) -> {
+                ConfigureEditor: (input, editor) -> {
                     editor.Handle = CodeHandle
                     Code = editor
                     CodeBuilds++
-                    return editor
-                },
+                    },
             }
         ),
     }
@@ -132,10 +130,9 @@ internal class TextSurfaceLongCode : Cell {
             CodeBlockInput{
                 Code: Source,
                 MaxHeight: 240,
-                CreateEditor: (input, editor) -> {
+                ConfigureEditor: (input, editor) -> {
                     editor.Handle = Handle
-                    return editor
-                },
+                    },
             }
         ),
     }

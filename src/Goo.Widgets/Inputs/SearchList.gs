@@ -7,6 +7,7 @@ import System
 import System.Collections.Generic
 
 /// A controlled, searchable virtual list. The host owns the query and selected Id.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct SearchList {
     /// Items with stable, unique identifiers. Nil resolves to an empty list.
     var Items[]?SelectionItem
@@ -46,14 +47,15 @@ public data struct SearchList {
     var ScrollbarY Scrollbar?
     /// Vertical visibility. Nil uses Auto.
     var ScrollbarVisibilityY ScrollbarVisibility?
-    /// Final entry customization. Preserve Value and OnChange for controlled editing.
-    /// Hosts must not change state in this callback.
-    var CreateEntry Func[SearchList, TextEntry, TextEntry]?
-    /// Final row customization. Preserve the supplied action and disabled state.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[SearchList, SelectionItem, Button, Blob]?
+    /// Configures the fresh entry before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEntry Action[SearchList, TextEntry]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRow Action[SearchList, SelectionItem, Button]?
     /// Final root customization. Preserve the virtual viewport dimensions when resizing.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[SearchList, Container, Blob]?
     internal var ItemAt Func[int32, SelectionItem]?
     internal var ItemCount int32
@@ -84,7 +86,7 @@ public data struct SearchList {
         let focus = FocusColor ?? theme.FocusColor
         let selectedId = SelectedId
         let onSelect = Disabled ? nil: OnSelect
-        let createRow = CreateRow
+        let configureRow = ConfigureRow
         let query = Query ?? ""
         let items = Items ?? []SelectionItem{}
         let rowOptions = SearchListRowOptions{
@@ -95,7 +97,7 @@ public data struct SearchList {
             Selection: selection,
             Focus: focus,
             OnSelect: onSelect,
-            CreateRow: createRow,
+            ConfigureRow: configureRow,
             Owner: this,
         }
         let prepared = ItemAt
@@ -126,9 +128,7 @@ public data struct SearchList {
             TransitionProperties: theme.InteractionTransitions,
             Accessibility: Accessibility{Role: AccessibilityRole.TextInput, Name: Placeholder ?? theme.Text("Search")},
         }
-        if let createEntry = CreateEntry {
-            entry = createEntry(this, entry)
-        }
+        ConfigureEntry?.Invoke(this, entry)
         theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Disabled = Disabled
         entry.Focusable = !Disabled
@@ -352,15 +352,13 @@ internal struct SearchListRow : IEquatable[SearchListRow] {
         }
         if Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) { row.Children.Add(theme.SelectionBar()) }
         var result Blob = row
-        if let createRow = options.CreateRow {
-            result = createRow(options.Owner, item, row)
-        }
+        options.ConfigureRow?.Invoke(options.Owner, item, row)
         theme.ApplyInteraction(result, InteractionFamily.Row, Selected)
         result.Disabled = item.Disabled
         result.Focusable = !item.Disabled
         result.OnClick = row.OnClick
         result.Accessibility = row.Accessibility
-        WidgetKeyBindings.BindActivation(result)
+        WidgetKeyBindings.BindOwnedActivation(result)
         return result
     }
 }
@@ -374,14 +372,14 @@ internal class SearchListRowOptions : IEquatable[SearchListRowOptions] {
     internal var Selection Color
     internal var Focus Color
     internal var OnSelect Action[string]?
-    internal var CreateRow Func[SearchList, SelectionItem, Button, Blob]?
+    internal var ConfigureRow Action[SearchList, SelectionItem, Button]?
     internal var Owner SearchList
 
     public func Equals(other SearchListRowOptions?) bool -> other != nil
     && RowHeight == other.RowHeight && sameColor(Background, other.Background)
     && sameColor(Foreground, other.Foreground) && sameColor(Muted, other.Muted)
     && sameColor(Selection, other.Selection) && sameColor(Focus, other.Focus)
-    && Object.Equals(OnSelect, other.OnSelect) && Object.Equals(CreateRow, other.CreateRow) && Owner.Disabled == other.Owner.Disabled
+    && Object.Equals(OnSelect, other.OnSelect) && Object.Equals(ConfigureRow, other.ConfigureRow) && Owner.Disabled == other.Owner.Disabled
 
     private func sameColor(a Color, b Color) bool -> a.R == b.R && a.G == b.G && a.B == b.B && a.A == b.A
 }

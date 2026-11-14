@@ -53,12 +53,15 @@ public data struct GraphCanvasInput {
     var EdgeStyle Style?
     /// Receives the resolved input and node to create its content. Nil uses the node Content.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateNodeContent Func[GraphCanvasInput, GraphNode, Blob]?
     /// Receives the resolved input, node, and prepared interactive card, and returns its replacement.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateNode Func[GraphCanvasInput, GraphNode, Container, Blob]?
     /// Receives the resolved input, edge, and prepared stroke, and returns its replacement.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateEdge Func[GraphCanvasInput, GraphEdge, Container, Blob]?
     /// Receives requested controlled selection updates.
     var OnSelectionChange Action[[]string]?

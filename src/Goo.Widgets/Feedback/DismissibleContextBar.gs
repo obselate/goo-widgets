@@ -4,6 +4,7 @@ import Goo
 import Goo.Widgets
 
 /// A horizontal context bar with caller content, an integrated dismiss button, and customizable factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct DismissibleContextBar {
     /// Hosted content element placed before the dismiss action.
     var Content Blob?
@@ -79,14 +80,16 @@ public data struct DismissibleContextBar {
     var FontFamily string?
     /// Transform applied to the context bar container. Nil resolves to identity.
     var Transform PanelTransform?
-    /// Custom factory for creating the dismiss Button from resolved props.
-    var CreateDismiss Func[DismissibleContextBar, Button]?
+    /// Configures the fresh dismiss before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureDismiss Action[DismissibleContextBar, Button]?
     /// Custom factory for creating the root Container from resolved props, caller Content, and final Button.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[DismissibleContextBar, Blob?, Button, Container]?
 
     /// Builds a fresh Goo context bar element tree after resolving props and factories.
     public func Build() Blob {
-        let createDismiss = CreateDismiss
+        let configureDismiss = ConfigureDismiss
         let createRoot = CreateRoot
         let theme = Theme.Read()
         let dismissText = DismissText ?? theme.Text("Dismiss")
@@ -126,13 +129,11 @@ public data struct DismissibleContextBar {
             DismissFontWeight = DismissFontWeight ?? theme.FontWeight,
             FontFamily = FontFamily ?? theme.FontFamily,
             Transform = Transform ?? PanelTransform{},
-            CreateDismiss = nil,
+            ConfigureDismiss = nil,
             CreateRoot = nil,
         }
         var button Button? = nil
-        if let createDismiss = createDismiss {
-            button = createDismiss(resolved)
-        } else {
+        {
             let label = Text{
                 Content: resolved.DismissText!!,
                 FontFamily: resolved.FontFamily ?? theme.FontFamily,
@@ -164,9 +165,10 @@ public data struct DismissibleContextBar {
                 label,
             }
         }
+        configureDismiss?.Invoke(resolved, button!!)
         theme.ApplyInteraction(button!!, InteractionFamily.Button)
         button!!.Disabled = Disabled
-        WidgetKeyBindings.BindActivation(button!!)
+        WidgetKeyBindings.BindOwnedActivation(button!!)
         if let createRoot = createRoot {
             return createRoot(resolved, Content, button!!)
         }

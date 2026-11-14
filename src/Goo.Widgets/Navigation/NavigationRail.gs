@@ -6,6 +6,7 @@ import System
 import System.Collections.Generic
 
 /// A named, optionally collapsed section in a navigation rail.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct NavigationGroup {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -77,11 +78,12 @@ public data struct NavigationRailInput {
     var Opacity float64?
     /// Rail transform. Nil resolves to identity.
     var Transform PanelTransform?
-    /// Creates an item button; required identity, focus, handlers, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[NavigationRailInput, NavigationItem, Button]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureItem Action[NavigationRailInput, NavigationItem, Button]?
     /// Creates the rail root from resolved values and item buttons.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[NavigationRailInput, []Button, Container]?
 
     internal func Resolve(theme Theme) NavigationRailInput -> this with{
@@ -108,7 +110,7 @@ public data struct NavigationRailInput {
         FontWeight = FontWeight ?? theme.LabelFontWeight,
         Opacity = Opacity ?? 1.0,
         Transform = Transform ?? PanelTransform{},
-        CreateItem = nil,
+        ConfigureItem = nil,
         CreateRoot = nil,
     }
 }
@@ -125,7 +127,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
         let theme = Theme.Read()
         input = value.Resolve(theme)
         let resolved = input
-        let createItem = value.CreateItem
+        let configureItem = value.ConfigureItem
         let createRoot = value.CreateRoot
         items = input.Items!!
         if input.Groups!!.Length > 0 || input.BottomItems!!.Length > 0 {
@@ -173,9 +175,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             let label = source.Label ?? id
             var item = source with{Id = id, Label = label, AccessibilityName = source.AccessibilityName ?? label,}
             var button Button
-            if let createItem = createItem {
-                button = createItem(resolved, item)
-            } else {
+            {
                 let selected = id == resolved.SelectedId
                 button = Button{
                     Width: Percent(100.0),
@@ -266,6 +266,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     }
                 )
             }
+            configureItem?.Invoke(resolved, item, button)
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled
@@ -277,7 +278,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             button.Focusable = !item.Disabled
             button.TabStop = id == tabStop
             button.OnClick = () -> Select(id)
-            WidgetKeyBindings.BindActivation(button)
+            WidgetKeyBindings.BindOwnedActivation(button)
             button.OnFocus = (e FocusEvent) -> {
                 focusedId = id
                 hasFocus = true
@@ -347,7 +348,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Text{Content: resolved.Expanded ? group.Label: collapsed ? "›": "⌄", FontSize: theme.CaptionFontSize},
             }
             theme.ApplyInteraction(heading, InteractionFamily.Row, interactive: input.OnGroupExpandedChange != nil)
-            WidgetKeyBindings.BindActivation(heading)
+            WidgetKeyBindings.BindOwnedActivation(heading)
             root.Children.Add(heading)
             if !collapsed {
                 for item in group.Items ?? []NavigationItem{} {

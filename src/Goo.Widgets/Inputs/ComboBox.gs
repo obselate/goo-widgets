@@ -9,6 +9,7 @@ import System
 import System.Collections.Generic
 
 /// One stable selector option; custom content retains its accessible label.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct ComboBoxOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
@@ -75,24 +76,24 @@ public data struct ComboBoxInput {
     var RowHeight float64?
     /// Layer of the popup while open.
     var ZIndex int32
-    /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateTrigger Func[ComboBoxInput, Button, Button]?
-    /// Replaces the passive expansion indicator; the stable arrow key is reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateArrow Func[ComboBoxInput, Blob, Blob]?
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateSearch Func[ComboBoxInput, TextEntry, TextEntry]?
-    /// Receives the widget input, the option descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[ComboBoxInput, ComboBoxOption, Container, Container]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreatePopup Func[ComboBoxInput, Container, Container]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ComboBoxInput, Container, Container]?
+    /// Configures the fresh trigger before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureTrigger Action[ComboBoxInput, Button]?
+    /// Configures the fresh arrow before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureArrow Action[ComboBoxInput, Blob]?
+    /// Configures the fresh search before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureSearch Action[ComboBoxInput, TextEntry]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRow Action[ComboBoxInput, ComboBoxOption, Container]?
+    /// Configures the fresh popup before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigurePopup Action[ComboBoxInput, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[ComboBoxInput, Container]?
 }
 
 internal data struct ComboBoxRow {
@@ -303,16 +304,14 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        if let create = current.CreateTrigger {
-            button = create(current, button)
-        }
+        current.ConfigureTrigger?.Invoke(current, button)
         theme.ApplyInteraction(button, fluent ? InteractionFamily.Button: InteractionFamily.Field)
         button.Key = "trigger"
         button.Handle = trigger
         button.Disabled = current.Disabled
         button.Focusable = !current.Disabled
         button.OnClick = () -> SetOpen(!isOpen)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         button.OnKeyDown = TriggerKey
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.ComboBox,
@@ -327,9 +326,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Container{Key: "value", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
         )
         var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, theme.MutedTextColor)
-        if let create = current.CreateArrow {
-            arrow = create(current, arrow)
-        }
+        current.ConfigureArrow?.Invoke(current, arrow)
         arrow.Key = "arrow"
         button.Children.Add(arrow)
         var root = Container{
@@ -338,9 +335,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             Overflow: Overflow.Visible,
             LineHeight: theme.LineHeight
         }
-        if let create = current.CreateRoot {
-            root = create(current, root)
-        }
+        current.ConfigureRoot?.Invoke(current, root)
         root.Children.Clear()
         root.Children.Add(button)
         let popupHeight = Math.Min(
@@ -361,7 +356,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             AccessibilityName: current.AccessibilityName,
             InitialFocus: (current.Searchable || current.AllowFreeText) ? searchHandle: listHandle,
             OnDismiss: Dismiss,
-            CreatePanel: PopupPanel,
+            ConfigurePanel: PopupPanel,
             ZIndex: current.ZIndex,
         }
         if isOpen && overlay != nil {
@@ -397,9 +392,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
             }
-            if let create = current.CreateSearch {
-                entry = create(current, entry)
-            }
+            current.ConfigureSearch?.Invoke(current, entry)
             theme.ApplyInteraction(entry, InteractionFamily.Field)
             entry.FocusStyle!!.OutlineOffset = -theme.FocusRingWidth
             entry.Key = "search"
@@ -507,9 +500,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        if let create = row.Input.CreateRow {
-            result = create(row.Input, item, result)
-        }
+        row.Input.ConfigureRow?.Invoke(row.Input, item, result)
         theme.ApplyInteraction(result, InteractionFamily.Row, row.Selected)
         result.Key = id
         result.Handle = Handle(id)
@@ -563,22 +554,16 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         return result
     }
 
-    private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let prepared = Container{
-            BasedOn: theme.OverlayStyle,
-            BackgroundColor: theme.OverlayColor,
-            BorderColor: theme.ControlStroke,
-            BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius!!,
-        }
+    private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob, prepared Container) {
+        prepared.BasedOn = theme.OverlayStyle
+        prepared.BackgroundColor = theme.OverlayColor
+        prepared.BorderColor = theme.ControlStroke
+        prepared.BorderWidth = theme.BorderWidth
+        prepared.BorderRadius = theme.PanelRadius!!
         if current.MatchTriggerWidth != false && trigger.IsMounted {
             prepared.MinWidth = trigger.BorderBox.Width
         }
-        return if let create = current.CreatePopup {
-            create(current, prepared)
-        } else {
-            prepared
-        }
+        current.ConfigurePopup?.Invoke(current, prepared)
     }
 
     private func Handle(id string) ElementHandle {

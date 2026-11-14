@@ -42,8 +42,10 @@ func OverlayContracts() {
                     activations++
                 },
                 ConfirmDisabled: true,
-                CreateConfirm: (input ModalDialog, content Blob) -> Button(){content}
-            }.Build() as Container
+                ConfigureConfirm: (input ModalDialog, content Blob, prepared Button) -> {
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
+                }}.Build() as Container
         )!!
         let panel = (visual.Children[1] as Container)!!
         let actions = (panel.Children[panel.Children.Count - 1] as Container)!!
@@ -155,80 +157,63 @@ internal class OverlayHost : Cell {
         Rebuild()
     }
 
-    private func PanelRoot() Container -> Container{
-        Position: PositionType.Absolute,
-        Left: 0.0,
-        Right: 0.0,
-        Top: 0.0,
-        Bottom: 0.0,
-        AlignItems: AlignItems.Center,
-        JustifyContent: JustifyContent.Center,
-    }
 
-    private func Outer(input ModalDialog, backdrop Button, panel Container) Container {
+
+    private func Outer(input ModalDialog, backdrop Button, panel Container, result Container) {
         OuterBackdrop = backdrop
         backdrop.Handle = ElementHandle()
-        let result = PanelRoot()
         OuterRoot = result
-        return result
     }
 
-    private func Top(input ModalDialog, backdrop Button, panel Container) Container {
-        let result = PanelRoot()
+    private func Top(input ModalDialog, backdrop Button, panel Container, result Container) {
         TopRoot = result
-        return result
     }
 
-    private func Cancel(input ModalDialog, content Blob) Button {
-        let result = Button{
-            Handle: ElementHandle(),
-            Focusable: !EmptyDialog,
-            Padding: 10.0,
-            BackgroundColor: Color.Parse("#27272a"),
-            BorderRadius: 5.0,
-            content
-        }
+    private func Cancel(input ModalDialog, content Blob, result Button) {
+        result.Handle = ElementHandle()
+        result.Focusable = !EmptyDialog
+        result.Padding = 10.0
+        result.BackgroundColor = Color.Parse("#27272a")
+        result.BorderRadius = 5.0
+result.Children.Clear()
+result.Children.Add(content)
         CancelButton = result
-        return result
     }
 
-    private func ConfirmFactory(input ModalDialog, content Blob) Button {
-        let result = Button{
-            Handle: ElementHandle(),
-            Focusable: !EmptyDialog,
-            Padding: 10.0,
-            BackgroundColor: Color.Parse("#6366f1"),
-            BorderRadius: 5.0,
-            content
-        }
+    private func ConfirmFactory(input ModalDialog, content Blob, result Button) {
+        result.Handle = ElementHandle()
+        result.Focusable = !EmptyDialog
+        result.Padding = 10.0
+        result.BackgroundColor = Color.Parse("#6366f1")
+        result.BorderRadius = 5.0
+result.Children.Clear()
+result.Children.Add(content)
         ConfirmButton = result
-        return result
     }
 
-    private func CapturePanel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let result = Container{
-            Padding: 14.0,
-            BackgroundColor: Color.Parse("#1e2130"),
-            BorderWidth: 1.0,
-            BorderColor: Color.Parse("#6366f1"),
-            BorderRadius: 9.0
-        }
+    private func CapturePanel(input PopoverInput, bounds ElementRect, content Blob, result Container) {
+        result.Padding = 14.0
+        result.BackgroundColor = Color.Parse("#1e2130")
+        result.BorderWidth = 1.0
+        result.BorderColor = Color.Parse("#6366f1")
+        result.BorderRadius = 9.0
         PopupPanel = result
-        return result
     }
 
-    private func CapturePopup(input PopoverInput, backdrop Container, panel Container) Container {
-        let result = Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0}
+    private func CapturePopup(input PopoverInput, backdrop Container, panel Container, result Container) {
+        result.Position = PositionType.Absolute
+        result.Left = 0.0
+        result.Right = 0.0
+        result.Top = 0.0
+        result.Bottom = 0.0
         PopupRoot = result
-        return result
     }
 
-    private func MenuRow(input MenuInput, item MenuItem, prepared Button) Button {
+    private func MenuRow(input MenuInput, item MenuItem, prepared Button) {
         MenuRows[item.Id!!] = prepared
         if let color = MenuFocusColor {
             prepared.FocusStyle = Style{Color: color}
         }
-        return prepared
     }
 
     internal func AttachWindow(window Window) {
@@ -359,9 +344,9 @@ internal class OverlayHost : Cell {
                         OnOpenChange: (isOpen bool) -> CloseOuter(),
                         OnCancel: CloseOuter,
                         OnConfirm: Confirm,
-                        CreateRoot: Outer,
-                        CreateCancel: Cancel,
-                        CreateConfirm: ConfirmFactory
+                        ConfigureRoot: Outer,
+                        ConfigureCancel: Cancel,
+                        ConfigureConfirm: ConfirmFactory
                     }
                 )
             )
@@ -377,7 +362,7 @@ internal class OverlayHost : Cell {
                         OnOpenChange: (isOpen bool) -> CloseTop(),
                         OnCancel: CloseTop,
                         OnConfirm: CloseTop,
-                        CreateRoot: Top
+                        ConfigureRoot: Top
                     }
                 )
             )
@@ -402,8 +387,8 @@ internal class OverlayHost : Cell {
             OnOpenChange: PopupOpenChange,
             OnDismiss: PopupDismiss,
             DismissOnOutsideClick: !PassThrough,
-            CreatePanel: CapturePanel,
-            CreateRoot: CapturePopup
+            ConfigurePanel: CapturePanel,
+            ConfigureRoot: CapturePopup
         }
         if PointPopup {
             popup.WindowPoint = PopupPoint
@@ -452,7 +437,7 @@ internal class OverlayHost : Cell {
                     OnClick: MenuActivate,
                     OnOpenChange: (isOpen bool) -> MenuDismiss(),
                     DismissOnActivate: !KeepMenu,
-                    CreateItem: MenuRow
+                    ConfigureItem: MenuRow
                 }
             )
         )

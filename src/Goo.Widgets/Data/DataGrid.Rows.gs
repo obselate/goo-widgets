@@ -251,9 +251,7 @@ public open partial class DataGrid {
                             Size: 18
                         }.Build() as Button
                     )!!
-                    if let create = snapshot.CreateSelection {
-                        check = create(snapshot, row, check)
-                    }
+                    snapshot.ConfigureSelection?.Invoke(snapshot, row, check)
                     check.Focusable = false
                     check.TabStop = false
                     check.Disabled = row.Disabled ||
@@ -345,9 +343,7 @@ public open partial class DataGrid {
                 Rebuild()
             }
         }
-        if let create = snapshot.CreateRow {
-            root = create(snapshot, row, root)
-        }
+        snapshot.ConfigureRow?.Invoke(snapshot, row, root)
         root.FocusStyle = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.FocusStyle}
         theme.ApplyInteraction(root, InteractionFamily.Row, isSelected)
         cells.FocusStyle = root.FocusStyle
@@ -857,14 +853,14 @@ public open partial class DataGrid {
             ActiveRowId = nil, ActiveColumnId = nil,
             OnActiveRowChange = nil, OnActiveRowIndexChange = nil, OnActiveColumnChange = nil,
             OnSelectionChange = nil, OnSelectionIndicesChange = nil, OnSelectionRequest = nil,
-            OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, CreateRoot = nil,
+            OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, ConfigureRoot = nil,
             UseDefaultKeyboard = nil, OnClick = nil,
             OnExpandedChange = nil, OnGroupExpandedChange = nil,
             ColumnWidths = nil, OnColumnWidthChange = nil, OnColumnWidthCommit = nil,
             FitColumnsToViewport = false, OnFittedColumnWidthsChange = nil, OnFittedColumnWidthsCommit = nil,
             OnColumnOrderChange = nil, RootHandle = nil, ViewportHandle = nil,
             Width = nil, Height = nil, HeaderHeight = nil, FilterHeight = nil, AccessibilityName = nil,
-            HeaderStyle = nil, ResizeHandleStyle = nil, CreateResizeHandle = nil,
+            HeaderStyle = nil, ResizeHandleStyle = nil, ConfigureResizeHandle = nil,
             CreateHeader = nil, CreateFilter = nil, EmptyContent = nil,
             ScrollbarX = nil, ScrollbarY = nil, ScrollbarVisibilityX = nil, ScrollbarVisibilityY = nil,
             Sorts = nil, SortColumnId = nil, SortDirection = DataGridSort.None,

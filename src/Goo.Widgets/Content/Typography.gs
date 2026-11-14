@@ -34,6 +34,7 @@ public enum TextVariant {
 }
 
 /// Theme-styled text with optional heading semantics.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct Typography {
     /// Text to display. Nil uses an empty string.
     var Content string?
@@ -49,8 +50,8 @@ public data struct Typography {
     var Trimming TextTrimming
     /// UTF-16 text spans with explicit styling. Nil supplies no span overrides.
     var StyleRanges[]?TextStyleRange
-    /// Receives the widget input and the prepared text, and returns the replacement text. Nil uses the default composition.
-    var CreateText Func[Typography, Text, Text]?
+    /// Configures the fresh text before the widget applies its semantics.
+    var ConfigureText Action[Typography, Text]?
 
     /// Creates styled text. H1 through H6 expose their heading level.
     public func Build() Text {
@@ -90,9 +91,7 @@ public data struct Typography {
             TextTransform: Variant == TextVariant.Overline ? TextTransform.Uppercase: TextTransform.None,
             StyleRanges: StyleRanges ?? []TextStyleRange{},
         }
-        if let create = CreateText {
-            text = create(this, text)
-        }
+        ConfigureText?.Invoke(this, text)
         text.Accessibility = Accessibility{
             Role: level > 0 ? AccessibilityRole.Heading: AccessibilityRole.Text,
             Name: Content ?? "",

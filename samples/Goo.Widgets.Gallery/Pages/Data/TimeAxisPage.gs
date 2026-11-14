@@ -9,14 +9,13 @@ import System
 internal class TimeAxisExample : Cell {
     private var selected string?
     private var overflow bool
-    private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) Button {
+    private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) {
         let theme = Theme.Read()
         prepared.BackgroundColor = placement.Event.Id == "release" ? theme.SuccessFillColor: theme.InfoFillColor
         if placement.Event.Id == selected {
             prepared.BorderWidth = 2
             prepared.BorderColor = theme.FocusColor
         }
-        return prepared
     }
 
     public override func Build() Blob {
@@ -41,7 +40,7 @@ internal class TimeAxisExample : Cell {
                         overflow = !overflow
                         Rebuild()
                     },
-                    CreateEvent: Event,
+                    ConfigureEvent: Event,
                     Events: []TimeAxisEvent{
                         TimeAxisEvent{Id: "backup", Label: "Backup", Start: start, End: start.AddHours(2)},
                         TimeAxisEvent{

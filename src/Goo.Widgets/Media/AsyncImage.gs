@@ -53,10 +53,13 @@ public data struct AsyncImage {
     /// Creates the selected image from resolved props.
     var CreateImage Func[AsyncImage, Image]?
     /// Creates the selected placeholder from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreatePlaceholder Func[AsyncImage, Blob]?
     /// Creates the selected error from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateError Func[AsyncImage, Blob]?
     /// Creates the root from resolved props and the selected child.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[AsyncImage, Blob, Container]?
 
     /// Builds a fresh Goo tree after resolving props and selecting one child.

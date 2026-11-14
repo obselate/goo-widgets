@@ -15,15 +15,17 @@ public data struct FormField {
     var Help Blob?
     /// Validation text shown with invalid presentation. Nil means no validation message.
     var Error string?
-    /// Main display content. Nil leaves this slot empty.
+    /// Main display content. The supplied declaration stays unchanged.
     var Content Blob?
-    /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
+    /// Handle of the inner editor to label and focus. Nil labels the content root.
     var LabelFor ElementHandle?
     /// Root layout width. Nil fills the available width.
     var Width Length?
     /// Creates a composite control with relationships attached to its input node.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[AccessibilityRelationships, Blob]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[FormField, Container, Container]?
 
     /// Builds the labelled control and its supporting text.
@@ -63,14 +65,13 @@ public data struct FormField {
             content = create(relations)
         }
         if let control = content {
-            if CreateContent == nil {
-                let semantics = control.Accessibility ?? Accessibility{}
-                semantics.Relationships = relations
-                semantics.Required = Required
-                semantics.Invalid = Error != nil
-                control.Accessibility = semantics
-            }
-            root.Children.Add(control)
+            root.Children.Add(AccessibilityAttachment{
+                Content: control,
+                Target: LabelFor,
+                Relationships: relations,
+                Required: Required,
+                Invalid: Error != nil,
+            })
         }
         if let text = Description {
             root.Children.Add(
@@ -117,6 +118,7 @@ public data struct FormSection {
     /// Root layout width. Nil fills the available width.
     var Width Length?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[FormSection, Container, Container]?
 
     /// Builds the named group and its controls.

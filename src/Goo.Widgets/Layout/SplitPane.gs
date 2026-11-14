@@ -22,6 +22,7 @@ public enum SplitUnit {
 }
 
 /// Controlled split layout and callbacks. Oversubscribed minimum sizes shrink proportionally.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct SplitPaneInput {
     /// First pane content.
     var First Blob?
@@ -55,12 +56,12 @@ public data struct SplitPaneInput {
     var HandleColor Color?
     /// Accessible separator name. Nil resolves to Resize panes.
     var AccessibilityName string?
-    /// Customizes divider appearance; required identity, input, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateHandle Func[SplitPaneInput, Container, Container]?
-    /// Customizes root appearance; required identity, axis, and pane children are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[SplitPaneInput, Container, Container]?
+    /// Configures the fresh handle before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureHandle Action[SplitPaneInput, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[SplitPaneInput, Container]?
 }
 
 /// A mounted, controlled splitter with captured dragging and keyboard adjustment.
@@ -167,9 +168,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
                 TransitionProperties: theme.InteractionTransitions,
             },
         }
-        if let create = input.CreateHandle {
-            divider = create(input, divider)
-        }
+        input.ConfigureHandle?.Invoke(input, divider)
         divider.Key = "divider"
         divider.Handle = dividerHandle
         divider.FlexShrink = 0
@@ -213,9 +212,7 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
             OnAction: AccessibilityAction,
         }
         var root = Container{Width: input.Width!!, Height: input.Height!!, MinWidth: 0, MinHeight: 0}
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Handle = rootHandle
         root.Direction = theme.Direction
         root.FlexDirection = horizontal ? FlexDirection.Row: FlexDirection.Column

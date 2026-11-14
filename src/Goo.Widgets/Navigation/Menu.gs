@@ -7,6 +7,7 @@ import System
 import System.Collections.Generic
 
 /// IDs are unique across all levels, including separators and closed submenus.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct MenuItem {
     /// Stable, nonempty identity, unique across all menu levels, including separators.
     var Id string?
@@ -80,18 +81,18 @@ public data struct MenuInput {
     var AccessibilityName string?
     /// Optional base style for the submenu direction indicator.
     var SubmenuArrowStyle Style?
-    /// Receives the widget input, the MenuItem value, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[MenuInput, MenuItem, Button, Button]?
-    /// Receives the widget input and the MenuItem value, and returns the replacement content. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateSeparator Func[MenuInput, MenuItem, Blob]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreatePanel Func[MenuInput, Container, Container]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[MenuInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureItem Action[MenuInput, MenuItem, Button]?
+    /// Configures the fresh separator before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureSeparator Action[MenuInput, MenuItem, Blob]?
+    /// Configures the fresh panel before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigurePanel Action[MenuInput, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[MenuInput, Container]?
 }
 
 /// A controlled anchored/context menu with roving focus and pointer/keyboard submenus.
@@ -192,15 +193,12 @@ public open class Menu : Cell[MenuInput] {
         for item in source {
             let id = item.Id!!
             if item.Separator {
-                let separator = if let create = current.CreateSeparator {
-                    create(current, item)
-                } else {
-                    Container{
+                let separator = Container{
                         Height: theme.BorderWidth,
                         Margin: Edges{Top: theme.Spacing, Bottom: theme.Spacing},
                         BackgroundColor: theme.BorderColor,
                     }
-                }
+                current.ConfigureSeparator?.Invoke(current, item, separator)
                 separator.Key = id
                 separator.Focusable = false
                 separator.Accessibility = Accessibility{Role: AccessibilityRole.None}
@@ -235,11 +233,8 @@ public open class Menu : Cell[MenuInput] {
                 TransitionProperties: theme.InteractionTransitions,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
-            let row = if let create = current.CreateItem {
-                create(current, item, prepared)
-            } else {
-                prepared
-            }
+            let row = prepared
+            current.ConfigureItem?.Invoke(current, item, row)
             theme.ApplyInteraction(row, InteractionFamily.Row)
             row.Key = id
             row.Handle = handles[id]
@@ -252,7 +247,7 @@ public open class Menu : Cell[MenuInput] {
                 Expanded: hasChildren ? path.Count > depth && path[depth] == id: nil,
             }
             row.OnClick = () -> Activate(depth, id)
-            WidgetKeyBindings.BindActivation(row)
+            WidgetKeyBindings.BindOwnedActivation(row)
             row.OnFocus = (event FocusEvent) -> {
                 event.StopPropagation()
                 active[depth] = id
@@ -306,8 +301,8 @@ public open class Menu : Cell[MenuInput] {
             Padding: theme.Spacing,
             DismissOnOutsideClick: depth == 0,
             OnDismiss: (reason PopoverDismissReason) -> CloseLevel(depth),
-            CreatePanel: Panel,
-            CreateRoot: Root,
+            ConfigurePanel: Panel,
+            ConfigureRoot: Root,
         }
         if let anchor = anchor {
             popup.Anchor = anchor
@@ -327,30 +322,24 @@ public open class Menu : Cell[MenuInput] {
         return Cell.Mount[PopoverInput, Popover]("menu-level-" + depth.ToString(), popup)
     }
 
-    private func Panel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let prepared = Container{
-            LineHeight: theme.LineHeight,
-            Padding: theme.Spacing,
-            BasedOn: theme.OverlayStyle,
-            BackgroundColor: theme.OverlayColor,
-            BorderColor: theme.BorderColor,
-            BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius!!,
-        }
-        return if let create = current.CreatePanel {
-            create(current, prepared)
-        } else {
-            prepared
-        }
+    private func Panel(input PopoverInput, bounds ElementRect, content Blob, prepared Container) {
+        prepared.LineHeight = theme.LineHeight
+        prepared.Padding = theme.Spacing
+        prepared.BasedOn = theme.OverlayStyle
+        prepared.BackgroundColor = theme.OverlayColor
+        prepared.BorderColor = theme.BorderColor
+        prepared.BorderWidth = theme.BorderWidth
+        prepared.BorderRadius = theme.PanelRadius!!
+        current.ConfigurePanel?.Invoke(current, prepared)
     }
 
-    private func Root(input PopoverInput, backdrop Container, panel Container) Container {
-        let prepared = Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0}
-        return if let create = current.CreateRoot {
-            create(current, prepared)
-        } else {
-            prepared
-        }
+    private func Root(input PopoverInput, backdrop Container, panel Container, prepared Container) {
+        prepared.Position = PositionType.Absolute
+        prepared.Left = 0.0
+        prepared.Right = 0.0
+        prepared.Top = 0.0
+        prepared.Bottom = 0.0
+        current.ConfigureRoot?.Invoke(current, prepared)
     }
 
     private func Eligible(source[]MenuItem, id string) bool {

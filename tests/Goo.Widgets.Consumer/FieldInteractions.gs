@@ -53,15 +53,13 @@ internal class FieldHost : Cell {
                     LastCommit = value
                     Commits++
                 },
-                CreateEntry: (input, entry) -> {
+                ConfigureEntry: (input, entry) -> {
                     Entry = entry
                     entry.Handle = NumberHandle
                     entry.KeyBindings = []KeyBinding{
                         KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
                     }
-                    return entry
-                }
-            }
+                    }}
         ),
         TextField{
             Label: "Password",
@@ -79,23 +77,20 @@ internal class FieldHost : Cell {
                 Rebuild()
             },
             OnCommit: value -> TextCommit = value,
-            CreateEntry: input -> {
-                PasswordEntry = TextEntry{
-                    Handle: PasswordHandle,
-                    Value: input.Value ?? "",
-                    Controlled: input.Controlled,
-                    Password: input.Password,
-                    OnChange: input.OnChange,
-                    OnSubmit: input.OnSubmit,
-                    KeyBindings: []KeyBinding{
+            ConfigureEntry: (input, prepared TextEntry) -> {
+                prepared.Handle = PasswordHandle
+                prepared.Value = input.Value ?? ""
+                prepared.Controlled = input.Controlled
+                prepared.Password = input.Password
+                prepared.OnChange = input.OnChange
+                prepared.OnSubmit = input.OnSubmit
+                prepared.KeyBindings = []KeyBinding{
                         KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
-                    },
-                    Height: 36,
-                    Width: Percent(100)
-                }
-                return PasswordEntry!!
-            }
-        }.Build(),
+                    }
+                prepared.Height = 36
+                prepared.Width = Percent(100)
+                PasswordEntry = prepared
+            }}.Build(),
         TextField{AccessibilityName: "Other"}.Build(),
     }
 }
@@ -123,15 +118,16 @@ internal class FieldCallbackHost : Cell {
         }),
         TextField{
             AccessibilityName: "Slot field",
-            CreateRoot: (input, label, entry, issue) -> Container{
-                FlexDirection: FlexDirection.Column,
-                entry,
-                Button{
+            ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
+                    prepared.FlexDirection = FlexDirection.Column
+                    prepared.Children.Clear()
+                    prepared.Children.Add(entry)
+                    prepared.Children.Add(Button{
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Slot button"},
                     OnClick: () -> Value = "slot",
                     Text{Content: "Update from slot"},
+                })
                 },
-            },
         }.Build(),
         Cell.Mount[MenuButtonInput, MenuButton]("callback-menu", MenuButtonInput{
             Button: ActionButton{Content: "Callback menu"},
@@ -528,18 +524,18 @@ internal class AddonFrameHost : Cell {
                     Invalid: Invalid,
                     PrefixAddon: Text{Content: "https://"},
                     SuffixAddon: Text{Content: ".dev"},
-                    CreateEntry: input -> TextEntry{
-                        Value: input.Value ?? "",
-                        Controlled: input.Controlled,
-                        FontFamily: input.FontFamily!!,
-                        FontSize: input.FontSize!!,
-                        Color: input.TextColor!!,
-                        Padding: Edges{Left: input.PaddingHorizontal!!, Right: input.PaddingHorizontal!!},
-                        OnChange: input.OnChange,
-                        OnSubmit: input.OnSubmit,
-                        OnFocus: event -> FocusEvents++,
-                        OnBlur: event -> BlurEvents++,
-                    },
+                    ConfigureEntry: (input, prepared TextEntry) -> {
+                    prepared.Value = input.Value ?? ""
+                    prepared.Controlled = input.Controlled
+                    prepared.FontFamily = input.FontFamily!!
+                    prepared.FontSize = input.FontSize!!
+                    prepared.Color = input.TextColor!!
+                    prepared.Padding = Edges{Left: input.PaddingHorizontal!!, Right: input.PaddingHorizontal!!}
+                    prepared.OnChange = input.OnChange
+                    prepared.OnSubmit = input.OnSubmit
+                    prepared.OnFocus = event -> FocusEvents++
+                    prepared.OnBlur = event -> BlurEvents++
+                },
                 }.Build(),
             },
             Container{

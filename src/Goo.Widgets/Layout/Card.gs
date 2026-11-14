@@ -39,6 +39,7 @@ public data struct Card {
     /// Accessible name override. Nil uses Title, then an empty string.
     var AccessibilityName string?
     /// Receives the widget input and the prepared container, and returns the replacement content. Nil uses the default composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Card, Container, Blob]?
 
     /// Builds a group or a single pressable surface.
@@ -119,7 +120,7 @@ public data struct Card {
         body.BackgroundColor = Color.Transparent
         body.BorderWidth = 0
         body.BoxShadows = []BoxShadow{}
-        WidgetKeyBindings.BindActivation(root)
+        WidgetKeyBindings.BindOwnedActivation(root)
         return root
     }
 

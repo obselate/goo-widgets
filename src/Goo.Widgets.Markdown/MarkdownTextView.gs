@@ -126,12 +126,9 @@ internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
             OverflowY = Overflow.Hidden,
             ScrollbarX = model.Block.Kind == MarkdownBlockKind.Code ? theme.Scrollbar: nil,
         }
-        if let create = options.CreateEditor {
-            editor = create(model.Block, editor)
-        }
-        if editor.Controller != controller {
-            throw ArgumentException("Markdown editor factories must retain the supplied controller")
-        }
+        options.ConfigureEditor?.Invoke(model.Block, editor)
+        editor.Layers = []TextPresentationLayer{}
+        editor.Controller = controller!!
         editor.ReadOnly = true
         editor.Layers = []TextPresentationLayer{layer!!}
         editor.OnChange = nil
@@ -219,11 +216,10 @@ internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
             if options.OnLink == nil {
                 button.OnClick = nil
             }
-            WidgetKeyBindings.BindActivation(button)
             if width > 0.0 {
                 button.MaxWidth = width
             }
-            return button
+            return WidgetKeyBindings.WithActivation(button)
         }
         if run.Kind == MarkdownInlineKind.Code {
             root.Padding = Edges{Left: theme.Spacing * .75, Right: theme.Spacing * .75}

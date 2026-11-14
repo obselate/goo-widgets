@@ -92,8 +92,8 @@ public open class HoverCard : Cell[HoverCardInput], IDisposable {
         current = input with{OpenDelayMs = openDelay, CloseDelayMs = closeDelay}
         window = Theme.Key.Window
         let target = input.Target!!
-        target.Handle = target.Handle ?? anchor
         return Container{
+            Handle: anchor,
             HitTestSelf: false,
             OnPointerEnter: pointerEnter,
             OnPointerLeave: pointerLeave,
@@ -105,7 +105,7 @@ public open class HoverCard : Cell[HoverCardInput], IDisposable {
                 "card",
                 PopoverInput{
                     Open: shown,
-                    Anchor: target.Handle,
+                    Anchor: target.Handle ?? anchor,
                     Placement: input.Placement,
                     Width: input.Width,
                     TakeFocus: false,

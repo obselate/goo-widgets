@@ -28,11 +28,9 @@ func MarkdownContracts() {
         OnHeadings: (value IReadOnlyList[MarkdownHeading]) -> {
             headings = value
         },
-        CreateBlock: (block MarkdownBlock, prepared Blob) -> {
+        ConfigureBlock: (block MarkdownBlock, prepared Blob) -> {
             kinds.Add(block.Kind)
-            return prepared
-        }
-    }
+            }}
     probe.Render(input)
     Require(
         headings != nil && headings.Count == 3 && headings[0].Id == "same" && headings[1].Id == "same-2"
@@ -89,18 +87,16 @@ internal class MarkdownHost : Cell {
         HeadingCalls++
     }
 
-    private func Block(block MarkdownBlock, prepared Blob) Blob {
+    private func Block(block MarkdownBlock, prepared Blob) {
         BlockCalls++
         if block.Kind == MarkdownBlockKind.List {
             ((prepared as Container)!!.Children[0] as Container)!!.Children[0].Handle = Marker
         }
-        return prepared
     }
 
-    private func Editor(block MarkdownBlock, prepared TextEditor) TextEditor {
+    private func Editor(block MarkdownBlock, prepared TextEditor) {
         prepared.Handle = ElementHandle()
         Editors[block.Id!!] = prepared
-        return prepared
     }
 
     private func Style(run MarkdownInline, prepared Style) Style {
@@ -182,10 +178,10 @@ internal class MarkdownHost : Cell {
                             OnLink: Open,
                             ResolveImage: Resolve,
                             OnHeadings: HeadingsChanged,
-                            CreateEditor: Editor,
+                            ConfigureEditor: Editor,
                             CreateInline: Inline,
                             CreateInlineStyle: Style,
-                            CreateBlock: Block
+                            ConfigureBlock: Block
                         }
                     )
                 }

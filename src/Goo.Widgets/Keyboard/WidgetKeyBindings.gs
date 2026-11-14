@@ -6,10 +6,27 @@ import System
 /// Provides explicit primitive activation bindings for Goo Widgets.
 public class WidgetKeyBindings {
     shared {
-        /// Adds explicit Enter and Space activation bindings to an interactive primitive.
-        /// Existing bindings take precedence over the appended activation policy.
-        /// @param button The primitive whose current handle and click callback are used.
-        public func BindActivation(button Blob) {
+        /// Returns a fresh wrapper with Enter and Space activation for the content.
+        /// The content and its existing bindings stay unchanged and take precedence.
+        /// @param content The interactive content to activate.
+        public func WithActivation(content Blob) Blob {
+            let wrapper = Container{HitTestSelf: false, content}
+            let action = content.OnClick
+            if action != nil {
+                let handle = content is Button ? content.Handle : nil
+                wrapper.KeyBindings = []KeyBinding{
+                    KeyBinding{Key: Key.Enter, OnPress: () -> {
+                        if handle != nil { handle.Activate() } else { action() }
+                    }},
+                    KeyBinding{Key: Key.Space, OnRelease: () -> {
+                        if handle != nil { handle.Activate() } else { action() }
+                    }},
+                }
+            }
+            return wrapper
+        }
+
+        internal func BindOwnedActivation(button Blob) {
             let action = button.OnClick
             if action == nil {
                 return

@@ -31,6 +31,7 @@ public enum PopoverDismissReason {
 }
 
 /// Controlled popup state. Presentation uses the Window's automatic Portal overlay.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct PopoverInput {
     /// Controlled visibility. False hides the popup.
     var Open bool
@@ -88,12 +89,12 @@ public data struct PopoverInput {
     var ScrollbarY Scrollbar?
     /// Vertical visibility. Nil uses Auto.
     var ScrollbarVisibilityY ScrollbarVisibility?
-    /// Creates the panel from resolved input, window bounds, and content. Placement and identity are rewired.
-    /// Hosts must not change state in this callback.
-    var CreatePanel Func[PopoverInput, ElementRect, Blob, Container]?
-    /// Receives the resolved input, prepared backdrop, and prepared panel, and returns their root container. Children, geometry, input routing, and popup semantics are reapplied. Nil uses the default root.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[PopoverInput, Container, Container, Container]?
+    /// Configures the fresh panel before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigurePanel Action[PopoverInput, ElementRect, Blob, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[PopoverInput, Container, Container, Container]?
 }
 
 /// Anchors content, flips/clamps placement, contains Tab, and restores prior focus except on outside clicks.
@@ -211,10 +212,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let origin = anchor == nil ? Place(viewport, width, height): Point{}
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
         let content = current.Content ?? Container{HitTestSelf: false}
-        let panel = if let create = current.CreatePanel {
-            create(current, bounds, content)
-        } else {
-            Container{
+        let panel = Container{
                 BasedOn: theme.OverlayStyle,
                 Padding: current.Padding!!,
                 BackgroundColor: current.BackgroundColor!!,
@@ -224,7 +222,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 ScrollbarY: current.ScrollbarY,
                 ScrollbarVisibilityY: current.ScrollbarVisibilityY!!,
             }
-        }
+        current.ConfigurePanel?.Invoke(current, bounds, content, panel)
         panel.Key = "panel"
         panel.Handle = panelHandle
         panel.Position = PositionType.Relative
@@ -255,11 +253,8 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
             OnClick: () -> Dismiss(PopoverDismissReason.OutsideClick),
         }
-        let root = if let create = current.CreateRoot {
-            create(current, backdrop, panel)
-        } else {
-            Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0,}
-        }
+        let root = Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0,}
+        current.ConfigureRoot?.Invoke(current, backdrop, panel, root)
         rootKeyHandler = root.OnKeyDown
         root.Handle = presented ? rootHandle: measurementRootHandle
         root.Visibility = presented ? Visibility.Visible: Visibility.Hidden

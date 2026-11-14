@@ -44,9 +44,11 @@ public data struct ColorPickerInput {
     var MarkerStyle Style?
     /// Creates the marker from resolved props and current color coordinates.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateMarker Func[ColorPickerInput, int32, float64, float64, Blob]?
     /// Replaces the default full or compact composition from resolved props, wheel, and tone slider.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[ColorPickerInput, Blob, Blob, Container]?
 }
 
@@ -318,7 +320,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             },
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, currentMode == mode)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 

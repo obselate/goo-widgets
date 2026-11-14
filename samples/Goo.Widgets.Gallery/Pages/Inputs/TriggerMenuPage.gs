@@ -39,11 +39,10 @@ internal class TriggerMenuExample : Cell {
                         AccessibilityName: "Message",
                         Width: Percent(100),
                         MinimumRows: 3,
-                        CreateEditor: (input TextAreaInput, created TextEditor) -> {
+                        ConfigureEditor: (input TextAreaInput, created TextEditor) -> {
                             created.Handle = editor
                             created.AutoFocus = true
-                            return created
-                        },
+                            },
                     }
                 ),
             }

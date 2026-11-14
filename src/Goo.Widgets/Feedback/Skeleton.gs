@@ -15,6 +15,7 @@ public enum SkeletonVariant {
 }
 
 /// Placeholder appearance and animation policy. Loading state remains caller-owned.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct SkeletonInput {
     /// Geometry. Defaults to Text.
     var Variant SkeletonVariant
@@ -40,9 +41,9 @@ public data struct SkeletonInput {
     var BorderRadius float64?
     /// Nil hides decorative placeholders from accessibility. A name exposes one busy status node.
     var AccessibilityName string?
-    /// Receives resolved input and the prepared root. Preserve its children and geometry.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[SkeletonInput, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[SkeletonInput, Container]?
 }
 
 /// Retained placeholders with paint-only shimmer. The Cell owns and disposes its animation.
@@ -116,7 +117,8 @@ public open class Skeleton : Cell[SkeletonInput] {
             }
             root.Children.Add(shape)
         }
-        let result = input.CreateRoot?.Invoke(resolved, root) ?? root
+        let result = root
+        input.ConfigureRoot?.Invoke(resolved, result)
         result.Handle = handle
         result.Focusable = false
         result.TabStop = false

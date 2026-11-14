@@ -86,10 +86,9 @@ internal class ErgonomicHost : Cell {
                         Value = value
                         Rebuild()
                     },
-                    CreateRoot: (input SliderInput, root Container) -> {
+                    ConfigureRoot: (input SliderInput, root Container) -> {
                         SliderRoot = root
-                        return root
-                    },
+                        },
                 }
             ),
             Cell.Mount[ColorPickerInput, NativePickerProbe](

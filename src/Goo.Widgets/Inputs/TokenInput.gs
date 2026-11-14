@@ -7,6 +7,7 @@ import System
 import System.Collections.Generic
 
 /// Controlled token values. Invalid values remain visible and removable.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TokenInputInput {
     /// Controlled token strings in display order. Nil supplies an empty array.
     var Value[]?string
@@ -29,12 +30,12 @@ public data struct TokenInputInput {
     var ReadOnly bool
     /// Root layout width. Nil uses 360 logical pixels.
     var Width Length?
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateEntry Func[TokenInputInput, TextEntry, TextEntry]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TokenInputInput, Container, Container]?
+    /// Configures the fresh entry before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEntry Action[TokenInputInput, TextEntry]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[TokenInputInput, Container]?
 }
 
 /// A wrapping token field with separator commits and two-step Backspace removal.
@@ -53,9 +54,7 @@ public open class TokenInput : Cell[TokenInputInput] {
             selected = -1
         }
         var root = Container{Width: input.Width ?? defaultWidth, MinWidth: 0, Gap: theme.ControlGap / 2,}
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         let frame = Container{
             Key: "frame",
             MinWidth: 0,
@@ -100,35 +99,31 @@ public open class TokenInput : Cell[TokenInputInput] {
                 EntryHeight: theme.ControlHeight - 8,
                 OnChange: Changed,
                 OnSubmit: value -> Commit(value),
-                CreateEntry: props -> {
-                    var entry = TextEntry{
-                        Value: props.Value!!,
-                        Controlled: true,
-                        Placeholder: props.Placeholder!!,
-                        PlaceholderColor: theme.PlaceholderColor,
-                        Height: props.EntryHeight!!,
-                        Padding: 4,
-                        BackgroundColor: Color.Transparent,
-                        Color: theme.TextColor,
-                        FontFamily: theme.FontFamily,
-                        FontSize: theme.FontSize,
-                        FocusStyle: theme.FocusStyle,
-                        OnChange: props.OnChange,
-                        OnSubmit: props.OnSubmit,
-                    }
-                    if let create = input.CreateEntry {
-                        entry = create(input, entry)
-                    }
+                ConfigureEntry: (props, entry) -> {
+                    entry.Value = props.Value!!
+                    entry.Controlled = true
+                    entry.Placeholder = props.Placeholder!!
+                    entry.PlaceholderColor = theme.PlaceholderColor
+                    entry.Height = props.EntryHeight!!
+                    entry.Padding = 4
+                    entry.BackgroundColor = Color.Transparent
+                    entry.Color = theme.TextColor
+                    entry.FontFamily = theme.FontFamily
+                    entry.FontSize = theme.FontSize
+                    entry.FocusStyle = theme.FocusStyle
+                    entry.OnChange = props.OnChange
+                    entry.OnSubmit = props.OnSubmit
+                    input.ConfigureEntry?.Invoke(input, entry)
                     entry.Handle = editor
                     entry.ReadOnly = input.ReadOnly
                     entry.OnKeyDown = KeyDown
-                    return entry
                 },
-                CreateRoot: (props, label, entry, issue) -> Container{
-                    Key: "editor",
-                    FlexGrow: 1,
-                    MinWidth: 100,
-                    entry,
+                ConfigureRoot: (props, label, entry, issue, root) -> {
+                    root.Key = "editor"
+                    root.FlexGrow = 1
+                    root.MinWidth = 100
+                    root.Children.Clear()
+                    root.Children.Add(entry)
                 },
             }.Build()
         )
@@ -158,7 +153,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                     Text{Content: value, Color: theme.TextColor},
                 }
                 theme.ApplyInteraction(action, InteractionFamily.Button)
-                WidgetKeyBindings.BindActivation(action)
+                WidgetKeyBindings.BindOwnedActivation(action)
                 return action
             }
             let suggestions = VirtualRows[int32](

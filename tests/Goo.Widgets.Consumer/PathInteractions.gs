@@ -80,11 +80,9 @@ internal class PathActionsHost : Cell {
                 },
                 Footer: Text{Content: "Total: 2", Accessibility: Accessibility{Name: "Total: 2"}},
                 Density: Density.Compact,
-                CreateRoot: (input DataGridInput, root Container) -> {
+                ConfigureRoot: (input DataGridInput, root Container) -> {
                     Root = root
-                    return root
-                }
-            }
+                    }}
         )
     }
 }

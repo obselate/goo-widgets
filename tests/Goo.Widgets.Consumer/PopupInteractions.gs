@@ -32,10 +32,9 @@ internal class TriggerHost : Cell {
                         AccessibilityName: "Message",
                         Width: 400,
                         OnCancel: () -> Cancels++,
-                        CreateEditor: (input TextAreaInput, editor TextEditor) -> {
+                        ConfigureEditor: (input TextAreaInput, editor TextEditor) -> {
                             editor.Handle = Editor
-                            return editor
-                        },
+                            },
                     }
                 ),
             }

@@ -5,6 +5,7 @@ import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A selectable tag/filter chip with leading element support and customizable primitive factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct Chip {
     /// Text label displayed by the chip. Nil resolves to an empty string.
     var Label string?
@@ -77,15 +78,17 @@ public data struct Chip {
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Custom factory for creating the label Text primitive from resolved props. Nil uses one line that ends with an ellipsis when the chip is too narrow.
+    /// Return a fresh element or the supplied default.
     var CreateText Func[Chip, Text]?
-    /// Custom factory for creating the root Button primitive from resolved props, original leading, and final text.
-    var CreateRoot Func[Chip, Blob?, Text, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[Chip, Blob?, Text, Button]?
 
     /// Builds a fresh Goo button tree after resolving props and factories.
     public func Build() Blob {
         let theme = Theme.Read()
         let createText = CreateText
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let originalLeading = Leading
         let label = Label ?? ""
         let tone = Invalid ? Tone.Danger: Tone
@@ -120,7 +123,7 @@ public data struct Chip {
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
         let text = if let createText = createText {
@@ -141,7 +144,7 @@ public data struct Chip {
             value
         }
 
-        let root = if let createRoot = createRoot { createRoot(resolved, originalLeading, text) } else { Button{
+        let root = Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
@@ -167,9 +170,10 @@ public data struct Chip {
             AlignItems: AlignItems.Center,
             FlexShrink: 1.0,
             MinWidth: 0.0,
-        } }
+        }
+        configureRoot?.Invoke(resolved, originalLeading, text, root)
 
-        if createRoot == nil {
+        if configureRoot == nil {
             if let leading = originalLeading {
                 root.Children.Add(Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
@@ -181,7 +185,7 @@ public data struct Chip {
         root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Invalid: Invalid,
             Checked: Selected ? AccessibilityChecked.True: AccessibilityChecked.False}
         root.OnClick = Disabled ? nil: root.OnClick ?? OnClick
-        WidgetKeyBindings.BindActivation(root)
+        WidgetKeyBindings.BindOwnedActivation(root)
         return RemovalRoot(root, resolved)
     }
 
@@ -216,7 +220,7 @@ public data struct Chip {
             ControlIcons.Create(ControlIcon.Close, 14, color),
         }
         theme.ApplyInteraction(action, InteractionFamily.Button)
-        WidgetKeyBindings.BindActivation(action)
+        WidgetKeyBindings.BindOwnedActivation(action)
         button.Height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent
             ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0

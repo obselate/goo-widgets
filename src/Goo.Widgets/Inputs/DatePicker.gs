@@ -8,6 +8,7 @@ import System
 import System.Globalization
 
 /// Controlled civil-date input; typing is a draft until Enter or blur commits it.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct DatePickerInput {
     /// Controlled selected civil date. Nil means no date is selected.
     var Value DateOnly?
@@ -58,21 +59,21 @@ public data struct DatePickerInput {
     var PopupWidth float64?
     /// Popup stacking order. Zero uses layer 20.
     var ZIndex int32
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateInput Func[DatePickerInput, TextEntry, TextEntry]?
-    /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateButton Func[DatePickerInput, Button, Button]?
+    /// Configures the fresh input before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureInput Action[DatePickerInput, TextEntry]?
+    /// Configures the fresh button before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureButton Action[DatePickerInput, Button]?
     /// Receives the widget input and the CalendarInput value, and returns the replacement CalendarInput. Nil uses the default composition.
     /// Hosts must not change state in this callback.
     var CreateCalendar Func[DatePickerInput, CalendarInput, CalendarInput]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreatePopup Func[DatePickerInput, Container, Container]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[DatePickerInput, Container, Container]?
+    /// Configures the fresh popup before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigurePopup Action[DatePickerInput, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[DatePickerInput, Container]?
 }
 
 /// Composes an editable date field, Calendar, and the shared anchored Popover lifecycle.
@@ -156,9 +157,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        if let create = current.CreateInput {
-            entry = create(current, entry)
-        }
+        current.ConfigureInput?.Invoke(current, entry)
         theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Key = "entry"
         entry.Handle = entryHandle
@@ -196,15 +195,13 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        if let create = current.CreateButton {
-            button = create(current, button)
-        }
+        current.ConfigureButton?.Invoke(current, button)
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = "open"
         button.Disabled = current.Disabled || current.ReadOnly
         button.Focusable = !current.Disabled && !current.ReadOnly
         button.OnClick = () -> SetOpen(!isOpen)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.Button,
             Name: current.AccessibilityName!!+ " calendar",
@@ -233,9 +230,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Overflow: Overflow.Visible,
             LineHeight: theme.LineHeight,
         }
-        if let create = current.CreateRoot {
-            root = create(current, root)
-        }
+        current.ConfigureRoot?.Invoke(current, root)
         root.Children.Clear()
         root.Children.Add(field)
         if invalid {
@@ -284,7 +279,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             AccessibilityName: current.AccessibilityName!!+ " popup",
             InitialFocus: calendarHandle,
             OnDismiss: Dismiss,
-            CreatePanel: PopupPanel,
+            ConfigurePanel: PopupPanel,
             ZIndex: current.ZIndex,
         }
         if isOpen && overlay != nil {
@@ -404,19 +399,13 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
     }
 
-    private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let prepared = Container{
-            BasedOn: theme.OverlayStyle,
-            BackgroundColor: theme.PanelColor,
-            BorderColor: theme.InputBorderColor,
-            BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius!!,
-        }
-        return if let create = current.CreatePopup {
-            create(current, prepared)
-        } else {
-            prepared
-        }
+    private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob, prepared Container) {
+        prepared.BasedOn = theme.OverlayStyle
+        prepared.BackgroundColor = theme.PanelColor
+        prepared.BorderColor = theme.InputBorderColor
+        prepared.BorderWidth = theme.BorderWidth
+        prepared.BorderRadius = theme.PanelRadius!!
+        current.ConfigurePopup?.Invoke(current, prepared)
     }
 
     private func BindOverlay(next ElementHandle?) {

@@ -18,6 +18,7 @@ public data struct SettingsRow {
     var Control Blob?
     /// Builds a control from the supplied accessibility relationships. Apply them to the actual editor. Nil uses Control.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateControl Func[AccessibilityRelationships, Blob]?
     /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?
@@ -157,7 +158,7 @@ public open class SettingsLayout : Cell[SettingsLayoutInput], IDisposable {
                 row.Children.Add(icon)
             }
             row.Children.Add(Text{Content: section.Title ?? id, FontWeight: selected == id ? theme.LabelFontWeight: theme.FontWeight})
-            WidgetKeyBindings.BindActivation(row)
+            WidgetKeyBindings.BindOwnedActivation(row)
             navigation.Children.Add(row)
             if query.Length == 0 && selected != id {
                 continue

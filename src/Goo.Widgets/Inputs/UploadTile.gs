@@ -46,10 +46,13 @@ public data struct UploadTile {
     /// Transform applied to the tile root. Nil resolves to identity.
     var Transform PanelTransform?
     /// Custom factory for the body container. Receives resolved props and raw Body.
+    /// Return a fresh element or the supplied default.
     var CreateBody Func[UploadTile, Blob?, Container]?
     /// Custom factory for the status container. Receives resolved props and raw Status.
+    /// Return a fresh element or the supplied default.
     var CreateStatus Func[UploadTile, Blob?, Container]?
     /// Custom factory for the root Container. Receives resolved props, body container, status container, and Action.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[UploadTile, Container, Container?, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.

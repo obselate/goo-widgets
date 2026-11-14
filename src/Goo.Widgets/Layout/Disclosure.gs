@@ -6,6 +6,7 @@ import Goo.Widgets.Icons
 import System
 
 /// A controlled collapsible section. Collapsed content remains mounted but is hidden from layout and input.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct Disclosure {
     /// Header label when Header is nil.
     var Label string?
@@ -46,19 +47,23 @@ public data struct Disclosure {
     /// Disabled header opacity. Nil resolves to 0.5 and preserves explicit zero.
     var DisabledOpacity float64?
     /// Creates a decorative indicator from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateIndicator Func[Disclosure, Blob]?
-    /// Customizes the prepared header. Preserve its key, action, disabled state, and semantics.
-    var CreateHeader Func[Disclosure, Button, Button]?
+    /// Configures the fresh header before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureHeader Action[Disclosure, Button]?
     /// Customizes the prepared body. Preserve its key, children, and collapsed display state.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[Disclosure, Container, Container]?
     /// Creates the final section from resolved props and its prepared header and body.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Disclosure, Button, Container, Container]?
 
     /// Builds fresh primitives while stable child keys preserve mounted body identity.
     public func Build() Blob {
         let theme = Theme.Read()
         let createIndicator = CreateIndicator
-        let createHeader = CreateHeader
+        let configureHeader = ConfigureHeader
         let createContent = CreateContent
         let createRoot = CreateRoot
         let resolved = this with{
@@ -77,7 +82,7 @@ public data struct Disclosure {
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
             DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             CreateIndicator = nil,
-            CreateHeader = nil,
+            ConfigureHeader = nil,
             CreateContent = nil,
             CreateRoot = nil,
         }
@@ -154,12 +159,10 @@ public data struct Disclosure {
             indicator,
             heading,
         }
-        if let create = createHeader {
-            header = create(resolved, header)
-        }
+        configureHeader?.Invoke(resolved, header)
         theme.ApplyInteraction(header, InteractionFamily.Row)
         header.Disabled = Disabled
-        WidgetKeyBindings.BindActivation(header)
+        WidgetKeyBindings.BindOwnedActivation(header)
         var body = Container{
             Key: "content",
             Padding: resolved.ContentPadding!!,

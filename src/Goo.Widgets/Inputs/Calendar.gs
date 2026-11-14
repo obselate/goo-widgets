@@ -7,6 +7,7 @@ import System.Collections.Generic
 import System.Globalization
 
 /// Date and state passed to a calendar day factory.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct CalendarDay {
     /// Civil date represented by this day cell.
     var Date DateOnly
@@ -65,18 +66,18 @@ public data struct CalendarInput {
     var OnEscape Action?
     /// Optional stable root handle. Focusing the root enters the active eligible date.
     var Handle ElementHandle?
-    /// Receives the widget input, the day date and state, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateDay Func[CalendarInput, CalendarDay, Button, Button]?
-    /// Receives the widget input, the month navigation delta, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateNavigation Func[CalendarInput, int32, Button, Button]?
-    /// Receives the widget input, the weekday, and the prepared text, and returns the replacement content. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateWeekday Func[CalendarInput, DayOfWeek, Text, Blob]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[CalendarInput, Container, Container]?
+    /// Configures the fresh day before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureDay Action[CalendarInput, CalendarDay, Button]?
+    /// Configures the fresh navigation before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureNavigation Action[CalendarInput, int32, Button]?
+    /// Configures the fresh weekday before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureWeekday Action[CalendarInput, DayOfWeek, Text]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[CalendarInput, Container]?
 }
 
 /// A six-week calendar with roving date focus, month navigation, and host-owned selection.
@@ -211,11 +212,8 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
                 FontWeight: theme.CaptionFontWeight,
                 TextAlign: TextAlign.Center
             }
-            let label = if let create = current.CreateWeekday {
-                create(current, weekday, prepared)
-            } else {
-                prepared
-            }
+            let label = prepared
+            current.ConfigureWeekday?.Invoke(current, weekday, label)
             label.Key = "weekday-" + column.ToString()
             label.FlexGrow = 1.0
             label.FlexBasis = 0.0
@@ -288,9 +286,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             BorderRadius: theme.PanelRadius!!,
             Color: theme.TextColor,
         }
-        if let create = current.CreateRoot {
-            root = create(current, root)
-        }
+        current.ConfigureRoot?.Invoke(current, root)
         root.Handle = current.Handle ?? rootHandle
         root.Direction = theme.Direction
         root.Focusable = !current.Disabled
@@ -358,15 +354,13 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        if let create = current.CreateNavigation {
-            button = create(current, delta, button)
-        }
+        current.ConfigureNavigation?.Invoke(current, delta, button)
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = delta < 0 ? "previous": "next"
         button.Disabled = !CanMonth(delta)
         button.Focusable = !button.Disabled
         button.OnClick = () -> MoveMonth(delta)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         button.OnFocus = (event FocusEvent) -> event.StopPropagation()
         button.Accessibility = Accessibility{
             Role: AccessibilityRole.Button,
@@ -400,9 +394,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
             BorderColor: theme.AccentColor,
             FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
         }
-        if let create = current.CreateDay {
-            button = create(current, day, button)
-        }
+        current.ConfigureDay?.Invoke(current, day, button)
         theme.ApplyInteraction(button, InteractionFamily.Toggle, day.Selected)
         button.Key = date.DayNumber.ToString()
         button.Handle = Handle(date)
@@ -414,7 +406,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         button.Focusable = !day.Disabled
         button.TabStop = day.Active && !day.Disabled
         button.OnClick = () -> Select(date)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         button.OnFocus = (event FocusEvent) -> {
             event.StopPropagation()
             active = date

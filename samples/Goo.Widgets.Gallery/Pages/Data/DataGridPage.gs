@@ -209,11 +209,10 @@ internal class DataGridExample : Cell {
                     OnSelectionChange: Select,
                     ExpandedIds: expanded,
                     OnExpandedChange: Expand,
-                    CreateRoot: (input DataGridInput, root Container) -> {
+                    ConfigureRoot: (input DataGridInput, root Container) -> {
                         root.FlexGrow = 1
                         root.FlexBasis = 0
-                        return root
-                    },
+                        },
                     CreateDetail: Detail
                 }
             )

@@ -32,6 +32,7 @@ public data struct BreadcrumbInput {
     var AccessibilityName string?
     /// Receives the widget input, the path segment, and the prepared content, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateItem Func[BreadcrumbInput, BreadcrumbItem, Blob, Blob]?
 }
 
@@ -160,7 +161,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     }
                 )
                 theme.ApplyInteraction(root.Children[root.Children.Count - 1], InteractionFamily.Button)
-                WidgetKeyBindings.BindActivation(root.Children[root.Children.Count - 1])
+                WidgetKeyBindings.BindOwnedActivation(root.Children[root.Children.Count - 1])
                 AddChevron(root)
             }
             if firstHidden >= 0 && index >= firstHidden && index <= lastHidden {
@@ -225,7 +226,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     content
                 }
                 theme.ApplyInteraction(button, InteractionFamily.Button)
-                WidgetKeyBindings.BindActivation(button)
+                WidgetKeyBindings.BindOwnedActivation(button)
                 root.Children.Add(button)
             }
             if value.SiblingItems != nil && !current {
@@ -246,7 +247,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
                     Text{Content: "›", Color: theme.MutedTextColor}
                 }
                 theme.ApplyInteraction(sibling, InteractionFamily.Button)
-                WidgetKeyBindings.BindActivation(sibling)
+                WidgetKeyBindings.BindOwnedActivation(sibling)
                 root.Children.Add(sibling)
             } else if index < items.Length - 1 {
                 AddChevron(root)

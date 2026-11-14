@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// An accessible icon-only button that accepts any Goo blob as its icon.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct IconButton {
     /// Visual content shown inside the button.
     var Icon Blob?
@@ -36,13 +37,14 @@ public data struct IconButton {
     var DisabledOpacity float64?
     /// Optional base style for the root button.
     var RootStyle Style?
-    /// Creates the final button from resolved props and icon content.
-    var CreateRoot Func[IconButton, Blob, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[IconButton, Blob, Button]?
 
     /// Builds a fresh Goo button tree.
     public func Build() Blob {
         let theme = Theme.Read()
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let defaultWidth Length = theme.ControlHeight
         let width = Width ?? defaultWidth
         let height = Height ?? width
@@ -57,10 +59,10 @@ public data struct IconButton {
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             FocusOutlineColor = FocusOutlineColor ?? theme.FocusColor,
             DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
         let icon = resolved.Icon ?? Container{Width: 0.0, Height: 0.0, Accessibility: Accessibility{Hidden: true}}
-        let button = if let createRoot = createRoot { createRoot(resolved, icon) } else { Button{
+        let button = Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             Padding: resolved.Padding!!,
@@ -83,13 +85,14 @@ public data struct IconButton {
             DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
             BasedOn: resolved.RootStyle,
             icon,
-        } }
+        }
+        configureRoot?.Invoke(resolved, icon, button)
         theme.ApplyInteraction(button, InteractionFamily.Button, Active)
         button.Disabled = Disabled
         button.Focusable = !Disabled
         button.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Selected: Active}
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 }

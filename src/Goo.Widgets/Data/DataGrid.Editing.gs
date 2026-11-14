@@ -358,27 +358,26 @@ public open partial class DataGrid {
                 Controller: session.Controller,
                 Width: Percent(100), Height: height, MinHeight: 0, MinimumRows: 1,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
-                CreateEditor: (input TextAreaInput, value TextEditor) -> {
+                ConfigureEditor: (input TextAreaInput, value TextEditor) -> {
                     if session.Presentation == DataGridEditPresentation.Inline {
                         value.Padding = Edges{Left: theme.ControlPadding, Right: theme.ControlPadding}
                     }
                     prepared = value
-                    return value
-                },
-                CreateRoot: (input TextAreaInput, root Container) -> {
+                    },
+                ConfigureRoot: (input TextAreaInput, root Container) -> {
                     ConfigureEditor(prepared!!, session, name)
-                    return root
-                }
-            })
+                    }})
         } else {
             editor = TextField{
                 Value: session.Value.Draft, Width: Percent(100), EntryHeight: height,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
-                CreateRoot: (input TextField, label Text?, value TextEntry, error Text?) -> {
+                ConfigureRoot: (input TextField, label Text?, value TextEntry, error Text?, prepared Container) -> {
                     ConfigureEditor(value, session, name)
-                    return Container{Width: Percent(100), MinWidth: 0, value}
-                }
-            }.Build()
+                                        prepared.Width = Percent(100)
+                    prepared.MinWidth = 0
+                    prepared.Children.Clear()
+                    prepared.Children.Add(value)
+}}.Build()
         }
         if let create = column.CreateEditor {
             editor = create(column, DataGridEditContext{

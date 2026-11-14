@@ -45,10 +45,13 @@ public data struct Stepper {
     /// Optional visual transform applied to the root container. Nil resolves to identity.
     var Transform PanelTransform?
     /// Custom factory for step label text. Receives resolved props, step index, and label string.
+    /// Return a fresh element or the supplied default.
     var CreateLabel Func[Stepper, int32, string, Text]?
     /// Custom factory for step pill container. Receives resolved props, step index, and label text.
+    /// Return a fresh element or the supplied default.
     var CreateStep Func[Stepper, int32, Text, Container]?
     /// Custom factory for root container. Receives resolved props and array of step pill containers.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Stepper, []Container, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.

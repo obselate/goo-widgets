@@ -74,27 +74,23 @@ internal class ComboBoxHost : Cell {
         Rebuild()
     }
 
-    private func CaptureTrigger(input ComboBoxInput, prepared Button) Button {
+    private func CaptureTrigger(input ComboBoxInput, prepared Button) {
         Trigger = prepared
-        return prepared
     }
 
-    private func CaptureSearch(input ComboBoxInput, prepared TextEntry) TextEntry {
+    private func CaptureSearch(input ComboBoxInput, prepared TextEntry) {
         Search = prepared
-        return prepared
     }
 
-    private func CapturePanel(input ComboBoxInput, prepared Container) Container {
+    private func CapturePanel(input ComboBoxInput, prepared Container) {
         Panel = prepared
         if WidePanel {
             prepared.MinWidth = 600.0
         }
-        return prepared
     }
 
-    private func CaptureRow(input ComboBoxInput, item ComboBoxOption, prepared Container) Container {
+    private func CaptureRow(input ComboBoxInput, item ComboBoxOption, prepared Container) {
         Rows[item.Id!!] = prepared
-        return prepared
     }
 
     private func Options()[]ComboBoxOption {
@@ -173,10 +169,10 @@ internal class ComboBoxHost : Cell {
                             Searchable: Searchable,
                             Disabled: Disabled,
                             AccessibilityName: "Target selector",
-                            CreateTrigger: CaptureTrigger,
-                            CreateRow: CaptureRow,
-                            CreateSearch: CaptureSearch,
-                            CreatePopup: CapturePanel,
+                            ConfigureTrigger: CaptureTrigger,
+                            ConfigureRow: CaptureRow,
+                            ConfigureSearch: CaptureSearch,
+                            ConfigurePopup: CapturePanel,
                         }
                     )
                 }

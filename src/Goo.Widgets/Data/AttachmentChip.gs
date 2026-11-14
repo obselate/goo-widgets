@@ -7,6 +7,7 @@ import Goo.Widgets.Icons
 import System
 
 /// A file attachment with a persistent filename suffix and optional transfer actions.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct AttachmentChip {
     /// Attachment filename. Nil uses localized Attachment text. The suffix stays visible when space is limited.
     var Name string?
@@ -28,8 +29,9 @@ public data struct AttachmentChip {
     var OnDownload Action?
     /// Root layout width. Nil uses 280 logical pixels.
     var Width Length?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    var CreateRoot Func[AttachmentChip, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[AttachmentChip, Container]?
 
     /// Builds the attachment and its independent transfer action.
     public func Build() Blob {
@@ -99,7 +101,7 @@ public data struct AttachmentChip {
             text,
         }
         theme.ApplyInteraction(trigger, InteractionFamily.Button)
-        WidgetKeyBindings.BindActivation(trigger)
+        WidgetKeyBindings.BindOwnedActivation(trigger)
         let body = Container{
             Width: Percent(100),
             MinWidth: 0,
@@ -160,9 +162,7 @@ public data struct AttachmentChip {
                 }
             )
         }
-        if let create = CreateRoot {
-            root = create(this, root)
-        }
+        ConfigureRoot?.Invoke(this, root)
         root.Disabled = Disabled
         root.DisabledStyle = Style{BasedOn: root.DisabledStyle, Opacity: theme.DisabledOpacity}
         return root

@@ -25,7 +25,7 @@ public open partial class TouchTextEditing {
         let viewportHeight = Math.Max(1.0, viewport.Height)
         let width = Math.Min(120.0, viewportWidth)
         let height = Math.Min(64.0, viewportHeight)
-        let content = handle.ContentBox
+        let content = handle!!.ContentBox
         let leftBound = Math.Clamp(content.X, viewport.X, viewport.X + viewportWidth)
         let topBound = Math.Clamp(content.Y, viewport.Y, viewport.Y + viewportHeight)
         let sourceX = Math.Clamp(dragPoint.X, leftBound,

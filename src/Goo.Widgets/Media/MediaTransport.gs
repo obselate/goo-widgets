@@ -19,6 +19,7 @@ public enum MediaTransportAction {
 }
 
 /// Immutable input for a mounted MediaTransport.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct MediaTransportInput {
     /// Current media position in seconds.
     var Position float64
@@ -98,12 +99,14 @@ public data struct MediaTransportInput {
     var PrimaryActionStyle Style?
     /// Creates content for an action slot.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateActionContent Func[MediaTransportInput, MediaTransportAction, Blob]?
-    /// Creates an action button from resolved input, slot, content, callback, and disabled state.
-    /// Hosts must not change state in this callback.
-    var CreateAction Func[MediaTransportInput, MediaTransportAction, Blob, Action?, bool, Button]?
+    /// Configures the fresh action before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureAction Action[MediaTransportInput, MediaTransportAction, Blob, Action?, bool, Button]?
     /// Wraps the composed transport root.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[MediaTransportInput, Container, Blob]?
 }
 
@@ -319,10 +322,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 }
             )
         }
-        let button = if let createAction = input.CreateAction {
-            createAction(input, slot, content, activate, disabled)
-        } else {
-            Button{
+        let button = Button{
                 Width: if primary {
                     input.PrimaryActionSize!!
                 } else {
@@ -366,11 +366,11 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 },
                 content,
             }
-        }
+        input.ConfigureAction?.Invoke(input, slot, content, activate, disabled, button)
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = disabled
         button.OnClick = disabled ? nil: button.OnClick ?? activate
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 

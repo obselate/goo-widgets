@@ -90,7 +90,7 @@ public open class TimePicker : Cell[TimePickerInput] {
                 ControlIcons.Create(ControlIcon.Close, theme.FontSize, theme.MutedTextColor)
             }
             theme.ApplyInteraction(clear, InteractionFamily.Button)
-            WidgetKeyBindings.BindActivation(clear)
+            WidgetKeyBindings.BindOwnedActivation(clear)
             root.Children.Add(clear)
         }
         return root
@@ -117,11 +117,9 @@ public open class TimePicker : Cell[TimePickerInput] {
                     change(number)
                 }
             },
-            CreateEntry: (input, entry) -> {
+            ConfigureEntry: (input, entry) -> {
                 entry.OnKeyDown = event -> Spin(event, key)
-                return entry
-            }
-        })
+                }})
     }
 
     private func NumberFormat(value float64) string -> current.Value == nil ? "--": value.ToString("00", culture)

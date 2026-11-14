@@ -54,11 +54,11 @@ func GridChartContracts() {
             OnHover: (id string?) -> {
                 hovered = id
             },
-            CreateSlice: (input DonutChart, segment ChartSegment, prepared Shape) -> {
+            ConfigureSlice: (input DonutChart, segment ChartSegment, prepared Shape) -> {
                 fraction += segment.Fraction
                 Require(segment.Series.Color == Theme.Read().SeriesPalette[segment.Index], "Donut chart ignored the series palette")
-                return Shape{Fill: VectorPaint(Color.Parse("#22d3ee"))}
-            },
+                                    prepared.Fill = VectorPaint(Color.Parse("#22d3ee"))
+},
         }.Build() as Container
     )!!
     let plot = (donut.Children[0] as Container)!!
@@ -93,11 +93,9 @@ func GridChartContracts() {
                 ChartSeries{Id: "small", Label: "Small", Value: .25},
                 ChartSeries{Id: "large", Label: "Large", Value: .75}
             },
-            CreateSegment: (input StackedBar, segment ChartSegment, prepared Container) -> {
+            ConfigureSegment: (input StackedBar, segment ChartSegment, prepared Container) -> {
                 Require(segment.Series.Color == Theme.Read().SeriesPalette[segment.Index], "Stacked bar ignored the series palette order")
-                return prepared
-            }
-        }.Build() as Container
+                }}.Build() as Container
     )!!
     Require(!((bar.Children[0] as Container)!!.Children[0]).Focusable, "Passive chart unexpectedly became focusable")
     invalid = false
@@ -126,8 +124,7 @@ internal class GridCounter : Cell {
             OnClick: activate,
             Text{Content: "Count " + Count.ToString()}
         }
-        WidgetKeyBindings.BindActivation(button)
-        return button
+        return WidgetKeyBindings.WithActivation(button)
     }
 }
 
@@ -188,23 +185,20 @@ internal class GridChartHost : Cell {
         return root
     }
 
-    private func GridRoot(input Grid, root Container) Container {
+    private func GridRoot(input Grid, root Container) {
         root.Handle = RootHandle
         root.BackgroundColor = Color.Parse("#202631")
         root.Padding = 14
-        return root
     }
 
-    private func Slice(input DonutChart, segment ChartSegment, shape Shape) Shape {
+    private func Slice(input DonutChart, segment ChartSegment, shape Shape) {
         Shapes[segment.Series.Id!!] = shape
         shape.Handle = ElementHandle()
-        return shape
     }
 
-    private func Segment(input StackedBar, segment ChartSegment, bar Container) Container {
+    private func Segment(input StackedBar, segment ChartSegment, bar Container) {
         Bars[segment.Series.Id!!] = bar
         bar.Handle = ElementHandle()
-        return bar
     }
 
     public override func Build() Blob {
@@ -222,7 +216,7 @@ internal class GridChartHost : Cell {
             Rows: []GridTrack{GridTrack.Auto(), GridTrack.Auto(), GridTrack.Auto()},
             ColumnGap: 12,
             RowGap: 10,
-            CreateRoot: GridRoot,
+            ConfigureRoot: GridRoot,
             Items: []GridItem{
                 GridItem{
                     Id: "label",
@@ -290,7 +284,7 @@ internal class GridChartHost : Cell {
             OnHover: (id string?) -> {
                 Hovered = id
             },
-            CreateSlice: Slice
+            ConfigureSlice: Slice
         }.Build()
         donut.Key = "donut"
         let bar = StackedBar{
@@ -298,7 +292,7 @@ internal class GridChartHost : Cell {
             Height: 20,
             ShowLegend: true,
             AccessibilityName: "Capacity bar",
-            CreateSegment: Segment,
+            ConfigureSegment: Segment,
             OnClick: (id string) -> {
                 Selected = id
             }

@@ -16,6 +16,7 @@ public enum ToggleGroupVariant {
 }
 
 /// An identified toggle choice.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct ToggleOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -47,12 +48,12 @@ public data struct ToggleGroupInput {
     var Orientation AccessibilityOrientation?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
-    /// Receives the widget input, the toggle option, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[ToggleGroupInput, ToggleOption, Button, Button]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ToggleGroupInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureItem Action[ToggleGroupInput, ToggleOption, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[ToggleGroupInput, Container]?
 }
 
 /// A roving group that selects one choice or toggles several choices.
@@ -99,9 +100,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             BorderRadius: theme.ControlRadius!!,
             BackgroundColor: input.Variant == ToggleGroupVariant.Segmented ? theme.SunkenColor: Color.Transparent,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Direction = theme.Direction
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
         root.Accessibility = Accessibility{
@@ -156,9 +155,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                     FlexShrink: 1,
                 }
             )
-            if let create = input.CreateItem {
-                button = create(input, item, button)
-            }
+            input.ConfigureItem?.Invoke(input, item, button)
             theme.ApplyInteraction(button, InteractionFamily.Toggle, active)
             button.Key = id
             button.Handle = handles[id]
@@ -181,7 +178,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 Name: item.Label ?? id,
                 Checked: active ? AccessibilityChecked.True: AccessibilityChecked.False,
             }
-            WidgetKeyBindings.BindActivation(button)
+            WidgetKeyBindings.BindOwnedActivation(button)
             root.Children.Add(button)
         }
         return root

@@ -360,15 +360,15 @@ internal class SkeletonHost : Cell {
             OverflowY: Overflow.Scroll, ScrollbarVisibilityY: ScrollbarVisibility.Hidden,
             Cell.Mount[SkeletonInput, Skeleton]("text", SkeletonInput{
                 Width: Percent(100), Animated: Animated, AccessibilityName: Named ? "Loading text": nil,
-                CreateRoot: (input, root) -> Capture(0, root),
+                ConfigureRoot: (input, root) -> { Capture(0, root) },
             }),
             Cell.Mount[SkeletonInput, Skeleton]("circle", SkeletonInput{
                 Variant: SkeletonVariant.Circle, Animated: Animated, AccessibilityName: Named ? "Loading avatar": nil,
-                CreateRoot: (input, root) -> Capture(1, root),
+                ConfigureRoot: (input, root) -> { Capture(1, root) },
             }),
             Cell.Mount[SkeletonInput, Skeleton]("rectangle", SkeletonInput{
                 Variant: SkeletonVariant.Rectangle, Width: Percent(100), Animated: Animated, AccessibilityName: "Loading preview",
-                CreateRoot: (input, root) -> Capture(2, root),
+                ConfigureRoot: (input, root) -> { Capture(2, root) },
             }),
             Container{Height: 512, FlexShrink: 0},
         },

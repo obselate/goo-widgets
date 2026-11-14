@@ -6,6 +6,7 @@ import System
 import System.Collections.Generic
 
 /// An identified radio choice with optional descriptive content.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct RadioOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -35,12 +36,12 @@ public data struct RadioGroupInput {
     var Disabled bool
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
-    /// Receives the widget input, the radio option, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[RadioGroupInput, RadioOption, Button, Button]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[RadioGroupInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureItem Action[RadioGroupInput, RadioOption, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[RadioGroupInput, Container]?
 }
 
 /// One tab stop with arrow-key selection and radio accessibility.
@@ -76,9 +77,7 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             handles.Remove(id)
         }
         var root = Container{Gap: theme.ControlGap}
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.Direction = theme.Direction
         root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
         root.Accessibility = Accessibility{
@@ -101,13 +100,10 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 Card: input.Card,
                 Disabled: input.Disabled || item.Disabled,
                 OnChange: (value bool) -> Select(id),
-                CreateRoot: (value RadioButton, prepared Button) -> {
+                ConfigureRoot: (value RadioButton, prepared Button) -> {
                     var button = prepared
-                    if let create = input.CreateItem {
-                        button = create(input, item, button)
-                    }
+                    input.ConfigureItem?.Invoke(input, item, button)
                     button.Handle = handles[id]
-                    return button
                 },
             }.Build() as Button)!!
             button.Key = id

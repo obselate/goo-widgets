@@ -5,6 +5,7 @@ import Goo.Widgets
 
 /// A controlled switch composed from a Goo button track and thumb.
 /// Factories receive resolved props and may replace the final Goo primitives.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct ToggleSwitch {
     /// Whether the track displays its on state. Build does not invert this value.
     var Value bool
@@ -55,14 +56,16 @@ public data struct ToggleSwitch {
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Creates the final thumb from resolved props. Nil uses the default thumb.
+    /// Return a fresh element or the supplied default.
     var CreateThumb Func[ToggleSwitch, Container]?
-    /// Creates the final Button from resolved props and exact final thumb.
-    var CreateRoot Func[ToggleSwitch, Container, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[ToggleSwitch, Container, Button]?
     /// Builds a fresh Goo switch tree after resolving props and factories.
     public func Build() Blob {
         let theme = Theme.Read()
         let createThumb = CreateThumb
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let fluent = theme.Controls == ControlStyle.Fluent
         let defaultHeight Length = fluent ? 20.0: theme.Spacing * 6.0
         let defaultWidth Length = fluent ? 40.0: theme.Spacing * 11.0
@@ -91,7 +94,7 @@ public data struct ToggleSwitch {
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateThumb = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
         let thumb = if let createThumb = createThumb {
             createThumb(resolved)
@@ -115,7 +118,7 @@ public data struct ToggleSwitch {
         }
         let trackColor = resolved.Disabled ? resolved.DisabledTrackColor!!:
             resolved.Value ? resolved.OnTrackColor!!: resolved.OffTrackColor!!
-        let button = if let createRoot = createRoot { createRoot(resolved, thumb) } else { Button{
+        let button = Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             MinHeight: theme.ControlHeight,
@@ -153,13 +156,14 @@ public data struct ToggleSwitch {
                 HoverStyle: fluent ? Style{Padding: 2.0}: nil,
                 thumb,
             },
-        } }
+        }
+        configureRoot?.Invoke(resolved, thumb, button)
         theme.ApplyInteraction(button, InteractionFamily.Toggle, Value)
         button.Disabled = Disabled
         button.Focusable = !Disabled
         button.OnClick = Disabled ? nil: () -> OnChange?.Invoke(!Value)
         button.Accessibility = Accessibility{Role: AccessibilityRole.Switch, Name: resolved.AccessibilityName!!, Checked: Value ? AccessibilityChecked.True: AccessibilityChecked.False}
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 }

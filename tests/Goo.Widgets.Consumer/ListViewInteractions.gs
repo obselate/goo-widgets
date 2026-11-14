@@ -75,14 +75,12 @@ internal class ListTreeHost : Cell {
                     },
                     OnRename: (id string) -> Renamed = id,
                     OnDrop: (ids[]string, target string, position TreeDropPosition) -> DropPosition = position,
-                    CreateRoot: (input TreeViewInput, root Container) -> {
+                    ConfigureRoot: (input TreeViewInput, root Container) -> {
                         Root = root
-                        return root
-                    },
-                    CreateRow: (input TreeViewInput, row TreeViewRow, root Container) -> {
+                        },
+                    ConfigureRow: (input TreeViewInput, row TreeViewRow, root Container) -> {
                         Rows[row.Node.Id!!] = root
-                        return root
-                    },
+                        },
                     AccessibilityName: "Selection tree",
                     Height: 280
                 }
@@ -102,14 +100,12 @@ internal class ListTreeHost : Cell {
                     OnClick: (id string) -> Invoked = id,
                     Sections: Sections,
                     Query: Query,
-                    CreateRoot: (input ListViewInput, root Container) -> {
+                    ConfigureRoot: (input ListViewInput, root Container) -> {
                         Root = root
-                        return root
-                    },
-                    CreateRow: (input ListViewInput, item ListViewItem, root Container) -> {
+                        },
+                    ConfigureRow: (input ListViewInput, item ListViewItem, root Container) -> {
                         Rows[item.Id!!] = root
-                        return root
-                    },
+                        },
                     AccessibilityName: "Selection list",
                     Height: 280
                 }
@@ -299,26 +295,33 @@ internal class ListRowHost : Cell {
             Title: "Interactive row",
             OnClick: () -> Clicks++,
             OnInvoke: () -> Invokes++,
-            CreateRoot: (value ListRow, leading Blob?, content Container, trailing Blob?) ->
-            Container{Handle: Row, Height: 60, content},
+            ConfigureRoot: (value ListRow, leading Blob?, content Container, trailing Blob?, prepared Container) -> {
+                    prepared.Handle = Row
+                    prepared.Height = 60
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
+                },
             Actions: ActionButton{
                 Content: "Pin",
                 AccessibilityName: "Row action",
                 OnClick: () -> Actions++,
-                CreateRoot: (value ActionButton, text Text) -> Button{
-                    Handle: ActionHandle,
-                    OnClick: value.OnClick,
-                    text
-                }
-            }.Build()
+                ConfigureRoot: (value ActionButton, text Text, prepared Button) -> {
+                    prepared.Handle = ActionHandle
+                    prepared.OnClick = value.OnClick
+                    prepared.Children.Clear()
+                    prepared.Children.Add(text)
+                }}.Build()
         }.Build(),
         ListRow{
             Title: "Disabled row",
             Disabled: true,
             OnClick: () -> Clicks++,
-            CreateRoot: (value ListRow, leading Blob?, content Container, trailing Blob?) ->
-            Container{Handle: DisabledRow, Height: 60, content}
-        }.Build(),
+            ConfigureRoot: (value ListRow, leading Blob?, content Container, trailing Blob?, prepared Container) -> {
+                    prepared.Handle = DisabledRow
+                    prepared.Height = 60
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
+                }}.Build(),
         Button{Handle: After, OnClick: () -> { }, Text{Content: "After"}}
     }
 }
@@ -389,15 +392,12 @@ internal class ListFillHost : Cell {
                 ListViewInput{
                     Items: items,
                     AccessibilityName: "Messages",
-                    CreateRoot: (input ListViewInput, root Container) -> {
+                    ConfigureRoot: (input ListViewInput, root Container) -> {
                         Root = root
-                        return root
-                    },
-                    CreateRow: (input ListViewInput, item ListViewItem, row Container) -> {
+                        },
+                    ConfigureRow: (input ListViewInput, item ListViewItem, row Container) -> {
                         Rows[item.Id!!] = row
-                        return row
-                    }
-                }
+                        }}
             )
         }
     }

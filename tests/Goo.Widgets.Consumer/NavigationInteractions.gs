@@ -83,14 +83,12 @@ internal class NavigationHost : Cell {
                         Closed = id
                         Rebuild()
                     },
-                    CreateItem: (input TabBarInput, item NavigationItem, button Button) -> {
+                    ConfigureItem: (input TabBarInput, item NavigationItem, button Button) -> {
                         Tabs[item.Id!!] = button
-                        return button
-                    },
-                    CreateRoot: (input TabBarInput, root Container) -> {
+                        },
+                    ConfigureRoot: (input TabBarInput, root Container) -> {
                         root.Handle = Viewport
-                        return root
-                    },
+                        },
                 }
             ),
             Cell.Mount[NavigationRailInput, NavigationRail](
@@ -126,18 +124,18 @@ internal class NavigationHost : Cell {
             ),
             ActionButton{
                 Content: "Open palette",
-                CreateRoot: (input ActionButton, text Text) -> Button{
-                    Handle: Launch,
-                    Height: 36,
-                    Focusable: true,
-                    Text{Content: "Open palette"},
-                    OnClick: () -> {
+                ConfigureRoot: (input ActionButton, text Text, prepared Button) -> {
+                    prepared.Handle = Launch
+                    prepared.Height = 36
+                    prepared.Focusable = true
+                    prepared.OnClick = () -> {
                         PaletteOpen = true
                         Query = ""
                         Rebuild()
-                    },
-                }
-            }.Build(),
+                    }
+                    prepared.Children.Clear()
+                    prepared.Children.Add(Text{Content: "Open palette"})
+                }}.Build(),
             Cell.Mount[CommandPaletteInput, CommandPalette](
                 "palette",
                 CommandPaletteInput{
@@ -153,9 +151,8 @@ internal class NavigationHost : Cell {
                         Rebuild()
                     },
                     OnClick: (id string) -> Invoked = id,
-                    CreateItem: (input CommandPaletteInput, item CommandItem, match FuzzyMatchResult, button Button) -> {
+                    ConfigureItem: (input CommandPaletteInput, item CommandItem, match FuzzyMatchResult, button Button) -> {
                         Highlights[item.Id] = match
-                        return button
                     },
                     Groups: []CommandGroup{CommandGroup{Id: "file", Label: "File"}},
                     Items: []CommandItem{

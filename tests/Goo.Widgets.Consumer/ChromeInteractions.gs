@@ -17,23 +17,22 @@ func ChromeContractControl(
     input WindowChrome,
     command WindowChromeAction,
     content Blob,
-    action Action?
-) Button -> Button{
-    Focusable: true,
-    Disabled: false,
-    Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "wrong"},
-    Text{Content: "wrong"},
+    action Action?, prepared Button) {
+    prepared.Focusable = true
+    prepared.Disabled = false
+    prepared.Accessibility = Accessibility{Role: AccessibilityRole.Link, Name: "wrong"}
+    prepared.Children.Clear()
+    prepared.Children.Add(Text{Content: "wrong"})
 }
 
-func ChromeContractRoot(input WindowChrome, children[]Blob) Container -> Container{
-    OnPointerDown: (e PointerEvent) -> { },
-    Children: children,
+func ChromeContractRoot(input WindowChrome, children[]Blob, prepared Container) {
+    prepared.OnPointerDown = (e PointerEvent) -> { }
+    prepared.Children = children
 }
 
 func WindowChromeContracts() {
-    let row = (
-        WindowChrome{CreateRoot: ChromeContractRoot, CreateControl: ChromeContractControl}.Build() as Container
-    )!!
+    let region = (WindowChrome{ConfigureRoot: ChromeContractRoot, ConfigureControl: ChromeContractControl}.Build() as Container)!!
+    let row = (region.Children[0] as Container)!!
     Require(
         !row.Focusable && row.Children.Count == 4,
         "Chrome changed the factory child order or became a focusable drag region"
@@ -74,12 +73,12 @@ internal class ChromePaintHost : Cell {
                 BackgroundColor: Color.Rgb(32, 32, 32),
                 ControlColor: Color.White,
                 CloseHoverBackgroundColor: Color.Rgb(255, 128, 192),
-                CreateRoot: (input WindowChrome, children []Blob) -> Container{
-                    Handle: custom ? Custom: Stock,
-                    Height: input.Height!!,
-                    FlexDirection: FlexDirection.Row,
-                    AlignItems: AlignItems.Center,
-                    BackgroundColor: input.BackgroundColor!!,
+                ConfigureRoot: (input WindowChrome, children []Blob, prepared Container) -> {
+                    prepared.Handle = custom ? Custom: Stock
+                    prepared.Height = input.Height!!
+                    prepared.FlexDirection = FlexDirection.Row
+                    prepared.AlignItems = AlignItems.Center
+                    prepared.BackgroundColor = input.BackgroundColor!!
                 },
             }
             if custom {
@@ -176,34 +175,31 @@ internal class ChromeHost : Cell {
         Rebuild()
     }
 
-    private func Control(input WindowChrome, command WindowChromeAction, content Blob, action Action?) Button {
-        let button = Button{
-            Handle: ElementHandle(),
-            Width: input.ControlWidth!!,
-            Height: input.Height!!,
-            Padding: 0.0,
-            BackgroundColor: Color.Transparent,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            OnClick: () -> {
+    private func Control(input WindowChrome, command WindowChromeAction, content Blob, action Action?, button Button) {
+        button.Handle = ElementHandle()
+        button.Width = input.ControlWidth!!
+        button.Height = input.Height!!
+        button.Padding = 0.0
+        button.BackgroundColor = Color.Transparent
+        button.AlignItems = AlignItems.Center
+        button.JustifyContent = JustifyContent.Center
+        button.OnClick = () -> {
                 BadClicks++
-            },
-            Text{Content: "wrong"}
-        }
+            }
+button.Children.Clear()
+button.Children.Add(Text{Content: "wrong"})
         Controls[command] = button
-        return button
     }
 
-    private func Root(input WindowChrome, children[]Blob) Container {
+    private func Root(input WindowChrome, children[]Blob, prepared Container) {
         children[1].Handle = Blank
-        return Container{
-            Height: input.Height!!,
-            FlexDirection: FlexDirection.Row,
-            AlignItems: AlignItems.Center,
-            BackgroundColor: Color.Parse("#18181b"),
-            Focusable: true,
-            Text{Content: "wrong"}
-        }
+        prepared.Height = input.Height!!
+        prepared.FlexDirection = FlexDirection.Row
+        prepared.AlignItems = AlignItems.Center
+        prepared.BackgroundColor = Color.Parse("#18181b")
+        prepared.Focusable = true
+prepared.Children.Clear()
+prepared.Children.Add(Text{Content: "wrong"})
     }
 
     private func Menu(input WindowChrome, prepared MenuInput) MenuInput {
@@ -228,8 +224,8 @@ internal class ChromeHost : Cell {
                 EnableContextMenu: true,
                 Height: 40.0,
                 ControlWidth: 48.0,
-                CreateRoot: Root,
-                CreateControl: Control,
+                ConfigureRoot: Root,
+                ConfigureControl: Control,
                 CreateMenu: Menu,
                 LeadingContent: Container{
                     FlexDirection: FlexDirection.Row,

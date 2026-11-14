@@ -42,6 +42,15 @@ public data partial struct Theme {
     }
 
     internal func ApplyInteraction(target Blob, family InteractionFamily, selected bool = false, interactive bool = true) {
+        if target is Shape {
+            if interactive {
+                let focus = FocusStyle
+                focus.BasedOn = target.FocusStyle
+                target.FocusStyle = focus
+            }
+            target.DisabledStyle = Style{Color: DisabledTextColor, Opacity: DisabledOpacity, BasedOn: target.DisabledStyle}
+            return
+        }
         let field = family == InteractionFamily.Field
         let fluentField = field && Controls == ControlStyle.Fluent
         let row = family == InteractionFamily.Row || family == InteractionFamily.Toggle

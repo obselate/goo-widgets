@@ -19,6 +19,7 @@ public enum WindowChromeAction {
 }
 
 /// A configurable drag region with optional standard window controls.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct WindowChrome {
     /// Window controlled by default actions. Callbacks can replace it. Native controls that overlap Host pad the chrome.
     var Host Window?
@@ -71,13 +72,14 @@ public data struct WindowChrome {
     var RootStyle Style?
     /// Creates content for a standard control.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateControlContent Func[WindowChrome, WindowChromeAction, Blob]?
-    /// Creates a standard control from resolved props, command, content, and action.
-    /// Hosts must not change state in this callback.
-    var CreateControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
-    /// Creates the final container; required children and drag/input wiring are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[WindowChrome, []Blob, Container]?
+    /// Configures the fresh control before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureControl Action[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[WindowChrome, []Blob, Container]?
 
     shared {
         private let minimizeGlyph VectorPath = PathBuilder(0, 0, 10, 10)
@@ -158,11 +160,11 @@ public data struct WindowChrome {
         return resolved
     }
 
-    internal func BuildResolved(theme Theme, blankPointer Action[PointerEvent]? = nil) Container {
+    internal func BuildResolved(theme Theme, blankPointer Action[PointerEvent]? = nil) Blob {
         let createContent = CreateControlContent
-        let createControl = CreateControl
-        let createRoot = CreateRoot
-        let resolved = this with{CreateControlContent = nil, CreateControl = nil, CreateRoot = nil, CreateMenu = nil}
+        let configureControl = ConfigureControl
+        let configureRoot = ConfigureRoot
+        let resolved = this with{CreateControlContent = nil, ConfigureControl = nil, ConfigureRoot = nil, CreateMenu = nil}
         let maximized = resolved.IsMaximized!!
         let children = List[Blob]()
         if let leading = resolved.LeadingContent {
@@ -180,7 +182,7 @@ public data struct WindowChrome {
                     WindowChromeAction.Minimize,
                     resolved.OnMinimize,
                     createContent,
-                    createControl
+                    configureControl
                 )
             )
         }
@@ -201,13 +203,13 @@ public data struct WindowChrome {
                         resolved.OnMaximize
                     },
                     createContent,
-                    createControl
+                    configureControl
                 )
             )
         }
         if resolved.ShowClose!! {
             children.Add(
-                BuildControl(theme, resolved, WindowChromeAction.Close, resolved.OnClose, createContent, createControl)
+                BuildControl(theme, resolved, WindowChromeAction.Close, resolved.OnClose, createContent, configureControl)
             )
         }
         let ordered = children.ToArray()
@@ -222,11 +224,8 @@ public data struct WindowChrome {
             BasedOn: resolved.RootStyle,
             Children: children,
         }
-        let root = if let create = createRoot {
-            create(resolved, ordered)
-        } else {
-            prepared
-        }
+        let root = prepared
+        configureRoot?.Invoke(resolved, ordered, root)
         root.Children.Clear()
         if let controls = resolved.Host?.TitlebarControlsRect {
             root.PaddingStart = controls.X + controls.Width
@@ -239,7 +238,7 @@ public data struct WindowChrome {
         if let handler = blankPointer {
             root.OnPointerDown = handler
         }
-        return Window.DragRegion(root)
+        return Window.WithDragRegion(root)
     }
 
     private func BuildControl(
@@ -248,7 +247,7 @@ public data struct WindowChrome {
         command WindowChromeAction,
         action Action?,
         createContent Func[WindowChrome, WindowChromeAction, Blob]?,
-        createControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
+        configureControl Action[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
     ) Blob {
         let content = if let createContent = createContent {
             createContent(resolved, command)
@@ -287,17 +286,14 @@ public data struct WindowChrome {
             },
             ActiveStyle: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
         }
-        let control = if let create = createControl {
-            create(resolved, command, content, action)
-        } else {
-            prepared
-        }
+        let control = prepared
+        configureControl?.Invoke(resolved, command, content, action, control)
         theme.ApplyInteraction(control, InteractionFamily.Button)
         control.Disabled = action == nil
         control.Focusable = action != nil
         control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(Name(command))}
         control.OnClick = action
-        WidgetKeyBindings.BindActivation(control)
+        WidgetKeyBindings.BindOwnedActivation(control)
         control.Children.Clear()
         control.Children.Add(content)
         return control

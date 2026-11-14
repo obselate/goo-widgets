@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// Controlled multiline field values, presentation, and optional external editor ownership.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TextAreaInput {
     /// Controlled string. Nil preserves an external controller's document; an owned document starts empty.
     var Value string?
@@ -74,12 +75,12 @@ public data struct TextAreaInput {
     var EditorStyle Style?
     /// Base root style.
     var RootStyle Style?
-    /// Customizes the prepared editor. It must retain the supplied controller; field behavior is reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateEditor Func[TextAreaInput, TextEditor, TextEditor]?
-    /// Customizes root appearance; label, editor, and error children are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TextAreaInput, Container, Container]?
+    /// Configures the fresh editor before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEditor Action[TextAreaInput, TextEditor]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[TextAreaInput, Container]?
 }
 
 /// A mounted controlled TextEditor field that disposes only its default controller.
@@ -90,6 +91,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
     private var syncing bool
     private var disposed bool
     private var input TextAreaInput
+    private let editorHandle ElementHandle = ElementHandle()
     private let labelHandle ElementHandle = ElementHandle()
     private let issueHandle ElementHandle = ElementHandle()
     private let descriptionHandle ElementHandle = ElementHandle()
@@ -186,17 +188,15 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 KeyBinding{Key: Key.Escape, OnPress: () -> Cancel()},
             },
         }
-        if let create = input.CreateEditor {
-            editor = create(input, editor)
-        }
+        input.ConfigureEditor?.Invoke(input, editor)
         if invalid {
             editor.HoverStyle = Style{BasedOn: editor.HoverStyle, BorderColor: input.InvalidColor!!}
             editor.ActiveStyle = Style{BasedOn: editor.ActiveStyle, BorderColor: input.InvalidColor!!}
         }
         theme.ApplyInteraction(editor, InteractionFamily.Field)
-        if editor.Controller != editorController {
-            throw ArgumentException("CreateEditor must preserve the TextArea controller")
-        }
+        editor.Layers = []TextPresentationLayer{}
+        editor.Controller = editorController
+        editor.Handle ??= editorHandle
         editor.Key = "editor"
         editor.ReadOnly = input.ReadOnly
         editor.Disabled = input.Disabled
@@ -228,9 +228,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             FontFamily: input.FontFamily!!,
             BasedOn: input.RootStyle,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         root.FlexDirection = FlexDirection.Column
         root.Children.Clear()
         if let label = input.Label {
@@ -303,7 +301,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         }
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
-            TouchTextEditingInput{Content: root, Editor: editor, Enabled: input.TouchEditing}
+            TouchTextEditingInput{Content: root, Editor: editor.Handle!!, RootStyle: Style{Width: input.Width!!, MinWidth: 0}, Enabled: input.TouchEditing}
         )
     }
 

@@ -6,6 +6,7 @@ import Goo.Widgets.Icons
 import System
 
 /// Host-owned search options. Matching stays with the host document.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct FindOptions {
     /// Requests case-sensitive matching in the host search operation.
     var MatchCase bool
@@ -51,7 +52,7 @@ public data struct FindBar {
     var Width Length?
     /// Receives the owning find bar and field, and returns the replacement entry. Nil uses the default composition.
     /// Hosts must not change state in this callback.
-    var CreateEntry Func[FindBar, TextField, TextEntry]?
+    var ConfigureEntry Action[FindBar, TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.
     public func Build() Blob -> Cell.Mount[FindBar, FindBarState](nil, this)
@@ -186,7 +187,7 @@ internal class FindBarState : Cell[FindBar] {
         if QueryField == nil || previous.Query != input.Query || previous.Options != input.Options
         || previous.Error != input.Error || previous.Disabled != input.Disabled
         || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange
-        || previous.CreateEntry != input.CreateEntry {
+        || previous.ConfigureEntry != input.ConfigureEntry {
             QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{
                 Value: input with{
                     OnQueryChange = input.OnQueryChange == nil ? nil: value -> InvokeInputCallback(current.OnQueryChange, value),
@@ -224,10 +225,10 @@ internal class FindBarField : Cell[FindBarFieldInput] {
     private let matchCase Action
     private let wholeWord Action
     private let regex Action
-    private let createEntry Func[TextField, TextEntry]
+    private let configureEntry Action[TextField, TextEntry]
 
     public init() {
-        createEntry = props -> current.CreateEntry!!(current, props)
+        configureEntry = (props, entry) -> current.ConfigureEntry!!(current, props, entry)
         matchCase = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{MatchCase = !current.Options.MatchCase})
         wholeWord = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{WholeWord = !current.Options.WholeWord})
         regex = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{Regex = !current.Options.Regex})
@@ -248,7 +249,7 @@ internal class FindBarField : Cell[FindBarFieldInput] {
             Invalid: input.Error != nil,
             Error: input.Error,
             OnChange: input.OnQueryChange == nil ? nil: value -> InvokeInputCallback(input.OnQueryChange, value),
-            CreateEntry: input.CreateEntry == nil ? nil: createEntry,
+            ConfigureEntry: input.ConfigureEntry == nil ? nil: configureEntry,
             EntryKeyBindings: field.Bindings,
             Trailing: Container{
                 FlexDirection: FlexDirection.Row,
@@ -313,7 +314,7 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
             ControlIcons.Create(icon, 16, disabled ? theme.DisabledTextColor: on == true ? theme.OnAccentColor: theme.MutedTextColor),
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, on == true)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 }

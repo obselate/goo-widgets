@@ -20,15 +20,20 @@ internal class TouchEditingHost : Cell {
         let root = Container{Width: Percent(100), Height: Percent(100), Padding: 16}
         root.Children.Add(if Password {
             TextField{Value: Value, Width: 170, OnChange: Changed,
-                CreateEntry: (input TextField) -> TextEntry{Value: input.Value ?? "", Password: true,
-                    Width: Percent(100), Height: 40,
-                    Handle: Editor, OnChange: input.OnChange},
+                ConfigureEntry: (input TextField, prepared TextEntry) -> {
+                    prepared.Value = input.Value ?? ""
+                    prepared.Password = true
+                    prepared.Width = Percent(100)
+                    prepared.Height = 40
+                    prepared.Handle = Editor
+                    prepared.OnChange = input.OnChange
+                },
             }.Build()
         } else {
             Cell.Mount[TextAreaInput, TextArea]("editor", TextAreaInput{
                 Value: Value, Width: Percent(100), Height: 70, ReadOnly: ReadOnly, OnChange: Changed,
-                CreateEditor: (input TextAreaInput, editor TextEditor) -> { editor.Handle = Editor
-                    return editor },
+                ConfigureEditor: (input TextAreaInput, editor TextEditor) -> { editor.Handle = Editor
+                    },
             })
         })
         return root
@@ -36,13 +41,13 @@ internal class TouchEditingHost : Cell {
 }
 
 internal class TouchEditingOwnershipHost : Cell {
-    internal let Editor TextEntry = TextEntry{Value: "Alpha beta gamma", Width: 180, Height: 40}
+    internal let Editor TextEntry = TextEntry{Handle: ElementHandle(), Value: "Alpha beta gamma", Width: 180, Height: 40}
     internal var Editing TouchTextEditing?
 
     public override func Build() Blob {
         let content = Container{}
         content.Add(Editor)
-        let input = TouchTextEditingInput{Content: content, Editor: Editor}
+        let input = TouchTextEditingInput{Content: content, Editor: Editor.Handle!!}
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing]("editing", input, () -> {
             let child = TouchTextEditing()
             Editing = child
@@ -66,9 +71,12 @@ func TouchEditingOwnership() {
     ThemeFrames(host)
     let box = handle.BorderBox
     let point = Point{X: box.X + 20.0, Y: box.Y + box.Height * 0.5}
+    Require(handle.TryGetTextPositionAt(point, TextCoordinateSpace.Window, out var caret),
+        "Retained touch editor did not expose tap geometry")
     TouchPressAt(window, 501, point)
     TouchReleaseAt(window, 501, point)
     ThemeFrames(host)
+    Require(window.Focus.Selection?.Active.Offset == caret.Offset, "Touch tap did not place the retained editor caret")
     Require(FindSemantics(semantics.Tree?.Root, "Edit text") != nil, "Touch toolbar did not open")
     for iteration in 0 ... 3 {
         root.Editing!!.Rebuild()
@@ -188,6 +196,22 @@ func TouchEditingInteractions() {
         }
         window.UiScale = 1.0F
         window.Size = LayoutSize(float64(500) / window.UiScale, float64(300) / window.UiScale)
+        host.ReadOnly = false
+        let lines = [40]string
+        for index in 0 ... lines.Length { lines[index] = "Scrollable line " + index.ToString() }
+        host.Value = String.Join("\n", lines)
+        host.Rebuild()
+        PumpFrames(window, 8)
+        let editorBox = host.Editor.ContentBox
+        let scrollStart = Point{X: editorBox.X + editorBox.Width * 0.5, Y: editorBox.Y + editorBox.Height * 0.8}
+        let scrollEnd = Point{X: scrollStart.X, Y: editorBox.Y + 2}
+        TouchPressAt(window, 505, scrollStart)
+        TouchMoveAt(window, 505, scrollEnd)
+        PumpFrames(window, 3)
+        TouchReleaseAt(window, 505, scrollEnd)
+        PumpFrames(window, 3)
+        Require(host.Editor.ScrollOffset.Y > 0, "Touch editing wrapper prevented editor scrolling")
+        host.Value = "Alpha beta gamma"
         host.Password = true
         host.Rebuild()
         PumpFrames(window, 8)

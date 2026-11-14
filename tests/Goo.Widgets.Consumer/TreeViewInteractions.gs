@@ -94,7 +94,7 @@ internal class TreeHost : Cell {
     internal let Checks Dictionary[string, Button] = Dictionary[string, Button]()
     internal let After ElementHandle = ElementHandle()
 
-    private func Row(input TreeViewInput, row TreeViewRow, prepared Container) Container {
+    private func Row(input TreeViewInput, row TreeViewRow, prepared Container) {
         var contentFound bool
         for child in prepared.Children {
             if child is Container && child.Key == "content" {
@@ -104,24 +104,20 @@ internal class TreeHost : Cell {
         Require(contentFound, "Tree row customization did not receive composed children")
         prepared.Children.Add(Container{Key: "custom-row", Width: 0, Height: 0})
         Rows[row.Node.Id!!] = prepared
-        return prepared
     }
 
-    private func Expander(input TreeViewInput, row TreeViewRow, prepared Button) Button {
+    private func Expander(input TreeViewInput, row TreeViewRow, prepared Button) {
         prepared.Handle = ElementHandle()
         Expanders[row.Node.Id!!] = prepared
-        return prepared
     }
 
-    private func Check(input TreeViewInput, row TreeViewRow, prepared Button) Button {
+    private func Check(input TreeViewInput, row TreeViewRow, prepared Button) {
         prepared.Handle = ElementHandle()
         Checks[row.Node.Id!!] = prepared
-        return prepared
     }
 
-    private func CaptureRoot(input TreeViewInput, prepared Container) Container {
+    private func CaptureRoot(input TreeViewInput, prepared Container) {
         Root = prepared
-        return prepared
     }
 
     private func Expand(id string, state bool) {
@@ -215,10 +211,10 @@ internal class TreeHost : Cell {
             },
             OnExpandedChange: Expand,
             OnCheckChange: ChangeCheck,
-            CreateRow: Row,
-            CreateCheck: Check,
-            CreateExpander: Expander,
-            CreateRoot: CaptureRoot
+            ConfigureRow: Row,
+            ConfigureCheck: Check,
+            ConfigureExpander: Expander,
+            ConfigureRoot: CaptureRoot
         }
         if !Passive {
             configuration.OnSelect = Select

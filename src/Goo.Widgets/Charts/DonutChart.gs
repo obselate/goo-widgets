@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// A small vector donut chart with optional activation and legend composition.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct DonutChart {
     /// Stable, labeled, nonnegative entries. Nil resolves to an empty series.
     var Series[]?ChartSeries
@@ -24,14 +25,18 @@ public data struct DonutChart {
     var OnClick Action[string]?
     /// Optional hover identity; nil means the pointer left a segment.
     var OnHover Action[string?]?
-    /// Customizes a slice. Path, position, identity, handlers, and semantics are reapplied.
-    var CreateSlice Func[DonutChart, ChartSegment, Shape, Shape]?
+    /// Configures the fresh slice before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureSlice Action[DonutChart, ChartSegment, Shape]?
     /// Receives the resolved chart, segment, and prepared legend label.
+    /// Return a fresh element or the supplied default.
     var CreateLabel Func[DonutChart, ChartSegment, Text, Text]?
-    /// Customizes the prepared legend.
-    var CreateLegend Func[DonutChart, Container, Container]?
-    /// Customizes the root. Required children and summary semantics are reapplied.
-    var CreateRoot Func[DonutChart, Container, Container]?
+    /// Configures the fresh legend before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureLegend Action[DonutChart, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[DonutChart, Container]?
 
     /// Builds fresh vector slices, including a two-arc full circle and an empty track.
     public func Build() Blob {
@@ -79,9 +84,7 @@ public data struct DonutChart {
                 TransitionProperties: theme.InteractionTransitions,
                 Cursor: OnClick == nil ? Cursor.Default: Cursor.Pointer
             }
-            if let create = CreateSlice {
-                shape = create(resolved, segment, shape)
-            }
+            ConfigureSlice?.Invoke(resolved, segment, shape)
             theme.ApplyInteraction(shape, InteractionFamily.Button)
             shape.Path = path
             shape.Width = size
@@ -113,9 +116,7 @@ public data struct DonutChart {
             )
         }
         var root = Container{Gap: theme.Spacing * 3.0, AlignItems: AlignItems.Center}
-        if let create = CreateRoot {
-            root = create(resolved, root)
-        }
+        ConfigureRoot?.Invoke(resolved, root)
         root.Accessibility = Accessibility{
             Role: AccessibilityRole.Group,
             Name: resolved.AccessibilityName!!,
@@ -125,9 +126,7 @@ public data struct DonutChart {
         root.Children.Add(plot)
         if ShowLegend {
             var legend = ChartParts.Legend(resolved, segments, CreateLabel, theme)
-            if let create = CreateLegend {
-                legend = create(resolved, legend)
-            }
+            ConfigureLegend?.Invoke(resolved, legend)
             legend.Key = "legend"
             root.Children.Add(legend)
         }

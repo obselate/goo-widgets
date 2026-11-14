@@ -34,7 +34,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
             return Present(input.Build())
         }
         let visual = input with{
-            CreateRoot = CreateMountedRoot,
+            ConfigureRoot = ConfigureMountedRoot,
             OnCancel = input.OnCancel == nil ? nil: () -> InvokeInputCallback(input.OnCancel),
             OnConfirm = input.OnConfirm == nil ? nil: () -> InvokeInputCallback(input.OnConfirm),
             OnOpenChange = value -> InvokeInputCallback(input.OnOpenChange, value),
@@ -49,20 +49,8 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         content,
     }
 
-    private func CreateMountedRoot(resolved ModalDialog, backdrop Button, panel Container) Container {
-        let result = if let create = current.CreateRoot {
-            create(resolved, backdrop, panel)
-        } else {
-            Container{
-                Position: PositionType.Absolute,
-                Left: 0.0,
-                Right: 0.0,
-                Top: 0.0,
-                Bottom: 0.0,
-                AlignItems: AlignItems.Center,
-                JustifyContent: JustifyContent.Center,
-            }
-        }
+    private func ConfigureMountedRoot(resolved ModalDialog, backdrop Button, panel Container, result Container) {
+        current.ConfigureRoot?.Invoke(resolved, backdrop, panel, result)
         backdrop.Key = "backdrop"
         backdrop.Focusable = false
         backdrop.OnClick = resolved.CanDismissBackdrop ? () -> resolved.OnOpenChange?.Invoke(false): nil
@@ -85,7 +73,6 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         result.Children.Clear()
         result.Children.Add(backdrop)
         result.Children.Add(panel)
-        return result
     }
 
     private func HandleKey(event KeyEvent) {

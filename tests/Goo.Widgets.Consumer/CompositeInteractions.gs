@@ -32,10 +32,9 @@ func TextAreaOwnership() {
     external.Dispose()
     let owned = TextAreaProbe()
     var editor TextEditor?
-    owned.Render(TextAreaInput{Value: "Owned", CreateEditor: (input TextAreaInput, created TextEditor) -> {
+    owned.Render(TextAreaInput{Value: "Owned", ConfigureEditor: (input TextAreaInput, created TextEditor) -> {
         editor = created
-        return created
-    }})
+        }})
     let controller = editor!!.Controller
     owned.Dispose()
     owned.Dispose()
@@ -56,9 +55,10 @@ func TabBarContracts() {
                     NavigationItem{Id: "one", Label: "One"},
                     NavigationItem{Id: "two", Label: "Two"}
                 },
-                CreateItem: (input TabBarInput, item NavigationItem, prepared Button) -> Button{
-                    BorderRadius: 17,
-                    Text{Content: item.Label!!}
+                ConfigureItem: (input TabBarInput, item NavigationItem, prepared Button) -> {
+                    prepared.BorderRadius = 17
+                    prepared.Children.Clear()
+                    prepared.Children.Add(Text{Content: item.Label!!})
                 },
             }
         ) as Container
@@ -120,31 +120,26 @@ internal class CompositeHost : Cell {
         Rebuild()
     }
 
-    private func CaptureDivider(input SplitPaneInput, root Container) Container {
+    private func CaptureDivider(input SplitPaneInput, root Container) {
         Divider = root
-        return root
     }
 
-    private func CaptureSplit(input SplitPaneInput, root Container) Container {
+    private func CaptureSplit(input SplitPaneInput, root Container) {
         SplitRoot = root
-        return root
     }
 
-    private func CaptureTab(input TabBarInput, item NavigationItem, button Button) Button {
+    private func CaptureTab(input TabBarInput, item NavigationItem, button Button) {
         Tabs[item.Id!!] = button
-        return button
     }
 
-    private func CaptureTabs(input TabBarInput, root Container) Container {
+    private func CaptureTabs(input TabBarInput, root Container) {
         root.Handle = TabViewport
         TabRoot = root
-        return root
     }
 
-    private func CaptureEditor(input TextAreaInput, editor TextEditor) TextEditor {
+    private func CaptureEditor(input TextAreaInput, editor TextEditor) {
         editor.Handle = EditorViewport
         Editor = editor
-        return editor
     }
 
     public override func Build() Blob {
@@ -162,8 +157,8 @@ internal class CompositeHost : Cell {
                     SelectedId: Selected,
                     OnSelect: TabSelected,
                     Activation: Manual ? TabActivation.Manual: TabActivation.Automatic,
-                    CreateItem: CaptureTab,
-                    CreateRoot: CaptureTabs,
+                    ConfigureItem: CaptureTab,
+                    ConfigureRoot: CaptureTabs,
                     Items: []NavigationItem{
                         NavigationItem{Id: "one", Label: "Overview"},
                         NavigationItem{Id: "locked", Label: "Unavailable", Disabled: true},
@@ -186,8 +181,8 @@ internal class CompositeHost : Cell {
                     Height: 180,
                     MinimumFirst: 90,
                     MinimumSecond: 80,
-                    CreateHandle: CaptureDivider,
-                    CreateRoot: CaptureSplit,
+                    ConfigureHandle: CaptureDivider,
+                    ConfigureRoot: CaptureSplit,
                     First: Container{
                         Width: Percent(100),
                         Height: Percent(100),
@@ -219,7 +214,7 @@ internal class CompositeHost : Cell {
                         ReadOnly: ReadOnly,
                         Disabled: Disabled,
                         Wrap: NoWrap ? TextWrap.NoWrap: TextWrap.Wrap,
-                        CreateEditor: CaptureEditor,
+                        ConfigureEditor: CaptureEditor,
                     }
                 )
             )
@@ -561,11 +556,9 @@ internal class PointerCommitHost : Cell {
                 OnCommit: (value float64) -> {
                     Commits[0]++
                 },
-                CreateRoot: (input SliderInput, root Container) -> {
+                ConfigureRoot: (input SliderInput, root Container) -> {
                     SliderRoot = root
-                    return root
-                }
-            }
+                    }}
         ),
         Cell.Mount[ColorPickerInput, ColorPicker](
             "picker",

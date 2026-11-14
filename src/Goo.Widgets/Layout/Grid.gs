@@ -15,6 +15,7 @@ public enum GridUnit {
 }
 
 /// One immutable row or column definition. Fraction weights share space above their minima.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct GridTrack {
     /// Sizing rule. The default track fits its content.
     var Unit GridUnit
@@ -75,8 +76,9 @@ public data struct Grid {
     var Width Length?
     /// Root height. Nil resolves to intrinsic height.
     var Height Length?
-    /// Customizes the root. The measured layout and keyed slot children are reapplied.
-    var CreateRoot Func[Grid, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[Grid, Container]?
 
     /// Builds a fresh immutable layout policy and a normal retained subtree.
     public func Build() Blob {
@@ -93,9 +95,7 @@ public data struct Grid {
         }
         let policy = GridPolicy(resolved)
         var root = Container{Width: resolved.Width!!, Height: resolved.Height!!, MinWidth: 0, MinHeight: 0}
-        if let create = CreateRoot {
-            root = create(resolved, root)
-        }
+        ConfigureRoot?.Invoke(resolved, root)
         root.Layout = policy
         root.Children.Clear()
         for item in resolved.Items {

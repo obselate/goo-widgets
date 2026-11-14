@@ -49,8 +49,10 @@ public data struct Avatar {
     /// Creates the final image from resolved props. Nil uses Avatar's composition.
     var CreateImage Func[Avatar, Image]?
     /// Creates the final fallback text from resolved props. Nil uses Avatar's composition.
+    /// Return a fresh element or the supplied default.
     var CreateFallback Func[Avatar, Text]?
     /// Creates the final root from resolved props and the selected child. Nil uses Avatar's composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Avatar, Blob, Container]?
 
     /// Builds a fresh Goo tree, resolving props before invoking selected primitive factories.
@@ -236,7 +238,7 @@ public data struct AvatarGroup {
                     },
                     avatar,
                 }
-                WidgetKeyBindings.BindActivation(button)
+                WidgetKeyBindings.BindOwnedActivation(button)
                 root.Children.Add(button)
             } else {
                 avatar.MarginStart = offset

@@ -5,6 +5,7 @@ import Goo.Widgets
 import Goo.Widgets.Feedback
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct ActionButton {
     /// Visible button text and the default accessible name. Nil resolves to an empty string.
     var Content string?
@@ -67,15 +68,17 @@ public data struct ActionButton {
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Creates Text from resolved props. Nil uses one line that ends with an ellipsis when the button is too narrow.
+    /// Return a fresh element or the supplied default.
     var CreateText Func[ActionButton, Text]?
-    /// Creates the final Button from resolved props and exact final Text.
-    var CreateRoot Func[ActionButton, Text, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[ActionButton, Text, Button]?
 
     /// Builds a fresh Goo button tree after resolving props and factories.
     public func Build() Blob {
         let theme = Theme.Read()
         let createText = CreateText
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let content = Content ?? ""
         let background = BackgroundColor ?? theme.RaisedColor
         let defaultHeight Length = theme.ControlHeight
@@ -107,10 +110,10 @@ public data struct ActionButton {
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
-        let text Text? = if createRoot == nil && createText == nil && content == "" {
+        let text Text? = if configureRoot == nil && createText == nil && content == "" {
             nil
         } else if let createText = createText {
             createText(resolved)
@@ -130,7 +133,6 @@ public data struct ActionButton {
             value
         }
 
-        if let createRoot = createRoot { return Finish(createRoot(resolved, text!!), resolved, theme) }
         let root = Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
@@ -198,6 +200,7 @@ public data struct ActionButton {
                 root.Children.Add(indicator)
             }
         }
+        configureRoot?.Invoke(resolved, text!!, root)
         return Finish(root, resolved, theme)
     }
 
@@ -222,7 +225,7 @@ public data struct ActionButton {
             Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
                 Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
         }
-        WidgetKeyBindings.BindActivation(root)
+        WidgetKeyBindings.BindOwnedActivation(root)
         return root
     }
 }

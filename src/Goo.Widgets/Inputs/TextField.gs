@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// A semantic single-line text field with label, error, and primitive factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TextField {
     /// Optional label.
     var Label string?
@@ -106,13 +107,13 @@ public data struct TextField {
     var FontFamily string?
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
-    /// Creates the entry from resolved props.
-    /// Hosts must not change state in this callback.
-    var CreateEntry Func[TextField, TextEntry]?
+    /// Configures the fresh entry before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureEntry Action[TextField, TextEntry]?
     internal var EntryKeyBindings([]KeyBinding)?
-    /// Creates the root from resolved props and selected primitives.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TextField, Text?, TextEntry, Text?, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[TextField, Text?, TextEntry, Text?, Container]?
     /// Builds a fresh Goo text field tree after resolving props and factories.
     public func Build() Blob {
         if Clearable || RevealButton || OnCommit != nil || MaxLength != nil
@@ -124,8 +125,8 @@ public data struct TextField {
 
     internal func BuildContent(state TextFieldState? = nil) Blob {
         let theme = Theme.Read()
-        let createEntry = CreateEntry
-        let createRoot = CreateRoot
+        let configureEntry = ConfigureEntry
+        let configureRoot = ConfigureRoot
         let value = Value ?? ""
         let placeholder = Placeholder ?? ""
         let labelName = Label ?? placeholder
@@ -161,8 +162,8 @@ public data struct TextField {
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
             Transform = Transform ?? PanelTransform{},
-            CreateEntry = nil,
-            CreateRoot = nil,
+            ConfigureEntry = nil,
+            ConfigureRoot = nil,
         }
         let labelHandle = ElementHandle()
         let issueHandle = ElementHandle()
@@ -191,9 +192,7 @@ public data struct TextField {
             FontSize: theme.CaptionFontSize,
         }
         var entry TextEntry? = nil
-        if let createEntry = createEntry {
-            entry = createEntry(resolved)
-        } else {
+        {
             entry = TextEntry{
                 Width: Percent(100.0),
                 Height: resolved.EntryHeight!!,
@@ -228,6 +227,7 @@ public data struct TextField {
                 entry.FontFamily = resolved.FontFamily!!
             }
         }
+        configureEntry?.Invoke(resolved, entry!!)
         if resolved.Invalid {
             entry!!.HoverStyle = Style{BasedOn: entry!!.HoverStyle, BorderColor: resolved.InvalidColor!!}
             entry!!.ActiveStyle = Style{BasedOn: entry!!.ActiveStyle, BorderColor: resolved.InvalidColor!!}
@@ -269,7 +269,7 @@ public data struct TextField {
         }
         let readOnly = resolved.ReadOnly || entry!!.ReadOnly || (entry!!.Accessibility?.ReadOnly ?? false)
         entry!!.Key = "entry"
-        entry!!.Handle = entry!!.Handle ?? Handle
+        entry!!.Handle = entry!!.Handle ?? Handle ?? ElementHandle()
         entry!!.Disabled = resolved.Disabled
         entry!!.ReadOnly = readOnly
         entry!!.Focusable = !resolved.Disabled
@@ -300,17 +300,6 @@ public data struct TextField {
             state.FocusTarget = entry!!.Handle
         }
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
-        if let createRoot = createRoot {
-            let content = createRoot(resolved, label, entry!!, issue)
-            interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)
-            if let description = description {
-                content.Children.Add(description)
-            }
-            return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
-                content.Key,
-                TouchTextEditingInput{Content: content, Editor: entry!!, Enabled: resolved.TouchEditing}
-            )
-        }
         let root = Container{
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
@@ -429,9 +418,10 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
+        configureRoot?.Invoke(resolved, label, entry!!, issue, root)
         return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
-            TouchTextEditingInput{Content: root, Editor: entry!!, Enabled: resolved.TouchEditing}
+            TouchTextEditingInput{Content: root, Editor: entry!!.Handle!!, RootStyle: Style{Width: resolved.Width!!, MinWidth: 0}, Enabled: resolved.TouchEditing}
         )
     }
 
@@ -528,7 +518,7 @@ internal class TextFieldState : Cell[TextField] {
             ControlIcons.Create(icon, 16, theme.MutedTextColor),
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 }

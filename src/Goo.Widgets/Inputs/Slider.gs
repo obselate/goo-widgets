@@ -14,6 +14,7 @@ public enum SliderOrientation {
 }
 
 /// Immutable input for a mounted Slider.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct SliderInput {
     /// Current external value.
     var Value float64
@@ -84,9 +85,9 @@ public data struct SliderInput {
     var FillStyle Style?
     /// Optional base style for the thumb.
     var ThumbStyle Style?
-    /// Wraps the composed interactive root. The returned tree must retain the supplied root to preserve interaction.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[SliderInput, Container, Blob]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[SliderInput, Container]?
 }
 
 /// A controlled range input with pointer capture, keyboard input, and accessible value actions.
@@ -97,13 +98,13 @@ public open class Slider : Cell[SliderInput] {
     private var resolved SliderInput
 
     protected override func Build(input SliderInput) Blob {
-        let createRoot = input.CreateRoot
+        let configureRoot = input.ConfigureRoot
         let theme = Theme.Read()
         rightToLeft = theme.RightToLeft
         resolved = Resolve(input, theme)
         current = Quantize(input.Value)
         resolved.Value = current
-        resolved.CreateRoot = nil
+        resolved.ConfigureRoot = nil
         let fraction = (current - resolved.Minimum!!) / (resolved.Maximum!!- resolved.Minimum!!)
         let horizontal = resolved.Orientation == SliderOrientation.Horizontal
         let hasHeader = resolved.Label != nil || resolved.ShowValue
@@ -274,11 +275,8 @@ public open class Slider : Cell[SliderInput] {
             thumb,
         }
         theme.ApplyInteraction(root, InteractionFamily.Field)
-        let content Blob = if let createRoot = createRoot {
-            createRoot(resolved, root)
-        } else {
-            root
-        }
+        let content Blob = root
+        configureRoot?.Invoke(resolved, root)
         if !hasHeader {
             return content
         }

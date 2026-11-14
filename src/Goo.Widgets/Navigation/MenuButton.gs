@@ -140,12 +140,11 @@ public data struct SplitButton {
             MinWidth = 0.0,
             PaddingHorizontal = theme.Spacing,
             Disabled = Button.Disabled || Button.Loading || Menu.Button.Disabled,
-            CreateRoot = (resolved ActionButton, text Text) -> {
-                let root = ((resolved with{OnClick = nil}).Build() as Button)!!
+            ConfigureRoot = (resolved ActionButton, text Text, prepared Button) -> {
+                let root = prepared
                 root.OnClick = resolved.OnClick
                 SquareCorners(root, !theme.RightToLeft)
                 root.FocusStyle = Style{ZIndex: 1, BasedOn: root.FocusStyle}
-                return root
             },
         }
         return Container{

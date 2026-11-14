@@ -34,8 +34,10 @@ public data struct MasterDetail {
     /// Back bar height. Nil uses the theme control height.
     var BackHeight float64?
     /// Creates the narrow detail back button from resolved values.
+    /// Return a fresh element or the supplied default.
     var CreateBack Func[MasterDetail, Button]?
     /// Creates the final root from resolved values and selected master/detail panes.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[MasterDetail, Container?, Container?, Container]?
 
     /// Builds a fresh responsive master-detail tree.
@@ -125,7 +127,7 @@ public data struct MasterDetail {
                     }
                 }
                 theme.ApplyInteraction(back, InteractionFamily.Button)
-                WidgetKeyBindings.BindActivation(back)
+                WidgetKeyBindings.BindOwnedActivation(back)
                 pane.Children.Add(back)
             }
             if let detail = Detail {

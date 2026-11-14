@@ -140,10 +140,9 @@ internal class InteractiveHost : Cell {
                         Commits++
                         Rebuild()
                     },
-                    CreateRoot: (input SliderInput, slider Container) -> {
+                    ConfigureRoot: (input SliderInput, slider Container) -> {
                         SliderRoot = slider
-                        return slider
-                    },
+                        },
                 }
             ),
         }

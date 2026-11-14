@@ -28,6 +28,7 @@ public enum MarkdownInlineKind {
 }
 
 /// Describes a block passed to customization hooks.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct MarkdownBlock {
     var Kind MarkdownBlockKind
     var Id string?
@@ -108,14 +109,17 @@ public data struct MarkdownViewInput {
     var CreateInlineStyle Func[MarkdownInline, Style, Style]?
     /// Customizes atomic link, inline-code, and resolved-image content.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateInline Func[MarkdownInline, Blob, Blob]?
-    /// Hosts must not change state in this callback.
-    var CreateBlock Func[MarkdownBlock, Blob, Blob]?
-    /// Customizes a prepared read-only editor; it must retain its supplied controller.
-    /// Hosts must not change state in this callback.
-    var CreateEditor Func[MarkdownBlock, TextEditor, TextEditor]?
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[MarkdownViewInput, Container, Container]?
+    /// Configures the fresh block before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureBlock Action[MarkdownBlock, Blob]?
+    /// Configures the fresh editor before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEditor Action[MarkdownBlock, TextEditor]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[MarkdownViewInput, Container]?
     /// Runs when the heading list or this callback changes. Only mounted headings have mounted handles.
     /// Use State.ScrollToHeading to reach an off-screen heading in a bounded view.
     var OnHeadings Action[IReadOnlyList[MarkdownHeading]]?

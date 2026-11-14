@@ -8,6 +8,7 @@ import System
 import System.Collections.Generic
 
 /// Selectable code with host-supplied syntax styles and controlled folding.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct CodeBlockInput {
     /// Code displayed in the read-only editor. Nil uses an empty document.
     var Code string?
@@ -45,10 +46,11 @@ public data struct CodeBlockInput {
     var FontFamily string?
     /// Receives the input and prepared header, and returns the displayed header. Nil keeps the default header.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateHeader Func[CodeBlockInput, Container, Blob]?
-    /// Receives the input and prepared editor, and returns its replacement. Preserve the supplied controller. Read-only state and syntax layers are reapplied. Nil keeps the default editor.
-    /// Hosts must not change state in this callback.
-    var CreateEditor Func[CodeBlockInput, TextEditor, TextEditor]?
+    /// Configures the fresh editor before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEditor Action[CodeBlockInput, TextEditor]?
 }
 
 /// Owns one read-only core editor and one syntax presentation layer.
@@ -189,12 +191,9 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Multiline: true
             },
         }
-        if let create = input.CreateEditor {
-            editor = create(input, editor)
-        }
-        if editor.Controller != controller {
-            throw ArgumentException("CreateEditor must preserve the CodeBlock controller")
-        }
+        input.ConfigureEditor?.Invoke(input, editor)
+        editor.Layers = []TextPresentationLayer{}
+        editor.Controller = controller!!
         editor.ReadOnly = true
         editor.Layers = []TextPresentationLayer{layer!!}
         let body = Container{Width: Percent(100), MinWidth: 0, FlexShrink: 0, Layout: layout, editor}
@@ -250,7 +249,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 Text{Content: label, Color: theme.MutedTextColor},
             }
             theme.ApplyInteraction(fold, InteractionFamily.Button)
-            WidgetKeyBindings.BindActivation(fold)
+            WidgetKeyBindings.BindOwnedActivation(fold)
             root.Children.Add(fold)
         }
         return root

@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// A generic actionable card with supplied thumbnail content and text metadata.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct MediaCard {
     /// Thumbnail content owned by this card tree.
     var Thumbnail Blob?
@@ -47,15 +48,17 @@ public data struct MediaCard {
     /// Optional base style for the root button.
     var RootStyle Style?
     /// Creates the metadata content from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[MediaCard, Blob]?
-    /// Creates the final button from resolved props, thumbnail, and metadata content.
-    var CreateRoot Func[MediaCard, Blob, Blob, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[MediaCard, Blob, Blob, Button]?
 
     /// Builds a fresh Goo card tree.
     public func Build() Blob {
         let theme = Theme.Read()
         let createContent = CreateContent
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let title = Title ?? ""
         let defaultWidth Length = 200.0
         let width = Width ?? defaultWidth
@@ -75,7 +78,7 @@ public data struct MediaCard {
             TitleFontSize = TitleFontSize ?? theme.HeadingFontSize,
             SupportingFontSize = SupportingFontSize ?? theme.CaptionFontSize,
             CreateContent = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
         let thumbnail = resolved.Thumbnail ??
         Container{
@@ -118,7 +121,7 @@ public data struct MediaCard {
                 Children: children,
             }
         }
-        let button = if let createRoot = createRoot { createRoot(resolved, thumbnail, content) } else { Button{
+        let button = Button{
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Height: resolved.ThumbnailHeight!! + resolved.ContentHeight!!,
@@ -140,11 +143,12 @@ public data struct MediaCard {
             OnClick: resolved.OnClick,
             thumbnail,
             content,
-        } }
+        }
+        configureRoot?.Invoke(resolved, thumbnail, content, button)
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = Disabled
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 

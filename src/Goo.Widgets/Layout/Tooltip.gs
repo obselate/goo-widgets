@@ -5,6 +5,7 @@ import Goo.Widgets
 import System
 
 /// Passive hover and keyboard-focus label shown in the Window overlay.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct TooltipInput {
     /// Open window that schedules the hover delay.
     var Window Window?
@@ -26,8 +27,9 @@ public data struct TooltipInput {
     var RootStyle Style?
     /// Optional replacement style for the default label panel.
     var BubbleStyle Style?
-    /// Replaces the default panel. The returned panel and its descendants must be passive.
-    var CreateBubble Func[TooltipInput, Blob, Container]?
+    /// Configures the fresh bubble before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureBubble Action[TooltipInput, Blob, Container]?
 }
 
 /// Wraps a control with a delayed, anchored label that never takes focus.
@@ -140,10 +142,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
                 FontWeight: theme.CaptionFontWeight,
                 Color: theme.TextColor,
             }
-            let bubble = if let create = current.CreateBubble {
-                create(current, content)
-            } else {
-                Container{
+            let bubble = Container{
                     Padding: Edges(theme.Spacing * 1.5, theme.ControlPadding),
                     MaxWidth: 32.5 * theme.CaptionFontSize * theme.PlatformTextScaleFactor,
                     BackgroundColor: theme.OverlayColor,
@@ -153,7 +152,7 @@ public open class Tooltip : Cell[TooltipInput], IDisposable {
                     BasedOn: current.BubbleStyle ?? theme.OverlayStyle,
                     content,
                 }
-            }
+            current.ConfigureBubble?.Invoke(current, content, bubble)
             bubble.HitTestSelf = false
             bubble.Focusable = false
             bubble.TabStop = false

@@ -61,10 +61,9 @@ internal class ChoiceHost : Cell {
                         RadioOption{Id: "locked", Label: "Radio locked", Disabled: true},
                         RadioOption{Id: "three", Label: "Radio three"},
                     },
-                    CreateRoot: (input RadioGroupInput, root Container) -> {
+                    ConfigureRoot: (input RadioGroupInput, root Container) -> {
                         RadioRoot = root
-                        return root
-                    },
+                        },
                 }
             ),
             Cell.Mount[ToggleGroupInput, ToggleGroup](
@@ -81,10 +80,9 @@ internal class ChoiceHost : Cell {
                         ToggleOption{Id: "locked", Label: "Single locked", Disabled: true},
                         ToggleOption{Id: "three", Label: "Single three"},
                     },
-                    CreateRoot: (input ToggleGroupInput, root Container) -> {
+                    ConfigureRoot: (input ToggleGroupInput, root Container) -> {
                         SingleRoot = root
-                        return root
-                    },
+                        },
                 }
             ),
             Cell.Mount[ToggleGroupInput, ToggleGroup](
@@ -103,10 +101,9 @@ internal class ChoiceHost : Cell {
                         ToggleOption{Id: "locked", Label: "Multiple locked", Disabled: true},
                         ToggleOption{Id: "three", Label: "Multiple three"},
                     },
-                    CreateRoot: (input ToggleGroupInput, root Container) -> {
+                    ConfigureRoot: (input ToggleGroupInput, root Container) -> {
                         MultiRoot = root
-                        return root
-                    },
+                        },
                 }
             ),
             Checkbox{

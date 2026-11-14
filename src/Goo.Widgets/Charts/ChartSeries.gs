@@ -74,7 +74,7 @@ internal class ChartParts {
             blob.Key = id
             blob.Focusable = activate != nil
             blob.OnClick = activate == nil ? nil: () -> activate?.Invoke(id)
-            WidgetKeyBindings.BindActivation(blob)
+            WidgetKeyBindings.BindOwnedActivation(blob)
             blob.OnPointerEnter = hover == nil ? nil: (e PointerEvent) -> hover?.Invoke(id)
             blob.OnPointerLeave = hover == nil ? nil: (e PointerEvent) -> hover?.Invoke(nil)
             blob.Accessibility = Accessibility{

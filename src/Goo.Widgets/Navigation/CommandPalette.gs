@@ -9,6 +9,7 @@ import System
 import System.Collections.Generic
 
 /// A command with optional grouping, description and shortcut.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct CommandItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -60,9 +61,9 @@ public data struct CommandPaletteInput {
     var Width Length?
     /// Maximum height. Nil fits the results, limited by the window.
     var Height Length?
-    /// Receives the widget input, command descriptor, match score and highlight ranges, and prepared button, and returns the replacement content. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button, Blob]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureItem Action[CommandPaletteInput, CommandItem, FuzzyMatchResult, Button]?
 }
 
 /// Fuzzy-ranked command search with recent groups and keyboard activation.
@@ -217,15 +218,14 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             AccessibilityName: theme.Text("Commands"),
             Placeholder: input.Placeholder ?? theme.Text("Search commands"),
             OnQueryChange: value -> InvokeInputCallback(input.OnQueryChange, value),
-            CreateEntry: (owner SearchList, entry TextEntry) -> {
+            ConfigureEntry: (owner SearchList, entry TextEntry) -> {
                 entry.Value = query
                 entry.Controlled = true
                 entry.OnKeyDown = KeyDown
                 entry.FlexGrow = 1
                 entry.BackgroundColor = Color.Transparent
-                return entry
-            },
-            CreateRow: (owner SearchList, item SelectionItem, button Button) -> Row(input, item, button),
+                },
+            ConfigureRow: (owner SearchList, item SelectionItem, button Button) -> { Row(input, item, button) },
             CreateRoot: (owner SearchList, root Container) -> {
                 root.Children[0] = Container{
                     Height: inputHeight,
@@ -263,19 +263,17 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 OnCancel: () -> InvokeInputCallback(input.OnOpenChange, false),
                 Content: search,
                 Footer: Container{Height: 0, HitTestSelf: false},
-                CreateRoot: (dialog ModalDialog, backdrop Button, panel Container) -> {
+                ConfigureRoot: (dialog ModalDialog, backdrop Button, panel Container, prepared Container) -> {
                     panel.MaxWidth = Percent(100)
-                    return Container{
-                        Position: PositionType.Absolute,
-                        Left: 0,
-                        Right: 0,
-                        Top: 0,
-                        Bottom: 0,
-                        Padding: theme.PanelPadding,
-                        AlignItems: AlignItems.Center,
-                        JustifyContent: JustifyContent.Center,
-                    }
-                },
+                                        prepared.Position = PositionType.Absolute
+                    prepared.Left = 0
+                    prepared.Right = 0
+                    prepared.Top = 0
+                    prepared.Bottom = 0
+                    prepared.Padding = theme.PanelPadding
+                    prepared.AlignItems = AlignItems.Center
+                    prepared.JustifyContent = JustifyContent.Center
+},
             }
         )
     }
@@ -345,9 +343,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
             keys.FlexShrink = 0
             button.Children.Add(keys)
         }
-        if let create = snapshot.CreateItem {
-            return create(snapshot, command, match, button)
-        }
+        snapshot.ConfigureItem?.Invoke(snapshot, command, match, button)
         return button
     }
 

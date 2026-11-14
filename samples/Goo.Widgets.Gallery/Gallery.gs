@@ -301,12 +301,11 @@ class Gallery : Cell, IDisposable {
                         ToggleOption{Id: "dark", Label: "Dark", Leading: MaterialIcons.Create("dark_mode", 16)},
                         ToggleOption{Id: "light", Label: "Light", Leading: MaterialIcons.Create("light_mode", 16)}
                     },
-                    CreateItem: (input ToggleGroupInput, item ToggleOption, button Button) -> {
+                    ConfigureItem: (input ToggleGroupInput, item ToggleOption, button Button) -> {
                         button.MinHeight = 24
                         button.Height = 24
                         button.BorderWidth = 1
-                        return button
-                    },
+                        },
                     OnSelectionChange: (ids[]string) -> {
                         if ids.Length > 0 && owningWindow != nil { Theme.SetMode(owningWindow!!, ids[0] == "dark" ? ThemeMode.Dark: ThemeMode.Light) }
                     }

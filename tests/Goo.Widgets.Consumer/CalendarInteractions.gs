@@ -110,56 +110,49 @@ internal class CalendarHost : Cell {
         InvalidSubmissions++
     }
 
-    private func Day(input CalendarInput, day CalendarDay, prepared Button) Button {
+    private func Day(input CalendarInput, day CalendarDay, prepared Button) {
         if Light() && day.Selected {
             prepared.BackgroundColor = Color.Parse("#bfdbfe")
         }
         Days[day.Date.DayNumber] = prepared
-        return prepared
     }
 
-    private func CalendarRoot(input CalendarInput, prepared Container) Container {
+    private func CalendarRoot(input CalendarInput, prepared Container) {
         if Light() {
             prepared.BackgroundColor = Color.Parse("#f8fafc")
             prepared.Color = Color.Parse("#0f172a")
         }
-        return prepared
     }
 
-    private func PickerDay(input CalendarInput, day CalendarDay, prepared Button) Button {
+    private func PickerDay(input CalendarInput, day CalendarDay, prepared Button) {
         PickerDays[day.Date.DayNumber] = prepared
-        return prepared
     }
 
-    private func Nav(input CalendarInput, delta int32, prepared Button) Button {
+    private func Nav(input CalendarInput, delta int32, prepared Button) {
         if Light() {
             prepared.BackgroundColor = Color.Parse("#e2e8f0")
             prepared.Color = Color.Parse("#0f172a")
         }
         Navigation[delta] = prepared
-        return prepared
     }
 
-    private func Input(input DatePickerInput, prepared TextEntry) TextEntry {
+    private func Input(input DatePickerInput, prepared TextEntry) {
         Entry = prepared
         prepared.KeyBindings = []KeyBinding{
             KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
         }
-        return prepared
     }
 
-    private func Button(input DatePickerInput, prepared Button) Button {
+    private func Button(input DatePickerInput, prepared Button) {
         prepared.Handle = OpenButton
-        return prepared
     }
 
-    private func PopupFactory(input DatePickerInput, prepared Container) Container {
+    private func PopupFactory(input DatePickerInput, prepared Container) {
         Popup = prepared
-        return prepared
     }
 
     private func CalendarFactory(input DatePickerInput, prepared CalendarInput) CalendarInput -> prepared with{
-        CreateDay = PickerDay
+        ConfigureDay = PickerDay
     }
 
     private func Format(value DateOnly) string -> value.ToString(
@@ -191,9 +184,9 @@ internal class CalendarHost : Cell {
             Culture: System.Globalization.CultureInfo.GetCultureInfo("fr-FR"),
             MonthTextStyle: Style{Color: textColor, FontSize: 19.0},
             DayTextStyle: Style{Color: textColor},
-            CreateDay: Day,
-            CreateNavigation: Nav,
-            CreateRoot: CalendarRoot,
+            ConfigureDay: Day,
+            ConfigureNavigation: Nav,
+            ConfigureRoot: CalendarRoot,
             OnMonthChange: Month,
             IsDateDisabled: Weekend
         }
@@ -217,10 +210,10 @@ internal class CalendarHost : Cell {
             Culture: System.Globalization.CultureInfo.GetCultureInfo("en-US"),
             FirstDayOfWeek: DayOfWeek.Monday,
             AccessibilityName: "Deployment date",
-            CreateInput: Input,
-            CreateButton: Button,
+            ConfigureInput: Input,
+            ConfigureButton: Button,
             CreateCalendar: CalendarFactory,
-            CreatePopup: PopupFactory
+            ConfigurePopup: PopupFactory
         }
         if PickerValue != nil {
             picker.Value = PickerValue!!

@@ -6,6 +6,7 @@ import System
 import System.Globalization
 
 /// Numeric field configuration. Text is committed on Enter or blur.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct NumberInputInput {
     /// Finite controlled numeric value, clamped to Minimum and Maximum for presentation.
     var Value float64
@@ -55,11 +56,12 @@ public data struct NumberInputInput {
     var OnChange Action[float64]?
     /// Receives the final clamped number after a user commit. Nil ignores the notification.
     var OnCommit Action[float64]?
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateEntry Func[NumberInputInput, TextEntry, TextEntry]?
+    /// Configures the fresh entry before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureEntry Action[NumberInputInput, TextEntry]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[NumberInputInput, Container, Container]?
 }
 
@@ -148,9 +150,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             OnBlur: event -> Commit(),
             OnKeyDown: HandleKey
         }
-        if let create = input.CreateEntry {
-            entry = create(input, entry)
-        }
+        input.ConfigureEntry?.Invoke(input, entry)
         theme.ApplyInteraction(entry, InteractionFamily.Field)
         entry.Handle ??= handle
         entry.Key = "entry"
@@ -172,17 +172,15 @@ public open class NumberInput : Cell[NumberInputInput] {
                         Disabled: input.Disabled || input.ReadOnly,
                         AccessibilityName: theme.Text("Unit"),
                         Width: 90,
-                        CreateTrigger: (props, button) -> {
+                        ConfigureTrigger: (props, button) -> {
                             button.Height = Percent(100)
                             button.BorderWidth = 0
                             button.BorderRadius = 0
                             button.BackgroundColor = theme.SunkenColor
-                            return button
-                        },
-                        CreateRoot: (props, root) -> {
+                            },
+                        ConfigureRoot: (props, root) -> {
                             root.Height = Percent(100)
-                            return root
-                        },
+                            },
                     }
                 )
             )
@@ -349,7 +347,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             ControlIcons.Create(icon, 14, theme.MutedTextColor)
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
-        WidgetKeyBindings.BindActivation(button)
+        WidgetKeyBindings.BindOwnedActivation(button)
         return button
     }
 

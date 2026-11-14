@@ -62,9 +62,11 @@ public data struct Banner {
     var Transform PanelTransform?
     /// Creates Text from resolved props. Nil uses the default Text composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateText Func[Banner, Text]?
     /// Creates the root Container from resolved props and final Text.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Banner, Text, Container]?
 
     /// Builds a fresh Goo banner tree after resolving props and factories.
@@ -197,7 +199,7 @@ public data struct Banner {
                 ControlIcons.Create(ControlIcon.Close, resolved.FontSize!! + 4.0, theme.TextColor)
             }
             theme.ApplyInteraction(button, InteractionFamily.Button)
-            WidgetKeyBindings.BindActivation(button)
+            WidgetKeyBindings.BindOwnedActivation(button)
             root.Children.Add(button)
         }
         return root

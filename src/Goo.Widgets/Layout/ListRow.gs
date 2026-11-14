@@ -6,6 +6,7 @@ import Goo.Widgets
 import System
 
 /// A semantic list item row with optional slots, typography defaults, and factory customization.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct ListRow {
     /// Optional leading slot element.
     var Leading Blob?
@@ -77,13 +78,15 @@ public data struct ListRow {
     var Transform PanelTransform?
     /// Custom factory for the title Text. Receives resolved props. Nil uses one line that ends with an ellipsis.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateTitle Func[ListRow, Text]?
     /// Custom factory for the caption Text. Receives resolved props.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateCaption Func[ListRow, Text]?
-    /// Custom factory for the root Container. Receives resolved props, slots, and content stack.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ListRow, Blob?, Container, Blob?, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    var ConfigureRoot Action[ListRow, Blob?, Container, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
@@ -97,7 +100,7 @@ public data struct ListRow {
         let theme = Theme.Read()
         let createTitle = CreateTitle
         let createCaption = CreateCaption
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let titleText = Title ?? ""
         let text = TextColor ?? theme.TextColor
         let captionColor = CaptionColor ?? theme.MutedTextColor
@@ -135,7 +138,7 @@ public data struct ListRow {
             Transform = Transform ?? PanelTransform{},
             CreateTitle = nil,
             CreateCaption = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
         let title = if let createTitle = createTitle {
@@ -219,9 +222,7 @@ public data struct ListRow {
                 Selected: resolved.Selected
             },
         }
-        if let create = createRoot {
-            root = create(resolved, Leading, content, Trailing)
-        }
+        configureRoot?.Invoke(resolved, Leading, content, Trailing, root)
         if Selected && SelectedBackgroundColor != nil {
             root.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.HoverStyle}
             root.ActiveStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.ActiveStyle}
@@ -258,10 +259,10 @@ public data struct ListRow {
                 }
             }
         }
-        if resolved.Selected && createRoot == nil {
+        if resolved.Selected && configureRoot == nil {
             root.BoxShadow = resolved.SelectedBoxShadow!!
         }
-        if createRoot == nil {
+        if configureRoot == nil {
             if let leading = Leading {
                 root.Children.Add(leading)
             }

@@ -19,11 +19,13 @@ internal class FormFieldPage : GalleryPage {
                     Value: "Alex",
                     AccessibilityName: "Display name",
                     Width: Percent(100),
-                    CreateRoot: (input, label, entry, issue) -> {
+                    ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
                         entry.Accessibility!!.Relationships = relations
                         entry.Accessibility!!.Required = true
-                        return Container{Width: Percent(100), entry}
-                    },
+                                            prepared.Width = Percent(100)
+                    prepared.Children.Clear()
+                    prepared.Children.Add(entry)
+},
                 }.Build(),
             },
             FormField{
@@ -34,10 +36,12 @@ internal class FormFieldPage : GalleryPage {
                     AccessibilityName: "Email",
                     Invalid: true,
                     Width: Percent(100),
-                    CreateRoot: (input, label, entry, issue) -> {
+                    ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
                         entry.Accessibility!!.Relationships = relations
-                        return Container{Width: Percent(100), entry}
-                    },
+                                            prepared.Width = Percent(100)
+                    prepared.Children.Clear()
+                    prepared.Children.Add(entry)
+},
                 }.Build(),
             },
             FormField{

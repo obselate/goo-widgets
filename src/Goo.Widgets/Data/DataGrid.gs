@@ -29,6 +29,7 @@ public enum DataGridSelection {
 }
 
 /// One host-owned sort, ordered from highest to lowest priority.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
 public data struct DataGridSortColumn {
     /// Stable ID of the column to sort. It must identify a current column.
     var ColumnId string?
@@ -72,6 +73,7 @@ public data struct DataGridColumn {
     var EditPresentation DataGridEditPresentation
     /// Receives this column, the edit context and the prepared editor. Preserve its handle, draft binding and lifecycle routing.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateEditor Func[DataGridColumn, DataGridEditContext, Blob, Blob]?
 }
 
@@ -187,6 +189,7 @@ public data struct DataGridInput {
     var SelectionColumnWidth float64?
     /// Optional row-header content. Its pointer gestures use the row selection policy.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRowHeader Func[DataGridInput, DataGridRow, Blob]?
     /// Row-header width in logical pixels. Nil uses the theme control height.
     var RowHeaderWidth float64?
@@ -256,42 +259,47 @@ public data struct DataGridInput {
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Base style for the resizehandle part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var ResizeHandleStyle Style?
-    /// Receives the widget input, the column descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateResizeHandle Func[DataGridInput, DataGridColumn, Container, Container]?
+    /// Configures the fresh resizehandle before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureResizeHandle Action[DataGridInput, DataGridColumn, Container]?
     /// Base style for the header part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var HeaderStyle Style?
     /// Content shown when no rows exist. Nil uses the default empty-state content.
     var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateCell Func[DataGridInput, DataGridRow, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the row descriptor, and the column descriptor, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateCellContent Func[DataGridInput, DataGridRow, DataGridColumn, Blob]?
     /// Replaces content inside the sortable header button.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateHeader Func[DataGridInput, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the column descriptor, and the prepared content, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateFilter Func[DataGridInput, DataGridColumn, Blob, Blob]?
-    /// Receives the widget input, the row descriptor, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateSelection Func[DataGridInput, DataGridRow, Button, Button]?
+    /// Configures the fresh selection before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureSelection Action[DataGridInput, DataGridRow, Button]?
     /// Receives the widget input and the row descriptor, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateDetail Func[DataGridInput, DataGridRow, Blob]?
-    /// Required slots, width, identity, and semantics are reapplied.
-    /// A returned OnClick handler runs after the grid's selection handler.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[DataGridInput, DataGridRow, Container, Container]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRow Action[DataGridInput, DataGridRow, Container]?
     /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
     /// Set IsGroup on group headers to exclude them from selection.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
-    /// Receives the resolved input and prepared root, and returns the root container. Grid identity, focus, input routing, and accessibility are reapplied. Nil keeps the default root.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[DataGridInput, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    var ConfigureRoot Action[DataGridInput, Container]?
     /// Raw cell text getter. Nil reads Values by column ID, with empty text for missing values.
     /// Hosts must not change state in this callback.
     var GetCellValue Func[DataGridRow, DataGridColumn, string]?
@@ -755,9 +763,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
+        input.ConfigureRoot?.Invoke(input, root)
         if value.RootHandle == nil && root.Handle != nil && root.Handle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
             rootHandle = root.Handle!!

@@ -42,18 +42,17 @@ func TimeAxisContracts() {
                 OnOverflow: (items[]TimeAxisEvent) -> {
                     overflowActivated = items.Length
                 },
-                CreateEvent: (input TimeAxisInput, placement TimeAxisPlacement, prepared Button) -> {
+                ConfigureEvent: (input TimeAxisInput, placement TimeAxisPlacement, prepared Button) -> {
                     placements.Add(placement.Event.Id!!, placement)
-                    return Button(){Text{Content: placement.Event.Label!!}}
-                },
-                CreateOverflow: (input TimeAxisInput, items[]TimeAxisEvent, prepared Button) -> {
+                                        prepared.Children.Clear()
+                    prepared.Children.Add(Text{Content: placement.Event.Label!!})
+},
+                ConfigureOverflow: (input TimeAxisInput, items[]TimeAxisEvent, prepared Button) -> {
                     hidden = items
-                    return prepared
-                },
-                CreateRoot: (input TimeAxisInput, prepared Container) -> {
+                    },
+                ConfigureRoot: (input TimeAxisInput, prepared Container) -> {
                     root = prepared
-                    return prepared
-                },
+                    },
             }
         )
         Require(
@@ -107,18 +106,16 @@ internal class TimeAxisHost : Cell {
     internal let Buttons Dictionary[string, Button] = Dictionary[string, Button]()
     internal var Show bool = true
     internal var Scale float64 = 120
-    private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) Button {
+    private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) {
         prepared.Handle = ElementHandle()
         if placement.Event.Id == "point" {
             prepared.BackgroundColor = Color.Parse("#fbbf24")
         }
         Buttons[placement.Event.Id!!] = prepared
-        return prepared
     }
 
-    private func CaptureRoot(input TimeAxisInput, prepared Container) Container {
+    private func CaptureRoot(input TimeAxisInput, prepared Container) {
         Root = prepared
-        return prepared
     }
 
     public override func Build() Blob {
@@ -148,8 +145,8 @@ internal class TimeAxisHost : Cell {
                         PixelsPerHour: Scale,
                         SelectedId: Selected ?? "",
                         InitialEventId: "target",
-                        CreateEvent: Event,
-                        CreateRoot: CaptureRoot,
+                        ConfigureEvent: Event,
+                        ConfigureRoot: CaptureRoot,
                         OnSelect: (id string) -> {
                             Selected = id
                             Rebuild()

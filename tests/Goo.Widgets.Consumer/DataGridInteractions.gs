@@ -76,7 +76,7 @@ internal class DataGridHeightHost : Cell {
         }
     }
 
-    private func CaptureRow(input DataGridInput, row DataGridRow, root Container) Container {
+    private func CaptureRow(input DataGridInput, row DataGridRow, root Container) {
         RowBlobs[row.Id!!] = root
         RowBuilds++
         if Navigation {
@@ -87,7 +87,6 @@ internal class DataGridHeightHost : Cell {
                 }
             }
         }
-        return root
     }
 
     private func RowHeader(input DataGridInput, row DataGridRow) Blob {
@@ -244,12 +243,11 @@ internal class DataGridHeightHost : Cell {
             ActiveRowId: Active,
             CreateCellContent: Wrap ? nil: Content,
             CreateFullWidthRow: FullWidth,
-            CreateRoot: (input DataGridInput, root Container) -> {
+            ConfigureRoot: (input DataGridInput, root Container) -> {
                 GridBuilds++
                 Root = root
-                return root
-            },
-            CreateRow: CaptureRow
+                },
+            ConfigureRow: CaptureRow
         }
     )
         if !Navigation {
@@ -301,16 +299,13 @@ internal class DataGridInitialHost : Cell {
                 Container{Handle: column.Id == "c0" ? Header: nil, content},
             CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) ->
                 Container{Padding: Edges{Top: row.Id == "summary-row-0" ? ContentInset: 0}, content},
-            CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+            ConfigureRow: (input DataGridInput, row DataGridRow, root Container) -> {
                 if row.Id == "summary-row-0" { First = root }
-                return root
-            },
-            CreateRoot: (input DataGridInput, root Container) -> {
+                },
+            ConfigureRoot: (input DataGridInput, root Container) -> {
                 root.FlexGrow = 1
                 root.FlexBasis = 0
-                return root
-            }
-        })
+                }})
     }
 }
 
@@ -702,15 +697,13 @@ func DataGridContracts() {
                 Columns: []DataGridColumn{DataGridColumn{Id: "name", Sortable: true}},
                 OnSort: (id string, direction DataGridSort) -> { },
                 OnColumnWidthChange: (id string, width float64) -> resized = width,
-                CreateResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
+                ConfigureResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
                     resizeFactoryCalled = true
-                    return Container{
-                        Key: "unrelated",
-                        Handle: unrelatedHandle,
-                        HoverStyle: Style{BackgroundColor: Color.Parse("#18181b")},
-                        FocusStyle: Style{BackgroundColor: Color.Parse("#18181b")}
-                    }
-                },
+                                        prepared.Key = "unrelated"
+                    prepared.Handle = unrelatedHandle
+                    prepared.HoverStyle = Style{BackgroundColor: Color.Parse("#18181b")}
+                    prepared.FocusStyle = Style{BackgroundColor: Color.Parse("#18181b")}
+},
                 RootHandle: rootHandle,
                 ViewportHandle: viewport,
                 ScrollbarX: horizontal,
@@ -721,13 +714,11 @@ func DataGridContracts() {
                 UseDefaultKeyboard: false,
                 OnKeyDown: (e KeyEvent) -> gridKeys++,
                 OnTextInput: (value string) -> gridText = value,
-                CreateRoot: (input DataGridInput, prepared Container) -> {
+                ConfigureRoot: (input DataGridInput, prepared Container) -> {
                     prepared.OnKeyDown = (e KeyEvent) -> hostKeys++
                     prepared.OnTextInput = (value string) -> hostText = value
                     prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, OnPress: () -> { }}}
-                    return prepared
-                }
-            }
+                    }}
         ) as Container
     )!!
     custom.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space})
@@ -793,14 +784,12 @@ internal class DataGridHost : Cell {
     internal var Tiny bool
     internal let FilterHandle ElementHandle = ElementHandle()
 
-    private func CaptureRoot(input DataGridInput, prepared Container) Container {
+    private func CaptureRoot(input DataGridInput, prepared Container) {
         Root = prepared
-        return prepared
     }
 
-    private func CaptureRow(input DataGridInput, row DataGridRow, prepared Container) Container {
+    private func CaptureRow(input DataGridInput, row DataGridRow, prepared Container) {
         RowBlobs[row.Id!!] = prepared
-        return prepared
     }
 
     private func CaptureHeader(input DataGridInput, column DataGridColumn, content Blob) Blob {
@@ -818,10 +807,9 @@ internal class DataGridHost : Cell {
         return Container{Handle: Cells[key], Width: Percent(100), MinWidth: 0, content}
     }
 
-    private func CaptureCheck(input DataGridInput, row DataGridRow, prepared Button) Button {
+    private func CaptureCheck(input DataGridInput, row DataGridRow, prepared Button) {
         prepared.Handle = ElementHandle()
         Checks[row.Id!!] = prepared
-        return prepared
     }
 
     private func Detail(input DataGridInput, row DataGridRow) Blob {
@@ -1038,11 +1026,11 @@ internal class DataGridHost : Cell {
                     SelectionColumnWidth: 36.0,
                     ExpandedIds: Expanded,
                     OnExpandedChange: Expand,
-                    CreateRoot: CaptureRoot,
-                    CreateRow: CaptureRow,
+                    ConfigureRoot: CaptureRoot,
+                    ConfigureRow: CaptureRow,
                     CreateHeader: CaptureHeader,
                     CreateCell: CaptureCell,
-                    CreateSelection: CaptureCheck,
+                    ConfigureSelection: CaptureCheck,
                     CreateDetail: Detail,
                     AccessibilityName: "Inventory grid"
                 }
@@ -1751,11 +1739,10 @@ internal class DataGridEditHost : Cell {
                 Events.Add("end")
                 Outcome = outcome
             },
-            CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+            ConfigureRow: (input DataGridInput, row DataGridRow, root Container) -> {
                 Builds++
                 RowBlobs[row.Id!!] = root
-                return root
-            },
+                },
             CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) -> {
                 let handle = ElementHandle()
                 Cells[row.Id!! + ":" + column.Id!!] = handle
