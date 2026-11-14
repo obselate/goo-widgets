@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
+- Fixed: ModalDialog and ModalDialogHost confirm buttons use the Info, Success and Warning tone colors.
 
 ## 0.22.1 - 2026-11-14
 

@@ -211,14 +211,15 @@ public data struct ModalDialog {
                     throw InvalidOperationException("ModalDialog owns OnClick; configure ModalDialog instead of changing it in ConfigureCancel")
                 }
             }
+            let semanticTone = resolved.Tone != Tone.Neutral && resolved.Tone != Tone.Danger
             let confirm = Button{
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     BorderRadius: theme.ControlRadius!!,
-                    BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor,
-                    Color: theme.OnAccentColor,
-                    HoverStyle: Style{BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
-                    ActiveStyle: Style{BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
+                    BackgroundColor: semanticTone ? theme.ToneFill(resolved.Tone): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor,
+                    Color: semanticTone ? theme.ToneColor(resolved.Tone): theme.OnAccentColor,
+                    HoverStyle: Style{BackgroundColor: semanticTone ? theme.HoverColor: resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
+                    ActiveStyle: Style{BackgroundColor: semanticTone ? theme.PressedColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
                     TransitionProperties: theme.InteractionTransitions,

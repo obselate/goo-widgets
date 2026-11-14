@@ -83,6 +83,7 @@ internal class OverlayHost : Cell {
     internal let PopupAction ElementHandle = ElementHandle()
     internal let DrawerAction ElementHandle = ElementHandle()
     internal var DialogOpen bool
+    internal var DialogTone Tone?
     internal var DrawerOpen bool
     internal var TopOpen bool
     internal var PopupOpen bool
@@ -184,7 +185,9 @@ result.Children.Add(content)
         result.Handle = ElementHandle()
         result.Focusable = !EmptyDialog
         result.Padding = 10.0
-        result.BackgroundColor = Color.Parse("#6366f1")
+        if DialogTone == nil {
+            result.BackgroundColor = Color.Parse("#6366f1")
+        }
         result.BorderRadius = 5.0
 result.Children.Clear()
 result.Children.Add(content)
@@ -337,6 +340,7 @@ result.Children.Add(content)
                     "outer",
                     ModalDialog{
                         Open: DialogOpen,
+                        Tone: DialogTone ?? Tone.Neutral,
                         Header: Text{Content: "Review change", FontSize: 21.0, FontWeight: 700},
                         Content: content,
                         AccessibilityName: "Review change",
@@ -554,6 +558,30 @@ func OverlayInteractions() {
             FindSemantics(semantics.Tree?.Root, "Background action") == nil,
             "Modal exposed background accessibility content"
         )
+        for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
+            host.DialogTone = tone
+            host.Rebuild()
+            PumpFrames(window, 16)
+            let theme = Theme.Read(window)
+            let semanticTone = tone != Tone.Neutral && tone != Tone.Danger
+            let fill = semanticTone ? theme.ToneFill(tone): tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
+            let text = semanticTone ? theme.ToneColor(tone): theme.OnAccentColor
+            let image = ThemeCapture(window)
+            let box = host.ConfirmButton!!.Handle!!.BorderBox
+            let scale = float64(image.Width) / float64(window.NativeWidth)
+            var hasFill = false
+            var hasText = false
+            for y in int32(box.Y * scale) + 1 ... int32((box.Y + box.Height) * scale) - 1 {
+                for x in int32(box.X * scale) + 1 ... int32((box.X + box.Width) * scale) - 1 {
+                    hasFill = hasFill || ThemePixel(image, x, y, fill)
+                    hasText = hasText || ThemePixel(image, x, y, text)
+                }
+            }
+            Require(hasFill && hasText, "Modal confirm did not paint its tone colors")
+        }
+        host.DialogTone = nil
+        host.Rebuild()
+        PumpFrames(window, 16)
         CaptureIssueProof(window, "modal-managed")
         host.ConfirmButton!!.Handle!!.Focus()
         SendKey(id, SDLScancode.Tab)
