@@ -475,10 +475,22 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
-        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
-            MountKey ?? root.Key,
-            TouchTextEditingInput{Content: root, Editor: entry!!.Handle!!, RootStyle: Style{Width: resolved.Width!!, MinWidth: 0}, ConfigureRoot: configureRoot == nil ? nil : (outer Container) -> configureRoot?.Invoke(resolved, label, entry!!, issue, outer), Enabled: resolved.TouchEditing}
-        )
+        let outer = Container{
+            Width: resolved.Width!!,
+            MinWidth: 0,
+            HitTestSelf: false,
+            Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+                MountKey ?? root.Key,
+                TouchTextEditingInput{
+                    Content: root,
+                    Editor: entry!!.Handle!!,
+                    RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
+                    Enabled: resolved.TouchEditing,
+                }
+            ),
+        }
+        configureRoot?.Invoke(resolved, label, entry!!, issue, outer)
+        return outer
     }
 
     private func Addon(content Blob, input TextField) Blob -> Container{

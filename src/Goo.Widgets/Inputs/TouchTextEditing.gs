@@ -14,7 +14,6 @@ public data struct TouchTextEditingInput {
     var Editor ElementHandle
     /// Styles the gesture wrapper that replaces Content as the parent layout child.
     var RootStyle Style?
-    internal var ConfigureRoot Action[Container]?
     /// Nil enables touch editing.
     var Enabled bool?
 }
@@ -87,7 +86,6 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         current = input
         overlayCell?.Rebuild()
         let root = Container{BasedOn: input.RootStyle, HitTestSelf: false, content}
-        input.ConfigureRoot?.Invoke(root)
         if input.Enabled != false {
             if let custom = root.Gestures {
                 let gestures = [custom.Count + 1]GestureRecognizer

@@ -29,6 +29,17 @@ func ChromeContractRoot(input WindowChrome, children[]Blob, prepared Container) 
 }
 
 func WindowChromeContracts() {
+    for input in []WindowChrome{
+        WindowChrome{ConfigureControl: (input, command, content, action, control) -> control.OnClick = () -> {}},
+        WindowChrome{ConfigureRoot: (input, children, root) -> root.Focusable = true},
+    } {
+        var rejected = false
+        try { input.Build() }
+        catch (error InvalidOperationException) {
+            rejected = error.Message.StartsWith("WindowChrome owns ")
+        }
+        Require(rejected, "Chrome accepted a change to a widget-owned field")
+    }
     let row = (WindowChrome{ConfigureRoot: ChromeContractRoot, ConfigureControl: ChromeContractControl}.Build() as Container)!!
     Require(
         !row.Focusable && row.Children.Count == 4,
@@ -137,7 +148,6 @@ internal class ChromeHost : Cell {
     internal var ShowChrome bool = true
     internal var Commands int32
     internal var EmbeddedClicks int32
-    internal var BadClicks int32
     internal var MenuFactories int32
     internal var LastCommand string = "Ready"
     internal var MenuInput MenuInput
@@ -180,11 +190,8 @@ internal class ChromeHost : Cell {
         button.BackgroundColor = Color.Transparent
         button.AlignItems = AlignItems.Center
         button.JustifyContent = JustifyContent.Center
-        button.OnClick = () -> {
-                BadClicks++
-            }
-button.Children.Clear()
-button.Children.Add(Text{Content: "wrong"})
+        button.Children.Clear()
+        button.Children.Add(Text{Content: "Custom control"})
         Controls[command] = button
     }
 
@@ -194,9 +201,7 @@ button.Children.Add(Text{Content: "wrong"})
         prepared.FlexDirection = FlexDirection.Row
         prepared.AlignItems = AlignItems.Center
         prepared.BackgroundColor = Color.Parse("#18181b")
-        prepared.Focusable = true
-prepared.Children.Clear()
-prepared.Children.Add(Text{Content: "wrong"})
+        prepared.Children = children
     }
 
     private func Menu(input WindowChrome, prepared MenuInput) MenuInput {
@@ -382,7 +387,7 @@ func ChromeInteractions() {
         CompositeClick(window, host.Controls[WindowChromeAction.Maximize].Handle!!)
         PumpFrames(window, 25)
         Require(
-            window.State == WindowState.Maximized && host.Commands == 3 && host.BadClicks == 0,
+            window.State == WindowState.Maximized && host.Commands == 3,
             "Custom maximize control bypassed the resolved callback"
         )
         CompositeClick(window, host.Controls[WindowChromeAction.Restore].Handle!!)

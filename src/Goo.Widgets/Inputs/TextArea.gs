@@ -342,10 +342,23 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             )
         }
         root.FlexDirection = FlexDirection.Column
-        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
-            root.Key,
-            TouchTextEditingInput{Content: root, Editor: editor.Handle!!, RootStyle: Style{Width: input.Width!!, MinWidth: 0, BasedOn: input.RootStyle}, ConfigureRoot: input.ConfigureRoot == nil ? nil : (outer Container) -> input.ConfigureRoot?.Invoke(input, outer), Enabled: input.TouchEditing}
-        )
+        let outer = Container{
+            Width: input.Width!!,
+            MinWidth: 0,
+            BasedOn: input.RootStyle,
+            HitTestSelf: false,
+            Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+                root.Key,
+                TouchTextEditingInput{
+                    Content: root,
+                    Editor: editor.Handle!!,
+                    RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
+                    Enabled: input.TouchEditing,
+                }
+            ),
+        }
+        input.ConfigureRoot?.Invoke(input, outer)
+        return outer
     }
 
     private func Changed(change TextDocumentChange) {
