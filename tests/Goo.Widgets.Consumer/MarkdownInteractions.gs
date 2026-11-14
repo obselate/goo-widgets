@@ -66,6 +66,15 @@ func MarkdownContracts() {
         })
         Require(codeBlocks == 1, "Unterminated Markdown fence did not render one code block")
     }
+    var entityBlocks = 0
+    probe.Render(MarkdownViewInput{
+        Text: "&amp; &lt; &gt; &#169; &#x1F600; &lt;em&gt; &amp;lt;",
+        ConfigureBlock: (block MarkdownBlock, prepared Blob) -> {
+            entityBlocks++
+            Require(block.Text == "& < > © 😀 <em> &lt;", "Markdown lost decoded entity text")
+        }
+    })
+    Require(entityBlocks == 1, "Markdown entity paragraph did not render")
 }
 
 internal class MarkdownHost : Cell {
