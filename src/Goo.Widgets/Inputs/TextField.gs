@@ -357,7 +357,7 @@ public data struct TextField {
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
         let root = Container{
             LineHeight: theme.LineHeight,
-            Width: resolved.Width!!,
+            Width: Percent(100),
             FlexDirection: FlexDirection.Column,
             Gap: resolved.Gap!!,
             Opacity: resolved.Opacity!!,

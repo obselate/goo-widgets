@@ -75,7 +75,7 @@ public data struct TextAreaInput {
     var FocusColor Color?
     /// Base editor style, applied before the field's required layout and behavior.
     var EditorStyle Style?
-    /// Base root style.
+    /// Styles the returned outermost root before required layout.
     var RootStyle Style?
     /// Configures the fresh editor before required behavior is applied.
     /// Edit only the supplied element. Use content slots for custom child trees.
@@ -88,6 +88,373 @@ public data struct TextAreaInput {
     /// The widget does not replace configured metadata or children.
     var ConfigureRoot Action[TextAreaInput, Container]?
 }
+
+/// A mounted controlled TextEditor field that disposes only its default controller.
+public open class TextArea : Cell[TextAreaInput], IDisposable {
+    private var controller TextEditorController?
+    private var external TextEditorController?
+    private var ownsController bool
+    private var syncing bool
+    private var disposed bool
+    private var input TextAreaInput
+    private let editorHandle ElementHandle = ElementHandle()
+    private let labelHandle ElementHandle = ElementHandle()
+    private let issueHandle ElementHandle = ElementHandle()
+    private let descriptionHandle ElementHandle = ElementHandle()
+    /// Current UTF-16 character count.
+    public prop Count int32 {
+        get -> controller?.Document.Length ?? 0
+    }
+
+    /// Releases the owned controller once. External controllers and layers remain caller-owned.
+    public func Dispose() {
+        if disposed {
+            return
+        }
+        disposed = true
+        if ownsController {
+            controller?.Dispose()
+        }
+    }
+
+    protected override func Build(value TextAreaInput) Blob {
+        if disposed {
+            throw ObjectDisposedException("TextArea")
+        }
+        let theme = Theme.Read()
+        let rows = value.MinimumRows == 0 ? 3: value.MinimumRows
+        let font = value.FontSize ?? theme.FontSize
+        let minimum = float64(rows) * font * theme.LineHeight + theme.ControlPadding * 2.0
+        let defaultHeight Length = minimum
+        let minHeight = value.MinHeight ?? defaultHeight
+        if rows < 1 || !Double.IsFinite(font) || font <= 0.0 || !Double.IsFinite(minimum)
+        || (minHeight.HasMagnitude && (!Double.IsFinite(minHeight.Magnitude) || minHeight.Magnitude < 0.0)) {
+            throw ArgumentOutOfRangeException("MinimumRows/FontSize/MinHeight")
+        }
+        if value.MaximumRows < 0 || (value.MaximumRows > 0 && value.MaximumRows < rows) || value.MaxLength < 0 {
+            throw ArgumentOutOfRangeException("MaximumRows/MaxLength")
+        }
+        let defaultWidth Length = 280.0
+        input = value with{
+            MinimumRows = rows,
+            MinHeight = minHeight,
+            FontSize = font,
+            FontFamily = value.FontFamily ?? theme.FontFamily,
+            Width = value.Width ?? defaultWidth,
+            Placeholder = value.Placeholder ?? "",
+            AccessibilityName = value.AccessibilityName ?? value.Label ?? value.Placeholder ?? "",
+            BackgroundColor = value.BackgroundColor ?? theme.FieldColor,
+            TextColor = value.TextColor ?? theme.TextColor,
+            InvalidColor = value.InvalidColor ?? theme.DangerColor,
+            FocusColor = value.FocusColor ?? theme.FocusColor
+        }
+        if controller == nil {
+            external = value.Controller
+            ownsController = external == nil
+            controller = external ?? TextEditorController(TextDocument(value.Value ?? ""))
+        } else if value.Controller != external {
+            throw ArgumentException("Controller cannot change within one mounted TextArea identity")
+        }
+        let editorController = controller!!
+        if let next = value.Value {
+            Synchronize(next)
+        }
+        let overLimit = value.MaxLength != nil && Count > value.MaxLength!!
+        let invalid = value.Invalid || value.Error != nil || overLimit
+        var editor = TextEditor(){
+            Controller = editorController,
+            Layers = value.Layers ?? []TextPresentationLayer{},
+            Width = Percent(100),
+            Height = value.Height ?? minHeight,
+            MinHeight = minHeight,
+            Padding = theme.ControlPadding,
+            FontSize = font,
+            FontWeight = theme.FontWeight,
+            BackgroundColor = input.BackgroundColor!!,
+            FontFamily = input.FontFamily!!,
+            Color = input.TextColor!!,
+            CaretColor = input.TextColor!!,
+            SelectionColor = theme.AccentColor.WithAlpha(0.35),
+            PlaceholderColor = theme.PlaceholderColor,
+            Cursor = Cursor.Text,
+            BorderWidth = theme.BorderWidth,
+            BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,
+            BorderRadius = theme.ControlRadius!!,
+            FocusStyle = Style{BasedOn: theme.FocusStyle, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
+            TransitionMs = theme.TransitionMs,
+            TransitionEasing = Easing.EaseOut,
+            TransitionProperties = theme.InteractionTransitions,
+            LineHeight = theme.LineHeight,
+            ScrollbarX = value.ScrollbarX ?? theme.Scrollbar,
+            ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
+            BasedOn = value.EditorStyle,
+            KeyBindings = []KeyBinding{
+                KeyBinding{Key: Key.Enter, OnPress: () -> Enter()},
+                KeyBinding{Key: Key.KeypadEnter, OnPress: () -> Enter()},
+                KeyBinding{Key: Key.Escape, OnPress: () -> Cancel()},
+            },
+        }
+        let requiredBindings = input.ConfigureEditor == nil ? nil : editor.KeyBindings
+        if let configure = input.ConfigureEditor {
+            let originalAccessibilityInvalid = editor.Accessibility?.Invalid
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalDisabled = editor.Disabled
+            let originalFocusable = editor.Focusable
+            let originalKey = editor.Key
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(input, editor)
+            if editor.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("TextArea owns Accessibility.Invalid; set TextAreaInput.Invalid instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TextArea owns Accessibility.Name; set TextAreaInput.AccessibilityName instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TextArea owns Accessibility.Role; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("TextArea owns Controller; set TextAreaInput.Controller instead of changing it in ConfigureEditor")
+            }
+            if editor.Disabled != originalDisabled {
+                throw InvalidOperationException("TextArea owns Disabled; set TextAreaInput.Disabled instead of changing it in ConfigureEditor")
+            }
+            if editor.Focusable != originalFocusable {
+                throw InvalidOperationException("TextArea owns Focusable; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Key != originalKey {
+                throw InvalidOperationException("TextArea owns Key; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("TextArea owns OnChange; set TextAreaInput.OnChange instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("TextArea owns ReadOnly; set TextAreaInput.ReadOnly instead of changing it in ConfigureEditor")
+            }
+        }
+        if requiredBindings != nil { WidgetKeyBindings.AppendBindings(editor, requiredBindings) }
+        if invalid {
+            editor.HoverStyle = Style{BasedOn: editor.HoverStyle, BorderColor: input.InvalidColor!!}
+            editor.ActiveStyle = Style{BasedOn: editor.ActiveStyle, BorderColor: input.InvalidColor!!}
+        }
+        theme.ApplyInteraction(editor, InteractionFamily.Field)
+        editor.Controller = editorController
+        editor.Handle ??= editorHandle
+        editor.Key = "editor"
+        editor.ReadOnly = input.ReadOnly
+        editor.Disabled = input.Disabled
+        editor.BoxShadows = input.Disabled ? []BoxShadow{}: theme.FieldShadows
+        editor.Focusable = !input.Disabled
+        editor.TextWrap = input.Wrap
+        editor.OverflowX = input.Wrap == TextWrap.NoWrap ? Overflow.Scroll: Overflow.Hidden
+        editor.OverflowY = Overflow.Scroll
+        editor.Placeholder = input.Placeholder!!
+        editor.OnChange = Changed
+        let editorAccessibility = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        editorAccessibility.Role = AccessibilityRole.TextEditor
+        editorAccessibility.Name = input.AccessibilityName!!
+        editorAccessibility.Invalid = invalid
+        let editorRelationships = if let configured = editorAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        editorRelationships.LabelledBy = input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{}
+        editorRelationships.DescribedBy = input.Description != nil
+                    ? (input.Error != nil ? []ElementHandle{descriptionHandle, issueHandle}: []ElementHandle{descriptionHandle})
+                    : (input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{})
+        editorRelationships.ErrorMessage = invalid && input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
+        editorAccessibility.Relationships = editorRelationships
+        editor.Accessibility = editorAccessibility
+        var root = Container{
+            LineHeight: theme.LineHeight,
+            Width: input.Width!!,
+            MinWidth: 0,
+            Gap: theme.ControlGap,
+            FlexDirection: FlexDirection.Column,
+            FontFamily: input.FontFamily!!,
+            BasedOn: input.RootStyle,
+        }
+        root.Children.Clear()
+        if let label = input.Label {
+            root.Children.Add(
+                Text{
+                    Key: "label",
+                    Handle: labelHandle,
+                    Content: label,
+                    Color: theme.MutedTextColor,
+                    FontSize: theme.LabelFontSize,
+                    FontWeight: theme.LabelFontWeight
+                }
+            )
+        }
+        if input.MaximumRows > 0 && input.Height == nil {
+            editor.Height = Length.Auto
+            editor.MinHeight = 0
+            root.Children.Add(
+                Container{
+                    Width: Percent(100),
+                    MinWidth: 0,
+                    FlexShrink: 0,
+                    Layout: TextAreaGrowth(
+                        rows,
+                        input.MaximumRows,
+                        editorController.Document.LineCount,
+                        theme.ControlPadding * 2.0 + theme.BorderWidth * 2.0,
+                        minHeight.HasMagnitude && !minHeight.IsPercent ? minHeight.Magnitude: minimum
+                    ),
+                    editor
+                }
+            )
+        } else {
+            root.Children.Add(editor)
+        }
+        if input.MaxLength != nil || input.CounterText != nil {
+            let counter = input.CounterText ?? Count.ToString() + " / " + input.MaxLength!!.ToString()
+            root.Children.Add(
+                Text{
+                    Key: "counter",
+                    Content: counter,
+                    Color: overLimit ? input.InvalidColor!!: theme.MutedTextColor,
+                    FontSize: theme.CaptionFontSize,
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.Text,
+                        Name: counter,
+                        Live: AccessibilityLive.Polite
+                    }
+                }
+            )
+        }
+        if let description = input.Description {
+            root.Children.Add(Text{Key: "description", Handle: descriptionHandle, Content: description, Accessibility: Accessibility{Role: AccessibilityRole.Text, Name: description}, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize})
+        }
+        if let issue = input.Error {
+            root.Children.Add(
+                Text{
+                    Key: "issue",
+                    Handle: issueHandle,
+                    Content: issue,
+                    Color: input.InvalidColor!!,
+                    FontSize: theme.CaptionFontSize,
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.Alert,
+                        Name: issue,
+                        Live: AccessibilityLive.Polite
+                    }
+                }
+            )
+        }
+        root.FlexDirection = FlexDirection.Column
+        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+            root.Key,
+            TouchTextEditingInput{Content: root, Editor: editor.Handle!!, RootStyle: Style{BasedOn: input.RootStyle, Width: input.Width!!, MinWidth: 0}, ConfigureRoot: input.ConfigureRoot == nil ? nil : (outer Container) -> input.ConfigureRoot?.Invoke(input, outer), Enabled: input.TouchEditing}
+        )
+    }
+
+    private func Changed(change TextDocumentChange) {
+        if !syncing && !disposed {
+            if let callback = input.OnChange {
+                InvokeInputCallback(callback, controller!!.Document.GetText())
+            }
+            Rebuild()
+        }
+    }
+
+    private func Enter() {
+        if input.Disabled || input.ReadOnly || controller!!.Composition != nil {
+            return
+        }
+        if input.SubmitOnEnter {
+            if let callback = input.OnSubmit {
+                InvokeInputCallback(callback, controller!!.Document.GetText())
+            }
+        } else {
+            controller!!.Execute(TextCommand{Kind: TextCommandKind.Insert, Text: "\n"})
+        }
+    }
+
+    private func Cancel() {
+        if input.Disabled {
+            return
+        }
+        if controller!!.Composition != nil {
+            controller!!.Execute(TextCommand{Kind: TextCommandKind.CancelComposition})
+        } else {
+            InvokeInputCallback(input.OnCancel)
+        }
+    }
+
+    private func Synchronize(next string) {
+        let owned = controller!!
+        let before = owned.Document.GetText()
+        if before == next {
+            return
+        }
+        let selection = owned.Selection
+        var prefix int32
+        while prefix < before.Length && prefix < next.Length && before[prefix] == next[prefix] {
+            prefix++
+        }
+        if prefix > 0 && prefix < before.Length && Char.IsLowSurrogate(before[prefix]) {
+            prefix--
+        }
+        var suffix int32
+        while suffix < before.Length - prefix &&
+            suffix < next.Length - prefix &&
+            before[before.Length - suffix - 1] == next[next.Length - suffix - 1] {
+            suffix++
+        }
+        if suffix > 0 && Char.IsLowSurrogate(before[before.Length - suffix]) {
+            suffix--
+        }
+        syncing = true
+        try {
+            owned.Document.Apply(
+                TextChange{
+                    Range: TextRange{Start: prefix, Length: before.Length - prefix - suffix},
+                    InsertedText: next.Substring(prefix, next.Length - prefix - suffix)
+                }
+            )
+            let anchor = Math.Min(selection.Anchor.Offset, next.Length)
+            let active = Math.Min(selection.Active.Offset, next.Length)
+            try {
+                owned.Selection = TextSelection{
+                    Anchor: TextPosition{Offset: anchor, Affinity: selection.Anchor.Affinity},
+                    Active: TextPosition{Offset: active, Affinity: selection.Active.Affinity}
+                }
+            } catch (error ArgumentException) {
+
+            }
+        } finally {
+            syncing = false
+        }
+    }
+}
+
+internal class TextAreaGrowth(
+    MinimumRows int32,
+    MaximumRows int32,
+    Lines int32,
+    Chrome float64,
+    Minimum float64
+) : LayoutAlgorithm {
+    public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
+        let unwrapped = context.MeasureChild(
+            0,
+            LayoutSize{Width: Double.PositiveInfinity, Height: Double.PositiveInfinity}
+        )
+        let pitch = Math.Max(0, unwrapped.Height - Chrome) / float64(Lines)
+        let minimum = Math.Max(Minimum, float64(MinimumRows) * pitch + Chrome)
+        let maximum = Math.Max(minimum, float64(MaximumRows) * pitch + Chrome)
+        let size = context.MeasureChild(0, LayoutSize{Width: available.Width, Height: Double.PositiveInfinity})
+        return LayoutSize{
+            Width: Double.IsFinite(available.Width) ? available.Width: size.Width,
+            Height: Math.Min(available.Height, Math.Clamp(size.Height, minimum, maximum))
+        }
+    }
+
+    public func Arrange(context LayoutContext, finalSize LayoutSize) {
+        context.ArrangeChild(0, ElementRect{Width: finalSize.Width, Height: finalSize.Height})
+    }
+
 
 /// A mounted controlled TextEditor field that disposes only its default controller.
 public open class TextArea : Cell[TextAreaInput], IDisposable {

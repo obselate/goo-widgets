@@ -83,23 +83,25 @@ internal class RetainedTouchRoot : Cell {
 
 internal class ConfiguredIconRoot : Cell {
     internal let Metadata Accessibility = Accessibility{Expanded: true, Description: "App description"}
-    public override func Build() Blob -> Container(){
+    public override func Build() Blob {
         var rejected = false
         try {
             TextField{ConfigureEntry: (input TextField, entry TextEntry) -> { entry.Password = true }}.Build()
         } catch (error InvalidOperationException) {
             Require(error.Message == "TextField owns Password; set TextField.Password instead of changing it in ConfigureEntry",
-                "ConfigureEntry did not name the owned field and its input")
+                "ConfigureEntry did not name the owned field and its input: " + error.Message)
             rejected = true
         }
         Require(rejected, "ConfigureEntry silently discarded a password override")
-        Button{Accessibility: Metadata},
-        IconButton{
-            AccessibilityName: "Configured icon", Icon: Text{Content: "i"},
-            ConfigureRoot: (input IconButton, content Blob, button Button) -> {
-                button.Accessibility = Metadata
-            },
-        }.Build(),
+        return Container(){
+            Button{Accessibility: Metadata},
+            IconButton{
+                AccessibilityName: "Configured icon", Icon: Text{Content: "i"},
+                ConfigureRoot: (input IconButton, content Blob, button Button) -> {
+                    button.Accessibility = Metadata
+                },
+            }.Build(),
+        }
     }
 }
 
