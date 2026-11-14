@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
+
 ## 0.22.1 - 2026-11-14
 
 - Fixed: clamp the wrapped `VirtualItems` range when a grid scrolled to the end gains columns, so widening the grid no longer throws `ArgumentOutOfRangeException`.

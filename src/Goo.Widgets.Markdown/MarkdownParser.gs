@@ -34,7 +34,7 @@ internal class MarkdownParser {
         let occurrences = Dictionary[string, int32](StringComparer.Ordinal)
         var index = 0
         for block in document {
-            let content = text.Substring(block.Span.Start, block.Span.Length)
+            let content = text.Substring(block.Span.Start, Math.Min(block.Span.Length, text.Length - block.Span.Start))
             occurrences.TryGetValue(content, out var count)
             occurrences[content] = count + 1
             models[index].Key = content + "\0" + count.ToString()
