@@ -50,7 +50,37 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
     }
 
     private func ConfigureMountedRoot(resolved ModalDialog, backdrop Button, panel Container, result Container) {
-        current.ConfigureRoot?.Invoke(resolved, backdrop, panel, result)
+        if let configure = current.ConfigureRoot {
+            let originalAccessibilityModal = result.Accessibility?.Modal
+            let originalAccessibilityName = (result.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (result.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = result.Disabled
+            let originalFocusable = result.Focusable
+            let originalHandle = result.Handle
+            let originalTabStop = result.TabStop
+            configure.Invoke(resolved, backdrop, panel, result)
+            if result.Accessibility?.Modal != originalAccessibilityModal {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Modal; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Name; set ModalDialog.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Role; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.Disabled != originalDisabled {
+                throw InvalidOperationException("ModalDialog owns Disabled; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.Focusable != originalFocusable {
+                throw InvalidOperationException("ModalDialog owns Focusable; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.Handle != originalHandle {
+                throw InvalidOperationException("ModalDialog owns Handle; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.TabStop != originalTabStop {
+                throw InvalidOperationException("ModalDialog owns TabStop; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+        }
         backdrop.Key = "backdrop"
         backdrop.Focusable = false
         backdrop.OnClick = resolved.CanDismissBackdrop ? () -> resolved.OnOpenChange?.Invoke(false): nil

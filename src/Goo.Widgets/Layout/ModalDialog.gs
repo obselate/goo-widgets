@@ -321,41 +321,7 @@ public data struct ModalDialog {
                 backdrop,
                 dialog,
             }
-        if let configure = configureRoot {
-            let originalAccessibilityModal = root.Accessibility?.Modal
-            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
-            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
-            let originalDisabled = root.Disabled
-            let originalFocusable = root.Focusable
-            let originalHandle = root.Handle
-            let originalOnKeyDown = root.OnKeyDown
-            let originalTabStop = root.TabStop
-            configure.Invoke(resolved, backdrop, dialog, root)
-            if root.Accessibility?.Modal != originalAccessibilityModal {
-                throw InvalidOperationException("ModalDialog owns Accessibility.Modal; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
-                throw InvalidOperationException("ModalDialog owns Accessibility.Name; set ModalDialog.AccessibilityName instead of changing it in ConfigureRoot")
-            }
-            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
-                throw InvalidOperationException("ModalDialog owns Accessibility.Role; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-            if root.Disabled != originalDisabled {
-                throw InvalidOperationException("ModalDialog owns Disabled; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-            if root.Focusable != originalFocusable {
-                throw InvalidOperationException("ModalDialog owns Focusable; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-            if root.Handle != originalHandle {
-                throw InvalidOperationException("ModalDialog owns Handle; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-            if root.OnKeyDown != originalOnKeyDown {
-                throw InvalidOperationException("ModalDialog owns OnKeyDown; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-            if root.TabStop != originalTabStop {
-                throw InvalidOperationException("ModalDialog owns TabStop; configure ModalDialog instead of changing it in ConfigureRoot")
-            }
-        }
+        configureRoot?.Invoke(resolved, backdrop, dialog, root)
         if resolved.KeyBindings != nil {
             WidgetKeyBindings.AppendBindings(root, resolved.KeyBindings!!)
         }

@@ -18,9 +18,7 @@ func ChromeContractControl(
     command WindowChromeAction,
     content Blob,
     action Action?, prepared Button) {
-    prepared.Focusable = true
-    prepared.Disabled = false
-    prepared.Accessibility = Accessibility{Role: AccessibilityRole.Link, Name: "wrong"}
+    prepared.Accessibility = Accessibility{Description: "Custom control"}
     prepared.Children.Clear()
     prepared.Children.Add(Text{Content: "wrong"})
 }
@@ -45,7 +43,7 @@ func WindowChromeContracts() {
                     child.OnClick == nil &&
                     child
                     .Accessibility
-                    ?.Role == AccessibilityRole.Button,
+                    ?.Role == AccessibilityRole.Button && child.Accessibility?.Description == "Custom control",
                 "A custom chrome control bypassed action availability or semantics"
             )
             Require(

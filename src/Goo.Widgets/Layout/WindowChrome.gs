@@ -247,7 +247,7 @@ public data struct WindowChrome {
             if root.OnClick != originalOnClick {
                 throw InvalidOperationException("WindowChrome owns OnClick; configure WindowChrome instead of changing it in ConfigureRoot")
             }
-            if root.OnPointerDown != originalOnPointerDown {
+            if blankPointer != nil && root.OnPointerDown != originalOnPointerDown {
                 throw InvalidOperationException("WindowChrome owns OnPointerDown; configure WindowChrome instead of changing it in ConfigureRoot")
             }
         }

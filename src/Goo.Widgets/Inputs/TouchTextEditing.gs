@@ -390,6 +390,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
     }
 
     private func ChromeMetrics(metrics ElementMetrics) {
+        if viewportHandle.IsMounted { viewport = viewportHandle.BorderBox }
         if !disposed && metrics.IsMounted && handle?.IsMounted != true {
             throw InvalidOperationException("TouchTextEditing.Editor must be mounted inside Content")
         }

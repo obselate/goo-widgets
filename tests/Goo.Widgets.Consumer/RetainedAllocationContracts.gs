@@ -79,9 +79,9 @@ func RetainedAllocationContracts() {
                 embedded.RenderFrame(1.0 / 60.0)
             }
             let changed = (GC.GetAllocatedBytesForCurrentThread() - start) / 40
-            Console.WriteLine("RETAIN count bytes/update=" + changed.ToString())
-            Require(changed < 7500, "Find count updates rebuilt the toolbar")
+            Console.WriteLine("RETAIN count bytes/update=" + changed.ToString() + " field-builds=" + root.FieldBuilds.ToString())
             Require(root.FieldBuilds == 1, "Find count updates rebuilt the query field")
+            Require(changed < 7500, "Find count updates rebuilt the toolbar")
         }
     }
 }
