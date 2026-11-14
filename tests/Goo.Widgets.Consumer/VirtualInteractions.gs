@@ -242,8 +242,8 @@ func VirtualRollbackInteractions() {
                 }
                 Require(rejected, "The virtual row failure was not raised.")
                 Require(
-                    host.Handle.ScrollToItem("row-0") && host.Handle.ScrollToItem("row-1")
-                    && !host.Handle.ScrollToItem("row-2"),
+                    host.Handle.ScrollOffsetOf("row-0") != nil && host.Handle.ScrollOffsetOf("row-1") != nil
+                    && host.Handle.ScrollOffsetOf("row-2") == nil,
                     "Canceled streaming changed committed row keys."
                 )
                 Require(host.Handles[0].IsMounted && host.Handles[1].IsMounted && !host.Handles[2].IsMounted, "Canceled streaming changed mounted children.")
@@ -251,8 +251,8 @@ func VirtualRollbackInteractions() {
                 host.Rebuild()
                 PumpFrames(window, 2)
                 Require(
-                    !host.Handle.ScrollToItem("row-0") && host.Handle.ScrollToItem("row-1")
-                    && host.Handle.ScrollToItem("row-2"),
+                    host.Handle.ScrollOffsetOf("row-0") == nil && host.Handle.ScrollOffsetOf("row-1") != nil
+                    && host.Handle.ScrollOffsetOf("row-2") != nil,
                     "Streaming did not recover after cancellation."
                 )
                 Require(!host.Handles[0].IsMounted && host.Handles[1].IsMounted && host.Handles[2].IsMounted, "Streaming retry mounted incorrect children.")
@@ -376,10 +376,15 @@ func VirtualScrollApiInteractions() {
                 "The visible anchor did not round-trip.")
             Console.WriteLine("Anchor restore: key=" + saved.Key + " offset=" + saved.Offset.Y.ToString() +
                 " restored=" + aligned.Handle.VisibleAnchor!!.Offset.Y.ToString())
-            Require(!aligned.Handle.ScrollToItem("missing", alignment) &&
-                aligned.Handle.ScrollOffsetOf("missing", alignment) == nil &&
+            let offset = aligned.Handle.ScrollOffset
+            Require(aligned.Handle.ScrollOffsetOf("missing", alignment) == nil &&
                 !aligned.Handle.RestoreAnchor(VirtualScrollAnchor{Key: "missing"}),
-                "An unknown item accepted a scroll request.")
+                "An unknown item exposed a scroll target or anchor.")
+            Require(aligned.Handle.ScrollToItem("missing", alignment) && aligned.Handle.IsScrollSettling &&
+                aligned.Handle.ScrollOffset == offset, "An unknown item did not retain a pending scroll request.")
+            PumpFrames(window, 3)
+            Require(!aligned.Handle.IsScrollSettling && aligned.Handle.ScrollOffset == offset,
+                "An unknown item scroll request did not expire without moving the viewport.")
         })
     }
 }

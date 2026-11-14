@@ -513,6 +513,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         prepared.BorderColor = theme.InputBorderColor
         prepared.BorderWidth = theme.BorderWidth
         prepared.BorderRadius = theme.PanelRadius!!
+        prepared.ScrollbarY = nil
         if let configure = current.ConfigurePopup {
             let originalHandle = prepared.Handle
             let originalKey = prepared.Key

@@ -712,6 +712,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         prepared.BorderColor = theme.ControlStroke
         prepared.BorderWidth = theme.BorderWidth
         prepared.BorderRadius = theme.PanelRadius!!
+        prepared.ScrollbarY = nil
         if current.MatchTriggerWidth != false && trigger.IsMounted {
             prepared.MinWidth = trigger.BorderBox.Width
         }
