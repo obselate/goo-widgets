@@ -6,7 +6,7 @@
         "type": "Direct",
         "requested": "[0.31.0, )",
         "resolved": "0.31.0",
-        "contentHash": "R1BfLsbVWZchQ3eHRz7hdbvqlg16iu2xLszwx0HrPuVAD/mVGntDPZCnime34oou47yb94Vi8BAT5a5QMOSksA==",
+        "contentHash": "5fcur7zUXtflLEbrX6KEx8LyD1cXIllspxN29YaIjbaYKcETkMzR5sjrjiN7bwpYwpQZ/HeCPAdqvX0L6up/ZA==",
         "dependencies": {
           "Hexa.NET.SDL3": "1.2.17",
           "Tmds.DBus.Protocol": "0.95.2",

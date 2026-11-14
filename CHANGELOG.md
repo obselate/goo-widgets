@@ -1,11 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.22.0 - 2026-11-14
 
-- Breaking: replace postprocessed `Create*` element factories with `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields.
+- Requires the published Goo 0.31.0 package from NuGet.org.
+- Breaking: rename 88 postprocessed `Create*` element hooks across 45 widget families to `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields. Changes to widget-owned fields throw.
 - Breaking: `TouchTextEditingInput.Editor` is an `ElementHandle`. Set it on the editor before hand-off. `RootStyle` styles the gesture wrapper for outer flex and percentage sizing.
 - `FormField` uses Goo accessibility attachments without editing supplied controls. `HoverCard` keeps target handles unchanged. Shape interaction styles omit invalid legacy box paint.
-
 - Touch editing rebuilds a retained overlay without changing mounted content or editor declarations.
 - `NavigationRail` tints a fresh shape declaration and keeps supplied item icons unchanged.
 - Remove `Avatar.ImagePath` and `AsyncImage.ImagePath`. Supply an owned `ImageSource` provider. Retain an `AsyncImageSource` over `ImageSourceCache.LoadAsync` to load a path.
@@ -41,6 +41,11 @@
 - Show single-line labels with an ellipsis when space is short: `ActionButton`, `Chip`, `TabBar` tabs, `ToggleGroup` items, `Menu` items, the `ListRow` title, `SearchList` and `ComboBox` rows, the `ComboBox` value and `TreeView` labels. These controls can shrink in a narrow container. `CreateText`, `CreateTitle` and `CreateItem` replace the label.
 - `ListView`, `TreeView`, `DataGrid` and `SearchList` without a `Height` grow and shrink to fill the free space of the parent and scroll inside it. Their default height (280, 280, 300 and 240 px) is the starting size, so in a parent without a bounded height they keep that height.
 - A click or arrow key on a fully visible `ListView` row no longer scrolls the list. The list scrolls only as far as needed to show the active row.
+
+### Known issues
+
+- Plain panels need manual resets of default presentation styles.
+- With Gsharp.NET.Sdk 0.5.212, unwrap nullable `float64?` fields before assigning them to `Length` or `Edges`. Direct assignment can produce invalid IL.
 
 ## 0.21.0 - 2026-11-09
 
