@@ -699,8 +699,6 @@ func DataGridContracts() {
                 OnColumnWidthChange: (id string, width float64) -> resized = width,
                 ConfigureResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
                     resizeFactoryCalled = true
-                                        prepared.Key = "unrelated"
-                    prepared.Handle = unrelatedHandle
                     prepared.HoverStyle = Style{BackgroundColor: Color.Parse("#18181b")}
                     prepared.FocusStyle = Style{BackgroundColor: Color.Parse("#18181b")}
 },

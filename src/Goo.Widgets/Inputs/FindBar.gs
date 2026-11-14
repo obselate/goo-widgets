@@ -98,7 +98,7 @@ public data struct FindBar {
                     state.NextButton!!,
                     state.CloseButton!!,
                 }
-            ),
+            , theme.ControlGap / 2.0),
         }
         if let replacement = Replacement {
             root.Children.Add(
@@ -121,17 +121,17 @@ public data struct FindBar {
                         Icon("Replace", ControlIcon.FindReplace, size, !ready, OnReplace),
                         Icon("Replace all", ControlIcon.DoneAll, size, !ready, OnReplaceAll),
                     }
-                )
+                , theme.ControlGap / 2.0)
             )
         }
         return root
     }
 
-    private func Row(field Blob, actions Container) Container -> Container{
+    private func Row(field Blob, actions Container, gap float64) Container -> Container{
         FlexDirection: FlexDirection.Row,
         FlexWrap: FlexWrap.Wrap,
         AlignItems: AlignItems.FlexStart,
-        Gap: Theme.Read().ControlGap / 2.0,
+        Gap: gap,
         field,
         actions,
     }
