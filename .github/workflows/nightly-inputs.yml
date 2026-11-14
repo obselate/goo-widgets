@@ -1,0 +1,44 @@
+name: Nightly inputs
+
+on:
+  schedule:
+    - cron: "43 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-inputs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  inputs:
+    name: ${{ matrix.target }}
+    runs-on: ubuntu-26.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [roving-focus, typeahead, markdown]
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+      DOTNET_NOLOGO: 1
+      INPUT_SEED: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68
+        with:
+          global-json-file: global.json
+      - name: Build managed targets
+        run: dotnet build tools/Goo.Widgets.InputFuzz -c Release -warnaserror -nr:false -m:1 -p:UseSharedCompilation=false
+      - name: Run for ten minutes
+        run: tools/Goo.Widgets.InputFuzz/run.sh '${{ matrix.target }}'
+      - name: Upload failing inputs
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: input-failures-${{ matrix.target }}-${{ github.sha }}
+          path: artifacts/input-fuzz/failures/${{ matrix.target }}/
+          if-no-files-found: ignore
+          retention-days: 30
