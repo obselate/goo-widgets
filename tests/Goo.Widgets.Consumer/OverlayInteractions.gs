@@ -558,27 +558,57 @@ func OverlayInteractions() {
             FindSemantics(semantics.Tree?.Root, "Background action") == nil,
             "Modal exposed background accessibility content"
         )
-        for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
-            host.DialogTone = tone
-            host.Rebuild()
-            PumpFrames(window, 16)
-            let theme = Theme.Read(window)
-            let semanticTone = tone != Tone.Neutral && tone != Tone.Danger
-            let fill = semanticTone ? theme.ToneFill(tone): tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
-            let text = semanticTone ? theme.ToneColor(tone): theme.OnAccentColor
-            let image = ThemeCapture(window)
-            let box = host.ConfirmButton!!.Handle!!.BorderBox
-            let scale = float64(image.Width) / float64(window.NativeWidth)
-            var hasFill = false
-            var hasText = false
-            for y in int32(box.Y * scale) + 1 ... int32((box.Y + box.Height) * scale) - 1 {
-                for x in int32(box.X * scale) + 1 ... int32((box.X + box.Width) * scale) - 1 {
-                    hasFill = hasFill || ThemePixel(image, x, y, fill)
-                    hasText = hasText || ThemePixel(image, x, y, text)
+        let originalTheme = Theme.Read(window)
+        let linear = (value float32) -> value <= 0.04045F ? float64(value) / 12.92: Math.Pow((float64(value) + 0.055) / 1.055, 2.4)
+        let luminance = (color Color) -> 0.2126 * linear(color.R) + 0.7152 * linear(color.G) + 0.0722 * linear(color.B)
+        for palette in []Theme{Theme.Bone, Theme.Ink} {
+            Theme.Attach(window, palette with{TransitionMs = 0.0})
+            for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
+                host.DialogTone = tone
+                host.Rebuild()
+                MouseMove(id, 4.0F, 4.0F)
+                PumpFrames(window, 16)
+                let theme = Theme.Read(window)
+                let semanticTone = tone != Tone.Neutral && tone != Tone.Danger
+                let fill = semanticTone ? theme.ToneColor(tone): tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
+                let surface = luminance(fill) + 0.05
+                let shade = 1.05 / surface >= surface / 0.05 ? Color.Black: Color.White
+                let button = host.ConfirmButton!!.Handle!!
+                let box = button.ContentBox
+                for state in 0 ... (semanticTone ? 3: 1) {
+                    let x = float32(box.X + box.Width / 2.0)
+                    let y = float32(box.Y + box.Height / 2.0)
+                    if state == 1 { MouseMove(id, x, y) }
+                    if state == 2 { MouseButton(id, x, y, true) }
+                    PumpFrames(window, 16)
+                    let amount = float32(state) * 0.1F
+                    let expected = Color.FromNormalized(
+                        fill.R + (shade.R - fill.R) * amount,
+                        fill.G + (shade.G - fill.G) * amount,
+                        fill.B + (shade.B - fill.B) * amount, fill.A)
+                    let image = ThemeCapture(window)
+                    let scale = float64(image.Width) / float64(window.NativeWidth)
+                    var hasFill = false
+                    var contrast = 1.0
+                    for row in int32(box.Y * scale) ... int32((box.Y + box.Height) * scale) {
+                        for column in int32(box.X * scale) ... int32((box.X + box.Width) * scale) {
+                            hasFill = hasFill || ThemePixel(image, column, row, expected)
+                            let at = row * int32(image.RowBytes) + column * 4
+                            let pixel = Color.Rgb(image.Pixels[at], image.Pixels[at + 1], image.Pixels[at + 2])
+                            let first = luminance(pixel) + 0.05
+                            let second = luminance(expected) + 0.05
+                            contrast = Math.Max(contrast, Math.Max(first, second) / Math.Min(first, second))
+                        }
+                    }
+                    if state == 2 {
+                        MouseMove(id, 4.0F, 4.0F)
+                        MouseButton(id, 4.0F, 4.0F, false)
+                    }
+                    Require(hasFill && contrast >= 4.5, "Modal confirm lost its solid tone shade or text contrast: " + tone.ToString() + "/" + state.ToString())
                 }
             }
-            Require(hasFill && hasText, "Modal confirm did not paint its tone colors")
         }
+        Theme.Attach(window, originalTheme)
         host.DialogTone = nil
         host.Rebuild()
         PumpFrames(window, 16)

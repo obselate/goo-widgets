@@ -212,14 +212,17 @@ public data struct ModalDialog {
                 }
             }
             let semanticTone = resolved.Tone != Tone.Neutral && resolved.Tone != Tone.Danger
+            let confirmColor = semanticTone ? theme.ToneColor(resolved.Tone): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
+            let confirmTextColor = semanticTone ? theme.SelectedText(theme.OnAccentColor, confirmColor): theme.OnAccentColor
+            let shadeTarget = semanticTone && theme.Contrast(Color.White, confirmColor) >= theme.Contrast(Color.Black, confirmColor) ? Color.Black: Color.White
             let confirm = Button{
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     BorderRadius: theme.ControlRadius!!,
-                    BackgroundColor: semanticTone ? theme.ToneFill(resolved.Tone): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor,
-                    Color: semanticTone ? theme.ToneColor(resolved.Tone): theme.OnAccentColor,
-                    HoverStyle: Style{BackgroundColor: semanticTone ? theme.HoverColor: resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
-                    ActiveStyle: Style{BackgroundColor: semanticTone ? theme.PressedColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
+                    BackgroundColor: confirmColor,
+                    Color: confirmTextColor,
+                    HoverStyle: Style{BackgroundColor: semanticTone ? theme.Mix(confirmColor, shadeTarget, 0.1F): resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
+                    ActiveStyle: Style{BackgroundColor: semanticTone ? theme.Mix(confirmColor, shadeTarget, 0.2F): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
                     TransitionProperties: theme.InteractionTransitions,

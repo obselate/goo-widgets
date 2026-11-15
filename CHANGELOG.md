@@ -6,7 +6,7 @@
 - Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
 - Docs: correct the `RadioGroupInput.Orientation` default to vertical. Behavior is unchanged.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
-- Fixed: ModalDialog and ModalDialogHost confirm buttons use the Info, Success and Warning tone colors.
+- Fixed: ModalDialog and ModalDialogHost confirm buttons use solid Info, Success and Warning colors, contrast-safe text and same-tone hover and pressed shades.
 - Fixed: Markdown renders named and numeric HTML character entities as decoded inline text.
 
 ## 0.22.1 - 2026-11-14
