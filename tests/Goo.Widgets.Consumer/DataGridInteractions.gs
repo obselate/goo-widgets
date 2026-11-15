@@ -309,7 +309,32 @@ internal class DataGridInitialHost : Cell {
     }
 }
 
+internal class DataGridEmptyHost : Cell {
+    internal let Message ElementHandle = ElementHandle()
+    internal let Viewport ElementHandle = ElementHandle()
+
+    public override func Build() Blob -> Cell.Mount[DataGridInput, DataGrid]("empty", DataGridInput{
+        ViewportHandle: Viewport,
+        EmptyContent: Text{Handle: Message, Content: "No rows"},
+    })
+}
+
 func DataGridHeightInteractions() {
+    let empty = DataGridEmptyHost()
+    let emptyWindow = Window{Title: "DataGrid empty content", Size: LayoutSize(400, 300), Root: empty}
+    Theme.Attach(emptyWindow, Theme.Default)
+    RunNativeWindow(emptyWindow, () -> {
+        emptyWindow.Open()
+        WaitVirtual(emptyWindow, () -> empty.Message.IsMounted)
+        PumpFrames(emptyWindow, 12)
+        let message = empty.Message.BorderBox
+        let viewport = empty.Viewport.ContentBox
+        Require(message.Width > 40 && message.Height < 30 &&
+            message.X >= viewport.X && message.X + message.Width <= viewport.X + viewport.Width &&
+            Math.Abs(message.X + message.Width / 2 - viewport.X - viewport.Width / 2) < 1,
+            "DataGrid clipped or misplaced its empty content without columns")
+        Console.WriteLine("PASS: DataGrid empty content fits and stays centered without columns")
+    })
     let measured = DataGridInitialHost()
     let initial = Window{Title: "DataGrid initial measurement", Size: LayoutSize(1540, 960), Root: measured, SmoothScrolling: false}
     Theme.Attach(initial, Theme.Default)
