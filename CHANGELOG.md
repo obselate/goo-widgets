@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.22.2 - 2026-11-15
 
 - Fixed: Calendar month headings grow vertically when they wrap, so they no longer overlap the weekday row at the default width.
 - Fixed: DataGrid empty-state content fills the viewport even when no columns exist or their total width is smaller than the viewport.
