@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: TimeAxis collision lanes include event padding and borders, so close point events do not overlap when `MinimumEventWidth` is small.
 - Fixed: MediaTransport keeps disabled action icons visible and reserves space for the position thumb beside both time labels.
 - Fixed: `PropertyGridItem.Key` is displayed beside its label in stacked and compact property grids.
 - Fixed: ColorPicker wheel images fit inside the configured border, keeping it visible on every side.

@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import Hexa.NET.SDL3
 import System
@@ -19,6 +20,8 @@ func AxisEvents()[]TimeAxisEvent {
         TimeAxisEvent{Id: "beta", Label: "Index refresh", Start: day.AddHours(1), End: day.AddHours(2)},
         TimeAxisEvent{Id: "overflow", Label: "Diagnostics", Start: day.AddHours(1.5), End: day.AddHours(2.5)},
         TimeAxisEvent{Id: "gamma", Label: "Reports", Start: day.AddHours(2), End: day.AddHours(3)},
+        TimeAxisEvent{Id: "close-first", Label: "First", Start: day.AddHours(4), End: day.AddHours(4)},
+        TimeAxisEvent{Id: "close-second", Label: "Second", Start: day.AddHours(4).AddMinutes(1), End: day.AddHours(4).AddMinutes(1)},
         TimeAxisEvent{Id: "target", Label: "Release", Start: day.AddHours(6), End: day.AddHours(7)},
         TimeAxisEvent{Id: "point", Label: "Milestone", Start: day.AddHours(6), End: day.AddHours(6)},
         TimeAxisEvent{Id: "outside", Label: "Yesterday", Start: day.AddHours(-4), End: day.AddHours(-1)},
@@ -56,7 +59,7 @@ func TimeAxisContracts() {
             }
         )
         Require(
-            placements.Count == 5 && !placements.ContainsKey("outside") &&
+            placements.Count == 7 && !placements.ContainsKey("outside") &&
                 hidden.Length == 1 &&
                 hidden[0].Id == "overflow",
             "TimeAxis lost clipping or collision overflow"
@@ -66,7 +69,7 @@ func TimeAxisContracts() {
             "Adjacent TimeAxis events did not reuse collision lanes"
         )
         Require(
-            placements["point"].Width == 6.0 && placements["target"].Lane != placements["point"].Lane,
+            placements["point"].Width >= 6.0 && placements["target"].Lane != placements["point"].Lane,
             "Point width was omitted from lane collisions"
         )
         let canvas = (root!!.Children[0] as Container)!!
@@ -94,6 +97,18 @@ func TimeAxisContracts() {
         probe.Dispose()
         probe.Dispose()
     }
+    let host = TimeAxisHost()
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(700, 360, 700, 360)
+    let window = Window{Root: host}
+    Theme.Attach(window, Theme.Default)
+    window.Attach(embedded)
+    embedded.RenderFrame(0.016)
+    let first = host.Buttons["close-first"].Handle!!.BorderBox
+    let second = host.Buttons["close-second"].Handle!!.BorderBox
+    Require(first.Width > 0.0 && second.Width > 0.0 &&
+        (first.X + first.Width <= second.X || first.Y + first.Height <= second.Y),
+        "Close TimeAxis points overlap despite their rendered width")
 }
 
 internal class TimeAxisHost : Cell {
@@ -143,6 +158,7 @@ internal class TimeAxisHost : Cell {
                         MaximumLanes: 2,
                         CurrentTime: Current,
                         PixelsPerHour: Scale,
+                        MinimumEventWidth: 2,
                         SelectedId: Selected ?? "",
                         InitialEventId: "target",
                         ConfigureEvent: Event,
