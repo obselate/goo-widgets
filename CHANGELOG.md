@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: Calendar month headings grow vertically when they wrap, so they no longer overlap the weekday row at the default width.
 - Fixed: DataGrid empty-state content fills the viewport even when no columns exist or their total width is smaller than the viewport.
 - Fixed: TimeAxis collision lanes include event padding and borders, so close point events do not overlap when `MinimumEventWidth` is small.
 - Fixed: MediaTransport keeps disabled action icons visible and reserves space for the position thumb beside both time labels.
