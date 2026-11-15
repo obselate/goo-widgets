@@ -90,7 +90,7 @@ public data struct TimeAxisInput {
     var LaneHeight float64?
     /// Gap between event rows. Nil uses the theme's gap.
     var LaneGap float64?
-    /// Minimum event visual width, included in collision handling. Nil resolves to 6.
+    /// Minimum event visual width, included in collision handling. Nil resolves to 6. Event padding and borders can raise this minimum.
     var MinimumEventWidth float64?
     /// Optional current-time marker. The host updates this value; the widget owns no timer.
     var CurrentTime DateTimeOffset?
@@ -220,7 +220,9 @@ public open class TimeAxis : Cell[TimeAxisInput], IDisposable {
         let overflow = List[TimeAxisEvent]()
         for item in visible {
             let left = Math.Max(0, X(item.Start))
-            let right = Math.Min(canvasWidth, Math.Max(left + minimum, X(item.End)))
+            let border = item.Id == input.SelectedId || theme.HighContrast ? theme.BorderWidth: 0.0
+            let visualMinimum = Math.Max(minimum, 2.0 * (theme.ControlPadding + border))
+            let right = Math.Min(canvasWidth, Math.Max(left + visualMinimum, X(item.End)))
             var lane int32
             while lane < ends.Count && ends[lane] > left {
                 lane++
