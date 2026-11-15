@@ -9,6 +9,7 @@ import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 import Goo.Widgets.Media
+import Goo.Widgets.Navigation
 import System
 
 internal class SliderProbe : Slider {
@@ -479,6 +480,12 @@ func Main() {
     TouchEditingOwnership()
     ReceivedElementContracts()
     NavigationRailOwnership()
+    let emptyPaths = Container(){
+        Cell.Mount[BreadcrumbInput, Breadcrumb]("breadcrumb-default", BreadcrumbInput{}),
+        Cell.Mount[BreadcrumbInput, Breadcrumb]("breadcrumb-empty", BreadcrumbInput{Items: []BreadcrumbItem{}}),
+        Cell.Mount[BreadcrumbInput, PathBar]("path-default", BreadcrumbInput{}),
+        Cell.Mount[BreadcrumbInput, PathBar]("path-empty", BreadcrumbInput{Items: []BreadcrumbItem{}})
+    }
     RunContracts(
         () -> {
             CalendarContracts()
@@ -500,7 +507,9 @@ func Main() {
             VirtualContracts()
             SliderInteractions()
             WidgetErgonomics()
-        }
+        },
+        nil,
+        emptyPaths
     )
     RunContracts(MirroredSliderKeys, Theme.Default with{Direction = Direction.RightToLeft})
     RunContracts(LocalizedSliderValue, Theme.Default with{Culture = System.Globalization.CultureInfo.GetCultureInfo("de-DE")})

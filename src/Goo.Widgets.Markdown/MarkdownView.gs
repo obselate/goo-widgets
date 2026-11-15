@@ -144,9 +144,11 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         var content Blob
         if info.Kind == MarkdownBlockKind.Heading {
             let scale = []float64{2.0, 1.7, 1.4, 1.2, 1.1, 1.0}
-            content = Leaf(model, current.FontSize * scale[Math.Clamp(info.HeadingLevel, 1, 6) - 1], 700.0, alignment, current, theme)
+            content = Container{MinWidth: 0.0, FlexShrink: 0.0,
+                Leaf(model, current.FontSize * scale[Math.Clamp(info.HeadingLevel, 1, 6) - 1], 700.0, alignment, current, theme)}
         } else if info.Kind == MarkdownBlockKind.Paragraph {
-            content = Leaf(model, current.FontSize, weight, alignment, current, theme)
+            content = Container{MinWidth: 0.0, FlexShrink: 0.0,
+                Leaf(model, current.FontSize, weight, alignment, current, theme)}
         } else if info.Kind == MarkdownBlockKind.Code {
             content = Container{
                 Padding: theme.ControlPadding,

@@ -3,7 +3,14 @@
 ## Unreleased
 
 - Fixed: MediaTransport keeps disabled action icons visible and reserves space for the position thumb beside both time labels.
+- Fixed: `PropertyGridItem.Key` is displayed beside its label in stacked and compact property grids.
+- Fixed: ColorPicker wheel images fit inside the configured border, keeping it visible on every side.
+- Fixed: keep DatePicker popups at least as wide as their fields after mounting and resizing.
+- Fixed: Markdown heading and paragraph blocks apply padding, backgrounds and other element settings from `ConfigureBlock`.
+- Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
+- Docs: correct the `RadioGroupInput.Orientation` default to vertical. Behavior is unchanged.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
+- Fixed: Markdown renders named and numeric HTML character entities as decoded inline text.
 
 ## 0.22.1 - 2026-11-14
 
