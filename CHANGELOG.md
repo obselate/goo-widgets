@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Fixed: ColorPicker wheel images fit inside the configured border, keeping it visible on every side.
 - Fixed: keep DatePicker popups at least as wide as their fields after mounting and resizing.
 - Fixed: Markdown heading and paragraph blocks apply padding, backgrounds and other element settings from `ConfigureBlock`.
 - Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
