@@ -110,7 +110,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
             menuOpen = false
         }
         let visible = List[string]()
-        for index in 0 ... items.Length - 1 {
+        for index in 0 ... Math.Max(0, items.Length - 1) {
             if index == firstHidden {
                 visible.Add(overflowId)
             }

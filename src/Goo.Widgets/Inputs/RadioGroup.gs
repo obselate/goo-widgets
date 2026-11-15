@@ -30,7 +30,7 @@ public data struct RadioGroupInput {
     var SelectedId string?
     /// Receives the selected item ID after user selection. Nil ignores the request.
     var OnSelect Action[string]?
-    /// Direction of layout and arrow-key navigation. Nil uses horizontal layout.
+    /// Direction of layout and arrow-key navigation. Nil uses vertical layout.
     var Orientation AccessibilityOrientation?
     /// Uses a bordered card presentation for each labeled choice.
     var Card bool

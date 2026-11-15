@@ -2,8 +2,12 @@
 
 ## Unreleased
 
+- Fixed: Markdown heading and paragraph blocks apply padding, backgrounds and other element settings from `ConfigureBlock`.
+- Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
+- Docs: correct the `RadioGroupInput.Orientation` default to vertical. Behavior is unchanged.
 - Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
 - Fixed: ModalDialog and ModalDialogHost confirm buttons use the Info, Success and Warning tone colors.
+- Fixed: Markdown renders named and numeric HTML character entities as decoded inline text.
 
 ## 0.22.1 - 2026-11-14
 

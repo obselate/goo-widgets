@@ -147,6 +147,10 @@ internal class MarkdownParser {
             Add(literal.Content.ToString() ?? "", state, text, runs)
             return
         }
+        if item is HtmlEntityInline entity {
+            Add(entity.Transcoded.ToString(), state, text, runs)
+            return
+        }
         if item is LineBreakInline line {
             Add(line.IsHard ? "\n": " ", state, text, runs)
             return
