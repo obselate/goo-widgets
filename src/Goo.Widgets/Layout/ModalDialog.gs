@@ -213,8 +213,8 @@ public data struct ModalDialog {
             }
             let semanticTone = resolved.Tone != Tone.Neutral && resolved.Tone != Tone.Danger
             let confirmColor = semanticTone ? theme.ToneColor(resolved.Tone): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
-            let confirmTextColor = semanticTone ? theme.SelectedText(theme.OnAccentColor, confirmColor): theme.OnAccentColor
             let shadeTarget = semanticTone && theme.Contrast(Color.White, confirmColor) >= theme.Contrast(Color.Black, confirmColor) ? Color.Black: Color.White
+            let confirmTextColor = semanticTone ? shadeTarget == Color.Black ? Color.White: Color.Black: theme.OnAccentColor
             let confirm = Button{
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},

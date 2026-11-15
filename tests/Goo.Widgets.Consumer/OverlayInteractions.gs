@@ -573,6 +573,7 @@ func OverlayInteractions() {
                 let fill = semanticTone ? theme.ToneColor(tone): tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
                 let surface = luminance(fill) + 0.05
                 let shade = 1.05 / surface >= surface / 0.05 ? Color.Black: Color.White
+                let text = semanticTone ? shade == Color.Black ? Color.White: Color.Black: theme.OnAccentColor
                 let button = host.ConfirmButton!!.Handle!!
                 let box = button.ContentBox
                 for state in 0 ... (semanticTone ? 3: 1) {
@@ -586,25 +587,29 @@ func OverlayInteractions() {
                         fill.R + (shade.R - fill.R) * amount,
                         fill.G + (shade.G - fill.G) * amount,
                         fill.B + (shade.B - fill.B) * amount, fill.A)
+                    let foreground = luminance(text) + 0.05
+                    let background = luminance(expected) + 0.05
+                    let expectedContrast = Math.Max(foreground, background) / Math.Min(foreground, background)
                     let image = ThemeCapture(window)
                     let scale = float64(image.Width) / float64(window.NativeWidth)
                     var hasFill = false
+                    var hasText = false
                     var contrast = 1.0
                     for row in int32(box.Y * scale) ... int32((box.Y + box.Height) * scale) {
                         for column in int32(box.X * scale) ... int32((box.X + box.Width) * scale) {
                             hasFill = hasFill || ThemePixel(image, column, row, expected)
+                            hasText = hasText || ThemePixel(image, column, row, text)
                             let at = row * int32(image.RowBytes) + column * 4
                             let pixel = Color.Rgb(image.Pixels[at], image.Pixels[at + 1], image.Pixels[at + 2])
                             let first = luminance(pixel) + 0.05
-                            let second = luminance(expected) + 0.05
-                            contrast = Math.Max(contrast, Math.Max(first, second) / Math.Min(first, second))
+                            contrast = Math.Max(contrast, Math.Max(first, background) / Math.Min(first, background))
                         }
                     }
                     if state == 2 {
                         MouseMove(id, 4.0F, 4.0F)
                         MouseButton(id, 4.0F, 4.0F, false)
                     }
-                    Require(hasFill && contrast >= 4.5, "Modal confirm lost its solid tone shade or text contrast: " + tone.ToString() + "/" + state.ToString())
+                    Require(hasFill && hasText && contrast >= expectedContrast - 0.05, "Modal confirm lost its solid tone shade or black/white text contrast: " + tone.ToString() + "/" + state.ToString())
                 }
             }
         }
