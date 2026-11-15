@@ -114,6 +114,7 @@ public data struct MarkdownViewInput {
     /// Return a fresh element or the supplied default.
     var CreateInline Func[MarkdownInline, Blob, Blob]?
     /// Configures the fresh block before required behavior is applied.
+    /// Heading and paragraph blocks supply a container around their text content.
     /// Edit only the supplied element. Use content slots for custom child trees.
     /// Widget-owned fields: Accessibility.Role (table row), Key (table row).
     var ConfigureBlock Action[MarkdownBlock, Blob]?
