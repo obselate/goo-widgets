@@ -7,6 +7,7 @@ import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
 import System
+import System.Collections.Generic
 
 internal class LayoutHost : Cell {
     internal var DialogOpen bool
@@ -177,6 +178,23 @@ func LayoutInteractions() {
         () -> {
             let empty = (PropertyGrid{}.Build() as Container)!!
             Require(empty.Children.Count == 1, "Default property grid did not resolve nil items and query")
+            for layout in []PropertyGridLayout{PropertyGridLayout.Stacked, PropertyGridLayout.Compact} {
+                let pending = Stack[Blob]()
+                pending.Push(PropertyGrid{Layout: layout}.BuildRow(
+                    PropertyGridItem{Id: "project", Label: "Project", Key: "workspace.project"}
+                ))
+                var found bool
+                while pending.Count > 0 {
+                    let node = pending.Pop()
+                    if node is Text {
+                        found = found || node.Content == "workspace.project"
+                    }
+                    if node is Container {
+                        for child in node.Children { pending.Push(child) }
+                    }
+                }
+                Require(found, "Property grid did not display the property key beside its label")
+            }
             for collapsed in []bool{false, true} {
                 var requested bool?
                 let grid = (PropertyGrid{

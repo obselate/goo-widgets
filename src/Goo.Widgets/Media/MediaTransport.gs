@@ -162,6 +162,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     Width: 0.0,
                     MinWidth: 80.0,
                     FlexGrow: 1.0,
+                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     Cell.Mount[SliderInput, Slider](
                         "media-position",
                         SliderInput{
@@ -317,7 +318,9 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     20.0
                 },
-                if primary {
+                if primary && disabled {
+                    theme.DisabledTextColor
+                } else if primary {
                     input.PrimaryActionTextColor!!
                 } else {
                     input.TextColor!!

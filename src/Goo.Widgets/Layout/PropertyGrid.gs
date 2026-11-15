@@ -226,6 +226,17 @@ public data struct PropertyGrid {
                         reset
                     }
                 }
+                if let key = item.Key {
+                    root.Children[0] = Container{
+                        MinWidth: 0,
+                        FlexDirection: FlexDirection.Row,
+                        FlexWrap: FlexWrap.Wrap,
+                        AlignItems: AlignItems.Center,
+                        Gap: theme.Spacing,
+                        root.Children[0],
+                        Text{Content: key, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize}
+                    }
+                }
                 if layout == PropertyGridLayout.Compact {
                     let label = root.Children[0]
                     label.Width = labelWidth

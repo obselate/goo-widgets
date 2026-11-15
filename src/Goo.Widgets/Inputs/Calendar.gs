@@ -172,7 +172,7 @@ public open class Calendar : Cell[CalendarInput], IDisposable {
         let title = month.ToString("MMMM yyyy", culture)
         let heading = Container{
             Key: "heading",
-            Height: Math.Max(theme.ControlHeight, current.DayHeight!!),
+            MinHeight: Math.Max(theme.ControlHeight, current.DayHeight!!),
             FlexShrink: 0.0,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

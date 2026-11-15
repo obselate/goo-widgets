@@ -54,6 +54,36 @@ func CalendarContracts() {
     )
 }
 
+func CalendarHeadingLayoutContract() {
+    let headingColor = Color.Rgb(255, 0, 0)
+    let root = RetainedContractRoot(Container{
+        AlignItems: AlignItems.FlexStart,
+        Cell.Mount[CalendarInput, Calendar]("calendar", CalendarInput{
+            Today: DateOnly(2026, 6, 15),
+            Month: DateOnly(2026, 12, 1),
+            MonthTextStyle: Style{Color: headingColor},
+            Culture: System.Globalization.CultureInfo.GetCultureInfo("en-US")
+        })
+    })
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "Calendar heading verification", Size: LayoutSize(640, 560),
+        Root: root, AccessibilityAdapter: semantics}
+    Goo.Widgets.Theme.Attach(window)
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 12)
+        let heading = FeedbackNode(semantics, AccessibilityRole.Heading, "December 2026").Bounds
+        let weekday = FeedbackNode(semantics, AccessibilityRole.ColumnHeader, "Sunday").Bounds
+        let image = ThemeCapture(window)
+        for y in int32(weekday.Y) ... int32(weekday.Y + weekday.Height) {
+            for x in int32(heading.X) ... int32(heading.X + heading.Width) {
+                Require(!ThemePoint(image, window, float64(x), float64(y), headingColor),
+                    "Calendar month heading painted over the weekday row at its default width")
+            }
+        }
+    })
+}
+
 internal class CalendarHost : Cell {
     internal let PickerSource ElementHandle = ElementHandle()
     internal let CalendarHandle ElementHandle = ElementHandle()
@@ -79,6 +109,8 @@ internal class CalendarHost : Cell {
     internal var Show bool = true
     internal var Entry TextEntry?
     internal var Popup Container?
+    internal var PickerWidth Length = 300.0
+    internal var PickerSourceWidth float64 = 320.0
     private func Light() bool -> Environment.GetEnvironmentVariable("GOO_WIDGETS_LIGHT") == "1"
 
     private func Weekend(value DateOnly) bool -> value.DayOfWeek == DayOfWeek.Saturday ||
@@ -197,7 +229,7 @@ internal class CalendarHost : Cell {
         var picker = DatePickerInput{
             OnChange: Changed,
             OnInvalid: Invalid,
-            Width: 300.0,
+            Width: PickerWidth,
             Open: IsOpen,
             OnOpenChange: Open,
             AllowEmpty: EmptyAllowed,
@@ -233,7 +265,7 @@ internal class CalendarHost : Cell {
                 Container{
                     Key: "picker-source",
                     Handle: PickerSource,
-                    Width: 320.0,
+                    Width: PickerSourceWidth,
                     Height: 52.0,
                     Overflow: Overflow.Hidden,
                     BorderWidth: 4.0,
@@ -302,6 +334,7 @@ func PickerDraft(window Window, id uint32, host CalendarHost, value string) {
 }
 
 func CalendarInteractions() {
+    CalendarHeadingLayoutContract()
     TimePickerInteractions()
     RunContracts(CalendarContracts)
     let host = CalendarHost()
@@ -316,6 +349,39 @@ func CalendarInteractions() {
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 15)
+        for width in []Length{440.0, Percent(100)} {
+            host.Show = false
+            host.Rebuild()
+            PumpFrames(window, 4)
+            host.PickerWidth = width
+            host.PickerSourceWidth = 400.0
+            host.IsOpen = true
+            host.Show = true
+            host.Rebuild()
+            PumpFrames(window, 18)
+            let fieldWidth = host.Entry!!.Handle!!.BorderBox.Width + host.OpenButton.BorderBox.Width
+            Require(
+                host.Popup!!.Handle!!.BorderBox.Width >= fieldWidth,
+                "DatePicker popup was narrower than its initially open field"
+            )
+            host.PickerSourceWidth = 460.0
+            host.Rebuild()
+            PumpFrames(window, 12)
+            Require(
+                host.Popup!!.Handle!!.BorderBox.Width >=
+                    host.Entry!!.Handle!!.BorderBox.Width + host.OpenButton.BorderBox.Width,
+                "DatePicker popup was narrower than its resized field"
+            )
+        }
+        host.Show = false
+        host.Rebuild()
+        PumpFrames(window, 4)
+        host.PickerWidth = 300.0
+        host.PickerSourceWidth = 320.0
+        host.IsOpen = false
+        host.Show = true
+        host.Rebuild()
+        PumpFrames(window, 18)
         let id = OnlyNativeWindow()
         host.CalendarHandle.Focus()
         PumpFrames(window, 6)
