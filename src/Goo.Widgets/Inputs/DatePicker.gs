@@ -92,6 +92,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private let issueHandle ElementHandle = ElementHandle()
     private var overlay ElementHandle?
     private var overlayBox ElementRect
+    private var fieldWidth float64
     private var draft string = ""
     private var lastValue DateOnly?
     private var initialized bool
@@ -100,12 +101,18 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var ownedOpen bool
     private var disposed bool
 
-    /// Releases the optional collision-viewport subscription.
+    /// Subscribes to field geometry changes.
+    public init() {
+        fieldHandle.MetricsChanged += FieldMetrics
+    }
+
+    /// Releases geometry subscriptions.
     public func Dispose() {
         if disposed {
             return
         }
         disposed = true
+        fieldHandle.MetricsChanged -= FieldMetrics
         BindOverlay(nil)
     }
 
@@ -380,7 +387,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: fieldHandle,
-            Width: Math.Max(current.PopupWidth!!, fieldHandle.IsMounted ? fieldHandle.BorderBox.Width: 0.0),
+            Width: Math.Max(current.PopupWidth!!, fieldWidth),
             Content: Cell.Mount[CalendarInput, Calendar]("calendar", calendar),
             Padding: 0.0,
             AccessibilityName: current.AccessibilityName!!+ " popup",
@@ -524,6 +531,16 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             if prepared.Key != originalKey {
                 throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigurePopup")
             }
+        }
+    }
+
+    private func FieldMetrics(metrics ElementMetrics) {
+        if disposed || !metrics.IsMounted || fieldWidth == metrics.BorderBox.Width {
+            return
+        }
+        fieldWidth = metrics.BorderBox.Width
+        if current.Open ?? ownedOpen {
+            Rebuild()
         }
     }
 

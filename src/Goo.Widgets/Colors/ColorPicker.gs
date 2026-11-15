@@ -252,8 +252,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
                 Key: "color-wheel-image",
                 Source: wheelSource,
                 Fit: ImageFit.Contain,
-                Width: resolved.WheelSize!!,
-                Height: resolved.WheelSize!!,
+                Width: Percent(100.0),
+                Height: Percent(100.0),
                 Accessibility: Accessibility{Hidden: true},
             },
             Container{

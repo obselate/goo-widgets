@@ -134,6 +134,15 @@ func FeedbackMedia(window Window, adapter SearchListSemantics) {
         "volume label-right=" + (label.X + label.Width).ToString() + " thumb-left=" + (track.X - 10.0).ToString()
     )
     Require(track.X - 10.0 >= label.X + label.Width + 2.0, "Volume thumb overlaps its label at zero")
+    for value in []string{"0", "245"} {
+        FeedbackSetValue(window, FeedbackNode(adapter, AccessibilityRole.Slider, "Media position"), value)
+        let position = FeedbackNode(adapter, AccessibilityRole.Slider, "Media position").Bounds
+        let elapsed = FeedbackNode(adapter, AccessibilityRole.Text, value == "0" ? "0:00": "4:05").Bounds
+        let duration = FeedbackNode(adapter, AccessibilityRole.Text, "4:05", value == "0" ? 0: 1).Bounds
+        Require(position.X - 10.0 >= elapsed.X + elapsed.Width + 2.0 &&
+            position.X + position.Width + 10.0 <= duration.X - 2.0,
+            "Position thumb overlaps a time label at a range endpoint")
+    }
 }
 
 func FeedbackWheel(window Window, bounds ElementRect, direction float32) {
