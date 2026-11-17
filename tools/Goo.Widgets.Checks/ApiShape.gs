@@ -288,6 +288,7 @@ class ApiMetadata {
                 let methodName = Reader.GetString(method.Name)
                 if (method.Attributes & MethodAttributes.MemberAccessMask) != MethodAttributes.Public { continue }
                 if (method.Attributes & MethodAttributes.SpecialName) != 0 && !methodName.StartsWith("op_") { continue }
+                if type.Data && Generated(method) { continue }
                 var blob = Reader.GetBlobReader(method.Signature)
                 let header = blob.ReadSignatureHeader()
                 let arity = if header.IsGeneric { blob.ReadCompressedInteger() } else { 0 }
@@ -306,7 +307,6 @@ class ApiMetadata {
                 if count > 0 { member.Id += "(" + String.Join(",", member.Parameters.Select(item -> item.Text(true))) + ")" }
                 if methodName == "op_Implicit" || methodName == "op_Explicit" { member.Id += "~" + result.Text(true) }
                 member.Signature = "func " + methodName + (if arity > 0 { "``" + arity.ToString() } else { "" }) + "(" + String.Join(",", member.Parameters.Select(item -> item.Text())) + ") " + result.Text()
-                if type.Data && Generated(member) && !HasSequencePoints(methodHandle) { continue }
                 type.Members.Add(member)
             }
             for eventHandle in definition.GetEvents() {
@@ -320,20 +320,13 @@ class ApiMetadata {
         }
     }
 
-    public var DebugReader MetadataReader?
-
-    func HasSequencePoints(handle MethodDefinitionHandle) bool {
-        if DebugReader == nil { return false }
-        return DebugReader!!.GetMethodDebugInformation(MetadataTokens.MethodDebugInformationHandle(MetadataTokens.GetRowNumber(handle))).GetSequencePoints().Any(point -> !point.IsHidden)
+    func Generated(method MethodDefinition) bool {
+        for handle in method.GetCustomAttributes() {
+            if AttributeName(Reader.GetCustomAttribute(handle)) == "System.Runtime.CompilerServices.CompilerGeneratedAttribute" {
+                return true
+            }
+        }
+        return false
     }
 
-    func Generated(member ApiMember) bool {
-        let count = member.Parameters.Count
-        return (member.Name == "Equals" && count == 1 && member.Type.Name == "System.Boolean") ||
-            (member.Name == "GetHashCode" && count == 0 && member.Type.Name == "System.Int32") ||
-            (member.Name == "ToString" && count == 0 && member.Type.Name == "System.String") ||
-            ([]string{"op_Equality", "op_Inequality"}.Contains(member.Name) && count == 2 && member.Type.Name == "System.Boolean") ||
-            (member.Name == "Deconstruct" && member.Type.Name == "System.Void" && member.Parameters.All(item -> item.Reference)) ||
-            (member.Name == "<Clone>$" && count == 0)
-    }
 }
