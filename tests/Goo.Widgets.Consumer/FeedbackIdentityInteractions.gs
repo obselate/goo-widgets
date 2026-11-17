@@ -152,7 +152,7 @@ func SpinnerBarHeight(window Window, frame ElementRect) float64 {
         window.Pump(0.0)
         capture = window.PollCapture()
     }
-    let image = capture!!
+    let image = capture
     let scale = float64(image.Width) / float64(window.NativeWidth)
     let bar = int32((frame.X + frame.Width * 0.1) * scale)
     let gap = int32((frame.X + frame.Width * 0.3) * scale)
