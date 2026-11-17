@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Build with G# SDK 0.5.698.
+
 ## 0.22.2 - 2026-11-15
 
 - Fixed: Calendar month headings grow vertically when they wrap, so they no longer overlap the weekday row at the default width.

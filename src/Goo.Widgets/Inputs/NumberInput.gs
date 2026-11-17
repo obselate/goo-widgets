@@ -344,7 +344,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             return
         }
         let parsed = Parsed()
-        if parsed == nil || !Double.IsFinite(parsed!!) {
+        if parsed == nil || !Double.IsFinite(parsed) {
             invalid = true
             Rebuild()
             return
@@ -371,7 +371,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             return
         }
         let parsed = Parsed()
-        let start = parsed != nil && Double.IsFinite(parsed!!) ? parsed!!: value
+        let start = parsed != nil && Double.IsFinite(parsed) ? parsed: value
         SetValue(start + direction * (page ? current.PageStep ?? ((current.Step ?? 1) * 10): current.Step ?? 1))
     }
 

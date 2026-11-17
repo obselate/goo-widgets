@@ -441,7 +441,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             } else if DateOnly.TryParse(draft, current.Culture!!, DateTimeStyles.None, out var date) {
                 parsed = date
             }
-            if parsed == nil || !Allowed(parsed!!) {
+            if parsed == nil || !Allowed(parsed) {
                 Reject()
                 return
             }

@@ -201,107 +201,104 @@ public data struct TextField {
         }
         let framed = resolved.Leading != nil || resolved.Trailing != nil || resolved.PrefixAddon != nil
         || resolved.SuffixAddon != nil || resolved.Clearable || resolved.RevealButton
-        var entry TextEntry? = nil
-        {
-            entry = TextEntry{
-                Width: Percent(100.0),
-                Height: resolved.EntryHeight!!,
-                Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
-                BackgroundColor: resolved.BackgroundColor!!,
-                Color: resolved.TextColor!!,
-                SelectionColor: theme.AccentColor.WithAlpha(0.35),
-                Cursor: Cursor.Text,
-                BorderColor: if resolved.Invalid {
-                    theme.FieldBorder(resolved.InvalidColor!!, resolved.InvalidColor!!)
-                } else {
-                    theme.FieldBorder(resolved.BorderColor!!)
-                },
-                BorderWidth: resolved.BorderWidth!!,
-                BorderRadius: resolved.BorderRadius!!,
-                FontSize: resolved.FontSize!!,
-                FontWeight: theme.FontWeight,
-                Value: resolved.Value!!,
-                Controlled: resolved.Controlled,
-                Placeholder: resolved.Placeholder!!,
-                PlaceholderColor: theme.PlaceholderColor,
-                OnChange: resolved.OnChange,
-                OnSubmit: resolved.OnSubmit,
-                Password: resolved.Password,
-                TransitionMs: resolved.TransitionMs!!,
-                TransitionEasing: resolved.TransitionEasing!!,
-                TransitionProperties: theme.InteractionTransitions,
-                FocusStyle: FocusColor == nil ? nil: Style{OutlineColor: FocusColor!!},
-                DisabledStyle: Style{BackgroundColor: resolved.DisabledBackgroundColor!!, Color: resolved.DisabledTextColor!!},
-            }
-            if resolved.FontFamily != nil {
-                entry.FontFamily = resolved.FontFamily!!
-            }
+        let entry = TextEntry{
+            Width: Percent(100.0),
+            Height: resolved.EntryHeight!!,
+            Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
+            BackgroundColor: resolved.BackgroundColor!!,
+            Color: resolved.TextColor!!,
+            SelectionColor: theme.AccentColor.WithAlpha(0.35),
+            Cursor: Cursor.Text,
+            BorderColor: if resolved.Invalid {
+                theme.FieldBorder(resolved.InvalidColor!!, resolved.InvalidColor!!)
+            } else {
+                theme.FieldBorder(resolved.BorderColor!!)
+            },
+            BorderWidth: resolved.BorderWidth!!,
+            BorderRadius: resolved.BorderRadius!!,
+            FontSize: resolved.FontSize!!,
+            FontWeight: theme.FontWeight,
+            Value: resolved.Value!!,
+            Controlled: resolved.Controlled,
+            Placeholder: resolved.Placeholder!!,
+            PlaceholderColor: theme.PlaceholderColor,
+            OnChange: resolved.OnChange,
+            OnSubmit: resolved.OnSubmit,
+            Password: resolved.Password,
+            TransitionMs: resolved.TransitionMs!!,
+            TransitionEasing: resolved.TransitionEasing!!,
+            TransitionProperties: theme.InteractionTransitions,
+            FocusStyle: FocusColor == nil ? nil: Style{OutlineColor: FocusColor!!},
+            DisabledStyle: Style{BackgroundColor: resolved.DisabledBackgroundColor!!, Color: resolved.DisabledTextColor!!},
         }
-        if !framed { entry!!.BoxShadows = resolved.Disabled ? []BoxShadow{}: theme.FieldShadows }
+        if resolved.FontFamily != nil {
+            entry.FontFamily = resolved.FontFamily!!
+        }
+        if !framed { entry.BoxShadows = resolved.Disabled ? []BoxShadow{}: theme.FieldShadows }
         if let configure = configureEntry {
-            let originalAccessibilityInvalid = entry!!.Accessibility?.Invalid
-            let originalAccessibilityName = (entry!!.Accessibility?.Name ?? "")
-            let originalAccessibilityReadOnly = entry!!.Accessibility?.ReadOnly
-            let originalAccessibilityRole = (entry!!.Accessibility?.Role ?? AccessibilityRole(0))
-            let originalControlled = entry!!.Controlled
-            let originalDisabled = entry!!.Disabled
-            let originalFocusable = entry!!.Focusable
-            let originalKey = entry!!.Key
-            let originalOnChange = entry!!.OnChange
-            let originalOnSubmit = entry!!.OnSubmit
-            let originalPassword = entry!!.Password
-            let originalReadOnly = entry!!.ReadOnly
-            let originalValue = entry!!.Value
-            configure.Invoke(resolved, entry!!)
-            if entry!!.Accessibility?.Invalid != originalAccessibilityInvalid {
+            let originalAccessibilityInvalid = entry.Accessibility?.Invalid
+            let originalAccessibilityName = (entry.Accessibility?.Name ?? "")
+            let originalAccessibilityReadOnly = entry.Accessibility?.ReadOnly
+            let originalAccessibilityRole = (entry.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalControlled = entry.Controlled
+            let originalDisabled = entry.Disabled
+            let originalFocusable = entry.Focusable
+            let originalKey = entry.Key
+            let originalOnChange = entry.OnChange
+            let originalOnSubmit = entry.OnSubmit
+            let originalPassword = entry.Password
+            let originalReadOnly = entry.ReadOnly
+            let originalValue = entry.Value
+            configure.Invoke(resolved, entry)
+            if entry.Accessibility?.Invalid != originalAccessibilityInvalid {
                 throw InvalidOperationException("TextField owns Accessibility.Invalid; set TextField.Invalid instead of changing it in ConfigureEntry")
             }
-            if (entry!!.Accessibility?.Name ?? "") != originalAccessibilityName {
+            if (entry.Accessibility?.Name ?? "") != originalAccessibilityName {
                 throw InvalidOperationException("TextField owns Accessibility.Name; set TextField.AccessibilityName instead of changing it in ConfigureEntry")
             }
-            if entry!!.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+            if entry.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
                 throw InvalidOperationException("TextField owns Accessibility.ReadOnly; set TextField.ReadOnly instead of changing it in ConfigureEntry")
             }
-            if (entry!!.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+            if (entry.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
                 throw InvalidOperationException("TextField owns Accessibility.Role; configure TextField instead of changing it in ConfigureEntry")
             }
-            if entry!!.Controlled != originalControlled {
+            if entry.Controlled != originalControlled {
                 throw InvalidOperationException("TextField owns Controlled; set TextField.Controlled instead of changing it in ConfigureEntry")
             }
-            if entry!!.Disabled != originalDisabled {
+            if entry.Disabled != originalDisabled {
                 throw InvalidOperationException("TextField owns Disabled; set TextField.Disabled instead of changing it in ConfigureEntry")
             }
-            if entry!!.Focusable != originalFocusable {
+            if entry.Focusable != originalFocusable {
                 throw InvalidOperationException("TextField owns Focusable; configure TextField instead of changing it in ConfigureEntry")
             }
-            if entry!!.Key != originalKey {
+            if entry.Key != originalKey {
                 throw InvalidOperationException("TextField owns Key; configure TextField instead of changing it in ConfigureEntry")
             }
-            if entry!!.OnChange != originalOnChange {
+            if entry.OnChange != originalOnChange {
                 throw InvalidOperationException("TextField owns OnChange; set TextField.OnChange instead of changing it in ConfigureEntry")
             }
-            if entry!!.OnSubmit != originalOnSubmit {
+            if entry.OnSubmit != originalOnSubmit {
                 throw InvalidOperationException("TextField owns OnSubmit; set TextField.OnSubmit instead of changing it in ConfigureEntry")
             }
-            if entry!!.Password != originalPassword {
+            if entry.Password != originalPassword {
                 throw InvalidOperationException("TextField owns Password; set TextField.Password instead of changing it in ConfigureEntry")
             }
-            if entry!!.ReadOnly != originalReadOnly {
+            if entry.ReadOnly != originalReadOnly {
                 throw InvalidOperationException("TextField owns ReadOnly; set TextField.ReadOnly instead of changing it in ConfigureEntry")
             }
-            if entry!!.Value != originalValue {
+            if entry.Value != originalValue {
                 throw InvalidOperationException("TextField owns Value; set TextField.Value instead of changing it in ConfigureEntry")
             }
         }
         if resolved.Invalid {
-            entry!!.HoverStyle = Style{BasedOn: entry!!.HoverStyle, BorderColor: resolved.InvalidColor!!}
-            entry!!.ActiveStyle = Style{BasedOn: entry!!.ActiveStyle, BorderColor: resolved.InvalidColor!!}
+            entry.HoverStyle = Style{BasedOn: entry.HoverStyle, BorderColor: resolved.InvalidColor!!}
+            entry.ActiveStyle = Style{BasedOn: entry.ActiveStyle, BorderColor: resolved.InvalidColor!!}
         }
-        if let bindings = EntryKeyBindings { WidgetKeyBindings.AppendBindings(entry!!, bindings) }
+        if let bindings = EntryKeyBindings { WidgetKeyBindings.AppendBindings(entry, bindings) }
 
         if let direction = resolved.ContentDirection {
-            entry!!.Direction = direction
-            entry!!.TextAlign = theme.RightToLeft ? TextAlign.Right: TextAlign.Left
+            entry.Direction = direction
+            entry.TextAlign = theme.RightToLeft ? TextAlign.Right: TextAlign.Left
         }
         var issue Text? = nil
         if resolved.Error != nil {
@@ -322,18 +319,18 @@ public data struct TextField {
                 issue.FontFamily = resolved.FontFamily!!
             }
         }
-        let readOnly = resolved.ReadOnly || entry!!.ReadOnly || (entry!!.Accessibility?.ReadOnly ?? false)
-        entry!!.Value = resolved.Value!!
-        entry!!.Controlled = resolved.Controlled
-        entry!!.Password = resolved.Password
-        entry!!.OnChange = resolved.OnChange
-        entry!!.OnSubmit = resolved.OnSubmit
-        entry!!.Key = "entry"
-        entry!!.Handle = entry!!.Handle ?? Handle ?? ElementHandle()
-        entry!!.Disabled = resolved.Disabled
-        entry!!.ReadOnly = readOnly
-        entry!!.Focusable = !resolved.Disabled
-        let entryAccessibility = if let configured = entry!!.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        let readOnly = resolved.ReadOnly || entry.ReadOnly || (entry.Accessibility?.ReadOnly ?? false)
+        entry.Value = resolved.Value!!
+        entry.Controlled = resolved.Controlled
+        entry.Password = resolved.Password
+        entry.OnChange = resolved.OnChange
+        entry.OnSubmit = resolved.OnSubmit
+        entry.Key = "entry"
+        entry.Handle = entry.Handle ?? Handle ?? ElementHandle()
+        entry.Disabled = resolved.Disabled
+        entry.ReadOnly = readOnly
+        entry.Focusable = !resolved.Disabled
+        let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
         entryAccessibility.Role = AccessibilityRole.TextInput
         entryAccessibility.Name = resolved.AccessibilityName!!
         entryAccessibility.Invalid = resolved.Invalid
@@ -345,19 +342,19 @@ public data struct TextField {
                     : (issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{})
         entryRelationships.ErrorMessage = resolved.Invalid && issue != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
         entryAccessibility.Relationships = entryRelationships
-        entry!!.Accessibility = entryAccessibility
+        entry.Accessibility = entryAccessibility
         if state != nil {
-            let priorFocus = entry!!.OnFocus
-            let priorBlur = entry!!.OnBlur
-            entry!!.OnFocus = (event FocusEvent) -> {
+            let priorFocus = entry.OnFocus
+            let priorBlur = entry.OnBlur
+            entry.OnFocus = (event FocusEvent) -> {
                 state.Focused(event)
                 priorFocus?.Invoke(event)
             }
-            entry!!.OnBlur = (event FocusEvent) -> {
+            entry.OnBlur = (event FocusEvent) -> {
                 state.Blurred(event)
                 priorBlur?.Invoke(event)
             }
-            state.FocusTarget = entry!!.Handle
+            state.FocusTarget = entry.Handle
         }
         let interactionTheme = theme with{FocusRingWidth = resolved.FocusRingWidth!!}
         let root = Container{
@@ -397,14 +394,14 @@ public data struct TextField {
             if let direction = resolved.ContentDirection {
                 content.Direction = direction
             }
-            entry!!.Width = Length.Auto
-            entry!!.Height = Percent(100)
-            entry!!.FlexGrow = 1
-            entry!!.MinWidth = 0
-            entry!!.BorderWidth = 0
-            entry!!.BorderRadius = 0
-            entry!!.BackgroundColor = Color.Transparent
-            entry!!.DisabledStyle = Style{BasedOn: entry!!.DisabledStyle, Color: resolved.DisabledTextColor!!, BackgroundColor: Color.Transparent}
+            entry.Width = Length.Auto
+            entry.Height = Percent(100)
+            entry.FlexGrow = 1
+            entry.MinWidth = 0
+            entry.BorderWidth = 0
+            entry.BorderRadius = 0
+            entry.BackgroundColor = Color.Transparent
+            entry.DisabledStyle = Style{BasedOn: entry.DisabledStyle, Color: resolved.DisabledTextColor!!, BackgroundColor: Color.Transparent}
             if let addon = resolved.PrefixAddon {
                 content.Children.Add(Addon(addon, resolved))
             }
@@ -420,7 +417,7 @@ public data struct TextField {
                     }
                 )
             }
-            content.Children.Add(entry!!)
+            content.Children.Add(entry)
             if let trailing = resolved.Trailing {
                 content.Children.Add(
                     Container{
@@ -451,10 +448,10 @@ public data struct TextField {
             interactionTheme.ApplyInteraction(frame, InteractionFamily.Field)
             root.Children.Add(frame)
         } else {
-            root.Children.Add(entry!!)
+            root.Children.Add(entry)
         }
-        interactionTheme.ApplyInteraction(entry!!, InteractionFamily.Field)
-        if framed { entry!!.FocusStyle = Style{BasedOn: entry!!.FocusStyle, OutlineWidth: 0} }
+        interactionTheme.ApplyInteraction(entry, InteractionFamily.Field)
+        if framed { entry.FocusStyle = Style{BasedOn: entry.FocusStyle, OutlineWidth: 0} }
         var counter = resolved.CounterText
         if counter == nil && resolved.MaxLength != nil {
             counter = value.Length.ToString() + " / " + resolved.MaxLength!!.ToString()
@@ -476,7 +473,7 @@ public data struct TextField {
         if let issue = issue {
             root.Children.Add(issue)
         }
-        let editingHandle = entry!!.Handle!!
+        let editingHandle = entry.Handle!!
         let editing = Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             MountKey ?? root.Key,
             TouchTextEditingInput{
@@ -488,8 +485,8 @@ public data struct TextField {
         )
         let outer = Container{Width: resolved.Width!!, MinWidth: 0, HitTestSelf: false, editing}
         if let configure = configureRoot {
-            configure.Invoke(resolved, label, entry!!, issue, outer)
-            if entry!!.Handle != editingHandle {
+            configure.Invoke(resolved, label, entry, issue, outer)
+            if entry.Handle != editingHandle {
                 throw InvalidOperationException("TextField owns its editor handle during ConfigureRoot; set TextField.Handle instead")
             }
             if !outer.Children.Contains(editing) {
