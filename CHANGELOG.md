@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Build with G# SDK 0.5.698.
+- Fixed: VirtualRows keeps the first visible row in place after a width change, a return to a cached source, or a prepend at the start. Retained content anchoring skips the pass after a measured height correction, so pixel rounding no longer moves the row by 1 px.
 
 ## 0.22.2 - 2026-11-15
 
