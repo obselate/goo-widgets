@@ -298,7 +298,8 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Color: currentMode == mode ? theme.SelectedText(theme.TextColor): theme.TextColor,
             DisabledStyle: currentMode == mode ? Style{
                 BackgroundColor: theme.SelectedFill(theme.ActiveColor),
-                Color: theme.SelectedText(theme.TextColor).WithAlpha(theme.DisabledOpacity),
+                Color: theme.SelectedText(theme.TextColor),
+                Opacity: theme.DisabledOpacity,
             }: nil,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,

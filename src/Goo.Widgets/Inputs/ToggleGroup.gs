@@ -125,7 +125,7 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 input.Variant == ToggleGroupVariant.Chips || theme.HighContrast ? theme.BorderWidth: 0,
                 BorderColor: input.Variant == ToggleGroupVariant.Segmented
                 ? active ? theme.StrongBorderColor: Color.Transparent
-                : active && enabled ? theme.AccentColor: theme.InputBorderColor,
+                : active ? theme.AccentColor: theme.InputBorderColor,
                 BorderRadius: input.Variant == ToggleGroupVariant.Chips ? theme.ControlHeight / 2: theme.ControlRadius!!,
                 BackgroundColor: active ? selectedFill: Color.Transparent,
                 BoxShadow: active && input.Variant == ToggleGroupVariant.Segmented ? theme.ElevationSm: BoxShadow{},
@@ -137,11 +137,12 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 TransitionProperties: theme.InteractionTransitions,
                 DisabledStyle: active ? Style{
                     BackgroundColor: selectedFill,
-                    Color: theme.SelectedText(theme.TextColor, selectedFill).WithAlpha(theme.DisabledOpacity),
+                    Color: theme.SelectedText(theme.TextColor, selectedFill),
+                    Opacity: theme.DisabledOpacity,
                 }: Style{BackgroundColor: theme.PanelColor},
             }
             if let leading = item.Leading {
-                button.Children.Add(enabled ? leading: theme.DisabledSlot(leading, active ? theme.SelectedText(theme.TextColor, selectedFill): theme.TextColor))
+                button.Children.Add(enabled || active ? leading: theme.DisabledSlot(leading, theme.TextColor))
             }
             button.Children.Add(
                 Text{

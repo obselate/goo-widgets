@@ -168,9 +168,10 @@ public data struct Chip {
             ActiveStyle: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
             FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
             DisabledStyle: Selected ? Style{
-                BorderColor: theme.BorderColor,
+                BorderColor: resolved.SelectedBorderColor!!,
                 BackgroundColor: resolved.SelectedBackgroundColor!!,
-                Color: resolved.SelectedTextColor!!.WithAlpha(theme.DisabledOpacity),
+                Color: resolved.SelectedTextColor!!,
+                Opacity: theme.DisabledOpacity,
             }: Style{BorderColor: theme.BorderColor},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -179,7 +180,7 @@ public data struct Chip {
         }
 
             if let leading = originalLeading {
-                root.Children.Add(Disabled ? theme.DisabledSlot(leading, Selected ? resolved.SelectedTextColor!!: theme.TextColor): Container(){leading})
+                root.Children.Add(Disabled && !Selected ? theme.DisabledSlot(leading, theme.TextColor): Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
         if let configure = configureRoot {
@@ -228,8 +229,7 @@ public data struct Chip {
             return button
         }
         let theme = Theme.Read()
-        let color = input.Selected ? input.Disabled ? input.SelectedTextColor!!.WithAlpha(theme.DisabledOpacity): input.SelectedTextColor!!:
-            input.Disabled ? theme.DisabledTextColor: input.TextColor!!
+        let color = input.Selected ? input.SelectedTextColor!!: input.Disabled ? theme.DisabledTextColor: input.TextColor!!
         let height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent ? input.Height!!.Magnitude: theme.ControlHeight
         let action = Button{
             Key: "remove",
@@ -268,11 +268,12 @@ public data struct Chip {
         button.PaddingEnd = input.Gap!!
         return Container{
             Disabled: input.Disabled,
-            DisabledStyle: Style{
-                BackgroundColor: input.Selected ? input.SelectedBackgroundColor!!: theme.SunkenColor,
-                BorderColor: theme.BorderColor,
-                Color: input.Selected ? color: theme.DisabledTextColor,
-            },
+            DisabledStyle: input.Selected ? Style{
+                BackgroundColor: input.SelectedBackgroundColor!!,
+                BorderColor: input.SelectedBorderColor!!,
+                Color: color,
+                Opacity: theme.DisabledOpacity,
+            }: Style{BackgroundColor: theme.SunkenColor, BorderColor: theme.BorderColor, Color: theme.DisabledTextColor},
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             FlexShrink: 1.0,
