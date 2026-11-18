@@ -102,7 +102,7 @@ public data struct AttachmentChip {
             TransitionProperties: theme.InteractionTransitions,
             DisabledStyle: Style{BackgroundColor: Color.Transparent},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
-            Disabled && Leading != nil ? Container{Opacity: theme.DisabledOpacity, Leading!!}: Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, iconColor),
+            Disabled && Leading != nil ? theme.DisabledSlot(Leading!!, theme.TextColor): Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, iconColor),
             text,
         }
         theme.ApplyInteraction(trigger, InteractionFamily.Button)

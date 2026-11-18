@@ -109,7 +109,7 @@ public data struct Disclosure {
             Color: resolved.Disabled ? theme.DisabledTextColor: resolved.TextColor!!,
         }
         if resolved.Disabled && resolved.Header != nil {
-            heading = Container{Opacity: theme.DisabledOpacity, heading}
+            heading = theme.DisabledSlot(heading, theme.TextColor)
         }
         let onChange = resolved.OnExpandedChange
         let next = !resolved.Expanded

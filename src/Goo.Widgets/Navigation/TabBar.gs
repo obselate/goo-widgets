@@ -170,7 +170,7 @@ public open class TabBar : Cell[TabBarInput] {
                 },
             }
             if item.Disabled && item.Content != nil {
-                button.Children[0] = Container{Opacity: theme.DisabledOpacity, item.Content!!}
+                button.Children[0] = theme.DisabledSlot(item.Content!!, theme.TextColor)
             }
             if let configure = input.ConfigureItem {
                 let originalAccessibilityName = (button.Accessibility?.Name ?? "")

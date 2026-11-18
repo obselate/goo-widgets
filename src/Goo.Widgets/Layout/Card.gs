@@ -74,15 +74,15 @@ public data struct Card {
                 titles
             }
             if let action = HeaderAction {
-                header.Children.Add(dimmed ? Container{Opacity: theme.DisabledOpacity, action}: action)
+                header.Children.Add(dimmed ? theme.DisabledSlot(action, theme.TextColor): action)
             }
             body.Children.Add(header)
         }
         if let content = Content {
-            body.Children.Add(dimmed ? Container{Opacity: theme.DisabledOpacity, content}: content)
+            body.Children.Add(dimmed ? theme.DisabledSlot(content, theme.TextColor): content)
         }
         if let footer = Footer {
-            body.Children.Add(dimmed ? Container{Opacity: theme.DisabledOpacity, footer}: footer)
+            body.Children.Add(dimmed ? theme.DisabledSlot(footer, theme.TextColor): footer)
         }
         let background = Variant == CardVariant.Well ? theme.SunkenColor: Variant == CardVariant.Frame ? Color.Transparent: theme.PanelColor
         let shadows = Variant == CardVariant.Card || Variant == CardVariant.Panel ? theme.PanelShadows: []BoxShadow{}

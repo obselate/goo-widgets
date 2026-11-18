@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-- Changed: disabled controls are dimmed once. Widget-owned text, borders, marks and icons use disabled colors at full opacity, and `Theme.DisabledOpacity` applies only to caller-supplied slot content such as `Leading`, `Trailing` and `IconButton.Icon`. Disabled controls are lighter and easier to read than before, and explicit disabled colors such as `ActionButton.DisabledTextColor` keep their contrast.
+- Changed: disabled controls are dimmed once. Widget-owned text, borders, marks and icons use disabled colors at full opacity, and `Theme.DisabledOpacity` applies only to caller-supplied slot content such as `Leading`, `Trailing` and `IconButton.Icon`. Slot content that inherits the text color gets the enabled text color under that opacity, so it is not dimmed twice. Disabled controls are lighter and easier to read than before, and explicit disabled colors such as `ActionButton.DisabledTextColor` keep their contrast.
 - Changed: `IconButton.DisabledOpacity` applies only to the supplied icon.
 - Removed: `Checkbox.DisabledOpacity`, `SliderInput.DisabledOpacity`, `Chip.DisabledOpacity` and `Disclosure.DisabledOpacity`. Migration: delete the setting, or set `Theme.DisabledTextColor` to change the disabled appearance.
 - Fixed: explicit disabled colors on `ActionButton`, `TextField`, `ToggleSwitch` and `DismissibleContextBar` are no longer halved by an extra disabled opacity.

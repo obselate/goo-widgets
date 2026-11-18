@@ -146,7 +146,6 @@ public open partial class DataGrid {
             Overflow: Overflow.Hidden, OnKeyDown: stopGridKeys,
             Transform: PanelTransform{TranslateX: index < pinnedCount ? horizontalOffset: 0},
             ZIndex: index < pinnedCount ? 1: 0,
-            Opacity: (row.Disabled || snapshot.Disabled) && snapshot.CreateCellContent != nil ? theme.DisabledOpacity: 1.0,
             BackgroundColor: index < pinnedCount ? (
                 row.Disabled || snapshot.Disabled ? theme.PanelColor: isSelected ? snapshot.SelectedColor!!:
                     pressedId == id ? theme.PressedColor: hoveredId == id ? theme.HoverColor: snapshot.BackgroundColor!!
@@ -159,7 +158,7 @@ public open partial class DataGrid {
                 RowIndex: RawIndex(id), ColumnIndex: index + (leading > 0.0 ? 1: 0),
                 ReadOnly: !CanEditCell(row, column, false)
             },
-            content
+            (row.Disabled || snapshot.Disabled) && snapshot.CreateCellContent != nil ? theme.DisabledSlot(content, theme.TextColor): content
         }
     }
 
@@ -213,9 +212,14 @@ public open partial class DataGrid {
                     ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16,
                         row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
                 })
-                cells.Children.Add(Container{FlexGrow: 1, FlexBasis: 0, MinWidth: 0, Opacity: row.Disabled || snapshot.Disabled ? theme.DisabledOpacity: 1.0, content})
+                cells.Children.Add(Container{
+                    FlexGrow: 1,
+                    FlexBasis: 0,
+                    MinWidth: 0,
+                    row.Disabled || snapshot.Disabled ? theme.DisabledSlot(content, theme.TextColor): content
+                })
             } else {
-                cells.Children.Add(row.Disabled || snapshot.Disabled ? Container{Opacity: theme.DisabledOpacity, content}: content)
+                cells.Children.Add(row.Disabled || snapshot.Disabled ? theme.DisabledSlot(content, theme.TextColor): content)
             }
         } else {
             if leading > 0.0 {
@@ -397,7 +401,6 @@ public open partial class DataGrid {
                         Bottom: snapshot.DetailPadding!!
                     },
                     BackgroundColor: snapshot.DetailBackground!!,
-                    Opacity: row.Disabled || snapshot.Disabled ? theme.DisabledOpacity: 1.0,
                     OnKeyDown: stopGridKeys,
                     Accessibility: Accessibility{
                         Role: AccessibilityRole.GridCell,
@@ -405,7 +408,7 @@ public open partial class DataGrid {
                         RowIndex: rowIndex,
                         ColumnIndex: 0
                     },
-                    detail
+                    row.Disabled || snapshot.Disabled ? theme.DisabledSlot(detail, theme.TextColor): detail
                 }
             )
         }

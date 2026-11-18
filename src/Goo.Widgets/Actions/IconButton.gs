@@ -87,7 +87,7 @@ public data struct IconButton {
             FocusStyle: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
             DisabledStyle: Style{BackgroundColor: Color.Transparent},
             BasedOn: resolved.RootStyle,
-            Disabled ? Container{Opacity: resolved.DisabledOpacity!!, icon}: icon,
+            Disabled ? Container{Opacity: resolved.DisabledOpacity!!, Color: theme.TextColor, icon}: icon,
         }
         if let configure = configureRoot {
             let originalAccessibilityName = (button.Accessibility?.Name ?? "")

@@ -144,7 +144,7 @@ public data struct MediaCard {
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
-            resolved.Disabled ? Container{Opacity: theme.DisabledOpacity, thumbnail}: thumbnail,
+            resolved.Disabled ? theme.DisabledSlot(thumbnail, theme.TextColor): thumbnail,
             content,
         }
         if let configure = configureRoot {

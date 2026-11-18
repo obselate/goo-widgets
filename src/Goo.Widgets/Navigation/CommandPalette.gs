@@ -312,7 +312,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         button.FontWeight = theme.FontWeight
         button.Children.Clear()
         if let leading = command.Leading {
-            button.Children.Add(command.Disabled ? Container{Opacity: theme.DisabledOpacity, leading}: leading)
+            button.Children.Add(command.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading)
         }
         let match = FuzzyMatch.Match(snapshot.Query ?? "", command.Label)!!
         let label = FuzzyMatchLabel.Create(command.Label, match, command.Disabled ? theme with{LinkColor = theme.DisabledTextColor}: theme)

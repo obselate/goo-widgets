@@ -320,8 +320,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
                 FlexShrink: 1.0,
                 MinWidth: 0.0,
                 Overflow: Overflow.Hidden,
-                Opacity: current.Disabled && !input.Multiple && selected?.Content != nil ? theme.DisabledOpacity: 1.0,
-                valueContent
+                current.Disabled && !input.Multiple && selected?.Content != nil ? theme.DisabledSlot(valueContent, theme.TextColor): valueContent
             }
         )
         var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, current.Disabled ? theme.DisabledTextColor: theme.MutedTextColor)
@@ -633,7 +632,7 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
             FontWeight: theme.FontWeight,
         }
         if item.Disabled && item.Content != nil {
-            option = Container{Opacity: theme.DisabledOpacity, option}
+            option = theme.DisabledSlot(option, theme.TextColor)
         }
         result.Children.Add(option)
         if let configure = row.Input.ConfigureRow {
