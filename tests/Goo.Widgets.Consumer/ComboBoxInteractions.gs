@@ -505,11 +505,11 @@ func ComboBoxArrowCentering() {
             let top = int32(Math.Ceiling((box.Y + 2) * scale))
             let bottom = int32((box.Y + box.Height - 2) * scale)
             let left = int32((box.X + box.Width - 40) * scale)
-            let right = int32((box.X + box.Width - 4) * scale)
-            let fill = top * int32(image.RowBytes) + left * 4
+            let right = int32((box.X + box.Width - 8) * scale)
             var first = -1
             var last = -1
             for y in top ... bottom {
+                let fill = y * int32(image.RowBytes) + left * 4
                 for x in left ... right {
                     let at = y * int32(image.RowBytes) + x * 4
                     if Math.Abs(int32(image.Pixels[at]) - int32(image.Pixels[fill])) + Math.Abs(int32(image.Pixels[at + 1]) - int32(image.Pixels[fill + 1])) +
