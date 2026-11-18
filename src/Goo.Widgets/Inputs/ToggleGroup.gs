@@ -135,7 +135,10 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                DisabledStyle: Style{BackgroundColor: active ? selectedFill: theme.PanelColor},
+                DisabledStyle: active ? Style{
+                    BackgroundColor: selectedFill,
+                    Color: theme.SelectedText(theme.TextColor, selectedFill).WithAlpha(theme.DisabledOpacity),
+                }: Style{BackgroundColor: theme.PanelColor},
             }
             if let leading = item.Leading {
                 button.Children.Add(enabled ? leading: theme.DisabledSlot(leading, active ? theme.SelectedText(theme.TextColor, selectedFill): theme.TextColor))

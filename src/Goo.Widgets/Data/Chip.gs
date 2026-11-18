@@ -167,7 +167,11 @@ public data struct Chip {
                 HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             ActiveStyle: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
             FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
-            DisabledStyle: Selected ? Style{BorderColor: theme.BorderColor, BackgroundColor: theme.SelectedFill(theme.ActiveColor)}: Style{BorderColor: theme.BorderColor},
+            DisabledStyle: Selected ? Style{
+                BorderColor: theme.BorderColor,
+                BackgroundColor: resolved.SelectedBackgroundColor!!,
+                Color: resolved.SelectedTextColor!!.WithAlpha(theme.DisabledOpacity),
+            }: Style{BorderColor: theme.BorderColor},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             FlexShrink: 1.0,
@@ -175,7 +179,7 @@ public data struct Chip {
         }
 
             if let leading = originalLeading {
-                root.Children.Add(Disabled ? theme.DisabledSlot(leading, Selected ? theme.SelectedText(theme.TextColor): theme.TextColor): Container(){leading})
+                root.Children.Add(Disabled ? theme.DisabledSlot(leading, Selected ? resolved.SelectedTextColor!!: theme.TextColor): Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
         if let configure = configureRoot {
@@ -224,7 +228,8 @@ public data struct Chip {
             return button
         }
         let theme = Theme.Read()
-        let color = input.Disabled ? theme.DisabledTextColor: input.Selected ? input.SelectedTextColor!!: input.TextColor!!
+        let color = input.Selected ? input.Disabled ? input.SelectedTextColor!!.WithAlpha(theme.DisabledOpacity): input.SelectedTextColor!!:
+            input.Disabled ? theme.DisabledTextColor: input.TextColor!!
         let height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent ? input.Height!!.Magnitude: theme.ControlHeight
         let action = Button{
             Key: "remove",
@@ -257,13 +262,17 @@ public data struct Chip {
         button.BackgroundColor = Color.Transparent
         button.HoverStyle = Style{}
         button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
-        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor}
+        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: input.Selected ? color: theme.DisabledTextColor}
         button.Padding = 0
         button.PaddingStart = input.PaddingHorizontal!!
         button.PaddingEnd = input.Gap!!
         return Container{
             Disabled: input.Disabled,
-            DisabledStyle: Style{BackgroundColor: input.Selected ? theme.SelectedFill(theme.ActiveColor): theme.SunkenColor, BorderColor: theme.BorderColor, Color: theme.DisabledTextColor},
+            DisabledStyle: Style{
+                BackgroundColor: input.Selected ? input.SelectedBackgroundColor!!: theme.SunkenColor,
+                BorderColor: theme.BorderColor,
+                Color: input.Selected ? color: theme.DisabledTextColor,
+            },
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             FlexShrink: 1.0,
