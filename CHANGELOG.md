@@ -6,6 +6,7 @@
 - Changed: `IconButton.DisabledOpacity` applies only to the supplied icon.
 - Removed: `Checkbox.DisabledOpacity`, `SliderInput.DisabledOpacity`, `Chip.DisabledOpacity` and `Disclosure.DisabledOpacity`. Migration: delete the setting, or set `Theme.DisabledTextColor` to change the disabled appearance.
 - Fixed: explicit disabled colors on `ActionButton`, `TextField`, `ToggleSwitch` and `DismissibleContextBar` are no longer halved by an extra disabled opacity.
+- Fixed: a disabled `ToggleGroup` keeps the selected item's fill, so the selection stays visible.
 
 ## 0.22.2 - 2026-11-15
 

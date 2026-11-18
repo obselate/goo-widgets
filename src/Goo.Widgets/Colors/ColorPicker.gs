@@ -237,6 +237,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
+            Opacity: resolved.Disabled ? theme.DisabledOpacity: 1.0,
             BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
             OnPointerDrag: Drag,

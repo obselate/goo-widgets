@@ -235,7 +235,7 @@ public data struct ModalDialog {
                     Disabled: resolved.ConfirmDisabled,
                     OnClick: resolved.OnConfirm,
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
-                    confirmContent,
+                    ConfirmContent != nil && resolved.ConfirmDisabled ? Container{Opacity: theme.DisabledOpacity, confirmContent}: confirmContent,
                 }
             if let configure = configureConfirm {
                 let originalDisabled = confirm.Disabled
