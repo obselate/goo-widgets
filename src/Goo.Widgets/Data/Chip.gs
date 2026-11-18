@@ -167,7 +167,7 @@ public data struct Chip {
                 HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             ActiveStyle: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
             FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
-            DisabledStyle: Style{BorderColor: theme.BorderColor},
+            DisabledStyle: Selected ? Style{BorderColor: theme.BorderColor, BackgroundColor: resolved.SelectedBackgroundColor!!}: Style{BorderColor: theme.BorderColor},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             FlexShrink: 1.0,
@@ -263,7 +263,7 @@ public data struct Chip {
         button.PaddingEnd = input.Gap!!
         return Container{
             Disabled: input.Disabled,
-            DisabledStyle: Style{BackgroundColor: theme.SunkenColor, BorderColor: theme.BorderColor, Color: theme.DisabledTextColor},
+            DisabledStyle: Style{BackgroundColor: input.Selected ? input.SelectedBackgroundColor!!: theme.SunkenColor, BorderColor: theme.BorderColor, Color: theme.DisabledTextColor},
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             FlexShrink: 1.0,

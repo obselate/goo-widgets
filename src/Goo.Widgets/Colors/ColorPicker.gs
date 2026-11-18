@@ -296,6 +296,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             BorderColor: Color.Transparent,
             BackgroundColor: currentMode == mode ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor,
             Color: currentMode == mode ? theme.SelectedText(theme.TextColor): theme.TextColor,
+            DisabledStyle: currentMode == mode ? Style{BackgroundColor: theme.SelectedFill(theme.ActiveColor)}: nil,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
