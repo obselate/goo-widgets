@@ -1439,6 +1439,51 @@ func ThemeAttachmentContracts() {
     Console.WriteLine("PASS weak Widgets attachment ownership after embedded window disposal")
 }
 
+internal class ExplicitDisabledHost : Cell {
+    public override func Build() Blob {
+        return Container{
+            Padding: 24,
+            AlignItems: AlignItems.FlexStart,
+            BackgroundColor: Color.Parse("#000"),
+            ActionButton{
+                Content: "Disabled",
+                Disabled: true,
+                BorderWidth: 1,
+                BorderColor: Color.Parse("#2a2a2a"),
+                DisabledBackgroundColor: Color.Parse("#000"),
+                DisabledTextColor: Color.Parse("#777"),
+            },
+        }
+    }
+}
+
+func ExplicitDisabledColorContracts() {
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "Explicit disabled colors",
+        Size: LayoutSize(320, 120),
+        AccessibilityAdapter: semantics,
+        Root: ApplicationRoot(ExplicitDisabledHost()),
+    }
+    Goo.Widgets.Theme.Attach(window)
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 12)
+        let box = FeedbackNode(semantics, AccessibilityRole.Button, "Disabled").Bounds
+        let image = ThemeCapture(window)
+        let scale = float64(image.Width) / float64(window.NativeWidth)
+        var brightest = 0
+        for y in int32((box.Y + 4) * scale) ... int32((box.Y + box.Height - 4) * scale) {
+            for x in int32((box.X + 4) * scale) ... int32((box.X + box.Width - 4) * scale) {
+                brightest = Math.Max(brightest, int32(image.Pixels[y * int32(image.RowBytes) + x * 4]))
+            }
+        }
+        Require(Math.Abs(brightest - 0x77) <= 4, "Explicit DisabledTextColor was dimmed; brightest label channel " + brightest.ToString())
+        Require(ThemePoint(image, window, box.X + 0.5, box.Y + box.Height / 2.0, Color.Parse("#2a2a2a")), "Explicit border color changed while disabled")
+    })
+    Console.WriteLine("PASS: explicit disabled colors render at full opacity")
+}
+
 func ThemeInteractions() {
     var rejected = false
     try {
@@ -1449,6 +1494,7 @@ func ThemeInteractions() {
     Require(rejected, "Theme.Read outside an owned build silently selected a global value.")
     ThemeBackgroundContracts()
     ThemePolicyContracts()
+    ExplicitDisabledColorContracts()
     ThemeAttachmentContracts()
     ThemeCostContracts()
     ThemeVirtualContracts()

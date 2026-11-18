@@ -286,10 +286,12 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Cursor: Cursor.Pointer,
                 Disabled: input.OnExpandedChange == nil,
+                DisabledStyle: Style{BackgroundColor: Color.Transparent},
                 OnClick: () -> InvokeInputCallback(input.OnExpandedChange, !input.Expanded),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: label, Expanded: input.Expanded},
-                ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16, theme.MutedTextColor),
-                Text{Content: label, Color: theme.MutedTextColor},
+                ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16,
+                    input.OnExpandedChange == nil ? theme.DisabledTextColor: theme.MutedTextColor),
+                Text{Content: label, Color: input.OnExpandedChange == nil ? theme.DisabledTextColor: theme.MutedTextColor},
             }
             theme.ApplyInteraction(fold, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(fold)

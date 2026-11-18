@@ -257,9 +257,16 @@ public open class Menu : Cell[MenuInput] {
             }
             let row = prepared
             row.Children.Clear()
-            row.Children.Add(Container{Key: "content", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, content})
+            row.Children.Add(Container{
+                Key: "content",
+                FlexGrow: 1.0,
+                FlexShrink: 1.0,
+                MinWidth: 0.0,
+                Opacity: item.Disabled && item.Content != nil ? theme.DisabledOpacity: 1.0,
+                content
+            })
             if let shortcut = item.Shortcut {
-                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false, Color: highlightText}.Build())
+                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false, Color: item.Disabled ? theme.DisabledTextColor: highlightText}.Build())
             }
             if hasChildren {
                 row.Children.Add(
@@ -268,7 +275,7 @@ public open class Menu : Cell[MenuInput] {
                         Content: OpensLeft() == theme.RightToLeft ? "›": "‹",
                         FontFamily: theme.FontFamily,
                         FontSize: theme.HeadingFontSize,
-                        Color: highlightText ?? theme.MutedTextColor,
+                        Color: item.Disabled ? theme.DisabledTextColor: highlightText ?? theme.MutedTextColor,
                         BasedOn: current.SubmenuArrowStyle
                     }
                 )
