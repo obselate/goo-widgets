@@ -175,7 +175,7 @@ public data struct Chip {
         }
 
             if let leading = originalLeading {
-                root.Children.Add(Disabled ? theme.DisabledSlot(leading, Selected ? resolved.SelectedTextColor!!: theme.TextColor): Container{leading})
+                root.Children.Add(Disabled ? theme.DisabledSlot(leading, Selected ? resolved.SelectedTextColor!!: theme.TextColor): Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
         if let configure = configureRoot {
