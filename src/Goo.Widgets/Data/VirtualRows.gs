@@ -330,8 +330,8 @@ internal class VirtualRowsStorage[T] : VirtualState {
             }
             if preserve {
                 scroll = Math.Max(0.0, scroll + Prefix(data, nextIndex, true) - before)
-                anchorSkipped = sameContext && measured
-                if sameContext && !measured {
+                anchorSkipped = sameContext && measured && Pending == nil
+                if sameContext && !anchorSkipped {
                     output.AnchorKey = retained ? anchor: data.Row(nextIndex).Key
                 }
             }
