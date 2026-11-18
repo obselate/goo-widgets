@@ -87,7 +87,8 @@ public open class TimePicker : Cell[TimePickerInput] {
                 Focusable: !input.Disabled && !input.ReadOnly && input.Value != nil,
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: (input.AccessibilityName ?? theme.Text("Time")) + " " + theme.Text("Clear")},
                 OnClick: () -> Apply(nil),
-                ControlIcons.Create(ControlIcon.Close, theme.FontSize, theme.MutedTextColor)
+                DisabledStyle: Style{BackgroundColor: Color.Transparent},
+                ControlIcons.Create(ControlIcon.Close, theme.FontSize, input.Disabled || input.ReadOnly || input.Value == nil ? theme.DisabledTextColor: theme.MutedTextColor)
             }
             theme.ApplyInteraction(clear, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(clear)

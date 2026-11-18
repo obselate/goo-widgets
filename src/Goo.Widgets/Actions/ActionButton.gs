@@ -170,14 +170,14 @@ public data struct ActionButton {
         }
         var leadingSlot Container?
         if let leading = Leading {
-            leadingSlot = Container{Position: PositionType.Relative, Container{Opacity: Loading ? 0.0: 1.0, leading},}
+            leadingSlot = Container{Position: PositionType.Relative, Container{Opacity: Loading ? 0.0: resolved.Disabled ? theme.DisabledOpacity: 1.0, leading},}
             contents.Children.Add(leadingSlot)
         }
         if content != "" || createText != nil {
             if let text = text { contents.Children.Add(text) }
         }
         if let trailing = Trailing {
-            contents.Children.Add(trailing)
+            contents.Children.Add(resolved.Disabled ? Container{Opacity: theme.DisabledOpacity, trailing}: trailing)
         }
         if let shortcut = Shortcut {
             contents.Children.Add(

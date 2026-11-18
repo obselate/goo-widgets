@@ -55,8 +55,6 @@ public data struct Checkbox {
     var CheckedBorderColor Color?
     /// Mark color. Nil resolves to the theme accent foreground color.
     var MarkColor Color?
-    /// Disabled opacity. Nil resolves to 0.5 and preserves explicit zero.
-    var DisabledOpacity float64?
     /// Border width. Nil resolves to the theme border width and preserves explicit zero.
     var BorderWidth float64?
     /// Corner radius. Nil resolves to the theme control radius half and preserves explicit zero.
@@ -98,7 +96,6 @@ public data struct Checkbox {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             CheckedBorderColor = CheckedBorderColor ?? theme.AccentColor,
             MarkColor = MarkColor ?? theme.OnAccentColor,
-            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!! / 2.0,
             MarkSize = MarkSize ?? theme.Spacing * 3.5,
@@ -113,6 +110,7 @@ public data struct Checkbox {
         } else if state == AccessibilityChecked.Mixed {
             content = MixedContent
         }
+        let supplied = content != nil
         if active && content == nil {
             let mark = if state == AccessibilityChecked.Mixed {
                 ControlIcon.Remove
@@ -148,7 +146,7 @@ public data struct Checkbox {
                 JustifyContent: JustifyContent.Center,
                 HitTestSelf: false,
             }
-            if let content = content { markBox.Children.Add(content) }
+            if let content = content { markBox.Children.Add(Disabled && supplied ? Container{Opacity: theme.DisabledOpacity, content}: content) }
             let button = Button{
                 Width: Label == nil ? resolved.HitSize!!: Length.Auto,
                 MinHeight: resolved.HitSize!!,
@@ -161,7 +159,7 @@ public data struct Checkbox {
                 TransitionProperties: theme.InteractionTransitions,
                 FlexDirection: FlexDirection.Row,
                 JustifyContent: Label == nil ? JustifyContent.Center: JustifyContent.FlexStart,
-                DisabledStyle: Style{BackgroundColor: Card && Label != nil ? theme.PanelColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
+                DisabledStyle: Style{BackgroundColor: Card && Label != nil ? theme.PanelColor: Color.Transparent},
                 markBox,
             }
             if let label = resolved.Label {
@@ -178,7 +176,7 @@ public data struct Checkbox {
                 button.Padding = theme.ControlPadding
                 button.BorderWidth = resolved.BorderWidth!!
                 button.BorderRadius = theme.ControlRadius!!
-                button.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
+                button.BorderColor = active && !Disabled ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
                 button.BackgroundColor = active ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor
             }
             if Label != nil && !resolved.Card {

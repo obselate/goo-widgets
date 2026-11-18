@@ -73,8 +73,6 @@ public data struct Chip {
     var TransitionEasing Easing?
     /// Normal root opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Opacity applied when disabled. Nil resolves to 0.5; explicit zero is preserved.
-    var DisabledOpacity float64?
     /// Optional font family name for the text label.
     var FontFamily string?
     /// Visual transform applied to the root button. Nil resolves to identity.
@@ -124,7 +122,6 @@ public data struct Chip {
             TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
-            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
@@ -170,7 +167,7 @@ public data struct Chip {
                 HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             ActiveStyle: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
             FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
-            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
+            DisabledStyle: Style{BorderColor: theme.BorderColor},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             FlexShrink: 1.0,
@@ -178,7 +175,7 @@ public data struct Chip {
         }
 
             if let leading = originalLeading {
-                root.Children.Add(Container(){leading})
+                root.Children.Add(Container{Opacity: Disabled ? theme.DisabledOpacity: 1.0, leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
         if let configure = configureRoot {
@@ -242,7 +239,7 @@ public data struct Chip {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: input.RemoveAccessibilityName ?? theme.Text("Remove {0}", input.Label!!),
@@ -260,13 +257,13 @@ public data struct Chip {
         button.BackgroundColor = Color.Transparent
         button.HoverStyle = Style{}
         button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
-        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
+        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor}
         button.Padding = 0
         button.PaddingStart = input.PaddingHorizontal!!
         button.PaddingEnd = input.Gap!!
         return Container{
             Disabled: input.Disabled,
-            DisabledStyle: Style{BackgroundColor: theme.SunkenColor, Color: theme.DisabledTextColor, Opacity: input.DisabledOpacity!!},
+            DisabledStyle: Style{BackgroundColor: theme.SunkenColor, BorderColor: theme.BorderColor, Color: theme.DisabledTextColor},
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             FlexShrink: 1.0,

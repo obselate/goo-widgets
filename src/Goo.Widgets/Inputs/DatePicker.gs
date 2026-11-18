@@ -273,9 +273,10 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
         }
         button.Children.Clear()
-        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
+        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, current.Disabled || current.ReadOnly ? theme.DisabledTextColor: theme.AccentColor))
         if let configure = current.ConfigureButton {
             let originalAccessibilityExpanded = button.Accessibility?.Expanded
             let originalAccessibilityHasPopup = button.Accessibility?.HasPopup

@@ -169,6 +169,9 @@ public open class TabBar : Cell[TabBarInput] {
                     FontWeight: theme.LabelFontWeight,
                 },
             }
+            if item.Disabled && item.Content != nil {
+                button.Children[0] = Container{Opacity: theme.DisabledOpacity, item.Content!!}
+            }
             if let configure = input.ConfigureItem {
                 let originalAccessibilityName = (button.Accessibility?.Name ?? "")
                 let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
@@ -289,7 +292,7 @@ public open class TabBar : Cell[TabBarInput] {
                 button.BackgroundColor = Color.Transparent
                 button.HoverStyle = Style{}
                 button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
-                button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
+                button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor}
                 let tab = Container{
                     Key: id,
                     FlexDirection: FlexDirection.Row,
@@ -300,7 +303,7 @@ public open class TabBar : Cell[TabBarInput] {
                     BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
                     HoverStyle: Style{BackgroundColor: active ? theme.ActiveColor: theme.HoverColor},
                     Disabled: item.Disabled,
-                    DisabledStyle: Style{Color: theme.DisabledTextColor, Opacity: theme.DisabledOpacity},
+                    DisabledStyle: Style{Color: theme.DisabledTextColor},
                     button
                 }
                 let close = Button{
@@ -311,7 +314,7 @@ public open class TabBar : Cell[TabBarInput] {
                     AlignItems: AlignItems.Center,
                     JustifyContent: JustifyContent.Center,
                     Color: theme.ChromeTextColor,
-                    DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
+                    DisabledStyle: Style{BackgroundColor: Color.Transparent},
                     Disabled: item.Disabled,
                     Focusable: !item.Disabled,
                     TabStop: false,
