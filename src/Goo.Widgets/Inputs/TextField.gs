@@ -586,7 +586,8 @@ internal class TextFieldState : Cell[TextField] {
             TransitionProperties: theme.InteractionTransitions,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            ControlIcons.Create(icon, 16, theme.MutedTextColor),
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
+            ControlIcons.Create(icon, 16, current.Disabled ? theme.DisabledTextColor: theme.MutedTextColor),
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(button)

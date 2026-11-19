@@ -121,8 +121,8 @@ public data struct ListRow {
             SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.ActiveColor),
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             PressedBackgroundColor = PressedBackgroundColor ?? theme.PressedColor,
-            TextColor = Selected ? theme.SelectedText(text, SelectedBackgroundColor): text,
-            CaptionColor = Selected ? theme.SelectedText(captionColor, SelectedBackgroundColor): captionColor,
+            TextColor = Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(text, SelectedBackgroundColor): text,
+            CaptionColor = Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(captionColor, SelectedBackgroundColor): captionColor,
             SelectedBoxShadow = SelectedBoxShadow ?? ring,
             MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
@@ -227,11 +227,11 @@ public data struct ListRow {
         }
 
             if let leading = Leading {
-                root.Children.Add(leading)
+                root.Children.Add(resolved.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading)
             }
             root.Children.Add(content)
             if let trailing = Trailing {
-                root.Children.Add(trailing)
+                root.Children.Add(resolved.Disabled ? theme.DisabledSlot(trailing, theme.TextColor): trailing)
             }
             if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
                 root.Children.Add(theme.SelectionBar())
@@ -308,7 +308,7 @@ public data struct ListRow {
                             e.StopPropagation()
                         }
                     },
-                    actions
+                    resolved.Disabled ? theme.DisabledSlot(actions, theme.TextColor): actions
                 }
             )
         }

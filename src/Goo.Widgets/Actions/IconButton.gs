@@ -35,7 +35,7 @@ public data struct IconButton {
     var HoverBackgroundColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
-    /// Disabled opacity. Nil uses the theme.
+    /// Opacity of the supplied icon while disabled. Nil uses the theme.
     var DisabledOpacity float64?
     /// Optional base style for the root button.
     var RootStyle Style?
@@ -85,9 +85,9 @@ public data struct IconButton {
             },
             HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             FocusStyle: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             BasedOn: resolved.RootStyle,
-            icon,
+            Disabled ? Container{Opacity: resolved.DisabledOpacity!!, Color: theme.TextColor, icon}: icon,
         }
         if let configure = configureRoot {
             let originalAccessibilityName = (button.Accessibility?.Name ?? "")

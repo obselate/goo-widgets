@@ -77,8 +77,6 @@ public data struct SliderInput {
     var BackgroundColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
-    /// Disabled opacity. Nil uses the theme.
-    var DisabledOpacity float64?
     /// Optional base style for the interactive root.
     var RootStyle Style?
     /// Optional base style for the unfilled track.
@@ -164,7 +162,7 @@ public open class Slider : Cell[SliderInput] {
             },
             Margin: Edges{Top: horizontal ? -resolved.TrackThickness!! / 2.0: 0.0},
             BorderRadius: resolved.TrackRadius!!,
-            BackgroundColor: resolved.FillColor!!,
+            BackgroundColor: resolved.Disabled ? theme.DisabledTextColor: resolved.FillColor!!,
             BasedOn: resolved.FillStyle,
             HitTestSelf: false,
         }
@@ -187,7 +185,7 @@ public open class Slider : Cell[SliderInput] {
             BorderRadius: resolved.ThumbRadius!!,
             BorderWidth: resolved.ThumbBorderWidth!!,
             BorderColor: resolved.ThumbBorderColor!!,
-            BackgroundColor: resolved.ThumbColor!!,
+            BackgroundColor: resolved.Disabled ? theme.DisabledTextColor: resolved.ThumbColor!!,
             BasedOn: resolved.ThumbStyle,
             HitTestSelf: false,
         }
@@ -261,7 +259,7 @@ public open class Slider : Cell[SliderInput] {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
             FocusStyle: input.FocusOutlineColor == nil ? nil: Style{OutlineColor: input.FocusOutlineColor!!},
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: hasHeader ? 1.0: resolved.DisabledOpacity!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             BasedOn: resolved.RootStyle,
             Accessibility: accessibility,
             OnPointerDrag: Drag,
@@ -356,7 +354,7 @@ public open class Slider : Cell[SliderInput] {
                     Content: label,
                     FontSize: resolved.LabelFontSize!!,
                     FontWeight: theme.LabelFontWeight,
-                    Color: resolved.LabelColor!!,
+                    Color: resolved.Disabled ? theme.DisabledTextColor: resolved.LabelColor!!,
                     FlexGrow: 1.0,
                 }
             )
@@ -368,7 +366,7 @@ public open class Slider : Cell[SliderInput] {
                     Content: formattedValue,
                     FontSize: resolved.ValueFontSize!!,
                     FontWeight: theme.CaptionFontWeight,
-                    Color: resolved.ValueColor!!,
+                    Color: resolved.Disabled ? theme.DisabledTextColor: resolved.ValueColor!!,
                 }
             )
         }
@@ -389,8 +387,6 @@ public open class Slider : Cell[SliderInput] {
                 AlignItems.Center
             },
             Gap: theme.ControlGap,
-            Disabled: resolved.Disabled,
-            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             header,
             content,
         }
@@ -447,7 +443,6 @@ public open class Slider : Cell[SliderInput] {
             ThumbBorderColor = input.ThumbBorderColor ?? (fluent ? theme.Mix(theme.RaisedColor, Color.White, 0.1F): theme.OnAccentColor),
             BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
             FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
-            DisabledOpacity = input.DisabledOpacity ?? theme.DisabledOpacity,
         }
     }
 

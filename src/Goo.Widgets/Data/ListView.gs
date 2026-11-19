@@ -388,7 +388,8 @@ public open class ListView : Cell[ListViewInput] {
                 TitleFontWeight: item.Unread ? theme.HeadingFontWeight: theme.FontWeight,
                 TextColor: item.Muted ? theme.MutedTextColor: theme.TextColor,
                 MinHeight: snapshot.RowHeight,
-                PaddingVertical: 0
+                PaddingVertical: 0,
+                Disabled: item.Disabled || snapshot.Disabled
             }.Build() as Container
         )!!
         if let configure = snapshot.ConfigureRow {

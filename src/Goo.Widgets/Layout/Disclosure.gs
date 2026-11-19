@@ -45,8 +45,6 @@ public data struct Disclosure {
     var BorderWidth float64?
     /// Corner radius. Nil resolves to 6 and preserves explicit zero.
     var BorderRadius float64?
-    /// Disabled header opacity. Nil resolves to 0.5 and preserves explicit zero.
-    var DisabledOpacity float64?
     /// Creates a decorative indicator from resolved props.
     /// Return a fresh element or the supplied default.
     var CreateIndicator Func[Disclosure, Blob]?
@@ -82,7 +80,6 @@ public data struct Disclosure {
             BorderColor = BorderColor ?? theme.BorderColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
-            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             CreateIndicator = nil,
             ConfigureHeader = nil,
             CreateContent = nil,
@@ -100,16 +97,19 @@ public data struct Disclosure {
                     ControlIcon.ChevronRight
                 },
                 size: 20.0,
-                color: resolved.TextColor!!
+                color: resolved.Disabled ? theme.DisabledTextColor: resolved.TextColor!!
             )
         }
-        let heading = resolved.Header ??
+        var heading Blob = resolved.Header ??
         Text{
             Content: resolved.Label!!,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.LabelFontWeight,
-            Color: resolved.TextColor!!,
+            Color: resolved.Disabled ? theme.DisabledTextColor: resolved.TextColor!!,
+        }
+        if resolved.Disabled && resolved.Header != nil {
+            heading = theme.DisabledSlot(heading, theme.TextColor)
         }
         let onChange = resolved.OnExpandedChange
         let next = !resolved.Expanded
@@ -141,7 +141,6 @@ public data struct Disclosure {
             BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
             HoverStyle: HoverColor == nil ? nil: Style{BackgroundColor: HoverColor!!},
             FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
-            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
