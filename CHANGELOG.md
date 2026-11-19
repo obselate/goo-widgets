@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Build with G# SDK 0.5.698.
+- Fixed: Material icon shapes carry their SVG view box instead of a size-dependent offset, so resizing an icon or replacing its path in a `Configure*` hook such as `ComboBoxInput.ConfigureArrow` keeps it centered.
 
 ## 0.22.2 - 2026-11-15
 
