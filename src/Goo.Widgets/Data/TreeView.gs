@@ -614,7 +614,8 @@ public open class TreeView : Cell[TreeViewInput] {
                 Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
                 BackgroundColor: Color.Transparent,
                 Padding: theme.Spacing / 2.0,
-                ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16,
+                    row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
             }
             if let configure = snapshot.ConfigureExpander {
                 let originalAccessibilityHidden = (expander.Accessibility?.Hidden ?? false)
@@ -667,7 +668,6 @@ public open class TreeView : Cell[TreeViewInput] {
                 Checkbox{
                     Value: row.Node.CheckState,
                     Disabled: row.Disabled || snapshot.OnCheckChange == nil,
-                    DisabledOpacity: row.Disabled || snapshot.Disabled ? 1.0: nil,
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button
             )!!
@@ -724,7 +724,13 @@ public open class TreeView : Cell[TreeViewInput] {
         if let create = snapshot.CreateContent {
             label = create(snapshot, row, label)
         }
-        children.Add(Container{Key: "content", FlexGrow: 1, FlexShrink: 1, MinWidth: 0, label})
+        children.Add(Container{
+            Key: "content",
+            FlexGrow: 1,
+            FlexShrink: 1,
+            MinWidth: 0,
+            (row.Disabled || snapshot.Disabled) && row.Node.Content != nil ? theme.DisabledSlot(label, theme.TextColor): label
+        })
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,

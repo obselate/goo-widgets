@@ -314,9 +314,16 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         }
         button.Children.Clear()
         button.Children.Add(
-            Container{Key: "value", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, Overflow: Overflow.Hidden, valueContent}
+            Container{
+                Key: "value",
+                FlexGrow: 1.0,
+                FlexShrink: 1.0,
+                MinWidth: 0.0,
+                Overflow: Overflow.Hidden,
+                current.Disabled && !input.Multiple && selected?.Content != nil ? theme.DisabledSlot(valueContent, theme.TextColor): valueContent
+            }
         )
-        var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, theme.MutedTextColor)
+        var arrow Blob = ControlIcons.Create(ControlIcon.ExpandMore, 16, current.Disabled ? theme.DisabledTextColor: theme.MutedTextColor)
         if let configure = current.ConfigureArrow {
             let originalKey = arrow.Key
             configure.Invoke(current, arrow)
@@ -609,23 +616,25 @@ public open class ComboBox : Cell[ComboBoxInput], IDisposable {
         result.Children.Clear()
         if row.Input.Multiple && id != createId {
             result.Children.Add(
-                ControlIcons.Create(row.Selected ? ControlIcon.CheckBox: ControlIcon.CheckBoxOutlineBlank, 18, theme.AccentColor)
+                ControlIcons.Create(row.Selected ? ControlIcon.CheckBox: ControlIcon.CheckBoxOutlineBlank, 18, item.Disabled ? theme.DisabledTextColor: theme.AccentColor)
             )
         }
-        result.Children.Add(
-            item.Content ??
-                Text{
-                Content: item.Label ?? id,
-                Color: item.Disabled ? theme.DisabledTextColor: row.Selected ? theme.SelectedText(theme.TextColor, backdrop: theme.OverlayColor): theme.TextColor,
-                TextWrap: TextWrap.NoWrap,
-                TextTrimming: TextTrimming.Ellipsis,
-                MinWidth: 0.0,
-                FlexShrink: 1.0,
-                FontFamily: theme.FontFamily,
-                FontSize: theme.FontSize,
-                FontWeight: theme.FontWeight,
-            }
-        )
+        var option Blob = item.Content ??
+            Text{
+            Content: item.Label ?? id,
+            Color: item.Disabled ? theme.DisabledTextColor: row.Selected ? theme.SelectedText(theme.TextColor, backdrop: theme.OverlayColor): theme.TextColor,
+            TextWrap: TextWrap.NoWrap,
+            TextTrimming: TextTrimming.Ellipsis,
+            MinWidth: 0.0,
+            FlexShrink: 1.0,
+            FontFamily: theme.FontFamily,
+            FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
+        }
+        if item.Disabled && item.Content != nil {
+            option = theme.DisabledSlot(option, theme.TextColor)
+        }
+        result.Children.Add(option)
         if let configure = row.Input.ConfigureRow {
             let originalAccessibilityChecked = (result.Accessibility?.Checked ?? AccessibilityChecked(0))
             let originalAccessibilityName = (result.Accessibility?.Name ?? "")
