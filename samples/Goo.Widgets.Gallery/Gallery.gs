@@ -75,7 +75,6 @@ class Gallery : Cell, IDisposable {
     private var currentIndex int32
     internal var RightToLeft bool
     private var query string = ""
-    private var platformInput PlatformInput?
     private var owningWindow Window?
     private var sidePadding float64 = 24
     private let panelHandle ElementHandle = ElementHandle()
@@ -107,7 +106,6 @@ class Gallery : Cell, IDisposable {
             Direction = RightToLeft ? Direction.RightToLeft: Direction.Auto
         })
         Theme.SetMode(window, ThemeMode.Dark)
-        platformInput = window.PlatformInput
         if let previous = owningWindow { previous.PreviewKeyPressed -= PreviewKey }
         window.PreviewKeyPressed += PreviewKey
         owningWindow = window
@@ -184,9 +182,9 @@ class Gallery : Cell, IDisposable {
         }
         let primary = KeyModifiers{Ctrl: !OperatingSystem.IsMacOS(), Super: OperatingSystem.IsMacOS()}
         let shortcut = (key == Key.K || key == Key.F) && modifiers == primary
-        let slash = key == Key.Slash && modifiers == KeyModifiers{} && platformInput?.Selection == nil
+        let slash = key == Key.Slash && modifiers == KeyModifiers{} && owningWindow?.Focus.Selection == nil
         if (shortcut || slash) && searchHandle.Focus() {
-            platformInput?.Execute(TextCommand{Kind: TextCommandKind.SelectAll})
+            owningWindow?.Focus.Execute(TextCommand{Kind: TextCommandKind.SelectAll})
             return true
         }
         return false
@@ -236,15 +234,15 @@ class Gallery : Cell, IDisposable {
                                 Orientation: AccessibilityOrientation.Vertical}}
                             for button in buttons {
                                 pageHandles[button.Key!!] = button.Handle!!
-                                button.Hover = Style{
+                                button.HoverStyle = Style{
                                     BackgroundColor: button.Key == input.SelectedId ? theme.ActiveColor: theme.HoverColor,
                                     Color: theme.TextColor
                                 }
-                                button.Active = Style{BackgroundColor: theme.PressedColor, Color: theme.TextColor}
+                                button.ActiveStyle = Style{BackgroundColor: theme.PressedColor, Color: theme.TextColor}
                                 for child in button.Children {
                                     if child is Text { child.FontWeight = button.Key == input.SelectedId ? 500: 400 }
                                 }
-                                button.Focus = Style{OutlineColor: theme.FocusColor, OutlineWidth: 2, OutlineOffset: -2}
+                                button.FocusStyle = Style{OutlineColor: theme.FocusColor, OutlineWidth: 2, OutlineOffset: -2}
                                 root.Children.Add(button)
                             }
                             return root
@@ -303,12 +301,11 @@ class Gallery : Cell, IDisposable {
                         ToggleOption{Id: "dark", Label: "Dark", Leading: MaterialIcons.Create("dark_mode", 16)},
                         ToggleOption{Id: "light", Label: "Light", Leading: MaterialIcons.Create("light_mode", 16)}
                     },
-                    CreateItem: (input ToggleGroupInput, item ToggleOption, button Button) -> {
+                    ConfigureItem: (input ToggleGroupInput, item ToggleOption, button Button) -> {
                         button.MinHeight = 24
                         button.Height = 24
                         button.BorderWidth = 1
-                        return button
-                    },
+                        },
                     OnSelectionChange: (ids[]string) -> {
                         if ids.Length > 0 && owningWindow != nil { Theme.SetMode(owningWindow!!, ids[0] == "dark" ? ThemeMode.Dark: ThemeMode.Light) }
                     }

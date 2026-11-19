@@ -54,6 +54,36 @@ func CalendarContracts() {
     )
 }
 
+func CalendarHeadingLayoutContract() {
+    let headingColor = Color.Rgb(255, 0, 0)
+    let root = RetainedContractRoot(Container{
+        AlignItems: AlignItems.FlexStart,
+        Cell.Mount[CalendarInput, Calendar]("calendar", CalendarInput{
+            Today: DateOnly(2026, 6, 15),
+            Month: DateOnly(2026, 12, 1),
+            MonthTextStyle: Style{Color: headingColor},
+            Culture: System.Globalization.CultureInfo.GetCultureInfo("en-US")
+        })
+    })
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "Calendar heading verification", Size: LayoutSize(640, 560),
+        Root: root, AccessibilityAdapter: semantics}
+    Goo.Widgets.Theme.Attach(window)
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 12)
+        let heading = FeedbackNode(semantics, AccessibilityRole.Heading, "December 2026").Bounds
+        let weekday = FeedbackNode(semantics, AccessibilityRole.ColumnHeader, "Sunday").Bounds
+        let image = ThemeCapture(window)
+        for y in int32(weekday.Y) ... int32(weekday.Y + weekday.Height) {
+            for x in int32(heading.X) ... int32(heading.X + heading.Width) {
+                Require(!ThemePoint(image, window, float64(x), float64(y), headingColor),
+                    "Calendar month heading painted over the weekday row at its default width")
+            }
+        }
+    })
+}
+
 internal class CalendarHost : Cell {
     internal let PickerSource ElementHandle = ElementHandle()
     internal let CalendarHandle ElementHandle = ElementHandle()
@@ -79,6 +109,8 @@ internal class CalendarHost : Cell {
     internal var Show bool = true
     internal var Entry TextEntry?
     internal var Popup Container?
+    internal var PickerWidth Length = 300.0
+    internal var PickerSourceWidth float64 = 320.0
     private func Light() bool -> Environment.GetEnvironmentVariable("GOO_WIDGETS_LIGHT") == "1"
 
     private func Weekend(value DateOnly) bool -> value.DayOfWeek == DayOfWeek.Saturday ||
@@ -110,56 +142,49 @@ internal class CalendarHost : Cell {
         InvalidSubmissions++
     }
 
-    private func Day(input CalendarInput, day CalendarDay, prepared Button) Button {
+    private func Day(input CalendarInput, day CalendarDay, prepared Button) {
         if Light() && day.Selected {
-            prepared.BackgroundColor = "#bfdbfe"
+            prepared.BackgroundColor = Color.Parse("#bfdbfe")
         }
         Days[day.Date.DayNumber] = prepared
-        return prepared
     }
 
-    private func CalendarRoot(input CalendarInput, prepared Container) Container {
+    private func CalendarRoot(input CalendarInput, prepared Container) {
         if Light() {
-            prepared.BackgroundColor = "#f8fafc"
-            prepared.Color = "#0f172a"
+            prepared.BackgroundColor = Color.Parse("#f8fafc")
+            prepared.Color = Color.Parse("#0f172a")
         }
-        return prepared
     }
 
-    private func PickerDay(input CalendarInput, day CalendarDay, prepared Button) Button {
+    private func PickerDay(input CalendarInput, day CalendarDay, prepared Button) {
         PickerDays[day.Date.DayNumber] = prepared
-        return prepared
     }
 
-    private func Nav(input CalendarInput, delta int32, prepared Button) Button {
+    private func Nav(input CalendarInput, delta int32, prepared Button) {
         if Light() {
-            prepared.BackgroundColor = "#e2e8f0"
-            prepared.Color = "#0f172a"
+            prepared.BackgroundColor = Color.Parse("#e2e8f0")
+            prepared.Color = Color.Parse("#0f172a")
         }
         Navigation[delta] = prepared
-        return prepared
     }
 
-    private func Input(input DatePickerInput, prepared TextEntry) TextEntry {
+    private func Input(input DatePickerInput, prepared TextEntry) {
         Entry = prepared
         prepared.KeyBindings = []KeyBinding{
-            KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+            KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
         }
-        return prepared
     }
 
-    private func Button(input DatePickerInput, prepared Button) Button {
+    private func Button(input DatePickerInput, prepared Button) {
         prepared.Handle = OpenButton
-        return prepared
     }
 
-    private func PopupFactory(input DatePickerInput, prepared Container) Container {
+    private func PopupFactory(input DatePickerInput, prepared Container) {
         Popup = prepared
-        return prepared
     }
 
     private func CalendarFactory(input DatePickerInput, prepared CalendarInput) CalendarInput -> prepared with{
-        CreateDay = PickerDay
+        ConfigureDay = PickerDay
     }
 
     private func Format(value DateOnly) string -> value.ToString(
@@ -181,7 +206,7 @@ internal class CalendarHost : Cell {
     }
 
     public override func Build() Blob {
-        let textColor = Light() ? "#1e3a8a": "#fbbf24"
+        let textColor = Color.Parse(Light() ? "#1e3a8a": "#fbbf24")
         var calendar = CalendarInput{
             Value: Selected,
             OnChange: Select,
@@ -191,9 +216,9 @@ internal class CalendarHost : Cell {
             Culture: System.Globalization.CultureInfo.GetCultureInfo("fr-FR"),
             MonthTextStyle: Style{Color: textColor, FontSize: 19.0},
             DayTextStyle: Style{Color: textColor},
-            CreateDay: Day,
-            CreateNavigation: Nav,
-            CreateRoot: CalendarRoot,
+            ConfigureDay: Day,
+            ConfigureNavigation: Nav,
+            ConfigureRoot: CalendarRoot,
             OnMonthChange: Month,
             IsDateDisabled: Weekend
         }
@@ -204,7 +229,7 @@ internal class CalendarHost : Cell {
         var picker = DatePickerInput{
             OnChange: Changed,
             OnInvalid: Invalid,
-            Width: 300.0,
+            Width: PickerWidth,
             Open: IsOpen,
             OnOpenChange: Open,
             AllowEmpty: EmptyAllowed,
@@ -217,10 +242,10 @@ internal class CalendarHost : Cell {
             Culture: System.Globalization.CultureInfo.GetCultureInfo("en-US"),
             FirstDayOfWeek: DayOfWeek.Monday,
             AccessibilityName: "Deployment date",
-            CreateInput: Input,
-            CreateButton: Button,
+            ConfigureInput: Input,
+            ConfigureButton: Button,
             CreateCalendar: CalendarFactory,
-            CreatePopup: PopupFactory
+            ConfigurePopup: PopupFactory
         }
         if PickerValue != nil {
             picker.Value = PickerValue!!
@@ -240,7 +265,7 @@ internal class CalendarHost : Cell {
                 Container{
                     Key: "picker-source",
                     Handle: PickerSource,
-                    Width: 320.0,
+                    Width: PickerSourceWidth,
                     Height: 52.0,
                     Overflow: Overflow.Hidden,
                     BorderWidth: 4.0,
@@ -255,13 +280,13 @@ internal class CalendarHost : Cell {
             Height: Percent(100),
             Padding: 24.0,
             Gap: 18.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "title", Content: "Calendar and DatePicker", FontSize: 25.0, FontWeight: 700},
             Text{
                 Key: "hint",
                 Content: "Localized dates, bounded navigation, and controlled text validation.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Goo
                 .Button{
@@ -269,7 +294,7 @@ internal class CalendarHost : Cell {
                 Handle: Before,
                 Width: 150.0,
                 Height: 34.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 Text{Content: "Background action"}
             },
             row
@@ -309,6 +334,7 @@ func PickerDraft(window Window, id uint32, host CalendarHost, value string) {
 }
 
 func CalendarInteractions() {
+    CalendarHeadingLayoutContract()
     TimePickerInteractions()
     RunContracts(CalendarContracts)
     let host = CalendarHost()
@@ -316,14 +342,46 @@ func CalendarInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Calendar verification",
-        Width: 850,
-        Height: 620,
+        Size: LayoutSize(850, 620),
         Root: root,
         AccessibilityAdapter: semantics
     }
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 15)
+        for width in []Length{440.0, Percent(100)} {
+            host.Show = false
+            host.Rebuild()
+            PumpFrames(window, 4)
+            host.PickerWidth = width
+            host.PickerSourceWidth = 400.0
+            host.IsOpen = true
+            host.Show = true
+            host.Rebuild()
+            PumpFrames(window, 18)
+            let fieldWidth = host.Entry!!.Handle!!.BorderBox.Width + host.OpenButton.BorderBox.Width
+            Require(
+                host.Popup!!.Handle!!.BorderBox.Width >= fieldWidth,
+                "DatePicker popup was narrower than its initially open field"
+            )
+            host.PickerSourceWidth = 460.0
+            host.Rebuild()
+            PumpFrames(window, 12)
+            Require(
+                host.Popup!!.Handle!!.BorderBox.Width >=
+                    host.Entry!!.Handle!!.BorderBox.Width + host.OpenButton.BorderBox.Width,
+                "DatePicker popup was narrower than its resized field"
+            )
+        }
+        host.Show = false
+        host.Rebuild()
+        PumpFrames(window, 4)
+        host.PickerWidth = 300.0
+        host.PickerSourceWidth = 320.0
+        host.IsOpen = false
+        host.Show = true
+        host.Rebuild()
+        PumpFrames(window, 18)
         let id = OnlyNativeWindow()
         host.CalendarHandle.Focus()
         PumpFrames(window, 6)
@@ -504,8 +562,8 @@ func CalendarInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
-            - window.PlatformInput.Selection!!.Anchor.Offset == original.Length, "Read-only date lost selection or copy routing")
+        Require(host.CopyRequests == 1 && window.Focus.Selection!!.Active.Offset
+            - window.Focus.Selection!!.Anchor.Offset == original.Length, "Read-only date lost selection or copy routing")
         SelectorType(window, id, "changed")
         SendKey(id, SDLScancode.F4)
         SendKey(id, SDLScancode.Return)

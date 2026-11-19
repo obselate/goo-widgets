@@ -1,5 +1,7 @@
 package Goo.Widgets.Layout
 
+import System
+
 import Goo
 import Goo.Widgets
 
@@ -28,6 +30,9 @@ public enum DialogDismissPolicy {
 }
 
 /// A composable in-parent modal overlay with host-owned close, cancel, and confirm actions.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ModalDialog {
     /// Whether the overlay is rendered.
     var Open bool
@@ -87,15 +92,18 @@ public data struct ModalDialog {
     var BorderWidth float64?
     /// Dialog corner radius. Nil resolves to 8 and preserves explicit zero.
     var BorderRadius float64?
-    /// Creates the cancel button from resolved values and final content.
-    /// Hosts must not change state in this callback.
-    var CreateCancel Func[ModalDialog, Blob, Button]?
-    /// Creates the confirm button from resolved values and final content.
-    /// Hosts must not change state in this callback.
-    var CreateConfirm Func[ModalDialog, Blob, Button]?
-    /// Creates the final overlay from resolved values, backdrop, and dialog panel.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ModalDialog, Button, Container, Container]?
+    /// Configures the fresh cancel before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: AutoFocus, KeyBindings (required entries), OnClick.
+    var ConfigureCancel Action[ModalDialog, Blob, Button]?
+    /// Configures the fresh confirm before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries), OnClick.
+    var ConfigureConfirm Action[ModalDialog, Blob, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Modal (mounted dialog), Accessibility.Name (mounted dialog), Accessibility.Role (mounted dialog), Disabled (mounted dialog), Focusable (mounted dialog), Handle (mounted dialog), KeyBindings (required entries), OnKeyDown (mounted dialog), TabStop (mounted dialog).
+    var ConfigureRoot Action[ModalDialog, Button, Container, Container]?
 
     internal prop CanEscape bool {
         get -> DismissPolicy != DialogDismissPolicy.Explicit
@@ -115,9 +123,9 @@ public data struct ModalDialog {
         }
 
         let theme = Theme.Read()
-        let createCancel = CreateCancel
-        let createConfirm = CreateConfirm
-        let createRoot = CreateRoot
+        let configureCancel = ConfigureCancel
+        let configureConfirm = ConfigureConfirm
+        let configureRoot = ConfigureRoot
         let cancelText = CancelText ?? theme.Text("Cancel")
         let confirmText = ConfirmText ??
             theme.Text(Preset == ModalDialogPreset.Destructive ? "Delete": Preset == ModalDialogPreset.Form ? "Save": "Confirm")
@@ -141,9 +149,9 @@ public data struct ModalDialog {
             BackdropColor = BackdropColor ?? theme.BackdropColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
-            CreateCancel = nil,
-            CreateConfirm = nil,
-            CreateRoot = nil,
+            ConfigureCancel = nil,
+            ConfigureConfirm = nil,
+            ConfigureRoot = nil,
         }
 
         let backdrop = Button{
@@ -175,10 +183,7 @@ public data struct ModalDialog {
                 FontSize: theme.FontSize,
                 FontWeight: theme.FontWeight,
             }
-            let cancel = if let createCancel = createCancel {
-                createCancel(resolved, cancelContent)
-            } else {
-                Button{
+            let cancel = Button{
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     BorderWidth: theme.BorderWidth,
@@ -195,18 +200,29 @@ public data struct ModalDialog {
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: cancelText},
                     cancelContent,
                 }
+            if let configure = configureCancel {
+                let originalAutoFocus = cancel.AutoFocus
+                let originalOnClick = cancel.OnClick
+                configure.Invoke(resolved, cancelContent, cancel)
+                if cancel.AutoFocus != originalAutoFocus {
+                    throw InvalidOperationException("ModalDialog owns AutoFocus; configure ModalDialog instead of changing it in ConfigureCancel")
+                }
+                if cancel.OnClick != originalOnClick {
+                    throw InvalidOperationException("ModalDialog owns OnClick; configure ModalDialog instead of changing it in ConfigureCancel")
+                }
             }
-            let confirm = if let createConfirm = createConfirm {
-                createConfirm(resolved, confirmContent)
-            } else {
-                Button{
+            let semanticTone = resolved.Tone != Tone.Neutral && resolved.Tone != Tone.Danger
+            let confirmColor = semanticTone ? theme.ToneColor(resolved.Tone): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
+            let shadeTarget = semanticTone && theme.Contrast(Color.White, confirmColor) >= theme.Contrast(Color.Black, confirmColor) ? Color.Black: Color.White
+            let confirmTextColor = semanticTone ? shadeTarget == Color.Black ? Color.White: Color.Black: theme.OnAccentColor
+            let confirm = Button{
                     Height: theme.ControlHeight,
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     BorderRadius: theme.ControlRadius!!,
-                    BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor,
-                    Color: theme.OnAccentColor,
-                    Hover: Style{BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
-                    Active: Style{BackgroundColor: resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
+                    BackgroundColor: confirmColor,
+                    Color: confirmTextColor,
+                    HoverStyle: Style{BackgroundColor: semanticTone ? theme.Mix(confirmColor, shadeTarget, 0.1F): resolved.Tone == Tone.Danger ? theme.DangerHoverColor: theme.AccentHoverColor},
+                    ActiveStyle: Style{BackgroundColor: semanticTone ? theme.Mix(confirmColor, shadeTarget, 0.2F): resolved.Tone == Tone.Danger ? theme.DangerFillColor: theme.AccentPressedColor},
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
                     TransitionProperties: theme.InteractionTransitions,
@@ -219,10 +235,19 @@ public data struct ModalDialog {
                     Disabled: resolved.ConfirmDisabled,
                     OnClick: resolved.OnConfirm,
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: confirmText},
-                    confirmContent,
+                    ConfirmContent != nil && resolved.ConfirmDisabled ? theme.DisabledSlot(confirmContent, theme.TextColor): confirmContent,
+                }
+            if let configure = configureConfirm {
+                let originalDisabled = confirm.Disabled
+                let originalOnClick = confirm.OnClick
+                configure.Invoke(resolved, confirmContent, confirm)
+                if confirm.Disabled != originalDisabled {
+                    throw InvalidOperationException("ModalDialog owns Disabled; configure ModalDialog instead of changing it in ConfigureConfirm")
+                }
+                if confirm.OnClick != originalOnClick {
+                    throw InvalidOperationException("ModalDialog owns OnClick; configure ModalDialog instead of changing it in ConfigureConfirm")
                 }
             }
-
             theme.ApplyInteraction(cancel, InteractionFamily.Button)
             theme.ApplyInteraction(confirm, InteractionFamily.Button)
             cancel.OnClick = resolved.OnCancel
@@ -288,10 +313,7 @@ public data struct ModalDialog {
         }
         dialog.Children.Add(actions)
 
-        let root = if let createRoot = createRoot {
-            createRoot(resolved, backdrop, dialog)
-        } else {
-            Container{
+        let root = Container{
                 Position: PositionType.Absolute,
                 Left: 0.0,
                 Right: 0.0,
@@ -303,9 +325,9 @@ public data struct ModalDialog {
                 backdrop,
                 dialog,
             }
-        }
+        configureRoot?.Invoke(resolved, backdrop, dialog, root)
         if resolved.KeyBindings != nil {
-            root.KeyBindings = resolved.KeyBindings
+            WidgetKeyBindings.AppendBindings(root, resolved.KeyBindings!!)
         }
         return root
     }

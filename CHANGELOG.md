@@ -2,13 +2,51 @@
 
 ## Unreleased
 
-- Requires Goo 0.30.0.
 - Switch focus rings follow the visible track while the larger pointer target stays unchanged.
 - `NumberInput`, `TimePicker`, `DatePicker` and `TokenInput` show editor focus outside the whole rounded frame. Their inner action buttons keep separate inset focus rings. `SearchList` search fields use a fully rounded frame inset from the list panel. `CommandPalette` keeps its custom header geometry.
+- Build with G# SDK 0.5.698.
+- Changed: disabled controls are dimmed once. Widget-owned text, borders, marks and icons use disabled colors at full opacity, and `Theme.DisabledOpacity` applies only to caller-supplied slot content such as `Leading`, `Trailing` and `IconButton.Icon`. Slot content that inherits the text color gets the enabled text color under that opacity, so it is not dimmed twice. Disabled controls are lighter and easier to read than before, and explicit disabled colors such as `ActionButton.DisabledTextColor` keep their contrast.
+- Changed: `IconButton.DisabledOpacity` applies only to the supplied icon.
+- Removed: `Checkbox.DisabledOpacity`, `SliderInput.DisabledOpacity`, `Chip.DisabledOpacity` and `Disclosure.DisabledOpacity`. Migration: delete the setting, or set `Theme.DisabledTextColor` to change the disabled appearance.
+- Fixed: explicit disabled colors on `ActionButton`, `TextField`, `ToggleSwitch` and `DismissibleContextBar` are no longer halved by an extra disabled opacity.
+- Fixed: a disabled selected `ToggleGroup` item, `Chip` (including `TokenInput` chips) or `ColorPicker` mode button is the enabled selected item at `Theme.DisabledOpacity`, so the selection stays visible and is dimmed once.
+- Fixed: Material icon shapes carry their SVG view box instead of a size-dependent offset, so resizing an icon or replacing its path in a `Configure*` hook such as `ComboBoxInput.ConfigureArrow` keeps it centered.
+
+## 0.22.2 - 2026-11-15
+
+- Fixed: Calendar month headings grow vertically when they wrap, so they no longer overlap the weekday row at the default width.
+- Fixed: DataGrid empty-state content fills the viewport even when no columns exist or their total width is smaller than the viewport.
+- Fixed: TimeAxis collision lanes include event padding and borders, so close point events do not overlap when `MinimumEventWidth` is small.
+- Fixed: MediaTransport keeps disabled action icons visible and reserves space for the position thumb beside both time labels.
+- Fixed: `PropertyGridItem.Key` is displayed beside its label in stacked and compact property grids.
+- Fixed: ColorPicker wheel images fit inside the configured border, keeping it visible on every side.
+- Fixed: keep DatePicker popups at least as wide as their fields after mounting and resizing.
+- Fixed: Markdown heading and paragraph blocks apply padding, backgrounds and other element settings from `ConfigureBlock`.
+- Fixed: `Breadcrumb` and `PathBar` render an empty path when `Items` is nil or empty.
+- Docs: correct the `RadioGroupInput.Orientation` default to vertical. Behavior is unchanged.
+- Fixed: Markdown no longer throws when the document ends with an opening code fence and no trailing newline.
+- Fixed: ModalDialog and ModalDialogHost confirm buttons use solid Info, Success and Warning colors, high-contrast black or white text and same-tone hover and pressed shades.
+- Fixed: Markdown renders named and numeric HTML character entities as decoded inline text.
+
+## 0.22.1 - 2026-11-14
+
+- Fixed: clamp the wrapped `VirtualItems` range when a grid scrolled to the end gains columns, so widening the grid no longer throws `ArgumentOutOfRangeException`.
+
+## 0.22.0 - 2026-11-14
+
+- Requires the published Goo 0.31.0 package from NuGet.org.
+- Breaking: rename 88 postprocessed `Create*` element hooks across 45 widget families to `Configure*` actions on fresh library-owned primitives. Keep pure content replacement slots. Configured accessibility fields, custom bindings, layers and children are preserved outside widget-owned fields. Changes to widget-owned fields throw. `TextField` and `TextArea` root editor children must stay.
+- Breaking: `TouchTextEditingInput.Editor` is an `ElementHandle`. Set it on the editor before hand-off. `RootStyle` styles the gesture wrapper for outer flex and percentage sizing.
+- `FormField` uses Goo accessibility attachments without editing supplied controls. `HoverCard` keeps target handles unchanged. Shape interaction styles omit invalid legacy box paint.
+- Touch editing rebuilds a retained overlay without changing mounted content or editor declarations.
+- `TextField` and `TextArea` configure their outer root before mounting touch editing, so callbacks created by `ConfigureRoot` keep the configuring Cell as their owner. The touch region fills the root content box. Root padding is outside that region.
+- `DataGrid` assigns editor handles before touch composition and keeps validation relationships on single-line and multiline editors. Column resizing includes movement in the drag-start sample.
+- `NavigationRail` tints a fresh shape declaration and keeps supplied item icons unchanged.
+- Remove `Avatar.ImagePath` and `AsyncImage.ImagePath`. Supply an owned `ImageSource` provider. Retain an `AsyncImageSource` over `ImageSourceCache.LoadAsync` to load a path.
 - Clickable `AvatarGroup` avatars and read-only `CodeBlock` code areas show keyboard focus on the actual focus target.
 - Icon-only `ActionButton` controls omit the empty default text slot, so the `SplitButton` chevron is centered. Text and root factories keep their existing behavior.
-- Interactive `DonutChart` slices show a path-shaped keyboard focus indicator without changing their data fill or stroke. The default indicator is set before `CreateSlice`, so caller focus styles retain precedence.
-- `TextField` frames with leading, trailing, prefix or suffix content keep focus state and show the frame focus ring. `CreateEntry` focus and blur handlers run after the field state handler. The addon corner check distinguishes the antialiased focus stroke from addon leakage.
+- Interactive `DonutChart` slices show a path-shaped keyboard focus indicator without changing their data fill or stroke. The default indicator is set before `ConfigureSlice`, so caller focus styles retain precedence.
+- `TextField` frames with leading, trailing, prefix or suffix content keep focus state and show the frame focus ring. `ConfigureEntry` focus and blur handlers run after the field state handler. The addon corner check distinguishes the antialiased focus stroke from addon leakage.
 - Switch focus rings use the track radius. Closable `TabBar` labels keep end padding clear of the ring. `NumberInput` and `TimePicker` stepper rings stay inside their button bounds.
 - FOCUS captures the whole framed `TextFieldActions` field, including its clear action and right focus edge. The `NavigationRail` fixture includes the gap between its two items, so the last item is not clipped.
 - `Breadcrumb` and `PathBar` links and menu triggers use the standard navigation-button height and padding, so fitted focus rings stay clear of their labels. Overflow measurements follow changes to the padding and spacing tokens.
@@ -22,7 +60,7 @@
 - Native suites run the test app on a private session bus without service activation, so a desktop portal accent color no longer changes local captures and local FOCUS results match CI.
 - Native pixel checks convert layout coordinates to capture pixels, so the theme, choice, ComboBox, field, toggle and chrome checks also hold at display scale 1.5. The TextField adornment inset check expects the inset as Goo snaps it to device pixels, and DataGrid column widths drop float32 noise below 0.001 px.
 - Fix `Popover` at a `WindowPoint`: content without its own height, for example a container sized by `FlexBasis`, collapsed to the panel padding. The panel now takes the content height, limited by `MaxHeight` and the viewport.
-- Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `CreateItem`, such as `Focus`, colors the label.
+- Add `Theme.HoverTextColor` for the text, shortcut and submenu arrow of highlighted and pressed `Menu` items, for example white on a navy `HoverColor`. Zero keeps the current colors. Menu item labels now take the row `Color`, so a row state style from `ConfigureItem`, such as `Focus`, colors the label.
 - Add `Theme.Fluent` and `Theme.FluentMica`: the Windows 11 Fluent look with WinUI 3 colors, 4 px control and 8 px overlay radii, the WinUI type ramp, Indicator selection and a solid scrollbar. FluentMica adds the Mica window material and acrylic popups with 30 px blur. Both keep the toolkit font.
 - Theme family and mode are independent. `Theme.Variant` returns a theme's light or dark variant. `Theme.Default` and themes derived from it now carry the Bone and Ink variant, so `Theme.Attach(window, Theme.Default with{...})` follows the mode instead of staying fixed. Attach keeps the current mode. The default mode is System. `Theme.SetMode` switches within the attached family and leaves fixed themes (`Ink`, `Bone`, `GitHubDark`, `Variant = nil`) unchanged. Before, SetMode replaced every palette with Bone or Ink. A mode change replaces palette colors. On the built-in families, colors set on the attached theme stay in every mode, and an explicit `AccentColor` wins over the system accent. A custom `Variant` is used verbatim, accent included.
 - Add `Theme.ScrollbarColor` for a solid scrollbar thumb and `Theme.OverlayBlur` for the glass overlay blur radius.
@@ -37,6 +75,11 @@
 - Show single-line labels with an ellipsis when space is short: `ActionButton`, `Chip`, `TabBar` tabs, `ToggleGroup` items, `Menu` items, the `ListRow` title, `SearchList` and `ComboBox` rows, the `ComboBox` value and `TreeView` labels. These controls can shrink in a narrow container. `CreateText`, `CreateTitle` and `CreateItem` replace the label.
 - `ListView`, `TreeView`, `DataGrid` and `SearchList` without a `Height` grow and shrink to fill the free space of the parent and scroll inside it. Their default height (280, 280, 300 and 240 px) is the starting size, so in a parent without a bounded height they keep that height.
 - A click or arrow key on a fully visible `ListView` row no longer scrolls the list. The list scrolls only as far as needed to show the active row.
+
+### Known issues
+
+- Plain panels need manual resets of default presentation styles.
+- With Gsharp.NET.Sdk 0.5.212, unwrap nullable `float64?` fields before assigning them to `Length` or `Edges`. Direct assignment can produce invalid IL.
 
 ## 0.21.0 - 2026-11-09
 

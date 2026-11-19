@@ -44,13 +44,12 @@ internal class TokenHost : Cell {
                     Tokens = values
                     Rebuild()
                 },
-                CreateEntry: (input, entry) -> {
+                ConfigureEntry: (input, entry) -> {
                     Entry = entry
                     entry.KeyBindings = []KeyBinding{
-                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
                     }
-                    return entry
-                },
+                    },
             }
         ),
         Chip{Label: "Removable chip", Invalid: true, OnRemove: () -> Removed++,}.Build(),
@@ -84,10 +83,9 @@ internal class TokenHost : Cell {
                     Selected = values.ToArray()
                     Rebuild()
                 },
-                CreateTrigger: (input, button) -> {
+                ConfigureTrigger: (input, button) -> {
                     Trigger = button
-                    return button
-                },
+                    },
             }
         ),
     }
@@ -105,8 +103,7 @@ func TokenInteractions() {
     let root = ApplicationRoot(host)
     let window = Window{
         Root: root,
-        Width: 640,
-        Height: 520,
+        Size: LayoutSize(640, 520),
         AccessibilityAdapter: semantics,
         Title: "Token and multiple selection contracts",
     }
@@ -128,8 +125,8 @@ func TokenInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
-            - window.PlatformInput.Selection!!.Anchor.Offset == 7, "Read-only token draft lost selection or copy routing")
+        Require(host.CopyRequests == 1 && window.Focus.Selection!!.Active.Offset
+            - window.Focus.Selection!!.Anchor.Offset == 7, "Read-only token draft lost selection or copy routing")
         SelectorType(window, id, "changed,")
         SendKey(id, SDLScancode.Backspace)
         SendKey(id, SDLScancode.Return)
@@ -160,7 +157,7 @@ func TokenInteractions() {
         PumpFrames(window, 5)
         Require(host.Tokens.Length == 2 && host.Entry!!.Value == "draf", "Backspace in a draft removed a token")
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
-        window.SetClipboardText("third@example.com,fourth@example.com")
+        window.Clipboard.WriteText("third@example.com,fourth@example.com")
         SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
         PumpFrames(window, 10)
         Require(

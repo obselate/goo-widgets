@@ -5,6 +5,9 @@ import Goo.Widgets
 import System
 
 /// A controlled radio choice. RadioGroup owns selection and navigation for grouped choices.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct RadioButton {
     /// Controlled checked value. False means unchecked.
     var Value bool
@@ -22,8 +25,10 @@ public data struct RadioButton {
     var Disabled bool
     /// Accessible name. Nil uses Label or the localized default.
     var AccessibilityName string?
-    /// Receives this descriptor and the prepared button. Required radio semantics are applied afterward.
-    var CreateRoot Func[RadioButton, Button, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Description, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick, TabStop.
+    var ConfigureRoot Action[RadioButton, Button]?
 
     /// Builds one focusable radio choice. Activation never clears a checked value.
     public func Build() Blob {
@@ -80,7 +85,7 @@ public data struct RadioButton {
             ): theme.TextColor: theme.DisabledTextColor,
             BorderWidth: Card || theme.HighContrast ? theme.BorderWidth: 0,
             BorderRadius: theme.ControlRadius!!,
-            BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
+            BorderColor: selected && enabled ? theme.AccentColor: theme.InputBorderColor,
             Padding: Card ? theme.ControlPadding: 0,
             BackgroundColor: Card ? selected ? theme.SelectedFill(
                 theme.ActiveColor
@@ -92,7 +97,7 @@ public data struct RadioButton {
             mark,
         }
         if let leading = Leading {
-            button.Children.Add(leading)
+            button.Children.Add(enabled ? leading: theme.DisabledSlot(leading, theme.TextColor))
         }
         button.Children.Add(text)
         if !Card {
@@ -100,12 +105,44 @@ public data struct RadioButton {
             button.PaddingStart = theme.Spacing * 2.0
             button.PaddingEnd = theme.Spacing * 2.0
         }
-        if let create = CreateRoot {
-            button = create(this, button)
+        if let configure = ConfigureRoot {
+            let originalAccessibilityChecked = (button.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityDescription = (button.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalOnClick = button.OnClick
+            let originalTabStop = button.TabStop
+            configure.Invoke(this, button)
+            if (button.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("RadioButton owns Accessibility.Checked; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("RadioButton owns Accessibility.Description; set RadioButton.Description instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("RadioButton owns Accessibility.Name; set RadioButton.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("RadioButton owns Accessibility.Role; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("RadioButton owns Disabled; set RadioButton.Disabled instead of changing it in ConfigureRoot")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("RadioButton owns Focusable; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("RadioButton owns OnClick; configure RadioButton instead of changing it in ConfigureRoot")
+            }
+            if button.TabStop != originalTabStop {
+                throw InvalidOperationException("RadioButton owns TabStop; configure RadioButton instead of changing it in ConfigureRoot")
+            }
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, selected && Card)
-        if !Card && CreateRoot == nil {
-            button.Focus = Style{BasedOn: button.Focus, OutlineOffset: -theme.FocusRingWidth}
+        if !Card && ConfigureRoot == nil {
+            button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineOffset: -theme.FocusRingWidth}
         }
         button.Disabled = !enabled
         button.Focusable = enabled
@@ -115,12 +152,12 @@ public data struct RadioButton {
                 onChange?.Invoke(true)
             }
         }
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.Radio,
-            Name: AccessibilityName ?? Label ?? theme.Text("Choices"),
-            Description: Description ?? "",
-            Checked: selected ? AccessibilityChecked.True: AccessibilityChecked.False,
-        }
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Radio
+        buttonAccessibility.Name = AccessibilityName ?? Label ?? theme.Text("Choices")
+        buttonAccessibility.Description = Description ?? ""
+        buttonAccessibility.Checked = selected ? AccessibilityChecked.True: AccessibilityChecked.False
+        button.Accessibility = buttonAccessibility
         WidgetKeyBindings.BindActivation(button)
         return button
     }

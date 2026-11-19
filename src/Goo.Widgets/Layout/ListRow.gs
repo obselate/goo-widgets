@@ -6,6 +6,9 @@ import Goo.Widgets
 import System
 
 /// A semantic list item row with optional slots, typography defaults, and factory customization.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ListRow {
     /// Optional leading slot element.
     var Leading Blob?
@@ -77,13 +80,16 @@ public data struct ListRow {
     var Transform PanelTransform?
     /// Custom factory for the title Text. Receives resolved props. Nil uses one line that ends with an ellipsis.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateTitle Func[ListRow, Text]?
     /// Custom factory for the caption Text. Receives resolved props.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateCaption Func[ListRow, Text]?
-    /// Custom factory for the root Container. Receives resolved props, slots, and content stack.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ListRow, Blob?, Container, Blob?, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, Focusable, OnClick, OnKeyDown, OnPointerUp.
+    var ConfigureRoot Action[ListRow, Blob?, Container, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.
     public func Build() Blob {
@@ -97,7 +103,7 @@ public data struct ListRow {
         let theme = Theme.Read()
         let createTitle = CreateTitle
         let createCaption = CreateCaption
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let titleText = Title ?? ""
         let text = TextColor ?? theme.TextColor
         let captionColor = CaptionColor ?? theme.MutedTextColor
@@ -115,8 +121,8 @@ public data struct ListRow {
             SelectedBackgroundColor = SelectedBackgroundColor ?? theme.SelectedFill(theme.ActiveColor),
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             PressedBackgroundColor = PressedBackgroundColor ?? theme.PressedColor,
-            TextColor = Selected ? theme.SelectedText(text, SelectedBackgroundColor): text,
-            CaptionColor = Selected ? theme.SelectedText(captionColor, SelectedBackgroundColor): captionColor,
+            TextColor = Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(text, SelectedBackgroundColor): text,
+            CaptionColor = Disabled ? theme.DisabledTextColor: Selected ? theme.SelectedText(captionColor, SelectedBackgroundColor): captionColor,
             SelectedBoxShadow = SelectedBoxShadow ?? ring,
             MinHeight = MinHeight ?? defaultMinHeight,
             PaddingHorizontal = PaddingHorizontal ?? theme.ControlPadding,
@@ -135,7 +141,7 @@ public data struct ListRow {
             Transform = Transform ?? PanelTransform{},
             CreateTitle = nil,
             CreateCaption = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
         let title = if let createTitle = createTitle {
@@ -195,8 +201,8 @@ public data struct ListRow {
         var root = Container{
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled && (resolved.OnClick != nil || resolved.OnInvoke != nil),
-            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
-            Active: PressedBackgroundColor == nil ? nil: Style{BackgroundColor: PressedBackgroundColor!!},
+            HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            ActiveStyle: PressedBackgroundColor == nil ? nil: Style{BackgroundColor: PressedBackgroundColor!!},
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             MinHeight: resolved.MinHeight!!,
@@ -219,12 +225,43 @@ public data struct ListRow {
                 Selected: resolved.Selected
             },
         }
-        if let create = createRoot {
-            root = create(resolved, Leading, content, Trailing)
+
+            if let leading = Leading {
+                root.Children.Add(resolved.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading)
+            }
+            root.Children.Add(content)
+            if let trailing = Trailing {
+                root.Children.Add(resolved.Disabled ? theme.DisabledSlot(trailing, theme.TextColor): trailing)
+            }
+            if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
+                root.Children.Add(theme.SelectionBar())
+            }
+        if let configure = configureRoot {
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            let originalOnKeyDown = root.OnKeyDown
+            let originalOnPointerUp = root.OnPointerUp
+            configure.Invoke(resolved, Leading, content, Trailing, root)
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ListRow owns Disabled; set ListRow.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ListRow owns Focusable; configure ListRow instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("ListRow owns OnClick; set ListRow.OnClick instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("ListRow owns OnKeyDown; configure ListRow instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerUp != originalOnPointerUp {
+                throw InvalidOperationException("ListRow owns OnPointerUp; configure ListRow instead of changing it in ConfigureRoot")
+            }
         }
         if Selected && SelectedBackgroundColor != nil {
-            root.Hover = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.Hover}
-            root.Active = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.Active}
+            root.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.HoverStyle}
+            root.ActiveStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: root.ActiveStyle}
         }
         theme.ApplyInteraction(root, InteractionFamily.Row, Selected, OnClick != nil || OnInvoke != nil)
         if resolved.Disabled {
@@ -258,21 +295,10 @@ public data struct ListRow {
                 }
             }
         }
-        if resolved.Selected && createRoot == nil {
+        if resolved.Selected && configureRoot == nil {
             root.BoxShadow = resolved.SelectedBoxShadow!!
         }
-        if createRoot == nil {
-            if let leading = Leading {
-                root.Children.Add(leading)
-            }
-            root.Children.Add(content)
-            if let trailing = Trailing {
-                root.Children.Add(trailing)
-            }
-            if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
-                root.Children.Add(theme.SelectionBar())
-            }
-        }
+
         if let actions = resolved.Actions {
             root.Children.Add(
                 Container{
@@ -282,7 +308,7 @@ public data struct ListRow {
                             e.StopPropagation()
                         }
                     },
-                    actions
+                    resolved.Disabled ? theme.DisabledSlot(actions, theme.TextColor): actions
                 }
             )
         }

@@ -1,8 +1,10 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Colors
 import Goo.Widgets.Inputs
+import Goo.Widgets.Icons
 import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
@@ -30,10 +32,9 @@ func TextAreaOwnership() {
     external.Dispose()
     let owned = TextAreaProbe()
     var editor TextEditor?
-    owned.Render(TextAreaInput{Value: "Owned", CreateEditor: (input TextAreaInput, created TextEditor) -> {
+    owned.Render(TextAreaInput{Value: "Owned", ConfigureEditor: (input TextAreaInput, created TextEditor) -> {
         editor = created
-        return created
-    }})
+        }})
     let controller = editor!!.Controller
     owned.Dispose()
     owned.Dispose()
@@ -54,9 +55,10 @@ func TabBarContracts() {
                     NavigationItem{Id: "one", Label: "One"},
                     NavigationItem{Id: "two", Label: "Two"}
                 },
-                CreateItem: (input TabBarInput, item NavigationItem, prepared Button) -> Button{
-                    BorderRadius: 17,
-                    Text{Content: item.Label!!}
+                ConfigureItem: (input TabBarInput, item NavigationItem, prepared Button) -> {
+                    prepared.BorderRadius = 17
+                    prepared.Children.Clear()
+                    prepared.Children.Add(Text{Content: item.Label!!})
                 },
             }
         ) as Container
@@ -118,31 +120,26 @@ internal class CompositeHost : Cell {
         Rebuild()
     }
 
-    private func CaptureDivider(input SplitPaneInput, root Container) Container {
+    private func CaptureDivider(input SplitPaneInput, root Container) {
         Divider = root
-        return root
     }
 
-    private func CaptureSplit(input SplitPaneInput, root Container) Container {
+    private func CaptureSplit(input SplitPaneInput, root Container) {
         SplitRoot = root
-        return root
     }
 
-    private func CaptureTab(input TabBarInput, item NavigationItem, button Button) Button {
+    private func CaptureTab(input TabBarInput, item NavigationItem, button Button) {
         Tabs[item.Id!!] = button
-        return button
     }
 
-    private func CaptureTabs(input TabBarInput, root Container) Container {
+    private func CaptureTabs(input TabBarInput, root Container) {
         root.Handle = TabViewport
         TabRoot = root
-        return root
     }
 
-    private func CaptureEditor(input TextAreaInput, editor TextEditor) TextEditor {
+    private func CaptureEditor(input TextAreaInput, editor TextEditor) {
         editor.Handle = EditorViewport
         Editor = editor
-        return editor
     }
 
     public override func Build() Blob {
@@ -151,8 +148,8 @@ internal class CompositeHost : Cell {
             Gap: 18,
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#09090b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#09090b"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "heading", Content: "Composite widgets", FontSize: 24},
             Cell.Mount[TabBarInput, TabBar](
                 "tabs",
@@ -160,8 +157,8 @@ internal class CompositeHost : Cell {
                     SelectedId: Selected,
                     OnSelect: TabSelected,
                     Activation: Manual ? TabActivation.Manual: TabActivation.Automatic,
-                    CreateItem: CaptureTab,
-                    CreateRoot: CaptureTabs,
+                    ConfigureItem: CaptureTab,
+                    ConfigureRoot: CaptureTabs,
                     Items: []NavigationItem{
                         NavigationItem{Id: "one", Label: "Overview"},
                         NavigationItem{Id: "locked", Label: "Unavailable", Disabled: true},
@@ -184,20 +181,20 @@ internal class CompositeHost : Cell {
                     Height: 180,
                     MinimumFirst: 90,
                     MinimumSecond: 80,
-                    CreateHandle: CaptureDivider,
-                    CreateRoot: CaptureSplit,
+                    ConfigureHandle: CaptureDivider,
+                    ConfigureRoot: CaptureSplit,
                     First: Container{
                         Width: Percent(100),
                         Height: Percent(100),
                         Padding: 16,
-                        BackgroundColor: "#152a36",
+                        BackgroundColor: Color.Parse("#152a36"),
                         Text{Content: "First pane"}
                     },
                     Second: Container{
                         Width: Percent(100),
                         Height: Percent(100),
                         Padding: 16,
-                        BackgroundColor: "#202236",
+                        BackgroundColor: Color.Parse("#202236"),
                         Text{Content: "Second pane"}
                     },
                 }
@@ -217,7 +214,7 @@ internal class CompositeHost : Cell {
                         ReadOnly: ReadOnly,
                         Disabled: Disabled,
                         Wrap: NoWrap ? TextWrap.NoWrap: TextWrap.Wrap,
-                        CreateEditor: CaptureEditor,
+                        ConfigureEditor: CaptureEditor,
                     }
                 )
             )
@@ -241,19 +238,22 @@ internal class RailHost : Cell {
     internal var DisableSelected bool
     internal var Empty bool
     internal var Buttons[]Button = []Button{}
+    internal var Icon Blob?
+    internal var SelectedTextColor Color?
 
     public override func Build() Blob -> Cell.Mount[NavigationRailInput, NavigationRail](
         "rail",
         NavigationRailInput{
             SelectedId: Selected,
             Height: 250,
+            SelectedTextColor: SelectedTextColor,
             OnSelect: (id string) -> {
                 Selected = id
                 Requests++
                 Rebuild()
             },
             Items: Empty ? []NavigationItem{}: []NavigationItem{
-                NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected},
+                NavigationItem{Id: "one", Label: "Rail one", Disabled: DisableSelected, Content: Icon},
                 NavigationItem{Id: "locked", Label: "Rail locked", Disabled: true},
                 NavigationItem{Id: "three", Label: "Rail three"},
             },
@@ -269,14 +269,44 @@ internal class RailHost : Cell {
     )
 }
 
+func NavigationRailOwnership() {
+    using let host = ThemePreferenceHost()
+    host.Resize(400, 300, 400, 300)
+    let original = Color.Rgb(20, 80, 160)
+    let selected = Color.Rgb(200, 30, 40)
+    let handle = ElementHandle()
+    let icon = MaterialIcons.Create("check", 18.0, original)
+    icon.Handle = handle
+    let root = RailHost(){Icon = icon, Selected = "three", SelectedTextColor = selected}
+    let window = Window{Root: root}
+    Theme.Attach(window)
+    window.Attach(host)
+    ThemeFrames(host)
+    for id in []string{"one", "three", "one"} {
+        root.Selected = id
+        root.Rebuild()
+        ThemeFrames(host)
+        let displayed = (root.Buttons[0].Children[0] as Shape)!!
+        Require(icon.Fill!!.Color == original && displayed.Fill!!.Color == (id == "one" ? selected: original),
+            "Navigation rail changed the supplied icon or lost its selected tint")
+        Require(displayed.Path.Equals(icon.Path) && handle.IsMounted && Math.Abs(handle.BorderBox.Width - 18.0) < 0.01,
+            "Navigation rail tint lost icon geometry, style or handle")
+    }
+    root.DisableSelected = true
+    root.Rebuild()
+    ThemeFrames(host)
+    let disabled = (root.Buttons[0].Children[0] as Shape)!!
+    Require(icon.Fill!!.Color == original && disabled.Fill!!.Color == Theme.Read(window).DisabledTextColor,
+        "Navigation rail changed the supplied icon or lost its disabled tint")
+}
+
 func RailInteractions() {
     let host = RailHost()
     let root = ApplicationRoot(host)
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Rail keyboard verification",
-        Width: 250,
-        Height: 300,
+        Size: LayoutSize(250, 300),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -342,8 +372,7 @@ func CompositeInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Goo Widgets composite verification",
-        Width: 700,
-        Height: 610,
+        Size: LayoutSize(700, 610),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -469,7 +498,7 @@ func CompositeInteractions() {
         host.Rebuild()
         PumpFrames(window, 5)
         CaptureIssueProof(window, "composites-wide")
-        window.Width = 390
+        window.Size = LayoutSize(float64(390) / window.UiScale, window.Size.Height)
         PumpFrames(window, 15)
         Require(
             host.TabViewport.ScrollRange.X > 0.0 && host.TabRoot!!.Children.Count == 6,
@@ -527,11 +556,9 @@ internal class PointerCommitHost : Cell {
                 OnCommit: (value float64) -> {
                     Commits[0]++
                 },
-                CreateRoot: (input SliderInput, root Container) -> {
+                ConfigureRoot: (input SliderInput, root Container) -> {
                     SliderRoot = root
-                    return root
-                }
-            }
+                    }}
         ),
         Cell.Mount[ColorPickerInput, ColorPicker](
             "picker",
@@ -556,7 +583,7 @@ internal class PointerCommitHost : Cell {
 
 func PointerCommitCancellation() {
     let host = PointerCommitHost()
-    let window = Window{Title: "Pointer commit cancellation", Root: host, Width: 320, Height: 350}
+    let window = Window{Title: "Pointer commit cancellation", Root: host, Size: LayoutSize(320, 350)}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 8)

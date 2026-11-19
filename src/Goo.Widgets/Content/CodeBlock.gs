@@ -8,6 +8,8 @@ import System
 import System.Collections.Generic
 
 /// Selectable code with host-supplied syntax styles and controlled folding.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct CodeBlockInput {
     /// Code displayed in the read-only editor. Nil uses an empty document.
     var Code string?
@@ -45,10 +47,12 @@ public data struct CodeBlockInput {
     var FontFamily string?
     /// Receives the input and prepared header, and returns the displayed header. Nil keeps the default header.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateHeader Func[CodeBlockInput, Container, Blob]?
-    /// Receives the input and prepared editor, and returns its replacement. Preserve the supplied controller. Read-only state and syntax layers are reapplied. Nil keeps the default editor.
-    /// Hosts must not change state in this callback.
-    var CreateEditor Func[CodeBlockInput, TextEditor, TextEditor]?
+    /// Configures the fresh editor before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Multiline, Accessibility.Name, Accessibility.Role, Controller, Layers (required layer), Layers (required syntax layer), OnChange, ReadOnly.
+    var ConfigureEditor Action[CodeBlockInput, TextEditor]?
 }
 
 /// Owns one read-only core editor and one syntax presentation layer.
@@ -151,7 +155,7 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                     if let copy = input.OnCopy {
                         InvokeInputCallback(copy, code)
                     } else {
-                        input.Window!!.SetClipboardText(code)
+                        input.Window!!.Clipboard.WriteText(code)
                     }
                 },
             }.Build(),
@@ -159,7 +163,9 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
         if let actions = input.Actions {
             header.Children.Add(actions)
         }
-        var editor = TextEditor(controller!!, []TextPresentationLayer{layer!!}){
+        var editor = TextEditor(){
+            Controller = controller!!,
+            Layers = []TextPresentationLayer{layer!!},
             Width = Percent(100),
             Height = Percent(100),
             MinWidth = 0,
@@ -180,25 +186,64 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
             OverflowY = scrolls ? Overflow.Scroll: Overflow.Hidden,
             ScrollbarX = theme.Scrollbar,
             ScrollbarY = theme.Scrollbar,
-            Focus = Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle = Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             Accessibility = Accessibility{
                 Role: AccessibilityRole.TextEditor,
                 Name: input.Language ?? theme.Text("Code"),
                 Multiline: true
             },
         }
-        if let create = input.CreateEditor {
-            editor = create(input, editor)
+        if let configure = input.ConfigureEditor {
+            let originalAccessibilityMultiline = editor.Accessibility?.Multiline
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(input, editor)
+            if editor.Accessibility?.Multiline != originalAccessibilityMultiline {
+                throw InvalidOperationException("CodeBlock owns Accessibility.Multiline; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("CodeBlock owns Accessibility.Name; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("CodeBlock owns Accessibility.Role; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("CodeBlock owns Controller; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("CodeBlock owns OnChange; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("CodeBlock owns ReadOnly; configure CodeBlockInput instead of changing it in ConfigureEditor")
+            }
         }
-        if editor.Controller != controller {
-            throw ArgumentException("CreateEditor must preserve the CodeBlock controller")
-        }
+        editor.Controller = controller!!
         editor.ReadOnly = true
-        editor.Layers = []TextPresentationLayer{layer!!}
+        editor.OnChange = nil
+        if input.ConfigureEditor != nil {
+            let semantics = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            semantics.Role = AccessibilityRole.TextEditor
+            semantics.Name = input.Language ?? theme.Text("Code")
+            semantics.Multiline = true
+            editor.Accessibility = semantics
+        }
+        if input.ConfigureEditor != nil {
+            let layers = editor.Layers
+            if Array.IndexOf(layers, layer!!) < 0 {
+                let combined = [layers.Length + 1]TextPresentationLayer
+                Array.Copy(layers, combined, layers.Length)
+                combined[layers.Length] = layer!!
+                editor.Layers = combined
+            }
+        }
         let body = Container{Width: Percent(100), MinWidth: 0, FlexShrink: 0, Layout: layout, editor}
         if collapsed {
             body.Children.Add(
-                TextEditor(probe!!){
+                TextEditor(){
+                    Controller = probe!!,
                     Width = Percent(100),
                     Padding = theme.ControlPadding,
                     FontFamily = input.FontFamily ?? "monospace",
@@ -238,13 +283,15 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 Cursor: Cursor.Pointer,
                 Disabled: input.OnExpandedChange == nil,
+                DisabledStyle: Style{BackgroundColor: Color.Transparent},
                 OnClick: () -> InvokeInputCallback(input.OnExpandedChange, !input.Expanded),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: label, Expanded: input.Expanded},
-                ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16, theme.MutedTextColor),
-                Text{Content: label, Color: theme.MutedTextColor},
+                ControlIcons.Create(input.Expanded ? ControlIcon.ExpandLess: ControlIcon.ExpandMore, 16,
+                    input.OnExpandedChange == nil ? theme.DisabledTextColor: theme.MutedTextColor),
+                Text{Content: label, Color: input.OnExpandedChange == nil ? theme.DisabledTextColor: theme.MutedTextColor},
             }
             theme.ApplyInteraction(fold, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(fold)
@@ -256,8 +303,8 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
 
 internal data class CodeBlockLayout(Folded bool, Shortest float64, Limit Length?) : LayoutAlgorithm {
     public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
-        let limit = Limit == nil || !Limit!!.HasMagnitude ? available.Height:
-            Math.Min(Limit!!.IsPercent ? available.Height * Limit!!.Magnitude / 100.0: Limit!!.Magnitude, available.Height)
+        let limit = Limit == nil || !Limit.HasMagnitude ? available.Height:
+            Math.Min(Limit.IsPercent ? available.Height * Limit!!.Magnitude / 100.0: Limit!!.Magnitude, available.Height)
         let overflows = !Folded && Shortest > limit
         let size = context.MeasureChild(
             Folded ? 1: 0,

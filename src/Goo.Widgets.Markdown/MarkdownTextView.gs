@@ -12,10 +12,11 @@ internal data struct MarkdownLeafInput {
     var Weight float64
     var Alignment TextAlign
     var Stamp MarkdownLeafStamp?
+    var Theme Theme
 }
 
 /// A leaf starts from a fresh document and mount key, preserving attached controllers and avoiding accumulated undo history.
-internal class MarkdownTextView : Cell, IDisposable {
+internal class MarkdownTextView : Cell[MarkdownLeafInput], IDisposable {
     private var controller TextEditorController?
     private var layer TextPresentationLayer?
     private var current MarkdownLeafInput
@@ -40,10 +41,8 @@ internal class MarkdownTextView : Cell, IDisposable {
         controller?.Dispose()
     }
 
-    internal func Configure(input MarkdownLeafInput, theme Theme) {
-        if controller != nil && current.Equals(input) && presentationTheme == theme {
-            return
-        }
+    protected override func InputChanged(input MarkdownLeafInput) {
+        let theme = input.Theme
         current = input
         presentationTheme = theme
         if controller == nil {
@@ -53,7 +52,6 @@ internal class MarkdownTextView : Cell, IDisposable {
             layer = TextPresentationLayer(document)
         }
         UpdatePresentation(theme)
-        Rebuild()
     }
 
     private func UpdatePresentation(theme Theme) {
@@ -103,12 +101,13 @@ internal class MarkdownTextView : Cell, IDisposable {
         }
     }
 
-    public override func Build() Blob {
+    protected override func Build(input MarkdownLeafInput) Blob {
         let theme = Theme.Read()
-        let input = current
         let model = input.Model!!
         let options = input.Options
-        var editor = TextEditor(controller!!, []TextPresentationLayer{layer!!}){
+        var editor = TextEditor(){
+            Controller = controller!!,
+            Layers = []TextPresentationLayer{layer!!},
             LineHeight = theme.LineHeight,
             FontSize = input.Size,
             FontWeight = input.Weight,
@@ -127,22 +126,52 @@ internal class MarkdownTextView : Cell, IDisposable {
             OverflowY = Overflow.Hidden,
             ScrollbarX = model.Block.Kind == MarkdownBlockKind.Code ? theme.Scrollbar: nil,
         }
-        if let create = options.CreateEditor {
-            editor = create(model.Block, editor)
+        if let configure = options.ConfigureEditor {
+            let originalAccessibilityMultiline = editor.Accessibility?.Multiline
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(model.Block, editor)
+            if editor.Accessibility?.Multiline != originalAccessibilityMultiline {
+                throw InvalidOperationException("MarkdownView owns Accessibility.Multiline; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("MarkdownView owns Accessibility.Name; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("MarkdownView owns Accessibility.Role; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("MarkdownView owns Controller; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("MarkdownView owns OnChange; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("MarkdownView owns ReadOnly; configure MarkdownViewInput instead of changing it in ConfigureEditor")
+            }
         }
-        if editor.Controller != controller {
-            throw ArgumentException("Markdown editor factories must retain the supplied controller")
-        }
+        editor.Controller = controller!!
         editor.ReadOnly = true
-        editor.Layers = []TextPresentationLayer{layer!!}
+        if options.ConfigureEditor != nil {
+            let layers = editor.Layers
+            if Array.IndexOf(layers, layer!!) < 0 {
+                let combined = [layers.Length + 1]TextPresentationLayer
+                Array.Copy(layers, combined, layers.Length)
+                combined[layers.Length] = layer!!
+                editor.Layers = combined
+            }
+        }
         editor.OnChange = nil
         editor.Height = Length.Auto
         editor.FlexShrink = 0.0
-        editor.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextEditor,
-            Name: model.Block.Text ?? "",
-            Multiline: true
-        }
+        let editorAccessibility = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        editorAccessibility.Role = AccessibilityRole.TextEditor
+        editorAccessibility.Name = model.Block.Text ?? ""
+        editorAccessibility.Multiline = true
+        editor.Accessibility = editorAccessibility
         return Container{
             Handle: handle,
             Layout: MarkdownIntrinsicLayout(),
@@ -211,31 +240,31 @@ internal class MarkdownTextView : Cell, IDisposable {
                     Name: run.Text ?? "",
                     Description: run.Title ?? ""
                 },
-                Focus: theme.FocusStyle,
-                Hover: Style{BackgroundColor: Color.Transparent},
-                Active: Style{BackgroundColor: Color.Transparent},
+                FocusStyle: theme.FocusStyle,
+                HoverStyle: Style{BackgroundColor: Color.Transparent},
+                ActiveStyle: Style{BackgroundColor: Color.Transparent},
                 content
             }
             button.Focusable = options.OnLink != nil
             if options.OnLink == nil {
                 button.OnClick = nil
             }
-            WidgetKeyBindings.BindActivation(button)
             if width > 0.0 {
                 button.MaxWidth = width
             }
-            return button
+            WidgetKeyBindings.BindActivation(button)
+        return button
         }
         if run.Kind == MarkdownInlineKind.Code {
             root.Padding = Edges{Left: theme.Spacing * .75, Right: theme.Spacing * .75}
             root.BackgroundColor = options.CodeBackground!!
             root.BorderRadius = theme.ControlRadius!! / 2.0
         } else {
-            root.Accessibility = Accessibility{
-                Role: AccessibilityRole.Image,
-                Name: run.Text ?? "",
-                Description: run.Title ?? ""
-            }
+            let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            rootAccessibility.Role = AccessibilityRole.Image
+            rootAccessibility.Name = run.Text ?? ""
+            rootAccessibility.Description = run.Title ?? ""
+            root.Accessibility = rootAccessibility
         }
         if width > 0.0 {
             root.MaxWidth = width

@@ -10,10 +10,10 @@ internal class GridExample : Cell {
     public override func Build() Blob -> Container{
         Gap: 18,
         Button{
-            BackgroundColor: "#244753",
+            BackgroundColor: Color.Parse("#244753"),
             Padding: 10,
             BorderRadius: 5,
-            Color: "#bcf3ff",
+            Color: Color.Parse("#bcf3ff"),
             OnClick: () -> {
                 narrow = !narrow
             },
@@ -36,9 +36,9 @@ internal class GridExample : Cell {
                     RowSpan: 2,
                     Content: Container{
                         Padding: 8,
-                        BackgroundColor: "#173f36",
+                        BackgroundColor: Color.Parse("#173f36"),
                         BorderRadius: 5,
-                        Text{Content: "Shared", FontSize: 12, Color: "#8de6c9"}
+                        Text{Content: "Shared", FontSize: 12, Color: Color.Parse("#8de6c9")}
                     }
                 },
                 GridItem{Id: "description-label", Row: 2, Content: Text{Content: "Description"}},
@@ -58,8 +58,8 @@ internal class GridExample : Cell {
                     ColumnSpan: 2,
                     Content: Button{
                         Padding: 10,
-                        BackgroundColor: "#37304f",
-                        Color: "#dbcafa",
+                        BackgroundColor: Color.Parse("#37304f"),
+                        Color: Color.Parse("#dbcafa"),
                         BorderRadius: 5,
                         OnClick: () -> {
                             clicks++

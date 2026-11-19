@@ -19,6 +19,8 @@ public enum MediaTransportAction {
 }
 
 /// Immutable input for a mounted MediaTransport.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct MediaTransportInput {
     /// Current media position in seconds.
     var Position float64
@@ -98,12 +100,15 @@ public data struct MediaTransportInput {
     var PrimaryActionStyle Style?
     /// Creates content for an action slot.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateActionContent Func[MediaTransportInput, MediaTransportAction, Blob]?
-    /// Creates an action button from resolved input, slot, content, callback, and disabled state.
-    /// Hosts must not change state in this callback.
-    var CreateAction Func[MediaTransportInput, MediaTransportAction, Blob, Action?, bool, Button]?
+    /// Configures the fresh action before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries), OnClick.
+    var ConfigureAction Action[MediaTransportInput, MediaTransportAction, Blob, Action?, bool, Button]?
     /// Wraps the composed transport root.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[MediaTransportInput, Container, Blob]?
 }
 
@@ -157,6 +162,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                     Width: 0.0,
                     MinWidth: 80.0,
                     FlexGrow: 1.0,
+                    Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     Cell.Mount[SliderInput, Slider](
                         "media-position",
                         SliderInput{
@@ -300,29 +306,23 @@ public open class MediaTransport : Cell[MediaTransportInput] {
     ) Blob {
         let activate Action? = action == nil ? nil: () -> InvokeInputCallback(action)
         let primary = slot == MediaTransportAction.Play || slot == MediaTransportAction.Pause
-        let content = if let content = SlotContent(input, slot) {
-            content
-        } else if let createActionContent = input.CreateActionContent {
-            createActionContent(input, slot)
-        } else {
-            ControlIcons.Create(
-                ActionIcon(slot),
-                if primary {
-                    24.0
-                } else {
-                    20.0
-                },
-                if primary {
-                    input.PrimaryActionTextColor!!
-                } else {
-                    input.TextColor!!
-                }
-            )
-        }
-        let button = if let createAction = input.CreateAction {
-            createAction(input, slot, content, activate, disabled)
-        } else {
-            Button{
+        let supplied = SlotContent(input, slot) ?? input.CreateActionContent?.Invoke(input, slot)
+        let content = supplied ?? ControlIcons.Create(
+            ActionIcon(slot),
+            if primary {
+                24.0
+            } else {
+                20.0
+            },
+            if disabled {
+                theme.DisabledTextColor
+            } else if primary {
+                input.PrimaryActionTextColor!!
+            } else {
+                input.TextColor!!
+            }
+        )
+        let button = Button{
                 Width: if primary {
                     input.PrimaryActionSize!!
                 } else {
@@ -346,8 +346,8 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     input.ActionBackgroundColor!!
                 },
-                Hover: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
-                Active: primary ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+                HoverStyle: Style{BackgroundColor: input.ActionHoverBackgroundColor!!},
+                ActiveStyle: primary ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
@@ -364,7 +364,17 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     activate
                 },
-                content,
+                supplied != nil && disabled ? theme.DisabledSlot(content, theme.TextColor): content,
+            }
+        if let configure = input.ConfigureAction {
+            let originalDisabled = button.Disabled
+            let originalOnClick = button.OnClick
+            configure.Invoke(input, slot, content, activate, disabled, button)
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("MediaTransport owns Disabled; set MediaTransportInput.Disabled instead of changing it in ConfigureAction")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("MediaTransport owns OnClick; configure MediaTransportInput instead of changing it in ConfigureAction")
             }
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)

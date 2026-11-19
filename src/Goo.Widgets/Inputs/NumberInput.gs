@@ -6,6 +6,8 @@ import System
 import System.Globalization
 
 /// Numeric field configuration. Text is committed on Enter or blur.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct NumberInputInput {
     /// Finite controlled numeric value, clamped to Minimum and Maximum for presentation.
     var Value float64
@@ -55,11 +57,13 @@ public data struct NumberInputInput {
     var OnChange Action[float64]?
     /// Receives the final clamped number after a user commit. Nil ignores the notification.
     var OnCommit Action[float64]?
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateEntry Func[NumberInputInput, TextEntry, TextEntry]?
+    /// Configures the fresh entry before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Invalid, Accessibility.Name, Accessibility.OnAction, Accessibility.Range, Accessibility.ReadOnly, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Accessibility.Value, Controlled, Disabled, Focusable, Handle, Key, OnChange, OnSubmit, ReadOnly, Value.
+    var ConfigureEntry Action[NumberInputInput, TextEntry]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[NumberInputInput, Container, Container]?
 }
 
@@ -150,11 +154,71 @@ public open class NumberInput : Cell[NumberInputInput] {
             OnBlur: event -> Commit(),
             OnKeyDown: HandleKey
         }
-        if let create = input.CreateEntry {
-            entry = create(input, entry)
+        if let configure = input.ConfigureEntry {
+            let originalAccessibilityInvalid = entry.Accessibility?.Invalid
+            let originalAccessibilityName = (entry.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = entry.Accessibility?.OnAction
+            let originalAccessibilityReadOnly = entry.Accessibility?.ReadOnly
+            let originalAccessibilityRole = (entry.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityValue = (entry.Accessibility?.Value ?? "")
+            let originalControlled = entry.Controlled
+            let originalDisabled = entry.Disabled
+            let originalFocusable = entry.Focusable
+            let originalKey = entry.Key
+            let originalOnChange = entry.OnChange
+            let originalOnSubmit = entry.OnSubmit
+            let originalReadOnly = entry.ReadOnly
+            let originalValue = entry.Value
+            configure.Invoke(input, entry)
+            if entry.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("NumberInput owns Accessibility.Invalid; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if (entry.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("NumberInput owns Accessibility.Name; set NumberInputInput.AccessibilityName instead of changing it in ConfigureEntry")
+            }
+            if entry.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("NumberInput owns Accessibility.OnAction; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("NumberInput owns Accessibility.ReadOnly; set NumberInputInput.ReadOnly instead of changing it in ConfigureEntry")
+            }
+            if (entry.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("NumberInput owns Accessibility.Role; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if (entry.Accessibility?.Value ?? "") != originalAccessibilityValue {
+                throw InvalidOperationException("NumberInput owns Accessibility.Value; set NumberInputInput.Value instead of changing it in ConfigureEntry")
+            }
+            if entry.Controlled != originalControlled {
+                throw InvalidOperationException("NumberInput owns Controlled; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.Disabled != originalDisabled {
+                throw InvalidOperationException("NumberInput owns Disabled; set NumberInputInput.Disabled instead of changing it in ConfigureEntry")
+            }
+            if entry.Focusable != originalFocusable {
+                throw InvalidOperationException("NumberInput owns Focusable; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.Key != originalKey {
+                throw InvalidOperationException("NumberInput owns Key; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.OnChange != originalOnChange {
+                throw InvalidOperationException("NumberInput owns OnChange; set NumberInputInput.OnChange instead of changing it in ConfigureEntry")
+            }
+            if entry.OnSubmit != originalOnSubmit {
+                throw InvalidOperationException("NumberInput owns OnSubmit; configure NumberInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("NumberInput owns ReadOnly; set NumberInputInput.ReadOnly instead of changing it in ConfigureEntry")
+            }
+            if entry.Value != originalValue {
+                throw InvalidOperationException("NumberInput owns Value; set NumberInputInput.Value instead of changing it in ConfigureEntry")
+            }
         }
+        entry.Value = draft
+        entry.Controlled = true
+        entry.OnChange = Changed
+        entry.OnSubmit = text -> Commit()
         theme.ApplyInteraction(entry, InteractionFamily.Field)
-        entry.Focus = Style{BasedOn: entry.Focus, OutlineWidth: 0}
+        entry.FocusStyle = Style{BasedOn: entry.FocusStyle, OutlineWidth: 0}
         let priorFocus = entry.OnFocus
         let priorBlur = entry.OnBlur
         entry.OnFocus = event -> {
@@ -187,17 +251,15 @@ public open class NumberInput : Cell[NumberInputInput] {
                         Disabled: input.Disabled || input.ReadOnly,
                         AccessibilityName: theme.Text("Unit"),
                         Width: 90,
-                        CreateTrigger: (props, button) -> {
+                        ConfigureTrigger: (props, button) -> {
                             button.Height = Percent(100)
                             button.BorderWidth = 0
                             button.BorderRadius = 0
                             button.BackgroundColor = theme.SunkenColor
-                            return button
-                        },
-                        CreateRoot: (props, root) -> {
+                            },
+                        ConfigureRoot: (props, root) -> {
                             root.Height = Percent(100)
-                            return root
-                        },
+                            },
                     }
                 )
             )
@@ -221,20 +283,24 @@ public open class NumberInput : Cell[NumberInputInput] {
             LabelFor: entry.Handle,
             Width: input.Width ?? defaultWidth,
             CreateContent: (relations AccessibilityRelationships) -> {
-                entry.Accessibility = Accessibility{
-                    Role: AccessibilityRole.SpinButton,
-                    Name: input.AccessibilityName ?? input.Label ?? theme.Text("Number"),
-                    Value: draft,
-                    Invalid: invalid || input.Error != nil,
-                    ReadOnly: input.ReadOnly,
-                    Relationships: relations,
-                    Range: AccessibilityValue{Now: value, Minimum: input.Minimum, Maximum: input.Maximum, Text: draft},
-                    Actions: []AccessibilityAction{
+                let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                entryAccessibility.Role = AccessibilityRole.SpinButton
+                entryAccessibility.Name = input.AccessibilityName ?? input.Label ?? theme.Text("Number")
+                entryAccessibility.Value = draft
+                entryAccessibility.Invalid = invalid || input.Error != nil
+                entryAccessibility.ReadOnly = input.ReadOnly
+                let entryRelationships = if let configured = entryAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+                entryRelationships.LabelledBy = relations.LabelledBy
+                entryRelationships.DescribedBy = relations.DescribedBy
+                entryRelationships.ErrorMessage = relations.ErrorMessage
+                entryAccessibility.Relationships = entryRelationships
+                entryAccessibility.Range = AccessibilityValue{Now: value, Minimum: input.Minimum, Maximum: input.Maximum, Text: draft}
+                entryAccessibility.Actions = []AccessibilityAction{
                         AccessibilityAction.Increment,
                         AccessibilityAction.Decrement,
                         AccessibilityAction.SetValue
-                    },
-                    OnAction: request -> {
+                    }
+                entryAccessibility.OnAction = request -> {
                         if input.Disabled || input.ReadOnly {
                             return false
                         }
@@ -254,7 +320,7 @@ public open class NumberInput : Cell[NumberInputInput] {
                         }
                         return false
                     }
-                }
+                entry.Accessibility = entryAccessibility
                 return content
             }
         }.Build()
@@ -293,7 +359,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             return
         }
         let parsed = Parsed()
-        if parsed == nil || !Double.IsFinite(parsed!!) {
+        if parsed == nil || !Double.IsFinite(parsed) {
             invalid = true
             Rebuild()
             return
@@ -320,7 +386,7 @@ public open class NumberInput : Cell[NumberInputInput] {
             return
         }
         let parsed = Parsed()
-        let start = parsed != nil && Double.IsFinite(parsed!!) ? parsed!!: value
+        let start = parsed != nil && Double.IsFinite(parsed) ? parsed: value
         SetValue(start + direction * (page ? current.PageStep ?? ((current.Step ?? 1) * 10): current.Step ?? 1))
     }
 
@@ -359,14 +425,15 @@ public open class NumberInput : Cell[NumberInputInput] {
             Disabled: current.Disabled || current.ReadOnly,
             Focusable: !current.Disabled && !current.ReadOnly,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             OnClick: () -> {
                 Step(direction)
             },
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            ControlIcons.Create(icon, 14, theme.MutedTextColor)
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
+            ControlIcons.Create(icon, 14, current.Disabled || current.ReadOnly ? theme.DisabledTextColor: theme.MutedTextColor)
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(button)

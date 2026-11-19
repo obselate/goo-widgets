@@ -8,6 +8,9 @@ import System
 import System.Collections.Generic
 
 /// A host-owned tree node. IDs are unique across the entire hierarchy, including collapsed descendants.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TreeNode {
     /// Required stable identity.
     var Id string?
@@ -107,19 +110,24 @@ public data struct TreeViewInput {
     var SelectedColor Color?
     /// Customizes content in the standard row slots.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[TreeViewInput, TreeViewRow, Blob, Blob]?
-    /// Customizes the expansion button; required identity and input wiring are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateExpander Func[TreeViewInput, TreeViewRow, Button, Button]?
-    /// Customizes the composed Checkbox button; required identity and input wiring are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateCheck Func[TreeViewInput, TreeViewRow, Button, Button]?
-    /// Standard slots are added before this factory. Custom children are kept; identity, input, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[TreeViewInput, TreeViewRow, Container, Container]?
-    /// Customizes root appearance; viewport, focus, and tree semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TreeViewInput, Container, Container]?
+    /// Configures the fresh expander before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, Disabled, Focusable, Key, OnClick, TabStop.
+    var ConfigureExpander Action[TreeViewInput, TreeViewRow, Button]?
+    /// Configures the fresh check before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, Disabled, Focusable, Key, OnClick, TabStop.
+    var ConfigureCheck Action[TreeViewInput, TreeViewRow, Button]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Disabled, Focusable, Handle, Key, OnClick, OnFocus, OnPointerDown, TabStop.
+    var ConfigureRow Action[TreeViewInput, TreeViewRow, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.MultiSelectable, Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Disabled, FocusTarget, Focusable, Handle, OnBlur, OnFocus, OnKeyDown, OnPointerDown.
+    var ConfigureRoot Action[TreeViewInput, Container]?
 }
 
 internal data struct TreeWalk {
@@ -288,15 +296,15 @@ public open class TreeView : Cell[TreeViewInput] {
         let snapshot = input
         let key((TreeViewRow) -> string) = (row TreeViewRow) -> row.Node.Id!!
         let build((TreeViewRow) -> Blob) = (row TreeViewRow) -> BuildRow(snapshot, row)
-        let content Virtual = Virtual(
-            VirtualRowsSource[TreeViewRow](
+        let content Virtual = Virtual{
+            Source: VirtualRowsSource[TreeViewRow](
                 rows,
                 virtualItemExtent(input.RowHeight!!, "estimatedItemHeight"),
                 key,
                 build,
                 nil
             )
-        )
+        }
         content.Key = "rows"
         content.Handle = viewport
         let fullHeight Length = float64(rows.Count) * input.RowHeight!!
@@ -340,8 +348,54 @@ public open class TreeView : Cell[TreeViewInput] {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
+        root.Children.Clear()
+        root.Children.Add(scroll)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityMultiSelectable = root.Accessibility?.MultiSelectable
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusTarget = root.FocusTarget
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalOnBlur = root.OnBlur
+            let originalOnFocus = root.OnFocus
+            let originalOnKeyDown = root.OnKeyDown
+            let originalOnPointerDown = root.OnPointerDown
+            configure.Invoke(input, root)
+            if root.Accessibility?.MultiSelectable != originalAccessibilityMultiSelectable {
+                throw InvalidOperationException("TreeView owns Accessibility.MultiSelectable; set TreeViewInput.MultiSelectable instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TreeView owns Accessibility.Name; set TreeViewInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TreeView owns Accessibility.Role; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.FocusTarget != originalFocusTarget {
+                throw InvalidOperationException("TreeView owns FocusTarget; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("TreeView owns Handle; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnBlur != originalOnBlur {
+                throw InvalidOperationException("TreeView owns OnBlur; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnFocus != originalOnFocus {
+                throw InvalidOperationException("TreeView owns OnFocus; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("TreeView owns OnKeyDown; set TreeViewInput.OnKeyDown instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("TreeView owns OnPointerDown; configure TreeViewInput instead of changing it in ConfigureRoot")
+            }
         }
         root.Handle = rootHandle
         root.Direction = theme.Direction
@@ -368,14 +422,14 @@ public open class TreeView : Cell[TreeViewInput] {
         }
         let activeHandle ElementHandle? = activeId == nil ? nil: Handle(activeId!!)
         root.FocusTarget = activeHandle
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Tree,
-            Name: input.AccessibilityName!!,
-            MultiSelectable: input.Multiple || input.MultiSelectable,
-            Relationships: AccessibilityRelationships{ActiveDescendant: activeHandle}
-        }
-        root.Children.Clear()
-        root.Children.Add(scroll)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Tree
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.MultiSelectable = input.Multiple || input.MultiSelectable
+        let rootRelationships = if let configured = rootAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        rootRelationships.ActiveDescendant = activeHandle
+        rootAccessibility.Relationships = rootRelationships
+        root.Accessibility = rootAccessibility
         return root
     }
 
@@ -560,17 +614,44 @@ public open class TreeView : Cell[TreeViewInput] {
                 Height: Math.Min(theme.ControlHeight, snapshot.RowHeight!!),
                 BackgroundColor: Color.Transparent,
                 Padding: theme.Spacing / 2.0,
-                ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                ControlIcons.Create(row.Expanded ? ControlIcon.ExpandMore: theme.RightToLeft ? ControlIcon.ChevronLeft: ControlIcon.ChevronRight, 16,
+                    row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
             }
-            if let create = snapshot.CreateExpander {
-                expander = create(snapshot, row, expander)
+            if let configure = snapshot.ConfigureExpander {
+                let originalAccessibilityHidden = (expander.Accessibility?.Hidden ?? false)
+                let originalDisabled = expander.Disabled
+                let originalFocusable = expander.Focusable
+                let originalKey = expander.Key
+                let originalOnClick = expander.OnClick
+                let originalTabStop = expander.TabStop
+                configure.Invoke(snapshot, row, expander)
+                if (expander.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                    throw InvalidOperationException("TreeView owns Accessibility.Hidden; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.Disabled != originalDisabled {
+                    throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureExpander")
+                }
+                if expander.Focusable != originalFocusable {
+                    throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.Key != originalKey {
+                    throw InvalidOperationException("TreeView owns Key; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.OnClick != originalOnClick {
+                    throw InvalidOperationException("TreeView owns OnClick; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
+                if expander.TabStop != originalTabStop {
+                    throw InvalidOperationException("TreeView owns TabStop; configure TreeViewInput instead of changing it in ConfigureExpander")
+                }
             }
             expander.Key = "expander"
             expander.Focusable = false
             expander.TabStop = false
             expander.Disabled = row.Disabled || snapshot.OnExpandedChange == nil
             expander.OnClick = () -> Expand(id, !row.Expanded)
-            expander.Accessibility = Accessibility{Hidden: true}
+            let expanderAccessibility = if let configured = expander.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            expanderAccessibility.Hidden = true
+            expander.Accessibility = expanderAccessibility
             children.Add(expander)
         } else {
             children.Add(
@@ -587,19 +668,44 @@ public open class TreeView : Cell[TreeViewInput] {
                 Checkbox{
                     Value: row.Node.CheckState,
                     Disabled: row.Disabled || snapshot.OnCheckChange == nil,
-                    DisabledOpacity: row.Disabled || snapshot.Disabled ? 1.0: nil,
                     OnChange: (state AccessibilityChecked) -> Check(id)
                 }.Build() as Button
             )!!
-            if let create = snapshot.CreateCheck {
-                check = create(snapshot, row, check)
+            if let configure = snapshot.ConfigureCheck {
+                let originalAccessibilityHidden = (check.Accessibility?.Hidden ?? false)
+                let originalDisabled = check.Disabled
+                let originalFocusable = check.Focusable
+                let originalKey = check.Key
+                let originalOnClick = check.OnClick
+                let originalTabStop = check.TabStop
+                configure.Invoke(snapshot, row, check)
+                if (check.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                    throw InvalidOperationException("TreeView owns Accessibility.Hidden; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.Disabled != originalDisabled {
+                    throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureCheck")
+                }
+                if check.Focusable != originalFocusable {
+                    throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.Key != originalKey {
+                    throw InvalidOperationException("TreeView owns Key; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.OnClick != originalOnClick {
+                    throw InvalidOperationException("TreeView owns OnClick; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
+                if check.TabStop != originalTabStop {
+                    throw InvalidOperationException("TreeView owns TabStop; configure TreeViewInput instead of changing it in ConfigureCheck")
+                }
             }
             check.Key = "check"
             check.Focusable = false
             check.TabStop = false
             check.Disabled = row.Disabled || snapshot.OnCheckChange == nil
             check.OnClick = () -> Check(id)
-            check.Accessibility = Accessibility{Hidden: true}
+            let checkAccessibility = if let configured = check.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            checkAccessibility.Hidden = true
+            check.Accessibility = checkAccessibility
             children.Add(check)
         }
         var label Blob = row
@@ -618,7 +724,13 @@ public open class TreeView : Cell[TreeViewInput] {
         if let create = snapshot.CreateContent {
             label = create(snapshot, row, label)
         }
-        children.Add(Container{Key: "content", FlexGrow: 1, FlexShrink: 1, MinWidth: 0, label})
+        children.Add(Container{
+            Key: "content",
+            FlexGrow: 1,
+            FlexShrink: 1,
+            MinWidth: 0,
+            (row.Disabled || snapshot.Disabled) && row.Node.Content != nil ? theme.DisabledSlot(label, theme.TextColor): label
+        })
         var root = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -627,8 +739,8 @@ public open class TreeView : Cell[TreeViewInput] {
             PaddingStart: theme.ControlPadding + float64(row.Depth) * snapshot.Indent!!,
             BackgroundColor: row.Selected ? snapshot.SelectedColor!!: Color.Transparent,
             BorderRadius: theme.RowInset > 0.0 ? theme.ControlRadius!!: 0.0,
-            Hover: row.Selected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
-            Active: row.Selected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            HoverStyle: row.Selected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            ActiveStyle: row.Selected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -640,8 +752,40 @@ public open class TreeView : Cell[TreeViewInput] {
         if row.Selected && theme.Selection == SelectionStyle.Indicator {
             root.Children.Add(theme.SelectionBar())
         }
-        if let create = snapshot.CreateRow {
-            root = create(snapshot, row, root)
+        if let configure = snapshot.ConfigureRow {
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalKey = root.Key
+            let originalOnClick = root.OnClick
+            let originalOnFocus = root.OnFocus
+            let originalOnPointerDown = root.OnPointerDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(snapshot, row, root)
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("TreeView owns Disabled; set TreeViewInput.Disabled instead of changing it in ConfigureRow")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("TreeView owns Focusable; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("TreeView owns Handle; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Key != originalKey {
+                throw InvalidOperationException("TreeView owns Key; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("TreeView owns OnClick; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnFocus != originalOnFocus {
+                throw InvalidOperationException("TreeView owns OnFocus; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("TreeView owns OnPointerDown; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("TreeView owns TabStop; configure TreeViewInput instead of changing it in ConfigureRow")
+            }
         }
         theme.ApplyInteraction(root, InteractionFamily.Row, row.Selected)
         root.Key = id
@@ -661,7 +805,7 @@ public open class TreeView : Cell[TreeViewInput] {
         root.OnClick = () -> {
             if !clickFromChild {
                 if snapshot.OnSelectionChange != nil {
-                    Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift)
+                    Select(id, clickModifiers.HasPrimary, clickModifiers.Shift)
                     if snapshot.ExpandOnActivate && branch {
                         Expand(id, !row.Expanded)
                     }
@@ -797,7 +941,7 @@ public open class TreeView : Cell[TreeViewInput] {
         if index < 0 {
             return
         }
-        if input.Multiple && (e.Modifiers.Ctrl || e.Modifiers.Super) && e.Key == Key.A {
+        if input.Multiple && e.Modifiers.HasPrimary && e.Key == Key.A {
             let ids = List[string]()
             for item in rows {
                 if !item.Disabled {
@@ -854,7 +998,7 @@ public open class TreeView : Cell[TreeViewInput] {
             if row.Node.CheckState != AccessibilityChecked.Unspecified {
                 Check(row.Node.Id!!)
             } else {
-                Select(row.Node.Id!!, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+                Select(row.Node.Id!!, e.Modifiers.HasPrimary, e.Modifiers.Shift)
             }
         } else if e.Key == Key.F2 {
             InvokeInputCallback(input.OnRename, row.Node.Id!!)
@@ -868,8 +1012,8 @@ public open class TreeView : Cell[TreeViewInput] {
             if next != index &&
                 input.OnSelectionChange != nil &&
                 (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Home || e.Key == Key.End) &&
-                (!(e.Modifiers.Ctrl || e.Modifiers.Super) || e.Modifiers.Shift) {
-                Select(id, e.Modifiers.Ctrl || e.Modifiers.Super, e.Modifiers.Shift)
+                (!e.Modifiers.HasPrimary || e.Modifiers.Shift) {
+                Select(id, e.Modifiers.HasPrimary, e.Modifiers.Shift)
             } else {
                 Activate(id)
             }

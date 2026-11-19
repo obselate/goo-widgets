@@ -6,25 +6,26 @@ import Goo.Widgets
 import System
 import System.Collections.Generic
 
-/// Composes touch editing for one Editor primitive within a Content container.
+/// Composes touch editing around a text control and its content.
 public data struct TouchTextEditingInput {
-    /// Contains the editor and receives its overlay without adding a layout wrapper.
+    /// Content containing the editor. Its declaration stays unchanged.
     var Content Container
-    /// The TextEntry or TextEditor declaration contained in Content.
-    var Editor Blob
+    /// Handle authored on the TextEntry or TextEditor inside Content before hand-off.
+    var Editor ElementHandle
+    /// Styles the gesture wrapper that replaces Content as the parent layout child.
+    var RootStyle Style?
     /// Nil enables touch editing.
     var Enabled bool?
 }
 
 /// Adds long-press selection, endpoint handles and an edit toolbar to a text field.
 public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDisposable {
-    private let defaultHandle ElementHandle = ElementHandle()
     private let viewportHandle ElementHandle = ElementHandle()
     private let toolbarHandle ElementHandle = ElementHandle()
     private var viewport ElementRect
     private let hold LongPressGesture
     private let defaultGestures []GestureRecognizer
-    private var handle ElementHandle
+    private var handle ElementHandle?
     private var window Window?
     private var current TouchTextEditingInput
     private var theme Theme
@@ -38,8 +39,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
     private var focusId int64
     private var dragPoint Point
     private var autoScroll WindowTimer?
-    private var overlay Portal?
-    private var hookedEditor Blob?
+    private var overlayCell TouchTextEditingOverlay?
     private var dragOffset Point
     private var pressedCommand TextCommandKind?
     private var pressedPointer int64 = -1
@@ -48,10 +48,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
 
     /// Creates a mounted touch-editing composition.
     public init() {
-        handle = defaultHandle
         hold = LongPressGesture(Press)
         defaultGestures = []GestureRecognizer{hold}
-        handle.MetricsChanged += Metrics
         viewportHandle.MetricsChanged += ChromeMetrics
         toolbarHandle.MetricsChanged += ChromeMetrics
     }
@@ -61,129 +59,118 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         if disposed { return }
         disposed = true
         StopMovement()
-        handle.MetricsChanged -= Metrics
+        if let previous = handle { previous.MetricsChanged -= Metrics }
         viewportHandle.MetricsChanged -= ChromeMetrics
         toolbarHandle.MetricsChanged -= ChromeMetrics
         BindWindow(nil)
     }
 
     protected override func Build(input TouchTextEditingInput) Blob {
-        if input.Content == nil || !(input.Editor is TextEntry || input.Editor is TextEditor) {
-            throw ArgumentException("TouchTextEditing requires Content and a text Editor")
+        let content = input.Content
+        if content == nil || input.Editor == nil {
+            throw ArgumentException("TouchTextEditing requires Content and an editor handle")
         }
-        if let overlay = overlay { current.Content?.Children.Remove(overlay) }
-        overlay = nil
-        current = input
         theme = Theme.Read()
         let owner = Theme.Key.Window
         BindWindow(owner)
         viewport = viewportHandle.IsMounted ? viewportHandle.BorderBox : ElementRect{
-            Width: float64(owner.Width) / float64(owner.UiScale),
-            Height: float64(owner.Height) / float64(owner.UiScale),
+            Width: owner.Size.Width,
+            Height: owner.Size.Height,
         }
-        let next = input.Editor.Handle ?? defaultHandle
+        let next = input.Editor
         if handle != next {
-            handle.MetricsChanged -= Metrics
+            if let previous = handle { previous.MetricsChanged -= Metrics }
             handle = next
-            handle.MetricsChanged += Metrics
+            next.MetricsChanged += Metrics
         }
-        input.Editor.Handle = handle
-        BindEditor(input.Editor)
-        BindGestures(input.Editor, input.Enabled != false)
-        if input.Enabled == false {
+        current = input
+        overlayCell?.Rebuild()
+        let root = Container{BasedOn: input.RootStyle, HitTestSelf: false, content}
+        if input.Enabled != false {
+            if let custom = root.Gestures {
+                let gestures = [custom.Count + 1]GestureRecognizer
+                for index in 0 ... custom.Count { gestures[index] = custom[index] }
+                gestures[custom.Count] = hold
+                root.Gestures = gestures
+            } else { root.Gestures = defaultGestures }
+        }
+        let priorFocus = root.OnFocus
+        let priorBlur = root.OnBlur
+        let priorPointerUp = root.OnPointerUp
+        root.OnFocus = (event FocusEvent) -> {
+            focused = true
+            priorFocus?.Invoke(event)
+        }
+        root.OnBlur = (event FocusEvent) -> {
+            focused = false
+            Hide()
+            priorBlur?.Invoke(event)
+        }
+        root.OnPointerUp = (event PointerEvent) -> {
+            if current.Enabled != false && event.Device == PointerDevice.Touch && !moving && focused {
+                focusId = window?.Focus.Editor?.FocusId ?? 0L
+                visible = true
+                overlayCell?.Rebuild()
+            }
+            priorPointerUp?.Invoke(event)
+        }
+        root.Children.Add(Cell.Mount[TouchTextEditing, TouchTextEditingOverlay]("touch-editing", this))
+        return root
+    }
+
+    internal func BuildOverlay(child TouchTextEditingOverlay) Blob {
+        overlayCell = child
+        let overlay = Portal{Handle: viewportHandle,
+            Width: Percent(100), Height: Percent(100), ZIndex: 40}
+        if current.Enabled == false {
             visible = false
             StopMovement()
-            return input.Content
+            return overlay
         }
-        if visible && focused && handle.IsMounted {
-            guard let editor = window?.PlatformInput.Editor, let selection = window?.PlatformInput.Selection else {
-                return input.Content
+        if visible && focused && handle!!.IsMounted {
+            guard let editor = window?.Focus.Editor, let selection = window?.Focus.Selection else {
+                return overlay
             }
             focusId = editor.FocusId
-            let keyed = input.Content.Children.Count > 0 && input.Content.Children[0].Key != nil
-            let overlay = Portal{Key: keyed ? "touch-editing" : nil, Handle: viewportHandle,
-                Width: Percent(100), Height: Percent(100), ZIndex: 40}
-            this.overlay = overlay
             if moving { overlay.Add(Magnifier()) }
             if selection.Anchor.Offset != selection.Active.Offset || (moving && movingAnchor) {
                 AddHandle(overlay, selection.Anchor, true)
             }
             AddHandle(overlay, selection.Active, false)
             if !moving { overlay.Add(Toolbar(editor)) }
-            input.Content.Children.Add(overlay)
         }
-        return input.Content
-    }
-
-    private func BindGestures(editor Blob, enabled bool) {
-        let previous = editor.Gestures
-        if previous == nil || (previous.Count == 1 && previous[0] == hold) {
-            editor.Gestures = enabled ? defaultGestures : nil
-            return
-        }
-        for recognizer in previous {
-            if recognizer == hold && enabled { return }
-        }
-        let gestures = List[GestureRecognizer](previous.Count + 1)
-        for recognizer in previous { if recognizer != hold { gestures.Add(recognizer) } }
-        if enabled { gestures.Add(hold) }
-        editor.Gestures = gestures.Count == 0 ? nil : gestures
-    }
-
-    private func BindEditor(editor Blob) {
-        if hookedEditor == editor { return }
-        hookedEditor = editor
-        let priorFocus = editor.OnFocus
-        let priorBlur = editor.OnBlur
-        let priorUp = editor.OnPointerUp
-        editor.OnFocus = (event FocusEvent) -> {
-            focused = true
-            priorFocus?.Invoke(event)
-        }
-        editor.OnBlur = (event FocusEvent) -> {
-            focused = false
-            Hide()
-            priorBlur?.Invoke(event)
-        }
-        editor.OnPointerUp = (event PointerEvent) -> {
-            priorUp?.Invoke(event)
-            if current.Enabled != false && event.Device == PointerDevice.Touch && !moving && focused {
-                focusId = window?.PlatformInput.Editor?.FocusId ?? 0L
-                visible = true
-                Rebuild()
-            }
-        }
+        return overlay
     }
 
     private func BindWindow(next Window?) {
         if window == next { return }
         if let previous = window {
-            previous.PlatformInput.EditorChanged -= EditorChanged
+            previous.Focus.EditorChanged -= EditorChanged
             previous.FocusChanged -= WindowFocus
         }
         window = next
         if let next = next {
-            next.PlatformInput.EditorChanged += EditorChanged
+            next.Focus.EditorChanged += EditorChanged
             next.FocusChanged += WindowFocus
         }
     }
 
     private func Press(event PressGestureEvent) {
-        if disposed || current.Enabled == false || !handle.IsMounted || !focused { return }
+        if disposed || current.Enabled == false || !handle!!.IsMounted || !focused { return }
         guard let window = window else { return }
         if event.Phase == GesturePhase.Started {
-            guard let editor = window.PlatformInput.Editor else { return }
+            guard let editor = window.Focus.Editor else { return }
             focusId = editor.FocusId
-            if handle.TryGetTextPositionAt(event.WindowPosition, TextCoordinateSpace.Window, out var position) {
-                if !window.PlatformInput.Execute(TextCommand{Kind: TextCommandKind.SelectWord, Position: position})
+            if handle!!.TryGetTextPositionAt(event.WindowPosition, TextCoordinateSpace.Window, out var position) {
+                if !window.Focus.Execute(TextCommand{Kind: TextCommandKind.SelectWord, Position: position})
                     || !ValidEditor() { return }
-                pressSelection = window.PlatformInput.Selection
+                pressSelection = window.Focus.Selection
                 visible = true
                 moving = true
                 movingAnchor = false
                 dragOffset = Point{}
                 dragPoint = event.WindowPosition
-                autoScroll = window.SetInterval(AutoScroll, 16.0)
+                autoScroll = window.Every(16.0, AutoScroll)
             }
         } else if event.Phase == GesturePhase.Changed && moving {
             MoveSelection(event.WindowPosition, false)
@@ -192,11 +179,11 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         } else if event.Phase == GesturePhase.Completed {
             StopMovement()
         }
-        Rebuild()
+        overlayCell?.Rebuild()
     }
 
     private func AddHandle(overlay Portal, position TextPosition, anchor bool) {
-        if !handle.TryGetTextCaretRect(position, TextCoordinateSpace.Window, out var caret) { return }
+        if !handle!!.TryGetTextCaretRect(position, TextCoordinateSpace.Window, out var caret) { return }
         let x = Math.Clamp(caret.X - 20.0, viewport.X, Math.Max(viewport.X, viewport.X + viewport.Width - 40.0))
         let y = Math.Clamp(caret.Y + caret.Height - 6.0, viewport.Y,
             Math.Max(viewport.Y, viewport.Y + viewport.Height - 40.0))
@@ -229,9 +216,9 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         pressSelection = nil
         dragPoint = event.WindowPosition
         dragOffset = Point{}
-        if let selection = window!!.PlatformInput.Selection {
+        if let selection = window!!.Focus.Selection {
             let position = anchor ? selection.Anchor : selection.Active
-            if handle.TryGetTextCaretRect(position, TextCoordinateSpace.Window, out var caret) {
+            if handle!!.TryGetTextCaretRect(position, TextCoordinateSpace.Window, out var caret) {
                 dragOffset = Point{X: caret.X - event.WindowPosition.X,
                     Y: caret.Y + caret.Height * 0.5 - event.WindowPosition.Y}
             }
@@ -240,8 +227,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         event.PreventDefault()
         event.StopPropagation()
         autoScroll?.Dispose()
-        autoScroll = window!!.SetInterval(AutoScroll, 16.0)
-        Rebuild()
+        autoScroll = window!!.Every(16.0, AutoScroll)
+        overlayCell?.Rebuild()
     }
 
     private func MoveHandle(event PointerEvent) {
@@ -258,15 +245,15 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         event.PreventDefault()
         event.StopPropagation()
         StopMovement()
-        Rebuild()
+        overlayCell?.Rebuild()
     }
 
     private func MoveSelection(point Point, anchor bool) {
         dragPoint = point
         if !ValidEditor() { Hide()
             return }
-        guard let selection = window!!.PlatformInput.Selection else { return }
-        if handle.TryGetTextPositionAt(point, TextCoordinateSpace.Window, out var position) {
+        guard let selection = window!!.Focus.Selection else { return }
+        if handle!!.TryGetTextPositionAt(point, TextCoordinateSpace.Window, out var position) {
             var next = TextSelection{
                 Anchor: anchor ? position : selection.Anchor,
                 Active: anchor ? selection.Active : position,
@@ -278,20 +265,20 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
                     TextSelection{Anchor: original.Anchor, Active: position}
                 } else { original }
             }
-            window!!.PlatformInput.SetSelection(next)
+            window!!.Focus.SetSelection(next)
         }
-        Rebuild()
+        overlayCell?.Rebuild()
     }
 
     private func AutoScroll() {
         if !moving || !ValidEditor() { StopMovement()
             return }
-        let box = handle.ContentBox
+        let box = handle!!.ContentBox
         let x = dragPoint.X < box.X ? -8.0 : dragPoint.X > box.X + box.Width ? 8.0 : 0.0
         let y = dragPoint.Y < box.Y ? -8.0 : dragPoint.Y > box.Y + box.Height ? 8.0 : 0.0
         if x == 0.0 && y == 0.0 { return }
-        let before = handle.ScrollOffset
-        if handle.JumpTo(Math.Max(0.0, before.X + x), Math.Max(0.0, before.Y + y)) {
+        let before = handle!!.ScrollOffset
+        if handle!!.JumpTo(Math.Max(0.0, before.X + x), Math.Max(0.0, before.Y + y)) {
             MoveSelection(dragPoint, movingAnchor)
         }
     }
@@ -324,8 +311,8 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         if !commandHandles.ContainsKey(kind) { commandHandles.Add(kind, ElementHandle()) }
         let buttonHandle = commandHandles[kind]
         let activate = () -> {
-            if ValidEditor() { window!!.PlatformInput.Execute(TextCommand{Kind: kind}) }
-            Rebuild()
+            if ValidEditor() { window!!.Focus.Execute(TextCommand{Kind: kind}) }
+            overlayCell?.Rebuild()
         }
         return Button{
             Key: label,
@@ -365,7 +352,7 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         if request.Action != AccessibilityAction.Increment && request.Action != AccessibilityAction.Decrement {
             return false
         }
-        let input = window!!.PlatformInput
+        let input = window!!.Focus
         guard let selection = input.Selection else { return false }
         if anchor {
             input.SetSelection(TextSelection{Anchor: selection.Active, Active: selection.Anchor})
@@ -381,27 +368,31 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
                 Anchor: updated.Active, Active: selection.Active,
             }) }
         }
-        Rebuild()
+        overlayCell?.Rebuild()
         return moved
     }
 
-    private func ValidEditor() bool -> !disposed && focused && handle.IsMounted
-        && window?.PlatformInput.Editor?.FocusId == focusId
+    private func ValidEditor() bool -> !disposed && focused && handle!!.IsMounted
+        && window?.Focus.Editor?.FocusId == focusId
 
     private func EditorChanged(editor FocusedEditorSnapshot?) {
         if !visible { return }
         if editor?.FocusId != focusId || !focused { Hide()
             return }
-        Rebuild()
+        overlayCell?.Rebuild()
     }
 
     private func Metrics(metrics ElementMetrics) {
         if !metrics.IsMounted { Hide() }
-        if visible { Rebuild() }
+        if visible { overlayCell?.Rebuild() }
     }
 
     private func ChromeMetrics(metrics ElementMetrics) {
-        if visible && metrics.IsMounted { Rebuild() }
+        if viewportHandle.IsMounted { viewport = viewportHandle.BorderBox }
+        if !disposed && metrics.IsMounted && handle?.IsMounted != true {
+            throw InvalidOperationException("TouchTextEditing.Editor must be mounted inside Content")
+        }
+        if visible && metrics.IsMounted { overlayCell?.Rebuild() }
     }
 
     private func WindowFocus(value bool) {
@@ -420,6 +411,10 @@ public open partial class TouchTextEditing : Cell[TouchTextEditingInput], IDispo
         let shown = visible
         visible = false
         StopMovement()
-        if shown && !disposed { Rebuild() }
+        if shown && !disposed { overlayCell?.Rebuild() }
     }
+}
+
+internal class TouchTextEditingOverlay : Cell[TouchTextEditing] {
+    protected override func Build(input TouchTextEditing) Blob -> input.BuildOverlay(this)
 }

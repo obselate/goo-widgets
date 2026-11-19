@@ -94,7 +94,7 @@ internal class TreeHost : Cell {
     internal let Checks Dictionary[string, Button] = Dictionary[string, Button]()
     internal let After ElementHandle = ElementHandle()
 
-    private func Row(input TreeViewInput, row TreeViewRow, prepared Container) Container {
+    private func Row(input TreeViewInput, row TreeViewRow, prepared Container) {
         var contentFound bool
         for child in prepared.Children {
             if child is Container && child.Key == "content" {
@@ -104,24 +104,20 @@ internal class TreeHost : Cell {
         Require(contentFound, "Tree row customization did not receive composed children")
         prepared.Children.Add(Container{Key: "custom-row", Width: 0, Height: 0})
         Rows[row.Node.Id!!] = prepared
-        return prepared
     }
 
-    private func Expander(input TreeViewInput, row TreeViewRow, prepared Button) Button {
+    private func Expander(input TreeViewInput, row TreeViewRow, prepared Button) {
         prepared.Handle = ElementHandle()
         Expanders[row.Node.Id!!] = prepared
-        return prepared
     }
 
-    private func Check(input TreeViewInput, row TreeViewRow, prepared Button) Button {
+    private func Check(input TreeViewInput, row TreeViewRow, prepared Button) {
         prepared.Handle = ElementHandle()
         Checks[row.Node.Id!!] = prepared
-        return prepared
     }
 
-    private func CaptureRoot(input TreeViewInput, prepared Container) Container {
+    private func CaptureRoot(input TreeViewInput, prepared Container) {
         Root = prepared
-        return prepared
     }
 
     private func Expand(id string, state bool) {
@@ -215,10 +211,10 @@ internal class TreeHost : Cell {
             },
             OnExpandedChange: Expand,
             OnCheckChange: ChangeCheck,
-            CreateRow: Row,
-            CreateCheck: Check,
-            CreateExpander: Expander,
-            CreateRoot: CaptureRoot
+            ConfigureRow: Row,
+            ConfigureCheck: Check,
+            ConfigureExpander: Expander,
+            ConfigureRoot: CaptureRoot
         }
         if !Passive {
             configuration.OnSelect = Select
@@ -228,12 +224,12 @@ internal class TreeHost : Cell {
             Height: Percent(100),
             Padding: 24,
             Gap: 18,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "TreeView · controlled hierarchy", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "TreeView · controlled hierarchy", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Arrow keys navigate. Space changes a check; Enter selects a row.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Cell.Mount[TreeViewInput, TreeView]("tree", configuration),
             Button{
@@ -241,8 +237,8 @@ internal class TreeHost : Cell {
                 Handle: After,
                 Focusable: true,
                 Padding: 10,
-                BackgroundColor: "#2d3550",
-                Color: "#e0e7ff",
+                BackgroundColor: Color.Parse("#2d3550"),
+                Color: Color.Parse("#e0e7ff"),
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "After tree"},
                 Text{Content: "Next control"}
             }
@@ -261,8 +257,7 @@ func TreeViewControlledReveal() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TreeView controlled reveal",
-        Width: 620,
-        Height: 480,
+        Size: LayoutSize(620, 480),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics
     }
@@ -327,8 +322,7 @@ func TreeViewInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TreeView verification",
-        Width: 620,
-        Height: 480,
+        Size: LayoutSize(620, 480),
         Root: root,
         AccessibilityAdapter: semantics
     }

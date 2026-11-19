@@ -5,6 +5,9 @@ import Goo.Widgets
 import System
 
 /// A small vector donut chart with optional activation and legend composition.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct DonutChart {
     /// Stable, labeled, nonnegative entries. Nil resolves to an empty series.
     var Series[]?ChartSeries
@@ -24,14 +27,21 @@ public data struct DonutChart {
     var OnClick Action[string]?
     /// Optional hover identity; nil means the pointer left a segment.
     var OnHover Action[string?]?
-    /// Customizes a slice. Path, position, identity, handlers, and semantics are reapplied.
-    var CreateSlice Func[DonutChart, ChartSegment, Shape, Shape]?
+    /// Configures the fresh slice before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Focusable, Key, KeyBindings (required entries), OnClick, OnPointerEnter, OnPointerLeave.
+    var ConfigureSlice Action[DonutChart, ChartSegment, Shape]?
     /// Receives the resolved chart, segment, and prepared legend label.
+    /// Return a fresh element or the supplied default.
     var CreateLabel Func[DonutChart, ChartSegment, Text, Text]?
-    /// Customizes the prepared legend.
-    var CreateLegend Func[DonutChart, Container, Container]?
-    /// Customizes the root. Required children and summary semantics are reapplied.
-    var CreateRoot Func[DonutChart, Container, Container]?
+    /// Configures the fresh legend before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
+    var ConfigureLegend Action[DonutChart, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Description, Accessibility.Name, Accessibility.Role.
+    var ConfigureRoot Action[DonutChart, Container]?
 
     /// Builds fresh vector slices, including a two-arc full circle and an empty track.
     public func Build() Blob {
@@ -60,7 +70,7 @@ public data struct DonutChart {
                 Left: 0,
                 Top: 0,
                 Path: Ring(-Math.PI / 2.0, 1.0, thickness / size),
-                BackgroundColor: resolved.TrackColor!!,
+                Fill: VectorPaint(resolved.TrackColor!!),
                 Accessibility: Accessibility{Hidden: true}
             }
         )
@@ -72,17 +82,43 @@ public data struct DonutChart {
             let path = Ring(angle, segment.Fraction, thickness / size)
             var shape = Shape{
                 Path: path,
-                BackgroundColor: segment.Series.Color!!,
-                Hover: Style{BackgroundColor: segment.Series.Color!!},
-                Active: Style{BackgroundColor: segment.Series.Color!!},
-                Focus: Style{BoxShadow: BoxShadow{Spread: theme.FocusRingWidth, Color: theme.FocusColor}},
+                Fill: VectorPaint(segment.Series.Color!!),
+                FocusStyle: Style{BoxShadow: BoxShadow{Spread: theme.FocusRingWidth, Color: theme.FocusColor}},
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
                 Cursor: OnClick == nil ? Cursor.Default: Cursor.Pointer
             }
-            if let create = CreateSlice {
-                shape = create(resolved, segment, shape)
+            if let configure = ConfigureSlice {
+                let originalAccessibilityName = (shape.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (shape.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalFocusable = shape.Focusable
+                let originalKey = shape.Key
+                let originalOnClick = shape.OnClick
+                let originalOnPointerEnter = shape.OnPointerEnter
+                let originalOnPointerLeave = shape.OnPointerLeave
+                configure.Invoke(resolved, segment, shape)
+                if (shape.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("DonutChart owns Accessibility.Name; set DonutChart.AccessibilityName instead of changing it in ConfigureSlice")
+                }
+                if (shape.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("DonutChart owns Accessibility.Role; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.Focusable != originalFocusable {
+                    throw InvalidOperationException("DonutChart owns Focusable; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.Key != originalKey {
+                    throw InvalidOperationException("DonutChart owns Key; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.OnClick != originalOnClick {
+                    throw InvalidOperationException("DonutChart owns OnClick; set DonutChart.OnClick instead of changing it in ConfigureSlice")
+                }
+                if shape.OnPointerEnter != originalOnPointerEnter {
+                    throw InvalidOperationException("DonutChart owns OnPointerEnter; configure DonutChart instead of changing it in ConfigureSlice")
+                }
+                if shape.OnPointerLeave != originalOnPointerLeave {
+                    throw InvalidOperationException("DonutChart owns OnPointerLeave; configure DonutChart instead of changing it in ConfigureSlice")
+                }
             }
             theme.ApplyInteraction(shape, InteractionFamily.Button)
             shape.Path = path
@@ -115,24 +151,40 @@ public data struct DonutChart {
             )
         }
         var root = Container{Gap: theme.Spacing * 3.0, AlignItems: AlignItems.Center}
-        if let create = CreateRoot {
-            root = create(resolved, root)
-        }
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: resolved.AccessibilityName!!,
-            Description: ChartParts.Summary(segments, theme)
-        }
         root.Children.Clear()
         root.Children.Add(plot)
         if ShowLegend {
             var legend = ChartParts.Legend(resolved, segments, CreateLabel, theme)
-            if let create = CreateLegend {
-                legend = create(resolved, legend)
+            if let configure = ConfigureLegend {
+                let originalKey = legend.Key
+                configure.Invoke(resolved, legend)
+                if legend.Key != originalKey {
+                    throw InvalidOperationException("DonutChart owns Key; configure DonutChart instead of changing it in ConfigureLegend")
+                }
             }
             legend.Key = "legend"
             root.Children.Add(legend)
         }
+        if let configure = ConfigureRoot {
+            let originalAccessibilityDescription = (root.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(resolved, root)
+            if (root.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("DonutChart owns Accessibility.Description; configure DonutChart instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DonutChart owns Accessibility.Name; set DonutChart.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DonutChart owns Accessibility.Role; configure DonutChart instead of changing it in ConfigureRoot")
+            }
+        }
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Description = ChartParts.Summary(segments, theme)
+        root.Accessibility = rootAccessibility
         return root
     }
 

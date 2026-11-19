@@ -6,7 +6,7 @@ import System
 
 func GraphTouchInteractions() {
     let host = GraphHost()
-    let window = Window{Root: host, Width: 620, Height: 420, Title: "Goo graph touch check"}
+    let window = Window{Root: host, Size: LayoutSize(620, 420), Title: "Goo graph touch check"}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 12)

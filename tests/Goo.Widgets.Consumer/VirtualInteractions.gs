@@ -37,17 +37,20 @@ internal class VirtualMountFailure : Cell {
     public override func Build() Blob -> throw InvalidOperationException("Virtual row mount failed")
 }
 
-internal class VirtualProbeMessage : Cell {
-    internal var Header bool
-    internal var Height float64 = 20.0
-    internal var Handle ElementHandle = ElementHandle{}
+internal data struct VirtualProbeMessageInput {
+    var Header bool
+    var Handle ElementHandle
+}
 
-    public override func Build() Blob {
+internal class VirtualProbeMessage : Cell[VirtualProbeMessageInput] {
+    internal var Height float64 = 20.0
+
+    protected override func Build(input VirtualProbeMessageInput) Blob {
         let row = Container{}
-        if Header {
+        if input.Header {
             row.Children.Add(Container{Key: "history-header", Height: 44, FlexShrink: 0})
         }
-        row.Children.Add(Container{Key: "message", Handle: Handle, Height: Height, FlexShrink: 0})
+        row.Children.Add(Container{Key: "message", Handle: input.Handle, Height: Height, FlexShrink: 0})
         return row
     }
 }
@@ -63,6 +66,7 @@ internal class VirtualProbeHost : Cell {
     internal var Version int64?
     internal var State VirtualRowsState[VirtualProbeItem]?
     internal var FillHeight bool
+    internal var Width float64 = 100.0
     internal var VariableHeights bool
     internal var MessageRows bool
     internal var HeaderId int32 = -1
@@ -111,11 +115,15 @@ internal class VirtualProbeHost : Cell {
     private func BuildItem(item VirtualProbeItem) Blob {
         Builds.Add(item.Id)
         if MessageRows {
-            return Cell.Mount[VirtualProbeMessage]("row-${item.Id}", (row VirtualProbeMessage) -> {
-                row.Header = item.Id == HeaderId
-                row.Handle = Handles[item.Id]
-                Messages[item.Id] = row
-            })
+            return Cell.Mount[VirtualProbeMessageInput, VirtualProbeMessage](
+                "row-${item.Id}",
+                VirtualProbeMessageInput{Header: item.Id == HeaderId, Handle: Handles[item.Id]},
+                () -> {
+                    let row = VirtualProbeMessage()
+                    Messages[item.Id] = row
+                    return row
+                }
+            )
         }
         if item.Id == 2 {
             if Failure == 1 {
@@ -159,7 +167,7 @@ internal class VirtualProbeHost : Cell {
     override func Build() Blob {
         let list = List()
         list.Handle = Handle
-        list.Width = 100
+        list.Width = Width
         list.Height = FillHeight ? Percent(100): 60
         let root = Container{Height: FillHeight ? Percent(100): Length.Auto}
         root.Children.Add(list)
@@ -235,8 +243,8 @@ func VirtualRollbackInteractions() {
                 }
                 Require(rejected, "The virtual row failure was not raised.")
                 Require(
-                    host.Handle.ScrollToItem("row-0") && host.Handle.ScrollToItem("row-1")
-                    && !host.Handle.ScrollToItem("row-2"),
+                    host.Handle.ScrollOffsetOf("row-0") != nil && host.Handle.ScrollOffsetOf("row-1") != nil
+                    && host.Handle.ScrollOffsetOf("row-2") == nil,
                     "Canceled streaming changed committed row keys."
                 )
                 Require(host.Handles[0].IsMounted && host.Handles[1].IsMounted && !host.Handles[2].IsMounted, "Canceled streaming changed mounted children.")
@@ -244,8 +252,8 @@ func VirtualRollbackInteractions() {
                 host.Rebuild()
                 PumpFrames(window, 2)
                 Require(
-                    !host.Handle.ScrollToItem("row-0") && host.Handle.ScrollToItem("row-1")
-                    && host.Handle.ScrollToItem("row-2"),
+                    host.Handle.ScrollOffsetOf("row-0") == nil && host.Handle.ScrollOffsetOf("row-1") != nil
+                    && host.Handle.ScrollOffsetOf("row-2") != nil,
                     "Streaming did not recover after cancellation."
                 )
                 Require(!host.Handles[0].IsMounted && host.Handles[1].IsMounted && host.Handles[2].IsMounted, "Streaming retry mounted incorrect children.")
@@ -256,7 +264,7 @@ func VirtualRollbackInteractions() {
 
 func RunVirtual(name string, host VirtualProbeHost, body Action[Window, VirtualProbeSemantics]) {
     let semantics = VirtualProbeSemantics{}
-    let window = Window{Title: name, Width: 400, Height: 300, Root: host}
+    let window = Window{Title: name, Size: LayoutSize(400, 300), Root: host}
     window.AccessibilityAdapter = semantics
     window.SmoothScrolling = false
     RunNativeWindow(window, () -> {
@@ -276,7 +284,7 @@ func WaitVirtual(window Window, ready Func[bool], diagnose Func[string]? = nil) 
     }
     if !ready() {
         Require(false, "Virtual layout did not publish the expected mount or scroll metrics. " +
-            "Window=${window.Title} open=${window.IsOpen} size=${window.Width}x${window.Height} " +
+            "Window=${window.Title} open=${window.IsOpen} size=${window.NativeWidth}x${window.NativeHeight} " +
             "pump-calls=${pumps} elapsed-ms=${waiting.Elapsed.TotalMilliseconds}. " + diagnose?.Invoke())
     }
 }
@@ -288,11 +296,11 @@ func VirtualScrollApiInteractions() {
     resized.Pin = true
     RunVirtual("VirtualRows pinned viewport resize", resized, (window, semantics) -> {
         let before = resized.Handle.ScrollOffset.Y
-        window.Height = 200
+        window.Size = LayoutSize(window.Size.Width, float64(200) / window.UiScale)
         WaitVirtual(window, () -> resized.Handle.BorderBox.Height < 250.0 &&
             Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
         Require(resized.Handle.ScrollOffset.Y > before, "A smaller viewport lost the pinned end.")
-        window.Height = 400
+        window.Size = LayoutSize(window.Size.Width, float64(400) / window.UiScale)
         WaitVirtual(window, () -> resized.Handle.BorderBox.Height > 350.0 &&
             Math.Abs(resized.Handle.ScrollOffset.Y - resized.Handle.ScrollRange.Y) < 0.01)
         Console.WriteLine("Pinned resize: viewport=" + resized.Handle.ContentBox.Height.ToString() +
@@ -369,10 +377,15 @@ func VirtualScrollApiInteractions() {
                 "The visible anchor did not round-trip.")
             Console.WriteLine("Anchor restore: key=" + saved.Key + " offset=" + saved.Offset.Y.ToString() +
                 " restored=" + aligned.Handle.VisibleAnchor!!.Offset.Y.ToString())
-            Require(!aligned.Handle.ScrollToItem("missing", alignment) &&
-                aligned.Handle.ScrollOffsetOf("missing", alignment) == nil &&
+            let offset = aligned.Handle.ScrollOffset
+            Require(aligned.Handle.ScrollOffsetOf("missing", alignment) == nil &&
                 !aligned.Handle.RestoreAnchor(VirtualScrollAnchor{Key: "missing"}),
-                "An unknown item accepted a scroll request.")
+                "An unknown item exposed a scroll target or anchor.")
+            Require(aligned.Handle.ScrollToItem("missing", alignment) && aligned.Handle.IsScrollSettling &&
+                aligned.Handle.ScrollOffset == offset, "An unknown item did not retain a pending scroll request.")
+            PumpFrames(window, 3)
+            Require(!aligned.Handle.IsScrollSettling && aligned.Handle.ScrollOffset == offset,
+                "An unknown item scroll request did not expire without moving the viewport.")
         })
     }
 }
@@ -535,6 +548,22 @@ func VirtualInteractions() {
             )
         }
     )
+
+    let widened = VirtualProbeHost(VirtualProbeKind.Grid, 122)
+    RunVirtual("VirtualItems grid wider at end", widened, (window, semantics) -> {
+        Require(widened.Handle.ScrollToItem("row-121", ScrollAlignment.End), "The grid rejected the reveal target.")
+        WaitVirtual(window, () -> widened.Handles[121].IsMounted && !widened.Handle.IsScrollSettling)
+        widened.Width = 120.0
+        widened.Rebuild()
+        PumpFrames(window, 2)
+        Require(widened.Items.Count == 122 && widened.Handles[121].IsMounted &&
+            widened.Handle.ScrollOffset.Y == widened.Handle.ScrollRange.Y,
+            "Widening the grid lost the last item.")
+        let target = widened.Handles[121].BorderBox
+        let viewport = widened.Handle.ContentBox
+        Require(target.Y >= viewport.Y && target.Y + target.Height <= viewport.Y + viewport.Height,
+            "The reveal target is outside the widened viewport.")
+    })
 
     let rows = VirtualProbeHost(VirtualProbeKind.Rows, 1000)
     RunVirtual(

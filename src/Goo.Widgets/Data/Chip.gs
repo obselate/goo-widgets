@@ -1,10 +1,15 @@
 package Goo.Widgets.Data
 
+import System
+
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A selectable tag/filter chip with leading element support and customizable primitive factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct Chip {
     /// Text label displayed by the chip. Nil resolves to an empty string.
     var Label string?
@@ -68,8 +73,6 @@ public data struct Chip {
     var TransitionEasing Easing?
     /// Normal root opacity. Nil resolves to 1.0; explicit zero is preserved.
     var Opacity float64?
-    /// Opacity applied when disabled. Nil resolves to 0.5; explicit zero is preserved.
-    var DisabledOpacity float64?
     /// Optional font family name for the text label.
     var FontFamily string?
     /// Visual transform applied to the root button. Nil resolves to identity.
@@ -77,15 +80,18 @@ public data struct Chip {
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Custom factory for creating the label Text primitive from resolved props. Nil uses one line that ends with an ellipsis when the chip is too narrow.
+    /// Return a fresh element or the supplied default.
     var CreateText Func[Chip, Text]?
-    /// Custom factory for creating the root Button primitive from resolved props, original leading, and final text.
-    var CreateRoot Func[Chip, Blob?, Text, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Invalid, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
+    var ConfigureRoot Action[Chip, Blob?, Text, Button]?
 
     /// Builds a fresh Goo button tree after resolving props and factories.
     public func Build() Blob {
         let theme = Theme.Read()
         let createText = CreateText
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let originalLeading = Leading
         let label = Label ?? ""
         let tone = Invalid ? Tone.Danger: Tone
@@ -116,11 +122,10 @@ public data struct Chip {
             TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
             Opacity = Opacity ?? 1.0,
-            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
         let text = if let createText = createText {
@@ -141,7 +146,7 @@ public data struct Chip {
             value
         }
 
-        let root = if let createRoot = createRoot { createRoot(resolved, originalLeading, text) } else { Button{
+        let root = Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
             Padding: Edges{Right: resolved.PaddingHorizontal!!, Left: resolved.PaddingHorizontal!!},
@@ -158,28 +163,62 @@ public data struct Chip {
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             TransitionProperties: ActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
-            Hover: Selected ? Style{BackgroundColor: resolved.SelectedHoverBackgroundColor!!}:
+            HoverStyle: Selected ? Style{BackgroundColor: resolved.SelectedHoverBackgroundColor!!}:
                 HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
-            Active: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
-            Focus: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
-            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
+            ActiveStyle: Style{BackgroundColor: Selected ? resolved.SelectedActiveBackgroundColor!!: resolved.ActiveBackgroundColor!!, Transform: resolved.ActiveTransform!!},
+            FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
+            DisabledStyle: Selected ? Style{
+                BorderColor: resolved.SelectedBorderColor!!,
+                BackgroundColor: resolved.SelectedBackgroundColor!!,
+                Color: resolved.SelectedTextColor!!,
+                Opacity: theme.DisabledOpacity,
+            }: Style{BorderColor: theme.BorderColor},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             FlexShrink: 1.0,
             MinWidth: 0.0,
-        } }
+        }
 
-        if createRoot == nil {
             if let leading = originalLeading {
-                root.Children.Add(Container(){leading})
+                root.Children.Add(Disabled && !Selected ? theme.DisabledSlot(leading, theme.TextColor): Container(){leading})
                 root.Children.Add(Container{FlexShrink: 1.0, MinWidth: 0.0, text})
             } else { root.Children.Add(text) }
+        if let configure = configureRoot {
+            let originalAccessibilityChecked = (root.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityInvalid = root.Accessibility?.Invalid
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            configure.Invoke(resolved, originalLeading, text, root)
+            if (root.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("Chip owns Accessibility.Checked; configure Chip instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("Chip owns Accessibility.Invalid; set Chip.Invalid instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Chip owns Accessibility.Name; set Chip.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Chip owns Accessibility.Role; configure Chip instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Chip owns Disabled; set Chip.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Chip owns Focusable; configure Chip instead of changing it in ConfigureRoot")
+            }
         }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, Selected)
         root.Disabled = Disabled
         root.Focusable = !Disabled
-        root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Invalid: Invalid,
-            Checked: Selected ? AccessibilityChecked.True: AccessibilityChecked.False}
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Checkbox
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Invalid = Invalid
+        rootAccessibility.Checked = Selected ? AccessibilityChecked.True: AccessibilityChecked.False
+        root.Accessibility = rootAccessibility
         root.OnClick = Disabled ? nil: root.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(root)
         return RemovalRoot(root, resolved)
@@ -190,7 +229,7 @@ public data struct Chip {
             return button
         }
         let theme = Theme.Read()
-        let color = input.Disabled ? theme.DisabledTextColor: input.Selected ? input.SelectedTextColor!!: input.TextColor!!
+        let color = input.Selected ? input.SelectedTextColor!!: input.Disabled ? theme.DisabledTextColor: input.TextColor!!
         let height = input.Height!!.HasMagnitude && !input.Height!!.IsPercent ? input.Height!!.Magnitude: theme.ControlHeight
         let action = Button{
             Key: "remove",
@@ -205,7 +244,7 @@ public data struct Chip {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             Accessibility: Accessibility{
                 Role: AccessibilityRole.Button,
                 Name: input.RemoveAccessibilityName ?? theme.Text("Remove {0}", input.Label!!),
@@ -221,15 +260,20 @@ public data struct Chip {
             ? height - 2.0 * input.BorderWidth!!: Percent(100)
         button.BorderWidth = 0.0
         button.BackgroundColor = Color.Transparent
-        button.Hover = Style{}
-        button.Active = Style{BackgroundColor: Color.Transparent}
-        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
+        button.HoverStyle = Style{}
+        button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
+        button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: input.Selected ? color: theme.DisabledTextColor}
         button.Padding = 0
         button.PaddingStart = input.PaddingHorizontal!!
         button.PaddingEnd = input.Gap!!
         return Container{
             Disabled: input.Disabled,
-            DisabledStyle: Style{BackgroundColor: theme.SunkenColor, Color: theme.DisabledTextColor, Opacity: input.DisabledOpacity!!},
+            DisabledStyle: input.Selected ? Style{
+                BackgroundColor: input.SelectedBackgroundColor!!,
+                BorderColor: input.SelectedBorderColor!!,
+                Color: color,
+                Opacity: theme.DisabledOpacity,
+            }: Style{BackgroundColor: theme.SunkenColor, BorderColor: theme.BorderColor, Color: theme.DisabledTextColor},
             Height: input.Height!!,
             FlexDirection: FlexDirection.Row,
             FlexShrink: 1.0,

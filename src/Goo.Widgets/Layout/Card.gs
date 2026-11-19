@@ -39,18 +39,20 @@ public data struct Card {
     /// Accessible name override. Nil uses Title, then an empty string.
     var AccessibilityName string?
     /// Receives the widget input and the prepared container, and returns the replacement content. Nil uses the default composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Card, Container, Blob]?
 
     /// Builds a group or a single pressable surface.
     public func Build() Blob {
         let theme = Theme.Read()
         let resolved = this with{Padding = Padding ?? theme.PanelPadding}
+        let dimmed = Disabled && OnClick != nil && CreateRoot == nil
         let body = Container{
             Width: Percent(100),
             MinWidth: 0,
             Padding: resolved.Padding!!,
             Gap: theme.ControlGap,
-            Color: theme.TextColor,
+            Color: dimmed ? theme.DisabledTextColor: theme.TextColor,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             LineHeight: theme.LineHeight
@@ -62,7 +64,7 @@ public data struct Card {
             }
             if let subtitle = Subtitle {
                 titles.Children.Add(
-                    Text{Content: subtitle, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize}
+                    Text{Content: subtitle, Color: dimmed ? theme.DisabledTextColor: theme.MutedTextColor, FontSize: theme.CaptionFontSize}
                 )
             }
             let header = Container{
@@ -72,15 +74,15 @@ public data struct Card {
                 titles
             }
             if let action = HeaderAction {
-                header.Children.Add(action)
+                header.Children.Add(dimmed ? theme.DisabledSlot(action, theme.TextColor): action)
             }
             body.Children.Add(header)
         }
         if let content = Content {
-            body.Children.Add(content)
+            body.Children.Add(dimmed ? theme.DisabledSlot(content, theme.TextColor): content)
         }
         if let footer = Footer {
-            body.Children.Add(footer)
+            body.Children.Add(dimmed ? theme.DisabledSlot(footer, theme.TextColor): footer)
         }
         let background = Variant == CardVariant.Well ? theme.SunkenColor: Variant == CardVariant.Frame ? Color.Transparent: theme.PanelColor
         let shadows = Variant == CardVariant.Card || Variant == CardVariant.Panel ? theme.PanelShadows: []BoxShadow{}

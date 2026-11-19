@@ -42,6 +42,15 @@ public data partial struct Theme {
     }
 
     internal func ApplyInteraction(target Blob, family InteractionFamily, selected bool = false, interactive bool = true) {
+        if target is Shape {
+            if interactive {
+                let focus = FocusStyle
+                focus.BasedOn = target.FocusStyle
+                target.FocusStyle = focus
+            }
+            target.DisabledStyle = Style{Color: DisabledTextColor, BasedOn: target.DisabledStyle}
+            return
+        }
         let field = family == InteractionFamily.Field
         let fluentField = field && Controls == ControlStyle.Fluent
         let row = family == InteractionFamily.Row || family == InteractionFamily.Toggle
@@ -52,30 +61,32 @@ public data partial struct Theme {
                 Style{BackgroundColor: selected ? fill: HoverColor}
             let active = fluentField ? Style{}: field ? Style{BorderColor: AccentColor}:
                 Style{BackgroundColor: selected ? fill: PressedColor}
-            hover.BasedOn = target.Hover
-            active.BasedOn = target.Active
+            hover.BasedOn = target.HoverStyle
+            active.BasedOn = target.ActiveStyle
             let focus = FocusStyle
-            focus.BasedOn = target.Focus
-            target.Hover = hover
-            target.Active = active
-            target.Focus = fluentField ? FieldFocusStyle: Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
+            focus.BasedOn = target.FocusStyle
+            target.HoverStyle = hover
+            target.ActiveStyle = active
+            target.FocusStyle = fluentField ? FieldFocusStyle: Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, FocusRingWidth)}
             if family == InteractionFamily.Row {
-                target.Focus!!.OutlineOffset = -FocusRingWidth
+                target.FocusStyle!!.OutlineOffset = -FocusRingWidth
             }
             if HighContrast {
-                target.Hover = Style{BasedOn: target.Hover, BorderColor: StrongBorderColor}
+                target.HoverStyle = Style{BasedOn: target.HoverStyle, BorderColor: StrongBorderColor}
             }
         }
         let disabled = Style{
             BackgroundColor: field || family == InteractionFamily.Toggle ? SunkenColor:
                 tab ? ChromeColor: PanelColor,
             Color: DisabledTextColor,
-            Opacity: DisabledOpacity,
         }
         if field { disabled.BorderColor = InputBorderColor }
         disabled.BasedOn = target.DisabledStyle
         target.DisabledStyle = disabled
     }
+
+    /// Dims caller slot content once. Inherited text takes the enabled color so the disabled text color does not dim it again.
+    internal func DisabledSlot(content Blob, color Color) Container -> Container{Opacity: DisabledOpacity, Color: color, content}
 
     internal prop InteractionTransitions []TransitionProperty {
         get -> interactionTransitions
@@ -162,8 +173,8 @@ public data partial struct Theme {
         get {
             let thumb = Container{
                 BackgroundColor: ScrollbarColor == Color{} ? MutedTextColor.WithAlpha(0.5): ScrollbarColor, BorderRadius: 3.0,
-                Hover: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
-                Active: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
+                HoverStyle: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
+                ActiveStyle: Style{BackgroundColor: ScrollbarColor == Color{} ? AccentColor: ScrollbarColor},
                 TransitionMs: TransitionMs, TransitionEasing: Easing.EaseOut, TransitionProperties: InteractionTransitions,
             }
             (this with{Controls = ControlStyle.Standard}).ApplyInteraction(thumb, InteractionFamily.Field)

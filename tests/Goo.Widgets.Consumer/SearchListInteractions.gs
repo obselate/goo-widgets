@@ -54,8 +54,8 @@ internal class SearchListHost : Cell {
 
     private let selectionCallback Action[string]
     private let selectAlternate Action[string]
-    private let row Func[SearchList, SelectionItem, Button, Blob]
-    private let customRow Func[SearchList, SelectionItem, Button, Blob]
+    private let row Action[SearchList, SelectionItem, Button]
+    private let customRow Action[SearchList, SelectionItem, Button]
 
     private func ChangeQuery(value string) {
         Query = value.ToLowerInvariant()
@@ -81,7 +81,7 @@ internal class SearchListHost : Cell {
         Rebuild()
     }
 
-    private func Row(owner SearchList, item SelectionItem, row Button) Blob {
+    private func Row(owner SearchList, item SelectionItem, row Button) {
         let id = item.Id!!
         if !Handles.ContainsKey(id) {
             Handles.Add(id, ElementHandle{})
@@ -89,29 +89,27 @@ internal class SearchListHost : Cell {
         row.Handle = Handles[id]
         Rows[id] = row
         Calls++
-        return row
     }
 
-    private func CustomRow(owner SearchList, item SelectionItem, row Button) Blob {
+    private func CustomRow(owner SearchList, item SelectionItem, row Button) {
         row.Children.Add(Text{Content: "Custom"})
-        return Row(owner, item, row)
+        Row(owner, item, row)
     }
 
     public override func Build() Blob -> Container{
         Padding: 24,
         Gap: 16,
-        BackgroundColor: "#09090b",
-        Color: "#fafafa",
+        BackgroundColor: Color.Parse("#09090b"),
+        Color: Color.Parse("#fafafa"),
         Text{Content: "SearchList · controlled selection", FontSize: 22},
         SearchList{
             Items: items,
             Query: Query,
             OnQueryChange: ChangeQuery,
             Placeholder: "Search items",
-            CreateEntry: (owner SearchList, entry TextEntry) -> {
+            ConfigureEntry: (owner SearchList, entry TextEntry) -> {
                 entry.Handle = EntryHandle
-                return entry
-            },
+                },
             SelectedId: Selected,
             Width: 400,
             Height: 240,
@@ -123,7 +121,7 @@ internal class SearchListHost : Cell {
             } else {
                 selectionCallback
             },
-            CreateRow: if Custom {
+            ConfigureRow: if Custom {
                 customRow
             } else {
                 row
@@ -151,7 +149,7 @@ func FindSemantics(node AccessibilityNode?, name string) AccessibilityNode? {
 func SearchListInteractions() {
     let host = SearchListHost{}
     let semantics = SearchListSemantics{}
-    let window = Window{Title: "SearchList retained selection", Width: 520, Height: 390, Root: host}
+    let window = Window{Title: "SearchList retained selection", Size: LayoutSize(520, 390), Root: host}
     window.AccessibilityAdapter = semantics
     RunNativeWindow(window, () -> {
         window.Open()

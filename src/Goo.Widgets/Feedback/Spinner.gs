@@ -28,6 +28,7 @@ public data struct SpinnerInput {
     var Label string?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[SpinnerInput, Container, Container]?
 }
 
@@ -100,10 +101,10 @@ public open class Spinner : Cell[SpinnerInput] {
                         Height: size,
                         Path: bar,
                         Fit: ShapeFit.Fill,
-                        StrokeCap: StrokeCap.Round,
-                        VectorEffect: VectorEffect.NonScalingStroke,
-                        BorderWidth: width,
-                        BorderColor: resolved.Color!!,
+                        Stroke: VectorStroke(width, VectorPaint(resolved.Color!!)){
+                            .Cap: StrokeCap.Round,
+                            .VectorEffect: VectorEffect.NonScalingStroke,
+                        },
                         OpacityAnim: opacities[index],
                         ScaleAnim: scales[index],
                     }

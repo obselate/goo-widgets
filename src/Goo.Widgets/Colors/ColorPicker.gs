@@ -44,9 +44,11 @@ public data struct ColorPickerInput {
     var MarkerStyle Style?
     /// Creates the marker from resolved props and current color coordinates.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateMarker Func[ColorPickerInput, int32, float64, float64, Blob]?
     /// Replaces the default full or compact composition from resolved props, wheel, and tone slider.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[ColorPickerInput, Blob, Blob, Container]?
 }
 
@@ -63,8 +65,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     private var radius float64
     private var tone float64
     private var initialized bool
-    private var dragging bool
-    private var pointerId int64 = -1L
 
     /// Releases the retained wheel image when Goo unmounts this cell.
     public func Dispose() {
@@ -74,10 +74,6 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
     protected override func Build(input ColorPickerInput) Blob {
         theme = Theme.Read()
         resolved = Resolve(input)
-        if resolved.Disabled && dragging {
-            dragging = false
-            pointerId = -1L
-        }
         if !initialized {
             currentRgb = input.Value
             currentMode = input.Mode ?? ColorMode.Oklch
@@ -237,30 +233,28 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             Disabled: resolved.Disabled,
             Focusable: !resolved.Disabled,
             HitTestSelf: !resolved.Disabled,
-            Focus: Style{OutlineColor: resolved.FocusOutlineColor!!},
+            FocusStyle: Style{OutlineColor: resolved.FocusOutlineColor!!},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
+            Opacity: resolved.Disabled ? theme.DisabledOpacity: 1.0,
             BasedOn: resolved.WheelStyle,
             Accessibility: accessibility,
-            OnPointerDown: (e PointerEvent) -> BeginPointer(e),
-            OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            OnPointerCancel: (e PointerEvent) -> EndPointer(e, false),
+            OnPointerDrag: Drag,
             KeyBindings: []KeyBinding{
-                KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
-                KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
-                KeyBinding{Key: Key.Left, Repeat: true, Action: () -> KeyAction(Key.Left)},
-                KeyBinding{Key: Key.Right, Repeat: true, Action: () -> KeyAction(Key.Right)},
-                KeyBinding{Key: Key.Up, Repeat: true, Action: () -> KeyAction(Key.Up)},
-                KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
+                KeyBinding{Key: Key.Home, OnPress: () -> KeyAction(Key.Home)},
+                KeyBinding{Key: Key.End, OnPress: () -> KeyAction(Key.End)},
+                KeyBinding{Key: Key.Left, Repeat: true, OnPress: () -> KeyAction(Key.Left)},
+                KeyBinding{Key: Key.Right, Repeat: true, OnPress: () -> KeyAction(Key.Right)},
+                KeyBinding{Key: Key.Up, Repeat: true, OnPress: () -> KeyAction(Key.Up)},
+                KeyBinding{Key: Key.Down, Repeat: true, OnPress: () -> KeyAction(Key.Down)},
             },
             Image{
                 Key: "color-wheel-image",
                 Source: wheelSource,
                 Fit: ImageFit.Contain,
-                Width: resolved.WheelSize!!,
-                Height: resolved.WheelSize!!,
+                Width: Percent(100.0),
+                Height: Percent(100.0),
                 Accessibility: Accessibility{Hidden: true},
             },
             Container{
@@ -302,6 +296,11 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
             BorderColor: Color.Transparent,
             BackgroundColor: currentMode == mode ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor,
             Color: currentMode == mode ? theme.SelectedText(theme.TextColor): theme.TextColor,
+            DisabledStyle: currentMode == mode ? Style{
+                BackgroundColor: theme.SelectedFill(theme.ActiveColor),
+                Color: theme.SelectedText(theme.TextColor),
+                Opacity: theme.DisabledOpacity,
+            }: nil,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -417,7 +416,7 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         Rebuild()
     }
 
-    private func CoordinatesFromPointer(e PointerEvent) {
+    private func CoordinatesFromPointer(e PointerDragEvent) {
         let box = wheelHandle.BorderBox
         if box.Width <= 0.0 || box.Height <= 0.0 {
             return
@@ -432,35 +431,17 @@ public open class ColorPicker : Cell[ColorPickerInput], IDisposable {
         UpdateColor(false)
     }
 
-    private func BeginPointer(e PointerEvent) {
-        if resolved.Disabled || e.Button != PointerButton.Primary || dragging {
-            return
-        }
-        dragging = true
-        pointerId = e.PointerId
-        e.Capture()
-        e.PreventDefault()
-        wheelHandle.Focus()
-        CoordinatesFromPointer(e)
-    }
-
-    private func MovePointer(e PointerEvent) {
+    private func Drag(e PointerDragEvent) {
         if resolved.Disabled {
             return
         }
-        if dragging && e.PointerId == pointerId {
+        e.PreventDefault()
+        if e.Phase == GesturePhase.Started {
+            wheelHandle.Focus()
+        }
+        if e.Phase == GesturePhase.Started || e.Phase == GesturePhase.Changed {
             CoordinatesFromPointer(e)
-        }
-    }
-
-    private func EndPointer(e PointerEvent, commit bool = true) {
-        if resolved.Disabled || !dragging || e.PointerId != pointerId {
-            return
-        }
-        e.ReleaseCapture()
-        dragging = false
-        pointerId = -1L
-        if commit {
+        } else if e.Phase == GesturePhase.Completed {
             UpdateColor(true)
         }
     }

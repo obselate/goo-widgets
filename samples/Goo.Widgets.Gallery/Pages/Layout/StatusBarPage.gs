@@ -62,7 +62,7 @@ internal class StatusBarPage : GalleryPage {
     override func Title() string -> "Status bar"
 
     override func Build() Blob -> Cell.Mount[StatusBarExample](
-        () -> StatusBarExample(OwningWindow),
-        "status-bar-example"
+        "status-bar-example",
+        () -> StatusBarExample(OwningWindow)
     )
 }

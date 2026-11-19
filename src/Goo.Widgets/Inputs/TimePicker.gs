@@ -87,7 +87,8 @@ public open class TimePicker : Cell[TimePickerInput] {
                 Focusable: !input.Disabled && !input.ReadOnly && input.Value != nil,
                 Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: (input.AccessibilityName ?? theme.Text("Time")) + " " + theme.Text("Clear")},
                 OnClick: () -> Apply(nil),
-                ControlIcons.Create(ControlIcon.Close, theme.FontSize, theme.MutedTextColor)
+                DisabledStyle: Style{BackgroundColor: Color.Transparent},
+                ControlIcons.Create(ControlIcon.Close, theme.FontSize, input.Disabled || input.ReadOnly || input.Value == nil ? theme.DisabledTextColor: theme.MutedTextColor)
             }
             theme.ApplyInteraction(clear, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(clear)
@@ -117,11 +118,9 @@ public open class TimePicker : Cell[TimePickerInput] {
                     change(number)
                 }
             },
-            CreateEntry: (input, entry) -> {
+            ConfigureEntry: (input, entry) -> {
                 entry.OnKeyDown = event -> Spin(event, key)
-                return entry
-            }
-        })
+                }})
     }
 
     private func NumberFormat(value float64) string -> current.Value == nil ? "--": value.ToString("00", culture)

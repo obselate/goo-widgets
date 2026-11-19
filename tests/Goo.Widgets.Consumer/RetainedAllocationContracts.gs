@@ -11,8 +11,8 @@ internal class RetainedAllocationHost : Cell {
     internal var Count int32 = 5000
     internal var FieldBuilds int32
     private let tokens[]string = [200]string
-    private let captureToken Func[TokenInputInput, TextEntry, TextEntry]
-    private let captureFind Func[FindBar, TextField, TextEntry]
+    private let captureToken Action[TokenInputInput, TextEntry]
+    private let captureFind Action[FindBar, TextField, TextEntry]
 
     public init() {
         for index in 0 ... tokens.Length {
@@ -20,21 +20,21 @@ internal class RetainedAllocationHost : Cell {
         }
         captureToken = (input, entry) -> {
             Entry = entry
-            return entry
         }
-        captureFind = (owner, input) -> {
+        captureFind = (owner, input, entry) -> {
             FieldBuilds++
-            return TextEntry{Value: input.Value!!, Controlled: true}
+            entry.Value = input.Value!!
+            entry.Controlled = true
         }
     }
 
     public override func Build() Blob {
         if Find {
-            return FindBar{Query: "let", MatchCount: Count, ActiveMatch: 1, CreateEntry: captureFind}.Build()
+            return FindBar{Query: "let", MatchCount: Count, ActiveMatch: 1, ConfigureEntry: captureFind}.Build()
         }
         return Cell.Mount[TokenInputInput, TokenInput](
             "tokens",
-            TokenInputInput{Value: tokens, CreateEntry: captureToken, Width: Percent(100),}
+            TokenInputInput{Value: tokens, ConfigureEntry: captureToken, Width: Percent(100),}
         )
     }
 }
@@ -79,9 +79,9 @@ func RetainedAllocationContracts() {
                 embedded.RenderFrame(1.0 / 60.0)
             }
             let changed = (GC.GetAllocatedBytesForCurrentThread() - start) / 40
-            Console.WriteLine("RETAIN count bytes/update=" + changed.ToString())
-            Require(changed < 7500, "Find count updates rebuilt the toolbar")
+            Console.WriteLine("RETAIN count bytes/update=" + changed.ToString() + " field-builds=" + root.FieldBuilds.ToString())
             Require(root.FieldBuilds == 1, "Find count updates rebuilt the query field")
+            Require(changed < 7500, "Find count updates rebuilt the toolbar")
         }
     }
 }

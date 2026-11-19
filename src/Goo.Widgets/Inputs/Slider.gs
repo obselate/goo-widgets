@@ -14,6 +14,9 @@ public enum SliderOrientation {
 }
 
 /// Immutable input for a mounted Slider.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct SliderInput {
     /// Current external value.
     var Value float64
@@ -74,8 +77,6 @@ public data struct SliderInput {
     var BackgroundColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
-    /// Disabled opacity. Nil uses the theme.
-    var DisabledOpacity float64?
     /// Optional base style for the interactive root.
     var RootStyle Style?
     /// Optional base style for the unfilled track.
@@ -84,32 +85,27 @@ public data struct SliderInput {
     var FillStyle Style?
     /// Optional base style for the thumb.
     var ThumbStyle Style?
-    /// Wraps the composed interactive root. The returned tree must retain the supplied root to preserve interaction.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[SliderInput, Container, Blob]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.Orientation, Accessibility.Range, Accessibility.ReadOnly, Accessibility.Role, Disabled, Focusable, Handle, HitTestSelf, KeyBindings (required entries), OnPointerDrag.
+    var ConfigureRoot Action[SliderInput, Container]?
 }
 
 /// A controlled range input with pointer capture, keyboard input, and accessible value actions.
 public open class Slider : Cell[SliderInput] {
     private let handle ElementHandle = ElementHandle{}
     private var current float64
-    private var dragging bool
-    private var pointerId int64 = -1L
     private var rightToLeft bool
     private var resolved SliderInput
 
     protected override func Build(input SliderInput) Blob {
-        let createRoot = input.CreateRoot
+        let configureRoot = input.ConfigureRoot
         let theme = Theme.Read()
         rightToLeft = theme.RightToLeft
         resolved = Resolve(input, theme)
-        if resolved.Disabled && dragging {
-            dragging = false
-            pointerId = -1L
-        }
         current = Quantize(input.Value)
         resolved.Value = current
-        resolved.CreateRoot = nil
+        resolved.ConfigureRoot = nil
         let fraction = (current - resolved.Minimum!!) / (resolved.Maximum!!- resolved.Minimum!!)
         let horizontal = resolved.Orientation == SliderOrientation.Horizontal
         let hasHeader = resolved.Label != nil || resolved.ShowValue
@@ -166,7 +162,7 @@ public open class Slider : Cell[SliderInput] {
             },
             Margin: Edges{Top: horizontal ? -resolved.TrackThickness!! / 2.0: 0.0},
             BorderRadius: resolved.TrackRadius!!,
-            BackgroundColor: resolved.FillColor!!,
+            BackgroundColor: resolved.Disabled ? theme.DisabledTextColor: resolved.FillColor!!,
             BasedOn: resolved.FillStyle,
             HitTestSelf: false,
         }
@@ -189,7 +185,7 @@ public open class Slider : Cell[SliderInput] {
             BorderRadius: resolved.ThumbRadius!!,
             BorderWidth: resolved.ThumbBorderWidth!!,
             BorderColor: resolved.ThumbBorderColor!!,
-            BackgroundColor: resolved.ThumbColor!!,
+            BackgroundColor: resolved.Disabled ? theme.DisabledTextColor: resolved.ThumbColor!!,
             BasedOn: resolved.ThumbStyle,
             HitTestSelf: false,
         }
@@ -262,31 +258,85 @@ public open class Slider : Cell[SliderInput] {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            Focus: input.FocusOutlineColor == nil ? nil: Style{OutlineColor: input.FocusOutlineColor!!},
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: hasHeader ? 1.0: resolved.DisabledOpacity!!},
+            FocusStyle: input.FocusOutlineColor == nil ? nil: Style{OutlineColor: input.FocusOutlineColor!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             BasedOn: resolved.RootStyle,
             Accessibility: accessibility,
-            OnPointerDown: (e PointerEvent) -> BeginPointer(e),
-            OnPointerMove: (e PointerEvent) -> MovePointer(e),
-            OnPointerUp: (e PointerEvent) -> EndPointer(e),
-            OnPointerCancel: (e PointerEvent) -> EndPointer(e, false),
+            OnPointerDrag: Drag,
             KeyBindings: []KeyBinding{
-                KeyBinding{Key: Key.Home, Action: () -> KeyAction(Key.Home)},
-                KeyBinding{Key: Key.End, Action: () -> KeyAction(Key.End)},
-                KeyBinding{Key: Key.Left, Repeat: true, Action: () -> KeyAction(Key.Left)},
-                KeyBinding{Key: Key.Right, Repeat: true, Action: () -> KeyAction(Key.Right)},
-                KeyBinding{Key: Key.Up, Repeat: true, Action: () -> KeyAction(Key.Up)},
-                KeyBinding{Key: Key.Down, Repeat: true, Action: () -> KeyAction(Key.Down)},
+                KeyBinding{Key: Key.Home, OnPress: () -> KeyAction(Key.Home)},
+                KeyBinding{Key: Key.End, OnPress: () -> KeyAction(Key.End)},
+                KeyBinding{Key: Key.Left, Repeat: true, OnPress: () -> KeyAction(Key.Left)},
+                KeyBinding{Key: Key.Right, Repeat: true, OnPress: () -> KeyAction(Key.Right)},
+                KeyBinding{Key: Key.Up, Repeat: true, OnPress: () -> KeyAction(Key.Up)},
+                KeyBinding{Key: Key.Down, Repeat: true, OnPress: () -> KeyAction(Key.Down)},
             },
             track,
             fill,
             thumb,
         }
         theme.ApplyInteraction(root, InteractionFamily.Field)
-        let content Blob = if let createRoot = createRoot {
-            createRoot(resolved, root)
-        } else {
-            root
+        let content Blob = root
+        let requiredBindings = configureRoot == nil ? nil : root.KeyBindings
+        if let configure = configureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = root.Accessibility?.OnAction
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityReadOnly = root.Accessibility?.ReadOnly
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalHitTestSelf = root.HitTestSelf
+            let originalOnPointerDrag = root.OnPointerDrag
+            configure.Invoke(resolved, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Slider owns Accessibility.Name; set SliderInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("Slider owns Accessibility.OnAction; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("Slider owns Accessibility.Orientation; set SliderInput.Orientation instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("Slider owns Accessibility.ReadOnly; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Slider owns Accessibility.Role; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Slider owns Disabled; set SliderInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Slider owns Focusable; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("Slider owns Handle; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.HitTestSelf != originalHitTestSelf {
+                throw InvalidOperationException("Slider owns HitTestSelf; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnPointerDrag != originalOnPointerDrag {
+                throw InvalidOperationException("Slider owns OnPointerDrag; configure SliderInput instead of changing it in ConfigureRoot")
+            }
+        }
+        if configureRoot != nil {
+            root.Handle = handle
+            root.Disabled = resolved.Disabled
+            root.Focusable = !resolved.Disabled
+            root.HitTestSelf = !resolved.Disabled
+            root.OnPointerDrag = Drag
+            if requiredBindings != nil { WidgetKeyBindings.AppendBindings(root, requiredBindings) }
+            let semantics = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            semantics.Role = accessibility.Role
+            semantics.Name = accessibility.Name
+            semantics.Orientation = accessibility.Orientation
+            semantics.ReadOnly = accessibility.ReadOnly
+            semantics.Range = accessibility.Range
+            semantics.Actions = accessibility.Actions
+            semantics.OnAction = accessibility.OnAction
+            root.Accessibility = semantics
         }
         if !hasHeader {
             return content
@@ -304,7 +354,7 @@ public open class Slider : Cell[SliderInput] {
                     Content: label,
                     FontSize: resolved.LabelFontSize!!,
                     FontWeight: theme.LabelFontWeight,
-                    Color: resolved.LabelColor!!,
+                    Color: resolved.Disabled ? theme.DisabledTextColor: resolved.LabelColor!!,
                     FlexGrow: 1.0,
                 }
             )
@@ -316,7 +366,7 @@ public open class Slider : Cell[SliderInput] {
                     Content: formattedValue,
                     FontSize: resolved.ValueFontSize!!,
                     FontWeight: theme.CaptionFontWeight,
-                    Color: resolved.ValueColor!!,
+                    Color: resolved.Disabled ? theme.DisabledTextColor: resolved.ValueColor!!,
                 }
             )
         }
@@ -337,8 +387,6 @@ public open class Slider : Cell[SliderInput] {
                 AlignItems.Center
             },
             Gap: theme.ControlGap,
-            Disabled: resolved.Disabled,
-            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
             header,
             content,
         }
@@ -395,7 +443,6 @@ public open class Slider : Cell[SliderInput] {
             ThumbBorderColor = input.ThumbBorderColor ?? (fluent ? theme.Mix(theme.RaisedColor, Color.White, 0.1F): theme.OnAccentColor),
             BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
             FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
-            DisabledOpacity = input.DisabledOpacity ?? theme.DisabledOpacity,
         }
     }
 
@@ -423,7 +470,7 @@ public open class Slider : Cell[SliderInput] {
         InvokeInputCallback(resolved.OnCommit, current)
     }
 
-    private func ValueFromPointer(e PointerEvent) float64 {
+    private func ValueFromPointer(e PointerDragEvent) float64 {
         let box = handle.BorderBox
         if resolved.Orientation == SliderOrientation.Horizontal {
             if box.Width <= 0.0 {
@@ -443,34 +490,14 @@ public open class Slider : Cell[SliderInput] {
         )
     }
 
-    private func BeginPointer(e PointerEvent) {
-        if resolved.Disabled || e.Button != PointerButton.Primary || dragging {
-            return
-        }
-        dragging = true
-        pointerId = e.PointerId
-        e.Capture()
-        e.PreventDefault()
-        Preview(ValueFromPointer(e))
-    }
-
-    private func MovePointer(e PointerEvent) {
+    private func Drag(e PointerDragEvent) {
         if resolved.Disabled {
             return
         }
-        if dragging && e.PointerId == pointerId {
+        e.PreventDefault()
+        if e.Phase == GesturePhase.Started || e.Phase == GesturePhase.Changed {
             Preview(ValueFromPointer(e))
-        }
-    }
-
-    private func EndPointer(e PointerEvent, commit bool = true) {
-        if resolved.Disabled || !dragging || e.PointerId != pointerId {
-            return
-        }
-        e.ReleaseCapture()
-        dragging = false
-        pointerId = -1L
-        if commit {
+        } else if e.Phase == GesturePhase.Completed {
             Commit()
         }
     }

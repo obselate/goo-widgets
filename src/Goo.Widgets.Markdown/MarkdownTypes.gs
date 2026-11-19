@@ -28,6 +28,9 @@ public enum MarkdownInlineKind {
 }
 
 /// Describes a block passed to customization hooks.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct MarkdownBlock {
     var Kind MarkdownBlockKind
     var Id string?
@@ -108,14 +111,21 @@ public data struct MarkdownViewInput {
     var CreateInlineStyle Func[MarkdownInline, Style, Style]?
     /// Customizes atomic link, inline-code, and resolved-image content.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateInline Func[MarkdownInline, Blob, Blob]?
-    /// Hosts must not change state in this callback.
-    var CreateBlock Func[MarkdownBlock, Blob, Blob]?
-    /// Customizes a prepared read-only editor; it must retain its supplied controller.
-    /// Hosts must not change state in this callback.
-    var CreateEditor Func[MarkdownBlock, TextEditor, TextEditor]?
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[MarkdownViewInput, Container, Container]?
+    /// Configures the fresh block before required behavior is applied.
+    /// Heading and paragraph blocks supply a container around their text content.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Role (table row), Key (table row).
+    var ConfigureBlock Action[MarkdownBlock, Blob]?
+    /// Configures the fresh editor before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Multiline, Accessibility.Name, Accessibility.Role, Controller, Layers (required layer), OnChange, ReadOnly.
+    var ConfigureEditor Action[MarkdownBlock, TextEditor]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
+    var ConfigureRoot Action[MarkdownViewInput, Container]?
     /// Runs when the heading list or this callback changes. Only mounted headings have mounted handles.
     /// Use State.ScrollToHeading to reach an off-screen heading in a bounded view.
     var OnHeadings Action[IReadOnlyList[MarkdownHeading]]?

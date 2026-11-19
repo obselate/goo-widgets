@@ -18,6 +18,7 @@ public data struct SettingsRow {
     var Control Blob?
     /// Builds a control from the supplied accessibility relationships. Apply them to the actual editor. Nil uses Control.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateControl Func[AccessibilityRelationships, Blob]?
     /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?

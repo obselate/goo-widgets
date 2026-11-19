@@ -8,6 +8,9 @@ import System
 import System.Collections.Generic
 
 /// A selectable row with a stable identity and optional content slots.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ListViewItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string?
@@ -71,12 +74,14 @@ public data struct ListViewInput {
     var RowHeight float64?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
-    /// Receives the input, row item, and prepared row, and returns its replacement. Identity, row height, input routing, disabled state, and semantics are reapplied. Nil keeps the default row.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[ListViewInput, ListViewItem, Container, Container]?
-    /// Receives the input and prepared root, and returns its replacement. Identity, focus, handlers, children, and list semantics are reapplied. Nil keeps the default root.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ListViewInput, Container, Container]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.PositionInSet, Accessibility.Role, Accessibility.Selected, Accessibility.SizeOfSet, Disabled, Focusable, Handle, OnClick, OnPointerDown, TabStop.
+    var ConfigureRow Action[ListViewInput, ListViewItem, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.MultiSelectable, Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Disabled, FocusTarget, Focusable, Handle, OnBlur, OnKeyDown.
+    var ConfigureRoot Action[ListViewInput, Container]?
 }
 
 internal data struct ListViewEntry {
@@ -192,7 +197,7 @@ public open class ListView : Cell[ListViewInput] {
             nil
         )
         source.StableItems = true
-        let rows Virtual = Virtual(source)
+        let rows Virtual = Virtual{Source: source}
         rows.Handle = viewport
         rows.FlexGrow = 1
         rows.MinHeight = 0
@@ -212,8 +217,46 @@ public open class ListView : Cell[ListViewInput] {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
+        root.Children.Clear()
+        root.Children.Add(rows)
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityMultiSelectable = root.Accessibility?.MultiSelectable
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusTarget = root.FocusTarget
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalOnBlur = root.OnBlur
+            let originalOnKeyDown = root.OnKeyDown
+            configure.Invoke(input, root)
+            if root.Accessibility?.MultiSelectable != originalAccessibilityMultiSelectable {
+                throw InvalidOperationException("ListView owns Accessibility.MultiSelectable; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ListView owns Accessibility.Name; set ListViewInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ListView owns Accessibility.Role; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ListView owns Disabled; set ListViewInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.FocusTarget != originalFocusTarget {
+                throw InvalidOperationException("ListView owns FocusTarget; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ListView owns Focusable; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("ListView owns Handle; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnBlur != originalOnBlur {
+                throw InvalidOperationException("ListView owns OnBlur; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("ListView owns OnKeyDown; configure ListViewInput instead of changing it in ConfigureRoot")
+            }
         }
         root.Handle = rootHandle
         root.Focusable = !input.Disabled
@@ -221,14 +264,14 @@ public open class ListView : Cell[ListViewInput] {
         root.OnKeyDown = KeyDown
         root.OnBlur = (e FocusEvent) -> typeAhead.Reset()
         root.FocusTarget = activeId == nil ? nil: Handle(activeId!!)
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.List,
-            Name: input.AccessibilityName!!,
-            MultiSelectable: input.Multiple,
-            Relationships: AccessibilityRelationships{ActiveDescendant: activeId == nil ? nil: Handle(activeId!!)}
-        }
-        root.Children.Clear()
-        root.Children.Add(rows)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.List
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.MultiSelectable = input.Multiple
+        let rootRelationships = if let configured = rootAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        rootRelationships.ActiveDescendant = activeId == nil ? nil: Handle(activeId!!)
+        rootAccessibility.Relationships = rootRelationships
+        root.Accessibility = rootAccessibility
         return root
     }
 
@@ -345,11 +388,60 @@ public open class ListView : Cell[ListViewInput] {
                 TitleFontWeight: item.Unread ? theme.HeadingFontWeight: theme.FontWeight,
                 TextColor: item.Muted ? theme.MutedTextColor: theme.TextColor,
                 MinHeight: snapshot.RowHeight,
-                PaddingVertical: 0
+                PaddingVertical: 0,
+                Disabled: item.Disabled || snapshot.Disabled
             }.Build() as Container
         )!!
-        if let create = snapshot.CreateRow {
-            root = create(snapshot, item, root)
+        if let configure = snapshot.ConfigureRow {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = root.Accessibility?.OnAction
+            let originalAccessibilityPositionInSet = root.Accessibility?.PositionInSet
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilitySelected = root.Accessibility?.Selected
+            let originalAccessibilitySizeOfSet = root.Accessibility?.SizeOfSet
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalOnClick = root.OnClick
+            let originalOnPointerDown = root.OnPointerDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(snapshot, item, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ListView owns Accessibility.Name; set ListViewInput.AccessibilityName instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("ListView owns Accessibility.OnAction; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.PositionInSet != originalAccessibilityPositionInSet {
+                throw InvalidOperationException("ListView owns Accessibility.PositionInSet; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ListView owns Accessibility.Role; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("ListView owns Accessibility.Selected; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.SizeOfSet != originalAccessibilitySizeOfSet {
+                throw InvalidOperationException("ListView owns Accessibility.SizeOfSet; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ListView owns Disabled; set ListViewInput.Disabled instead of changing it in ConfigureRow")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ListView owns Focusable; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("ListView owns Handle; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("ListView owns OnClick; set ListViewInput.OnClick instead of changing it in ConfigureRow")
+            }
+            if root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("ListView owns OnPointerDown; configure ListViewInput instead of changing it in ConfigureRow")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("ListView owns TabStop; configure ListViewInput instead of changing it in ConfigureRow")
+            }
         }
         root.Handle = Handle(id)
         root.Height = snapshot.RowHeight!!
@@ -364,24 +456,24 @@ public open class ListView : Cell[ListViewInput] {
         }
         root.OnClick = () -> {
             if !fromChild {
-                Select(id, modifiers.Ctrl || modifiers.Super, modifiers.Shift)
+                Select(id, modifiers.HasPrimary, modifiers.Shift)
                 if presses == 2 {
                     InvokeInputCallback(input.OnClick, id)
                 }
             }
         }
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.ListItem,
-            Name: item.Label ?? id,
-            Selected: selected.Contains(id),
-            PositionInSet: entry.PositionInSet,
-            SizeOfSet: indices.Count,
-            Actions: []AccessibilityAction{
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.ListItem
+        rootAccessibility.Name = item.Label ?? id
+        rootAccessibility.Selected = selected.Contains(id)
+        rootAccessibility.PositionInSet = entry.PositionInSet
+        rootAccessibility.SizeOfSet = indices.Count
+        rootAccessibility.Actions = []AccessibilityAction{
                 AccessibilityAction.Focus,
                 AccessibilityAction.Select,
                 AccessibilityAction.Activate
-            },
-            OnAction: (request AccessibilityActionRequest) -> {
+            }
+        rootAccessibility.OnAction = (request AccessibilityActionRequest) -> {
                 if item.Disabled || snapshot.Disabled {
                     return false
                 }
@@ -396,7 +488,7 @@ public open class ListView : Cell[ListViewInput] {
                 }
                 return true
             }
-        }
+        root.Accessibility = rootAccessibility
         return root
     }
 
@@ -404,7 +496,7 @@ public open class ListView : Cell[ListViewInput] {
         if input.Disabled || Index(activeId) < 0 {
             return
         }
-        let primary = e.Modifiers.Ctrl || e.Modifiers.Super
+        let primary = e.Modifiers.HasPrimary
         if primary && e.Key == Key.A && input.Multiple {
             let ids = List[string]()
             for entry in entries {

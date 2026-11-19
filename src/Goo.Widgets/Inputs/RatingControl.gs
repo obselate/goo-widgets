@@ -105,7 +105,7 @@ public open class RatingControl : Cell[RatingControlInput] {
                 Width: size,
                 Height: size,
                 HitTestSelf: false,
-                Star(theme.MutedTextColor, size)
+                Star(input.Disabled ? theme.BorderColor: theme.MutedTextColor, size)
             }
             if fraction > 0 {
                 glyph.Children.Add(Container{
@@ -123,7 +123,7 @@ public open class RatingControl : Cell[RatingControlInput] {
                         AlignItems: AlignItems.Center,
                         JustifyContent: JustifyContent.Center,
                         HitTestSelf: false,
-                        Star(theme.AccentColor, size)
+                        Star(input.Disabled ? theme.DisabledTextColor: theme.AccentColor, size)
                     }
                 })
             }
@@ -147,7 +147,7 @@ public open class RatingControl : Cell[RatingControlInput] {
         Width: size,
         Height: size,
         Fit: ShapeFit.Contain,
-        BackgroundColor: color,
+        Fill: VectorPaint(color),
         Accessibility: Accessibility{Hidden: true}
     }
 

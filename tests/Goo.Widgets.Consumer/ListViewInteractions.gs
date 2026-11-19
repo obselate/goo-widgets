@@ -75,14 +75,12 @@ internal class ListTreeHost : Cell {
                     },
                     OnRename: (id string) -> Renamed = id,
                     OnDrop: (ids[]string, target string, position TreeDropPosition) -> DropPosition = position,
-                    CreateRoot: (input TreeViewInput, root Container) -> {
+                    ConfigureRoot: (input TreeViewInput, root Container) -> {
                         Root = root
-                        return root
-                    },
-                    CreateRow: (input TreeViewInput, row TreeViewRow, root Container) -> {
+                        },
+                    ConfigureRow: (input TreeViewInput, row TreeViewRow, root Container) -> {
                         Rows[row.Node.Id!!] = root
-                        return root
-                    },
+                        },
                     AccessibilityName: "Selection tree",
                     Height: 280
                 }
@@ -102,14 +100,12 @@ internal class ListTreeHost : Cell {
                     OnClick: (id string) -> Invoked = id,
                     Sections: Sections,
                     Query: Query,
-                    CreateRoot: (input ListViewInput, root Container) -> {
+                    ConfigureRoot: (input ListViewInput, root Container) -> {
                         Root = root
-                        return root
-                    },
-                    CreateRow: (input ListViewInput, item ListViewItem, root Container) -> {
+                        },
+                    ConfigureRow: (input ListViewInput, item ListViewItem, root Container) -> {
                         Rows[item.Id!!] = root
-                        return root
-                    },
+                        },
                     AccessibilityName: "Selection list",
                     Height: 280
                 }
@@ -153,8 +149,7 @@ func ListViewInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "List selection verification",
-        Width: 620,
-        Height: 440,
+        Size: LayoutSize(620, 440),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -180,8 +175,10 @@ func ListViewInteractions() {
             "ListView included section headers in item positions or set size")
         ListKey(window, SDLScancode.Space, SDLKeymod.Ctrl)
         Require(host.Selected.Length == 1 && host.Selected[0] == "beta", "List Ctrl-Space failed to toggle")
-        ListKey(window, SDLScancode.A, SDLKeymod.Gui)
-        Require(host.Selected.Length == 4, "List Command-A included disabled rows or skipped selectable rows")
+        ListKey(window, SDLScancode.A, OperatingSystem.IsMacOS() ? SDLKeymod.Ctrl: SDLKeymod.Gui)
+        Require(host.Selected.Length == 1, "List select-all accepted a non-primary modifier")
+        ListKey(window, SDLScancode.A, OperatingSystem.IsMacOS() ? SDLKeymod.Gui: SDLKeymod.Ctrl)
+        Require(host.Selected.Length == 4, "List select-all included disabled rows or skipped selectable rows")
         ListKey(window, SDLScancode.Home)
         ListKey(window, SDLScancode.D)
         Require(host.Active == "delta", "List TypeAhead did not find Delta")
@@ -300,26 +297,33 @@ internal class ListRowHost : Cell {
             Title: "Interactive row",
             OnClick: () -> Clicks++,
             OnInvoke: () -> Invokes++,
-            CreateRoot: (value ListRow, leading Blob?, content Container, trailing Blob?) ->
-            Container{Handle: Row, Height: 60, content},
+            ConfigureRoot: (value ListRow, leading Blob?, content Container, trailing Blob?, prepared Container) -> {
+                    prepared.Handle = Row
+                    prepared.Height = 60
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
+                },
             Actions: ActionButton{
                 Content: "Pin",
                 AccessibilityName: "Row action",
                 OnClick: () -> Actions++,
-                CreateRoot: (value ActionButton, text Text) -> Button{
-                    Handle: ActionHandle,
-                    OnClick: value.OnClick,
-                    text
-                }
-            }.Build()
+                ConfigureRoot: (value ActionButton, text Text, prepared Button) -> {
+                    prepared.Handle = ActionHandle
+                    prepared.OnClick = value.OnClick
+                    prepared.Children.Clear()
+                    prepared.Children.Add(text)
+                }}.Build()
         }.Build(),
         ListRow{
             Title: "Disabled row",
             Disabled: true,
             OnClick: () -> Clicks++,
-            CreateRoot: (value ListRow, leading Blob?, content Container, trailing Blob?) ->
-            Container{Handle: DisabledRow, Height: 60, content}
-        }.Build(),
+            ConfigureRoot: (value ListRow, leading Blob?, content Container, trailing Blob?, prepared Container) -> {
+                    prepared.Handle = DisabledRow
+                    prepared.Height = 60
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
+                }}.Build(),
         Button{Handle: After, OnClick: () -> { }, Text{Content: "After"}}
     }
 }
@@ -330,8 +334,7 @@ func ListRowInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "List row verification",
-        Width: 500,
-        Height: 360,
+        Size: LayoutSize(500, 360),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -391,15 +394,12 @@ internal class ListFillHost : Cell {
                 ListViewInput{
                     Items: items,
                     AccessibilityName: "Messages",
-                    CreateRoot: (input ListViewInput, root Container) -> {
+                    ConfigureRoot: (input ListViewInput, root Container) -> {
                         Root = root
-                        return root
-                    },
-                    CreateRow: (input ListViewInput, item ListViewItem, row Container) -> {
+                        },
+                    ConfigureRow: (input ListViewInput, item ListViewItem, row Container) -> {
                         Rows[item.Id!!] = row
-                        return row
-                    }
-                }
+                        }}
             )
         }
     }
@@ -418,8 +418,7 @@ func ListFillInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "List fill verification",
-        Width: 480,
-        Height: 680,
+        Size: LayoutSize(480, 680),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics
     }

@@ -1,10 +1,15 @@
 package Goo.Widgets.Actions
 
+import System
+
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Feedback
 
 /// A semantic button with resolved visual defaults and customizable primitive factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ActionButton {
     /// Visible button text and the default accessible name. Nil resolves to an empty string.
     var Content string?
@@ -67,15 +72,18 @@ public data struct ActionButton {
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Creates Text from resolved props. Nil uses one line that ends with an ellipsis when the button is too narrow.
+    /// Return a fresh element or the supplied default.
     var CreateText Func[ActionButton, Text]?
-    /// Creates the final Button from resolved props and exact final Text.
-    var CreateRoot Func[ActionButton, Text, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Busy, Accessibility.Checked, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
+    var ConfigureRoot Action[ActionButton, Text, Button]?
 
     /// Builds a fresh Goo button tree after resolving props and factories.
     public func Build() Blob {
         let theme = Theme.Read()
         let createText = CreateText
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let content = Content ?? ""
         let background = BackgroundColor ?? theme.RaisedColor
         let defaultHeight Length = theme.ControlHeight
@@ -107,10 +115,10 @@ public data struct ActionButton {
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateText = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
-        let text Text? = if createRoot == nil && createText == nil && content == "" {
+        let text Text? = if configureRoot == nil && createText == nil && content == "" {
             nil
         } else if let createText = createText {
             createText(resolved)
@@ -130,7 +138,6 @@ public data struct ActionButton {
             value
         }
 
-        if let createRoot = createRoot { return Finish(createRoot(resolved, text!!), resolved, theme) }
         let root = Button{
             LineHeight: theme.LineHeight,
             Height: resolved.Height!!,
@@ -163,14 +170,17 @@ public data struct ActionButton {
         }
         var leadingSlot Container?
         if let leading = Leading {
-            leadingSlot = Container{Position: PositionType.Relative, Container{Opacity: Loading ? 0.0: 1.0, leading},}
+            leadingSlot = Container{
+                Position: PositionType.Relative,
+                Container{Opacity: Loading ? 0.0: 1.0, resolved.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading},
+            }
             contents.Children.Add(leadingSlot)
         }
-        if let text = text {
-            contents.Children.Add(text)
+        if content != "" || createText != nil {
+            if let text = text { contents.Children.Add(text) }
         }
         if let trailing = Trailing {
-            contents.Children.Add(trailing)
+            contents.Children.Add(resolved.Disabled ? theme.DisabledSlot(trailing, theme.TextColor): trailing)
         }
         if let shortcut = Shortcut {
             contents.Children.Add(
@@ -198,30 +208,63 @@ public data struct ActionButton {
                 root.Children.Add(indicator)
             }
         }
+        if let configure = configureRoot {
+            let originalAccessibilityBusy = root.Accessibility?.Busy
+            let originalAccessibilityChecked = (root.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            configure.Invoke(resolved, text!!, root)
+            if root.Accessibility?.Busy != originalAccessibilityBusy {
+                throw InvalidOperationException("ActionButton owns Accessibility.Busy; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("ActionButton owns Accessibility.Checked; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ActionButton owns Accessibility.Name; set ActionButton.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ActionButton owns Accessibility.Role; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("ActionButton owns Disabled; set ActionButton.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("ActionButton owns Focusable; configure ActionButton instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("ActionButton owns OnClick; set ActionButton.OnClick instead of changing it in ConfigureRoot")
+            }
+        }
         return Finish(root, resolved, theme)
     }
 
     private func Finish(root Button, resolved ActionButton, theme Theme) Blob {
-        if let color = HoverBackgroundColor { root.Hover = Style{BackgroundColor: color, BasedOn: root.Hover} }
-        if let color = ActiveBackgroundColor { root.Active = Style{BackgroundColor: color, BasedOn: root.Active} }
-        if let transform = ActiveTransform { root.Active = Style{Transform: transform, BasedOn: root.Active} }
-        if let color = FocusBorderColor { root.Focus = Style{OutlineColor: color, BasedOn: root.Focus} }
+        if let color = HoverBackgroundColor { root.HoverStyle = Style{BackgroundColor: color, BasedOn: root.HoverStyle} }
+        if let color = ActiveBackgroundColor { root.ActiveStyle = Style{BackgroundColor: color, BasedOn: root.ActiveStyle} }
+        if let transform = ActiveTransform { root.ActiveStyle = Style{Transform: transform, BasedOn: root.ActiveStyle} }
+        if let color = FocusBorderColor { root.FocusStyle = Style{OutlineColor: color, BasedOn: root.FocusStyle} }
         if let color = DisabledBackgroundColor { root.DisabledStyle = Style{BackgroundColor: color, BasedOn: root.DisabledStyle} }
         if let color = DisabledTextColor { root.DisabledStyle = Style{Color: color, BasedOn: root.DisabledStyle} }
         if resolved.BackgroundColor!!.A > 0 && Pressed != true {
             root.BoxShadows = theme.ControlShadows
-            root.Active = Style{BoxShadows: theme.FieldShadows, BasedOn: root.Active}
+            root.ActiveStyle = Style{BoxShadows: theme.FieldShadows, BasedOn: root.ActiveStyle}
             root.DisabledStyle = Style{BoxShadows: []BoxShadow{}, BasedOn: root.DisabledStyle}
         }
         theme.ApplyInteraction(root, InteractionFamily.Button, Pressed == true)
         root.Disabled = resolved.Disabled
         root.Focusable = !resolved.Disabled
         root.OnClick = resolved.Disabled ? nil: root.OnClick ?? resolved.OnClick
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Busy: Loading,
-            Checked: Pressed == nil ? AccessibilityChecked.Unspecified:
-                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False,
-        }
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Button
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Busy = Loading
+        rootAccessibility.Checked = Pressed == nil ? AccessibilityChecked.Unspecified:
+                Pressed == true ? AccessibilityChecked.True: AccessibilityChecked.False
+        root.Accessibility = rootAccessibility
         WidgetKeyBindings.BindActivation(root)
         return root
     }

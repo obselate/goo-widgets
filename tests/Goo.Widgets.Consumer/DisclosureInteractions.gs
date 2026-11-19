@@ -59,7 +59,7 @@ internal class DisclosureHost : Cell {
         BorderRadius: 8,
         BorderWidth: 1,
         BorderColor: Color.Parse("#28765c"),
-        BackgroundColor: "#102822",
+        BackgroundColor: Color.Parse("#102822"),
         header,
         body,
     }
@@ -75,11 +75,13 @@ internal class DisclosureHost : Cell {
             HeaderPadding: 0.0,
             Content: Cell.Mount[DisclosureChild](
                 "child",
-                (child DisclosureChild) -> {
+                () -> {
+                    let child = DisclosureChild()
                     if Child != child {
                         Mounts++
                     }
                     Child = child
+                    return child
                 }
             ),
             OnExpandedChange: (expanded bool) -> {
@@ -88,26 +90,25 @@ internal class DisclosureHost : Cell {
                 Rebuild()
             },
             CreateIndicator: MakeIndicator,
-            CreateHeader: (headerProps Disclosure, header Button) -> {
+            ConfigureHeader: (headerProps Disclosure, header Button) -> {
                 Require(
                     headerProps.HeaderPadding == 0.0 && headerProps.BackgroundColor != nil,
                     "Disclosure header factory did not receive resolved props or preserve explicit zero."
                 )
                 header.Handle = HeaderHandle
                 Header = header
-                return header
-            },
+                },
             CreateContent: MakeBody,
             CreateRoot: MakeRoot,
         }
         return Container{
             Padding: 24,
-            BackgroundColor: "#09090b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#09090b"),
+            Color: Color.Parse("#fafafa"),
             Gap: 16,
             Text{Content: "Disclosure · retained content", FontSize: 22},
             section.Build(),
-            Text{Content: "Pointer, Enter, and Space share the controlled expanded state.", Color: "#a1a1aa"}
+            Text{Content: "Pointer, Enter, and Space share the controlled expanded state.", Color: Color.Parse("#a1a1aa")}
         }
     }
 }
@@ -115,7 +116,7 @@ internal class DisclosureHost : Cell {
 func DisclosureInteractions() {
     let host = DisclosureHost{}
     let semantics = SearchListSemantics{}
-    let window = Window{Title: "Disclosure interaction verification", Width: 580, Height: 340, Root: host}
+    let window = Window{Title: "Disclosure interaction verification", Size: LayoutSize(580, 340), Root: host}
     window.AccessibilityAdapter = semantics
     RunNativeWindow(window, () -> {
         window.Open()

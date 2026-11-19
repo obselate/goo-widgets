@@ -6,6 +6,9 @@ import System
 import System.Collections.Generic
 
 /// An identified radio choice with optional descriptive content.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct RadioOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -27,7 +30,7 @@ public data struct RadioGroupInput {
     var SelectedId string?
     /// Receives the selected item ID after user selection. Nil ignores the request.
     var OnSelect Action[string]?
-    /// Direction of layout and arrow-key navigation. Nil uses horizontal layout.
+    /// Direction of layout and arrow-key navigation. Nil uses vertical layout.
     var Orientation AccessibilityOrientation?
     /// Uses a bordered card presentation for each labeled choice.
     var Card bool
@@ -35,12 +38,14 @@ public data struct RadioGroupInput {
     var Disabled bool
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
-    /// Receives the widget input, the radio option, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[RadioGroupInput, RadioOption, Button, Button]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[RadioGroupInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key, OnKeyDown, TabStop.
+    var ConfigureItem Action[RadioGroupInput, RadioOption, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Orientation, Accessibility.Role.
+    var ConfigureRoot Action[RadioGroupInput, Container]?
 }
 
 /// One tab stop with arrow-key selection and radio accessibility.
@@ -76,16 +81,6 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             handles.Remove(id)
         }
         var root = Container{Gap: theme.ControlGap}
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
-        root.Direction = theme.Direction
-        root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: input.AccessibilityName ?? theme.Text("Choices"),
-            Orientation: input.Orientation!!,
-        }
         root.Children.Clear()
         for item in input.Items!! {
             let id = item.Id
@@ -101,13 +96,28 @@ public open class RadioGroup : Cell[RadioGroupInput] {
                 Card: input.Card,
                 Disabled: input.Disabled || item.Disabled,
                 OnChange: (value bool) -> Select(id),
-                CreateRoot: (value RadioButton, prepared Button) -> {
+                ConfigureRoot: (value RadioButton, prepared Button) -> {
                     var button = prepared
-                    if let create = input.CreateItem {
-                        button = create(input, item, button)
+                    if let configure = input.ConfigureItem {
+                        let originalHandle = button.Handle
+                        let originalKey = button.Key
+                        let originalOnKeyDown = button.OnKeyDown
+                        let originalTabStop = button.TabStop
+                        configure.Invoke(input, item, button)
+                        if button.Handle != originalHandle {
+                            throw InvalidOperationException("RadioGroup owns Handle; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                        if button.Key != originalKey {
+                            throw InvalidOperationException("RadioGroup owns Key; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                        if button.OnKeyDown != originalOnKeyDown {
+                            throw InvalidOperationException("RadioGroup owns OnKeyDown; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
+                        if button.TabStop != originalTabStop {
+                            throw InvalidOperationException("RadioGroup owns TabStop; configure RadioGroupInput instead of changing it in ConfigureItem")
+                        }
                     }
                     button.Handle = handles[id]
-                    return button
                 },
             }.Build() as Button)!!
             button.Key = id
@@ -115,6 +125,28 @@ public open class RadioGroup : Cell[RadioGroupInput] {
             button.OnKeyDown = (e KeyEvent) -> Move(id, e)
             root.Children.Add(button)
         }
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("RadioGroup owns Accessibility.Name; set RadioGroupInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("RadioGroup owns Accessibility.Orientation; set RadioGroupInput.Orientation instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("RadioGroup owns Accessibility.Role; configure RadioGroupInput instead of changing it in ConfigureRoot")
+            }
+        }
+        root.Direction = theme.Direction
+        root.FlexDirection = input.Orientation == AccessibilityOrientation.Horizontal ? FlexDirection.Row: FlexDirection.Column
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = input.AccessibilityName ?? theme.Text("Choices")
+        rootAccessibility.Orientation = input.Orientation!!
+        root.Accessibility = rootAccessibility
         return root
     }
 

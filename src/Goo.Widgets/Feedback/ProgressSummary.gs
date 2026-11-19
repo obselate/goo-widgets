@@ -36,8 +36,10 @@ public data struct ProgressSummary {
     /// Optional font family for default text.
     var FontFamily string?
     /// Creates the progress element from resolved values.
+    /// Return a fresh element or the supplied default.
     var CreateProgress Func[ProgressSummary, Blob]?
     /// Creates the final root from resolved values, header, and progress element.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[ProgressSummary, Container, Blob, Container]?
 
     /// Builds a fresh labeled progress tree.

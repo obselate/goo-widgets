@@ -7,6 +7,9 @@ import System
 import System.Collections.Generic
 
 /// Controlled token values. Invalid values remain visible and removable.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TokenInputInput {
     /// Controlled token strings in display order. Nil supplies an empty array.
     var Value[]?string
@@ -29,12 +32,14 @@ public data struct TokenInputInput {
     var ReadOnly bool
     /// Root layout width. Nil uses 360 logical pixels.
     var Width Length?
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateEntry Func[TokenInputInput, TextEntry, TextEntry]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TokenInputInput, Container, Container]?
+    /// Configures the fresh entry before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, OnKeyDown, ReadOnly.
+    var ConfigureEntry Action[TokenInputInput, TextEntry]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
+    var ConfigureRoot Action[TokenInputInput, Container]?
 }
 
 /// A wrapping token field with separator commits and two-step Backspace removal.
@@ -54,8 +59,12 @@ public open class TokenInput : Cell[TokenInputInput] {
             selected = -1
         }
         var root = Container{Width: input.Width ?? defaultWidth, MinWidth: 0, Gap: theme.ControlGap / 2,}
-        if let create = input.CreateRoot {
-            root = create(input, root)
+        if let configure = input.ConfigureRoot {
+            let originalKey = root.Key
+            configure.Invoke(input, root)
+            if root.Key != originalKey {
+                throw InvalidOperationException("TokenInput owns Key; configure TokenInputInput instead of changing it in ConfigureRoot")
+            }
         }
         let frame = Container{
             BasedOn: focused && !input.Disabled ? theme.FieldFocusStyle: nil,
@@ -88,7 +97,7 @@ public open class TokenInput : Cell[TokenInputInput] {
                 )
             )
         }
-        var entry = TextEntry{
+        let entry = TextEntry{
             Key: "entry",
             Value: draft,
             Controlled: true,
@@ -103,11 +112,23 @@ public open class TokenInput : Cell[TokenInputInput] {
             OnChange: Changed,
             OnSubmit: value -> Commit(value),
         }
-        if let create = input.CreateEntry {
-            entry = create(input, entry)
+        if let configure = input.ConfigureEntry {
+            let originalHandle = entry.Handle
+            let originalOnKeyDown = entry.OnKeyDown
+            let originalReadOnly = entry.ReadOnly
+            configure.Invoke(input, entry)
+            if entry.Handle != originalHandle {
+                throw InvalidOperationException("TokenInput owns Handle; configure TokenInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("TokenInput owns OnKeyDown; configure TokenInputInput instead of changing it in ConfigureEntry")
+            }
+            if entry.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("TokenInput owns ReadOnly; set TokenInputInput.ReadOnly instead of changing it in ConfigureEntry")
+            }
         }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
-        entry.Focus = Style{BasedOn: entry.Focus, OutlineWidth: 0}
+        entry.FocusStyle = Style{BasedOn: entry.FocusStyle, OutlineWidth: 0}
         let priorFocus = entry.OnFocus
         let priorBlur = entry.OnBlur
         entry.OnFocus = event -> {

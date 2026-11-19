@@ -5,6 +5,9 @@ import Goo.Widgets
 import System
 
 /// A generic actionable card with supplied thumbnail content and text metadata.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct MediaCard {
     /// Thumbnail content owned by this card tree.
     var Thumbnail Blob?
@@ -47,15 +50,18 @@ public data struct MediaCard {
     /// Optional base style for the root button.
     var RootStyle Style?
     /// Creates the metadata content from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[MediaCard, Blob]?
-    /// Creates the final button from resolved props, thumbnail, and metadata content.
-    var CreateRoot Func[MediaCard, Blob, Blob, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries), OnClick.
+    var ConfigureRoot Action[MediaCard, Blob, Blob, Button]?
 
     /// Builds a fresh Goo card tree.
     public func Build() Blob {
         let theme = Theme.Read()
         let createContent = CreateContent
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let title = Title ?? ""
         let defaultWidth Length = 200.0
         let width = Width ?? defaultWidth
@@ -70,12 +76,12 @@ public data struct MediaCard {
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
-            TitleColor = TitleColor ?? theme.TextColor,
-            SupportingColor = SupportingColor ?? theme.MutedTextColor,
+            TitleColor = Disabled ? theme.DisabledTextColor: TitleColor ?? theme.TextColor,
+            SupportingColor = Disabled ? theme.DisabledTextColor: SupportingColor ?? theme.MutedTextColor,
             TitleFontSize = TitleFontSize ?? theme.HeadingFontSize,
             SupportingFontSize = SupportingFontSize ?? theme.CaptionFontSize,
             CreateContent = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
         let thumbnail = resolved.Thumbnail ??
         Container{
@@ -118,7 +124,7 @@ public data struct MediaCard {
                 Children: children,
             }
         }
-        let button = if let createRoot = createRoot { createRoot(resolved, thumbnail, content) } else { Button{
+        let button = Button{
             LineHeight: theme.LineHeight,
             Width: resolved.Width!!,
             Height: resolved.ThumbnailHeight!! + resolved.ContentHeight!!,
@@ -134,13 +140,20 @@ public data struct MediaCard {
             OverflowX: Overflow.Hidden,
             OverflowY: Overflow.Hidden,
             BackgroundColor: resolved.BackgroundColor!!,
-            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
-            thumbnail,
+            resolved.Disabled ? theme.DisabledSlot(thumbnail, theme.TextColor): thumbnail,
             content,
-        } }
+        }
+        if let configure = configureRoot {
+            let originalDisabled = button.Disabled
+            configure.Invoke(resolved, thumbnail, content, button)
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("MediaCard owns Disabled; set MediaCard.Disabled instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Disabled = Disabled
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick

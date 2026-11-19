@@ -9,6 +9,7 @@ import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
 import Goo.Widgets.Layout
 import Goo.Widgets.Media
+import Goo.Widgets.Navigation
 import System
 
 internal class SliderProbe : Slider {
@@ -55,7 +56,7 @@ func Require(condition bool, message string) {
 func InvokeKeyBinding(blob Blob, key Key) bool {
     for binding in blob.KeyBindings ?? []KeyBinding{} {
         if binding.Key == key && NoModifiers(binding.Modifiers) {
-            binding.Action?.Invoke()
+            binding.OnPress?.Invoke()
             return true
         }
     }
@@ -65,7 +66,7 @@ func InvokeKeyBinding(blob Blob, key Key) bool {
 func HasKeyBinding(blob Blob, key Key, release bool = false) bool {
     for binding in blob.KeyBindings ?? []KeyBinding{} {
         if binding.Key == key && NoModifiers(binding.Modifiers) {
-            return (binding.Action != nil || binding.OnRelease != nil) && (!release || binding.OnRelease != nil)
+            return (binding.OnPress != nil || binding.OnRelease != nil) && (!release || binding.OnRelease != nil)
         }
     }
     return false
@@ -84,7 +85,7 @@ internal class ApplicationHost : Cell {
     public override func Build() Blob -> Container{
         Width: Percent(100),
         Height: Percent(100),
-        Cell.Mount[Cell](() -> content, "application-host"),
+        Cell.Mount[Cell]("application-host", () -> content),
     }
 }
 
@@ -124,7 +125,7 @@ func PackageComposition() {
     var customBinding bool
     let customButton = Button{
         OnClick: () -> { },
-        KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, Action: () -> customBinding = true},},
+        KeyBindings: []KeyBinding{KeyBinding{Key: Key.H, OnPress: () -> customBinding = true},},
     }
     WidgetKeyBindings.BindActivation(customButton)
     Require(
@@ -155,10 +156,8 @@ func PackageComposition() {
         Label: "Name",
         Value: "before",
         OnChange: (value string) -> edited = value,
-        CreateEntry: (resolved TextField) -> {
-            let created = TextEntry{Value: resolved.Value ?? "", OnChange: resolved.OnChange}
-            entry = created
-            return created
+        ConfigureEntry: (resolved TextField, prepared TextEntry) -> {
+            entry = prepared
         },
     }.Build()
     entry!!.OnChange?.Invoke("after")
@@ -227,8 +226,9 @@ func NumericAndIdentityRegressions() {
             },
         }.Build()
     )
+    let renderedRoot = empty
     Require(
-        empty != nil && empty.Children.Count == 2 && (empty.Children[1] as Text)!!.Content == "Nothing found",
+        renderedRoot != nil && renderedRoot.Children.Count == 2 && (renderedRoot.Children[1] as Text)!!.Content == "Nothing found",
         "No-match search did not replace its virtual viewport with the empty state."
     )
 }
@@ -478,6 +478,15 @@ func Main() {
     ThemeFocusContracts()
     ThemeRadiusContracts()
     SelectedTextContracts()
+    TouchEditingOwnership()
+    ReceivedElementContracts()
+    NavigationRailOwnership()
+    let emptyPaths = Container(){
+        Cell.Mount[BreadcrumbInput, Breadcrumb]("breadcrumb-default", BreadcrumbInput{}),
+        Cell.Mount[BreadcrumbInput, Breadcrumb]("breadcrumb-empty", BreadcrumbInput{Items: []BreadcrumbItem{}}),
+        Cell.Mount[BreadcrumbInput, PathBar]("path-default", BreadcrumbInput{}),
+        Cell.Mount[BreadcrumbInput, PathBar]("path-empty", BreadcrumbInput{Items: []BreadcrumbItem{}})
+    }
     RunContracts(
         () -> {
             CalendarContracts()
@@ -499,7 +508,9 @@ func Main() {
             VirtualContracts()
             SliderInteractions()
             WidgetErgonomics()
-        }
+        },
+        nil,
+        emptyPaths
     )
     RunContracts(MirroredSliderKeys, Theme.Default with{Direction = Direction.RightToLeft})
     RunContracts(LocalizedSliderValue, Theme.Default with{Culture = System.Globalization.CultureInfo.GetCultureInfo("de-DE")})

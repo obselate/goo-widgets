@@ -59,10 +59,13 @@ public data struct EmptyState {
     /// Transform applied to the root container. Nil resolves to identity.
     var Transform PanelTransform?
     /// Custom factory for the title Text. Receives resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateTitle Func[EmptyState, Text]?
     /// Custom factory for the description Text. Receives resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateDescription Func[EmptyState, Text]?
     /// Custom factory for the root Container. Receives resolved props, Illustration, title Text, description Text, and Action.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[EmptyState, Blob?, Text, Text?, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.

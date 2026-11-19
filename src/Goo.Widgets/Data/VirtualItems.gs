@@ -33,7 +33,8 @@ public func VirtualItems[T](
         throw ArgumentNullException("itemBuilder")
     }
     let theme = Theme.Read()
-    return Virtual(VirtualItemsSource[T](items, width, height, itemKey, itemBuilder)){
+    return Virtual(){
+        Source = VirtualItemsSource[T](items, width, height, itemKey, itemBuilder),
         ScrollbarX = theme.Scrollbar,
         ScrollbarY = theme.Scrollbar,
     }
@@ -295,7 +296,7 @@ internal class VirtualItemsState[T] : VirtualState {
         var first = 0
         var end = 0
         if stride > 0.0F {
-            first = Math.Clamp(int32(MathF.Floor(lineScroll / stride)) - 1, 0, lineCount)
+            first = Math.Clamp(int32(MathF.Floor(lineScroll / stride)) - 1, 0, wrapped ? lineCount - 1: lineCount)
             end = Math.Max(
                 first,
                 Math.Clamp(int32(MathF.Ceiling((lineScroll + lineViewport) / stride)) + 1, 0, lineCount)

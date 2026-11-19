@@ -27,6 +27,9 @@ public enum TabPlacement {
 }
 
 /// Controlled peer navigation. The host owns panel content and lifetime.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TabBarInput {
     /// Ordered entries with unique, nonempty IDs. Nil resolves to an empty list.
     var Items[]?NavigationItem
@@ -66,12 +69,14 @@ public data struct TabBarInput {
     var Height Length?
     /// Minimum tab height. Nil uses the theme's control height.
     var ItemHeight float64?
-    /// Customizes item appearance; required identity, focus, handlers, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[TabBarInput, NavigationItem, Button, Button]?
-    /// Customizes root appearance. Ordered children and tab-list semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TabBarInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, OnKeyDown, TabStop.
+    var ConfigureItem Action[TabBarInput, NavigationItem, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Orientation, Accessibility.Role, Layout.
+    var ConfigureRoot Action[TabBarInput, Container]?
 }
 
 /// Tabs with one Tab stop and disabled-aware arrow navigation. With OverflowMenu, horizontal tabs show only whole tabs.
@@ -147,7 +152,7 @@ public open class TabBar : Cell[TabBarInput] {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                 FlexDirection: FlexDirection.Row,
                 AlignItems: AlignItems.Center,
                 JustifyContent: input.Vertical ? JustifyContent.FlexStart: JustifyContent.Center,
@@ -164,8 +169,59 @@ public open class TabBar : Cell[TabBarInput] {
                     FontWeight: theme.LabelFontWeight,
                 },
             }
-            if let create = input.CreateItem {
-                button = create(input, item, button)
+            if item.Disabled && item.Content != nil {
+                button.Children[0] = theme.DisabledSlot(item.Content!!, theme.TextColor)
+            }
+            if let configure = input.ConfigureItem {
+                let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalAccessibilitySelected = button.Accessibility?.Selected
+                let originalDisabled = button.Disabled
+                let originalFocusable = button.Focusable
+                let originalHandle = button.Handle
+                let originalKey = button.Key
+                let originalOnBlur = button.OnBlur
+                let originalOnClick = button.OnClick
+                let originalOnFocus = button.OnFocus
+                let originalOnKeyDown = button.OnKeyDown
+                let originalTabStop = button.TabStop
+                configure.Invoke(input, item, button)
+                if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("TabBar owns Accessibility.Name; set TabBarInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("TabBar owns Accessibility.Role; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Accessibility?.Selected != originalAccessibilitySelected {
+                    throw InvalidOperationException("TabBar owns Accessibility.Selected; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Disabled != originalDisabled {
+                    throw InvalidOperationException("TabBar owns Disabled; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Focusable != originalFocusable {
+                    throw InvalidOperationException("TabBar owns Focusable; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Handle != originalHandle {
+                    throw InvalidOperationException("TabBar owns Handle; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.Key != originalKey {
+                    throw InvalidOperationException("TabBar owns Key; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnBlur != originalOnBlur {
+                    throw InvalidOperationException("TabBar owns OnBlur; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnClick != originalOnClick {
+                    throw InvalidOperationException("TabBar owns OnClick; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("TabBar owns OnFocus; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("TabBar owns OnKeyDown; configure TabBarInput instead of changing it in ConfigureItem")
+                }
+                if button.TabStop != originalTabStop {
+                    throw InvalidOperationException("TabBar owns TabStop; configure TabBarInput instead of changing it in ConfigureItem")
+                }
             }
             theme.ApplyInteraction(button, InteractionFamily.Tab, active)
             button.Key = id
@@ -185,11 +241,11 @@ public open class TabBar : Cell[TabBarInput] {
                 Rebuild()
             }
             button.OnKeyDown = (e KeyEvent) -> KeyDown(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Tab,
-                Name: item.AccessibilityName!!,
-                Selected: active
-            }
+            let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            buttonAccessibility.Role = AccessibilityRole.Tab
+            buttonAccessibility.Name = item.AccessibilityName!!
+            buttonAccessibility.Selected = active
+            button.Accessibility = buttonAccessibility
             buttons.Add(button)
             let pinned = Array.IndexOf(input.PinnedIds!!, id) >= 0
             let dirty = Array.IndexOf(input.DirtyIds!!, id) >= 0
@@ -234,9 +290,9 @@ public open class TabBar : Cell[TabBarInput] {
                 button.PaddingEnd = theme.Spacing
                 button.FlexShrink = 1
                 button.BackgroundColor = Color.Transparent
-                button.Hover = Style{}
-                button.Active = Style{BackgroundColor: Color.Transparent}
-                button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor, Opacity: 1.0}
+                button.HoverStyle = Style{}
+                button.ActiveStyle = Style{BackgroundColor: Color.Transparent}
+                button.DisabledStyle = Style{BackgroundColor: Color.Transparent, Color: theme.DisabledTextColor}
                 let tab = Container{
                     Key: id,
                     FlexDirection: FlexDirection.Row,
@@ -245,9 +301,9 @@ public open class TabBar : Cell[TabBarInput] {
                     AlignItems: AlignItems.Center,
                     PaddingEnd: theme.Spacing * 2,
                     BackgroundColor: active ? theme.ActiveColor: theme.ChromeColor,
-                    Hover: Style{BackgroundColor: active ? theme.ActiveColor: theme.HoverColor},
+                    HoverStyle: Style{BackgroundColor: active ? theme.ActiveColor: theme.HoverColor},
                     Disabled: item.Disabled,
-                    DisabledStyle: Style{Color: theme.DisabledTextColor, Opacity: theme.DisabledOpacity},
+                    DisabledStyle: Style{Color: theme.DisabledTextColor},
                     button
                 }
                 let close = Button{
@@ -258,7 +314,7 @@ public open class TabBar : Cell[TabBarInput] {
                     AlignItems: AlignItems.Center,
                     JustifyContent: JustifyContent.Center,
                     Color: theme.ChromeTextColor,
-                    DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
+                    DisabledStyle: Style{BackgroundColor: Color.Transparent},
                     Disabled: item.Disabled,
                     Focusable: !item.Disabled,
                     TabStop: false,
@@ -290,8 +346,28 @@ public open class TabBar : Cell[TabBarInput] {
             BackgroundColor: theme.ChromeColor,
             ScrollbarX: theme.Scrollbar,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
+        root.Children.Clear()
+        for button in buttons {
+            root.Children.Add(button)
+        }
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalLayout = root.Layout
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TabBar owns Accessibility.Name; set TabBarInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("TabBar owns Accessibility.Orientation; configure TabBarInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TabBar owns Accessibility.Role; configure TabBarInput instead of changing it in ConfigureRoot")
+            }
+            if root.Layout != originalLayout {
+                throw InvalidOperationException("TabBar owns Layout; configure TabBarInput instead of changing it in ConfigureRoot")
+            }
         }
         root.Direction = theme.Direction
         root.FlexDirection = input.Vertical ? FlexDirection.Column: FlexDirection.Row
@@ -308,15 +384,11 @@ public open class TabBar : Cell[TabBarInput] {
             root.Layout = WholeTabsLayout(visible, theme.Spacing / 2.0, rightToLeft)
         }
         root.ScrollbarY = theme.Scrollbar
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.TabList,
-            Name: input.AccessibilityName!!,
-            Orientation: input.Vertical ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal
-        }
-        root.Children.Clear()
-        for button in buttons {
-            root.Children.Add(button)
-        }
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.TabList
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.Orientation = input.Vertical ? AccessibilityOrientation.Vertical: AccessibilityOrientation.Horizontal
+        root.Accessibility = rootAccessibility
         if !input.OverflowMenu && input.OnAdd == nil {
             return root
         }
@@ -389,7 +461,7 @@ public open class TabBar : Cell[TabBarInput] {
         if !Enabled(id) {
             return
         }
-        if e.Key == Key.Delete || (e.Key == Key.W && (e.Modifiers.Ctrl || e.Modifiers.Super)) {
+        if e.Key == Key.Delete || (e.Key == Key.W && e.Modifiers.HasPrimary) {
             if input.OnClose != nil && Array.IndexOf(input.PinnedIds!!, id) < 0 {
                 e.PreventDefault()
                 e.StopPropagation()

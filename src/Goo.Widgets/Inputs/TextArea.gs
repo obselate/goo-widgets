@@ -5,6 +5,9 @@ import Goo.Widgets
 import System
 
 /// Controlled multiline field values, presentation, and optional external editor ownership.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct TextAreaInput {
     /// Controlled string. Nil preserves an external controller's document; an owned document starts empty.
     var Value string?
@@ -72,14 +75,19 @@ public data struct TextAreaInput {
     var FocusColor Color?
     /// Base editor style, applied before the field's required layout and behavior.
     var EditorStyle Style?
-    /// Base root style.
+    /// Styles the returned outermost root after its default layout.
     var RootStyle Style?
-    /// Customizes the prepared editor. It must retain the supplied controller; field behavior is reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateEditor Func[TextAreaInput, TextEditor, TextEditor]?
-    /// Customizes root appearance; label, editor, and error children are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[TextAreaInput, Container, Container]?
+    /// Configures the fresh editor before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Controller, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnChange, ReadOnly.
+    var ConfigureEditor Action[TextAreaInput, TextEditor]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Root contains the mounted touch wrapper. Its padding is outside the touch region.
+    /// Preserve the mounted editor child. Add content around it instead of replacing Children.
+    /// Other supplied parts are read-only. Use their Configure hook to style them.
+    /// The widget does not replace configured metadata or children.
+    var ConfigureRoot Action[TextAreaInput, Container]?
 }
 
 /// A mounted controlled TextEditor field that disposes only its default controller.
@@ -90,6 +98,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
     private var syncing bool
     private var disposed bool
     private var input TextAreaInput
+    private let editorHandle ElementHandle = ElementHandle()
     private let labelHandle ElementHandle = ElementHandle()
     private let issueHandle ElementHandle = ElementHandle()
     private let descriptionHandle ElementHandle = ElementHandle()
@@ -153,7 +162,9 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         }
         let overLimit = value.MaxLength != nil && Count > value.MaxLength!!
         let invalid = value.Invalid || value.Error != nil || overLimit
-        var editor = TextEditor(editorController, value.Layers ?? []TextPresentationLayer{}){
+        var editor = TextEditor(){
+            Controller = editorController,
+            Layers = value.Layers ?? []TextPresentationLayer{},
             Width = Percent(100),
             Height = value.Height ?? minHeight,
             MinHeight = minHeight,
@@ -170,7 +181,7 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             BorderWidth = theme.BorderWidth,
             BorderColor = invalid ? input.InvalidColor!!: theme.InputBorderColor,
             BorderRadius = theme.ControlRadius!!,
-            Focus = Style{BasedOn: theme.FocusStyle, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle = Style{BasedOn: theme.FocusStyle, OutlineColor: input.FocusColor!!, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs = theme.TransitionMs,
             TransitionEasing = Easing.EaseOut,
             TransitionProperties = theme.InteractionTransitions,
@@ -179,22 +190,59 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
             ScrollbarY = value.ScrollbarY ?? theme.Scrollbar,
             BasedOn = value.EditorStyle,
             KeyBindings = []KeyBinding{
-                KeyBinding{Key: Key.Enter, Action: () -> Enter()},
-                KeyBinding{Key: Key.KeypadEnter, Action: () -> Enter()},
-                KeyBinding{Key: Key.Escape, Action: () -> Cancel()},
+                KeyBinding{Key: Key.Enter, OnPress: () -> Enter()},
+                KeyBinding{Key: Key.KeypadEnter, OnPress: () -> Enter()},
+                KeyBinding{Key: Key.Escape, OnPress: () -> Cancel()},
             },
         }
-        if let create = input.CreateEditor {
-            editor = create(input, editor)
+        let requiredBindings = input.ConfigureEditor == nil ? nil : editor.KeyBindings
+        if let configure = input.ConfigureEditor {
+            let originalAccessibilityInvalid = editor.Accessibility?.Invalid
+            let originalAccessibilityName = (editor.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (editor.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalController = editor.Controller
+            let originalDisabled = editor.Disabled
+            let originalFocusable = editor.Focusable
+            let originalKey = editor.Key
+            let originalOnChange = editor.OnChange
+            let originalReadOnly = editor.ReadOnly
+            configure.Invoke(input, editor)
+            if editor.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("TextArea owns Accessibility.Invalid; set TextAreaInput.Invalid instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("TextArea owns Accessibility.Name; set TextAreaInput.AccessibilityName instead of changing it in ConfigureEditor")
+            }
+            if (editor.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("TextArea owns Accessibility.Role; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Controller != originalController {
+                throw InvalidOperationException("TextArea owns Controller; set TextAreaInput.Controller instead of changing it in ConfigureEditor")
+            }
+            if editor.Disabled != originalDisabled {
+                throw InvalidOperationException("TextArea owns Disabled; set TextAreaInput.Disabled instead of changing it in ConfigureEditor")
+            }
+            if editor.Focusable != originalFocusable {
+                throw InvalidOperationException("TextArea owns Focusable; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.Key != originalKey {
+                throw InvalidOperationException("TextArea owns Key; configure TextAreaInput instead of changing it in ConfigureEditor")
+            }
+            if editor.OnChange != originalOnChange {
+                throw InvalidOperationException("TextArea owns OnChange; set TextAreaInput.OnChange instead of changing it in ConfigureEditor")
+            }
+            if editor.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("TextArea owns ReadOnly; set TextAreaInput.ReadOnly instead of changing it in ConfigureEditor")
+            }
         }
+        if requiredBindings != nil { WidgetKeyBindings.AppendBindings(editor, requiredBindings) }
         if invalid {
-            editor.Hover = Style{BasedOn: editor.Hover, BorderColor: input.InvalidColor!!}
-            editor.Active = Style{BasedOn: editor.Active, BorderColor: input.InvalidColor!!}
+            editor.HoverStyle = Style{BasedOn: editor.HoverStyle, BorderColor: input.InvalidColor!!}
+            editor.ActiveStyle = Style{BasedOn: editor.ActiveStyle, BorderColor: input.InvalidColor!!}
         }
         theme.ApplyInteraction(editor, InteractionFamily.Field)
-        if editor.Controller != editorController {
-            throw ArgumentException("CreateEditor must preserve the TextArea controller")
-        }
+        editor.Controller = editorController
+        editor.Handle ??= editorHandle
         editor.Key = "editor"
         editor.ReadOnly = input.ReadOnly
         editor.Disabled = input.Disabled
@@ -205,31 +253,26 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
         editor.OverflowY = Overflow.Scroll
         editor.Placeholder = input.Placeholder!!
         editor.OnChange = Changed
-        editor.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextEditor,
-            Name: input.AccessibilityName!!,
-            Invalid: invalid,
-            Relationships: AccessibilityRelationships{
-                LabelledBy: input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{},
-                DescribedBy: input.Description != nil
+        let editorAccessibility = if let configured = editor.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        editorAccessibility.Role = AccessibilityRole.TextEditor
+        editorAccessibility.Name = input.AccessibilityName!!
+        editorAccessibility.Invalid = invalid
+        let editorRelationships = if let configured = editorAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        editorRelationships.LabelledBy = input.Label != nil ? []ElementHandle{labelHandle}: []ElementHandle{}
+        editorRelationships.DescribedBy = input.Description != nil
                     ? (input.Error != nil ? []ElementHandle{descriptionHandle, issueHandle}: []ElementHandle{descriptionHandle})
-                    : (input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{}),
-                ErrorMessage: invalid && input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{},
-            },
-        }
+                    : (input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{})
+        editorRelationships.ErrorMessage = invalid && input.Error != nil ? []ElementHandle{issueHandle}: []ElementHandle{}
+        editorAccessibility.Relationships = editorRelationships
+        editor.Accessibility = editorAccessibility
         var root = Container{
             LineHeight: theme.LineHeight,
-            Width: input.Width!!,
+            Width: Percent(100),
             MinWidth: 0,
             Gap: theme.ControlGap,
             FlexDirection: FlexDirection.Column,
             FontFamily: input.FontFamily!!,
-            BasedOn: input.RootStyle,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
-        root.FlexDirection = FlexDirection.Column
         root.Children.Clear()
         if let label = input.Label {
             root.Children.Add(
@@ -299,10 +342,28 @@ public open class TextArea : Cell[TextAreaInput], IDisposable {
                 }
             )
         }
-        return Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+        root.FlexDirection = FlexDirection.Column
+        let editingHandle = editor.Handle!!
+        let editing = Cell.Mount[TouchTextEditingInput, TouchTextEditing](
             root.Key,
-            TouchTextEditingInput{Content: root, Editor: editor, Enabled: input.TouchEditing}
+            TouchTextEditingInput{
+                Content: root,
+                Editor: editingHandle,
+                RootStyle: Style{Width: Percent(100), MinWidth: 0, MinHeight: 0, FlexGrow: 1},
+                Enabled: input.TouchEditing,
+            }
         )
+        let outer = Container{Width: input.Width!!, MinWidth: 0, BasedOn: input.RootStyle, HitTestSelf: false, editing}
+        if let configure = input.ConfigureRoot {
+            configure.Invoke(input, outer)
+            if editor.Handle != editingHandle {
+                throw InvalidOperationException("TextArea owns its editor handle during ConfigureRoot; adopt it in ConfigureEditor instead")
+            }
+            if !outer.Children.Contains(editing) {
+                throw InvalidOperationException("TextArea owns the editor child of its root; add content around it instead of replacing Children in ConfigureRoot")
+            }
+        }
+        return outer
     }
 
     private func Changed(change TextDocumentChange) {

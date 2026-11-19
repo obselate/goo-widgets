@@ -53,8 +53,10 @@ public data struct Badge {
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
     /// Creates the final Text from resolved props. Nil uses Badge's composition.
+    /// Return a fresh element or the supplied default.
     var CreateText Func[Badge, Text]?
     /// Creates the final Container from resolved props and optional Text. Nil uses Badge's composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Badge, Text?, Container]?
 
     /// Builds a fresh Goo tree, resolving props before invoking either primitive factory.

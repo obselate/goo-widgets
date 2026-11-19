@@ -5,6 +5,9 @@ import Goo.Widgets
 import System
 
 /// An accessible icon-only button that accepts any Goo blob as its icon.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct IconButton {
     /// Visual content shown inside the button.
     var Icon Blob?
@@ -32,17 +35,19 @@ public data struct IconButton {
     var HoverBackgroundColor Color?
     /// Focus outline color. Nil uses the nearest theme.
     var FocusOutlineColor Color?
-    /// Disabled opacity. Nil uses the theme.
+    /// Opacity of the supplied icon while disabled. Nil uses the theme.
     var DisabledOpacity float64?
     /// Optional base style for the root button.
     var RootStyle Style?
-    /// Creates the final button from resolved props and icon content.
-    var CreateRoot Func[IconButton, Blob, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, KeyBindings (required entries), OnClick.
+    var ConfigureRoot Action[IconButton, Blob, Button]?
 
     /// Builds a fresh Goo button tree.
     public func Build() Blob {
         let theme = Theme.Read()
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let defaultWidth Length = theme.ControlHeight
         let width = Width ?? defaultWidth
         let height = Height ?? width
@@ -57,10 +62,10 @@ public data struct IconButton {
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
             FocusOutlineColor = FocusOutlineColor ?? theme.FocusColor,
             DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
         let icon = resolved.Icon ?? Container{Width: 0.0, Height: 0.0, Accessibility: Accessibility{Hidden: true}}
-        let button = if let createRoot = createRoot { createRoot(resolved, icon) } else { Button{
+        let button = Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             Padding: resolved.Padding!!,
@@ -78,16 +83,43 @@ public data struct IconButton {
             } else {
                 resolved.BackgroundColor!!
             },
-            Hover: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
-            Focus: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
+            HoverStyle: HoverBackgroundColor == nil ? nil: Style{BackgroundColor: HoverBackgroundColor!!},
+            FocusStyle: FocusOutlineColor == nil ? nil: Style{OutlineColor: FocusOutlineColor!!},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             BasedOn: resolved.RootStyle,
-            icon,
-        } }
+            Disabled ? Container{Opacity: resolved.DisabledOpacity!!, Color: theme.TextColor, icon}: icon,
+        }
+        if let configure = configureRoot {
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilitySelected = button.Accessibility?.Selected
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            configure.Invoke(resolved, icon, button)
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("IconButton owns Accessibility.Name; set IconButton.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("IconButton owns Accessibility.Role; configure IconButton instead of changing it in ConfigureRoot")
+            }
+            if button.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("IconButton owns Accessibility.Selected; configure IconButton instead of changing it in ConfigureRoot")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("IconButton owns Disabled; set IconButton.Disabled instead of changing it in ConfigureRoot")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("IconButton owns Focusable; configure IconButton instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(button, InteractionFamily.Button, Active)
         button.Disabled = Disabled
         button.Focusable = !Disabled
-        button.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!, Selected: Active}
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Button
+        buttonAccessibility.Name = resolved.AccessibilityName!!
+        buttonAccessibility.Selected = Active
+        button.Accessibility = buttonAccessibility
         button.OnClick = Disabled ? nil: button.OnClick ?? OnClick
         WidgetKeyBindings.BindActivation(button)
         return button

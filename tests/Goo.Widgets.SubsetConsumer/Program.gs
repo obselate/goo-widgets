@@ -177,7 +177,7 @@ func VerifyControlStates() {
 
 func VerifyNativeBanner() {
     let root = ControlStateHost{Tone: Tone.Danger}
-    let window = Window{Title: "Subset error banner", Root: root, Width: 640, Height: 180}
+    let window = Window{Title: "Subset error banner", Root: root, Size: LayoutSize(640, 180)}
     window.Open()
     try {
         for frame in 0 ... 30 {

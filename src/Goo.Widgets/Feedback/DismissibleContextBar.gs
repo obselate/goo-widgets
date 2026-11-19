@@ -1,9 +1,13 @@
 package Goo.Widgets.Feedback
 
+import System
+
 import Goo
 import Goo.Widgets
 
 /// A horizontal context bar with caller content, an integrated dismiss button, and customizable factories.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct DismissibleContextBar {
     /// Hosted content element placed before the dismiss action.
     var Content Blob?
@@ -79,14 +83,17 @@ public data struct DismissibleContextBar {
     var FontFamily string?
     /// Transform applied to the context bar container. Nil resolves to identity.
     var Transform PanelTransform?
-    /// Custom factory for creating the dismiss Button from resolved props.
-    var CreateDismiss Func[DismissibleContextBar, Button]?
+    /// Configures the fresh dismiss before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries).
+    var ConfigureDismiss Action[DismissibleContextBar, Button]?
     /// Custom factory for creating the root Container from resolved props, caller Content, and final Button.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[DismissibleContextBar, Blob?, Button, Container]?
 
     /// Builds a fresh Goo context bar element tree after resolving props and factories.
     public func Build() Blob {
-        let createDismiss = CreateDismiss
+        let configureDismiss = ConfigureDismiss
         let createRoot = CreateRoot
         let theme = Theme.Read()
         let dismissText = DismissText ?? theme.Text("Dismiss")
@@ -126,49 +133,51 @@ public data struct DismissibleContextBar {
             DismissFontWeight = DismissFontWeight ?? theme.FontWeight,
             FontFamily = FontFamily ?? theme.FontFamily,
             Transform = Transform ?? PanelTransform{},
-            CreateDismiss = nil,
+            ConfigureDismiss = nil,
             CreateRoot = nil,
         }
-        var button Button? = nil
-        if let createDismiss = createDismiss {
-            button = createDismiss(resolved)
-        } else {
-            let label = Text{
-                Content: resolved.DismissText!!,
-                FontFamily: resolved.FontFamily ?? theme.FontFamily,
-                FontSize: resolved.DismissFontSize!!,
-                FontWeight: resolved.DismissFontWeight!!,
-            }
-            button = Button{
-                Height: resolved.DismissHeight!!,
-                MinWidth: resolved.DismissMinWidth!!,
-                Padding: Edges{Right: resolved.DismissPaddingHorizontal!!, Left: resolved.DismissPaddingHorizontal!!},
-                BorderWidth: resolved.DismissBorderWidth!!,
-                BorderColor: resolved.DismissBorderColor!!,
-                BorderRadius: resolved.DismissBorderRadius!!,
-                BackgroundColor: resolved.DismissBackgroundColor!!,
-                Color: resolved.DismissTextColor!!,
-                FlexShrink: 0.0,
-                Cursor: Cursor.Pointer,
-                Focusable: true,
-                Disabled: resolved.Disabled,
-                OnClick: resolved.OnDismiss,
-                TransitionMs: resolved.TransitionMs!!,
-                TransitionEasing: resolved.TransitionEasing!!,
-                TransitionProperties: DismissActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
-                Hover: DismissHoverBackgroundColor == nil ? nil: Style{BackgroundColor: DismissHoverBackgroundColor!!},
-                Active: Style{BackgroundColor: resolved.DismissActiveBackgroundColor!!, Transform: resolved.DismissActiveTransform!!},
-                Focus: DismissFocusBorderColor == nil ? nil: Style{OutlineColor: DismissFocusBorderColor!!},
-                DisabledStyle: Style{BackgroundColor: resolved.DismissDisabledBackgroundColor!!, Color: resolved.DismissDisabledTextColor!!},
-                Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.DismissAccessibilityName!!},
-                label,
+        let label = Text{
+            Content: resolved.DismissText!!,
+            FontFamily: resolved.FontFamily ?? theme.FontFamily,
+            FontSize: resolved.DismissFontSize!!,
+            FontWeight: resolved.DismissFontWeight!!,
+        }
+        let button = Button{
+            Height: resolved.DismissHeight!!,
+            MinWidth: resolved.DismissMinWidth!!,
+            Padding: Edges{Right: resolved.DismissPaddingHorizontal!!, Left: resolved.DismissPaddingHorizontal!!},
+            BorderWidth: resolved.DismissBorderWidth!!,
+            BorderColor: resolved.DismissBorderColor!!,
+            BorderRadius: resolved.DismissBorderRadius!!,
+            BackgroundColor: resolved.DismissBackgroundColor!!,
+            Color: resolved.DismissTextColor!!,
+            FlexShrink: 0.0,
+            Cursor: Cursor.Pointer,
+            Focusable: true,
+            Disabled: resolved.Disabled,
+            OnClick: resolved.OnDismiss,
+            TransitionMs: resolved.TransitionMs!!,
+            TransitionEasing: resolved.TransitionEasing!!,
+            TransitionProperties: DismissActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
+            HoverStyle: DismissHoverBackgroundColor == nil ? nil: Style{BackgroundColor: DismissHoverBackgroundColor!!},
+            ActiveStyle: Style{BackgroundColor: resolved.DismissActiveBackgroundColor!!, Transform: resolved.DismissActiveTransform!!},
+            FocusStyle: DismissFocusBorderColor == nil ? nil: Style{OutlineColor: DismissFocusBorderColor!!},
+            DisabledStyle: Style{BackgroundColor: resolved.DismissDisabledBackgroundColor!!, Color: resolved.DismissDisabledTextColor!!},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.DismissAccessibilityName!!},
+            label,
+        }
+        if let configure = configureDismiss {
+            let originalDisabled = button.Disabled
+            configure.Invoke(resolved, button)
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("DismissibleContextBar owns Disabled; set DismissibleContextBar.Disabled instead of changing it in ConfigureDismiss")
             }
         }
-        theme.ApplyInteraction(button!!, InteractionFamily.Button)
-        button!!.Disabled = Disabled
-        WidgetKeyBindings.BindActivation(button!!)
+        theme.ApplyInteraction(button, InteractionFamily.Button)
+        button.Disabled = Disabled
+        WidgetKeyBindings.BindActivation(button)
         if let createRoot = createRoot {
-            return createRoot(resolved, Content, button!!)
+            return createRoot(resolved, Content, button)
         }
         let root = Container{
             LineHeight: theme.LineHeight,
@@ -193,7 +202,7 @@ public data struct DismissibleContextBar {
         if let content = Content {
             root.Children.Add(content)
         }
-        root.Children.Add(button!!)
+        root.Children.Add(button)
         return root
     }
 }

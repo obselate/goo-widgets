@@ -111,8 +111,10 @@ internal class InteractiveHost : Cell {
         if ShowGraph {
             return Cell.Mount[GraphHost](
                 "graph-fixture",
-                (graph GraphHost) -> {
+                () -> {
+                    let graph = GraphHost()
                     Graph = graph
+                    return graph
                 }
             )
         }
@@ -121,8 +123,8 @@ internal class InteractiveHost : Cell {
             Height: Percent(100),
             Padding: 32,
             Gap: 20,
-            BackgroundColor: "#18181b",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#18181b"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "heading", Content: "Packaged widget input checks", FontSize: 24},
             Cell.Mount[SliderInput, Slider](
                 "range",
@@ -138,10 +140,9 @@ internal class InteractiveHost : Cell {
                         Commits++
                         Rebuild()
                     },
-                    CreateRoot: (input SliderInput, slider Container) -> {
+                    ConfigureRoot: (input SliderInput, slider Container) -> {
                         SliderRoot = slider
-                        return slider
-                    },
+                        },
                 }
             ),
         }
@@ -266,7 +267,7 @@ func MouseMove(windowId uint32, x float32, y float32) {
 
 func IconButtonInteractions() {
     let host = IconButtonHost{}
-    let window = Window{Title: "Goo Widgets icon button verification", Width: 120, Height: 120, Root: host}
+    let window = Window{Title: "Goo Widgets icon button verification", Size: LayoutSize(120, 120), Root: host}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 20)
@@ -319,7 +320,7 @@ func WindowInteractions() {
     ErgonomicWindowInteractions()
     IconButtonInteractions()
     let host = InteractiveHost{}
-    let window = Window{Title: "Goo Widgets input verification", Width: 620, Height: 480, Root: host}
+    let window = Window{Title: "Goo Widgets input verification", Size: LayoutSize(620, 480), Root: host}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 30)
@@ -371,8 +372,7 @@ func WindowInteractions() {
         PumpFrames(window, 4)
         Require(host.ColorValue != previousColor, "Color wheel did not process native keyboard input.")
 
-        window.Width = 760
-        window.Height = 560
+        window.Size = LayoutSize(float64(760) / window.UiScale, float64(560) / window.UiScale)
         PumpFrames(window, 10)
         Require(
             host.SliderRoot!!.Handle!!.BorderBox.Width > box.Width,

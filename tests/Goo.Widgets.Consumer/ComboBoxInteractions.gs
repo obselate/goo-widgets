@@ -74,27 +74,23 @@ internal class ComboBoxHost : Cell {
         Rebuild()
     }
 
-    private func CaptureTrigger(input ComboBoxInput, prepared Button) Button {
+    private func CaptureTrigger(input ComboBoxInput, prepared Button) {
         Trigger = prepared
-        return prepared
     }
 
-    private func CaptureSearch(input ComboBoxInput, prepared TextEntry) TextEntry {
+    private func CaptureSearch(input ComboBoxInput, prepared TextEntry) {
         Search = prepared
-        return prepared
     }
 
-    private func CapturePanel(input ComboBoxInput, prepared Container) Container {
+    private func CapturePanel(input ComboBoxInput, prepared Container) {
         Panel = prepared
         if WidePanel {
             prepared.MinWidth = 600.0
         }
-        return prepared
     }
 
-    private func CaptureRow(input ComboBoxInput, item ComboBoxOption, prepared Container) Container {
+    private func CaptureRow(input ComboBoxInput, item ComboBoxOption, prepared Container) {
         Rows[item.Id!!] = prepared
-        return prepared
     }
 
     private func Options()[]ComboBoxOption {
@@ -106,7 +102,7 @@ internal class ComboBoxHost : Cell {
                 ComboBoxOption{Id: "alpha", Label: "Alpha"},
                 ComboBoxOption{Id: "locked", Label: "Locked", Disabled: true},
                 ComboBoxOption{Id: "beta", Label: "Beta"},
-                ComboBoxOption{Id: "gamma", Label: "Gamma", Content: Text{Content: "Gamma · custom", Color: "#86efac"}}
+                ComboBoxOption{Id: "gamma", Label: "Gamma", Content: Text{Content: "Gamma · custom", Color: Color.Parse("#86efac")}}
             }
         }
         let items = [1500]ComboBoxOption
@@ -126,20 +122,20 @@ internal class ComboBoxHost : Cell {
             Height: Percent(100),
             Padding: 24.0,
             Gap: 16.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Text{Key: "title", Content: "ComboBox · controlled selection", FontSize: 24.0, FontWeight: 700},
             Text{
                 Key: "hint",
                 Content: "Open, navigate, cancel or commit. Search narrows 1,500 virtual options.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Button{
                 Key: "before",
                 Handle: Before,
                 Height: 36.0,
                 Width: 160.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 OnClick: () -> {
                     BackgroundClicks++
                 },
@@ -173,10 +169,10 @@ internal class ComboBoxHost : Cell {
                             Searchable: Searchable,
                             Disabled: Disabled,
                             AccessibilityName: "Target selector",
-                            CreateTrigger: CaptureTrigger,
-                            CreateRow: CaptureRow,
-                            CreateSearch: CaptureSearch,
-                            CreatePopup: CapturePanel,
+                            ConfigureTrigger: CaptureTrigger,
+                            ConfigureRow: CaptureRow,
+                            ConfigureSearch: CaptureSearch,
+                            ConfigurePopup: CapturePanel,
                         }
                     )
                 }
@@ -253,8 +249,7 @@ func ComboBoxInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "ComboBox verification",
-        Width: 720,
-        Height: 520,
+        Size: LayoutSize(720, 520),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -356,7 +351,7 @@ func ComboBoxInteractions() {
                 .Height,
             "ComboBox preferred upward placement did not fall back when only below fit"
         )
-        window.Height = 320
+        window.Size = LayoutSize(window.Size.Width, float64(320) / window.UiScale)
         PumpFrames(window, 14)
         for frame in 0 ... 8 {
             PumpFrames(window, 1)
@@ -379,7 +374,7 @@ func ComboBoxInteractions() {
         SendKey(id, SDLScancode.End)
         PumpFrames(window, 12)
         Require(ComboActive(semantics, "Option 1499"), "ComboBox End failed across unmounted options")
-        window.Height = 520
+        window.Size = LayoutSize(window.Size.Width, float64(520) / window.UiScale)
         PumpFrames(window, 14)
         host.Placement = PopoverPlacement.BottomStart
         host.Rebuild()
@@ -395,7 +390,7 @@ func ComboBoxInteractions() {
                 .Height,
             "ComboBox did not return below after its viewport grew"
         )
-        window.Height = 320
+        window.Size = LayoutSize(window.Size.Width, float64(320) / window.UiScale)
         PumpFrames(window, 14)
         let flipped = host.Panel!!.Handle!!.BorderBox
         Require(
@@ -451,7 +446,7 @@ func ComboBoxInteractions() {
         PumpFrames(window, 8)
         CompositeClick(window, host.Trigger!!.Handle!!)
         PumpFrames(window, 12)
-        window.Width = 370
+        window.Size = LayoutSize(float64(370) / window.UiScale, window.Size.Height)
         PumpFrames(window, 14)
         let panel = host.Panel!!.Handle!!.BorderBox
         Require(panel.X >= 7.5 && panel.X + panel.Width <= 362.5, "ComboBox popup escaped resized overlay bounds")
@@ -463,4 +458,76 @@ func ComboBoxInteractions() {
     Console.WriteLine(
         "PASS: native ComboBox placement, constrained scrolling, controlled/disabled/custom options, keyboard commit/cancel, focus restoration, long-list reveal, search, empty input, resize and unmount"
     )
+    ComboBoxArrowCentering()
+}
+
+internal class ComboBoxArrowHost : Cell {
+    private let items []ComboBoxOption = []ComboBoxOption{ComboBoxOption{Id: "a", Label: "Option"}}
+    private let chevron VectorPath = VectorPath.Parse("M4 7L10 13L16 7Z", ElementRect{Width: 20, Height: 20})
+
+    public override func Build() Blob -> Container{
+        Padding: 24,
+        Gap: 16,
+        AlignItems: AlignItems.FlexStart,
+        Cell.Mount[ComboBoxInput, ComboBox](
+            "resized",
+            ComboBoxInput{Items: items, SelectedId: "a", AccessibilityName: "Resized", Width: 200, ConfigureArrow: Resize}
+        ),
+        Cell.Mount[ComboBoxInput, ComboBox](
+            "replaced",
+            ComboBoxInput{Items: items, SelectedId: "a", AccessibilityName: "Replaced", Width: 200, ConfigureArrow: Replace}
+        ),
+    }
+
+    private func Resize(input ComboBoxInput, arrow Blob) {
+        let shape = (arrow as Shape)!!
+        shape.Width = 12
+        shape.Height = 12
+    }
+
+    private func Replace(input ComboBoxInput, arrow Blob) {
+        Resize(input, arrow)
+        (arrow as Shape)!!.Path = chevron
+    }
+}
+
+func ComboBoxArrowCentering() {
+    let host = ComboBoxArrowHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "ComboBox arrow", Size: LayoutSize(320, 160), Root: host, AccessibilityAdapter: semantics}
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 10)
+        let image = ThemeCapture(window)
+        let scale = float64(image.Width) / float64(window.NativeWidth)
+        for name in []string{"Resized", "Replaced"} {
+            let box = FeedbackNode(semantics, AccessibilityRole.ComboBox, name).Bounds
+            let top = int32(Math.Ceiling((box.Y + 2) * scale))
+            let bottom = int32((box.Y + box.Height - 2) * scale)
+            let left = int32((box.X + box.Width - 40) * scale)
+            let right = int32((box.X + box.Width - 8) * scale)
+            var first = -1
+            var last = -1
+            for y in top ... bottom {
+                let fill = y * int32(image.RowBytes) + left * 4
+                for x in left ... right {
+                    let at = y * int32(image.RowBytes) + x * 4
+                    if Math.Abs(int32(image.Pixels[at]) - int32(image.Pixels[fill])) + Math.Abs(int32(image.Pixels[at + 1]) - int32(image.Pixels[fill + 1])) +
+                        Math.Abs(int32(image.Pixels[at + 2]) - int32(image.Pixels[fill + 2])) > 60 {
+                        if first < 0 {
+                            first = y
+                        }
+                        last = y
+                        break
+                    }
+                }
+            }
+            let center = float64(first + last + 1) / 2.0 / scale
+            Require(
+                first > top && last < bottom - 1 && Math.Abs(center - (box.Y + box.Height / 2)) <= 1.0,
+                "Configured ComboBox arrow is not centered in its trigger"
+            )
+        }
+    })
+    Console.WriteLine("PASS: resized and replaced ComboBox arrows stay centered")
 }

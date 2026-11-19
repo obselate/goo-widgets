@@ -53,15 +53,13 @@ internal class FieldHost : Cell {
                     LastCommit = value
                     Commits++
                 },
-                CreateEntry: (input, entry) -> {
+                ConfigureEntry: (input, entry) -> {
                     Entry = entry
                     entry.Handle = NumberHandle
                     entry.KeyBindings = []KeyBinding{
-                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
                     }
-                    return entry
-                }
-            }
+                    }}
         ),
         TextField{
             Label: "Password",
@@ -79,23 +77,20 @@ internal class FieldHost : Cell {
                 Rebuild()
             },
             OnCommit: value -> TextCommit = value,
-            CreateEntry: input -> {
-                PasswordEntry = TextEntry{
-                    Handle: PasswordHandle,
-                    Value: input.Value ?? "",
-                    Controlled: input.Controlled,
-                    Password: input.Password,
-                    OnChange: input.OnChange,
-                    OnSubmit: input.OnSubmit,
-                    KeyBindings: []KeyBinding{
-                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> CopyRequests++}
-                    },
-                    Height: 36,
-                    Width: Percent(100)
-                }
-                return PasswordEntry!!
-            }
-        }.Build(),
+            ConfigureEntry: (input, prepared TextEntry) -> {
+                prepared.Handle = PasswordHandle
+                prepared.Value = input.Value ?? ""
+                prepared.Controlled = input.Controlled
+                prepared.Password = input.Password
+                prepared.OnChange = input.OnChange
+                prepared.OnSubmit = input.OnSubmit
+                prepared.KeyBindings = []KeyBinding{
+                        KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> CopyRequests++}
+                    }
+                prepared.Height = 36
+                prepared.Width = Percent(100)
+                PasswordEntry = prepared
+            }}.Build(),
         TextField{AccessibilityName: "Other"}.Build(),
     }
 }
@@ -123,15 +118,14 @@ internal class FieldCallbackHost : Cell {
         }),
         TextField{
             AccessibilityName: "Slot field",
-            CreateRoot: (input, label, entry, issue) -> Container{
-                FlexDirection: FlexDirection.Column,
-                entry,
-                Button{
+            ConfigureRoot: (input, label, entry, issue, prepared Container) -> {
+                    prepared.FlexDirection = FlexDirection.Column
+                    prepared.Children.Add(Button{
                     Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Slot button"},
                     OnClick: () -> Value = "slot",
                     Text{Content: "Update from slot"},
+                })
                 },
-            },
         }.Build(),
         Cell.Mount[MenuButtonInput, MenuButton]("callback-menu", MenuButtonInput{
             Button: ActionButton{Content: "Callback menu"},
@@ -155,7 +149,7 @@ internal class FieldCallbackHost : Cell {
 func FieldCallbackOwnership() {
     let host = FieldCallbackHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: ApplicationRoot(host), Width: 500, Height: 500, AccessibilityAdapter: semantics}
+    let window = Window{Root: ApplicationRoot(host), Size: LayoutSize(500, 500), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 10)
@@ -191,7 +185,7 @@ func FieldCallbackOwnership() {
         PumpFrames(window, 5)
         Require(host.Value == "slot", "Slot Button OnClick did not change parent state")
         let slotChanged = FindSemantics(semantics.Tree?.Root, "slot") != nil
-        Console.WriteLine((slotChanged ? "PASS: " : "FAIL: ") + "Button OnClick in TouchTextEditing Content rebuilds parent Text without Rebuild")
+        Console.WriteLine((slotChanged ? "PASS: " : "FAIL: ") + "Button OnClick added by TextField.ConfigureRoot rebuilds parent Text without Rebuild")
         FeedbackClick(window, FindSemantics(semantics.Tree?.Root, "Callback menu")!!.Bounds)
         PumpFrames(window, 5)
         Require(host.MenuOpen, "MenuButton OnOpenChange did not change parent state")
@@ -222,7 +216,7 @@ func FieldInteractions() {
     let host = FieldHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Root: root, Width: 500, Height: 400, AccessibilityAdapter: semantics, Title: "Field contracts"}
+    let window = Window{Root: root, Size: LayoutSize(500, 400), AccessibilityAdapter: semantics, Title: "Field contracts"}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 10)
@@ -316,7 +310,7 @@ func FieldInteractions() {
         Require(host.TextCommit == "secret", "TextField did not commit on blur")
         for width in[]int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Width = width
+            window.Size = LayoutSize(float64(width) / window.UiScale, window.Size.Height)
             PumpFrames(window, 5)
             for handle in[]ElementHandle{host.NumberHandle, host.PasswordHandle} {
                 let bounds = handle.BorderBox
@@ -328,7 +322,7 @@ func FieldInteractions() {
             }
         }
         window.UiScale = 1
-        window.Width = 500
+        window.Size = LayoutSize(float64(500) / window.UiScale, window.Size.Height)
         PumpFrames(window, 5)
         let clear = FindSemantics(semantics.Tree?.Root, "Clear Password")!!
         window.PerformAccessibilityAction(clear.Id, AccessibilityActionRequest(AccessibilityAction.Activate))
@@ -363,8 +357,8 @@ func FieldInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(host.CopyRequests == 1 && window.PlatformInput.Selection!!.Active.Offset
-            - window.PlatformInput.Selection!!.Anchor.Offset == 1, "Read-only number lost selection or copy routing")
+        Require(host.CopyRequests == 1 && window.Focus.Selection!!.Active.Offset
+            - window.Focus.Selection!!.Anchor.Offset == 1, "Read-only number lost selection or copy routing")
         SelectorType(window, id, "8")
         SendKey(id, SDLScancode.Up)
         SendKey(id, SDLScancode.Pageup)
@@ -404,7 +398,7 @@ func FieldCultureContract() {
     CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("de-DE")
     let host = FieldHost()
     let root = ApplicationRoot(host)
-    let window = Window{Root: root, Width: 500, Height: 400}
+    let window = Window{Root: root, Size: LayoutSize(500, 400)}
     try {
         RunNativeWindow(window, () -> {
             window.Open()
@@ -436,7 +430,7 @@ func FieldGalleryProof() {
             let registry = CreateRegistry()
             let gallery = Gallery(registry, registry.IndexOf(title))
             let semantics = SearchListSemantics{}
-            let window = Window{Root: gallery, Width: 1100, Height: 800, Title: title, AccessibilityAdapter: semantics}
+            let window = Window{Root: gallery, Size: LayoutSize(1100, 800), Title: title, AccessibilityAdapter: semantics}
             gallery.AttachWindow(window)
             Theme.SetMode(window, mode)
             RunNativeWindow(window, () -> {
@@ -464,27 +458,27 @@ func VerifyEditorKeys(window Window, semantics SearchListSemantics, name string,
     SelectorType(window, id, "keyboard")
     SendKey(id, SDLScancode.Backspace)
     PumpFrames(window, 4)
-    Require(window.PlatformInput.Editor?.Text == "keyboar", "Editor typing or Backspace failed: " + name)
+    Require(window.Focus.Editor?.Text == "keyboar", "Editor typing or Backspace failed: " + name)
     SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
     SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
     PumpFrames(window, 4)
-    Require(window.GetClipboardText() == "keyboar", "Editor copy failed: " + name)
+    Require(window.Clipboard.ReadText().Text == "keyboar", "Editor copy failed: " + name)
     SendKey(id, SDLScancode.End)
     SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
     PumpFrames(window, 4)
-    Require(window.PlatformInput.Editor?.Text == "keyboarkeyboar", "Editor paste failed: " + name)
+    Require(window.Focus.Editor?.Text == "keyboarkeyboar", "Editor paste failed: " + name)
     if multiline { SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl) }
     SendKey(id, SDLScancode.Tab)
     PumpFrames(window, 4)
     if multiline {
-        Require(window.PlatformInput.Editor?.Text != "keyboarkeyboar", "Editor Tab did not indent: " + name)
+        Require(window.Focus.Editor?.Text != "keyboarkeyboar", "Editor Tab did not indent: " + name)
     } else {
         Require(!FeedbackNode(semantics, role, name).Focused, "Tab did not leave the editor: " + name)
     }
     SelectorKey(id, SDLScancode.Tab, SDLKeymod.Shift)
     PumpFrames(window, 4)
     if multiline {
-        Require(window.PlatformInput.Editor?.Text == "keyboarkeyboar", "Editor Tab and Shift+Tab did not indent and outdent: " + name)
+        Require(window.Focus.Editor?.Text == "keyboarkeyboar", "Editor Tab and Shift+Tab did not indent and outdent: " + name)
     } else {
         Require(FeedbackNode(semantics, role, name).Focused, "Shift+Tab did not return to the editor: " + name)
     }
@@ -528,18 +522,18 @@ internal class AddonFrameHost : Cell {
                     Invalid: Invalid,
                     PrefixAddon: Text{Content: "https://"},
                     SuffixAddon: Text{Content: ".dev"},
-                    CreateEntry: input -> TextEntry{
-                        Value: input.Value ?? "",
-                        Controlled: input.Controlled,
-                        FontFamily: input.FontFamily!!,
-                        FontSize: input.FontSize!!,
-                        Color: input.TextColor!!,
-                        Padding: Edges{Left: input.PaddingHorizontal!!, Right: input.PaddingHorizontal!!},
-                        OnChange: input.OnChange,
-                        OnSubmit: input.OnSubmit,
-                        OnFocus: event -> FocusEvents++,
-                        OnBlur: event -> BlurEvents++,
-                    },
+                    ConfigureEntry: (input, prepared TextEntry) -> {
+                    prepared.Value = input.Value ?? ""
+                    prepared.Controlled = input.Controlled
+                    prepared.FontFamily = input.FontFamily!!
+                    prepared.FontSize = input.FontSize!!
+                    prepared.Color = input.TextColor!!
+                    prepared.Padding = Edges{Left: input.PaddingHorizontal!!, Right: input.PaddingHorizontal!!}
+                    prepared.OnChange = input.OnChange
+                    prepared.OnSubmit = input.OnSubmit
+                    prepared.OnFocus = event -> FocusEvents++
+                    prepared.OnBlur = event -> BlurEvents++
+                },
                 }.Build(),
             },
             Container{
@@ -563,7 +557,7 @@ internal class AddonFrameHost : Cell {
 func AddonFramePixels() {
     let host = AddonFrameHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 360, Height: 240, AccessibilityAdapter: semantics}
+    let window = Window{Root: host, Size: LayoutSize(360, 240), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         for palette in[]Theme{Theme.Bone, Theme.Ink} {
@@ -598,7 +592,7 @@ func AddonFramePixels() {
                         box.Y - palette.FocusRingOffset - palette.FocusRingWidth / 2,
                         focused ? palette.FocusColor: palette.CanvasColor),
                         "TextField factory focus callbacks did not preserve frame focus visibility")
-                    let pixelScale = float64(image.Width) / float64(window.Width)
+                    let pixelScale = float64(image.Width) / float64(window.NativeWidth)
                     let pixelAt = int32(box.Y * pixelScale) * int32(image.RowBytes) + int32(box.X * pixelScale) * 4
                     let canvas = palette.CanvasColor
                     let focus = palette.FocusColor
@@ -639,7 +633,7 @@ func AddonFramePixels() {
                 window,
                 "textfield-leading-" + (palette.CanvasColor == Theme.Bone.CanvasColor ? "light": "dark")
             )
-            let scale = float64(ThemeCapture(window).Width) / float64(window.Width)
+            let scale = float64(ThemeCapture(window).Width) / float64(window.NativeWidth)
             let inset = Math.Round(13 * scale, MidpointRounding.AwayFromZero) / scale
             Require(
                 Math.Abs(leading.X - search.X - inset) < 0.1

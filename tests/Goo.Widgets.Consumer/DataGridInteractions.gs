@@ -76,7 +76,7 @@ internal class DataGridHeightHost : Cell {
         }
     }
 
-    private func CaptureRow(input DataGridInput, row DataGridRow, root Container) Container {
+    private func CaptureRow(input DataGridInput, row DataGridRow, root Container) {
         RowBlobs[row.Id!!] = root
         RowBuilds++
         if Navigation {
@@ -87,7 +87,6 @@ internal class DataGridHeightHost : Cell {
                 }
             }
         }
-        return root
     }
 
     private func RowHeader(input DataGridInput, row DataGridRow) Blob {
@@ -119,8 +118,8 @@ internal class DataGridHeightHost : Cell {
                 Width: Percent(100),
                 Height: 32,
                 KeyBindings: []KeyBinding{
-                    KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> EditorCopyRequests++},
-                    KeyBinding{Key: Key.Insert, Modifiers: KeyModifiers{Ctrl: true}, Action: () -> EditorCopyRequests++}
+                    KeyBinding{Key: Key.C, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> EditorCopyRequests++},
+                    KeyBinding{Key: Key.Insert, Modifiers: KeyModifiers{Ctrl: true}, OnPress: () -> EditorCopyRequests++}
                 }
             }
         }
@@ -192,7 +191,7 @@ internal class DataGridHeightHost : Cell {
             ScrollbarY: VirtualColumns ? Scrollbar{
                 Thickness: 10,
                 Inset: 0,
-                Thumb: Container{Handle: VerticalThumb, BackgroundColor: "#a1a1aa"}
+                Thumb: Container{Handle: VerticalThumb, BackgroundColor: Color.Parse("#a1a1aa")}
             }: nil,
             CreateHeader: Navigation ? NavigationHeader: WidthCase == 0 ? nil: (input DataGridInput, column DataGridColumn, content Blob) ->
                 Container{Handle: column.Id == "a" ? WidthA: WidthB, Width: Percent(100), content},
@@ -244,12 +243,11 @@ internal class DataGridHeightHost : Cell {
             ActiveRowId: Active,
             CreateCellContent: Wrap ? nil: Content,
             CreateFullWidthRow: FullWidth,
-            CreateRoot: (input DataGridInput, root Container) -> {
+            ConfigureRoot: (input DataGridInput, root Container) -> {
                 GridBuilds++
                 Root = root
-                return root
-            },
-            CreateRow: CaptureRow
+                },
+            ConfigureRow: CaptureRow
         }
     )
         if !Navigation {
@@ -301,22 +299,44 @@ internal class DataGridInitialHost : Cell {
                 Container{Handle: column.Id == "c0" ? Header: nil, content},
             CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) ->
                 Container{Padding: Edges{Top: row.Id == "summary-row-0" ? ContentInset: 0}, content},
-            CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+            ConfigureRow: (input DataGridInput, row DataGridRow, root Container) -> {
                 if row.Id == "summary-row-0" { First = root }
-                return root
-            },
-            CreateRoot: (input DataGridInput, root Container) -> {
+                },
+            ConfigureRoot: (input DataGridInput, root Container) -> {
                 root.FlexGrow = 1
                 root.FlexBasis = 0
-                return root
-            }
-        })
+                }})
     }
 }
 
+internal class DataGridEmptyHost : Cell {
+    internal let Message ElementHandle = ElementHandle()
+    internal let Viewport ElementHandle = ElementHandle()
+
+    public override func Build() Blob -> Cell.Mount[DataGridInput, DataGrid]("empty", DataGridInput{
+        ViewportHandle: Viewport,
+        EmptyContent: Text{Handle: Message, Content: "No rows"},
+    })
+}
+
 func DataGridHeightInteractions() {
+    let empty = DataGridEmptyHost()
+    let emptyWindow = Window{Title: "DataGrid empty content", Size: LayoutSize(400, 300), Root: empty}
+    Theme.Attach(emptyWindow, Theme.Default)
+    RunNativeWindow(emptyWindow, () -> {
+        emptyWindow.Open()
+        WaitVirtual(emptyWindow, () -> empty.Message.IsMounted)
+        PumpFrames(emptyWindow, 12)
+        let message = empty.Message.BorderBox
+        let viewport = empty.Viewport.ContentBox
+        Require(message.Width > 40 && message.Height < 30 &&
+            message.X >= viewport.X && message.X + message.Width <= viewport.X + viewport.Width &&
+            Math.Abs(message.X + message.Width / 2 - viewport.X - viewport.Width / 2) < 1,
+            "DataGrid clipped or misplaced its empty content without columns")
+        Console.WriteLine("PASS: DataGrid empty content fits and stays centered without columns")
+    })
     let measured = DataGridInitialHost()
-    let initial = Window{Title: "DataGrid initial measurement", Width: 1540, Height: 960, Root: measured, SmoothScrolling: false}
+    let initial = Window{Title: "DataGrid initial measurement", Size: LayoutSize(1540, 960), Root: measured, SmoothScrolling: false}
     Theme.Attach(initial, Theme.Default)
     RunNativeWindow(initial, () -> {
         initial.Open()
@@ -340,7 +360,7 @@ func DataGridHeightInteractions() {
         Console.WriteLine("PASS: DataGrid initial measured rows stay at zero with the first row at the body top")
     })
     let host = DataGridHeightHost()
-    let window = Window{Title: "DataGrid mixed heights", Width: 400, Height: 300, Root: host, SmoothScrolling: false}
+    let window = Window{Title: "DataGrid mixed heights", Size: LayoutSize(400, 300), Root: host, SmoothScrolling: false}
     Theme.Attach(window, Theme.Default)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -485,7 +505,7 @@ func DataGridHeightInteractions() {
             "Auto columns shrank after scrolling to shorter content"
         )
         host.SourceWidth = true
-        window.Width = 1200
+        window.Size = LayoutSize(float64(1200) / window.UiScale, window.Size.Height)
         host.Version++
         host.Rebuild()
         WaitVirtual(window, () -> host.Header?.Handle?.IsMounted == true &&
@@ -575,7 +595,7 @@ func DataGridHeightInteractions() {
         CaptureIssueProof(window, "datagrid-loading")
         host.Empty = false
         host.VirtualColumns = false
-        window.Width = 1000
+        window.Size = LayoutSize(float64(1000) / window.UiScale, window.Size.Height)
         host.WidthCase = 1
         host.Rebuild()
         PumpFrames(window, 12)
@@ -702,15 +722,11 @@ func DataGridContracts() {
                 Columns: []DataGridColumn{DataGridColumn{Id: "name", Sortable: true}},
                 OnSort: (id string, direction DataGridSort) -> { },
                 OnColumnWidthChange: (id string, width float64) -> resized = width,
-                CreateResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
+                ConfigureResizeHandle: (input DataGridInput, column DataGridColumn, prepared Container) -> {
                     resizeFactoryCalled = true
-                    return Container{
-                        Key: "unrelated",
-                        Handle: unrelatedHandle,
-                        Hover: Style{BackgroundColor: "#18181b"},
-                        Focus: Style{BackgroundColor: "#18181b"}
-                    }
-                },
+                    prepared.HoverStyle = Style{BackgroundColor: Color.Parse("#18181b")}
+                    prepared.FocusStyle = Style{BackgroundColor: Color.Parse("#18181b")}
+},
                 RootHandle: rootHandle,
                 ViewportHandle: viewport,
                 ScrollbarX: horizontal,
@@ -721,13 +737,11 @@ func DataGridContracts() {
                 UseDefaultKeyboard: false,
                 OnKeyDown: (e KeyEvent) -> gridKeys++,
                 OnTextInput: (value string) -> gridText = value,
-                CreateRoot: (input DataGridInput, prepared Container) -> {
+                ConfigureRoot: (input DataGridInput, prepared Container) -> {
                     prepared.OnKeyDown = (e KeyEvent) -> hostKeys++
                     prepared.OnTextInput = (value string) -> hostText = value
-                    prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, Action: () -> { }}}
-                    return prepared
-                }
-            }
+                    prepared.KeyBindings = []KeyBinding{KeyBinding{Key: Key.F2, OnPress: () -> { }}}
+                    }}
         ) as Container
     )!!
     custom.OnKeyDown?.Invoke(KeyEvent{Key: Key.Space})
@@ -758,7 +772,7 @@ func DataGridContracts() {
         resizeFactoryCalled &&
             resize.Key == "resize" &&
             resize.Handle != unrelatedHandle &&
-            resize.OnPointerDown != nil &&
+            resize.OnPointerDrag != nil &&
             resize.OnKeyDown != nil &&
             resize
             .Accessibility
@@ -793,14 +807,12 @@ internal class DataGridHost : Cell {
     internal var Tiny bool
     internal let FilterHandle ElementHandle = ElementHandle()
 
-    private func CaptureRoot(input DataGridInput, prepared Container) Container {
+    private func CaptureRoot(input DataGridInput, prepared Container) {
         Root = prepared
-        return prepared
     }
 
-    private func CaptureRow(input DataGridInput, row DataGridRow, prepared Container) Container {
+    private func CaptureRow(input DataGridInput, row DataGridRow, prepared Container) {
         RowBlobs[row.Id!!] = prepared
-        return prepared
     }
 
     private func CaptureHeader(input DataGridInput, column DataGridColumn, content Blob) Blob {
@@ -818,17 +830,16 @@ internal class DataGridHost : Cell {
         return Container{Handle: Cells[key], Width: Percent(100), MinWidth: 0, content}
     }
 
-    private func CaptureCheck(input DataGridInput, row DataGridRow, prepared Button) Button {
+    private func CaptureCheck(input DataGridInput, row DataGridRow, prepared Button) {
         prepared.Handle = ElementHandle()
         Checks[row.Id!!] = prepared
-        return prepared
     }
 
     private func Detail(input DataGridInput, row DataGridRow) Blob {
         DetailBuilds++
         return Text{
             Content: "Expanded host details use measured text. A longer note wraps at the shared table width and moves the next row without a fixed detail-height estimate.",
-            Color: "#a5b4fc",
+            Color: Color.Parse("#a5b4fc"),
             FontSize: 16
         }
     }
@@ -975,8 +986,8 @@ internal class DataGridHost : Cell {
                 Width: Percent(100),
                 Height: 30,
                 Padding: 5,
-                Color: "#fafafa",
-                BackgroundColor: "#09090b"
+                Color: Color.Parse("#fafafa"),
+                BackgroundColor: Color.Parse("#09090b")
             }
         }
         let state = DataGridColumn{
@@ -1001,12 +1012,12 @@ internal class DataGridHost : Cell {
             Height: Percent(100),
             Padding: 20,
             Gap: 14,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "DataGrid · controlled inventory", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Sort headers, drag column edges, and select rows. Details are measured.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Cell.Mount[DataGridInput, DataGrid](
                 "grid",
@@ -1038,11 +1049,11 @@ internal class DataGridHost : Cell {
                     SelectionColumnWidth: 36.0,
                     ExpandedIds: Expanded,
                     OnExpandedChange: Expand,
-                    CreateRoot: CaptureRoot,
-                    CreateRow: CaptureRow,
+                    ConfigureRoot: CaptureRoot,
+                    ConfigureRow: CaptureRow,
                     CreateHeader: CaptureHeader,
                     CreateCell: CaptureCell,
-                    CreateSelection: CaptureCheck,
+                    ConfigureSelection: CaptureCheck,
                     CreateDetail: Detail,
                     AccessibilityName: "Inventory grid"
                 }
@@ -1137,8 +1148,7 @@ func DataGridNavigationInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "DataGrid navigation",
-        Width: 500,
-        Height: 320,
+        Size: LayoutSize(500, 320),
         Root: host,
         AccessibilityAdapter: semantics,
         SmoothScrolling: false
@@ -1229,7 +1239,7 @@ func DataGridNavigationInteractions() {
         Require(host.SelectedIds.Length == 0, "Space did not toggle a multiple selection")
         GridKey(window, Key.Space)
         Require(host.SelectedIds.Length == 1, "Space did not restore a multiple selection")
-        Require(host.Root!!.Handle!!.Focus() && window.PlatformInput.Editor == nil, "Row copy did not focus the grid")
+        Require(host.Root!!.Handle!!.Focus() && window.Focus.Editor == nil, "Row copy did not focus the grid")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Insert, KeyModifiers{Ctrl: true})
         Require(host.CopyRequests == 2, "Copy chords did not request the controlled row copy")
@@ -1330,7 +1340,7 @@ func DataGridNavigationInteractions() {
         Require(host.Editor.Focus(), "Composed cell editor did not focus")
         let editorSelection = host.SelectedIds
         GridKey(window, Key.A, KeyModifiers{Ctrl: true})
-        Require(window.PlatformInput.Selection!!.Active.Offset - window.PlatformInput.Selection!!.Anchor.Offset == 14 &&
+        Require(window.Focus.Selection!!.Active.Offset - window.Focus.Selection!!.Anchor.Offset == 14 &&
             Object.ReferenceEquals(editorSelection, host.SelectedIds) && !host.AllSelected &&
                 host.SelectAllRequests == 1, "Grid stole native editor select-all")
         GridKey(window, Key.C, KeyModifiers{Ctrl: true})
@@ -1350,8 +1360,7 @@ func DataGridInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "DataGrid verification",
-        Width: 720,
-        Height: 450,
+        Size: LayoutSize(720, 450),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -1753,11 +1762,10 @@ internal class DataGridEditHost : Cell {
                 Events.Add("end")
                 Outcome = outcome
             },
-            CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+            ConfigureRow: (input DataGridInput, row DataGridRow, root Container) -> {
                 Builds++
                 RowBlobs[row.Id!!] = root
-                return root
-            },
+                },
             CreateCell: (input DataGridInput, row DataGridRow, column DataGridColumn, content Blob) -> {
                 let handle = ElementHandle()
                 Cells[row.Id!! + ":" + column.Id!!] = handle
@@ -1825,8 +1833,8 @@ func DataGridLogicalEditingFocus() {
     window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
     window.PlatformInput.KeyRelease(Key.Enter)
     ThemeFrames(embedded)
-    Require(window.PlatformInput.Editor?.Text == "Value 0" &&
-        window.PlatformInput.Selection?.Active.Offset == 7 && host.Builds == 1,
+    Require(window.Focus.Editor?.Text == "Value 0" &&
+        window.Focus.Selection?.Active.Offset == 7 && host.Builds == 1,
         "Edit entry required native window focus or rebuilt unrelated rows")
     window.PlatformInput.CommitText(" changed")
     window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
@@ -1857,7 +1865,7 @@ func DataGridLogicalEditingFocus() {
     window.PlatformInput.KeyPress(Key.Enter, KeyModifiers{})
     window.PlatformInput.KeyRelease(Key.Enter)
     ThemeFrames(embedded)
-    Require(window.PlatformInput.Editor?.Text == "Popup 0" && !window.IsFocused,
+    Require(window.Focus.Editor?.Text == "Popup 0" && !window.IsFocused,
         "Popup editing required native window activation")
     window.PlatformInput.KeyPress(Key.Escape, KeyModifiers{})
     window.PlatformInput.KeyRelease(Key.Escape)
@@ -1870,7 +1878,7 @@ func DataGridLogicalEditingFocus() {
 func DataGridEditingInteractions() {
     let host = DataGridEditHost()
     let semantics = SearchListSemantics()
-    let window = Window{Title: "DataGrid cell editing", Width: 520, Height: 340, Root: host, SmoothScrolling: false, AccessibilityAdapter: semantics}
+    let window = Window{Title: "DataGrid cell editing", Size: LayoutSize(520, 340), Root: host, SmoothScrolling: false, AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Default)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -1880,12 +1888,12 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 3)
         host.Builds = 0
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor != nil && window.PlatformInput.Selection != nil)
+        WaitVirtual(window, () -> window.Focus.Editor != nil && window.Focus.Selection != nil)
         Require(host.Events.Count == 1 && host.Events[0] == "begin" && host.Context.EditorHandle.IsMounted,
             "Enter did not begin one editable cell")
         Require(host.Builds == 1, "Edit entry did not rebuild exactly one row: " + host.Builds.ToString())
         Console.WriteLine("PASS DataGrid edit entry: rebuilt exactly 1 row")
-        Require(window.PlatformInput.Editor!!.Text == "Value 0" && window.PlatformInput.Selection!!.Active.Offset == 7,
+        Require(window.Focus.Editor!!.Text == "Value 0" && window.Focus.Selection!!.Active.Offset == 7,
             "Edit entry did not retain the value and place the caret at its end")
         Require(FindSemantics(semantics.Tree!!.Root, "Editing grid")!!.Relationships.ActiveDescendant == nil,
             "Edit focus retained a navigation active descendant")
@@ -1913,8 +1921,8 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         Require(window.PlatformInput.CommitText("!"), "Navigation text was not accepted")
         PumpFrames(window, 4)
-        Require(window.PlatformInput.Editor!!.Text == "Value 0 changed!" &&
-            window.PlatformInput.Selection!!.Active.Offset == 16, "Printable entry did not append once")
+        Require(window.Focus.Editor!!.Text == "Value 0 changed!" &&
+            window.Focus.Selection!!.Active.Offset == 16, "Printable entry did not append once")
         host.Reentrant = true
         GridKey(window, Key.Escape)
         Require(String.Join(",", host.Events) == "begin,cancel,end" && host.Sets == 1 &&
@@ -1926,7 +1934,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 3)
         GridKey(window, Key.Enter)
         Require(String.Join(",", host.Events) == "begin,validate" && host.Sets == 1 &&
-            window.PlatformInput.Editor!!.Text.EndsWith(" rejected"), "Rejected edit lost its draft or closed")
+            window.Focus.Editor!!.Text.EndsWith(" rejected"), "Rejected edit lost its draft or closed")
         let invalid = FindSemantics(semantics.Tree!!.Root, "Edit Name")!!
         Require(invalid.Invalid == true && invalid.Relationships.ErrorMessage.Count == 1 &&
             invalid.Relationships.DescribedBy.Count == 1 &&
@@ -1934,11 +1942,11 @@ func DataGridEditingInteractions() {
             "Validation error relationships or announcement were absent")
         host.Reject = false
         GridKey(window, Key.Tab)
-        Require(host.Context.Edit.ColumnId == "notes" && window.PlatformInput.Editor!!.IsMultiline,
+        Require(host.Context.Edit.ColumnId == "notes" && window.Focus.Editor!!.IsMultiline,
             "Tab did not skip the read-only cell")
         GridKey(window, Key.Enter, KeyModifiers{Shift: true})
         PumpFrames(window, 2)
-        Require(window.PlatformInput.Editor!!.Text == "Notes 0\n", "Multiline Shift+Enter did not insert a newline")
+        Require(window.Focus.Editor!!.Text == "Notes 0\n", "Multiline Shift+Enter did not insert a newline")
         CaptureIssueProof(window, "datagrid-editing-inline")
         GridKey(window, Key.Escape)
         host.Input = host.Input with{BeginEditKeys = []DataGridEditKey{DataGridEditKey{Key: Key.F2, Modifiers: KeyModifiers{Ctrl: true}}},
@@ -1951,7 +1959,7 @@ func DataGridEditingInteractions() {
         GridKey(window, Key.F2, KeyModifiers{Ctrl: true})
         GridKey(window, Key.Enter)
         GridKey(window, Key.Enter, KeyModifiers{Shift: true})
-        Require(window.PlatformInput.Editor!!.Text == "Notes 0\n\n", "Custom commit chord blocked multiline Enter")
+        Require(window.Focus.Editor!!.Text == "Notes 0\n\n", "Custom commit chord blocked multiline Enter")
         GridKey(window, Key.F3)
         Require(host.Rows[0].Values!!["notes"] == "Notes 0\n\n", "Configured commit chord did not commit")
         host.Input = host.Input with{BeginEditKeys = nil, CommitEditKey = nil, ActiveColumnId = "name"}
@@ -1961,18 +1969,18 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         window.PlatformInput.SetComposition("preedit", 0, 7)
         GridKey(window, Key.Escape)
-        Require(host.Events.Count == 0 && window.PlatformInput.Editor != nil, "Composition Escape ended the edit")
+        Require(host.Events.Count == 0 && window.Focus.Editor != nil, "Composition Escape ended the edit")
         window.PlatformInput.SetComposition("committed", 0, 9)
         GridKey(window, Key.Enter)
-        Require(host.Events.Count == 0 && window.PlatformInput.Editor != nil, "Composition Enter committed the cell")
+        Require(host.Events.Count == 0 && window.Focus.Editor != nil, "Composition Enter committed the cell")
         window.PlatformInput.CommitText("committed")
         PumpFrames(window, 3)
         GridKey(window, Key.A, KeyModifiers{Ctrl: true})
-        window.PlatformInput.Execute(TextCommand{Kind: TextCommandKind.Paste, Text: "replacement"})
+        window.Focus.Execute(TextCommand{Kind: TextCommandKind.Paste, Text: "replacement"})
         PumpFrames(window, 3)
-        Require(window.PlatformInput.Editor!!.Text == "replacement", "Native select-all or paste was intercepted")
+        Require(window.Focus.Editor!!.Text == "replacement", "Native select-all or paste was intercepted")
         GridKey(window, Key.Z, KeyModifiers{Ctrl: true})
-        Require(window.PlatformInput.Editor!!.Text != "replacement", "Native undo was intercepted")
+        Require(window.Focus.Editor!!.Text != "replacement", "Native undo was intercepted")
         Require(host.EditorAction.Focus(), "Custom editor action did not focus")
         PumpFrames(window, 4)
         Require(host.Events.Count == 0, "Moving within a custom editor committed")
@@ -1986,28 +1994,28 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         Require(host.Context.Edit.ColumnId == "popup" && FindSemantics(semantics.Tree!!.Root, "Cell editor") != nil,
             "Popover editor did not mount")
         host.Events.Clear()
         window.PlatformInput.CommitText(" draft")
         PumpFrames(window, 3)
-        Require(window.PlatformInput.Editor?.Text == "Popup 0 draft", "Popup entry did not append at the caret: " + (window.PlatformInput.Editor?.Text ?? "none"))
-        let selection = window.PlatformInput.Selection!!
+        Require(window.Focus.Editor?.Text == "Popup 0 draft", "Popup entry did not append at the caret: " + (window.Focus.Editor?.Text ?? "none"))
+        let selection = window.Focus.Selection!!
         let editor = host.Context.EditorHandle
         host.Calls = 0
         host.Viewport.JumpTo(500, 20000)
         PumpFrames(window, 8)
         Require(editor.IsMounted, "Scrolling unmounted the popup editor")
         Require(host.Events.Count == 0, "Scrolling emitted edit events: " + String.Join(",", host.Events))
-        Require(window.PlatformInput.Editor?.Text == "Popup 0 draft", "Scrolling changed popup focus or text: " + (window.PlatformInput.Editor?.Text ?? "none"))
-        Require(window.PlatformInput.Selection?.Active == selection.Active, "Scrolling changed the popup caret")
+        Require(window.Focus.Editor?.Text == "Popup 0 draft", "Scrolling changed popup focus or text: " + (window.Focus.Editor?.Text ?? "none"))
+        Require(window.Focus.Selection?.Active == selection.Active, "Scrolling changed the popup caret")
         var mounted int32
         for row in host.RowBlobs.Values { if row.Handle!!.IsMounted { mounted++ } }
         Require(mounted < 20 && host.RowBlobs["0"].Handle!!.IsMounted, "Edited-row retention realized intervening rows")
         host.Viewport.JumpTo(0, 0)
         PumpFrames(window, 8)
-        Require(window.PlatformInput.Editor!!.Text == "Popup 0 draft" && host.Events.Count == 0, "Returning to an edited anchor changed the session")
+        Require(window.Focus.Editor!!.Text == "Popup 0 draft" && host.Events.Count == 0, "Returning to an edited anchor changed the session")
         GridKey(window, Key.Tab, KeyModifiers{Ctrl: true})
         Require(FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused, "Popover Ctrl+Tab did not leave its focus scope")
         host.Input = host.Input with{ActiveRowId = "0", ActiveColumnId = "name", RowAt = host.At, RowIndex = host.Index, RowCount = host.Rows.Length}
@@ -2065,9 +2073,9 @@ func DataGridEditingInteractions() {
         host.Events.Clear()
         GridKey(window, Key.Space)
         Require(String.Join(",", host.Events) == "begin", "Single-selection Space did not begin editing")
-        let end = window.PlatformInput.Selection!!.Active.Offset
+        let end = window.Focus.Selection!!.Active.Offset
         GridKey(window, Key.Left)
-        Require(window.PlatformInput.Selection!!.Active.Offset == end - 1 && host.Input.ActiveColumnId == "name",
+        Require(window.Focus.Selection!!.Active.Offset == end - 1 && host.Input.ActiveColumnId == "name",
             "Grid navigation intercepted an editor arrow")
         GridKey(window, Key.Escape)
         host.Events.Clear()
@@ -2089,7 +2097,7 @@ func DataGridEditingInteractions() {
         host.Input = host.Input with{ColumnOrder = []string{"notes", "popup", "name", "locked"}}
         host.Refresh()
         PumpFrames(window, 4)
-        Require(window.PlatformInput.Editor!!.Text.EndsWith(" retained") && host.Context.Edit.ColumnId == "name",
+        Require(window.Focus.Editor!!.Text.EndsWith(" retained") && host.Context.Edit.ColumnId == "name",
             "Pinned-column reordering lost the edit")
         GridKey(window, Key.Tab)
         Require(host.Context.Edit.ColumnId == "notes", "Edit traversal ignored pinned visual column order")
@@ -2106,7 +2114,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 5)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         GridKey(window, Key.Tab)
         Require(FindSemantics(semantics.Tree!!.Root, "After grid")!!.Focused, "Tab at the final editable cell was trapped")
         host.Input = host.Input with{ActiveRowId = "0", ActiveColumnId = "popup"}
@@ -2114,12 +2122,12 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 5)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         GridKey(window, Key.Tab)
         Require(host.Context.Edit.RowId == "1" && host.Context.Edit.ColumnId == "name",
             "Forward edit traversal did not wrap to the next row")
         GridKey(window, Key.Tab, KeyModifiers{Shift: true})
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         Require(host.Context.Edit.RowId == "0" && host.Context.Edit.ColumnId == "popup",
             "Reverse edit traversal did not wrap to the previous row")
         GridKey(window, Key.Escape)
@@ -2149,7 +2157,7 @@ func DataGridEditingInteractions() {
         host.Refresh()
         PumpFrames(window, 4)
         GridKey(window, Key.Enter)
-        Require(host.Context.Edit.OriginalValue == "raw value" && window.PlatformInput.Editor!!.Text == "raw value",
+        Require(host.Context.Edit.OriginalValue == "raw value" && window.Focus.Editor!!.Text == "raw value",
             "CanEdit or the raw getter did not override row and display defaults")
         GridKey(window, Key.Escape)
         host.Rows[0] = host.Rows[0] with{Editable = true}
@@ -2157,7 +2165,7 @@ func DataGridEditingInteractions() {
         host.Refresh()
         PumpFrames(window, 4)
         GridKey(window, Key.Enter)
-        Require(host.Context.Edit.ColumnId == "locked" && window.PlatformInput.Editor != nil,
+        Require(host.Context.Edit.ColumnId == "locked" && window.Focus.Editor != nil,
             "Row editing override did not permit a non-editable column")
         GridKey(window, Key.Escape)
         host.Events.Clear()
@@ -2185,7 +2193,7 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
         host.Reject = true
         GridKey(window, Key.Enter)
         let clicks = host.AfterClicks
@@ -2199,17 +2207,16 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         for width in []int32{320, 700, 2560} {
             window.UiScale = 1.5F
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 480
-            WaitVirtual(window, () -> window.Width == width && Math.Abs(host.Root.BorderBox.Width - float64(width) / 1.5) < 1)
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 480) / window.UiScale)
+            WaitVirtual(window, () -> window.NativeWidth == width && Math.Abs(host.Root.BorderBox.Width - float64(width) / 1.5) < 1)
             host.Viewport.JumpTo(host.Viewport.ScrollRange.X, 0)
             PumpFrames(window, 8)
             CaptureIssueProof(window, "datagrid-editing-150-" + width.ToString())
             let popup = FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Bounds
             let error = FindSemantics(semantics.Tree!!.Root, "Enter a valid value")!!.Bounds
             Require(popup.X >= 0 && popup.Y >= 0 && popup.X + popup.Width <= float64(width) / 1.5 + 1 &&
-                popup.Y + popup.Height <= float64(window.Height) / 1.5 + 1 && error.Width <= popup.Width &&
-                host.After.BorderBox.Y + host.After.BorderBox.Height <= float64(window.Height) / 1.5 + 1,
+                popup.Y + popup.Height <= float64(window.NativeHeight) / 1.5 + 1 && error.Width <= popup.Width &&
+                host.After.BorderBox.Y + host.After.BorderBox.Height <= float64(window.NativeHeight) / 1.5 + 1,
                 "Scaled editor or error left the viewport: width=" + width.ToString() +
                 " popup=" + popup.ToString() + " error=" + error.ToString() + " after=" + host.After.BorderBox.ToString())
         }
@@ -2221,8 +2228,8 @@ func DataGridEditingInteractions() {
         PumpFrames(window, 4)
         host.Root.Focus()
         GridKey(window, Key.Enter)
-        WaitVirtual(window, () -> window.PlatformInput.Editor?.Text == host.Context.Edit.Draft)
-        Require(window.PlatformInput.Editor!!.IsMultiline &&
+        WaitVirtual(window, () -> window.Focus.Editor?.Text == host.Context.Edit.Draft)
+        Require(window.Focus.Editor!!.IsMultiline &&
             FindSemantics(semantics.Tree!!.Root, "Cell editor")!!.Relationships.LabelledBy.Count == 1,
             "Per-cell presentation did not mount a related multiline popup")
         GridKey(window, Key.Down)

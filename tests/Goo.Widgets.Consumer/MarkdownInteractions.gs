@@ -28,15 +28,14 @@ func MarkdownContracts() {
         OnHeadings: (value IReadOnlyList[MarkdownHeading]) -> {
             headings = value
         },
-        CreateBlock: (block MarkdownBlock, prepared Blob) -> {
+        ConfigureBlock: (block MarkdownBlock, prepared Blob) -> {
             kinds.Add(block.Kind)
-            return prepared
-        }
-    }
+            }}
     probe.Render(input)
+    let renderedHeadings = headings
     Require(
-        headings != nil && headings.Count == 3 && headings[0].Id == "same" && headings[1].Id == "same-2"
-        && headings[2].Id == "same-2-2",
+        renderedHeadings != nil && renderedHeadings.Count == 3 && renderedHeadings[0].Id == "same" && renderedHeadings[1].Id == "same-2"
+        && renderedHeadings[2].Id == "same-2-2",
         "Markdown heading IDs were not unique"
     )
     for kind in[]MarkdownBlockKind{
@@ -55,6 +54,28 @@ func MarkdownContracts() {
         "Bounded Markdown built blocks before virtual realization")
     probe.Render(MarkdownViewInput{Text: "", OnHeadings: input.OnHeadings})
     Require(headings!!.Count == 0, "Empty Markdown retained old headings")
+    for text in []string{"```", "x\n```"} {
+        var codeBlocks = 0
+        probe.Render(MarkdownViewInput{
+            Text: text,
+            ConfigureBlock: (block MarkdownBlock, prepared Blob) -> {
+                if block.Kind == MarkdownBlockKind.Code {
+                    codeBlocks++
+                    Require(block.Text == "", "Unterminated Markdown fence produced code content")
+                }
+            }
+        })
+        Require(codeBlocks == 1, "Unterminated Markdown fence did not render one code block")
+    }
+    var entityBlocks = 0
+    probe.Render(MarkdownViewInput{
+        Text: "&amp; &lt; &gt; &#169; &#x1F600; &lt;em&gt; &amp;lt;",
+        ConfigureBlock: (block MarkdownBlock, prepared Blob) -> {
+            entityBlocks++
+            Require(block.Text == "& < > © 😀 <em> &lt;", "Markdown lost decoded entity text")
+        }
+    })
+    Require(entityBlocks == 1, "Markdown entity paragraph did not render")
 }
 
 internal class MarkdownHost : Cell {
@@ -66,6 +87,7 @@ internal class MarkdownHost : Cell {
     internal var BlockCalls int32
     internal let Before ElementHandle = ElementHandle()
     internal let Editors Dictionary[string, TextEditor] = Dictionary[string, TextEditor](StringComparer.Ordinal)
+    internal let Blocks Dictionary[string, ElementHandle] = Dictionary[string, ElementHandle](StringComparer.Ordinal)
     internal var Headings IReadOnlyList[MarkdownHeading] = []MarkdownHeading{}
     internal var HeadingCalls int32
     internal var Links int32
@@ -89,18 +111,23 @@ internal class MarkdownHost : Cell {
         HeadingCalls++
     }
 
-    private func Block(block MarkdownBlock, prepared Blob) Blob {
+    private func Block(block MarkdownBlock, prepared Blob) {
         BlockCalls++
+        if block.Id == "deployment-notes" || block.Id == "root/1" {
+            prepared.Padding = 8.0
+            prepared.BackgroundColor = Color.Parse("#312e81")
+            let handle = ElementHandle()
+            prepared.Handle = handle
+            Blocks[block.Id!!] = handle
+        }
         if block.Kind == MarkdownBlockKind.List {
             ((prepared as Container)!!.Children[0] as Container)!!.Children[0].Handle = Marker
         }
-        return prepared
     }
 
-    private func Editor(block MarkdownBlock, prepared TextEditor) TextEditor {
+    private func Editor(block MarkdownBlock, prepared TextEditor) {
         prepared.Handle = ElementHandle()
         Editors[block.Id!!] = prepared
-        return prepared
     }
 
     private func Style(run MarkdownInline, prepared Style) Style {
@@ -125,10 +152,10 @@ internal class MarkdownHost : Cell {
             Width: 240.0,
             Height: 56.0,
             BorderRadius: 6.0,
-            BackgroundColor: "#312e81",
+            BackgroundColor: Color.Parse("#312e81"),
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            Text{Content: "Host-resolved diagram", Color: "#c7d2fe", FontSize: 14.0}
+            Text{Content: "Host-resolved diagram", Color: Color.Parse("#c7d2fe"), FontSize: 14.0}
         }
     }
 
@@ -152,14 +179,14 @@ internal class MarkdownHost : Cell {
             Height: Percent(100),
             Padding: 20.0,
             Gap: 12.0,
-            BackgroundColor: "#111318",
-            Color: "#fafafa",
+            BackgroundColor: Color.Parse("#111318"),
+            Color: Color.Parse("#fafafa"),
             Button{
                 Key: "before",
                 Handle: Before,
                 Height: 32.0,
                 Width: 190.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 Text{Content: "Markdown verification"}
             }
         }
@@ -182,10 +209,10 @@ internal class MarkdownHost : Cell {
                             OnLink: Open,
                             ResolveImage: Resolve,
                             OnHeadings: HeadingsChanged,
-                            CreateEditor: Editor,
+                            ConfigureEditor: Editor,
                             CreateInline: Inline,
                             CreateInlineStyle: Style,
-                            CreateBlock: Block
+                            ConfigureBlock: Block
                         }
                     )
                 }
@@ -204,14 +231,29 @@ func MarkdownInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Markdown verification",
-        Width: 820,
-        Height: 860,
+        Size: LayoutSize(820, 860),
         Root: root,
         AccessibilityAdapter: semantics
     }
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 25)
+        let configured = ThemeCapture(window)
+        for id in []string{"deployment-notes", "root/1"} {
+            let block = host.Blocks[id]
+            Require(block.IsMounted, "Markdown ConfigureBlock did not configure a mounted block")
+            let box = block.BorderBox
+            let text = host.Editors[id].Handle!!.BorderBox
+            Require(
+                Math.Abs(text.X - box.X - 8.0) < .5 && Math.Abs(text.Y - box.Y - 8.0) < .5 &&
+                Math.Abs(box.Height - text.Height - 16.0) < .5,
+                "Markdown ConfigureBlock padding did not inset the text"
+            )
+            Require(
+                ThemePoint(configured, window, box.X + 4.0, box.Y + 4.0, Color.Parse("#312e81")),
+                "Markdown ConfigureBlock background did not paint"
+            )
+        }
         let caption = host.LinkCaption!!
         Require(
             caption.Handle!!.IsMounted &&
@@ -268,11 +310,11 @@ func MarkdownInteractions() {
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 7)
         Require(
-            window.GetClipboardText() == controller.Document.GetText(),
+            window.Clipboard.ReadText().Text == controller.Document.GetText(),
             "Markdown keyboard copy did not preserve plain text"
         )
         Require(
-            !window.GetClipboardText().Contains("**") && window.GetClipboardText().Contains("release guide"),
+            !window.Clipboard.ReadText().Text.Contains("**") && window.Clipboard.ReadText().Text.Contains("release guide"),
             "Markdown copy leaked markup or dropped link text"
         )
         let original = controller.Document.GetText()
@@ -301,7 +343,7 @@ func MarkdownInteractions() {
         CompositeClick(window, host.LinkContent!!)
         PumpFrames(window, 8)
         Require(host.Links == 3, "Markdown pointer activation did not reach the link callback")
-        window.Width = 460
+        window.Size = LayoutSize(float64(460) / window.UiScale, window.Size.Height)
         PumpFrames(window, 25)
         let narrow = host.Editors["root/1"]
         Require(

@@ -6,6 +6,8 @@ import Goo.Widgets.Icons
 import System
 
 /// Host-owned search options. Matching stays with the host document.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct FindOptions {
     /// Requests case-sensitive matching in the host search operation.
     var MatchCase bool
@@ -51,7 +53,8 @@ public data struct FindBar {
     var Width Length?
     /// Receives the owning find bar and field, and returns the replacement entry. Nil uses the default composition.
     /// Hosts must not change state in this callback.
-    var CreateEntry Func[FindBar, TextField, TextEntry]?
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.ReadOnly, Accessibility.Relationships.DescribedBy, Accessibility.Relationships.ErrorMessage, Accessibility.Relationships.LabelledBy, Accessibility.Role, Controlled, Disabled, Focusable, Key, OnChange, OnSubmit, Password, ReadOnly, Value.
+    var ConfigureEntry Action[FindBar, TextField, TextEntry]?
 
     /// Builds the controlled search fields, match status and actions.
     public func Build() Blob -> Cell.Mount[FindBar, FindBarState](nil, this)
@@ -72,9 +75,9 @@ public data struct FindBar {
             BorderColor: theme.BorderColor,
             BorderRadius: theme.ControlRadius!!,
             KeyBindings: state.Bindings,
-            Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Find and replace")},
+            Accessibility: state.GroupAccessibility,
             Row(
-                state.QueryField!!,
+                state.QueryLayout!!,
                 Container{
                     FlexDirection: FlexDirection.Row,
                     AlignItems: AlignItems.Center,
@@ -95,39 +98,41 @@ public data struct FindBar {
                     state.NextButton!!,
                     state.CloseButton!!,
                 }
-            ),
+            , theme.ControlGap / 2.0),
         }
         if let replacement = Replacement {
             root.Children.Add(
                 Row(
-                    TextField{
-                        Value: replacement,
-                        Controlled: true,
-                        Placeholder: theme.Text("Replace"),
-                        AccessibilityName: theme.Text("Replacement"),
-                        Width: Percent(100),
-                        Disabled: Disabled,
-                        OnChange: OnReplacementChange,
-                        EntryKeyBindings: state.Bindings,
-                    }.Build(),
+                    Container{FlexGrow: 1, FlexBasis: size * 6, MinWidth: 0,
+                        TextField{
+                            Value: replacement,
+                            Controlled: true,
+                            Placeholder: theme.Text("Replace"),
+                            AccessibilityName: theme.Text("Replacement"),
+                            Width: Percent(100),
+                            Disabled: Disabled,
+                            OnChange: OnReplacementChange,
+                            EntryKeyBindings: state.Bindings,
+                        }.Build()
+                    },
                     Container{
                         FlexDirection: FlexDirection.Row,
                         MinWidth: size * 5.0,
                         Icon("Replace", ControlIcon.FindReplace, size, !ready, OnReplace),
                         Icon("Replace all", ControlIcon.DoneAll, size, !ready, OnReplaceAll),
                     }
-                )
+                , theme.ControlGap / 2.0)
             )
         }
         return root
     }
 
-    private func Row(field Blob, actions Container) Container -> Container{
+    private func Row(field Blob, actions Container, gap float64) Container -> Container{
         FlexDirection: FlexDirection.Row,
         FlexWrap: FlexWrap.Wrap,
         AlignItems: AlignItems.FlexStart,
-        Gap: Theme.Read().ControlGap / 2.0,
-        Container{FlexGrow: 1, FlexBasis: Theme.Read().ControlHeight * 6.0, MinWidth: 0, field},
+        Gap: gap,
+        field,
         actions,
     }
 
@@ -145,6 +150,8 @@ internal class FindBarState : Cell[FindBar] {
     internal let Close Action
     internal let Bindings[]KeyBinding
     internal var QueryField Blob?
+    internal var QueryLayout Container?
+    internal var GroupAccessibility Accessibility?
     internal var PreviousButton Blob?
     internal var NextButton Blob?
     internal var CloseButton Blob?
@@ -167,11 +174,11 @@ internal class FindBarState : Cell[FindBar] {
             }
         }
         Bindings = []KeyBinding{
-            KeyBinding{Key: Key.Enter, Action: Next},
-            KeyBinding{Key: Key.Enter, Modifiers: KeyModifiers{Shift: true}, Action: Previous},
-            KeyBinding{Key: Key.KeypadEnter, Action: Next},
-            KeyBinding{Key: Key.KeypadEnter, Modifiers: KeyModifiers{Shift: true}, Action: Previous},
-            KeyBinding{Key: Key.Escape, Action: Close},
+            KeyBinding{Key: Key.Enter, OnPress: Next},
+            KeyBinding{Key: Key.Enter, Modifiers: KeyModifiers{Shift: true}, OnPress: Previous},
+            KeyBinding{Key: Key.KeypadEnter, OnPress: Next},
+            KeyBinding{Key: Key.KeypadEnter, Modifiers: KeyModifiers{Shift: true}, OnPress: Previous},
+            KeyBinding{Key: Key.Escape, OnPress: Close},
         }
     }
 
@@ -181,12 +188,18 @@ internal class FindBarState : Cell[FindBar] {
     protected override func Build(input FindBar) Blob {
         let previousReady = Ready()
         let previous = current
+        let previousField = QueryField
         current = input
-        let nextSize = Theme.Read().ControlHeight
+        let theme = Theme.Read()
+        let groupName = theme.Text("Find and replace")
+        if GroupAccessibility?.Name != groupName {
+            GroupAccessibility = Accessibility{Role: AccessibilityRole.Group, Name: groupName}
+        }
+        let nextSize = theme.ControlHeight
         if QueryField == nil || previous.Query != input.Query || previous.Options != input.Options
         || previous.Error != input.Error || previous.Disabled != input.Disabled
         || previous.OnQueryChange != input.OnQueryChange || previous.OnOptionsChange != input.OnOptionsChange
-        || previous.CreateEntry != input.CreateEntry {
+        || previous.ConfigureEntry != input.ConfigureEntry {
             QueryField = Cell.Mount[FindBarFieldInput, FindBarField]("query", FindBarFieldInput{
                 Value: input with{
                     OnQueryChange = input.OnQueryChange == nil ? nil: value -> InvokeInputCallback(current.OnQueryChange, value),
@@ -194,6 +207,9 @@ internal class FindBarState : Cell[FindBar] {
                 },
                 Bindings: Bindings,
             })
+        }
+        if QueryLayout == nil || QueryField != previousField || size != nextSize {
+            QueryLayout = Container{FlexGrow: 1, FlexBasis: nextSize * 6, MinWidth: 0, QueryField!!}
         }
         if NextButton == nil || previousReady != Ready() || size != nextSize {
             PreviousButton = input.Icon("Previous", ControlIcon.ArrowUpward, nextSize, !Ready(), Previous)
@@ -224,10 +240,10 @@ internal class FindBarField : Cell[FindBarFieldInput] {
     private let matchCase Action
     private let wholeWord Action
     private let regex Action
-    private let createEntry Func[TextField, TextEntry]
+    private let configureEntry Action[TextField, TextEntry]
 
     public init() {
-        createEntry = props -> current.CreateEntry!!(current, props)
+        configureEntry = (props, entry) -> current.ConfigureEntry!!(current, props, entry)
         matchCase = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{MatchCase = !current.Options.MatchCase})
         wholeWord = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{WholeWord = !current.Options.WholeWord})
         regex = () -> InvokeInputCallback(current.OnOptionsChange, current.Options with{Regex = !current.Options.Regex})
@@ -248,7 +264,7 @@ internal class FindBarField : Cell[FindBarFieldInput] {
             Invalid: input.Error != nil,
             Error: input.Error,
             OnChange: input.OnQueryChange == nil ? nil: value -> InvokeInputCallback(input.OnQueryChange, value),
-            CreateEntry: input.CreateEntry == nil ? nil: createEntry,
+            ConfigureEntry: input.ConfigureEntry == nil ? nil: configureEntry,
             EntryKeyBindings: field.Bindings,
             Trailing: Container{
                 FlexDirection: FlexDirection.Row,
@@ -298,8 +314,8 @@ internal class FindBarIcon : Cell[FindBarIconInput] {
             Cursor: Cursor.Pointer,
             Disabled: disabled,
             BackgroundColor: on == true ? theme.AccentColor: Color.Transparent,
-            Hover: on == true ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
-            Active: on == true ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
+            HoverStyle: on == true ? Style{BackgroundColor: theme.AccentHoverColor}: nil,
+            ActiveStyle: on == true ? Style{BackgroundColor: theme.AccentPressedColor}: nil,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,

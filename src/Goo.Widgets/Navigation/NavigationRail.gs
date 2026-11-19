@@ -6,6 +6,8 @@ import System
 import System.Collections.Generic
 
 /// A named, optionally collapsed section in a navigation rail.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct NavigationGroup {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -77,11 +79,13 @@ public data struct NavigationRailInput {
     var Opacity float64?
     /// Rail transform. Nil resolves to identity.
     var Transform PanelTransform?
-    /// Creates an item button; required identity, focus, handlers, and semantics are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[NavigationRailInput, NavigationItem, Button]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Accessibility.Selected, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, OnKeyDown, TabStop.
+    var ConfigureItem Action[NavigationRailInput, NavigationItem, Button]?
     /// Creates the rail root from resolved values and item buttons.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[NavigationRailInput, []Button, Container]?
 
     internal func Resolve(theme Theme) NavigationRailInput -> this with{
@@ -108,7 +112,7 @@ public data struct NavigationRailInput {
         FontWeight = FontWeight ?? theme.LabelFontWeight,
         Opacity = Opacity ?? 1.0,
         Transform = Transform ?? PanelTransform{},
-        CreateItem = nil,
+        ConfigureItem = nil,
         CreateRoot = nil,
     }
 }
@@ -125,7 +129,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
         let theme = Theme.Read()
         input = value.Resolve(theme)
         let resolved = input
-        let createItem = value.CreateItem
+        let configureItem = value.ConfigureItem
         let createRoot = value.CreateRoot
         items = input.Items!!
         if input.Groups!!.Length > 0 || input.BottomItems!!.Length > 0 {
@@ -173,9 +177,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
             let label = source.Label ?? id
             var item = source with{Id = id, Label = label, AccessibilityName = source.AccessibilityName ?? label,}
             var button Button
-            if let createItem = createItem {
-                button = createItem(resolved, item)
-            } else {
+            {
                 let selected = id == resolved.SelectedId
                 button = Button{
                     Width: Percent(100.0),
@@ -195,7 +197,7 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     } else {
                         resolved.TextColor!!
                     },
-                    Hover: value.HoverBackgroundColor == nil ? nil: Style{BackgroundColor: value.HoverBackgroundColor!!},
+                    HoverStyle: value.HoverBackgroundColor == nil ? nil: Style{BackgroundColor: value.HoverBackgroundColor!!},
                     TransitionMs: theme.TransitionMs,
                     TransitionEasing: Easing.EaseOut,
                     TransitionProperties: theme.InteractionTransitions,
@@ -214,9 +216,12 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 }
                 if let content = item.Content {
                     if content is Shape icon && (selected || item.Disabled) {
-                        icon.BackgroundColor = item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!
+                        let tinted = Shape{...icon, BasedOn: icon,
+                            Fill: VectorPaint(item.Disabled ? theme.DisabledTextColor: resolved.SelectedTextColor!!)}
+                        button.Children.Add(tinted)
+                    } else {
+                        button.Children.Add(content)
                     }
-                    button.Children.Add(content)
                 }
                 if resolved.Expanded || item.Content == nil {
                     let text = Text{
@@ -263,12 +268,63 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                     }
                 )
             }
+            if let configure = configureItem {
+                let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalAccessibilitySelected = button.Accessibility?.Selected
+                let originalDisabled = button.Disabled
+                let originalFocusable = button.Focusable
+                let originalHandle = button.Handle
+                let originalKey = button.Key
+                let originalOnBlur = button.OnBlur
+                let originalOnClick = button.OnClick
+                let originalOnFocus = button.OnFocus
+                let originalOnKeyDown = button.OnKeyDown
+                let originalTabStop = button.TabStop
+                configure.Invoke(resolved, item, button)
+                if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("NavigationRail owns Accessibility.Name; set NavigationRailInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("NavigationRail owns Accessibility.Role; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Accessibility?.Selected != originalAccessibilitySelected {
+                    throw InvalidOperationException("NavigationRail owns Accessibility.Selected; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Disabled != originalDisabled {
+                    throw InvalidOperationException("NavigationRail owns Disabled; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Focusable != originalFocusable {
+                    throw InvalidOperationException("NavigationRail owns Focusable; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Handle != originalHandle {
+                    throw InvalidOperationException("NavigationRail owns Handle; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.Key != originalKey {
+                    throw InvalidOperationException("NavigationRail owns Key; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnBlur != originalOnBlur {
+                    throw InvalidOperationException("NavigationRail owns OnBlur; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnClick != originalOnClick {
+                    throw InvalidOperationException("NavigationRail owns OnClick; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("NavigationRail owns OnFocus; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("NavigationRail owns OnKeyDown; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+                if button.TabStop != originalTabStop {
+                    throw InvalidOperationException("NavigationRail owns TabStop; configure NavigationRailInput instead of changing it in ConfigureItem")
+                }
+            }
             button.Key = id
             button.Handle = handles[id]
             button.Disabled = item.Disabled
             if id == input.SelectedId && value.SelectedBackgroundColor != nil {
-                button.Hover = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.Hover}
-                button.Active = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.Active}
+                button.HoverStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.HoverStyle}
+                button.ActiveStyle = Style{BackgroundColor: resolved.SelectedBackgroundColor!!, BasedOn: button.ActiveStyle}
             }
             theme.ApplyInteraction(button, InteractionFamily.Row, id == input.SelectedId)
             button.Focusable = !item.Disabled
@@ -285,11 +341,11 @@ public open class NavigationRail : Cell[NavigationRailInput] {
                 Rebuild()
             }
             button.OnKeyDown = (e KeyEvent) -> KeyDown(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Tab,
-                Name: item.AccessibilityName!!,
-                Selected: id == input.SelectedId,
-            }
+            let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            buttonAccessibility.Role = AccessibilityRole.Tab
+            buttonAccessibility.Name = item.AccessibilityName!!
+            buttonAccessibility.Selected = id == input.SelectedId
+            button.Accessibility = buttonAccessibility
             buttons[index] = button
         }
 

@@ -6,6 +6,8 @@ import Goo.Widgets.Icons
 import System
 
 /// A controlled collapsible section. Collapsed content remains mounted but is hidden from layout and input.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct Disclosure {
     /// Header label when Header is nil.
     var Label string?
@@ -43,22 +45,25 @@ public data struct Disclosure {
     var BorderWidth float64?
     /// Corner radius. Nil resolves to 6 and preserves explicit zero.
     var BorderRadius float64?
-    /// Disabled header opacity. Nil resolves to 0.5 and preserves explicit zero.
-    var DisabledOpacity float64?
     /// Creates a decorative indicator from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateIndicator Func[Disclosure, Blob]?
-    /// Customizes the prepared header. Preserve its key, action, disabled state, and semantics.
-    var CreateHeader Func[Disclosure, Button, Button]?
+    /// Configures the fresh header before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Disabled, KeyBindings (required entries).
+    var ConfigureHeader Action[Disclosure, Button]?
     /// Customizes the prepared body. Preserve its key, children, and collapsed display state.
+    /// Return a fresh element or the supplied default.
     var CreateContent Func[Disclosure, Container, Container]?
     /// Creates the final section from resolved props and its prepared header and body.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[Disclosure, Button, Container, Container]?
 
     /// Builds fresh primitives while stable child keys preserve mounted body identity.
     public func Build() Blob {
         let theme = Theme.Read()
         let createIndicator = CreateIndicator
-        let createHeader = CreateHeader
+        let configureHeader = ConfigureHeader
         let createContent = CreateContent
         let createRoot = CreateRoot
         let resolved = this with{
@@ -75,9 +80,8 @@ public data struct Disclosure {
             BorderColor = BorderColor ?? theme.BorderColor,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!!,
-            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             CreateIndicator = nil,
-            CreateHeader = nil,
+            ConfigureHeader = nil,
             CreateContent = nil,
             CreateRoot = nil,
         }
@@ -93,16 +97,19 @@ public data struct Disclosure {
                     ControlIcon.ChevronRight
                 },
                 size: 20.0,
-                color: resolved.TextColor!!
+                color: resolved.Disabled ? theme.DisabledTextColor: resolved.TextColor!!
             )
         }
-        let heading = resolved.Header ??
+        var heading Blob = resolved.Header ??
         Text{
             Content: resolved.Label!!,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
             FontWeight: theme.LabelFontWeight,
-            Color: resolved.TextColor!!,
+            Color: resolved.Disabled ? theme.DisabledTextColor: resolved.TextColor!!,
+        }
+        if resolved.Disabled && resolved.Header != nil {
+            heading = theme.DisabledSlot(heading, theme.TextColor)
         }
         let onChange = resolved.OnExpandedChange
         let next = !resolved.Expanded
@@ -132,9 +139,8 @@ public data struct Disclosure {
             BorderTopRightRadius: headerRadius,
             BorderBottomLeftRadius: resolved.Expanded ? 0.0: headerRadius,
             BorderBottomRightRadius: resolved.Expanded ? 0.0: headerRadius,
-            Hover: HoverColor == nil ? nil: Style{BackgroundColor: HoverColor!!},
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
-            DisabledStyle: Style{Opacity: resolved.DisabledOpacity!!},
+            HoverStyle: HoverColor == nil ? nil: Style{BackgroundColor: HoverColor!!},
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -154,8 +160,12 @@ public data struct Disclosure {
             indicator,
             heading,
         }
-        if let create = createHeader {
-            header = create(resolved, header)
+        if let configure = configureHeader {
+            let originalDisabled = header.Disabled
+            configure.Invoke(resolved, header)
+            if header.Disabled != originalDisabled {
+                throw InvalidOperationException("Disclosure owns Disabled; set Disclosure.Disabled instead of changing it in ConfigureHeader")
+            }
         }
         theme.ApplyInteraction(header, InteractionFamily.Row)
         header.Disabled = Disabled

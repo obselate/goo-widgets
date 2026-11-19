@@ -25,15 +25,15 @@ internal class SplitPaneExample : Cell {
                     Width: Percent(100),
                     Height: Percent(100),
                     Padding: 20,
-                    BackgroundColor: "#17313d",
-                    Text{Content: "Navigation", Color: "#a5e5eb"}
+                    BackgroundColor: Color.Parse("#17313d"),
+                    Text{Content: "Navigation", Color: Color.Parse("#a5e5eb")}
                 },
                 Second: Container{
                     Width: Percent(100),
                     Height: Percent(100),
                     Padding: 20,
-                    BackgroundColor: "#24243c",
-                    Text{Content: "Workspace", Color: "#d4c9fa"}
+                    BackgroundColor: Color.Parse("#24243c"),
+                    Text{Content: "Workspace", Color: Color.Parse("#d4c9fa")}
                 },
             }
         ),
@@ -53,15 +53,15 @@ internal class SplitPaneExample : Cell {
                     Width: Percent(100),
                     Height: Percent(100),
                     Padding: 16,
-                    BackgroundColor: "#24243c",
-                    Text{Content: "Preview", Color: "#d4c9fa"}
+                    BackgroundColor: Color.Parse("#24243c"),
+                    Text{Content: "Preview", Color: Color.Parse("#d4c9fa")}
                 },
                 Second: Container{
                     Width: Percent(100),
                     Height: Percent(100),
                     Padding: 16,
-                    BackgroundColor: "#17313d",
-                    Text{Content: "Details", Color: "#a5e5eb"}
+                    BackgroundColor: Color.Parse("#17313d"),
+                    Text{Content: "Details", Color: Color.Parse("#a5e5eb")}
                 },
             }
         )

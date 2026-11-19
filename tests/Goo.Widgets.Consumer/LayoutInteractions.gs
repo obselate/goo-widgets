@@ -7,6 +7,7 @@ import Goo.Widgets.Layout
 import Goo.Widgets.Navigation
 import Hexa.NET.SDL3
 import System
+import System.Collections.Generic
 
 internal class LayoutHost : Cell {
     internal var DialogOpen bool
@@ -177,6 +178,23 @@ func LayoutInteractions() {
         () -> {
             let empty = (PropertyGrid{}.Build() as Container)!!
             Require(empty.Children.Count == 1, "Default property grid did not resolve nil items and query")
+            for layout in []PropertyGridLayout{PropertyGridLayout.Stacked, PropertyGridLayout.Compact} {
+                let pending = Stack[Blob]()
+                pending.Push(PropertyGrid{Layout: layout}.BuildRow(
+                    PropertyGridItem{Id: "project", Label: "Project", Key: "workspace.project"}
+                ))
+                var found bool
+                while pending.Count > 0 {
+                    let node = pending.Pop()
+                    if node is Text {
+                        found = found || node.Content == "workspace.project"
+                    }
+                    if node is Container {
+                        for child in node.Children { pending.Push(child) }
+                    }
+                }
+                Require(found, "Property grid did not display the property key beside its label")
+            }
             for collapsed in []bool{false, true} {
                 var requested bool?
                 let grid = (PropertyGrid{
@@ -206,7 +224,7 @@ func LayoutInteractions() {
     let host = LayoutHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Title: "Layout contracts", Width: 900, Height: 640, Root: root, AccessibilityAdapter: semantics}
+    let window = Window{Title: "Layout contracts", Size: LayoutSize(900, 640), Root: root, AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 12)
@@ -304,7 +322,7 @@ func LayoutInteractions() {
         window.PerformAccessibilityAction(settingsSearch.Id, AccessibilityActionRequest.SetValue("sound"))
         PumpFrames(window, 8)
         Require(host.SettingsQuery == "sound" && host.SettingsEditor.IsMounted, "Settings keywords did not match")
-        window.Width = 460
+        window.Size = LayoutSize(float64(460) / window.UiScale, window.Size.Height)
         PumpFrames(window, 18)
         let narrowNavigation = FindSemantics(semantics.Tree?.Root, "Settings sections")!!.Bounds
         let narrowEditor = host.SettingsEditor.BorderBox
@@ -319,7 +337,7 @@ func LayoutInteractions() {
             "Status bar did not hide its lowest-priority detail"
         )
         CaptureIssueProof(window, "settings-narrow")
-        window.Width = 900
+        window.Size = LayoutSize(float64(900) / window.UiScale, window.Size.Height)
         PumpFrames(window, 18)
         Require(host.SettingsEditor.BorderBox.X > 300, "Settings did not return to columns after widening")
         Require(

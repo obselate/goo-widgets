@@ -83,14 +83,12 @@ internal class NavigationHost : Cell {
                         Closed = id
                         Rebuild()
                     },
-                    CreateItem: (input TabBarInput, item NavigationItem, button Button) -> {
+                    ConfigureItem: (input TabBarInput, item NavigationItem, button Button) -> {
                         Tabs[item.Id!!] = button
-                        return button
-                    },
-                    CreateRoot: (input TabBarInput, root Container) -> {
+                        },
+                    ConfigureRoot: (input TabBarInput, root Container) -> {
                         root.Handle = Viewport
-                        return root
-                    },
+                        },
                 }
             ),
             Cell.Mount[NavigationRailInput, NavigationRail](
@@ -126,18 +124,18 @@ internal class NavigationHost : Cell {
             ),
             ActionButton{
                 Content: "Open palette",
-                CreateRoot: (input ActionButton, text Text) -> Button{
-                    Handle: Launch,
-                    Height: 36,
-                    Focusable: true,
-                    Text{Content: "Open palette"},
-                    OnClick: () -> {
-                        PaletteOpen = true
-                        Query = ""
-                        Rebuild()
-                    },
-                }
-            }.Build(),
+                OnClick: () -> {
+                    PaletteOpen = true
+                    Query = ""
+                    Rebuild()
+                },
+                ConfigureRoot: (input ActionButton, text Text, prepared Button) -> {
+                    prepared.Handle = Launch
+                    prepared.Height = 36
+                    prepared.Focusable = true
+                    prepared.Children.Clear()
+                    prepared.Children.Add(Text{Content: "Open palette"})
+                }}.Build(),
             Cell.Mount[CommandPaletteInput, CommandPalette](
                 "palette",
                 CommandPaletteInput{
@@ -153,9 +151,8 @@ internal class NavigationHost : Cell {
                         Rebuild()
                     },
                     OnClick: (id string) -> Invoked = id,
-                    CreateItem: (input CommandPaletteInput, item CommandItem, match FuzzyMatchResult, button Button) -> {
+                    ConfigureItem: (input CommandPaletteInput, item CommandItem, match FuzzyMatchResult, button Button) -> {
                         Highlights[item.Id] = match
-                        return button
                     },
                     Groups: []CommandGroup{CommandGroup{Id: "file", Label: "File"}},
                     Items: []CommandItem{
@@ -180,7 +177,7 @@ func NavigationInteractions() {
     let host = NavigationHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Title: "Navigation acceptance", Width: 800, Height: 650, Root: root}
+    let window = Window{Title: "Navigation acceptance", Size: LayoutSize(800, 650), Root: root}
     window.AccessibilityAdapter = semantics
     Theme.Attach(window)
     RunNativeWindow(window, () -> {
@@ -267,6 +264,8 @@ func NavigationInteractions() {
                 host.Query == "fr" && FindSemantics(semantics.Tree?.Root, "Open file") == nil,
                 "Palette query did not filter commands"
             )
+            Require(window.Focus.Selection?.Anchor.Offset == 2 && window.Focus.Selection?.Active.Offset == 2,
+                "Palette controlled query moved the caret during typing")
             Require(
                 FindSemantics(semantics.Tree?.Root, "Find references")!!.Selected == true,
                 "Palette did not select the highest fuzzy score"
@@ -298,15 +297,13 @@ func NavigationInteractions() {
                 "Palette Escape did not dismiss and restore focus"
             )
             ChoiceKey(window, SDLScancode.Return)
-            window.Width = 390
-            window.Height = 420
+            window.Size = LayoutSize(float64(390) / window.UiScale, float64(420) / window.UiScale)
             PumpFrames(window, 14)
             let entry = FindSemantics(semantics.Tree?.Root, "Search commands")!!.Bounds
             Require(entry.X >= 0 && entry.X + entry.Width <= 390, "Palette search clipped at the minimum window width")
             CaptureIssueProof(window, "palette-narrow-" + mode.ToString())
             ChoiceKey(window, SDLScancode.Escape)
-            window.Width = 800
-            window.Height = 650
+            window.Size = LayoutSize(float64(800) / window.UiScale, float64(650) / window.UiScale)
             PumpFrames(window, 8)
         }
         Theme.Attach(window, Theme.Default with{Direction = Direction.RightToLeft})

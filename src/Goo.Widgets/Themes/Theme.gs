@@ -107,7 +107,7 @@ public data partial struct Theme {
     var SubtleTextColor Color
     /// Text color for disabled content. Supplied by the selected theme palette.
     var DisabledTextColor Color
-    /// Final disabled interaction opacity. Defaults to 0.5. High contrast uses 1.
+    /// Opacity of caller-supplied slot content in disabled controls. Widget-owned parts use disabled colors at full opacity. Defaults to 0.5. High contrast uses 1.
     var DisabledOpacity float64 = 0.5
     /// Foreground color for links. Supplied by the selected theme palette.
     var LinkColor Color

@@ -8,9 +8,7 @@ import Goo.Widgets
 public data struct AsyncImage {
     /// Accessible name. Nil keeps an unnamed ready image decorative and hidden.
     var AccessibilityName string?
-    /// Local image path retained even when ImageSource wins.
-    var ImagePath string?
-    /// Provider-backed image source. A non-nil source wins over ImagePath.
+    /// Provider-backed image source.
     var ImageSource ImageSourceProvider?
     /// Whether the loading placeholder state is selected.
     var Loading bool
@@ -55,10 +53,13 @@ public data struct AsyncImage {
     /// Creates the selected image from resolved props.
     var CreateImage Func[AsyncImage, Image]?
     /// Creates the selected placeholder from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreatePlaceholder Func[AsyncImage, Blob]?
     /// Creates the selected error from resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateError Func[AsyncImage, Blob]?
     /// Creates the root from resolved props and the selected child.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[AsyncImage, Blob, Container]?
 
     /// Builds a fresh Goo tree after resolving props and selecting one child.
@@ -136,7 +137,6 @@ public data struct AsyncImage {
             child = createImage(resolved)
         } else {
             child = Image{
-                Path: resolved.ImagePath ?? "",
                 Source: resolved.ImageSource,
                 Fit: resolved.Fit!!,
                 Width: Percent(100.0),

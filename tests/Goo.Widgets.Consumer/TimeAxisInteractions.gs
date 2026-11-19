@@ -1,6 +1,7 @@
 package Goo.Widgets.Consumer
 
 import Goo
+import Goo.Widgets
 import Goo.Widgets.Data
 import Hexa.NET.SDL3
 import System
@@ -19,6 +20,8 @@ func AxisEvents()[]TimeAxisEvent {
         TimeAxisEvent{Id: "beta", Label: "Index refresh", Start: day.AddHours(1), End: day.AddHours(2)},
         TimeAxisEvent{Id: "overflow", Label: "Diagnostics", Start: day.AddHours(1.5), End: day.AddHours(2.5)},
         TimeAxisEvent{Id: "gamma", Label: "Reports", Start: day.AddHours(2), End: day.AddHours(3)},
+        TimeAxisEvent{Id: "close-first", Label: "First", Start: day.AddHours(4), End: day.AddHours(4)},
+        TimeAxisEvent{Id: "close-second", Label: "Second", Start: day.AddHours(4).AddMinutes(1), End: day.AddHours(4).AddMinutes(1)},
         TimeAxisEvent{Id: "target", Label: "Release", Start: day.AddHours(6), End: day.AddHours(7)},
         TimeAxisEvent{Id: "point", Label: "Milestone", Start: day.AddHours(6), End: day.AddHours(6)},
         TimeAxisEvent{Id: "outside", Label: "Yesterday", Start: day.AddHours(-4), End: day.AddHours(-1)},
@@ -42,22 +45,21 @@ func TimeAxisContracts() {
                 OnOverflow: (items[]TimeAxisEvent) -> {
                     overflowActivated = items.Length
                 },
-                CreateEvent: (input TimeAxisInput, placement TimeAxisPlacement, prepared Button) -> {
+                ConfigureEvent: (input TimeAxisInput, placement TimeAxisPlacement, prepared Button) -> {
                     placements.Add(placement.Event.Id!!, placement)
-                    return Button(){Text{Content: placement.Event.Label!!}}
-                },
-                CreateOverflow: (input TimeAxisInput, items[]TimeAxisEvent, prepared Button) -> {
+                                        prepared.Children.Clear()
+                    prepared.Children.Add(Text{Content: placement.Event.Label!!})
+},
+                ConfigureOverflow: (input TimeAxisInput, items[]TimeAxisEvent, prepared Button) -> {
                     hidden = items
-                    return prepared
-                },
-                CreateRoot: (input TimeAxisInput, prepared Container) -> {
+                    },
+                ConfigureRoot: (input TimeAxisInput, prepared Container) -> {
                     root = prepared
-                    return prepared
-                },
+                    },
             }
         )
         Require(
-            placements.Count == 5 && !placements.ContainsKey("outside") &&
+            placements.Count == 7 && !placements.ContainsKey("outside") &&
                 hidden.Length == 1 &&
                 hidden[0].Id == "overflow",
             "TimeAxis lost clipping or collision overflow"
@@ -67,7 +69,7 @@ func TimeAxisContracts() {
             "Adjacent TimeAxis events did not reuse collision lanes"
         )
         Require(
-            placements["point"].Width == 6.0 && placements["target"].Lane != placements["point"].Lane,
+            placements["point"].Width >= 6.0 && placements["target"].Lane != placements["point"].Lane,
             "Point width was omitted from lane collisions"
         )
         let canvas = (root!!.Children[0] as Container)!!
@@ -95,6 +97,18 @@ func TimeAxisContracts() {
         probe.Dispose()
         probe.Dispose()
     }
+    let host = TimeAxisHost()
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(700, 360, 700, 360)
+    let window = Window{Root: host}
+    Theme.Attach(window, Theme.Default)
+    window.Attach(embedded)
+    embedded.RenderFrame(0.016)
+    let first = host.Buttons["close-first"].Handle!!.BorderBox
+    let second = host.Buttons["close-second"].Handle!!.BorderBox
+    Require(first.Width > 0.0 && second.Width > 0.0 &&
+        (first.X + first.Width <= second.X || first.Y + first.Height <= second.Y),
+        "Close TimeAxis points overlap despite their rendered width")
 }
 
 internal class TimeAxisHost : Cell {
@@ -107,18 +121,16 @@ internal class TimeAxisHost : Cell {
     internal let Buttons Dictionary[string, Button] = Dictionary[string, Button]()
     internal var Show bool = true
     internal var Scale float64 = 120
-    private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) Button {
+    private func Event(input TimeAxisInput, placement TimeAxisPlacement, prepared Button) {
         prepared.Handle = ElementHandle()
         if placement.Event.Id == "point" {
-            prepared.BackgroundColor = "#fbbf24"
+            prepared.BackgroundColor = Color.Parse("#fbbf24")
         }
         Buttons[placement.Event.Id!!] = prepared
-        return prepared
     }
 
-    private func CaptureRoot(input TimeAxisInput, prepared Container) Container {
+    private func CaptureRoot(input TimeAxisInput, prepared Container) {
         Root = prepared
-        return prepared
     }
 
     public override func Build() Blob {
@@ -127,12 +139,12 @@ internal class TimeAxisHost : Cell {
             Height: Percent(100),
             Padding: 24,
             Gap: 20,
-            BackgroundColor: "#111318",
-            Text{Key: "title", Content: "TimeAxis · September 14", FontSize: 24, Color: "#fafafa"},
+            BackgroundColor: Color.Parse("#111318"),
+            Text{Key: "title", Content: "TimeAxis · September 14", FontSize: 24, Color: Color.Parse("#fafafa")},
             Text{
                 Key: "hint",
                 Content: "Scroll the ruler or use Left/Right, Home/End. Overlapping events occupy separate lanes.",
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             }
         }
         if Show {
@@ -146,10 +158,11 @@ internal class TimeAxisHost : Cell {
                         MaximumLanes: 2,
                         CurrentTime: Current,
                         PixelsPerHour: Scale,
+                        MinimumEventWidth: 2,
                         SelectedId: Selected ?? "",
                         InitialEventId: "target",
-                        CreateEvent: Event,
-                        CreateRoot: CaptureRoot,
+                        ConfigureEvent: Event,
+                        ConfigureRoot: CaptureRoot,
                         OnSelect: (id string) -> {
                             Selected = id
                             Rebuild()
@@ -175,8 +188,7 @@ func TimeAxisInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "TimeAxis verification",
-        Width: 700,
-        Height: 360,
+        Size: LayoutSize(700, 360),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -222,7 +234,7 @@ func TimeAxisInteractions() {
             Math.Abs(handle.ScrollOffset.X - 300.0) < .5 && handle.ScrollRange.X > 1400.0,
             "Scale change lost the viewport or failed to change the scroll range"
         )
-        window.Width = 420
+        window.Size = LayoutSize(float64(420) / window.UiScale, window.Size.Height)
         PumpFrames(window, 10)
         Require(Math.Abs(handle.ScrollOffset.X - 300.0) < .5, "Resize restarted initial centering")
         CaptureIssueProof(window, "time-axis-narrow")

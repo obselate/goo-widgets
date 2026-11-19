@@ -17,23 +17,30 @@ func ChromeContractControl(
     input WindowChrome,
     command WindowChromeAction,
     content Blob,
-    action Action?
-) Button -> Button{
-    Focusable: true,
-    Disabled: false,
-    Accessibility: Accessibility{Role: AccessibilityRole.Link, Name: "wrong"},
-    Text{Content: "wrong"},
+    action Action?, prepared Button) {
+    prepared.Accessibility = Accessibility{Description: "Custom control"}
+    prepared.Children.Clear()
+    prepared.Children.Add(Text{Content: "wrong"})
 }
 
-func ChromeContractRoot(input WindowChrome, children[]Blob) Container -> Container{
-    OnPointerDown: (e PointerEvent) -> { },
-    Children: children,
+func ChromeContractRoot(input WindowChrome, children[]Blob, prepared Container) {
+    prepared.OnPointerDown = (e PointerEvent) -> { }
+    prepared.Children = children
 }
 
 func WindowChromeContracts() {
-    let row = (
-        WindowChrome{CreateRoot: ChromeContractRoot, CreateControl: ChromeContractControl}.Build() as Container
-    )!!
+    for input in []WindowChrome{
+        WindowChrome{ConfigureControl: (input, command, content, action, control) -> control.OnClick = () -> {}},
+        WindowChrome{ConfigureRoot: (input, children, root) -> root.Focusable = true},
+    } {
+        var rejected = false
+        try { input.Build() }
+        catch (error InvalidOperationException) {
+            rejected = error.Message.StartsWith("WindowChrome owns ")
+        }
+        Require(rejected, "Chrome accepted a change to a widget-owned field")
+    }
+    let row = (WindowChrome{ConfigureRoot: ChromeContractRoot, ConfigureControl: ChromeContractControl}.Build() as Container)!!
     Require(
         !row.Focusable && row.Children.Count == 4,
         "Chrome changed the factory child order or became a focusable drag region"
@@ -47,12 +54,12 @@ func WindowChromeContracts() {
                     child.OnClick == nil &&
                     child
                     .Accessibility
-                    ?.Role == AccessibilityRole.Button,
+                    ?.Role == AccessibilityRole.Button && child.Accessibility?.Description == "Custom control",
                 "A custom chrome control bypassed action availability or semantics"
             )
             Require(
-                child.Children.Count == 1 && child.Children[0] is Shape,
-                "A custom chrome control bypassed the content factory"
+                child.Children.Count == 1 && child.Children[0] is Text,
+                "Chrome discarded the configured control content"
             )
         }
     }
@@ -74,12 +81,12 @@ internal class ChromePaintHost : Cell {
                 BackgroundColor: Color.Rgb(32, 32, 32),
                 ControlColor: Color.White,
                 CloseHoverBackgroundColor: Color.Rgb(255, 128, 192),
-                CreateRoot: (input WindowChrome, children []Blob) -> Container{
-                    Handle: custom ? Custom: Stock,
-                    Height: input.Height!!,
-                    FlexDirection: FlexDirection.Row,
-                    AlignItems: AlignItems.Center,
-                    BackgroundColor: input.BackgroundColor!!,
+                ConfigureRoot: (input WindowChrome, children []Blob, prepared Container) -> {
+                    prepared.Handle = custom ? Custom: Stock
+                    prepared.Height = input.Height!!
+                    prepared.FlexDirection = FlexDirection.Row
+                    prepared.AlignItems = AlignItems.Center
+                    prepared.BackgroundColor = input.BackgroundColor!!
                 },
             }
             if custom {
@@ -105,7 +112,7 @@ func ChromePaint(window Window, row ElementHandle, foreground Color, background 
 
 func ChromePaintInteractions() {
     let host = ChromePaintHost()
-    let window = Window{Title: "Chrome icon paint verification", Width: 320, Height: 200, Root: host}
+    let window = Window{Title: "Chrome icon paint verification", Size: LayoutSize(320, 200), Root: host}
     Theme.Attach(window, Theme.Ink with{OnAccentColor = Color.Black})
     RunNativeWindow(window, () -> {
         window.Open()
@@ -141,7 +148,6 @@ internal class ChromeHost : Cell {
     internal var ShowChrome bool = true
     internal var Commands int32
     internal var EmbeddedClicks int32
-    internal var BadClicks int32
     internal var MenuFactories int32
     internal var LastCommand string = "Ready"
     internal var MenuInput MenuInput
@@ -176,34 +182,26 @@ internal class ChromeHost : Cell {
         Rebuild()
     }
 
-    private func Control(input WindowChrome, command WindowChromeAction, content Blob, action Action?) Button {
-        let button = Button{
-            Handle: ElementHandle(),
-            Width: input.ControlWidth!!,
-            Height: input.Height!!,
-            Padding: 0.0,
-            BackgroundColor: Color.Transparent,
-            AlignItems: AlignItems.Center,
-            JustifyContent: JustifyContent.Center,
-            OnClick: () -> {
-                BadClicks++
-            },
-            Text{Content: "wrong"}
-        }
+    private func Control(input WindowChrome, command WindowChromeAction, content Blob, action Action?, button Button) {
+        button.Handle = ElementHandle()
+        button.Width = input.ControlWidth!!
+        button.Height = input.Height!!
+        button.Padding = 0.0
+        button.BackgroundColor = Color.Transparent
+        button.AlignItems = AlignItems.Center
+        button.JustifyContent = JustifyContent.Center
+        button.Children.Clear()
+        button.Children.Add(Text{Content: "Custom control"})
         Controls[command] = button
-        return button
     }
 
-    private func Root(input WindowChrome, children[]Blob) Container {
+    private func Root(input WindowChrome, children[]Blob, prepared Container) {
         children[1].Handle = Blank
-        return Container{
-            Height: input.Height!!,
-            FlexDirection: FlexDirection.Row,
-            AlignItems: AlignItems.Center,
-            BackgroundColor: "#18181b",
-            Focusable: true,
-            Text{Content: "wrong"}
-        }
+        prepared.Height = input.Height!!
+        prepared.FlexDirection = FlexDirection.Row
+        prepared.AlignItems = AlignItems.Center
+        prepared.BackgroundColor = Color.Parse("#18181b")
+        prepared.Children = children
     }
 
     private func Menu(input WindowChrome, prepared MenuInput) MenuInput {
@@ -217,8 +215,8 @@ internal class ChromeHost : Cell {
             Handle: Overlay,
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#101216",
-            Color: "#e4e4e7"
+            BackgroundColor: Color.Parse("#101216"),
+            Color: Color.Parse("#e4e4e7")
         }
         if ShowChrome {
             let window = Host!!
@@ -228,8 +226,8 @@ internal class ChromeHost : Cell {
                 EnableContextMenu: true,
                 Height: 40.0,
                 ControlWidth: 48.0,
-                CreateRoot: Root,
-                CreateControl: Control,
+                ConfigureRoot: Root,
+                ConfigureControl: Control,
                 CreateMenu: Menu,
                 LeadingContent: Container{
                     FlexDirection: FlexDirection.Row,
@@ -241,7 +239,7 @@ internal class ChromeHost : Cell {
                         Handle: Embedded,
                         Width: 120.0,
                         Height: 28.0,
-                        BackgroundColor: "#373044",
+                        BackgroundColor: Color.Parse("#373044"),
                         OnClick: () -> {
                             EmbeddedClicks++
                             Rebuild()
@@ -276,13 +274,13 @@ internal class ChromeHost : Cell {
                 Text{
                     Content: LastCommand + " · embedded: " + EmbeddedClicks.ToString(),
                     FontSize: 18.0,
-                    Color: "#a5b4fc"
+                    Color: Color.Parse("#a5b4fc")
                 },
                 Button{
                     Handle: BodyButton,
                     Width: 160.0,
                     Height: 36.0,
-                    BackgroundColor: "#27272a",
+                    BackgroundColor: Color.Parse("#27272a"),
                     Text{Content: "Body focus target"}
                 }
             }
@@ -332,8 +330,7 @@ func ChromeInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Window chrome verification",
-        Width: 1400,
-        Height: 900,
+        Size: LayoutSize(1400, 900),
         Decorated: false,
         Root: host,
         AccessibilityAdapter: semantics
@@ -390,7 +387,7 @@ func ChromeInteractions() {
         CompositeClick(window, host.Controls[WindowChromeAction.Maximize].Handle!!)
         PumpFrames(window, 25)
         Require(
-            window.State == WindowState.Maximized && host.Commands == 3 && host.BadClicks == 0,
+            window.State == WindowState.Maximized && host.Commands == 3,
             "Custom maximize control bypassed the resolved callback"
         )
         CompositeClick(window, host.Controls[WindowChromeAction.Restore].Handle!!)
@@ -494,7 +491,7 @@ func ChromeInteractions() {
 
 func ChromeCallbackInteractions() {
     let host = ChromeHost{NativeBinding: false}
-    let window = Window{Title: "Callback-only chrome verification", Width: 1000, Height: 640, Root: host}
+    let window = Window{Title: "Callback-only chrome verification", Size: LayoutSize(1000, 640), Root: host}
     host.Host = window
     window.StateChanged += (state WindowState) -> host.Rebuild()
     RunNativeWindow(window, () -> {

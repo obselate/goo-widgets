@@ -152,8 +152,8 @@ func SpinnerBarHeight(window Window, frame ElementRect) float64 {
         window.Pump(0.0)
         capture = window.PollCapture()
     }
-    let image = capture!!
-    let scale = float64(image.Width) / float64(window.Width)
+    let image = capture
+    let scale = float64(image.Width) / float64(window.NativeWidth)
     let bar = int32((frame.X + frame.Width * 0.1) * scale)
     let gap = int32((frame.X + frame.Width * 0.3) * scale)
     var total = 0.0
@@ -176,8 +176,7 @@ func FeedbackIdentityInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Feedback verification",
-        Width: 800,
-        Height: 540,
+        Size: LayoutSize(800, 540),
         Root: host,
         AccessibilityAdapter: semantics
     }
@@ -317,7 +316,7 @@ func FeedbackIdentityInteractions() {
 
     let registry = CreateRegistry()
     let gallery = Gallery(registry, registry.IndexOf("Toast"))
-    let proof = Window{Title: "Feedback gallery", Width: 1100, Height: 760, Root: gallery}
+    let proof = Window{Title: "Feedback gallery", Size: LayoutSize(1100, 760), Root: gallery}
     RunNativeWindow(proof, () -> {
         proof.Open()
         gallery.AttachWindow(proof)
@@ -361,15 +360,15 @@ internal class SkeletonHost : Cell {
             OverflowY: Overflow.Scroll, ScrollbarVisibilityY: ScrollbarVisibility.Hidden,
             Cell.Mount[SkeletonInput, Skeleton]("text", SkeletonInput{
                 Width: Percent(100), Animated: Animated, AccessibilityName: Named ? "Loading text": nil,
-                CreateRoot: (input, root) -> Capture(0, root),
+                ConfigureRoot: (input, root) -> { Capture(0, root) },
             }),
             Cell.Mount[SkeletonInput, Skeleton]("circle", SkeletonInput{
                 Variant: SkeletonVariant.Circle, Animated: Animated, AccessibilityName: Named ? "Loading avatar": nil,
-                CreateRoot: (input, root) -> Capture(1, root),
+                ConfigureRoot: (input, root) -> { Capture(1, root) },
             }),
             Cell.Mount[SkeletonInput, Skeleton]("rectangle", SkeletonInput{
                 Variant: SkeletonVariant.Rectangle, Width: Percent(100), Animated: Animated, AccessibilityName: "Loading preview",
-                CreateRoot: (input, root) -> Capture(2, root),
+                ConfigureRoot: (input, root) -> { Capture(2, root) },
             }),
             Container{Height: 512, FlexShrink: 0},
         },
@@ -389,7 +388,7 @@ func SkeletonDifference(first WindowCapture, second WindowCapture) int32 {
 func SkeletonInteractions() {
     let host = SkeletonHost()
     let semantics = SearchListSemantics()
-    let window = Window{Title: "Skeleton verification", Width: 640, Height: 480, Root: host, AccessibilityAdapter: semantics}
+    let window = Window{Title: "Skeleton verification", Size: LayoutSize(640, 480), Root: host, AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Ink)
     var presents int32
     window.PresentationAccepted += (accepted WindowPresentationAccepted) -> { presents++ }
@@ -445,15 +444,14 @@ func SkeletonInteractions() {
         for palette in []Theme{Theme.Ink, Theme.Bone, Theme.Ink.WithHighContrast()} {
             Theme.Attach(window, palette)
             for width in []int32{480, 900, 1600, 2560} {
-                window.Width = width
-                window.Height = width == 2560 ? 1440: 480
+                window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 480) / window.UiScale)
                 window.UiScale = 1.5F
                 PumpFrames(window, 12)
                 for name in []string{"Loading text", "Loading avatar", "Loading preview"} {
                     let bounds = FindSemantics(semantics.Tree?.Root, name)!!.Bounds
                     Require(bounds.Width > 0 && bounds.Height > 0 && bounds.X >= 0 && bounds.Y >= 0
-                        && bounds.X + bounds.Width <= float64(window.Width) / window.UiScale + 1
-                        && bounds.Y + bounds.Height <= float64(window.Height) / window.UiScale + 1,
+                        && bounds.X + bounds.Width <= float64(window.NativeWidth) / window.UiScale + 1
+                        && bounds.Y + bounds.Height <= float64(window.NativeHeight) / window.UiScale + 1,
                         "Skeleton escaped the scaled viewport")
                 }
             }
@@ -499,14 +497,13 @@ func SkeletonInteractions() {
     let registry = CreateRegistry()
     let gallery = Gallery(registry, registry.IndexOf("Skeleton"))
     let gallerySemantics = SearchListSemantics()
-    let proof = Window{Title: "Skeleton gallery", Width: 960, Height: 640, UiScale: 1.5F,
+    let proof = Window{Title: "Skeleton gallery", Size: LayoutSize(960 / 1.5, 640 / 1.5), UiScale: 1.5F,
         Root: gallery, AccessibilityAdapter: gallerySemantics}
     gallery.AttachWindow(proof)
     RunNativeWindow(proof, () -> {
         proof.Open()
         for width in []int32{960, 1600, 2560} {
-            proof.Width = width
-            proof.Height = width == 2560 ? 1440: 640
+            proof.Size = LayoutSize(float64(width) / proof.UiScale, float64(width == 2560 ? 1440: 640) / proof.UiScale)
             PumpFrames(proof, 16)
             let card = gallery.CardHandle.BorderBox
             let pause = FindSemantics(gallerySemantics.Tree?.Root, "Pause")!!.Bounds

@@ -8,6 +8,9 @@ import System
 import System.Globalization
 
 /// Controlled civil-date input; typing is a draft until Enter or blur commits it.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct DatePickerInput {
     /// Controlled selected civil date. Nil means no date is selected.
     var Value DateOnly?
@@ -58,21 +61,25 @@ public data struct DatePickerInput {
     var PopupWidth float64?
     /// Popup stacking order. Zero uses layer 20.
     var ZIndex int32
-    /// Receives the widget input and the prepared entry, and returns the replacement entry. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateInput Func[DatePickerInput, TextEntry, TextEntry]?
-    /// Receives the widget input and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateButton Func[DatePickerInput, Button, Button]?
+    /// Configures the fresh input before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Invalid, Accessibility.Name, Accessibility.ReadOnly, Accessibility.Relationships.Controls, Accessibility.Relationships.ErrorMessage, Accessibility.Required, Accessibility.Role, Controlled, Disabled, Focusable, Handle, Key, OnBlur, OnChange, OnKeyDown, OnSubmit, ReadOnly, Value.
+    var ConfigureInput Action[DatePickerInput, TextEntry]?
+    /// Configures the fresh button before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Expanded, Accessibility.HasPopup, Accessibility.Name, Accessibility.Relationships.Controls, Accessibility.Role, Disabled, Focusable, Key, KeyBindings (required entries), OnClick.
+    var ConfigureButton Action[DatePickerInput, Button]?
     /// Receives the widget input and the CalendarInput value, and returns the replacement CalendarInput. Nil uses the default composition.
     /// Hosts must not change state in this callback.
     var CreateCalendar Func[DatePickerInput, CalendarInput, CalendarInput]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreatePopup Func[DatePickerInput, Container, Container]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[DatePickerInput, Container, Container]?
+    /// Configures the fresh popup before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key.
+    var ConfigurePopup Action[DatePickerInput, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
+    var ConfigureRoot Action[DatePickerInput, Container]?
 }
 
 /// Composes an editable date field, Calendar, and the shared anchored Popover lifecycle.
@@ -85,6 +92,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private let issueHandle ElementHandle = ElementHandle()
     private var overlay ElementHandle?
     private var overlayBox ElementRect
+    private var fieldWidth float64
     private var draft string = ""
     private var lastValue DateOnly?
     private var initialized bool
@@ -94,12 +102,18 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var disposed bool
     private var focused bool
 
-    /// Releases the optional collision-viewport subscription.
+    /// Subscribes to field geometry changes.
+    public init() {
+        fieldHandle.MetricsChanged += FieldMetrics
+    }
+
+    /// Releases geometry subscriptions.
     public func Dispose() {
         if disposed {
             return
         }
         disposed = true
+        fieldHandle.MetricsChanged -= FieldMetrics
         BindOverlay(nil)
     }
 
@@ -156,11 +170,75 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
         }
-        if let create = current.CreateInput {
-            entry = create(current, entry)
+        if let configure = current.ConfigureInput {
+            let originalAccessibilityInvalid = entry.Accessibility?.Invalid
+            let originalAccessibilityName = (entry.Accessibility?.Name ?? "")
+            let originalAccessibilityReadOnly = entry.Accessibility?.ReadOnly
+            let originalAccessibilityRequired = entry.Accessibility?.Required
+            let originalAccessibilityRole = (entry.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalControlled = entry.Controlled
+            let originalDisabled = entry.Disabled
+            let originalFocusable = entry.Focusable
+            let originalHandle = entry.Handle
+            let originalKey = entry.Key
+            let originalOnBlur = entry.OnBlur
+            let originalOnChange = entry.OnChange
+            let originalOnKeyDown = entry.OnKeyDown
+            let originalOnSubmit = entry.OnSubmit
+            let originalReadOnly = entry.ReadOnly
+            let originalValue = entry.Value
+            configure.Invoke(current, entry)
+            if entry.Accessibility?.Invalid != originalAccessibilityInvalid {
+                throw InvalidOperationException("DatePicker owns Accessibility.Invalid; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if (entry.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DatePicker owns Accessibility.Name; set DatePickerInput.AccessibilityName instead of changing it in ConfigureInput")
+            }
+            if entry.Accessibility?.ReadOnly != originalAccessibilityReadOnly {
+                throw InvalidOperationException("DatePicker owns Accessibility.ReadOnly; set DatePickerInput.ReadOnly instead of changing it in ConfigureInput")
+            }
+            if entry.Accessibility?.Required != originalAccessibilityRequired {
+                throw InvalidOperationException("DatePicker owns Accessibility.Required; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if (entry.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DatePicker owns Accessibility.Role; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Controlled != originalControlled {
+                throw InvalidOperationException("DatePicker owns Controlled; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Disabled != originalDisabled {
+                throw InvalidOperationException("DatePicker owns Disabled; set DatePickerInput.Disabled instead of changing it in ConfigureInput")
+            }
+            if entry.Focusable != originalFocusable {
+                throw InvalidOperationException("DatePicker owns Focusable; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Handle != originalHandle {
+                throw InvalidOperationException("DatePicker owns Handle; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.Key != originalKey {
+                throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.OnBlur != originalOnBlur {
+                throw InvalidOperationException("DatePicker owns OnBlur; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.OnChange != originalOnChange {
+                throw InvalidOperationException("DatePicker owns OnChange; set DatePickerInput.OnChange instead of changing it in ConfigureInput")
+            }
+            if entry.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("DatePicker owns OnKeyDown; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.OnSubmit != originalOnSubmit {
+                throw InvalidOperationException("DatePicker owns OnSubmit; configure DatePickerInput instead of changing it in ConfigureInput")
+            }
+            if entry.ReadOnly != originalReadOnly {
+                throw InvalidOperationException("DatePicker owns ReadOnly; set DatePickerInput.ReadOnly instead of changing it in ConfigureInput")
+            }
+            if entry.Value != originalValue {
+                throw InvalidOperationException("DatePicker owns Value; set DatePickerInput.Value instead of changing it in ConfigureInput")
+            }
         }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
-        entry.Focus = Style{BasedOn: entry.Focus, OutlineWidth: 0}
+        entry.FocusStyle = Style{BasedOn: entry.FocusStyle, OutlineWidth: 0}
         let priorFocus = entry.OnFocus
         entry.OnFocus = event -> {
             focused = true
@@ -185,31 +263,66 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             }
         }
         entry.OnKeyDown = InputKey
-        entry.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextInput,
-            Name: current.AccessibilityName!!,
-            Invalid: invalid,
-            Required: !current.AllowEmpty!!,
-            ReadOnly: current.ReadOnly,
-            Relationships: AccessibilityRelationships{
-                Controls: []ElementHandle{calendarHandle},
-                ErrorMessage: invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
-            }
-        }
+        let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        entryAccessibility.Role = AccessibilityRole.TextInput
+        entryAccessibility.Name = current.AccessibilityName!!
+        entryAccessibility.Invalid = invalid
+        entryAccessibility.Required = !current.AllowEmpty!!
+        entryAccessibility.ReadOnly = current.ReadOnly
+        let entryRelationships = if let configured = entryAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        entryRelationships.Controls = []ElementHandle{calendarHandle}
+        entryRelationships.ErrorMessage = invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
+        entryAccessibility.Relationships = entryRelationships
+        entry.Accessibility = entryAccessibility
         var button = Button{
             Width: theme.ControlHeight,
             Height: theme.ControlHeight,
             Padding: theme.Spacing * 2.0,
             BorderTopRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
             BorderBottomRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
-            Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             BackgroundColor: Color.Transparent,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
         }
-        if let create = current.CreateButton {
-            button = create(current, button)
+        button.Children.Clear()
+        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, current.Disabled || current.ReadOnly ? theme.DisabledTextColor: theme.AccentColor))
+        if let configure = current.ConfigureButton {
+            let originalAccessibilityExpanded = button.Accessibility?.Expanded
+            let originalAccessibilityHasPopup = button.Accessibility?.HasPopup
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalKey = button.Key
+            let originalOnClick = button.OnClick
+            configure.Invoke(current, button)
+            if button.Accessibility?.Expanded != originalAccessibilityExpanded {
+                throw InvalidOperationException("DatePicker owns Accessibility.Expanded; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.Accessibility?.HasPopup != originalAccessibilityHasPopup {
+                throw InvalidOperationException("DatePicker owns Accessibility.HasPopup; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DatePicker owns Accessibility.Name; set DatePickerInput.AccessibilityName instead of changing it in ConfigureButton")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DatePicker owns Accessibility.Role; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("DatePicker owns Disabled; set DatePickerInput.Disabled instead of changing it in ConfigureButton")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("DatePicker owns Focusable; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.Key != originalKey {
+                throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("DatePicker owns OnClick; configure DatePickerInput instead of changing it in ConfigureButton")
+            }
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         button.Key = "open"
@@ -217,15 +330,15 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         button.Focusable = !current.Disabled && !current.ReadOnly
         button.OnClick = () -> SetOpen(!isOpen)
         WidgetKeyBindings.BindActivation(button)
-        button.Accessibility = Accessibility{
-            Role: AccessibilityRole.Button,
-            Name: current.AccessibilityName!!+ " calendar",
-            HasPopup: true,
-            Expanded: isOpen,
-            Relationships: AccessibilityRelationships{Controls: []ElementHandle{calendarHandle}}
-        }
-        button.Children.Clear()
-        button.Children.Add(ControlIcons.Create(ControlIcon.CalendarMonth, 18.0, theme.AccentColor))
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Button
+        buttonAccessibility.Name = current.AccessibilityName!!+ " calendar"
+        buttonAccessibility.HasPopup = true
+        buttonAccessibility.Expanded = isOpen
+        let buttonRelationships = if let configured = buttonAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        buttonRelationships.Controls = []ElementHandle{calendarHandle}
+        buttonAccessibility.Relationships = buttonRelationships
+        button.Accessibility = buttonAccessibility
         let field = Container{
             BasedOn: focused && !current.Disabled ? theme.FieldFocusStyle: nil,
             Key: "field",
@@ -239,15 +352,12 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             entry,
             button
         }
-        var root = Container{
+        let root = Container{
             Width: current.Width!!,
             MinWidth: 0.0,
             Gap: theme.ControlGap,
             Overflow: Overflow.Visible,
             LineHeight: theme.LineHeight,
-        }
-        if let create = current.CreateRoot {
-            root = create(current, root)
         }
         root.Children.Clear()
         root.Children.Add(field)
@@ -291,19 +401,20 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         var popup = PopoverInput{
             Open: isOpen,
             Anchor: fieldHandle,
-            Width: Math.Max(current.PopupWidth!!, fieldHandle.IsMounted ? fieldHandle.BorderBox.Width: 0.0),
+            Width: Math.Max(current.PopupWidth!!, fieldWidth),
             Content: Cell.Mount[CalendarInput, Calendar]("calendar", calendar),
             Padding: 0.0,
             AccessibilityName: current.AccessibilityName!!+ " popup",
             InitialFocus: calendarHandle,
             OnDismiss: Dismiss,
-            CreatePanel: PopupPanel,
+            ConfigurePanel: PopupPanel,
             ZIndex: current.ZIndex,
         }
         if isOpen && overlay != nil {
             popup.Viewport = overlayBox
         }
         root.Children.Add(Cell.Mount[PopoverInput, Popover]("popup", popup))
+        current.ConfigureRoot?.Invoke(current, root)
         return root
     }
 
@@ -344,7 +455,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             } else if DateOnly.TryParse(draft, current.Culture!!, DateTimeStyles.None, out var date) {
                 parsed = date
             }
-            if parsed == nil || !Allowed(parsed!!) {
+            if parsed == nil || !Allowed(parsed) {
                 Reject()
                 return
             }
@@ -417,18 +528,33 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         }
     }
 
-    private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let prepared = Container{
-            BasedOn: theme.OverlayStyle,
-            BackgroundColor: theme.PanelColor,
-            BorderColor: theme.InputBorderColor,
-            BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius!!,
+    private func PopupPanel(input PopoverInput, bounds ElementRect, content Blob, prepared Container) {
+        prepared.BasedOn = theme.OverlayStyle
+        prepared.BackgroundColor = theme.PanelColor
+        prepared.BorderColor = theme.InputBorderColor
+        prepared.BorderWidth = theme.BorderWidth
+        prepared.BorderRadius = theme.PanelRadius!!
+        prepared.ScrollbarY = nil
+        if let configure = current.ConfigurePopup {
+            let originalHandle = prepared.Handle
+            let originalKey = prepared.Key
+            configure.Invoke(current, prepared)
+            if prepared.Handle != originalHandle {
+                throw InvalidOperationException("DatePicker owns Handle; configure DatePickerInput instead of changing it in ConfigurePopup")
+            }
+            if prepared.Key != originalKey {
+                throw InvalidOperationException("DatePicker owns Key; configure DatePickerInput instead of changing it in ConfigurePopup")
+            }
         }
-        return if let create = current.CreatePopup {
-            create(current, prepared)
-        } else {
-            prepared
+    }
+
+    private func FieldMetrics(metrics ElementMetrics) {
+        if disposed || !metrics.IsMounted || fieldWidth == metrics.BorderBox.Width {
+            return
+        }
+        fieldWidth = metrics.BorderBox.Width
+        if current.Open ?? ownedOpen {
+            Rebuild()
         }
     }
 

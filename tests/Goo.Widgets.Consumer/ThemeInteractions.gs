@@ -86,21 +86,37 @@ internal class ThemeScopeHost : Cell {
         let provider = ThemeScope{
             Value: Value,
             Density: DensityOverride,
-            Content: () -> Cell.Mount[ThemeProbe]("inside", (probe ThemeProbe) -> Inside = probe),
+            Content: () -> Cell.Mount[ThemeProbe]("inside", () -> {
+                let probe = ThemeProbe()
+                Inside = probe
+                return probe
+            }),
         }.Build()
         provider.Key = "scope"
         return Container{
             Width: Percent(100),
-            Cell.Mount[ThemeProbe]("outside", (probe ThemeProbe) -> Outside = probe),
+            Cell.Mount[ThemeProbe]("outside", () -> {
+                let probe = ThemeProbe()
+                Outside = probe
+                return probe
+            }),
             provider,
-            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", (probe ThemeProbe) -> PortalProbe = probe),},
+            Portal{Key: "portal", Cell.Mount[ThemeProbe]("portal-content", () -> {
+                let probe = ThemeProbe()
+                PortalProbe = probe
+                return probe
+            }),},
             Cell.Mount[ModalDialog, ModalDialogHost](
                 "dialog",
                 ModalDialog{
                     Open: true,
                     Width: 280.0,
                     AccessibilityName: "Appearance dialog",
-                    Content: Cell.Mount[ThemeProbe]("dialog-content", (probe ThemeProbe) -> DialogProbe = probe),
+                    Content: Cell.Mount[ThemeProbe]("dialog-content", () -> {
+                        let probe = ThemeProbe()
+                        DialogProbe = probe
+                        return probe
+                    }),
                 }
             ),
             Cell.Mount[MenuInput, Menu](
@@ -112,7 +128,11 @@ internal class ThemeScopeHost : Cell {
                         MenuItem{
                             Id: "theme",
                             Label: "Appearance menu",
-                            Content: Cell.Mount[ThemeProbe]("menu-content", (probe ThemeProbe) -> MenuProbe = probe),
+                            Content: Cell.Mount[ThemeProbe]("menu-content", () -> {
+                                let probe = ThemeProbe()
+                                MenuProbe = probe
+                                return probe
+                            }),
                         }
                     },
                 }
@@ -122,10 +142,9 @@ internal class ThemeScopeHost : Cell {
                 TextAreaInput{
                     Value: "Appearance editing",
                     MinimumRows: 1,
-                    CreateEditor: (input TextAreaInput, editor TextEditor) -> {
+                    ConfigureEditor: (input TextAreaInput, editor TextEditor) -> {
                         Editor = editor
-                        return editor
-                    },
+                        },
                 }
             ),
         }
@@ -157,10 +176,9 @@ internal class ThemeFocusHost : Cell {
                 Container{Handle: ActionHandle, Action},
                 Cell.Mount[TabBarInput, TabBar]("tabs", TabBarInput{
                     Items: []NavigationItem{NavigationItem{Id: "one", Label: "Focus tab"}},
-                    CreateItem: (input TabBarInput, item NavigationItem, button Button) -> {
+                    ConfigureItem: (input TabBarInput, item NavigationItem, button Button) -> {
                         Tab = button
-                        return button
-                    },
+                        },
                 }),
                 Cell.Mount[DataGridInput, DataGrid]("grid", DataGridInput{
                     Columns: []DataGridColumn{
@@ -171,14 +189,12 @@ internal class ThemeFocusHost : Cell {
                     ActiveRowId: "one",
                     Height: 120,
                     OnSort: (id string, direction DataGridSort) -> { },
-                    CreateRoot: (input DataGridInput, root Container) -> {
+                    ConfigureRoot: (input DataGridInput, root Container) -> {
                         GridRoot = root
-                        return root
-                    },
-                    CreateRow: (input DataGridInput, row DataGridRow, root Container) -> {
+                        },
+                    ConfigureRow: (input DataGridInput, row DataGridRow, root Container) -> {
                         GridRow = root
-                        return root
-                    },
+                        },
                 }),
             }
         },
@@ -343,7 +359,7 @@ func ThemeRadiusCapture() {
     let root = ThemeRadiusHost(){Value = defaults with{
         ControlRadius = 0, PanelRadius = 0, RadiusSm = 0, RadiusMd = 0, RadiusLg = 0, RadiusXl = 0,
     }}
-    let window = Window{Root: root, Width: 600, Height: 360}
+    let window = Window{Root: root, Size: LayoutSize(600, 360)}
     Theme.Attach(window, root.Value)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -384,7 +400,7 @@ func ThemeBackgroundContracts() {
         }
     }
     let opened = Window{
-        Root: ThemeProbe(), Width: 360, Height: 280,
+        Root: ThemeProbe(), Size: LayoutSize(360, 280),
         Background: Color.Transparent, Transparent: true, Decorated: false,
     }
     Theme.Attach(opened, Theme.Bone)
@@ -804,21 +820,29 @@ func ThemePolicyContracts() {
     )
 }
 
-internal class ThemeVirtualRow : Cell {
-    internal var Id int32
+internal data struct ThemeVirtualRowInput {
+    var Id int32
+    var Rows Dictionary[int32, ThemeVirtualRow]
+}
+
+internal class ThemeVirtualRow : Cell[ThemeVirtualRowInput] {
     internal var Snapshot Theme
     internal let Handle ElementHandle = ElementHandle()
-    public override func Build() Blob {
+    protected override func InputChanged(input ThemeVirtualRowInput) {
+        input.Rows[input.Id] = this
+    }
+
+    protected override func Build(input ThemeVirtualRowInput) Blob {
         Snapshot = Theme.Read()
         return Button{
             Handle: Handle,
             Height: Snapshot.ControlHeight,
             Width: Percent(100),
             Focusable: true,
-            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + Id.ToString()},
+            Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: "Row " + input.Id.ToString()},
             Color: Snapshot.TextColor,
             BackgroundColor: Snapshot.PanelColor,
-            Text{Content: Id.ToString(), FontSize: Snapshot.FontSize},
+            Text{Content: input.Id.ToString(), FontSize: Snapshot.FontSize},
         }
     }
 }
@@ -845,12 +869,9 @@ internal class ThemeVirtualHost : Cell {
         let theme = Theme.Read()
         return Container{
             Height: theme.ControlHeight,
-            Cell.Mount[ThemeVirtualRow](
+            Cell.Mount[ThemeVirtualRowInput, ThemeVirtualRow](
                 "counter",
-                (row ThemeVirtualRow) -> {
-                    row.Id = index
-                    Rows[index] = row
-                }
+                ThemeVirtualRowInput{Id: index, Rows: Rows}
             ),
         }
     }
@@ -968,7 +989,7 @@ func ThemePixel(image WindowCapture, x int32, y int32, color Color) bool {
 }
 
 func ThemePoint(image WindowCapture, window Window, x float64, y float64, color Color) bool {
-    let scale = float64(image.Width) / float64(window.Width)
+    let scale = float64(image.Width) / float64(window.NativeWidth)
     return ThemePixel(image, int32(x * scale), int32(y * scale), color)
 }
 
@@ -987,13 +1008,14 @@ internal class ThemeDensityHost : Cell {
             button.Handle = ButtonHandle
             let icon = IconButton{
                 AccessibilityName: "No authored ring",
-                CreateRoot: (input IconButton, content Blob) -> Button{
-                    Width: input.Width!!,
-                    Height: input.Height!!,
-                    Padding: 0.0,
-                    BackgroundColor: Color.Transparent,
-                    Focus: Style{OutlineWidth: 0.0},
-                    content,
+                ConfigureRoot: (input IconButton, content Blob, prepared Button) -> {
+                    prepared.Width = input.Width!!
+                    prepared.Height = input.Height!!
+                    prepared.Padding = 0.0
+                    prepared.BackgroundColor = Color.Transparent
+                    prepared.FocusStyle = Style{OutlineWidth: 0.0}
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
                 },
             }.Build()
             icon.Handle = IconHandle
@@ -1025,7 +1047,7 @@ internal class ThemeDensityHost : Cell {
 
 func ThemeDensityContracts() {
     let root = ThemeDensityHost()
-    let window = Window{Root: root, Width: 360, Height: 340}
+    let window = Window{Root: root, Size: LayoutSize(360, 340)}
     Theme.Attach(window)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -1124,7 +1146,7 @@ func GalleryStageContracts() {
         })})
         using let gallery = Gallery(registry, 0, width == 1100)
         let adapter = SearchListSemantics()
-        let window = Window{Root: gallery, Width: width, Height: width == 1100 ? 800: 640, AccessibilityAdapter: adapter}
+        let window = Window{Root: gallery, Size: LayoutSize(width, width == 1100 ? 800: 640), AccessibilityAdapter: adapter}
         gallery.AttachWindow(window)
         RunNativeWindow(window, () -> {
             window.Open()
@@ -1133,7 +1155,7 @@ func GalleryStageContracts() {
             let expectedWidth = width == 1100 ? 928.0: 584.0
             Require(Math.Abs(demo.Width - expectedWidth) < 2
                 && Math.Abs(demo.X + demo.Width - (width == 1100 ? 1014.0: 890.0)) < 2
-                && Math.Abs(demo.Y + demo.Height - (window.Height - (width == 1100 ? 86.0: 70.0))) < 2,
+                && Math.Abs(demo.Y + demo.Height - (window.NativeHeight - (width == 1100 ? 86.0: 70.0))) < 2,
                 "Percentage demo escaped the stage content box: " + demo.ToString())
             CaptureIssueProof(window, "gallery-percent-" + width.ToString())
             gallery.Show(1)
@@ -1153,7 +1175,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     PumpFrames(window, 30)
     FeedbackNode(adapter, AccessibilityRole.Heading, registry.CurrentPage(registry.Count() - 1).Name())
     let lastRow = FeedbackNode(adapter, AccessibilityRole.Tab, registry.CurrentPage(registry.Count() - 1).Name()).Bounds
-    Require(lastRow.Y >= 110 && lastRow.Y + lastRow.Height <= window.Height - 100,
+    Require(lastRow.Y >= 110 && lastRow.Y + lastRow.Height <= window.NativeHeight - 100,
         "Page navigation did not reveal the selected sidebar row: " + lastRow.Y.ToString())
     SelectorKey(id, SDLScancode.Pagedown, SDLKeymod.Ctrl)
     PumpFrames(window, 8)
@@ -1219,12 +1241,11 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
     FeedbackClick(window, FeedbackNode(adapter, AccessibilityRole.Button, "Dark").Bounds)
     Require(Theme.Read(window).CanvasColor == Theme.Ink.CanvasColor, "Dark did not restore Ink.")
     for width in[]int32{960, 1440, 1707} {
-        window.Width = width
-        window.Height = width == 960 ? 640: width == 1440 ? 900: 960
+        window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 960 ? 640: width == 1440 ? 900: 960) / window.UiScale)
         PumpFrames(window, 12)
         let footer = FeedbackNode(adapter, AccessibilityRole.Button, "Light").Bounds
         let search = FeedbackNode(adapter, AccessibilityRole.TextInput, "Search widgets").Bounds
-        Require(footer.Y > search.Y + search.Height && footer.Y + footer.Height < window.Height,
+        Require(footer.Y > search.Y + search.Height && footer.Y + footer.Height < window.NativeHeight,
             "Gallery footer or search did not fit the window.")
         if width == 960 {
             gallery.Show(registry.IndexOf("Calendar"))
@@ -1240,8 +1261,7 @@ func GalleryNavigationContracts(window Window, gallery Gallery, registry Gallery
             FeedbackNode(adapter, AccessibilityRole.Heading, "Date picker")
         }
     }
-    window.Width = 1100
-    window.Height = 800
+    window.Size = LayoutSize(float64(1100) / window.UiScale, float64(800) / window.UiScale)
     let menuIndex = registry.IndexOf("Menu")
     gallery.Show(menuIndex)
     PumpFrames(window, 20)
@@ -1274,7 +1294,7 @@ func ThemeCatalogContracts() {
     let registry = CreateRegistry()
     let gallery = Gallery(registry, 0)
     let adapter = SearchListSemantics()
-    let window = Window{Root: gallery, Width: 1100, Height: 800, AccessibilityAdapter: adapter}
+    let window = Window{Root: gallery, Size: LayoutSize(1100, 800), AccessibilityAdapter: adapter}
     gallery.AttachWindow(window)
     RunNativeWindow(window, () -> {
         window.Open()
@@ -1419,6 +1439,51 @@ func ThemeAttachmentContracts() {
     Console.WriteLine("PASS weak Widgets attachment ownership after embedded window disposal")
 }
 
+internal class ExplicitDisabledHost : Cell {
+    public override func Build() Blob {
+        return Container{
+            Padding: 24,
+            AlignItems: AlignItems.FlexStart,
+            BackgroundColor: Color.Parse("#000"),
+            ActionButton{
+                Content: "Disabled",
+                Disabled: true,
+                BorderWidth: 1,
+                BorderColor: Color.Parse("#2a2a2a"),
+                DisabledBackgroundColor: Color.Parse("#000"),
+                DisabledTextColor: Color.Parse("#777"),
+            },
+        }
+    }
+}
+
+func ExplicitDisabledColorContracts() {
+    let semantics = SearchListSemantics()
+    let window = Window{
+        Title: "Explicit disabled colors",
+        Size: LayoutSize(320, 120),
+        AccessibilityAdapter: semantics,
+        Root: ApplicationRoot(ExplicitDisabledHost()),
+    }
+    Goo.Widgets.Theme.Attach(window)
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 12)
+        let box = FeedbackNode(semantics, AccessibilityRole.Button, "Disabled").Bounds
+        let image = ThemeCapture(window)
+        let scale = float64(image.Width) / float64(window.NativeWidth)
+        var brightest = 0
+        for y in int32((box.Y + 4) * scale) ... int32((box.Y + box.Height - 4) * scale) {
+            for x in int32((box.X + 4) * scale) ... int32((box.X + box.Width - 4) * scale) {
+                brightest = Math.Max(brightest, int32(image.Pixels[y * int32(image.RowBytes) + x * 4]))
+            }
+        }
+        Require(Math.Abs(brightest - 0x77) <= 4, "Explicit DisabledTextColor was dimmed; brightest label channel " + brightest.ToString())
+        Require(ThemePoint(image, window, box.X + 0.5, box.Y + box.Height / 2.0, Color.Parse("#2a2a2a")), "Explicit border color changed while disabled")
+    })
+    Console.WriteLine("PASS: explicit disabled colors render at full opacity")
+}
+
 func ThemeInteractions() {
     var rejected = false
     try {
@@ -1429,6 +1494,7 @@ func ThemeInteractions() {
     Require(rejected, "Theme.Read outside an owned build silently selected a global value.")
     ThemeBackgroundContracts()
     ThemePolicyContracts()
+    ExplicitDisabledColorContracts()
     ThemeAttachmentContracts()
     ThemeCostContracts()
     ThemeVirtualContracts()
@@ -1526,7 +1592,7 @@ func ThemeThumbPoint(view ElementHandle) Point {
 
 func ThemeScrollbarContracts() {
     let root = ThemeScrollbarHost()
-    let window = Window{Root: root, Width: 480, Height: 240}
+    let window = Window{Root: root, Size: LayoutSize(480, 240)}
     Theme.Attach(window, Theme.Default)
     RunNativeWindow(window, () -> {
         window.Open()

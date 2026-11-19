@@ -10,7 +10,7 @@ import Goo.Widgets.Media
 class ToastPage : GalleryPage {
     public override func Title() string -> "Toast"
 
-    public override func Build() Blob -> Cell.Mount[FeedbackIdentityDemo](() -> FeedbackIdentityDemo(this), nil)
+    public override func Build() Blob -> Cell.Mount[FeedbackIdentityDemo](nil, () -> FeedbackIdentityDemo(this))
 }
 
 class FeedbackIdentityDemo(Page ToastPage) : Cell {

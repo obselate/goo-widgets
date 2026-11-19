@@ -19,6 +19,9 @@ public enum WindowChromeAction {
 }
 
 /// A configurable drag region with optional standard window controls.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct WindowChrome {
     /// Window controlled by default actions. Callbacks can replace it. Native controls that overlap Host pad the chrome.
     var Host Window?
@@ -71,13 +74,16 @@ public data struct WindowChrome {
     var RootStyle Style?
     /// Creates content for a standard control.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateControlContent Func[WindowChrome, WindowChromeAction, Blob]?
-    /// Creates a standard control from resolved props, command, content, and action.
-    /// Hosts must not change state in this callback.
-    var CreateControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
-    /// Creates the final container; required children and drag/input wiring are reapplied.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[WindowChrome, []Blob, Container]?
+    /// Configures the fresh control before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
+    var ConfigureControl Action[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Focusable, OnClick, OnPointerDown.
+    var ConfigureRoot Action[WindowChrome, []Blob, Container]?
 
     shared {
         private let minimizeGlyph VectorPath = PathBuilder(0, 0, 10, 10)
@@ -160,9 +166,9 @@ public data struct WindowChrome {
 
     internal func BuildResolved(theme Theme, blankPointer Action[PointerEvent]? = nil) Container {
         let createContent = CreateControlContent
-        let createControl = CreateControl
-        let createRoot = CreateRoot
-        let resolved = this with{CreateControlContent = nil, CreateControl = nil, CreateRoot = nil, CreateMenu = nil}
+        let configureControl = ConfigureControl
+        let configureRoot = ConfigureRoot
+        let resolved = this with{CreateControlContent = nil, ConfigureControl = nil, ConfigureRoot = nil, CreateMenu = nil}
         let maximized = resolved.IsMaximized!!
         let children = List[Blob]()
         if let leading = resolved.LeadingContent {
@@ -180,7 +186,7 @@ public data struct WindowChrome {
                     WindowChromeAction.Minimize,
                     resolved.OnMinimize,
                     createContent,
-                    createControl
+                    configureControl
                 )
             )
         }
@@ -201,13 +207,13 @@ public data struct WindowChrome {
                         resolved.OnMaximize
                     },
                     createContent,
-                    createControl
+                    configureControl
                 )
             )
         }
         if resolved.ShowClose!! {
             children.Add(
-                BuildControl(theme, resolved, WindowChromeAction.Close, resolved.OnClose, createContent, createControl)
+                BuildControl(theme, resolved, WindowChromeAction.Close, resolved.OnClose, createContent, configureControl)
             )
         }
         let ordered = children.ToArray()
@@ -222,17 +228,28 @@ public data struct WindowChrome {
             BasedOn: resolved.RootStyle,
             Children: children,
         }
-        let root = if let create = createRoot {
-            create(resolved, ordered)
-        } else {
-            prepared
-        }
+        let root = prepared
         root.Children.Clear()
         if let controls = resolved.Host?.TitlebarControlsRect {
             root.PaddingStart = controls.X + controls.Width
         }
         for child in ordered {
             root.Children.Add(child)
+        }
+        if let configure = configureRoot {
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            let originalOnPointerDown = root.OnPointerDown
+            configure.Invoke(resolved, ordered, root)
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("WindowChrome owns Focusable; configure WindowChrome instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("WindowChrome owns OnClick; configure WindowChrome instead of changing it in ConfigureRoot")
+            }
+            if blankPointer != nil && root.OnPointerDown != originalOnPointerDown {
+                throw InvalidOperationException("WindowChrome owns OnPointerDown; configure WindowChrome instead of changing it in ConfigureRoot")
+            }
         }
         root.Focusable = false
         root.OnClick = nil
@@ -248,7 +265,7 @@ public data struct WindowChrome {
         command WindowChromeAction,
         action Action?,
         createContent Func[WindowChrome, WindowChromeAction, Blob]?,
-        createControl Func[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
+        configureControl Action[WindowChrome, WindowChromeAction, Blob, Action?, Button]?
     ) Blob {
         let content = if let createContent = createContent {
             createContent(resolved, command)
@@ -257,7 +274,7 @@ public data struct WindowChrome {
                 Path: Glyph(command),
                 Width: 10.0,
                 Height: 10.0,
-                BackgroundColor: resolved.ControlColor!!,
+                Fill: VectorPaint(resolved.ControlColor!!),
                 UseCurrentColor: true,
                 Accessibility: Accessibility{Hidden: true},
             }
@@ -273,7 +290,7 @@ public data struct WindowChrome {
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
             Color: resolved.ControlColor!!,
-            Hover: Style{
+            HoverStyle: Style{
                 BackgroundColor: if command == WindowChromeAction.Close {
                     resolved.CloseHoverBackgroundColor!!
                 } else {
@@ -285,21 +302,43 @@ public data struct WindowChrome {
                     resolved.ControlColor!!
                 },
             },
-            Active: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
+            ActiveStyle: command == WindowChromeAction.Close ? Style{BackgroundColor: theme.DangerFillColor, Color: theme.OnAccentColor}: nil,
         }
-        let control = if let create = createControl {
-            create(resolved, command, content, action)
-        } else {
-            prepared
+        let control = prepared
+        control.Children.Clear()
+        control.Children.Add(content)
+        if let configure = configureControl {
+            let originalAccessibilityName = (control.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (control.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = control.Disabled
+            let originalFocusable = control.Focusable
+            let originalOnClick = control.OnClick
+            configure.Invoke(resolved, command, content, action, control)
+            if (control.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("WindowChrome owns Accessibility.Name; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if (control.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("WindowChrome owns Accessibility.Role; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if control.Disabled != originalDisabled {
+                throw InvalidOperationException("WindowChrome owns Disabled; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if control.Focusable != originalFocusable {
+                throw InvalidOperationException("WindowChrome owns Focusable; configure WindowChrome instead of changing it in ConfigureControl")
+            }
+            if control.OnClick != originalOnClick {
+                throw InvalidOperationException("WindowChrome owns OnClick; configure WindowChrome instead of changing it in ConfigureControl")
+            }
         }
         theme.ApplyInteraction(control, InteractionFamily.Button)
         control.Disabled = action == nil
         control.Focusable = action != nil
-        control.Accessibility = Accessibility{Role: AccessibilityRole.Button, Name: theme.Text(Name(command))}
+        let controlAccessibility = if let configured = control.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        controlAccessibility.Role = AccessibilityRole.Button
+        controlAccessibility.Name = theme.Text(Name(command))
+        control.Accessibility = controlAccessibility
         control.OnClick = action
         WidgetKeyBindings.BindActivation(control)
-        control.Children.Clear()
-        control.Children.Add(content)
         return control
     }
 

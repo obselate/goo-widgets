@@ -30,6 +30,30 @@ func ColorPickerErgonomics() {
     Require(compact.Children.Count == 2, "Compact ColorPicker did not omit its selector and preview.")
     compactPicker.Dispose()
 
+    using let borderedPicker = ColorPickerProbe{}
+    let bordered = (borderedPicker.Render(ColorPickerInput{
+        Value: 0x336699,
+        Compact: true,
+        WheelSize: 120,
+        WheelStyle: Style{BorderWidth: 4, BorderColor: Color.Rgb(255, 0, 0)},
+    }) as Container)!!
+    let wheel = (bordered.Children[0] as Container)!!
+    let image = ElementHandle{}
+    wheel.Children[0].Handle = image
+    using let embedded = ThemePreferenceHost()
+    embedded.Resize(160, 200, 160, 200)
+    let window = Window{Root: ContractHost(() -> {}){Content = bordered}}
+    Theme.Attach(window, Theme.Default)
+    window.Attach(embedded)
+    embedded.RenderFrame(0.016)
+    let wheelBox = wheel.Handle!!.BorderBox
+    let imageBox = image.BorderBox
+    Require(
+        imageBox.X == wheelBox.X + 4 && imageBox.Y == wheelBox.Y + 4
+        && imageBox.Width == wheelBox.Width - 8 && imageBox.Height == wheelBox.Height - 8,
+        "ColorPicker image covered the configured wheel border."
+    )
+
     let disabledPicker = ColorPickerProbe{}
     var disabledChanges int32 = 0
     let disabled = (
@@ -273,14 +297,14 @@ internal class TextFieldSemanticHost : Cell {
         AccessibilityName: "Name entry",
         Description: "Enter your name",
         Error: "Required",
-        CreateEntry: Custom ? (input TextField) -> TextEntry{}: nil
+        ConfigureEntry: Custom ? (input TextField, entry TextEntry) -> { }: nil
     }.Build()
 }
 
 func TextFieldAccessibility() {
     let host = TextFieldSemanticHost()
     let semantics = SearchListSemantics()
-    let window = Window{Root: host, Width: 300, Height: 200, AccessibilityAdapter: semantics}
+    let window = Window{Root: host, Size: LayoutSize(300, 200), AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 8)

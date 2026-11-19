@@ -54,10 +54,13 @@ public data struct AppBar {
     /// Transform applied to the root container. Nil resolves to identity.
     var Transform PanelTransform?
     /// Custom factory for the title Text element. Receives resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateTitle Func[AppBar, Text]?
     /// Custom factory for the subtitle Text element. Receives resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateSubtitle Func[AppBar, Text]?
     /// Custom factory for the root Container. Receives resolved props and slot/text primitives directly.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[AppBar, Blob?, Text, Text?, Blob?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.

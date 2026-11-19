@@ -1,10 +1,15 @@
 package Goo.Widgets.Inputs
 
+import System
+
 import Goo
 import Goo.Widgets
 import Goo.Widgets.Icons
 
 /// A controlled checkbox with false, true, and mixed accessibility states.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct Checkbox {
     /// Current checkbox state. Unspecified resolves to false.
     var Value AccessibilityChecked
@@ -50,8 +55,6 @@ public data struct Checkbox {
     var CheckedBorderColor Color?
     /// Mark color. Nil resolves to the theme accent foreground color.
     var MarkColor Color?
-    /// Disabled opacity. Nil resolves to 0.5 and preserves explicit zero.
-    var DisabledOpacity float64?
     /// Border width. Nil resolves to the theme border width and preserves explicit zero.
     var BorderWidth float64?
     /// Corner radius. Nil resolves to the theme control radius half and preserves explicit zero.
@@ -62,13 +65,15 @@ public data struct Checkbox {
     var TransitionMs float64?
     /// Transition easing. Nil resolves to EaseOut.
     var TransitionEasing Easing?
-    /// Creates the final button from resolved values and selected content, replacing the default root composition.
-    var CreateRoot Func[Checkbox, Blob?, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Description, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
+    var ConfigureRoot Action[Checkbox, Blob?, Button]?
 
     /// Builds a fresh Goo checkbox button or labeled interactive row.
     public func Build() Blob {
         let theme = Theme.Read()
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let onChange = OnChange
         let state = if Value == AccessibilityChecked.Unspecified {
             AccessibilityChecked.False
@@ -91,13 +96,12 @@ public data struct Checkbox {
             BorderColor = BorderColor ?? theme.InputBorderColor,
             CheckedBorderColor = CheckedBorderColor ?? theme.AccentColor,
             MarkColor = MarkColor ?? theme.OnAccentColor,
-            DisabledOpacity = DisabledOpacity ?? theme.DisabledOpacity,
             BorderWidth = BorderWidth ?? theme.BorderWidth,
             BorderRadius = BorderRadius ?? theme.ControlRadius!! / 2.0,
             MarkSize = MarkSize ?? theme.Spacing * 3.5,
             TransitionMs = theme.ReducedMotion ? 0.0: TransitionMs ?? theme.TransitionMs,
             TransitionEasing = TransitionEasing ?? Easing.EaseOut,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
 
         var content Blob? = UncheckedContent
@@ -106,6 +110,7 @@ public data struct Checkbox {
         } else if state == AccessibilityChecked.Mixed {
             content = MixedContent
         }
+        let supplied = content != nil
         if active && content == nil {
             let mark = if state == AccessibilityChecked.Mixed {
                 ControlIcon.Remove
@@ -128,7 +133,7 @@ public data struct Checkbox {
                 onClick = () -> onChange(next)
             }
         }
-        let root = if let createRoot = createRoot { createRoot(resolved, content) } else {
+        let root = {
             let markBox = Container{
                 Width: resolved.Size!!,
                 Height: resolved.Size!!,
@@ -141,7 +146,7 @@ public data struct Checkbox {
                 JustifyContent: JustifyContent.Center,
                 HitTestSelf: false,
             }
-            if let content = content { markBox.Children.Add(content) }
+            if let content = content { markBox.Children.Add(Disabled && supplied ? theme.DisabledSlot(content, theme.TextColor): content) }
             let button = Button{
                 Width: Label == nil ? resolved.HitSize!!: Length.Auto,
                 MinHeight: resolved.HitSize!!,
@@ -154,7 +159,7 @@ public data struct Checkbox {
                 TransitionProperties: theme.InteractionTransitions,
                 FlexDirection: FlexDirection.Row,
                 JustifyContent: Label == nil ? JustifyContent.Center: JustifyContent.FlexStart,
-                DisabledStyle: Style{BackgroundColor: Card && Label != nil ? theme.PanelColor: Color.Transparent, Opacity: resolved.DisabledOpacity!!},
+                DisabledStyle: Style{BackgroundColor: Card && Label != nil ? theme.PanelColor: Color.Transparent},
                 markBox,
             }
             if let label = resolved.Label {
@@ -171,7 +176,7 @@ public data struct Checkbox {
                 button.Padding = theme.ControlPadding
                 button.BorderWidth = resolved.BorderWidth!!
                 button.BorderRadius = theme.ControlRadius!!
-                button.BorderColor = active ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
+                button.BorderColor = active && !Disabled ? resolved.CheckedBorderColor!!: resolved.BorderColor!!
                 button.BackgroundColor = active ? theme.SelectedFill(theme.ActiveColor): theme.PanelColor
             }
             if Label != nil && !resolved.Card {
@@ -182,14 +187,50 @@ public data struct Checkbox {
             }
             button
         }
+        if let configure = configureRoot {
+            let originalAccessibilityChecked = (root.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityDescription = (root.Accessibility?.Description ?? "")
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalOnClick = root.OnClick
+            configure.Invoke(resolved, content, root)
+            if (root.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("Checkbox owns Accessibility.Checked; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("Checkbox owns Accessibility.Description; set Checkbox.Description instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Checkbox owns Accessibility.Name; set Checkbox.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Checkbox owns Accessibility.Role; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Checkbox owns Disabled; set Checkbox.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Checkbox owns Focusable; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+            if root.OnClick != originalOnClick {
+                throw InvalidOperationException("Checkbox owns OnClick; configure Checkbox instead of changing it in ConfigureRoot")
+            }
+        }
         theme.ApplyInteraction(root, InteractionFamily.Toggle, active && Card && Label != nil)
-        if Label != nil && !Card && createRoot == nil {
-            root.Focus = Style{BasedOn: root.Focus, OutlineOffset: -theme.FocusRingWidth}
+        if Label != nil && !Card && configureRoot == nil {
+            root.FocusStyle = Style{BasedOn: root.FocusStyle, OutlineOffset: -theme.FocusRingWidth}
         }
         root.Disabled = Disabled
         root.Focusable = !Disabled
         root.OnClick = onClick
-        root.Accessibility = Accessibility{Role: AccessibilityRole.Checkbox, Name: resolved.AccessibilityName!!, Checked: state, Description: resolved.Description ?? ""}
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Checkbox
+        rootAccessibility.Name = resolved.AccessibilityName!!
+        rootAccessibility.Checked = state
+        rootAccessibility.Description = resolved.Description ?? ""
+        root.Accessibility = rootAccessibility
         WidgetKeyBindings.BindActivation(root)
         return root
     }

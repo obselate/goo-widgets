@@ -15,9 +15,9 @@ internal class StackedBarPage : GalleryPage {
             ShowLegend: true,
             AccessibilityName: "Fleet availability",
             Series: []ChartSeries{
-                ChartSeries{Id: "ready", Label: "Ready", Value: 48, Color: "#2dd4bf"},
-                ChartSeries{Id: "working", Label: "Working", Value: 27, Color: "#818cf8"},
-                ChartSeries{Id: "offline", Label: "Offline", Value: 5, Color: "#fbbf24"},
+                ChartSeries{Id: "ready", Label: "Ready", Value: 48, Color: Color.Parse("#2dd4bf")},
+                ChartSeries{Id: "working", Label: "Working", Value: 27, Color: Color.Parse("#818cf8")},
+                ChartSeries{Id: "offline", Label: "Offline", Value: 5, Color: Color.Parse("#fbbf24")},
             }
         },
         StackedBar{

@@ -29,6 +29,9 @@ public enum DataGridSelection {
 }
 
 /// One host-owned sort, ordered from highest to lowest priority.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct DataGridSortColumn {
     /// Stable ID of the column to sort. It must identify a current column.
     var ColumnId string?
@@ -72,6 +75,7 @@ public data struct DataGridColumn {
     var EditPresentation DataGridEditPresentation
     /// Receives this column, the edit context and the prepared editor. Preserve its handle, draft binding and lifecycle routing.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateEditor Func[DataGridColumn, DataGridEditContext, Blob, Blob]?
 }
 
@@ -187,6 +191,7 @@ public data struct DataGridInput {
     var SelectionColumnWidth float64?
     /// Optional row-header content. Its pointer gestures use the row selection policy.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRowHeader Func[DataGridInput, DataGridRow, Blob]?
     /// Row-header width in logical pixels. Nil uses the theme control height.
     var RowHeaderWidth float64?
@@ -256,42 +261,51 @@ public data struct DataGridInput {
     var ScrollbarVisibilityY ScrollbarVisibility?
     /// Base style for the resizehandle part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var ResizeHandleStyle Style?
-    /// Receives the widget input, the column descriptor, and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateResizeHandle Func[DataGridInput, DataGridColumn, Container, Container]?
+    /// Configures the fresh resizehandle before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.Name, Accessibility.OnAction, Accessibility.Orientation, Accessibility.Range, Accessibility.Role, Focusable, Handle, Key, OnKeyDown, TabStop.
+    var ConfigureResizeHandle Action[DataGridInput, DataGridColumn, Container]?
     /// Base style for the header part. Nil uses the prepared widget style. Required behavior and layout are applied by the widget.
     var HeaderStyle Style?
     /// Content shown when no rows exist. Nil uses the default empty-state content.
     var EmptyContent Blob?
     /// Replaces content inside the shared-width cell slot.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateCell Func[DataGridInput, DataGridRow, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the row descriptor, and the column descriptor, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateCellContent Func[DataGridInput, DataGridRow, DataGridColumn, Blob]?
     /// Replaces content inside the sortable header button.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateHeader Func[DataGridInput, DataGridColumn, Blob, Blob]?
     /// Receives the widget input, the column descriptor, and the prepared content, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateFilter Func[DataGridInput, DataGridColumn, Blob, Blob]?
-    /// Receives the widget input, the row descriptor, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateSelection Func[DataGridInput, DataGridRow, Button, Button]?
+    /// Configures the fresh selection before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Hidden, Disabled, Focusable, OnClick, OnPointerDown, TabStop.
+    var ConfigureSelection Action[DataGridInput, DataGridRow, Button]?
     /// Receives the widget input and the row descriptor, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateDetail Func[DataGridInput, DataGridRow, Blob]?
-    /// Required slots, width, identity, and semantics are reapplied.
-    /// A returned OnClick handler runs after the grid's selection handler.
-    /// Hosts must not change state in this callback.
-    var CreateRow Func[DataGridInput, DataGridRow, Container, Container]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Actions, Accessibility.ColumnCount, Accessibility.Expanded, Accessibility.Name, Accessibility.OnAction, Accessibility.Role, Accessibility.RowIndex, Accessibility.Selected, Disabled, Focusable, Handle, Key, OnClick, OnPointerCancel, OnPointerDown, OnPointerUp, TabStop.
+    var ConfigureRow Action[DataGridInput, DataGridRow, Container]?
     /// Lazily replaces the cell slots with full-width content. Nil keeps the normal cells.
     /// Set IsGroup on group headers to exclude them from selection.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateFullWidthRow Func[DataGridInput, DataGridRow, Blob?]?
-    /// Receives the resolved input and prepared root, and returns the root container. Grid identity, focus, input routing, and accessibility are reapplied. Nil keeps the default root.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[DataGridInput, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.ColumnCount, Accessibility.Description, Accessibility.MultiSelectable, Accessibility.Name, Accessibility.Relationships.ActiveDescendant, Accessibility.Role, Accessibility.RowCount, Disabled, FocusTarget, Focusable, Handle, OnBlur, OnFocus, OnKeyDown, OnPointerDown, OnTextInput, TabStop.
+    var ConfigureRoot Action[DataGridInput, Container]?
     /// Raw cell text getter. Nil reads Values by column ID, with empty text for missing values.
     /// Hosts must not change state in this callback.
     var GetCellValue Func[DataGridRow, DataGridColumn, string]?
@@ -385,16 +399,12 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var clickModifiers KeyModifiers
     private var clickFromInteractiveChild bool
     private var clickCount int32
-    private var reorderOrigin float64
-    private var reordered bool
     private var reorderColumn string?
     private var reorderTarget int32 = -1
-    private var reorderPointer int64 = -1L
     private var reorderPosition float64
     private var reorderScroll WindowTimer?
     private var window Window?
     private var pinnedCount int32
-    private var pointer int64 = -1L
     private var resizeId string?
     private var origin float64
     private var originWidth float64
@@ -403,18 +413,12 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
     private var lastFittedWidths Dictionary[string, float64]?
     private var disposed bool
     private let stopGridKeys Action[KeyEvent]
-    private let moveResize Action[PointerEvent]
-    private let endResize Action[PointerEvent]
-    private let cancelResize Action[PointerEvent]
 
     /// Creates retained input handlers and subscribes to grid geometry. Dispose the grid to release its subscriptions.
     public init() {
         rootHandle = defaultRootHandle
         viewport = defaultViewport
         stopGridKeys = StopGridKeys
-        moveResize = MoveResize
-        endResize = EndResize
-        cancelResize = CancelResize
         buildRow = (row DataGridRow) -> BuildRow(input, row, hasDetails && input.ExpandColumnWidth > 0.0)
         rowContext = RowContext
         rootHandle.MetricsChanged += Metrics
@@ -430,7 +434,6 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         if editSession != nil { CancelEdit(DataGridEditCancelReason.Unavailable, false, false) }
         disposed = true
         reorderScroll?.Dispose()
-        pointer = -1L
         resizeId = nil
         rootHandle.MetricsChanged -= Metrics
         viewport.MetricsChanged -= HorizontalMetrics
@@ -620,7 +623,6 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
         Prune(resizeHandles, columnIds)
         if input.Disabled || !CanResize(ColumnIndex(resizeId))
         || !(columns[ColumnIndex(resizeId)].Resizable ?? true) {
-            pointer = -1L
             resizeId = nil
         }
         if input.ActiveRowId == nil &&
@@ -676,11 +678,11 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             Container{
                 OverflowY: Overflow.Scroll,
                 Container{
-                    Width: tableWidth,
+                    Width: Math.Max(tableWidth, available - verticalGutter),
                     FlexGrow: 1,
                     MinHeight: 0,
                     Container{
-                        Width: Math.Max(0, Math.Min(tableWidth, available - verticalGutter)),
+                        Width: Math.Max(0, available - verticalGutter),
                         FlexGrow: 1,
                         Transform: PanelTransform{TranslateX: horizontalOffset},
                         AlignItems: AlignItems.Center,
@@ -710,7 +712,7 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
                 ContentWidth = tableWidth
             }
             virtualRows = source
-            Virtual(source)
+            Virtual{Source: source}
         }
         body.Key = "body"
         body.Handle = viewport
@@ -767,8 +769,75 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             root.FlexGrow = 1
             root.FlexShrink = 1
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
+        root.Children.Clear()
+        root.Children.Add(headers)
+        root.Children.Add(body)
+        if let session = editSession {
+            if session.Presentation == DataGridEditPresentation.Popover {
+                root.Children.Add(BuildEditPopover(session))
+            } else if session.Error != nil {
+                root.Children.Add(EditError(session))
+            }
+        }
+        if let footer = input.Footer {
+            root.Children.Add(
+                Container{
+                    Key: "footer",
+                    FlexShrink: 0,
+                    Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding, Top: theme.Spacing * 2, Bottom: theme.Spacing * 2},
+                    BorderWidth: Edges{Top: 1},
+                    BorderColor: theme.BorderColor,
+                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Grid summary")},
+                    footer
+                }
+            )
+        }
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityColumnCount = root.Accessibility?.ColumnCount
+            let originalAccessibilityDescription = (root.Accessibility?.Description ?? "")
+            let originalAccessibilityMultiSelectable = root.Accessibility?.MultiSelectable
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityRowCount = root.Accessibility?.RowCount
+            let originalDisabled = root.Disabled
+            let originalFocusTarget = root.FocusTarget
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalTabStop = root.TabStop
+            configure.Invoke(input, root)
+            if root.Accessibility?.ColumnCount != originalAccessibilityColumnCount {
+                throw InvalidOperationException("DataGrid owns Accessibility.ColumnCount; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Description ?? "") != originalAccessibilityDescription {
+                throw InvalidOperationException("DataGrid owns Accessibility.Description; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.MultiSelectable != originalAccessibilityMultiSelectable {
+                throw InvalidOperationException("DataGrid owns Accessibility.MultiSelectable; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DataGrid owns Accessibility.Name; set DataGridInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DataGrid owns Accessibility.Role; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.Accessibility?.RowCount != originalAccessibilityRowCount {
+                throw InvalidOperationException("DataGrid owns Accessibility.RowCount; set DataGridInput.RowCount instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("DataGrid owns Disabled; set DataGridInput.Disabled instead of changing it in ConfigureRoot")
+            }
+            if root.FocusTarget != originalFocusTarget {
+                throw InvalidOperationException("DataGrid owns FocusTarget; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if input.RootHandle != nil && root.Handle != originalHandle {
+                throw InvalidOperationException("DataGrid owns Handle; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureRoot")
+            }
         }
         if value.RootHandle == nil && root.Handle != nil && root.Handle != rootHandle {
             rootHandle.MetricsChanged -= Metrics
@@ -823,38 +892,17 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             columns.Length == 0 || NavigationIndex(activeId) < 0 || Row(NavigationIndex(activeId)).IsGroup ?
                 Handle(rowHandles, activeId!!): CellHandle(activeId!!, columns[activeColumn].Id!!)
         root.FocusTarget = editSession == nil && activeId != nil ? Handle(rowFocusHandles, activeId!!): nil
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Grid,
-            Name: input.AccessibilityName!!,
-            Description: theme.Text("{0} rows, {1} columns", RowCount, columns.Length),
-            RowCount: RowCount,
-            ColumnCount: columns.Length + (leading > 0.0 ? 1: 0),
-            MultiSelectable: input.Selection == DataGridSelection.Multiple,
-            Relationships: AccessibilityRelationships{ActiveDescendant: active}
-        }
-        root.Children.Clear()
-        root.Children.Add(headers)
-        root.Children.Add(body)
-        if let session = editSession {
-            if session.Presentation == DataGridEditPresentation.Popover {
-                root.Children.Add(BuildEditPopover(session))
-            } else if session.Error != nil {
-                root.Children.Add(EditError(session))
-            }
-        }
-        if let footer = input.Footer {
-            root.Children.Add(
-                Container{
-                    Key: "footer",
-                    FlexShrink: 0,
-                    Padding: Edges{Left: theme.ControlPadding, Right: theme.ControlPadding, Top: theme.Spacing * 2, Bottom: theme.Spacing * 2},
-                    BorderWidth: Edges{Top: 1},
-                    BorderColor: theme.BorderColor,
-                    Accessibility: Accessibility{Role: AccessibilityRole.Group, Name: theme.Text("Grid summary")},
-                    footer
-                }
-            )
-        }
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Grid
+        rootAccessibility.Name = input.AccessibilityName!!
+        rootAccessibility.Description = theme.Text("{0} rows, {1} columns", RowCount, columns.Length)
+        rootAccessibility.RowCount = RowCount
+        rootAccessibility.ColumnCount = columns.Length + (leading > 0.0 ? 1: 0)
+        rootAccessibility.MultiSelectable = input.Selection == DataGridSelection.Multiple
+        let rootRelationships = if let configured = rootAccessibility.Relationships { AccessibilityRelationships{...configured} } else { AccessibilityRelationships{} }
+        rootRelationships.ActiveDescendant = active
+        rootAccessibility.Relationships = rootRelationships
+        root.Accessibility = rootAccessibility
         return root
     }
 

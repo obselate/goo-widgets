@@ -34,7 +34,7 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
             return Present(input.Build())
         }
         let visual = input with{
-            CreateRoot = CreateMountedRoot,
+            ConfigureRoot = ConfigureMountedRoot,
             OnCancel = input.OnCancel == nil ? nil: () -> InvokeInputCallback(input.OnCancel),
             OnConfirm = input.OnConfirm == nil ? nil: () -> InvokeInputCallback(input.OnConfirm),
             OnOpenChange = value -> InvokeInputCallback(input.OnOpenChange, value),
@@ -49,18 +49,36 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         content,
     }
 
-    private func CreateMountedRoot(resolved ModalDialog, backdrop Button, panel Container) Container {
-        let result = if let create = current.CreateRoot {
-            create(resolved, backdrop, panel)
-        } else {
-            Container{
-                Position: PositionType.Absolute,
-                Left: 0.0,
-                Right: 0.0,
-                Top: 0.0,
-                Bottom: 0.0,
-                AlignItems: AlignItems.Center,
-                JustifyContent: JustifyContent.Center,
+    private func ConfigureMountedRoot(resolved ModalDialog, backdrop Button, panel Container, result Container) {
+        if let configure = current.ConfigureRoot {
+            let originalAccessibilityModal = result.Accessibility?.Modal
+            let originalAccessibilityName = (result.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (result.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = result.Disabled
+            let originalFocusable = result.Focusable
+            let originalHandle = result.Handle
+            let originalTabStop = result.TabStop
+            configure.Invoke(resolved, backdrop, panel, result)
+            if result.Accessibility?.Modal != originalAccessibilityModal {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Modal; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Name; set ModalDialog.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (result.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ModalDialog owns Accessibility.Role; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.Disabled != originalDisabled {
+                throw InvalidOperationException("ModalDialog owns Disabled; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.Focusable != originalFocusable {
+                throw InvalidOperationException("ModalDialog owns Focusable; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.Handle != originalHandle {
+                throw InvalidOperationException("ModalDialog owns Handle; configure ModalDialog instead of changing it in ConfigureRoot")
+            }
+            if result.TabStop != originalTabStop {
+                throw InvalidOperationException("ModalDialog owns TabStop; configure ModalDialog instead of changing it in ConfigureRoot")
             }
         }
         backdrop.Key = "backdrop"
@@ -69,23 +87,21 @@ public open class ModalDialogHost : Cell[ModalDialog], IDisposable {
         panel.Key = "dialog"
         panel.Focusable = false
         panel.TabStop = false
-        panel.Accessibility = Accessibility{Role: AccessibilityRole.None}
+        let panelAccessibility = if let configured = panel.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        panelAccessibility.Role = AccessibilityRole.None
+        panel.Accessibility = panelAccessibility
         rootKeyHandler = result.OnKeyDown
         result.Handle = rootHandle
         result.Focusable = true
         result.TabStop = false
         result.Disabled = false
         result.ZIndex = resolved.ZIndex + (activeScope?.Order ?? 0)
-        result.Accessibility = Accessibility{
-            Role: AccessibilityRole.Dialog,
-            Name: resolved.AccessibilityName!!,
-            Modal: true,
-        }
+        let resultAccessibility = if let configured = result.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        resultAccessibility.Role = AccessibilityRole.Dialog
+        resultAccessibility.Name = resolved.AccessibilityName!!
+        resultAccessibility.Modal = true
+        result.Accessibility = resultAccessibility
         result.OnKeyDown = HandleKey
-        result.Children.Clear()
-        result.Children.Add(backdrop)
-        result.Children.Add(panel)
-        return result
     }
 
     private func HandleKey(event KeyEvent) {

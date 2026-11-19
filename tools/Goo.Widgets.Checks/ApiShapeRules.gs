@@ -267,12 +267,18 @@ class ApiShapeCheck {
             if []string{"Disabled", "ReadOnly", "Required"}.Contains(name) && value != "bool" { Add(16, member.Id, member.Signature, "var " + name + " bool") }
             if name == "AccessibilityName" && value != "string?" { Add(16, member.Id, member.Signature, "var AccessibilityName string?") }
             if descriptor && member.Type.Name == "Goo.Style" && (!member.Type.Optional || !name.EndsWith("Style") || name == "Style") { Add(18, member.Id, member.Signature, "a nullable RootStyle or named part Style") }
+            if name.StartsWith("Configure") {
+                let owner = member.Type.Arguments.FirstOrDefault()
+                if !value.StartsWith("Action[") || !member.Type.Optional || owner == nil || owner.Name != type.Name {
+                    Add(19, member.Id, member.Signature, "nullable Configure<Part> Action with the owner first, context next, and owned primitive last")
+                }
+            }
             if name.StartsWith("Create") || name.StartsWith("Customize") {
                 let owner = member.Type.Arguments.FirstOrDefault()
                 if name.StartsWith("Customize") || !value.StartsWith("Func[") || !member.Type.Optional || owner == nil || owner.Name != type.Name {
                     Add(19, member.Id, member.Signature, if name == "CreateText" && member.Type.Arguments.Count > 0 && member.Type.Arguments.Last().Name == "System.String" { "var FormatCreateText " + value } else { "nullable Create<Part> Func with the owner first, context next, and prepared part last" })
                 }
-                for slot in []string{"DonutChart.CreateLabel|Text", "StackedBar.CreateLabel|Text", "GraphCanvasInput.CreateNode|Container", "GraphCanvasInput.CreateEdge|Container", "SearchList.CreateEntry|TextEntry", "SearchList.CreateRow|Button", "SearchList.CreateRoot|Container", "CodeBlockInput.CreateEditor|TextEditor", "MenuButtonInput.CreateMenu|MenuInput", "PropertyGrid.CreateRow|Blob", "ToastHostInput.CreateToast|Container"} {
+                for slot in []string{"DonutChart.CreateLabel|Text", "StackedBar.CreateLabel|Text", "GraphCanvasInput.CreateNode|Container", "GraphCanvasInput.CreateEdge|Container", "SearchList.CreateRoot|Container", "MenuButtonInput.CreateMenu|MenuInput", "ToastHostInput.CreateToast|Container"} {
                     let parts = slot.Split('|')
                     if Simple(type.Name) + "." + name == parts[0] && (member.Type.Arguments.Count < 3 || Simple(member.Type.Arguments[member.Type.Arguments.Count - 2].Name) != parts[1]) {
                         Add(19, member.Id, member.Signature, "the prepared " + parts[1] + " immediately before the return type")
@@ -318,8 +324,6 @@ class ApiShapeCheck {
         using let stream = File.OpenRead(assembly)
         using let pe = PEReader(stream)
         let metadata = ApiMetadata(pe.GetMetadataReader())
-        using let debug = pe.ReadEmbeddedPortablePdbDebugDirectoryData(pe.ReadDebugDirectory().Single(entry -> entry.Type == DebugDirectoryEntryType.EmbeddedPortablePdb))
-        metadata.DebugReader = debug.GetMetadataReader()
         metadata.Read()
         Types = metadata.Types
         let document = XDocument.Load(xml)
@@ -339,7 +343,7 @@ class ApiShapeCheck {
             Console.WriteLine(finding.Symbol + " | S" + finding.Rule.ToString() + " | " + finding.Current + " | expected: " + finding.Expected)
         }
         for error in Configuration.OrderBy(item -> item, StringComparer.Ordinal) { Console.WriteLine("CONFIG | " + error) }
-        Console.WriteLine("S27 constructors not checked: G# emits no CompilerGeneratedAttribute, https://github.com/DavidObando/gsharp/issues/5761")
+        Console.WriteLine("S27 constructor summaries are not checked.")
         let count = Types.Count(item -> !item.Program)
         Console.WriteLine("Inventory: " + count.ToString() + " public types, " + Widgets.Count.ToString() + " widgets, " + (count - Widgets.Count).ToString() + " support types, " + Types.Where(item -> item.Program).Sum(item -> item.Members.Count).ToString() + " free functions.")
         for rule in []int32{1,3,4,5,6,9,10,12,13,14,15,16,18,19,20,21,22,23,24,25,27} {

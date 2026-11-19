@@ -94,9 +94,6 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         var root = Column(state.Virtualized ? 0.0: current.BlockGap!!)
         root.Width = input.Width ?? Percent(100)
         root.Height = input.Height ?? Length.Auto
-        if let create = input.CreateRoot {
-            root = create(current, root)
-        }
         root.Children.Clear()
         if state.Virtualized {
             let rows = VirtualRows(models, current.FontSize * theme.LineHeight, BlockKey, buildRow!!, version: 0)
@@ -111,6 +108,7 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 root.Children.Add(buildRow!!(model))
             }
         }
+        input.ConfigureRoot?.Invoke(current, root)
         if registryChanged || headingCallback != input.OnHeadings {
             headingCallback = input.OnHeadings
             headingCallback?.Invoke(headingList)
@@ -146,9 +144,11 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         var content Blob
         if info.Kind == MarkdownBlockKind.Heading {
             let scale = []float64{2.0, 1.7, 1.4, 1.2, 1.1, 1.0}
-            content = Leaf(model, current.FontSize * scale[Math.Clamp(info.HeadingLevel, 1, 6) - 1], 700.0, alignment, current, theme)
+            content = Container{MinWidth: 0.0, FlexShrink: 0.0,
+                Leaf(model, current.FontSize * scale[Math.Clamp(info.HeadingLevel, 1, 6) - 1], 700.0, alignment, current, theme)}
         } else if info.Kind == MarkdownBlockKind.Paragraph {
-            content = Leaf(model, current.FontSize, weight, alignment, current, theme)
+            content = Container{MinWidth: 0.0, FlexShrink: 0.0,
+                Leaf(model, current.FontSize, weight, alignment, current, theme)}
         } else if info.Kind == MarkdownBlockKind.Code {
             content = Container{
                 Padding: theme.ControlPadding,
@@ -185,21 +185,22 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                     0,
                     Text{Key: "alert-kind", Content: kind, FontWeight: 700.0, FontSize: current.FontSize, Color: accent}
                 )
-                box.Accessibility = Accessibility{Role: AccessibilityRole.Group, Name: kind}
+                let boxAccessibility = if let configured = box.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                boxAccessibility.Role = AccessibilityRole.Group
+                boxAccessibility.Name = kind
+                box.Accessibility = boxAccessibility
             }
             content = box
         }
-        if let create = current.CreateBlock {
-            content = create(info, content)
-        }
+        current.ConfigureBlock?.Invoke(info, content)
         let root = Container{Key: model.Key == "" ? info.Id: model.Key, MinWidth: 0.0, FlexShrink: 0.0, content}
         if info.Kind == MarkdownBlockKind.Heading {
             root.Handle = state.Headings[info.Id!!].Handle
-            root.Accessibility = Accessibility{
-                Role: AccessibilityRole.Heading,
-                Name: info.Text ?? "",
-                Level: info.HeadingLevel
-            }
+            let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            rootAccessibility.Role = AccessibilityRole.Heading
+            rootAccessibility.Name = info.Text ?? ""
+            rootAccessibility.Level = info.HeadingLevel
+            root.Accessibility = rootAccessibility
         }
         return root
     }
@@ -216,16 +217,18 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
             stamp = MarkdownLeafStamp{Text: text, Revision: stamp.Revision + 1}
             leaves[path] = stamp
         }
-        let input = MarkdownLeafInput{Model: model, Options: current with{OnLink = current.OnLink == nil ? nil: OpenLink}, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp}
-        return Cell.Mount[MarkdownTextView](
+        let input = MarkdownLeafInput{Model: model, Options: current with{OnLink = current.OnLink == nil ? nil: OpenLink}, Size: size, Weight: weight, Alignment: alignment, Stamp: stamp, Theme: theme}
+        return Cell.Mount[MarkdownLeafInput, MarkdownTextView](
             path + "@" + stamp.Revision.ToString(),
-            (cell MarkdownTextView) -> cell.Configure(input, theme)
+            input
         )
     }
 
     private func ListBlockView(model MarkdownModel, current MarkdownViewInput, theme Theme) Blob {
         let list = Column(theme.Spacing)
-        list.Accessibility = Accessibility{Role: AccessibilityRole.List}
+        let listAccessibility = if let configured = list.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        listAccessibility.Role = AccessibilityRole.List
+        list.Accessibility = listAccessibility
         var index = model.Start
         let widest = model.Ordered ? (model.Start + model.Children.Length - 1).ToString() + ".": "•"
         for item in model.Children {
@@ -267,7 +270,10 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
         let table = Column()
         table.Width = Percent(100)
         table.MinWidth = current.MinimumTableColumnWidth * float64(columns)
-        table.Accessibility = Accessibility{Role: AccessibilityRole.Grid, Name: theme.Text("Table")}
+        let tableAccessibility = if let configured = table.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        tableAccessibility.Role = AccessibilityRole.Grid
+        tableAccessibility.Name = theme.Text("Table")
+        table.Accessibility = tableAccessibility
         for row in model.Children {
             let line = Container{
                 Key: row.Block.Id,
@@ -303,11 +309,21 @@ public open class MarkdownView : Cell[MarkdownViewInput] {
                 line.Children.Add(box)
             }
             var rowContent Blob = line
-            if let create = current.CreateBlock {
-                rowContent = create(row.Block, rowContent)
+            if let configure = current.ConfigureBlock {
+                let originalAccessibilityRole = (rowContent.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalKey = rowContent.Key
+                configure.Invoke(row.Block, rowContent)
+                if (rowContent.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("MarkdownView owns Accessibility.Role; configure MarkdownViewInput instead of changing it in ConfigureBlock")
+                }
+                if rowContent.Key != originalKey {
+                    throw InvalidOperationException("MarkdownView owns Key; configure MarkdownViewInput instead of changing it in ConfigureBlock")
+                }
             }
             rowContent.Key = row.Block.Id
-            rowContent.Accessibility = Accessibility{Role: AccessibilityRole.Row}
+            let rowContentAccessibility = if let configured = rowContent.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            rowContentAccessibility.Role = AccessibilityRole.Row
+            rowContent.Accessibility = rowContentAccessibility
             table.Children.Add(rowContent)
         }
         return Container{

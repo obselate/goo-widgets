@@ -7,6 +7,9 @@ import System
 import System.Collections.Generic
 
 /// IDs are unique across all levels, including separators and closed submenus.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct MenuItem {
     /// Stable, nonempty identity, unique across all menu levels, including separators.
     var Id string?
@@ -80,18 +83,22 @@ public data struct MenuInput {
     var AccessibilityName string?
     /// Optional base style for the submenu direction indicator.
     var SubmenuArrowStyle Style?
-    /// Receives the widget input, the MenuItem value, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[MenuInput, MenuItem, Button, Button]?
-    /// Receives the widget input and the MenuItem value, and returns the replacement content. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateSeparator Func[MenuInput, MenuItem, Blob]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreatePanel Func[MenuInput, Container, Container]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[MenuInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Expanded, Accessibility.Name, Accessibility.Role, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnClick, OnFocus, OnKeyDown, OnPointerEnter, TabStop.
+    var ConfigureItem Action[MenuInput, MenuItem, Button]?
+    /// Configures the fresh separator before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Role, Focusable, Key.
+    var ConfigureSeparator Action[MenuInput, MenuItem, Blob]?
+    /// Configures the fresh panel before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Handle, Key.
+    var ConfigurePanel Action[MenuInput, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// The widget does not replace configured metadata or children.
+    var ConfigureRoot Action[MenuInput, Container]?
 }
 
 /// A controlled anchored/context menu with roving focus and pointer/keyboard submenus.
@@ -192,18 +199,31 @@ public open class Menu : Cell[MenuInput] {
         for item in source {
             let id = item.Id!!
             if item.Separator {
-                let separator = if let create = current.CreateSeparator {
-                    create(current, item)
-                } else {
-                    Container{
+                let separator = Container{
                         Height: theme.BorderWidth,
                         Margin: Edges{Top: theme.Spacing, Bottom: theme.Spacing},
                         BackgroundColor: theme.BorderColor,
                     }
+                if let configure = current.ConfigureSeparator {
+                    let originalAccessibilityRole = (separator.Accessibility?.Role ?? AccessibilityRole(0))
+                    let originalFocusable = separator.Focusable
+                    let originalKey = separator.Key
+                    configure.Invoke(current, item, separator)
+                    if (separator.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                        throw InvalidOperationException("Menu owns Accessibility.Role; configure MenuInput instead of changing it in ConfigureSeparator")
+                    }
+                    if separator.Focusable != originalFocusable {
+                        throw InvalidOperationException("Menu owns Focusable; configure MenuInput instead of changing it in ConfigureSeparator")
+                    }
+                    if separator.Key != originalKey {
+                        throw InvalidOperationException("Menu owns Key; configure MenuInput instead of changing it in ConfigureSeparator")
+                    }
                 }
                 separator.Key = id
                 separator.Focusable = false
-                separator.Accessibility = Accessibility{Role: AccessibilityRole.None}
+                let separatorAccessibility = if let configured = separator.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                separatorAccessibility.Role = AccessibilityRole.None
+                separator.Accessibility = separatorAccessibility
                 rows.Children.Add(separator)
                 continue
             }
@@ -227,18 +247,88 @@ public open class Menu : Cell[MenuInput] {
                 Gap: theme.ControlGap,
                 BackgroundColor: selected == id ? theme.HoverColor: Color.Transparent,
                 Color: highlightText ?? theme.TextColor,
-                Hover: Style{Color: highlight ?? theme.TextColor},
-                Active: Style{Color: highlight ?? theme.TextColor},
+                HoverStyle: Style{Color: highlight ?? theme.TextColor},
+                ActiveStyle: Style{Color: highlight ?? theme.TextColor},
                 BorderRadius: theme.ControlRadius!!,
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
                 Cursor: item.Disabled ? Cursor.Default: Cursor.Pointer,
             }
-            let row = if let create = current.CreateItem {
-                create(current, item, prepared)
-            } else {
-                prepared
+            let row = prepared
+            row.Children.Clear()
+            row.Children.Add(Container{
+                Key: "content",
+                FlexGrow: 1.0,
+                FlexShrink: 1.0,
+                MinWidth: 0.0,
+                item.Disabled && item.Content != nil ? theme.DisabledSlot(content, theme.TextColor): content
+            })
+            if let shortcut = item.Shortcut {
+                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false, Color: item.Disabled ? theme.DisabledTextColor: highlightText}.Build())
+            }
+            if hasChildren {
+                row.Children.Add(
+                    Text{
+                        Key: "arrow",
+                        Content: OpensLeft() == theme.RightToLeft ? "›": "‹",
+                        FontFamily: theme.FontFamily,
+                        FontSize: theme.HeadingFontSize,
+                        Color: item.Disabled ? theme.DisabledTextColor: highlightText ?? theme.MutedTextColor,
+                        BasedOn: current.SubmenuArrowStyle
+                    }
+                )
+            }
+            if let configure = current.ConfigureItem {
+                let originalAccessibilityExpanded = row.Accessibility?.Expanded
+                let originalAccessibilityName = (row.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (row.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalDisabled = row.Disabled
+                let originalFocusable = row.Focusable
+                let originalHandle = row.Handle
+                let originalKey = row.Key
+                let originalOnClick = row.OnClick
+                let originalOnFocus = row.OnFocus
+                let originalOnKeyDown = row.OnKeyDown
+                let originalOnPointerEnter = row.OnPointerEnter
+                let originalTabStop = row.TabStop
+                configure.Invoke(current, item, row)
+                if row.Accessibility?.Expanded != originalAccessibilityExpanded {
+                    throw InvalidOperationException("Menu owns Accessibility.Expanded; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if (row.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("Menu owns Accessibility.Name; set MenuInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (row.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("Menu owns Accessibility.Role; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Disabled != originalDisabled {
+                    throw InvalidOperationException("Menu owns Disabled; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Focusable != originalFocusable {
+                    throw InvalidOperationException("Menu owns Focusable; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Handle != originalHandle {
+                    throw InvalidOperationException("Menu owns Handle; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.Key != originalKey {
+                    throw InvalidOperationException("Menu owns Key; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.OnClick != originalOnClick {
+                    throw InvalidOperationException("Menu owns OnClick; set MenuInput.OnClick instead of changing it in ConfigureItem")
+                }
+                if row.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("Menu owns OnFocus; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("Menu owns OnKeyDown; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.OnPointerEnter != originalOnPointerEnter {
+                    throw InvalidOperationException("Menu owns OnPointerEnter; configure MenuInput instead of changing it in ConfigureItem")
+                }
+                if row.TabStop != originalTabStop {
+                    throw InvalidOperationException("Menu owns TabStop; configure MenuInput instead of changing it in ConfigureItem")
+                }
             }
             theme.ApplyInteraction(row, InteractionFamily.Row)
             row.Key = id
@@ -246,11 +336,11 @@ public open class Menu : Cell[MenuInput] {
             row.Focusable = !item.Disabled
             row.TabStop = selected == id && !item.Disabled
             row.Disabled = item.Disabled
-            row.Accessibility = Accessibility{
-                Role: AccessibilityRole.MenuItem,
-                Name: label,
-                Expanded: hasChildren ? path.Count > depth && path[depth] == id: nil,
-            }
+            let rowAccessibility = if let configured = row.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            rowAccessibility.Role = AccessibilityRole.MenuItem
+            rowAccessibility.Name = label
+            rowAccessibility.Expanded = hasChildren ? path.Count > depth && path[depth] == id: nil
+            row.Accessibility = rowAccessibility
             row.OnClick = () -> Activate(depth, id)
             WidgetKeyBindings.BindActivation(row)
             row.OnFocus = (event FocusEvent) -> {
@@ -260,23 +350,6 @@ public open class Menu : Cell[MenuInput] {
             }
             row.OnPointerEnter = (event PointerEvent) -> Hover(depth, id)
             row.OnKeyDown = (event KeyEvent) -> KeyDown(source, depth, id, event)
-            row.Children.Clear()
-            row.Children.Add(Container{Key: "content", FlexGrow: 1.0, FlexShrink: 1.0, MinWidth: 0.0, content})
-            if let shortcut = item.Shortcut {
-                row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false, Color: highlightText}.Build())
-            }
-            if hasChildren {
-                row.Children.Add(
-                    Text{
-                        Key: "arrow",
-                        Content: OpensLeft() == theme.RightToLeft ? "›": "‹",
-                        FontFamily: theme.FontFamily,
-                        FontSize: theme.HeadingFontSize,
-                        Color: highlightText ?? theme.MutedTextColor,
-                        BasedOn: current.SubmenuArrowStyle
-                    }
-                )
-            }
             rows.Children.Add(row)
         }
         var overlays[]Blob = []Blob{}
@@ -306,8 +379,8 @@ public open class Menu : Cell[MenuInput] {
             Padding: theme.Spacing,
             DismissOnOutsideClick: depth == 0,
             OnDismiss: (reason PopoverDismissReason) -> CloseLevel(depth),
-            CreatePanel: Panel,
-            CreateRoot: Root,
+            ConfigurePanel: Panel,
+            ConfigureRoot: Root,
         }
         if let anchor = anchor {
             popup.Anchor = anchor
@@ -327,30 +400,35 @@ public open class Menu : Cell[MenuInput] {
         return Cell.Mount[PopoverInput, Popover]("menu-level-" + depth.ToString(), popup)
     }
 
-    private func Panel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let prepared = Container{
-            LineHeight: theme.LineHeight,
-            Padding: theme.Spacing,
-            BasedOn: theme.OverlayStyle,
-            BackgroundColor: theme.OverlayColor,
-            BorderColor: theme.BorderColor,
-            BorderWidth: theme.BorderWidth,
-            BorderRadius: theme.PanelRadius!!,
-        }
-        return if let create = current.CreatePanel {
-            create(current, prepared)
-        } else {
-            prepared
+    private func Panel(input PopoverInput, bounds ElementRect, content Blob, prepared Container) {
+        prepared.LineHeight = theme.LineHeight
+        prepared.Padding = theme.Spacing
+        prepared.BasedOn = theme.OverlayStyle
+        prepared.BackgroundColor = theme.OverlayColor
+        prepared.BorderColor = theme.BorderColor
+        prepared.BorderWidth = theme.BorderWidth
+        prepared.BorderRadius = theme.PanelRadius!!
+        prepared.ScrollbarY = nil
+        if let configure = current.ConfigurePanel {
+            let originalHandle = prepared.Handle
+            let originalKey = prepared.Key
+            configure.Invoke(current, prepared)
+            if prepared.Handle != originalHandle {
+                throw InvalidOperationException("Menu owns Handle; configure MenuInput instead of changing it in ConfigurePanel")
+            }
+            if prepared.Key != originalKey {
+                throw InvalidOperationException("Menu owns Key; configure MenuInput instead of changing it in ConfigurePanel")
+            }
         }
     }
 
-    private func Root(input PopoverInput, backdrop Container, panel Container) Container {
-        let prepared = Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0}
-        return if let create = current.CreateRoot {
-            create(current, prepared)
-        } else {
-            prepared
-        }
+    private func Root(input PopoverInput, backdrop Container, panel Container, prepared Container) {
+        prepared.Position = PositionType.Absolute
+        prepared.Left = 0.0
+        prepared.Right = 0.0
+        prepared.Top = 0.0
+        prepared.Bottom = 0.0
+        current.ConfigureRoot?.Invoke(current, prepared)
     }
 
     private func Eligible(source[]MenuItem, id string) bool {

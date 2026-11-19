@@ -85,66 +85,41 @@ public open partial class DataGrid {
         }
     }
 
-    private func BeginResize(id string, e PointerEvent) {
-        let index = ColumnIndex(id)
-        if index < 0 || input.Disabled || !CanResize(index) || pointer != -1L || e.Button != PointerButton.Primary {
-            return
-        }
-        pointer = e.PointerId
-        resizeId = id
-        origin = e.WindowPosition.X
-        originWidth = widths[index]
-        lastWidth = originWidth
-        resizeWidths = [columns.Length]float64
-        for column in 0 ... columns.Length {
-            resizeWidths[column] = widths[column]
-        }
-        lastFittedWidths = nil
-        e.Capture()
+    private func DragResize(id string, e PointerDragEvent) {
         e.PreventDefault()
         e.StopPropagation()
-        Handle(resizeHandles, id).Focus()
-        Rebuild()
-    }
-
-    private func MoveResize(e PointerEvent) {
-        if pointer == e.PointerId && resizeId != nil {
-            RequestWidth(resizeId!!, originWidth + e.WindowPosition.X - origin, false, resizeWidths)
-        }
-    }
-
-    private func EndResize(e PointerEvent) {
-        if pointer != e.PointerId {
-            return
-        }
-        e.ReleaseCapture()
-        e.PreventDefault()
-        e.StopPropagation()
-        pointer = -1L
-        if resizeId != nil {
-            if input.FitColumnsToViewport {
-                if let resolved = lastFittedWidths {
-                    InvokeInputCallback(input.OnFittedColumnWidthsCommit, resolved)
-                }
-            } else {
-                InvokeInputCallback(input.OnColumnWidthCommit, resizeId!!, lastWidth)
+        if e.Phase == GesturePhase.Started {
+            let index = ColumnIndex(id)
+            if index < 0 || input.Disabled || !CanResize(index) {
+                return
             }
-        }
-        resizeId = nil
-        lastFittedWidths = nil
-        Rebuild()
-    }
-
-    private func CancelResize(e PointerEvent) {
-        if pointer == e.PointerId {
-            e.ReleaseCapture()
-            pointer = -1L
+            resizeId = id
+            origin = e.WindowPosition.X - e.Translation.X
+            originWidth = widths[index]
+            lastWidth = originWidth
+            resizeWidths = [columns.Length]float64
+            for column in 0 ... columns.Length {
+                resizeWidths[column] = widths[column]
+            }
+            lastFittedWidths = nil
+            Handle(resizeHandles, id).Focus()
+            RequestWidth(id, originWidth + e.Translation.X, false, resizeWidths)
+        } else if e.Phase == GesturePhase.Changed && resizeId != nil {
+            RequestWidth(resizeId!!, originWidth + e.WindowPosition.X - origin, false, resizeWidths)
+        } else if e.Phase == GesturePhase.Completed || e.Phase == GesturePhase.Canceled {
+            if e.Phase == GesturePhase.Completed && resizeId != nil {
+                if input.FitColumnsToViewport {
+                    if let resolved = lastFittedWidths {
+                        InvokeInputCallback(input.OnFittedColumnWidthsCommit, resolved)
+                    }
+                } else {
+                    InvokeInputCallback(input.OnColumnWidthCommit, resizeId!!, lastWidth)
+                }
+            }
             resizeId = nil
             lastFittedWidths = nil
-            Rebuild()
         }
     }
-
     private func ResizeKey(id string, e KeyEvent) {
         let index = ColumnIndex(id)
         if index < 0 {

@@ -16,6 +16,8 @@ public enum PropertyGridLayout {
 }
 
 /// One controlled property editor and its reset action.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
 public data struct PropertyGridItem {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -30,6 +32,7 @@ public data struct PropertyGridItem {
     /// Caller-built property editor. Nil leaves the slot empty unless CreateEditor supplies it.
     var Editor Blob?
     /// Builds an editor from the supplied accessibility relationships. Apply them to the actual editor. Nil uses Editor.
+    /// Return a fresh element or the supplied default.
     var CreateEditor Func[AccessibilityRelationships, Blob]?
     /// Caller-owned handle of the labeled editor. Nil leaves the label without a focus target.
     var LabelFor ElementHandle?
@@ -59,8 +62,10 @@ public data struct PropertyGrid {
     var OnSectionExpandedChange Action[string, bool]?
     /// Shared label column width. Nil resolves to 160.
     var LabelWidth float64?
-    /// Receives the grid, property descriptor, and prepared content, and returns the replacement content. Nil uses the default composition.
-    var CreateRow Func[PropertyGrid, PropertyGridItem, Blob, Blob]?
+    /// Configures the fresh row before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Key.
+    var ConfigureRow Action[PropertyGrid, PropertyGridItem, Blob]?
 
     /// Builds the filtered sections and optional search field.
     public func Build() Blob {
@@ -138,7 +143,14 @@ public data struct PropertyGrid {
                 for row in items {
                     if (row.Section ?? "") == section && Matches(row, query) {
                         let content = BuildRow(row)
-                        let result = CreateRow?.Invoke(this, row, content) ?? content
+                        let result = content
+                        if let configure = ConfigureRow {
+                            let originalKey = result.Key
+                            configure.Invoke(this, row, result)
+                            if result.Key != originalKey {
+                                throw InvalidOperationException("PropertyGrid owns Key; set PropertyGrid.Key instead of changing it in ConfigureRow")
+                            }
+                        }
                         result.Key = "row:" + row.Id
                         group.Children.Add(result)
                     }
@@ -188,7 +200,7 @@ public data struct PropertyGrid {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                ControlIcons.Create(ControlIcon.RestartAlt, 16, theme.MutedTextColor)
+                ControlIcons.Create(ControlIcon.RestartAlt, 16, item.Disabled ? theme.DisabledTextColor: theme.MutedTextColor)
             }
             theme.ApplyInteraction(button, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(button)
@@ -212,6 +224,17 @@ public data struct PropertyGrid {
                         Gap: theme.Spacing,
                         root.Children[1],
                         reset
+                    }
+                }
+                if let key = item.Key {
+                    root.Children[0] = Container{
+                        MinWidth: 0,
+                        FlexDirection: FlexDirection.Row,
+                        FlexWrap: FlexWrap.Wrap,
+                        AlignItems: AlignItems.Center,
+                        Gap: theme.Spacing,
+                        root.Children[0],
+                        Text{Content: key, Color: theme.MutedTextColor, FontSize: theme.CaptionFontSize}
                     }
                 }
                 if layout == PropertyGridLayout.Compact {

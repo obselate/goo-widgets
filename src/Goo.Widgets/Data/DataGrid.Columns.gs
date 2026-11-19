@@ -1,6 +1,7 @@
 package Goo.Widgets.Data
 
 import Goo
+import Goo.Gestures
 import Goo.Widgets
 import Goo.Widgets.Icons
 import Goo.Widgets.Inputs
@@ -39,10 +40,10 @@ public open partial class DataGrid {
         || metrics.ScrollOffset.X == horizontalOffset {
             return
         }
-        viewport.JumpTo(metrics.ScrollOffset.X, viewport.ScrollOffset.Y)
+        viewport.JumpTo(x: metrics.ScrollOffset.X)
         horizontalOffset = viewport.ScrollOffset.X
         if metrics.ScrollOffset.X != horizontalOffset {
-            horizontalViewport.JumpTo(horizontalOffset, 0)
+            horizontalViewport.JumpTo(x: horizontalOffset, y: 0)
         }
         if pinnedCount > 0 {
             Rebuild()
@@ -55,7 +56,7 @@ public open partial class DataGrid {
         }
         if metrics.ScrollOffset.X != horizontalOffset {
             horizontalOffset = metrics.ScrollOffset.X
-            horizontalViewport.JumpTo(horizontalOffset, 0)
+            horizontalViewport.JumpTo(x: horizontalOffset, y: 0)
             if pinnedCount > 0 {
                 Rebuild()
             }
@@ -327,11 +328,11 @@ public open partial class DataGrid {
             }
             if filter {
                 slot.Padding = theme.Spacing
-                slot.Accessibility = Accessibility{
-                    Role: AccessibilityRole.GridCell,
-                    Name: theme.Text("Filter {0}", label),
-                    ColumnIndex: index + (leading > 0.0 ? 1: 0)
-                }
+                let slotAccessibility = if let configured = slot.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                slotAccessibility.Role = AccessibilityRole.GridCell
+                slotAccessibility.Name = theme.Text("Filter {0}", label)
+                slotAccessibility.ColumnIndex = index + (leading > 0.0 ? 1: 0)
+                slot.Accessibility = slotAccessibility
                 slot.Children.Add(Container{Key: "content", FlexGrow: 1, MinWidth: 0, content})
             } else {
                 let sort = Button{
@@ -341,7 +342,7 @@ public open partial class DataGrid {
                     Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
                     AlignItems: column.Alignment == TextAlign.Right ? AlignItems.FlexEnd: column.Alignment == TextAlign.Center ? AlignItems.Center: AlignItems.FlexStart,
                     TextAlign: column.Alignment,
-                    Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                    FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                     BackgroundColor: Color.Transparent,
                     Focusable: column.Sortable &&
                         (snapshot.OnSort != nil || snapshot.OnSortsChange != nil) &&
@@ -352,18 +353,8 @@ public open partial class DataGrid {
                     OnClick: () -> Sort(id, clickModifiers),
                     OnPointerDown: (e PointerEvent) -> {
                         clickModifiers = e.Modifiers
-                        reorderOrigin = e.WindowPosition.X
-                        reordered = false
-                        if snapshot.OnColumnOrderChange != nil &&
-                            e.Button == PointerButton.Primary &&
-                            !snapshot.Disabled {
-                            reorderPointer = e.PointerId
-                            e.Capture()
-                        }
+                        reorderPosition = e.WindowPosition.X
                     },
-                    OnPointerMove: (e PointerEvent) -> MoveReorder(id, e),
-                    OnPointerCancel: (e PointerEvent) -> StopReorder(),
-                    OnPointerUp: (e PointerEvent) -> Reorder(id, e),
                     OnKeyDown: (e KeyEvent) -> {
                         clickModifiers = e.Modifiers
                         if e.Modifiers.Alt && (e.Key == Key.Left || e.Key == Key.Right) {
@@ -380,6 +371,11 @@ public open partial class DataGrid {
                     },
                     content
                 }
+                if snapshot.OnColumnOrderChange != nil && !snapshot.Disabled {
+                    sort.OnPointerDrag = (e PointerDragEvent) -> DragReorder(id, e)
+                    sort.PointerDragThreshold = 8
+                    sort.PointerDragAxis = LayoutAxis.Horizontal
+                }
                 WidgetKeyBindings.BindActivation(sort)
                 slot.Children.Add(sort)
                 if (column.Resizable ?? true) && CanResize(index) {
@@ -387,12 +383,48 @@ public open partial class DataGrid {
                         BackgroundColor: Color.Transparent,
                         BorderWidth: Edges{Right: 1},
                         BorderColor: resizeId == id ? theme.FocusColor: Color.Transparent,
-                        Hover: Style{BorderColor: theme.FocusColor},
-                        Focus: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
+                        HoverStyle: Style{BorderColor: theme.FocusColor},
+                        FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
                         BasedOn: snapshot.ResizeHandleStyle
                     }
-                    if let create = snapshot.CreateResizeHandle {
-                        handle = create(snapshot, column, handle)
+                    if let configure = snapshot.ConfigureResizeHandle {
+                        let originalAccessibilityName = (handle.Accessibility?.Name ?? "")
+                        let originalAccessibilityOnAction = handle.Accessibility?.OnAction
+                        let originalAccessibilityOrientation = (handle.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+                        let originalAccessibilityRole = (handle.Accessibility?.Role ?? AccessibilityRole(0))
+                        let originalFocusable = handle.Focusable
+                        let originalHandle = handle.Handle
+                        let originalKey = handle.Key
+                        let originalOnKeyDown = handle.OnKeyDown
+                        let originalTabStop = handle.TabStop
+                        configure.Invoke(snapshot, column, handle)
+                        if (handle.Accessibility?.Name ?? "") != originalAccessibilityName {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Name; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Accessibility?.OnAction != originalAccessibilityOnAction {
+                            throw InvalidOperationException("DataGrid owns Accessibility.OnAction; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if (handle.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Orientation; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if (handle.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Role; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Focusable != originalFocusable {
+                            throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Handle != originalHandle {
+                            throw InvalidOperationException("DataGrid owns Handle; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.Key != originalKey {
+                            throw InvalidOperationException("DataGrid owns Key; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.OnKeyDown != originalOnKeyDown {
+                            throw InvalidOperationException("DataGrid owns OnKeyDown; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
+                        if handle.TabStop != originalTabStop {
+                            throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureResizeHandle")
+                        }
                     }
                     handle.Key = "resize"
                     handle.Handle = Handle(resizeHandles, id)
@@ -404,27 +436,24 @@ public open partial class DataGrid {
                     handle.Cursor = Cursor.ResizeHorizontal
                     handle.Focusable = !snapshot.Disabled
                     handle.TabStop = false
-                    handle.OnPointerDown = (e PointerEvent) -> BeginResize(id, e)
-                    handle.OnPointerMove = moveResize
-                    handle.OnPointerUp = endResize
-                    handle.OnPointerCancel = cancelResize
+                    handle.OnPointerDrag = (e PointerDragEvent) -> DragResize(id, e)
                     handle.OnKeyDown = (e KeyEvent) -> ResizeKey(id, e)
-                    handle.Accessibility = Accessibility{
-                        Role: AccessibilityRole.Slider,
-                        Name: theme.Text("Resize {0}", label),
-                        Orientation: AccessibilityOrientation.Horizontal,
-                        Range: AccessibilityValue{
+                    let handleAccessibility = if let configured = handle.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                    handleAccessibility.Role = AccessibilityRole.Slider
+                    handleAccessibility.Name = theme.Text("Resize {0}", label)
+                    handleAccessibility.Orientation = AccessibilityOrientation.Horizontal
+                    handleAccessibility.Range = AccessibilityValue{
                             Minimum: ResizeMinimum(index),
                             Maximum: ResizeMaximum(index),
                             Now: widths[index]
-                        },
-                        Actions: []AccessibilityAction{
+                        }
+                    handleAccessibility.Actions = []AccessibilityAction{
                             AccessibilityAction.SetValue,
                             AccessibilityAction.Increment,
                             AccessibilityAction.Decrement
-                        },
-                        OnAction: (request AccessibilityActionRequest) -> ResizeAction(id, request)
-                    }
+                        }
+                    handleAccessibility.OnAction = (request AccessibilityActionRequest) -> ResizeAction(id, request)
+                    handle.Accessibility = handleAccessibility
                     slot.Children.Add(handle)
                 }
             }
@@ -451,19 +480,15 @@ public open partial class DataGrid {
     }
 
     private func Sort(id string, modifiers KeyModifiers) {
-        if reordered {
-            reordered = false
-            return
-        }
         let index = ColumnIndex(id)
         if index < 0 || input.Disabled || !columns[index].Sortable {
             return
         }
-        if (modifiers.Ctrl || modifiers.Super) && modifiers.Shift {
+        if modifiers.HasPrimary && modifiers.Shift {
             return
         }
         let current = SortDirection(id)
-        let clear = (modifiers.Ctrl || modifiers.Super) && !modifiers.Shift
+        let clear = modifiers.HasPrimary && !modifiers.Shift
         let next = clear ? DataGridSort.None:
             current == DataGridSort.Ascending ? DataGridSort.Descending: DataGridSort.Ascending
         if let callback = input.OnSortsChange {
@@ -506,16 +531,20 @@ public open partial class DataGrid {
         InvokeInputCallback(input.OnColumnOrderChange, order)
     }
 
-    private func Reorder(id string, e PointerEvent) {
-        e.ReleaseCapture()
+    private func Reorder(id string, e PointerDragEvent) {
         StopReorder()
-        if input.Disabled || e.Button != PointerButton.Primary || Math.Abs(e.WindowPosition.X - reorderOrigin) < 8 ||
-            input.OnColumnOrderChange == nil {
+        if input.Disabled || input.OnColumnOrderChange == nil {
             return
         }
         let index = ColumnIndex(id)
         let target = ReorderTarget(index, e.WindowPosition.X)
-        if index < 0 || target == index {
+        if index < 0 {
+            return
+        }
+        if target == index {
+            if e.IsOverTarget {
+                Sort(id, clickModifiers)
+            }
             return
         }
         let order = List[string](columns.Length)
@@ -525,7 +554,6 @@ public open partial class DataGrid {
             }
         }
         order.Insert(target, id)
-        reordered = true
         if let callback = input.OnColumnOrderChange {
             InvokeInputCallback(callback, order.ToArray())
         }
@@ -546,9 +574,16 @@ public open partial class DataGrid {
         return Math.Clamp(target, start, Math.Max(start, end - 1))
     }
 
-    private func MoveReorder(id string, e PointerEvent) {
-        if reorderPointer != e.PointerId || input.Disabled || input.OnColumnOrderChange == nil ||
-            Math.Abs(e.WindowPosition.X - reorderOrigin) < 8.0 {
+    private func DragReorder(id string, e PointerDragEvent) {
+        if e.Phase == GesturePhase.Canceled {
+            StopReorder()
+            return
+        }
+        if e.Phase == GesturePhase.Completed {
+            Reorder(id, e)
+            return
+        }
+        if input.Disabled || input.OnColumnOrderChange == nil {
             return
         }
         let index = ColumnIndex(id)
@@ -561,19 +596,17 @@ public open partial class DataGrid {
         if index >= pinnedCount {
             ScrollReorder()
         }
-        Rebuild()
     }
 
     private func StopReorder() {
         reorderScroll?.Dispose()
         reorderScroll = nil
-        reorderPointer = -1L
         reorderColumn = nil
         reorderTarget = -1
     }
 
     private func ScrollReorder() {
-        if reorderColumn == nil || reorderPointer < 0L || input.Disabled || !viewport.IsMounted ||
+        if reorderColumn == nil || input.Disabled || !viewport.IsMounted ||
             input.OnColumnOrderChange == nil || ColumnIndex(reorderColumn) < pinnedCount {
             StopReorder()
             return
@@ -592,7 +625,7 @@ public open partial class DataGrid {
             reorderScroll = nil
             return
         }
-        reorderScroll ??= window!!.SetInterval(ScrollReorder, 16.0)
+        reorderScroll ??= window!!.Every(16.0, ScrollReorder)
         viewport.JumpTo(next, offset.Y)
         reorderTarget = ReorderTarget(ColumnIndex(reorderColumn), reorderPosition)
         Rebuild()

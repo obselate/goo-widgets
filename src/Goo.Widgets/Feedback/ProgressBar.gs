@@ -35,8 +35,10 @@ public data struct ProgressBar {
     /// Root transform. Nil resolves to the identity transform.
     var Transform PanelTransform?
     /// Creates the final fill Container from resolved props. Nil uses ProgressBar's composition.
+    /// Return a fresh element or the supplied default.
     var CreateFill Func[ProgressBar, Container]?
     /// Creates the final root Container from resolved props and the fill Container. Nil uses ProgressBar's composition.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[ProgressBar, Container, Container]?
 
     /// Builds a fresh Goo tree, resolving props before invoking primitive factories.

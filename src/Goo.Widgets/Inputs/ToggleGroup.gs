@@ -16,6 +16,9 @@ public enum ToggleGroupVariant {
 }
 
 /// An identified toggle choice.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ToggleOption {
     /// Stable, nonempty identity. Keep it unique within the collection.
     var Id string
@@ -47,12 +50,14 @@ public data struct ToggleGroupInput {
     var Orientation AccessibilityOrientation?
     /// Accessible name override. Nil uses the widget label or localized default.
     var AccessibilityName string?
-    /// Receives the widget input, the toggle option, and the prepared button, and returns the replacement button. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateItem Func[ToggleGroupInput, ToggleOption, Button, Button]?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[ToggleGroupInput, Container, Container]?
+    /// Configures the fresh item before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Name, Accessibility.Role, Disabled, Focusable, Handle, Key, KeyBindings (required entries), OnBlur, OnClick, OnFocus, OnKeyDown, TabStop.
+    var ConfigureItem Action[ToggleGroupInput, ToggleOption, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Orientation, Accessibility.Role.
+    var ConfigureRoot Action[ToggleGroupInput, Container]?
 }
 
 /// A roving group that selects one choice or toggles several choices.
@@ -99,16 +104,6 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
             BorderRadius: theme.ControlRadius!!,
             BackgroundColor: input.Variant == ToggleGroupVariant.Segmented ? theme.SunkenColor: Color.Transparent,
         }
-        if let create = input.CreateRoot {
-            root = create(input, root)
-        }
-        root.Direction = theme.Direction
-        root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
-        root.Accessibility = Accessibility{
-            Role: AccessibilityRole.Group,
-            Name: input.AccessibilityName ?? theme.Text("Options"),
-            Orientation: input.Orientation!!,
-        }
         root.Children.Clear()
         for item in items {
             let id = item.Id
@@ -135,15 +130,19 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 BackgroundColor: active ? selectedFill: Color.Transparent,
                 BoxShadow: active && input.Variant == ToggleGroupVariant.Segmented ? theme.ElevationSm: BoxShadow{},
                 Color: active ? theme.SelectedText(theme.TextColor, selectedFill): theme.MutedTextColor,
-                Hover: active ? Style{BackgroundColor: selectedFill}: nil,
-                Active: active ? Style{BackgroundColor: selectedFill}: nil,
+                HoverStyle: active ? Style{BackgroundColor: selectedFill}: nil,
+                ActiveStyle: active ? Style{BackgroundColor: selectedFill}: nil,
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                DisabledStyle: Style{BackgroundColor: theme.PanelColor},
+                DisabledStyle: active ? Style{
+                    BackgroundColor: selectedFill,
+                    Color: theme.SelectedText(theme.TextColor, selectedFill),
+                    Opacity: theme.DisabledOpacity,
+                }: Style{BackgroundColor: theme.PanelColor},
             }
             if let leading = item.Leading {
-                button.Children.Add(leading)
+                button.Children.Add(enabled || active ? leading: theme.DisabledSlot(leading, theme.TextColor))
             }
             button.Children.Add(
                 Text{
@@ -156,8 +155,56 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                     FlexShrink: 1,
                 }
             )
-            if let create = input.CreateItem {
-                button = create(input, item, button)
+            if let configure = input.ConfigureItem {
+                let originalAccessibilityChecked = (button.Accessibility?.Checked ?? AccessibilityChecked(0))
+                let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+                let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+                let originalDisabled = button.Disabled
+                let originalFocusable = button.Focusable
+                let originalHandle = button.Handle
+                let originalKey = button.Key
+                let originalOnBlur = button.OnBlur
+                let originalOnClick = button.OnClick
+                let originalOnFocus = button.OnFocus
+                let originalOnKeyDown = button.OnKeyDown
+                let originalTabStop = button.TabStop
+                configure.Invoke(input, item, button)
+                if (button.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                    throw InvalidOperationException("ToggleGroup owns Accessibility.Checked; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                    throw InvalidOperationException("ToggleGroup owns Accessibility.Name; set ToggleGroupInput.AccessibilityName instead of changing it in ConfigureItem")
+                }
+                if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                    throw InvalidOperationException("ToggleGroup owns Accessibility.Role; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.Disabled != originalDisabled {
+                    throw InvalidOperationException("ToggleGroup owns Disabled; set ToggleGroupInput.Disabled instead of changing it in ConfigureItem")
+                }
+                if button.Focusable != originalFocusable {
+                    throw InvalidOperationException("ToggleGroup owns Focusable; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.Handle != originalHandle {
+                    throw InvalidOperationException("ToggleGroup owns Handle; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.Key != originalKey {
+                    throw InvalidOperationException("ToggleGroup owns Key; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnBlur != originalOnBlur {
+                    throw InvalidOperationException("ToggleGroup owns OnBlur; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnClick != originalOnClick {
+                    throw InvalidOperationException("ToggleGroup owns OnClick; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnFocus != originalOnFocus {
+                    throw InvalidOperationException("ToggleGroup owns OnFocus; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.OnKeyDown != originalOnKeyDown {
+                    throw InvalidOperationException("ToggleGroup owns OnKeyDown; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
+                if button.TabStop != originalTabStop {
+                    throw InvalidOperationException("ToggleGroup owns TabStop; configure ToggleGroupInput instead of changing it in ConfigureItem")
+                }
             }
             theme.ApplyInteraction(button, InteractionFamily.Toggle, active)
             button.Key = id
@@ -176,14 +223,36 @@ public open class ToggleGroup : Cell[ToggleGroupInput] {
                 Rebuild()
             }
             button.OnKeyDown = (e KeyEvent) -> Move(id, e)
-            button.Accessibility = Accessibility{
-                Role: AccessibilityRole.Button,
-                Name: item.Label ?? id,
-                Checked: active ? AccessibilityChecked.True: AccessibilityChecked.False,
-            }
+            let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+            buttonAccessibility.Role = AccessibilityRole.Button
+            buttonAccessibility.Name = item.Label ?? id
+            buttonAccessibility.Checked = active ? AccessibilityChecked.True: AccessibilityChecked.False
+            button.Accessibility = buttonAccessibility
             WidgetKeyBindings.BindActivation(button)
             root.Children.Add(button)
         }
+        if let configure = input.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOrientation = (root.Accessibility?.Orientation ?? AccessibilityOrientation(0))
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            configure.Invoke(input, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ToggleGroup owns Accessibility.Name; set ToggleGroupInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Orientation ?? AccessibilityOrientation(0)) != originalAccessibilityOrientation {
+                throw InvalidOperationException("ToggleGroup owns Accessibility.Orientation; set ToggleGroupInput.Orientation instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ToggleGroup owns Accessibility.Role; configure ToggleGroupInput instead of changing it in ConfigureRoot")
+            }
+        }
+        root.Direction = theme.Direction
+        root.FlexDirection = input.Orientation == AccessibilityOrientation.Vertical ? FlexDirection.Column: FlexDirection.Row
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = AccessibilityRole.Group
+        rootAccessibility.Name = input.AccessibilityName ?? theme.Text("Options")
+        rootAccessibility.Orientation = input.Orientation!!
+        root.Accessibility = rootAccessibility
         return root
     }
 

@@ -42,8 +42,10 @@ func OverlayContracts() {
                     activations++
                 },
                 ConfirmDisabled: true,
-                CreateConfirm: (input ModalDialog, content Blob) -> Button(){content}
-            }.Build() as Container
+                ConfigureConfirm: (input ModalDialog, content Blob, prepared Button) -> {
+                    prepared.Children.Clear()
+                    prepared.Children.Add(content)
+                }}.Build() as Container
         )!!
         let panel = (visual.Children[1] as Container)!!
         let actions = (panel.Children[panel.Children.Count - 1] as Container)!!
@@ -81,6 +83,7 @@ internal class OverlayHost : Cell {
     internal let PopupAction ElementHandle = ElementHandle()
     internal let DrawerAction ElementHandle = ElementHandle()
     internal var DialogOpen bool
+    internal var DialogTone Tone?
     internal var DrawerOpen bool
     internal var TopOpen bool
     internal var PopupOpen bool
@@ -155,80 +158,65 @@ internal class OverlayHost : Cell {
         Rebuild()
     }
 
-    private func PanelRoot() Container -> Container{
-        Position: PositionType.Absolute,
-        Left: 0.0,
-        Right: 0.0,
-        Top: 0.0,
-        Bottom: 0.0,
-        AlignItems: AlignItems.Center,
-        JustifyContent: JustifyContent.Center,
-    }
 
-    private func Outer(input ModalDialog, backdrop Button, panel Container) Container {
+
+    private func Outer(input ModalDialog, backdrop Button, panel Container, result Container) {
         OuterBackdrop = backdrop
         backdrop.Handle = ElementHandle()
-        let result = PanelRoot()
         OuterRoot = result
-        return result
     }
 
-    private func Top(input ModalDialog, backdrop Button, panel Container) Container {
-        let result = PanelRoot()
+    private func Top(input ModalDialog, backdrop Button, panel Container, result Container) {
         TopRoot = result
-        return result
     }
 
-    private func Cancel(input ModalDialog, content Blob) Button {
-        let result = Button{
-            Handle: ElementHandle(),
-            Focusable: !EmptyDialog,
-            Padding: 10.0,
-            BackgroundColor: "#27272a",
-            BorderRadius: 5.0,
-            content
-        }
+    private func Cancel(input ModalDialog, content Blob, result Button) {
+        result.Handle = ElementHandle()
+        result.Focusable = !EmptyDialog
+        result.Padding = 10.0
+        result.BackgroundColor = Color.Parse("#27272a")
+        result.BorderRadius = 5.0
+result.Children.Clear()
+result.Children.Add(content)
         CancelButton = result
-        return result
     }
 
-    private func ConfirmFactory(input ModalDialog, content Blob) Button {
-        let result = Button{
-            Handle: ElementHandle(),
-            Focusable: !EmptyDialog,
-            Padding: 10.0,
-            BackgroundColor: "#6366f1",
-            BorderRadius: 5.0,
-            content
+    private func ConfirmFactory(input ModalDialog, content Blob, result Button) {
+        result.Handle = ElementHandle()
+        result.Focusable = !EmptyDialog
+        result.Padding = 10.0
+        if DialogTone == nil {
+            result.BackgroundColor = Color.Parse("#6366f1")
         }
+        result.BorderRadius = 5.0
+result.Children.Clear()
+result.Children.Add(content)
         ConfirmButton = result
-        return result
     }
 
-    private func CapturePanel(input PopoverInput, bounds ElementRect, content Blob) Container {
-        let result = Container{
-            Padding: 14.0,
-            BackgroundColor: "#1e2130",
-            BorderWidth: 1.0,
-            BorderColor: Color.Parse("#6366f1"),
-            BorderRadius: 9.0
-        }
+    private func CapturePanel(input PopoverInput, bounds ElementRect, content Blob, result Container) {
+        result.Padding = 14.0
+        result.BackgroundColor = Color.Parse("#1e2130")
+        result.BorderWidth = 1.0
+        result.BorderColor = Color.Parse("#6366f1")
+        result.BorderRadius = 9.0
         PopupPanel = result
-        return result
     }
 
-    private func CapturePopup(input PopoverInput, backdrop Container, panel Container) Container {
-        let result = Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0}
+    private func CapturePopup(input PopoverInput, backdrop Container, panel Container, result Container) {
+        result.Position = PositionType.Absolute
+        result.Left = 0.0
+        result.Right = 0.0
+        result.Top = 0.0
+        result.Bottom = 0.0
         PopupRoot = result
-        return result
     }
 
-    private func MenuRow(input MenuInput, item MenuItem, prepared Button) Button {
+    private func MenuRow(input MenuInput, item MenuItem, prepared Button) {
         MenuRows[item.Id!!] = prepared
         if let color = MenuFocusColor {
-            prepared.Focus = Style{Color: color}
+            prepared.FocusStyle = Style{Color: color}
         }
-        return prepared
     }
 
     internal func AttachWindow(window Window) {
@@ -239,10 +227,10 @@ internal class OverlayHost : Cell {
         let root = Container{
             Width: Percent(100),
             Height: Percent(100),
-            BackgroundColor: "#111318",
+            BackgroundColor: Color.Parse("#111318"),
             Padding: 24.0,
             Gap: 16.0,
-            Color: "#fafafa",
+            Color: Color.Parse("#fafafa"),
             OnKeyDown: (event KeyEvent) -> {
                 BackgroundKeys++
             },
@@ -251,14 +239,14 @@ internal class OverlayHost : Cell {
                 Key: "description",
                 Content: "Nested dialogs · anchored popovers · accessible context menus",
                 FontSize: 14.0,
-                Color: "#a1a1aa"
+                Color: Color.Parse("#a1a1aa")
             },
             Button{
                 Key: "before",
                 Handle: Before,
                 Width: 180.0,
                 Height: 38.0,
-                BackgroundColor: "#27272a",
+                BackgroundColor: Color.Parse("#27272a"),
                 BorderRadius: 6.0,
                 OnKeyDown: (event KeyEvent) -> {
                     if event.Key == Key.Escape { BackgroundEscapes++ }
@@ -291,7 +279,7 @@ internal class OverlayHost : Cell {
                     Top: AnchorY,
                     Width: 180.0,
                     Height: 38.0,
-                    BackgroundColor: "#4f46e5",
+                    BackgroundColor: Color.Parse("#4f46e5"),
                     BorderRadius: 6.0,
                     OnClick: () -> {
                         PopupOpen = true
@@ -324,20 +312,20 @@ internal class OverlayHost : Cell {
             } else {
                 Container{
                     Gap: 12.0,
-                    Text{Content: "Focus stays in this dialog until it closes.", Color: "#a1a1aa"},
+                    Text{Content: "Focus stays in this dialog until it closes.", Color: Color.Parse("#a1a1aa")},
                     TextEntry{
                         Handle: Edit,
                         Value: "Release notes",
                         Width: Percent(100),
                         Height: 38.0,
                         Padding: 8.0,
-                        BackgroundColor: "#09090b",
+                        BackgroundColor: Color.Parse("#09090b"),
                         Accessibility: Accessibility{Name: "Dialog editor"}
                     },
                     Button{
                         Handle: Nested,
                         Height: 36.0,
-                        BackgroundColor: "#312e81",
+                        BackgroundColor: Color.Parse("#312e81"),
                         OnClick: () -> {
                             TopOpen = true
                             Rebuild()
@@ -352,6 +340,7 @@ internal class OverlayHost : Cell {
                     "outer",
                     ModalDialog{
                         Open: DialogOpen,
+                        Tone: DialogTone ?? Tone.Neutral,
                         Header: Text{Content: "Review change", FontSize: 21.0, FontWeight: 700},
                         Content: content,
                         AccessibilityName: "Review change",
@@ -359,9 +348,9 @@ internal class OverlayHost : Cell {
                         OnOpenChange: (isOpen bool) -> CloseOuter(),
                         OnCancel: CloseOuter,
                         OnConfirm: Confirm,
-                        CreateRoot: Outer,
-                        CreateCancel: Cancel,
-                        CreateConfirm: ConfirmFactory
+                        ConfigureRoot: Outer,
+                        ConfigureCancel: Cancel,
+                        ConfigureConfirm: ConfirmFactory
                     }
                 )
             )
@@ -372,12 +361,12 @@ internal class OverlayHost : Cell {
                         Open: TopOpen,
                         Header: Text{Content: "Nested confirmation", FontSize: 21.0, FontWeight: 700},
                         Width: 370.0,
-                        Content: Text{Content: "Only this top dialog receives keyboard input.", Color: "#a1a1aa"},
+                        Content: Text{Content: "Only this top dialog receives keyboard input.", Color: Color.Parse("#a1a1aa")},
                         AccessibilityName: "Nested confirmation",
                         OnOpenChange: (isOpen bool) -> CloseTop(),
                         OnCancel: CloseTop,
                         OnConfirm: CloseTop,
-                        CreateRoot: Top
+                        ConfigureRoot: Top
                     }
                 )
             )
@@ -390,11 +379,11 @@ internal class OverlayHost : Cell {
             Content: Container{
                 Gap: 14.0,
                 Text{Content: "Quick details", FontSize: 18.0, FontWeight: 700},
-                Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: "#c4c4cf"},
+                Text{Content: "This popup flips above its anchor and stays inside the viewport.", Color: Color.Parse("#c4c4cf")},
                 Button{
                     Handle: PopupAction,
                     Height: 34.0,
-                    BackgroundColor: "#4f46e5",
+                    BackgroundColor: Color.Parse("#4f46e5"),
                     Text{Content: "Continue"},
                     Accessibility: Accessibility{Name: "Popup action"}
                 }
@@ -402,8 +391,8 @@ internal class OverlayHost : Cell {
             OnOpenChange: PopupOpenChange,
             OnDismiss: PopupDismiss,
             DismissOnOutsideClick: !PassThrough,
-            CreatePanel: CapturePanel,
-            CreateRoot: CapturePopup
+            ConfigurePanel: CapturePanel,
+            ConfigureRoot: CapturePopup
         }
         if PointPopup {
             popup.WindowPoint = PopupPoint
@@ -429,7 +418,7 @@ internal class OverlayHost : Cell {
                     WindowPoint: Point{X: 630.0, Y: 180.0},
                     Width: 220.0,
                     AccessibilityName: "Actions",
-                    SubmenuArrowStyle: Style{Color: "#d16b42"},
+                    SubmenuArrowStyle: Style{Color: Color.Parse("#d16b42")},
                     Items: []MenuItem{
                         MenuItem{Id: "open", Label: "Open"},
                         MenuItem{Id: "disabled", Label: "Unavailable action", Disabled: true},
@@ -452,7 +441,7 @@ internal class OverlayHost : Cell {
                     OnClick: MenuActivate,
                     OnOpenChange: (isOpen bool) -> MenuDismiss(),
                     DismissOnActivate: !KeepMenu,
-                    CreateItem: MenuRow
+                    ConfigureItem: MenuRow
                 }
             )
         )
@@ -484,8 +473,7 @@ func ModalClipboardInteractions() {
     let semantics = SearchListSemantics{}
     let window = Window{
         Title: "Modal clipboard verification",
-        Width: 860,
-        Height: 560,
+        Size: LayoutSize(860, 560),
         Root: ApplicationRoot(host),
         AccessibilityAdapter: semantics,
     }
@@ -501,7 +489,7 @@ func ModalClipboardInteractions() {
         SelectorKey(id, SDLScancode.A, SDLKeymod.Ctrl)
         SelectorKey(id, SDLScancode.C, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
-        Require(window.GetClipboardText() == "keyboar", "Modal editor copy or Backspace failed")
+        Require(window.Clipboard.ReadText().Text == "keyboar", "Modal editor copy or Backspace failed")
         SendKey(id, SDLScancode.End)
         SelectorKey(id, SDLScancode.V, SDLKeymod.Ctrl)
         PumpFrames(window, 4)
@@ -521,8 +509,7 @@ func OverlayInteractions() {
     let semantics = SearchListSemantics()
     let window = Window{
         Title: "Overlay verification",
-        Width: 860,
-        Height: 560,
+        Size: LayoutSize(860, 560),
         Root: root,
         AccessibilityAdapter: semantics
     }
@@ -571,6 +558,65 @@ func OverlayInteractions() {
             FindSemantics(semantics.Tree?.Root, "Background action") == nil,
             "Modal exposed background accessibility content"
         )
+        let originalTheme = Theme.Read(window)
+        let linear = (value float32) -> value <= 0.04045F ? float64(value) / 12.92: Math.Pow((float64(value) + 0.055) / 1.055, 2.4)
+        let luminance = (color Color) -> 0.2126 * linear(color.R) + 0.7152 * linear(color.G) + 0.0722 * linear(color.B)
+        for palette in []Theme{Theme.Bone, Theme.Ink} {
+            Theme.Attach(window, palette with{TransitionMs = 0.0})
+            for tone in []Tone{Tone.Neutral, Tone.Info, Tone.Success, Tone.Warning, Tone.Danger} {
+                host.DialogTone = tone
+                host.Rebuild()
+                MouseMove(id, 4.0F, 4.0F)
+                PumpFrames(window, 16)
+                let theme = Theme.Read(window)
+                let semanticTone = tone != Tone.Neutral && tone != Tone.Danger
+                let fill = semanticTone ? theme.ToneColor(tone): tone == Tone.Danger ? theme.DangerFillColor: theme.AccentColor
+                let surface = luminance(fill) + 0.05
+                let shade = 1.05 / surface >= surface / 0.05 ? Color.Black: Color.White
+                let text = semanticTone ? shade == Color.Black ? Color.White: Color.Black: theme.OnAccentColor
+                let button = host.ConfirmButton!!.Handle!!
+                let box = button.ContentBox
+                for state in 0 ... (semanticTone ? 3: 1) {
+                    let x = float32(box.X + box.Width / 2.0)
+                    let y = float32(box.Y + box.Height / 2.0)
+                    if state == 1 { MouseMove(id, x, y) }
+                    if state == 2 { MouseButton(id, x, y, true) }
+                    PumpFrames(window, 16)
+                    let amount = float32(state) * 0.1F
+                    let expected = Color.FromNormalized(
+                        fill.R + (shade.R - fill.R) * amount,
+                        fill.G + (shade.G - fill.G) * amount,
+                        fill.B + (shade.B - fill.B) * amount, fill.A)
+                    let foreground = luminance(text) + 0.05
+                    let background = luminance(expected) + 0.05
+                    let expectedContrast = Math.Max(foreground, background) / Math.Min(foreground, background)
+                    let image = ThemeCapture(window)
+                    let scale = float64(image.Width) / float64(window.NativeWidth)
+                    var hasFill = false
+                    var hasText = false
+                    var contrast = 1.0
+                    for row in int32(box.Y * scale) ... int32((box.Y + box.Height) * scale) {
+                        for column in int32(box.X * scale) ... int32((box.X + box.Width) * scale) {
+                            hasFill = hasFill || ThemePixel(image, column, row, expected)
+                            hasText = hasText || ThemePixel(image, column, row, text)
+                            let at = row * int32(image.RowBytes) + column * 4
+                            let pixel = Color.Rgb(image.Pixels[at], image.Pixels[at + 1], image.Pixels[at + 2])
+                            let first = luminance(pixel) + 0.05
+                            contrast = Math.Max(contrast, Math.Max(first, background) / Math.Min(first, background))
+                        }
+                    }
+                    if state == 2 {
+                        MouseMove(id, 4.0F, 4.0F)
+                        MouseButton(id, 4.0F, 4.0F, false)
+                    }
+                    Require(hasFill && hasText && contrast >= expectedContrast - 0.05, "Modal confirm lost its solid tone shade or black/white text contrast: " + tone.ToString() + "/" + state.ToString())
+                }
+            }
+        }
+        Theme.Attach(window, originalTheme)
+        host.DialogTone = nil
+        host.Rebuild()
+        PumpFrames(window, 16)
         CaptureIssueProof(window, "modal-managed")
         host.ConfirmButton!!.Handle!!.Focus()
         SendKey(id, SDLScancode.Tab)
@@ -671,7 +717,7 @@ func OverlayInteractions() {
         host.ExplicitViewport = true
         host.PopupOpen = true
         host.Rebuild()
-        window.Width = 440
+        window.Size = LayoutSize(float64(440) / window.UiScale, window.Size.Height)
         PumpFrames(window, 18)
         let narrow = host.PopupPanel!!.Handle!!.BorderBox
         Require(
@@ -751,7 +797,7 @@ func OverlayInteractions() {
             PumpFrames(window, 8)
         }
         host.BasisContent = 0.0
-        window.Width = 860
+        window.Size = LayoutSize(float64(860) / window.UiScale, window.Size.Height)
         host.PointPopup = false
         host.ExplicitViewport = false
         host.AnchorX = 590.0
@@ -893,7 +939,7 @@ func OverlayInteractions() {
 func WhiteTextOnNavy(window Window, row ElementHandle) bool {
     let image = ThemeCapture(window)
     let box = row.BorderBox
-    let scale = float64(image.Width) / float64(window.Width)
+    let scale = float64(image.Width) / float64(window.NativeWidth)
     var navy = false
     var white = false
     for y in int32(box.Y * scale) + 1 ... int32((box.Y + box.Height) * scale) - 1 {
@@ -941,7 +987,7 @@ internal class TeachingTipHost : Cell {
 func TeachingTipInteractions() {
     let host = TeachingTipHost()
     let semantics = SearchListSemantics()
-    let window = Window{Title: "Teaching tip verification", Width: 640, Height: 480,
+    let window = Window{Title: "Teaching tip verification", Size: LayoutSize(640, 480),
         Root: ApplicationRoot(host), AccessibilityAdapter: semantics}
     Theme.Attach(window, Theme.Ink)
     RunNativeWindow(window, () -> {
@@ -1010,8 +1056,7 @@ func TeachingTipInteractions() {
         }
         Require(host.Requests == 24 && host.Actions == 6, "TeachingTip callback counts changed")
         for width in []int32{480, 900, 1600, 2560} {
-            window.Width = width
-            window.Height = width == 2560 ? 1440: 480
+            window.Size = LayoutSize(float64(width) / window.UiScale, float64(width == 2560 ? 1440: 480) / window.UiScale)
             window.UiScale = 1.5F
             for anchored in []bool{true, false} {
                 host.Anchored = anchored
@@ -1020,8 +1065,8 @@ func TeachingTipInteractions() {
                 PumpFrames(window, 16)
                 let panel = FindSemantics(semantics.Tree?.Root, "Save bookmark")!!.Bounds
                 Require(panel.X >= 0 && panel.Y >= 0
-                    && panel.X + panel.Width <= float64(window.Width) / window.UiScale + 1
-                    && panel.Y + panel.Height <= float64(window.Height) / window.UiScale + 1,
+                    && panel.X + panel.Width <= float64(window.NativeWidth) / window.UiScale + 1
+                    && panel.Y + panel.Height <= float64(window.NativeHeight) / window.UiScale + 1,
                     "TeachingTip escaped the scaled viewport")
                 host.Open = false
                 host.Rebuild()

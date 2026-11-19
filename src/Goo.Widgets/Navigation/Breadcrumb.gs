@@ -32,6 +32,7 @@ public data struct BreadcrumbInput {
     var AccessibilityName string?
     /// Receives the widget input, the path segment, and the prepared content, and returns the replacement content. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateItem Func[BreadcrumbInput, BreadcrumbItem, Blob, Blob]?
 }
 
@@ -109,7 +110,7 @@ public open class Breadcrumb : Cell[BreadcrumbInput], IDisposable {
             menuOpen = false
         }
         let visible = List[string]()
-        for index in 0 ... items.Length - 1 {
+        for index in 0 ... Math.Max(0, items.Length - 1) {
             if index == firstHidden {
                 visible.Add(overflowId)
             }

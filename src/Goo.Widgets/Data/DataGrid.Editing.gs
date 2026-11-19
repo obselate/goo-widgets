@@ -261,7 +261,7 @@ public open partial class DataGrid {
             window?.Post(() -> {
                 if disposed || editSession != nil { return }
                 Reveal()
-                if rootHandle.Focus() && traverse { window!!.PlatformInput.MoveFocus(forward) }
+                if rootHandle.Focus() && traverse { window!!.Focus.Move(forward) }
             })
         }
         if !session.Editor.IsMounted {
@@ -302,14 +302,14 @@ public open partial class DataGrid {
 
     private func EditKeyDown(e KeyEvent) {
         e.StopPropagation()
-        if e.IsComposing || (window?.PlatformInput.Editor?.CompositionStart ?? -1) >= 0 { return }
+        if e.IsComposing || (window?.Focus.Editor?.CompositionStart ?? -1) >= 0 { return }
         let commit = input.CommitEditKey ?? DataGridEditKey{Key: Key.Enter}
         if e.Key == Key.Escape || e.Key == Key.Tab || e.Key == commit.Key && e.Modifiers == commit.Modifiers {
             e.PreventDefault()
             if e.Repeat { return }
             if e.Key == Key.Escape { CancelEdit(DataGridEditCancelReason.Escape) }
             else if e.Key == Key.Tab {
-                if e.Modifiers.Ctrl || e.Modifiers.Super {
+                if e.Modifiers.Ctrl {
                     let session = editSession
                     if CommitEdit(false) && session != nil { ReturnEditFocus(session, true, !e.Modifiers.Shift) }
                 } else { CommitEdit(false, e.Modifiers.Shift ? -1: 1) }
@@ -324,25 +324,16 @@ public open partial class DataGrid {
         })
     }
 
-    private func ConfigureEditor(editor Blob, session DataGridEditSession, name string) {
-        editor.Handle = session.Editor
+    private func ConfigureEditor(editor Blob, session DataGridEditSession) {
         editor.OnKeyDown = EditKeyDown
         editor.OnFocus = (e FocusEvent) -> {
             if session.FocusPending {
                 session.FocusPending = false
-                window!!.PlatformInput.SetSelection(session.Value.Draft.Length, session.Value.Draft.Length)
+                window!!.Focus.SetSelection(session.Value.Draft.Length, session.Value.Draft.Length)
             }
         }
-        editor.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextInput,
-            Name: name,
-            Multiline: session.Multiline,
-            Invalid: session.Error != nil,
-            Relationships: AccessibilityRelationships{
-                DescribedBy: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{},
-                ErrorMessage: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{}
-            }
-        }
+        editor.Accessibility ??= Accessibility{}
+        editor.Accessibility!!.Multiline = session.Multiline
     }
 
     private func BuildEditor(session DataGridEditSession, column DataGridColumn, height float64) Blob {
@@ -353,31 +344,22 @@ public open partial class DataGrid {
         var editor Blob
         if session.Multiline {
             session.Controller ??= TextEditorController(TextDocument(session.Value.Draft))
-            var prepared TextEditor?
             editor = Cell.Mount[TextAreaInput, TextArea]("cell-editor", TextAreaInput{
                 Controller: session.Controller,
                 Width: Percent(100), Height: height, MinHeight: 0, MinimumRows: 1,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
-                CreateEditor: (input TextAreaInput, value TextEditor) -> {
+                ConfigureEditor: (input TextAreaInput, value TextEditor) -> {
+                    value.Handle = session.Editor
+                    ConfigureEditor(value, session)
                     if session.Presentation == DataGridEditPresentation.Inline {
                         value.Padding = Edges{Left: theme.ControlPadding, Right: theme.ControlPadding}
                     }
-                    prepared = value
-                    return value
-                },
-                CreateRoot: (input TextAreaInput, root Container) -> {
-                    ConfigureEditor(prepared!!, session, name)
-                    return root
-                }
-            })
+                }})
         } else {
             editor = TextField{
-                Value: session.Value.Draft, Width: Percent(100), EntryHeight: height,
+                Handle: session.Editor, Value: session.Value.Draft, Width: Percent(100), EntryHeight: height,
                 AccessibilityName: name, Invalid: session.Error != nil, OnChange: change,
-                CreateRoot: (input TextField, label Text?, value TextEntry, error Text?) -> {
-                    ConfigureEditor(value, session, name)
-                    return Container{Width: Percent(100), MinWidth: 0, value}
-                }
+                ConfigureEntry: (input TextField, value TextEntry) -> ConfigureEditor(value, session),
             }.Build()
         }
         if let create = column.CreateEditor {
@@ -404,7 +386,15 @@ public open partial class DataGrid {
                 EditBlur(session)
                 e.StopPropagation()
             },
-            editor
+            AccessibilityAttachment{
+                Content: editor,
+                Target: session.Editor,
+                Invalid: session.Error != nil,
+                Relationships: AccessibilityRelationships{
+                    DescribedBy: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{},
+                    ErrorMessage: session.Error != nil ? []ElementHandle{session.ErrorHandle}: []ElementHandle{},
+                },
+            },
         }
     }
 

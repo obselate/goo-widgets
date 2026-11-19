@@ -1,10 +1,15 @@
 package Goo.Widgets.Inputs
 
+import System
+
 import Goo
 import Goo.Widgets
 
 /// A controlled switch composed from a Goo button track and thumb.
 /// Factories receive resolved props and may replace the final Goo primitives.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct ToggleSwitch {
     /// Whether the track displays its on state. Build does not invert this value.
     var Value bool
@@ -55,14 +60,17 @@ public data struct ToggleSwitch {
     /// Pressed transform. Nil uses the identity transform.
     var ActiveTransform PanelTransform?
     /// Creates the final thumb from resolved props. Nil uses the default thumb.
+    /// Return a fresh element or the supplied default.
     var CreateThumb Func[ToggleSwitch, Container]?
-    /// Creates the final Button from resolved props and exact final thumb.
-    var CreateRoot Func[ToggleSwitch, Container, Button]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Checked, Accessibility.Name, Accessibility.Role, Disabled, Focusable, KeyBindings (required entries), OnClick.
+    var ConfigureRoot Action[ToggleSwitch, Container, Button]?
     /// Builds a fresh Goo switch tree after resolving props and factories.
     public func Build() Blob {
         let theme = Theme.Read()
         let createThumb = CreateThumb
-        let createRoot = CreateRoot
+        let configureRoot = ConfigureRoot
         let fluent = theme.Controls == ControlStyle.Fluent
         let defaultHeight Length = fluent ? 20.0: theme.Spacing * 6.0
         let defaultWidth Length = fluent ? 40.0: theme.Spacing * 11.0
@@ -91,7 +99,7 @@ public data struct ToggleSwitch {
             Transform = Transform ?? PanelTransform{},
             ActiveTransform = ActiveTransform ?? PanelTransform{},
             CreateThumb = nil,
-            CreateRoot = nil,
+            ConfigureRoot = nil,
         }
         let thumb = if let createThumb = createThumb {
             createThumb(resolved)
@@ -115,8 +123,8 @@ public data struct ToggleSwitch {
         }
         let trackColor = resolved.Disabled ? resolved.DisabledTrackColor!!:
             resolved.Value ? resolved.OnTrackColor!!: resolved.OffTrackColor!!
-        let trackHandle ElementHandle? = createRoot == nil ? ElementHandle(): nil
-        let button = if let createRoot = createRoot { createRoot(resolved, thumb) } else { Button{
+        let trackHandle = ElementHandle()
+        let button = Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
             MinHeight: theme.ControlHeight,
@@ -132,16 +140,16 @@ public data struct ToggleSwitch {
             TransitionMs: resolved.TransitionMs!!,
             TransitionEasing: resolved.TransitionEasing!!,
             TransitionProperties: ActiveTransform == nil ? theme.InteractionTransitions: theme.PressTransitions,
-            Hover: Style{BackgroundColor: Color.Transparent},
-            Active: Style{BackgroundColor: Color.Transparent, Transform: resolved.ActiveTransform!!},
-            Focus: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
+            HoverStyle: Style{BackgroundColor: Color.Transparent},
+            ActiveStyle: Style{BackgroundColor: Color.Transparent, Transform: resolved.ActiveTransform!!},
+            FocusStyle: FocusBorderColor == nil ? nil: Style{OutlineColor: FocusBorderColor!!},
             DisabledStyle: Style{BackgroundColor: Color.Transparent},
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.FlexStart,
             Container{
                 Handle: trackHandle,
-                Focus: Style{BasedOn: theme.FocusStyle, OutlineColor: resolved.FocusBorderColor!!},
+                FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineColor: resolved.FocusBorderColor!!},
                 Width: Percent(100.0),
                 Height: resolved.Height!!,
                 Padding: resolved.Padding!!,
@@ -153,19 +161,48 @@ public data struct ToggleSwitch {
                 AlignItems: AlignItems.Center,
                 JustifyContent: resolved.Value ? JustifyContent.FlexEnd: JustifyContent.FlexStart,
                 HitTestSelf: fluent,
-                Hover: fluent ? Style{Padding: 2.0}: nil,
+                HoverStyle: fluent ? Style{Padding: 2.0}: nil,
                 thumb,
             },
-        } }
-        theme.ApplyInteraction(button, InteractionFamily.Toggle, Value)
-        if createRoot == nil {
-            button.Focus = Style{BasedOn: button.Focus, OutlineWidth: 0}
-            button.FocusTarget = trackHandle
         }
+        if let configure = configureRoot {
+            let originalAccessibilityChecked = (button.Accessibility?.Checked ?? AccessibilityChecked(0))
+            let originalAccessibilityName = (button.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (button.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = button.Disabled
+            let originalFocusable = button.Focusable
+            let originalOnClick = button.OnClick
+            configure.Invoke(resolved, thumb, button)
+            if (button.Accessibility?.Checked ?? AccessibilityChecked(0)) != originalAccessibilityChecked {
+                throw InvalidOperationException("ToggleSwitch owns Accessibility.Checked; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("ToggleSwitch owns Accessibility.Name; set ToggleSwitch.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (button.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("ToggleSwitch owns Accessibility.Role; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+            if button.Disabled != originalDisabled {
+                throw InvalidOperationException("ToggleSwitch owns Disabled; set ToggleSwitch.Disabled instead of changing it in ConfigureRoot")
+            }
+            if button.Focusable != originalFocusable {
+                throw InvalidOperationException("ToggleSwitch owns Focusable; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+            if button.OnClick != originalOnClick {
+                throw InvalidOperationException("ToggleSwitch owns OnClick; configure ToggleSwitch instead of changing it in ConfigureRoot")
+            }
+        }
+        theme.ApplyInteraction(button, InteractionFamily.Toggle, Value)
+        button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineWidth: 0}
+        button.FocusTarget = trackHandle
         button.Disabled = Disabled
         button.Focusable = !Disabled
         button.OnClick = Disabled ? nil: () -> OnChange?.Invoke(!Value)
-        button.Accessibility = Accessibility{Role: AccessibilityRole.Switch, Name: resolved.AccessibilityName!!, Checked: Value ? AccessibilityChecked.True: AccessibilityChecked.False}
+        let buttonAccessibility = if let configured = button.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        buttonAccessibility.Role = AccessibilityRole.Switch
+        buttonAccessibility.Name = resolved.AccessibilityName!!
+        buttonAccessibility.Checked = Value ? AccessibilityChecked.True: AccessibilityChecked.False
+        button.Accessibility = buttonAccessibility
         WidgetKeyBindings.BindActivation(button)
         return button
     }

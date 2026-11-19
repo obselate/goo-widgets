@@ -13,7 +13,7 @@ class ChipPage : GalleryPage {
         let selectedLeadingChip = Chip{
             Label: "Active",
             Selected: true,
-            Leading: Container{Width: 8.0, Height: 8.0, BorderRadius: 4.0, BackgroundColor: "#09090b",},
+            Leading: Container{Width: 8.0, Height: 8.0, BorderRadius: 4.0, BackgroundColor: Color.Parse("#09090b"),},
         }
 
         let disabledSelectedChip = Chip{Label: "Locked Tag", Selected: true, Disabled: true,}
@@ -21,7 +21,7 @@ class ChipPage : GalleryPage {
         let customStyledChip = Chip{
             Label: "Custom Style",
             Selected: true,
-            Leading: Container{Width: 8.0, Height: 8.0, BorderRadius: 2.0, BackgroundColor: "#27272a",},
+            Leading: Container{Width: 8.0, Height: 8.0, BorderRadius: 2.0, BackgroundColor: Color.Parse("#27272a"),},
             Height: 32.0,
             PaddingHorizontal: 14.0,
             Gap: 8.0,

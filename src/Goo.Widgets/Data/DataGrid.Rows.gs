@@ -158,7 +158,7 @@ public open partial class DataGrid {
                 RowIndex: RawIndex(id), ColumnIndex: index + (leading > 0.0 ? 1: 0),
                 ReadOnly: !CanEditCell(row, column, false)
             },
-            content
+            (row.Disabled || snapshot.Disabled) && snapshot.CreateCellContent != nil ? theme.DisabledSlot(content, theme.TextColor): content
         }
     }
 
@@ -209,11 +209,17 @@ public open partial class DataGrid {
                         }
                     },
                     Accessibility: Accessibility{Hidden: true},
-                    ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                    ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16,
+                        row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
                 })
-                cells.Children.Add(Container{FlexGrow: 1, FlexBasis: 0, MinWidth: 0, content})
+                cells.Children.Add(Container{
+                    FlexGrow: 1,
+                    FlexBasis: 0,
+                    MinWidth: 0,
+                    row.Disabled || snapshot.Disabled ? theme.DisabledSlot(content, theme.TextColor): content
+                })
             } else {
-                cells.Children.Add(content)
+                cells.Children.Add(row.Disabled || snapshot.Disabled ? theme.DisabledSlot(content, theme.TextColor): content)
             }
         } else {
             if leading > 0.0 {
@@ -244,28 +250,55 @@ public open partial class DataGrid {
                     })
                 }
                 if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
-                    var check = (
-                        Checkbox{
-                            Value: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
-                            DisabledOpacity: row.Disabled || snapshot.Disabled ? 1.0: nil,
-                            Size: 18
-                        }.Build() as Button
-                    )!!
-                    if let create = snapshot.CreateSelection {
-                        check = create(snapshot, row, check)
-                    }
-                    check.Focusable = false
-                    check.TabStop = false
-                    check.Disabled = row.Disabled ||
+                    let checkDisabled = row.Disabled ||
                         snapshot.Disabled ||
                         (
                         snapshot.OnSelectionRequest == nil &&
                             snapshot.OnSelectionChange == nil &&
                             snapshot.OnSelectionIndicesChange == nil
                     )
+                    var check = (
+                        Checkbox{
+                            Value: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
+                            Disabled: checkDisabled,
+                            Size: 18
+                        }.Build() as Button
+                    )!!
+                    if let configure = snapshot.ConfigureSelection {
+                        let originalAccessibilityHidden = (check.Accessibility?.Hidden ?? false)
+                        let originalDisabled = check.Disabled
+                        let originalFocusable = check.Focusable
+                        let originalOnClick = check.OnClick
+                        let originalOnPointerDown = check.OnPointerDown
+                        let originalTabStop = check.TabStop
+                        configure.Invoke(snapshot, row, check)
+                        if (check.Accessibility?.Hidden ?? false) != originalAccessibilityHidden {
+                            throw InvalidOperationException("DataGrid owns Accessibility.Hidden; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.Disabled != originalDisabled {
+                            throw InvalidOperationException("DataGrid owns Disabled; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.Focusable != originalFocusable {
+                            throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.OnClick != originalOnClick {
+                            throw InvalidOperationException("DataGrid owns OnClick; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.OnPointerDown != originalOnPointerDown {
+                            throw InvalidOperationException("DataGrid owns OnPointerDown; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                        if check.TabStop != originalTabStop {
+                            throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureSelection")
+                        }
+                    }
+                    check.Focusable = false
+                    check.TabStop = false
+                    check.Disabled = checkDisabled
                     check.OnPointerDown = (e PointerEvent) -> clickModifiers = e.Modifiers
                     check.OnClick = () -> Select(id, true, clickModifiers.Shift, false)
-                    check.Accessibility = Accessibility{Hidden: true}
+                    let checkAccessibility = if let configured = check.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+                    checkAccessibility.Hidden = true
+                    check.Accessibility = checkAccessibility
                     controls.Children.Add(
                         Container{
                             Key: "selection",
@@ -286,7 +319,8 @@ public open partial class DataGrid {
                         Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
                         OnClick: () -> Expand(id, !isExpanded, false),
                         Accessibility: Accessibility{Hidden: true},
-                        ControlIcons.Create(isExpanded ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                        ControlIcons.Create(isExpanded ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16,
+                            row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
                     }
                     let slot = Container{
                         Key: "expansion",
@@ -326,8 +360,8 @@ public open partial class DataGrid {
         }
         var root = Container{
             BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
-            Hover: isSelected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
-            Active: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!:
+            HoverStyle: isSelected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
+            ActiveStyle: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!:
                 pinnedCount == 0 || pressedId == id ? theme.PressedColor: hoveredId == id ? theme.HoverColor: Color.Transparent},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
@@ -345,12 +379,93 @@ public open partial class DataGrid {
                 Rebuild()
             }
         }
-        if let create = snapshot.CreateRow {
-            root = create(snapshot, row, root)
+        root.Children.Clear()
+        root.Children.Add(cells)
+        if isSelected && theme.Selection == SelectionStyle.Indicator {
+            root.Children.Add(theme.SelectionBar())
         }
-        root.Focus = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.Focus}
+        if isExpanded {
+            let detail = if snapshot.CreateDetail != nil {
+                snapshot.CreateDetail!!(snapshot, row)
+            } else {
+                row.Detail ?? Container{}
+            }
+            root.Children.Add(
+                Container{
+                    Key: "detail",
+                    Width: tableWidth,
+                    Padding: Edges{
+                        Left: leading + snapshot.DetailPadding!!,
+                        Right: snapshot.DetailPadding!!,
+                        Top: snapshot.DetailPadding!!,
+                        Bottom: snapshot.DetailPadding!!
+                    },
+                    BackgroundColor: snapshot.DetailBackground!!,
+                    OnKeyDown: stopGridKeys,
+                    Accessibility: Accessibility{
+                        Role: AccessibilityRole.GridCell,
+                        Name: theme.Text("Details for {0}", row.Label ?? id),
+                        RowIndex: rowIndex,
+                        ColumnIndex: 0
+                    },
+                    row.Disabled || snapshot.Disabled ? theme.DisabledSlot(detail, theme.TextColor): detail
+                }
+            )
+        }
+        if let configure = snapshot.ConfigureRow {
+            let originalAccessibilityColumnCount = root.Accessibility?.ColumnCount
+            let originalAccessibilityExpanded = root.Accessibility?.Expanded
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityOnAction = root.Accessibility?.OnAction
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalAccessibilityRowIndex = root.Accessibility?.RowIndex
+            let originalAccessibilitySelected = root.Accessibility?.Selected
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalKey = root.Key
+            let originalTabStop = root.TabStop
+            configure.Invoke(snapshot, row, root)
+            if root.Accessibility?.ColumnCount != originalAccessibilityColumnCount {
+                throw InvalidOperationException("DataGrid owns Accessibility.ColumnCount; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.Expanded != originalAccessibilityExpanded {
+                throw InvalidOperationException("DataGrid owns Accessibility.Expanded; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("DataGrid owns Accessibility.Name; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.OnAction != originalAccessibilityOnAction {
+                throw InvalidOperationException("DataGrid owns Accessibility.OnAction; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("DataGrid owns Accessibility.Role; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.RowIndex != originalAccessibilityRowIndex {
+                throw InvalidOperationException("DataGrid owns Accessibility.RowIndex; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Accessibility?.Selected != originalAccessibilitySelected {
+                throw InvalidOperationException("DataGrid owns Accessibility.Selected; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("DataGrid owns Disabled; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("DataGrid owns Focusable; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("DataGrid owns Handle; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.Key != originalKey {
+                throw InvalidOperationException("DataGrid owns Key; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("DataGrid owns TabStop; configure DataGridInput instead of changing it in ConfigureRow")
+            }
+        }
+        root.FocusStyle = Style{OutlineColor: snapshot.FocusColor!!, BasedOn: root.FocusStyle}
         theme.ApplyInteraction(root, InteractionFamily.Row, isSelected)
-        cells.Focus = root.Focus
+        cells.FocusStyle = root.FocusStyle
         root.Key = id
         root.Handle = Handle(rowHandles, id)
         root.Width = tableWidth
@@ -404,7 +519,7 @@ public open partial class DataGrid {
                         }
                     }
                 } else {
-                    Select(id, clickModifiers.Ctrl || clickModifiers.Super, clickModifiers.Shift, false)
+                    Select(id, clickModifiers.HasPrimary, clickModifiers.Shift, false)
                     if clickCount == 2 {
                         if !BeginEdit(id, activeColumn) { Invoke(id) }
                     }
@@ -433,53 +548,19 @@ public open partial class DataGrid {
             actions.Add(AccessibilityAction.Focus)
             actions.Add(groupExpanded.Contains(id) ? AccessibilityAction.Collapse: AccessibilityAction.Expand)
         }
-        let semantics = Accessibility{
-            Role: AccessibilityRole.Row,
-            Name: row.Label ?? id,
-            RowIndex: rowIndex,
-            ColumnCount: columns.Length + (leading > 0.0 ? 1: 0),
-            Selected: snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected,
-            Expanded: row.IsGroup && snapshot.OnGroupExpandedChange != nil ? groupExpanded.Contains(id):
-                (row.HasDetail || row.Detail != nil) ? isExpanded: nil,
-            Actions: actions.ToArray()
-        }
+        let semantics = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        semantics.Role = AccessibilityRole.Row
+        semantics.Name = row.Label ?? id
+        semantics.RowIndex = rowIndex
+        semantics.ColumnCount = columns.Length + (leading > 0.0 ? 1: 0)
+        semantics.Selected = snapshot.Selection == DataGridSelection.None || row.IsGroup ? nil: isSelected
+        semantics.Expanded = row.IsGroup && snapshot.OnGroupExpandedChange != nil ? groupExpanded.Contains(id):
+                (row.HasDetail || row.Detail != nil) ? isExpanded: nil
+        semantics.Actions = actions.ToArray()
         if actions.Count > 0 {
             semantics.OnAction = (request AccessibilityActionRequest) -> RowAction(id, request)
         }
         root.Accessibility = semantics
-        root.Children.Clear()
-        root.Children.Add(cells)
-        if isSelected && theme.Selection == SelectionStyle.Indicator {
-            root.Children.Add(theme.SelectionBar())
-        }
-        if isExpanded {
-            let detail = if snapshot.CreateDetail != nil {
-                snapshot.CreateDetail!!(snapshot, row)
-            } else {
-                row.Detail ?? Container{}
-            }
-            root.Children.Add(
-                Container{
-                    Key: "detail",
-                    Width: tableWidth,
-                    Padding: Edges{
-                        Left: leading + snapshot.DetailPadding!!,
-                        Right: snapshot.DetailPadding!!,
-                        Top: snapshot.DetailPadding!!,
-                        Bottom: snapshot.DetailPadding!!
-                    },
-                    BackgroundColor: snapshot.DetailBackground!!,
-                    OnKeyDown: stopGridKeys,
-                    Accessibility: Accessibility{
-                        Role: AccessibilityRole.GridCell,
-                        Name: theme.Text("Details for {0}", row.Label ?? id),
-                        RowIndex: rowIndex,
-                        ColumnIndex: 0
-                    },
-                    detail
-                }
-            )
-        }
         return root
     }
 
@@ -653,7 +734,7 @@ public open partial class DataGrid {
                 e.Key == Key.Right ||
                 e.Key == Key.Space ||
                 e.Key == Key.Enter ||
-                (e.Modifiers.Ctrl || e.Modifiers.Super) &&
+                e.Modifiers.HasPrimary &&
                     (e.Key == Key.A || e.Key == Key.C || e.Key == Key.Insert)
         ) {
             e.StopPropagation()
@@ -669,7 +750,7 @@ public open partial class DataGrid {
             e.StopPropagation()
             return
         }
-        let control = e.Modifiers.Ctrl || e.Modifiers.Super
+        let control = e.Modifiers.HasPrimary
         let current = NavigationIndex(activeId)
         var next = current
         if control && e.Key == Key.A {
@@ -857,14 +938,14 @@ public open partial class DataGrid {
             ActiveRowId = nil, ActiveColumnId = nil,
             OnActiveRowChange = nil, OnActiveRowIndexChange = nil, OnActiveColumnChange = nil,
             OnSelectionChange = nil, OnSelectionIndicesChange = nil, OnSelectionRequest = nil,
-            OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, CreateRoot = nil,
+            OnSelectAll = nil, OnCopy = nil, OnKeyDown = nil, OnTextInput = nil, ConfigureRoot = nil,
             UseDefaultKeyboard = nil, OnClick = nil,
             OnExpandedChange = nil, OnGroupExpandedChange = nil,
             ColumnWidths = nil, OnColumnWidthChange = nil, OnColumnWidthCommit = nil,
             FitColumnsToViewport = false, OnFittedColumnWidthsChange = nil, OnFittedColumnWidthsCommit = nil,
             OnColumnOrderChange = nil, RootHandle = nil, ViewportHandle = nil,
             Width = nil, Height = nil, HeaderHeight = nil, FilterHeight = nil, AccessibilityName = nil,
-            HeaderStyle = nil, ResizeHandleStyle = nil, CreateResizeHandle = nil,
+            HeaderStyle = nil, ResizeHandleStyle = nil, ConfigureResizeHandle = nil,
             CreateHeader = nil, CreateFilter = nil, EmptyContent = nil,
             ScrollbarX = nil, ScrollbarY = nil, ScrollbarVisibilityX = nil, ScrollbarVisibilityY = nil,
             Sorts = nil, SortColumnId = nil, SortDirection = DataGridSort.None,

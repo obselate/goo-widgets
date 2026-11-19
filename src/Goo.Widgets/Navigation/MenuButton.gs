@@ -133,19 +133,18 @@ public data struct SplitButton {
         let primary = (Button.Build() as Button)!!
         primary.BorderEndWidth = 0
         SquareCorners(primary, theme.RightToLeft)
-        primary.Focus = Style{ZIndex: 1, BasedOn: primary.Focus}
+        primary.FocusStyle = Style{ZIndex: 1, BasedOn: primary.FocusStyle}
         let arrow = Menu.Button with{
             Content = "",
             AccessibilityName = ArrowAccessibilityName ?? theme.Text("More actions"),
             MinWidth = 0.0,
             PaddingHorizontal = theme.Spacing,
             Disabled = Button.Disabled || Button.Loading || Menu.Button.Disabled,
-            CreateRoot = (resolved ActionButton, text Text) -> {
-                let root = ((resolved with{OnClick = nil}).Build() as Button)!!
+            ConfigureRoot = (resolved ActionButton, text Text, prepared Button) -> {
+                let root = prepared
                 root.OnClick = resolved.OnClick
                 SquareCorners(root, !theme.RightToLeft)
-                root.Focus = Style{ZIndex: 1, BasedOn: root.Focus}
-                return root
+                root.FocusStyle = Style{ZIndex: 1, BasedOn: root.FocusStyle}
             },
         }
         return Container{

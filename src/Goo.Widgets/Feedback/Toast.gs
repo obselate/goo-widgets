@@ -39,6 +39,7 @@ public data struct ToastInput {
     var OnOpenChange Action[bool]?
     /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[ToastInput, Container, Container]?
 }
 
@@ -118,7 +119,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         if input.Open == false && !closing && !departing {
             Pause()
             departing = true
-            timer = current.Window.SetTimeout(dismiss, 0.0)
+            timer = current.Window.After(0.0, dismiss)
         }
         if closed {
             return Container{}
@@ -182,7 +183,7 @@ public open class Toast : Cell[ToastInput], IDisposable {
         if timer == nil && !hovered && !focused && !closing && !departing
         && current.Item.DurationMs!!> 0.0 && current.Window.IsOpen {
             started = Stopwatch.GetTimestamp()
-            timer = current.Window.SetTimeout(dismiss, remaining)
+            timer = current.Window.After(remaining, dismiss)
         }
     }
 
@@ -241,6 +242,7 @@ public data struct ToastHostInput {
     var Width Length?
     /// Receives the host input, toast input, and prepared container, and returns its replacement. Nil uses the default composition.
     /// Hosts must not change state in this callback.
+    /// Return a fresh element or the supplied default.
     var CreateToast Func[ToastHostInput, ToastInput, Container, Container]?
 }
 

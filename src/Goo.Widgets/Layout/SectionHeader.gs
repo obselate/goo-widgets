@@ -48,10 +48,13 @@ public data struct SectionHeader {
     /// Transform applied to the root container. Nil resolves to the identity transform.
     var Transform PanelTransform?
     /// Custom factory for the label Text element. Receives resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateLabel Func[SectionHeader, Text]?
     /// Custom factory for the meta Text element. Receives resolved props.
+    /// Return a fresh element or the supplied default.
     var CreateMeta Func[SectionHeader, Text]?
     /// Custom factory for the root Container. Receives resolved props and child primitives.
+    /// Return a fresh element or the supplied default.
     var CreateRoot Func[SectionHeader, Container?, Text, Container, Text?, Container]?
 
     /// Builds a fresh Goo element tree after resolving props and factories.

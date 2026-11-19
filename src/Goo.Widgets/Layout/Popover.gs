@@ -31,6 +31,9 @@ public enum PopoverDismissReason {
 }
 
 /// Controlled popup state. Presentation uses the Window's automatic Portal overlay.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct PopoverInput {
     /// Controlled visibility. False hides the popup.
     var Open bool
@@ -88,12 +91,14 @@ public data struct PopoverInput {
     var ScrollbarY Scrollbar?
     /// Vertical visibility. Nil uses Auto.
     var ScrollbarVisibilityY ScrollbarVisibility?
-    /// Creates the panel from resolved input, window bounds, and content. Placement and identity are rewired.
-    /// Hosts must not change state in this callback.
-    var CreatePanel Func[PopoverInput, ElementRect, Blob, Container]?
-    /// Receives the resolved input, prepared backdrop, and prepared panel, and returns their root container. Children, geometry, input routing, and popup semantics are reapplied. Nil uses the default root.
-    /// Hosts must not change state in this callback.
-    var CreateRoot Func[PopoverInput, Container, Container, Container]?
+    /// Configures the fresh panel before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Handle, Key.
+    var ConfigurePanel Action[PopoverInput, ElementRect, Blob, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Replace its children for custom content. Edit only the supplied element.
+    /// Widget-owned fields: Accessibility.Name, Accessibility.Role, Disabled, Focusable, Handle, HitTestSelf, OnKeyDown, TabStop.
+    var ConfigureRoot Action[PopoverInput, Container, Container, Container]?
 }
 
 /// Anchors content, flips/clamps placement, contains Tab, and restores prior focus except on outside clicks.
@@ -211,10 +216,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         let origin = anchor == nil ? Place(viewport, width, height): Point{}
         let bounds = ElementRect{X: origin.X, Y: origin.Y, Width: width, Height: height}
         let content = current.Content ?? Container{HitTestSelf: false}
-        let panel = if let create = current.CreatePanel {
-            create(current, bounds, content)
-        } else {
-            Container{
+        let panel = Container{
                 BasedOn: theme.OverlayStyle,
                 Padding: current.Padding!!,
                 BackgroundColor: current.BackgroundColor!!,
@@ -223,6 +225,18 @@ public open class Popover : Cell[PopoverInput], IDisposable {
                 BorderRadius: theme.PanelRadius!!,
                 ScrollbarY: current.ScrollbarY,
                 ScrollbarVisibilityY: current.ScrollbarVisibilityY!!,
+            }
+        panel.Children.Clear()
+        panel.Children.Add(content)
+        if let configure = current.ConfigurePanel {
+            let originalHandle = panel.Handle
+            let originalKey = panel.Key
+            configure.Invoke(current, bounds, content, panel)
+            if panel.Handle != originalHandle {
+                throw InvalidOperationException("Popover owns Handle; configure PopoverInput instead of changing it in ConfigurePanel")
+            }
+            if panel.Key != originalKey {
+                throw InvalidOperationException("Popover owns Key; configure PopoverInput instead of changing it in ConfigurePanel")
             }
         }
         panel.Key = "panel"
@@ -239,8 +253,6 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         panel.MinHeight = 0.0
         panel.FlexShrink = anchor == nil ? 0.0: 1.0
         panel.OverflowY = Overflow.Scroll
-        panel.Children.Clear()
-        panel.Children.Add(content)
         let backdrop = Container{
             Key: "backdrop",
             Position: PositionType.Absolute,
@@ -255,21 +267,7 @@ public open class Popover : Cell[PopoverInput], IDisposable {
             Accessibility: Accessibility{Role: AccessibilityRole.None, Hidden: true},
             OnClick: () -> Dismiss(PopoverDismissReason.OutsideClick),
         }
-        let root = if let create = current.CreateRoot {
-            create(current, backdrop, panel)
-        } else {
-            Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0,}
-        }
-        rootKeyHandler = root.OnKeyDown
-        root.Handle = presented ? rootHandle: measurementRootHandle
-        root.Visibility = presented ? Visibility.Visible: Visibility.Hidden
-        root.Focusable = current.TakeFocus != false
-        root.HitTestSelf = false
-        root.TabStop = false
-        root.Disabled = false
-        root.ZIndex = current.ZIndex + (activeScope?.Order ?? 0)
-        root.Accessibility = Accessibility{Role: current.Role, Name: current.AccessibilityName!!}
-        root.OnKeyDown = HandleKey
+        let root = Container{Position: PositionType.Absolute, Left: 0.0, Right: 0.0, Top: 0.0, Bottom: 0.0,}
         root.Children.Clear()
         root.Children.Add(backdrop)
         if anchor != nil {
@@ -310,6 +308,54 @@ public open class Popover : Cell[PopoverInput], IDisposable {
         for overlay in current.Overlays ?? []Blob{} {
             root.Children.Add(overlay)
         }
+        if let configure = current.ConfigureRoot {
+            let originalAccessibilityName = (root.Accessibility?.Name ?? "")
+            let originalAccessibilityRole = (root.Accessibility?.Role ?? AccessibilityRole(0))
+            let originalDisabled = root.Disabled
+            let originalFocusable = root.Focusable
+            let originalHandle = root.Handle
+            let originalHitTestSelf = root.HitTestSelf
+            let originalOnKeyDown = root.OnKeyDown
+            let originalTabStop = root.TabStop
+            configure.Invoke(current, backdrop, panel, root)
+            if (root.Accessibility?.Name ?? "") != originalAccessibilityName {
+                throw InvalidOperationException("Popover owns Accessibility.Name; set PopoverInput.AccessibilityName instead of changing it in ConfigureRoot")
+            }
+            if (root.Accessibility?.Role ?? AccessibilityRole(0)) != originalAccessibilityRole {
+                throw InvalidOperationException("Popover owns Accessibility.Role; set PopoverInput.Role instead of changing it in ConfigureRoot")
+            }
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("Popover owns Disabled; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.Focusable != originalFocusable {
+                throw InvalidOperationException("Popover owns Focusable; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.Handle != originalHandle {
+                throw InvalidOperationException("Popover owns Handle; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.HitTestSelf != originalHitTestSelf {
+                throw InvalidOperationException("Popover owns HitTestSelf; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.OnKeyDown != originalOnKeyDown {
+                throw InvalidOperationException("Popover owns OnKeyDown; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+            if root.TabStop != originalTabStop {
+                throw InvalidOperationException("Popover owns TabStop; configure PopoverInput instead of changing it in ConfigureRoot")
+            }
+        }
+        rootKeyHandler = root.OnKeyDown
+        root.Handle = presented ? rootHandle: measurementRootHandle
+        root.Visibility = presented ? Visibility.Visible: Visibility.Hidden
+        root.Focusable = current.TakeFocus != false
+        root.HitTestSelf = false
+        root.TabStop = false
+        root.Disabled = false
+        root.ZIndex = current.ZIndex + (activeScope?.Order ?? 0)
+        let rootAccessibility = if let configured = root.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        rootAccessibility.Role = current.Role
+        rootAccessibility.Name = current.AccessibilityName!!
+        root.Accessibility = rootAccessibility
+        root.OnKeyDown = HandleKey
         return Present(root)
     }
 

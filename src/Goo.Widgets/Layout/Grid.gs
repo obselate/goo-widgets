@@ -15,6 +15,9 @@ public enum GridUnit {
 }
 
 /// One immutable row or column definition. Fraction weights share space above their minima.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct GridTrack {
     /// Sizing rule. The default track fits its content.
     var Unit GridUnit
@@ -75,8 +78,10 @@ public data struct Grid {
     var Width Length?
     /// Root height. Nil resolves to intrinsic height.
     var Height Length?
-    /// Customizes the root. The measured layout and keyed slot children are reapplied.
-    var CreateRoot Func[Grid, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Layout.
+    var ConfigureRoot Action[Grid, Container]?
 
     /// Builds a fresh immutable layout policy and a normal retained subtree.
     public func Build() Blob {
@@ -93,10 +98,6 @@ public data struct Grid {
         }
         let policy = GridPolicy(resolved)
         var root = Container{Width: resolved.Width!!, Height: resolved.Height!!, MinWidth: 0, MinHeight: 0}
-        if let create = CreateRoot {
-            root = create(resolved, root)
-        }
-        root.Layout = policy
         root.Children.Clear()
         for item in resolved.Items {
             let slot = Container{Key: item.Id!!, MinWidth: 0, MinHeight: 0}
@@ -105,6 +106,14 @@ public data struct Grid {
             }
             root.Children.Add(slot)
         }
+        if let configure = ConfigureRoot {
+            let originalLayout = root.Layout
+            configure.Invoke(resolved, root)
+            if root.Layout != originalLayout {
+                throw InvalidOperationException("Grid owns Layout; configure Grid instead of changing it in ConfigureRoot")
+            }
+        }
+        root.Layout = policy
         return root
     }
 }

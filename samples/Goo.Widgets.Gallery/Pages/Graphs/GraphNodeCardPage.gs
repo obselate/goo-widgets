@@ -29,11 +29,11 @@ internal open class GraphNodeCardExample : Cell {
                 Content: Container{
                     Gap: 3.0,
                     AlignItems: AlignItems.Center,
-                    Text{Content: "Queue", FontSize: 13.0, FontWeight: 700, Color: "#fafafa"},
-                    Text{Content: "12 jobs", FontSize: 10.0, Color: "#d4d4d8"},
+                    Text{Content: "Queue", FontSize: 13.0, FontWeight: 700, Color: Color.Parse("#fafafa")},
+                    Text{Content: "12 jobs", FontSize: 10.0, Color: Color.Parse("#d4d4d8")},
                 },
             },
-            BackgroundColor: "#172554",
+            BackgroundColor: Color.Parse("#172554"),
             BorderColor: Color.Parse("#60a5fa"),
         },
     }

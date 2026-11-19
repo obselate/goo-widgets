@@ -7,6 +7,9 @@ import Goo.Widgets.Icons
 import System
 
 /// A file attachment with a persistent filename suffix and optional transfer actions.
+/// Configure callbacks edit only the supplied fresh element. Create callbacks return a fresh element or the supplied default.
+/// Changing a widget-owned scalar throws. Set its input value instead.
+/// Root configuration targets the returned outermost layout element.
 public data struct AttachmentChip {
     /// Attachment filename. Nil uses localized Attachment text. The suffix stays visible when space is limited.
     var Name string?
@@ -28,8 +31,10 @@ public data struct AttachmentChip {
     var OnDownload Action?
     /// Root layout width. Nil uses 280 logical pixels.
     var Width Length?
-    /// Receives the widget input and the prepared container, and returns the replacement container. Nil uses the default composition.
-    var CreateRoot Func[AttachmentChip, Container, Container]?
+    /// Configures the fresh root before required behavior is applied.
+    /// Edit only the supplied element. Use content slots for custom child trees.
+    /// Widget-owned fields: Disabled.
+    var ConfigureRoot Action[AttachmentChip, Container]?
 
     /// Builds the attachment and its independent transfer action.
     public func Build() Blob {
@@ -44,6 +49,8 @@ public data struct AttachmentChip {
         if suffix > 0 && suffix < name.Length && Char.IsLowSurrogate(name[name.Length - suffix]) {
             suffix++
         }
+        let foreground = Disabled ? theme.DisabledTextColor: Failed ? theme.DangerColor: theme.TextColor
+        let iconColor = Disabled ? theme.DisabledTextColor: theme.MutedTextColor
         let text = Container{
             FlexGrow: 1,
             FlexBasis: 0,
@@ -61,7 +68,7 @@ public data struct AttachmentChip {
                     TextTrimming: TextTrimming.Ellipsis,
                     FontFamily: theme.FontFamily,
                     FontSize: theme.FontSize,
-                    Color: Failed ? theme.DangerColor: theme.TextColor,
+                    Color: foreground,
                 },
                 Text{
                     Content: name.Substring(name.Length - suffix),
@@ -69,13 +76,13 @@ public data struct AttachmentChip {
                     TextWrap: TextWrap.NoWrap,
                     FontFamily: theme.FontFamily,
                     FontSize: theme.FontSize,
-                    Color: Failed ? theme.DangerColor: theme.TextColor,
+                    Color: foreground,
                 },
             },
             Text{
                 Content: Failed ? theme.Text("Failed") + (Detail == nil ? "": " · " + Detail!!): Detail ?? "",
                 FontSize: theme.CaptionFontSize,
-                Color: Failed ? theme.DangerColor: theme.MutedTextColor,
+                Color: Disabled ? theme.DisabledTextColor: Failed ? theme.DangerColor: theme.MutedTextColor,
             },
         }
         let trigger = Button{
@@ -93,9 +100,9 @@ public data struct AttachmentChip {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
-            Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, theme.MutedTextColor),
+            Disabled && Leading != nil ? theme.DisabledSlot(Leading!!, theme.TextColor): Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, iconColor),
             text,
         }
         theme.ApplyInteraction(trigger, InteractionFamily.Button)
@@ -110,7 +117,7 @@ public data struct AttachmentChip {
         if let remove = OnRemove {
             body.Children.Add(
                 IconButton{
-                    Icon: ControlIcons.Create(ControlIcon.Close, 16, theme.MutedTextColor),
+                    Icon: ControlIcons.Create(ControlIcon.Close, 16, iconColor),
                     AccessibilityName: theme.Text("Remove {0}", name),
                     Disabled: Disabled,
                     DisabledOpacity: 1.0,
@@ -120,7 +127,7 @@ public data struct AttachmentChip {
         } else if let download = OnDownload {
             body.Children.Add(
                 IconButton{
-                    Icon: ControlIcons.Create(ControlIcon.Download, 16, theme.MutedTextColor),
+                    Icon: ControlIcons.Create(ControlIcon.Download, 16, iconColor),
                     AccessibilityName: theme.Text("Download {0}", name),
                     Disabled: Disabled,
                     DisabledOpacity: 1.0,
@@ -146,7 +153,7 @@ public data struct AttachmentChip {
                     Container{
                         Width: Percent(Double.IsFinite(progress) ? Math.Clamp(progress, 0, 1) * 100: 0),
                         Height: 2,
-                        BackgroundColor: Failed ? theme.DangerColor: theme.AccentColor,
+                        BackgroundColor: Disabled ? theme.DisabledTextColor: Failed ? theme.DangerColor: theme.AccentColor,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.ProgressBar,
                             Name: theme.Text("Transfer {0}", name),
@@ -160,11 +167,15 @@ public data struct AttachmentChip {
                 }
             )
         }
-        if let create = CreateRoot {
-            root = create(this, root)
+        if let configure = ConfigureRoot {
+            let originalDisabled = root.Disabled
+            configure.Invoke(this, root)
+            if root.Disabled != originalDisabled {
+                throw InvalidOperationException("AttachmentChip owns Disabled; set AttachmentChip.Disabled instead of changing it in ConfigureRoot")
+            }
         }
         root.Disabled = Disabled
-        root.DisabledStyle = Style{BasedOn: root.DisabledStyle, Opacity: theme.DisabledOpacity}
+        root.DisabledStyle = Style{BasedOn: root.DisabledStyle, BackgroundColor: theme.SunkenColor}
         return root
     }
 }

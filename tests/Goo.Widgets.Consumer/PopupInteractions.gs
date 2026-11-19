@@ -32,10 +32,9 @@ internal class TriggerHost : Cell {
                         AccessibilityName: "Message",
                         Width: 400,
                         OnCancel: () -> Cancels++,
-                        CreateEditor: (input TextAreaInput, editor TextEditor) -> {
+                        ConfigureEditor: (input TextAreaInput, editor TextEditor) -> {
                             editor.Handle = Editor
-                            return editor
-                        },
+                            },
                     }
                 ),
             }
@@ -71,7 +70,7 @@ func PopupInteractions() {
     let host = TriggerHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Title: "Popup verification", Width: 720, Height: 520, Root: root, AccessibilityAdapter: semantics}
+    let window = Window{Title: "Popup verification", Size: LayoutSize(720, 520), Root: root, AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 12)
@@ -131,7 +130,7 @@ func HoverCardInteractions() {
     let host = HoverHost()
     let semantics = SearchListSemantics()
     let root = ApplicationRoot(host)
-    let window = Window{Title: "Hover card verification", Width: 640, Height: 420, Root: root, AccessibilityAdapter: semantics}
+    let window = Window{Title: "Hover card verification", Size: LayoutSize(640, 420), Root: root, AccessibilityAdapter: semantics}
     RunNativeWindow(window, () -> {
         window.Open()
         PumpFrames(window, 12)

@@ -29,10 +29,10 @@ internal open class MediaCardExample : Cell {
         Thumbnail: Container{
             Width: 180.0,
             Height: 132.0,
-            BackgroundColor: color,
+            BackgroundColor: Color.Parse(color),
             AlignItems: AlignItems.Center,
             JustifyContent: JustifyContent.Center,
-            Text{Content: title.Substring(0, 1), FontSize: 42.0, FontWeight: 700, Color: "#fafafa"},
+            Text{Content: title.Substring(0, 1), FontSize: 42.0, FontWeight: 700, Color: Color.Parse("#fafafa")},
         },
         OnClick: () -> {
             selected = title
