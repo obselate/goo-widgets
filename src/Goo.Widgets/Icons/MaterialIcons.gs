@@ -8,6 +8,7 @@ import System.Collections.Generic
 import System.IO
 import System.IO.Compression
 import System.Reflection
+import System.Xml.Linq
 
 /// Loads the Material Symbols SVG assets shipped by Goo Widgets.
 public class MaterialIcons {
@@ -18,7 +19,7 @@ public class MaterialIcons {
         private let assembly Assembly = typeof(MaterialIcons).Assembly
         private let source Assembly = SourceAssembly()
         private let gate object = Object()
-        private let assets Dictionary[string, VectorAsset] = Dictionary[string, VectorAsset](StringComparer.Ordinal)
+        private let paths Dictionary[string, VectorPath] = Dictionary[string, VectorPath](StringComparer.Ordinal)
 
         /// Returns the names of the embedded Material Symbols assets.
         public func Names()[]string {
@@ -59,26 +60,20 @@ public class MaterialIcons {
             if !Double.IsFinite(size) || size <= 0.0 {
                 throw ArgumentOutOfRangeException("size")
             }
-            let asset = Asset(name)
-            let scale = Math.Min(size / asset.ViewBoxWidth, size / asset.ViewBoxHeight)
             return Shape{
-                Path: asset.PathForNode(1),
+                Path: Geometry(name),
                 Width: size,
                 Height: size,
                 Fit: ShapeFit.Contain,
-                Transform: PanelTransform{
-                    TranslateX: -asset.ViewBoxX * scale,
-                    TranslateY: -asset.ViewBoxY * scale,
-                },
                 Fill: VectorPaint(color ?? Theme.Read().TextColor),
                 UseCurrentColor: useCurrentColor,
                 Accessibility: Accessibility{Hidden: true},
             }
         }
 
-        private func Asset(name string) VectorAsset {
+        private func Geometry(name string) VectorPath {
             lock gate {
-                if assets.TryGetValue(name, out var existing) {
+                if paths.TryGetValue(name, out var existing) {
                     return existing
                 }
                 let resource = Prefix + name + Suffix
@@ -90,8 +85,14 @@ public class MaterialIcons {
                 if asset.NodeCount != 2 || asset.CurveCount == 0 {
                     throw InvalidOperationException("Material icon must contain one SVG path: " + resource)
                 }
-                assets[name] = asset
-                return asset
+                stream.Position = 0
+                let data = XElement.Load(stream).Element(XName.Get("path", "http://www.w3.org/2000/svg"))!!.Attribute("d")!!.Value
+                let path = VectorPath.Parse(
+                    data,
+                    ElementRect{X: asset.ViewBoxX, Y: asset.ViewBoxY, Width: asset.ViewBoxWidth, Height: asset.ViewBoxHeight}
+                )
+                paths[name] = path
+                return path
             }
         }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: Material icon shapes carry their SVG view box instead of a size-dependent offset, so resizing an icon or replacing its path in a `Configure*` hook such as `ComboBoxInput.ConfigureArrow` keeps it centered.
+
 ## 0.22.2 - 2026-11-15
 
 - Fixed: Calendar month headings grow vertically when they wrap, so they no longer overlap the weekday row at the default width.

@@ -458,4 +458,76 @@ func ComboBoxInteractions() {
     Console.WriteLine(
         "PASS: native ComboBox placement, constrained scrolling, controlled/disabled/custom options, keyboard commit/cancel, focus restoration, long-list reveal, search, empty input, resize and unmount"
     )
+    ComboBoxArrowCentering()
+}
+
+internal class ComboBoxArrowHost : Cell {
+    private let items []ComboBoxOption = []ComboBoxOption{ComboBoxOption{Id: "a", Label: "Option"}}
+    private let chevron VectorPath = VectorPath.Parse("M4 7L10 13L16 7Z", ElementRect{Width: 20, Height: 20})
+
+    public override func Build() Blob -> Container{
+        Padding: 24,
+        Gap: 16,
+        AlignItems: AlignItems.FlexStart,
+        Cell.Mount[ComboBoxInput, ComboBox](
+            "resized",
+            ComboBoxInput{Items: items, SelectedId: "a", AccessibilityName: "Resized", Width: 200, ConfigureArrow: Resize}
+        ),
+        Cell.Mount[ComboBoxInput, ComboBox](
+            "replaced",
+            ComboBoxInput{Items: items, SelectedId: "a", AccessibilityName: "Replaced", Width: 200, ConfigureArrow: Replace}
+        ),
+    }
+
+    private func Resize(input ComboBoxInput, arrow Blob) {
+        let shape = (arrow as Shape)!!
+        shape.Width = 12
+        shape.Height = 12
+    }
+
+    private func Replace(input ComboBoxInput, arrow Blob) {
+        Resize(input, arrow)
+        (arrow as Shape)!!.Path = chevron
+    }
+}
+
+func ComboBoxArrowCentering() {
+    let host = ComboBoxArrowHost()
+    let semantics = SearchListSemantics()
+    let window = Window{Title: "ComboBox arrow", Size: LayoutSize(320, 160), Root: host, AccessibilityAdapter: semantics}
+    RunNativeWindow(window, () -> {
+        window.Open()
+        PumpFrames(window, 10)
+        let image = ThemeCapture(window)
+        let scale = float64(image.Width) / float64(window.NativeWidth)
+        for name in []string{"Resized", "Replaced"} {
+            let box = FeedbackNode(semantics, AccessibilityRole.ComboBox, name).Bounds
+            let top = int32(Math.Ceiling((box.Y + 2) * scale))
+            let bottom = int32((box.Y + box.Height - 2) * scale)
+            let left = int32((box.X + box.Width - 40) * scale)
+            let right = int32((box.X + box.Width - 8) * scale)
+            var first = -1
+            var last = -1
+            for y in top ... bottom {
+                let fill = y * int32(image.RowBytes) + left * 4
+                for x in left ... right {
+                    let at = y * int32(image.RowBytes) + x * 4
+                    if Math.Abs(int32(image.Pixels[at]) - int32(image.Pixels[fill])) + Math.Abs(int32(image.Pixels[at + 1]) - int32(image.Pixels[fill + 1])) +
+                        Math.Abs(int32(image.Pixels[at + 2]) - int32(image.Pixels[fill + 2])) > 60 {
+                        if first < 0 {
+                            first = y
+                        }
+                        last = y
+                        break
+                    }
+                }
+            }
+            let center = float64(first + last + 1) / 2.0 / scale
+            Require(
+                first > top && last < bottom - 1 && Math.Abs(center - (box.Y + box.Height / 2)) <= 1.0,
+                "Configured ComboBox arrow is not centered in its trigger"
+            )
+        }
+    })
+    Console.WriteLine("PASS: resized and replaced ComboBox arrows stay centered")
 }
