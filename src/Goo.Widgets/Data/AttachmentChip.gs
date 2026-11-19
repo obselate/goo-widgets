@@ -49,6 +49,8 @@ public data struct AttachmentChip {
         if suffix > 0 && suffix < name.Length && Char.IsLowSurrogate(name[name.Length - suffix]) {
             suffix++
         }
+        let foreground = Disabled ? theme.DisabledTextColor: Failed ? theme.DangerColor: theme.TextColor
+        let iconColor = Disabled ? theme.DisabledTextColor: theme.MutedTextColor
         let text = Container{
             FlexGrow: 1,
             FlexBasis: 0,
@@ -66,7 +68,7 @@ public data struct AttachmentChip {
                     TextTrimming: TextTrimming.Ellipsis,
                     FontFamily: theme.FontFamily,
                     FontSize: theme.FontSize,
-                    Color: Failed ? theme.DangerColor: theme.TextColor,
+                    Color: foreground,
                 },
                 Text{
                     Content: name.Substring(name.Length - suffix),
@@ -74,13 +76,13 @@ public data struct AttachmentChip {
                     TextWrap: TextWrap.NoWrap,
                     FontFamily: theme.FontFamily,
                     FontSize: theme.FontSize,
-                    Color: Failed ? theme.DangerColor: theme.TextColor,
+                    Color: foreground,
                 },
             },
             Text{
                 Content: Failed ? theme.Text("Failed") + (Detail == nil ? "": " · " + Detail!!): Detail ?? "",
                 FontSize: theme.CaptionFontSize,
-                Color: Failed ? theme.DangerColor: theme.MutedTextColor,
+                Color: Disabled ? theme.DisabledTextColor: Failed ? theme.DangerColor: theme.MutedTextColor,
             },
         }
         let trigger = Button{
@@ -98,9 +100,9 @@ public data struct AttachmentChip {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            DisabledStyle: Style{BackgroundColor: Color.Transparent, Opacity: 1.0},
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: name},
-            Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, theme.MutedTextColor),
+            Disabled && Leading != nil ? theme.DisabledSlot(Leading!!, theme.TextColor): Leading ?? ControlIcons.Create(ControlIcon.AttachFile, 24, iconColor),
             text,
         }
         theme.ApplyInteraction(trigger, InteractionFamily.Button)
@@ -115,7 +117,7 @@ public data struct AttachmentChip {
         if let remove = OnRemove {
             body.Children.Add(
                 IconButton{
-                    Icon: ControlIcons.Create(ControlIcon.Close, 16, theme.MutedTextColor),
+                    Icon: ControlIcons.Create(ControlIcon.Close, 16, iconColor),
                     AccessibilityName: theme.Text("Remove {0}", name),
                     Disabled: Disabled,
                     DisabledOpacity: 1.0,
@@ -125,7 +127,7 @@ public data struct AttachmentChip {
         } else if let download = OnDownload {
             body.Children.Add(
                 IconButton{
-                    Icon: ControlIcons.Create(ControlIcon.Download, 16, theme.MutedTextColor),
+                    Icon: ControlIcons.Create(ControlIcon.Download, 16, iconColor),
                     AccessibilityName: theme.Text("Download {0}", name),
                     Disabled: Disabled,
                     DisabledOpacity: 1.0,
@@ -151,7 +153,7 @@ public data struct AttachmentChip {
                     Container{
                         Width: Percent(Double.IsFinite(progress) ? Math.Clamp(progress, 0, 1) * 100: 0),
                         Height: 2,
-                        BackgroundColor: Failed ? theme.DangerColor: theme.AccentColor,
+                        BackgroundColor: Disabled ? theme.DisabledTextColor: Failed ? theme.DangerColor: theme.AccentColor,
                         Accessibility: Accessibility{
                             Role: AccessibilityRole.ProgressBar,
                             Name: theme.Text("Transfer {0}", name),
@@ -173,7 +175,7 @@ public data struct AttachmentChip {
             }
         }
         root.Disabled = Disabled
-        root.DisabledStyle = Style{BasedOn: root.DisabledStyle, Opacity: theme.DisabledOpacity}
+        root.DisabledStyle = Style{BasedOn: root.DisabledStyle, BackgroundColor: theme.SunkenColor}
         return root
     }
 }

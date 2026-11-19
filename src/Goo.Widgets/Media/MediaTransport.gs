@@ -306,27 +306,22 @@ public open class MediaTransport : Cell[MediaTransportInput] {
     ) Blob {
         let activate Action? = action == nil ? nil: () -> InvokeInputCallback(action)
         let primary = slot == MediaTransportAction.Play || slot == MediaTransportAction.Pause
-        let content = if let content = SlotContent(input, slot) {
-            content
-        } else if let createActionContent = input.CreateActionContent {
-            createActionContent(input, slot)
-        } else {
-            ControlIcons.Create(
-                ActionIcon(slot),
-                if primary {
-                    24.0
-                } else {
-                    20.0
-                },
-                if primary && disabled {
-                    theme.DisabledTextColor
-                } else if primary {
-                    input.PrimaryActionTextColor!!
-                } else {
-                    input.TextColor!!
-                }
-            )
-        }
+        let supplied = SlotContent(input, slot) ?? input.CreateActionContent?.Invoke(input, slot)
+        let content = supplied ?? ControlIcons.Create(
+            ActionIcon(slot),
+            if primary {
+                24.0
+            } else {
+                20.0
+            },
+            if disabled {
+                theme.DisabledTextColor
+            } else if primary {
+                input.PrimaryActionTextColor!!
+            } else {
+                input.TextColor!!
+            }
+        )
         let button = Button{
                 Width: if primary {
                     input.PrimaryActionSize!!
@@ -369,7 +364,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     activate
                 },
-                content,
+                supplied != nil && disabled ? theme.DisabledSlot(content, theme.TextColor): content,
             }
         if let configure = input.ConfigureAction {
             let originalDisabled = button.Disabled

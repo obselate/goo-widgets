@@ -48,7 +48,7 @@ public data partial struct Theme {
                 focus.BasedOn = target.FocusStyle
                 target.FocusStyle = focus
             }
-            target.DisabledStyle = Style{Color: DisabledTextColor, Opacity: DisabledOpacity, BasedOn: target.DisabledStyle}
+            target.DisabledStyle = Style{Color: DisabledTextColor, BasedOn: target.DisabledStyle}
             return
         }
         let field = family == InteractionFamily.Field
@@ -79,12 +79,14 @@ public data partial struct Theme {
             BackgroundColor: field || family == InteractionFamily.Toggle ? SunkenColor:
                 tab ? ChromeColor: PanelColor,
             Color: DisabledTextColor,
-            Opacity: DisabledOpacity,
         }
         if field { disabled.BorderColor = InputBorderColor }
         disabled.BasedOn = target.DisabledStyle
         target.DisabledStyle = disabled
     }
+
+    /// Dims caller slot content once. Inherited text takes the enabled color so the disabled text color does not dim it again.
+    internal func DisabledSlot(content Blob, color Color) Container -> Container{Opacity: DisabledOpacity, Color: color, content}
 
     internal prop InteractionTransitions []TransitionProperty {
         get -> interactionTransitions

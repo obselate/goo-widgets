@@ -85,7 +85,7 @@ public data struct RadioButton {
             ): theme.TextColor: theme.DisabledTextColor,
             BorderWidth: Card || theme.HighContrast ? theme.BorderWidth: 0,
             BorderRadius: theme.ControlRadius!!,
-            BorderColor: selected ? theme.AccentColor: theme.InputBorderColor,
+            BorderColor: selected && enabled ? theme.AccentColor: theme.InputBorderColor,
             Padding: Card ? theme.ControlPadding: 0,
             BackgroundColor: Card ? selected ? theme.SelectedFill(
                 theme.ActiveColor
@@ -97,7 +97,7 @@ public data struct RadioButton {
             mark,
         }
         if let leading = Leading {
-            button.Children.Add(leading)
+            button.Children.Add(enabled ? leading: theme.DisabledSlot(leading, theme.TextColor))
         }
         button.Children.Add(text)
         if !Card {

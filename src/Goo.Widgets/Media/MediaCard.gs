@@ -76,8 +76,8 @@ public data struct MediaCard {
             BorderRadius = BorderRadius ?? theme.PanelRadius!!,
             BackgroundColor = BackgroundColor ?? theme.PanelColor,
             HoverBackgroundColor = HoverBackgroundColor ?? theme.HoverColor,
-            TitleColor = TitleColor ?? theme.TextColor,
-            SupportingColor = SupportingColor ?? theme.MutedTextColor,
+            TitleColor = Disabled ? theme.DisabledTextColor: TitleColor ?? theme.TextColor,
+            SupportingColor = Disabled ? theme.DisabledTextColor: SupportingColor ?? theme.MutedTextColor,
             TitleFontSize = TitleFontSize ?? theme.HeadingFontSize,
             SupportingFontSize = SupportingFontSize ?? theme.CaptionFontSize,
             CreateContent = nil,
@@ -144,7 +144,7 @@ public data struct MediaCard {
             BasedOn: resolved.RootStyle,
             Accessibility: Accessibility{Role: AccessibilityRole.Button, Name: resolved.AccessibilityName!!},
             OnClick: resolved.OnClick,
-            thumbnail,
+            resolved.Disabled ? theme.DisabledSlot(thumbnail, theme.TextColor): thumbnail,
             content,
         }
         if let configure = configureRoot {

@@ -312,10 +312,10 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         button.FontWeight = theme.FontWeight
         button.Children.Clear()
         if let leading = command.Leading {
-            button.Children.Add(leading)
+            button.Children.Add(command.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading)
         }
         let match = FuzzyMatch.Match(snapshot.Query ?? "", command.Label)!!
-        let label = FuzzyMatchLabel.Create(command.Label, match, theme)
+        let label = FuzzyMatchLabel.Create(command.Label, match, command.Disabled ? theme with{LinkColor = theme.DisabledTextColor}: theme)
         let content = Container{
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
@@ -330,7 +330,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
                 Text{
                     Content: detail,
                     FontSize: theme.CaptionFontSize,
-                    Color: theme.MutedTextColor,
+                    Color: command.Disabled ? theme.DisabledTextColor: theme.MutedTextColor,
                     TextWrap: TextWrap.NoWrap,
                     TextTrimming: TextTrimming.Ellipsis,
                     MinWidth: 0,
@@ -342,6 +342,7 @@ public open class CommandPalette : Cell[CommandPaletteInput] {
         if let shortcut = command.Shortcut {
             let keys = Kbd{Keys: []KeyBinding{shortcut}}.Build()
             keys.FlexShrink = 0
+            keys.Opacity = command.Disabled ? theme.DisabledOpacity: 1.0
             button.Children.Add(keys)
         }
         snapshot.ConfigureItem?.Invoke(snapshot, command, match, button)

@@ -412,7 +412,8 @@ public open class NumberInput : Cell[NumberInputInput] {
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
-            ControlIcons.Create(icon, 14, theme.MutedTextColor)
+            DisabledStyle: Style{BackgroundColor: Color.Transparent},
+            ControlIcons.Create(icon, 14, current.Disabled || current.ReadOnly ? theme.DisabledTextColor: theme.MutedTextColor)
         }
         theme.ApplyInteraction(button, InteractionFamily.Button)
         WidgetKeyBindings.BindActivation(button)

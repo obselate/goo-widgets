@@ -158,7 +158,7 @@ public open partial class DataGrid {
                 RowIndex: RawIndex(id), ColumnIndex: index + (leading > 0.0 ? 1: 0),
                 ReadOnly: !CanEditCell(row, column, false)
             },
-            content
+            (row.Disabled || snapshot.Disabled) && snapshot.CreateCellContent != nil ? theme.DisabledSlot(content, theme.TextColor): content
         }
     }
 
@@ -209,11 +209,17 @@ public open partial class DataGrid {
                         }
                     },
                     Accessibility: Accessibility{Hidden: true},
-                    ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                    ControlIcons.Create(groupExpanded.Contains(id) ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16,
+                        row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
                 })
-                cells.Children.Add(Container{FlexGrow: 1, FlexBasis: 0, MinWidth: 0, content})
+                cells.Children.Add(Container{
+                    FlexGrow: 1,
+                    FlexBasis: 0,
+                    MinWidth: 0,
+                    row.Disabled || snapshot.Disabled ? theme.DisabledSlot(content, theme.TextColor): content
+                })
             } else {
-                cells.Children.Add(content)
+                cells.Children.Add(row.Disabled || snapshot.Disabled ? theme.DisabledSlot(content, theme.TextColor): content)
             }
         } else {
             if leading > 0.0 {
@@ -244,10 +250,17 @@ public open partial class DataGrid {
                     })
                 }
                 if snapshot.ShowSelection && snapshot.Selection != DataGridSelection.None {
+                    let checkDisabled = row.Disabled ||
+                        snapshot.Disabled ||
+                        (
+                        snapshot.OnSelectionRequest == nil &&
+                            snapshot.OnSelectionChange == nil &&
+                            snapshot.OnSelectionIndicesChange == nil
+                    )
                     var check = (
                         Checkbox{
                             Value: isSelected ? AccessibilityChecked.True: AccessibilityChecked.False,
-                            DisabledOpacity: row.Disabled || snapshot.Disabled ? 1.0: nil,
+                            Disabled: checkDisabled,
                             Size: 18
                         }.Build() as Button
                     )!!
@@ -280,13 +293,7 @@ public open partial class DataGrid {
                     }
                     check.Focusable = false
                     check.TabStop = false
-                    check.Disabled = row.Disabled ||
-                        snapshot.Disabled ||
-                        (
-                        snapshot.OnSelectionRequest == nil &&
-                            snapshot.OnSelectionChange == nil &&
-                            snapshot.OnSelectionIndicesChange == nil
-                    )
+                    check.Disabled = checkDisabled
                     check.OnPointerDown = (e PointerEvent) -> clickModifiers = e.Modifiers
                     check.OnClick = () -> Select(id, true, clickModifiers.Shift, false)
                     let checkAccessibility = if let configured = check.Accessibility { Accessibility{...configured} } else { Accessibility{} }
@@ -312,7 +319,8 @@ public open partial class DataGrid {
                         Disabled: row.Disabled || snapshot.Disabled || snapshot.OnExpandedChange == nil,
                         OnClick: () -> Expand(id, !isExpanded, false),
                         Accessibility: Accessibility{Hidden: true},
-                        ControlIcons.Create(isExpanded ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16, snapshot.TextColor)
+                        ControlIcons.Create(isExpanded ? ControlIcon.ExpandMore: ControlIcon.ChevronRight, 16,
+                            row.Disabled || snapshot.Disabled ? theme.DisabledTextColor: snapshot.TextColor)
                     }
                     let slot = Container{
                         Key: "expansion",
@@ -400,7 +408,7 @@ public open partial class DataGrid {
                         RowIndex: rowIndex,
                         ColumnIndex: 0
                     },
-                    detail
+                    row.Disabled || snapshot.Disabled ? theme.DisabledSlot(detail, theme.TextColor): detail
                 }
             )
         }

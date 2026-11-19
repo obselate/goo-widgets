@@ -200,7 +200,7 @@ public data struct PropertyGrid {
                 TransitionMs: theme.TransitionMs,
                 TransitionEasing: Easing.EaseOut,
                 TransitionProperties: theme.InteractionTransitions,
-                ControlIcons.Create(ControlIcon.RestartAlt, 16, theme.MutedTextColor)
+                ControlIcons.Create(ControlIcon.RestartAlt, 16, item.Disabled ? theme.DisabledTextColor: theme.MutedTextColor)
             }
             theme.ApplyInteraction(button, InteractionFamily.Button)
             WidgetKeyBindings.BindActivation(button)
