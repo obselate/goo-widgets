@@ -7,6 +7,7 @@
 - Removed: `Checkbox.DisabledOpacity`, `SliderInput.DisabledOpacity`, `Chip.DisabledOpacity` and `Disclosure.DisabledOpacity`. Migration: delete the setting, or set `Theme.DisabledTextColor` to change the disabled appearance.
 - Fixed: explicit disabled colors on `ActionButton`, `TextField`, `ToggleSwitch` and `DismissibleContextBar` are no longer halved by an extra disabled opacity.
 - Fixed: a disabled selected `ToggleGroup` item, `Chip` (including `TokenInput` chips) or `ColorPicker` mode button is the enabled selected item at `Theme.DisabledOpacity`, so the selection stays visible and is dimmed once.
+- Fixed: Material icon shapes carry their SVG view box instead of a size-dependent offset, so resizing an icon or replacing its path in a `Configure*` hook such as `ComboBoxInput.ConfigureArrow` keeps it centered.
 
 ## 0.22.2 - 2026-11-15
 
