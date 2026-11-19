@@ -123,7 +123,7 @@ public data struct ToggleSwitch {
         }
         let trackColor = resolved.Disabled ? resolved.DisabledTrackColor!!:
             resolved.Value ? resolved.OnTrackColor!!: resolved.OffTrackColor!!
-        let trackHandle = ElementHandle()
+        let trackHandle ElementHandle? = configureRoot == nil ? ElementHandle(): nil
         let button = Button{
             Width: resolved.Width!!,
             Height: resolved.Height!!,
@@ -193,8 +193,10 @@ public data struct ToggleSwitch {
             }
         }
         theme.ApplyInteraction(button, InteractionFamily.Toggle, Value)
-        button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineWidth: 0}
-        button.FocusTarget = trackHandle
+        if configureRoot == nil {
+            button.FocusStyle = Style{BasedOn: button.FocusStyle, OutlineWidth: 0}
+            button.FocusTarget = trackHandle
+        }
         button.Disabled = Disabled
         button.Focusable = !Disabled
         button.OnClick = Disabled ? nil: () -> OnChange?.Invoke(!Value)
