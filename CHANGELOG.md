@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: `TokenInput` supports touch text editing again: long-press selection, selection handles and the edit toolbar.
+- Fixed: `TokenInput` text selection uses the theme accent color, with the theme font weight and a text cursor, like `TextField`.
+- Fixed: `TokenInput` keeps accessibility fields such as `Description` and `Relationships` set in `ConfigureEntry`.
+- Fixed: disabled `TreeView` rows dim content from `CreateContent`.
+- Fixed: a disabled `Disclosure` dims its custom indicator.
+- Fixed: in right-to-left layout, the `DatePicker` calendar button is on the left with rounded outer corners.
+- Fixed: a disabled `SearchList` search field has no field shadow.
+
 ## 0.23.0 - 2026-11-20
 
 - Requires the published Goo 0.32.0 package from NuGet.org.

@@ -274,12 +274,15 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         entryRelationships.ErrorMessage = invalid ? []ElementHandle{issueHandle}: []ElementHandle{}
         entryAccessibility.Relationships = entryRelationships
         entry.Accessibility = entryAccessibility
+        let radius = Math.Max(0, theme.ControlRadius!! - theme.BorderWidth)
         var button = Button{
             Width: theme.ControlHeight,
             Height: theme.ControlHeight,
             Padding: theme.Spacing * 2.0,
-            BorderTopRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
-            BorderBottomRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderTopLeftRadius: theme.RightToLeft ? radius: 0,
+            BorderBottomLeftRadius: theme.RightToLeft ? radius: 0,
+            BorderTopRightRadius: theme.RightToLeft ? 0: radius,
+            BorderBottomRightRadius: theme.RightToLeft ? 0: radius,
             FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             BackgroundColor: Color.Transparent,
             TransitionMs: theme.TransitionMs,
@@ -343,6 +346,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             BasedOn: focused && !current.Disabled ? theme.FieldFocusStyle: nil,
             Key: "field",
             Handle: fieldHandle,
+            Direction: theme.Direction,
             FlexDirection: FlexDirection.Row,
             AlignItems: AlignItems.Center,
             BackgroundColor: theme.FieldColor,

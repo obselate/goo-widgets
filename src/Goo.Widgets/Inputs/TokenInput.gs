@@ -107,8 +107,11 @@ public open class TokenInput : Cell[TokenInputInput] {
             Padding: 4,
             BackgroundColor: Color.Transparent,
             Color: theme.TextColor,
+            SelectionColor: theme.AccentColor.WithAlpha(0.35),
+            Cursor: Cursor.Text,
             FontFamily: theme.FontFamily,
             FontSize: theme.FontSize,
+            FontWeight: theme.FontWeight,
             OnChange: Changed,
             OnSubmit: value -> Commit(value),
         }
@@ -146,12 +149,21 @@ public open class TokenInput : Cell[TokenInputInput] {
         entry.ReadOnly = input.ReadOnly
         entry.Focusable = !input.Disabled
         entry.OnKeyDown = KeyDown
-        entry.Accessibility = Accessibility{
-            Role: AccessibilityRole.TextInput,
-            Name: input.AccessibilityName ?? theme.Text("Tokens"),
-            ReadOnly: input.ReadOnly,
-        }
-        frame.Children.Add(Container{Key: "editor", FlexGrow: 1, MinWidth: 100, entry})
+        let entryAccessibility = if let configured = entry.Accessibility { Accessibility{...configured} } else { Accessibility{} }
+        entryAccessibility.Role = AccessibilityRole.TextInput
+        entryAccessibility.Name = input.AccessibilityName ?? theme.Text("Tokens")
+        entryAccessibility.ReadOnly = input.ReadOnly
+        entry.Accessibility = entryAccessibility
+        frame.Children.Add(
+            Cell.Mount[TouchTextEditingInput, TouchTextEditing](
+                "editor",
+                TouchTextEditingInput{
+                    Content: Container{FlexGrow: 1, MinWidth: 100, entry},
+                    Editor: editor,
+                    RootStyle: Style{FlexGrow: 1, MinWidth: 100},
+                }
+            )
+        )
         root.Children.Add(frame)
         if !input.Disabled && !input.ReadOnly && draft.Length > 0 {
             let items = input.Suggestions ?? []string{}

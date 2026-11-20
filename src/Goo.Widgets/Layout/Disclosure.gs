@@ -86,7 +86,7 @@ public data struct Disclosure {
             CreateRoot = nil,
         }
         let indicator = if let create = createIndicator {
-            create(resolved)
+            resolved.Disabled ? theme.DisabledSlot(create(resolved), theme.TextColor): create(resolved)
         } else {
             ControlIcons.Create(
                 if resolved.Expanded {
