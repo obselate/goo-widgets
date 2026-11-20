@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.23.0 - 2026-11-20
 
+- Requires the published Goo 0.32.0 package from NuGet.org.
 - Switch focus rings follow the visible track while the larger pointer target stays unchanged.
 - `NumberInput`, `TimePicker`, `DatePicker` and `TokenInput` show editor focus outside the whole rounded frame. Their inner action buttons keep separate inset focus rings. `SearchList` search fields use a fully rounded frame inset from the list panel. `CommandPalette` keeps its custom header geometry.
 - Build with G# SDK 0.5.698.

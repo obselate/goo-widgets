@@ -210,7 +210,7 @@ func RequireFocusOutline(handle ElementHandle, width float64, offset float64, pa
     let resolvedWidth = (node.GetType().GetProperty("OutlineWidth", flags)!!.GetValue(node) as Length?)!!
     let resolvedOffset = (node.GetType().GetProperty("OutlineOffset", flags)!!.GetValue(node) as Length?)!!
     Require(resolvedWidth.HasMagnitude && resolvedWidth.Magnitude == width
-        && resolvedOffset.HasMagnitude && resolvedOffset.Magnitude == offset,
+        && resolvedOffset.Equals(offset == 0.0 ? Length{} : Length.Pixels(offset)),
         "Resolved focus geometry " + resolvedWidth.Magnitude.ToString() + "/" + resolvedOffset.Magnitude.ToString()
         + " differs from theme " + width.ToString() + "/" + offset.ToString() + ".")
 }
