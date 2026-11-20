@@ -86,7 +86,12 @@ public data partial struct Theme {
     }
 
     /// Dims caller slot content once. Inherited text takes the enabled color so the disabled text color does not dim it again.
-    internal func DisabledSlot(content Blob, color Color) Container -> Container{Opacity: DisabledOpacity, Color: color, content}
+    internal func DisabledSlot(content Blob, color Color, disabled bool) Blob {
+        if disabled {
+            return Container{Opacity: DisabledOpacity, Color: color, content}
+        }
+        return Container(){content}
+    }
 
     internal prop InteractionTransitions []TransitionProperty {
         get -> interactionTransitions

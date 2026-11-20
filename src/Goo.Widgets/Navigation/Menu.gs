@@ -262,7 +262,7 @@ public open class Menu : Cell[MenuInput] {
                 FlexGrow: 1.0,
                 FlexShrink: 1.0,
                 MinWidth: 0.0,
-                item.Disabled && item.Content != nil ? theme.DisabledSlot(content, theme.TextColor): content
+                item.Content != nil ? theme.DisabledSlot(content, theme.TextColor, item.Disabled): content
             })
             if let shortcut = item.Shortcut {
                 row.Children.Add(Kbd{Keys: []KeyBinding{shortcut}, Keycaps: false, Color: item.Disabled ? theme.DisabledTextColor: highlightText}.Build())

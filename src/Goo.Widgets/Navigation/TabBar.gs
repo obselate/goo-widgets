@@ -169,8 +169,8 @@ public open class TabBar : Cell[TabBarInput] {
                     FontWeight: theme.LabelFontWeight,
                 },
             }
-            if item.Disabled && item.Content != nil {
-                button.Children[0] = theme.DisabledSlot(item.Content!!, theme.TextColor)
+            if item.Content != nil {
+                button.Children[0] = theme.DisabledSlot(item.Content!!, theme.TextColor, item.Disabled)
             }
             if let configure = input.ConfigureItem {
                 let originalAccessibilityName = (button.Accessibility?.Name ?? "")

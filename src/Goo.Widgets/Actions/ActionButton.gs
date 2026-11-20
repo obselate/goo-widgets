@@ -172,7 +172,7 @@ public data struct ActionButton {
         if let leading = Leading {
             leadingSlot = Container{
                 Position: PositionType.Relative,
-                Container{Opacity: Loading ? 0.0: 1.0, resolved.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading},
+                Container{Opacity: Loading ? 0.0: 1.0, theme.DisabledSlot(leading, theme.TextColor, resolved.Disabled)},
             }
             contents.Children.Add(leadingSlot)
         }
@@ -180,7 +180,7 @@ public data struct ActionButton {
             if let text = text { contents.Children.Add(text) }
         }
         if let trailing = Trailing {
-            contents.Children.Add(resolved.Disabled ? theme.DisabledSlot(trailing, theme.TextColor): trailing)
+            contents.Children.Add(theme.DisabledSlot(trailing, theme.TextColor, resolved.Disabled))
         }
         if let shortcut = Shortcut {
             contents.Children.Add(
