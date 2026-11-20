@@ -158,7 +158,7 @@ public open partial class DataGrid {
                 RowIndex: RawIndex(id), ColumnIndex: index + (leading > 0.0 ? 1: 0),
                 ReadOnly: !CanEditCell(row, column, false)
             },
-            snapshot.CreateCellContent != nil ? theme.DisabledSlot(content, theme.TextColor, row.Disabled || snapshot.Disabled): content
+            snapshot.CreateCellContent != nil ? theme.DisabledSlot(content, theme.TextColor, row.Disabled || snapshot.Disabled, true): content
         }
     }
 
@@ -216,10 +216,10 @@ public open partial class DataGrid {
                     FlexGrow: 1,
                     FlexBasis: 0,
                     MinWidth: 0,
-                    theme.DisabledSlot(content, theme.TextColor, row.Disabled || snapshot.Disabled)
+                    theme.DisabledSlot(content, theme.TextColor, row.Disabled || snapshot.Disabled, true)
                 })
             } else {
-                cells.Children.Add(theme.DisabledSlot(content, theme.TextColor, row.Disabled || snapshot.Disabled))
+                cells.Children.Add(theme.DisabledSlot(content, theme.TextColor, row.Disabled || snapshot.Disabled, true))
             }
         } else {
             if leading > 0.0 {
@@ -408,7 +408,7 @@ public open partial class DataGrid {
                         RowIndex: rowIndex,
                         ColumnIndex: 0
                     },
-                    theme.DisabledSlot(detail, theme.TextColor, row.Disabled || snapshot.Disabled)
+                    theme.DisabledSlot(detail, theme.TextColor, row.Disabled || snapshot.Disabled, true)
                 }
             )
         }

@@ -729,7 +729,7 @@ public open class TreeView : Cell[TreeViewInput] {
             FlexGrow: 1,
             FlexShrink: 1,
             MinWidth: 0,
-            row.Node.Content != nil || snapshot.CreateContent != nil ? theme.DisabledSlot(label, theme.TextColor, row.Disabled || snapshot.Disabled): label
+            row.Node.Content != nil || snapshot.CreateContent != nil ? theme.DisabledSlot(label, theme.TextColor, row.Disabled || snapshot.Disabled, true): label
         })
         var root = Container{
             FlexDirection: FlexDirection.Row,

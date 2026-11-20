@@ -86,11 +86,15 @@ public data partial struct Theme {
     }
 
     /// Dims caller slot content once. Inherited text takes the enabled color so the disabled text color does not dim it again.
-    internal func DisabledSlot(content Blob, color Color, disabled bool) Blob {
-        if disabled {
-            return Container{Opacity: DisabledOpacity, Color: color, content}
+    /// Set fill when the content fills its parent, so the wrapper grows and stretches it.
+    internal func DisabledSlot(content Blob, color Color, disabled bool, fill bool = false) Blob {
+        let slot = disabled ? Container{Opacity: DisabledOpacity, Color: color, content}: Container(){content}
+        if fill {
+            slot.FlexGrow = 1
+            slot.MinWidth = 0
+            slot.FlexDirection = FlexDirection.Column
         }
-        return Container(){content}
+        return slot
     }
 
     internal prop InteractionTransitions []TransitionProperty {
