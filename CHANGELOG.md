@@ -9,6 +9,7 @@
 - Fixed: explicit disabled colors on `ActionButton`, `TextField`, `ToggleSwitch` and `DismissibleContextBar` are no longer halved by an extra disabled opacity.
 - Fixed: a disabled selected `ToggleGroup` item, `Chip` (including `TokenInput` chips) or `ColorPicker` mode button is the enabled selected item at `Theme.DisabledOpacity`, so the selection stays visible and is dimmed once.
 - Fixed: Material icon shapes carry their SVG view box instead of a size-dependent offset, so resizing an icon or replacing its path in a `Configure*` hook such as `ComboBoxInput.ConfigureArrow` keeps it centered.
+- Fixed: VirtualRows keeps the first visible row in place after a width change, a return to a cached source, or a prepend at the start. Retained content anchoring skips the pass after a measured height correction, so pixel rounding no longer moves the row by 1 px.
 
 ## 0.22.2 - 2026-11-15
 

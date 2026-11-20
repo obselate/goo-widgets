@@ -180,6 +180,8 @@ internal class VirtualRowsStorage[T] : VirtualState {
     private var anchorIndex int32
     private var pendingAnchorKey string = ""
     private var pendingAnchorIndex int32
+    private var measured bool
+    private var anchorSkipped bool
     internal var Pending VirtualRowsSource[T]?
 
     public override func Realize(viewport VirtualViewport, output VirtualOutput) {
@@ -187,6 +189,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
         nextContexts.Clear()
         measurements.Clear()
         pendingAnchorKey = ""
+        anchorSkipped = false
         pendingMetadata = nil
         guard let input = Pending ?? source else {
             throw InvalidOperationException("VirtualRows source is unavailable")
@@ -327,7 +330,8 @@ internal class VirtualRowsStorage[T] : VirtualState {
             }
             if preserve {
                 scroll = Math.Max(0.0, scroll + Prefix(data, nextIndex, true) - before)
-                if sameContext {
+                anchorSkipped = sameContext && measured && Pending == nil
+                if sameContext && !anchorSkipped {
                     output.AnchorKey = retained ? anchor: data.Row(nextIndex).Key
                 }
             }
@@ -357,7 +361,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
 
     public override func NeedsRealize(viewport VirtualViewport) bool {
         if let cache = source?.Cache { cache.Anchor = viewport.VisibleAnchor }
-        if contextVersion != viewport.ContextVersion {
+        if contextVersion != viewport.ContextVersion || anchorSkipped {
             return true
         }
         guard let data = metadata else {
@@ -453,6 +457,7 @@ internal class VirtualRowsStorage[T] : VirtualState {
             }
         }
         window = pendingWindow
+        measured = measurements.Count > 0
         contextVersion = pendingContextVersion
         anchorKey = pendingAnchorKey
         anchorIndex = pendingAnchorIndex
