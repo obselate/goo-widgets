@@ -338,6 +338,9 @@ public data struct WindowChrome {
         controlAccessibility.Name = theme.Text(Name(command))
         control.Accessibility = controlAccessibility
         control.OnClick = action
+        if command == WindowChromeAction.Maximize || command == WindowChromeAction.Restore {
+            Window.MaximizeButton(control)
+        }
         WidgetKeyBindings.BindActivation(control)
         return control
     }

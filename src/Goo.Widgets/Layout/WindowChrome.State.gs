@@ -15,6 +15,10 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
     private var menuOpen bool
     private var menuPoint Point?
     private var disposed bool
+    private var adjusting bool
+    private var adjustingMove bool
+    private var adjustFrom Point
+    private var adjustTo Point
 
     public init() {
         rootHandle.MetricsChanged += RootMetrics
@@ -46,17 +50,26 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             OnMaximize = current.OnMaximize == nil ? nil: () -> InvokeInputCallback(current.OnMaximize),
             OnRestore = current.OnRestore == nil ? nil: () -> InvokeInputCallback(current.OnRestore),
             OnClose = current.OnClose == nil ? nil: () -> InvokeInputCallback(current.OnClose),
+            TrailingContent = adjusting ? AdjustStatus(current.TrailingContent): current.TrailingContent,
         }).BuildResolved(theme, BlankPointer)
         row.Key = "bar"
         let root = Container{Handle: rootHandle, FlexShrink: 0.0, OnPointerDown: PointerDown, OnKeyDown: KeyDown, row}
         if current.EnableContextMenu {
             let maximized = current.IsMaximized!!
+            let normal = host?.State == WindowState.Normal
             let items = []MenuItem{
                 MenuItem{
                     Id: "restore",
                     Label: theme.Text("Restore"),
                     Disabled: !maximized || current.OnRestore == nil,
                     OnClick: () -> InvokeInputCallback(current.OnRestore)
+                },
+                MenuItem{Id: "move", Label: theme.Text("Move"), Disabled: !normal, OnClick: () -> Adjust(true)},
+                MenuItem{
+                    Id: "size",
+                    Label: theme.Text("Size"),
+                    Disabled: !normal || !(host?.Resizable ?? false),
+                    OnClick: () -> Adjust(false)
                 },
                 MenuItem{
                     Id: "minimize",
@@ -167,6 +180,7 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         if host == next {
             return
         }
+        EndAdjust()
         if let previous = host {
             previous.StateChanged -= StateChanged
             previous.TitlebarDoubleClicked -= NativeDoubleClick
@@ -176,6 +190,99 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
             window.StateChanged += StateChanged
             window.TitlebarDoubleClicked += NativeDoubleClick
         }
+    }
+
+    private func Adjust(move bool) {
+        guard let window = host else {
+            return
+        }
+        let result = move ? window.BeginMove(): window.BeginResize(WindowEdge.BottomRight)
+        if result != WindowOperationResult.Unsupported || (move && !window.CanMove) {
+            return
+        }
+        adjustingMove = move
+        adjustFrom = move ? Point{X: float64(window.X), Y: float64(window.Y)}: Point{X: window.Size.Width, Y: window.Size.Height}
+        adjustTo = adjustFrom
+        if !adjusting {
+            window.PreviewKeyPressed += AdjustKey
+            window.FocusChanged += AdjustFocus
+        }
+        adjusting = true
+        Rebuild()
+    }
+
+    private func AdjustKey(key Key, modifiers KeyModifiers) bool {
+        guard let window = host else {
+            return false
+        }
+        if key == Key.Enter || key == Key.KeypadEnter || key == Key.Escape {
+            if key == Key.Escape {
+                ApplyAdjust(window, adjustFrom)
+            }
+            EndAdjust()
+            Rebuild()
+            return true
+        }
+        let step = modifiers.Shift ? 1.0: 10.0
+        let dx = key == Key.Right ? step: key == Key.Left ? -step: 0.0
+        let dy = key == Key.Down ? step: key == Key.Up ? -step: 0.0
+        if dx == 0.0 && dy == 0.0 {
+            return true
+        }
+        adjustTo = adjustingMove ? Point{X: adjustTo.X + dx, Y: adjustTo.Y + dy}: Point{
+            X: Math.Max(adjustTo.X + dx, Math.Max(1.0, window.MinSize.Width)),
+            Y: Math.Max(adjustTo.Y + dy, Math.Max(1.0, window.MinSize.Height))
+        }
+        ApplyAdjust(window, adjustTo)
+        Rebuild()
+        return true
+    }
+
+    private func ApplyAdjust(window Window, value Point) {
+        if adjustingMove {
+            window.X = int32(value.X)
+            window.Y = int32(value.Y)
+        } else {
+            window.Size = LayoutSize(value.X, value.Y)
+        }
+    }
+
+    private func AdjustFocus(focused bool) {
+        if !focused && adjusting {
+            EndAdjust()
+            Rebuild()
+        }
+    }
+
+    private func EndAdjust() {
+        if !adjusting {
+            return
+        }
+        adjusting = false
+        if let window = host {
+            window.PreviewKeyPressed -= AdjustKey
+            window.FocusChanged -= AdjustFocus
+        }
+    }
+
+    private func AdjustStatus(trailing Blob?) Blob {
+        let text = adjustingMove
+            ? theme.Text("Position {0}, {1}. Arrow keys move, Enter keeps, Escape cancels.", int32(adjustTo.X), int32(adjustTo.Y))
+            : theme.Text("Size {0} x {1}. Arrow keys resize, Enter keeps, Escape cancels.", int32(adjustTo.X), int32(adjustTo.Y))
+        let status = Container{
+            FlexDirection: FlexDirection.Row,
+            AlignItems: AlignItems.Center,
+            Gap: theme.ControlGap,
+            Text{
+                Content: text,
+                Color: current.ControlColor ?? theme.ChromeTextColor,
+                Accessibility: Accessibility{Role: AccessibilityRole.Status, Name: text, Live: AccessibilityLive.Polite},
+            },
+        }
+        if let content = trailing {
+            status.Children.Add(content)
+        }
+        return status
     }
 
     private func StateChanged(state WindowState) {
