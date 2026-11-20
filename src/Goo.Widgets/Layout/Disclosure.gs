@@ -86,7 +86,7 @@ public data struct Disclosure {
             CreateRoot = nil,
         }
         let indicator = if let create = createIndicator {
-            create(resolved)
+            theme.DisabledSlot(create(resolved), theme.TextColor, resolved.Disabled)
         } else {
             ControlIcons.Create(
                 if resolved.Expanded {
@@ -108,8 +108,8 @@ public data struct Disclosure {
             FontWeight: theme.LabelFontWeight,
             Color: resolved.Disabled ? theme.DisabledTextColor: resolved.TextColor!!,
         }
-        if resolved.Disabled && resolved.Header != nil {
-            heading = theme.DisabledSlot(heading, theme.TextColor)
+        if resolved.Header != nil {
+            heading = theme.DisabledSlot(heading, theme.TextColor, resolved.Disabled)
         }
         let onChange = resolved.OnExpandedChange
         let next = !resolved.Expanded

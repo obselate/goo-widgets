@@ -227,11 +227,11 @@ public data struct ListRow {
         }
 
             if let leading = Leading {
-                root.Children.Add(resolved.Disabled ? theme.DisabledSlot(leading, theme.TextColor): leading)
+                root.Children.Add(theme.DisabledSlot(leading, theme.TextColor, resolved.Disabled))
             }
             root.Children.Add(content)
             if let trailing = Trailing {
-                root.Children.Add(resolved.Disabled ? theme.DisabledSlot(trailing, theme.TextColor): trailing)
+                root.Children.Add(theme.DisabledSlot(trailing, theme.TextColor, resolved.Disabled))
             }
             if resolved.Selected && (theme.Selection == SelectionStyle.Indicator || theme.HighContrast) {
                 root.Children.Add(theme.SelectionBar())
@@ -308,7 +308,7 @@ public data struct ListRow {
                             e.StopPropagation()
                         }
                     },
-                    resolved.Disabled ? theme.DisabledSlot(actions, theme.TextColor): actions
+                    theme.DisabledSlot(actions, theme.TextColor, resolved.Disabled)
                 }
             )
         }

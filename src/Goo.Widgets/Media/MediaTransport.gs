@@ -364,7 +364,7 @@ public open class MediaTransport : Cell[MediaTransportInput] {
                 } else {
                     activate
                 },
-                supplied != nil && disabled ? theme.DisabledSlot(content, theme.TextColor): content,
+                supplied != nil ? theme.DisabledSlot(content, theme.TextColor, disabled): content,
             }
         if let configure = input.ConfigureAction {
             let originalDisabled = button.Disabled

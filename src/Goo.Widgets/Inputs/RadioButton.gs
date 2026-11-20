@@ -97,7 +97,7 @@ public data struct RadioButton {
             mark,
         }
         if let leading = Leading {
-            button.Children.Add(enabled ? leading: theme.DisabledSlot(leading, theme.TextColor))
+            button.Children.Add(theme.DisabledSlot(leading, theme.TextColor, !enabled))
         }
         button.Children.Add(text)
         if !Card {

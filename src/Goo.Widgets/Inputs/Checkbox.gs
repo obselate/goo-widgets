@@ -146,7 +146,7 @@ public data struct Checkbox {
                 JustifyContent: JustifyContent.Center,
                 HitTestSelf: false,
             }
-            if let content = content { markBox.Children.Add(Disabled && supplied ? theme.DisabledSlot(content, theme.TextColor): content) }
+            if let content = content { markBox.Children.Add(supplied ? theme.DisabledSlot(content, theme.TextColor, Disabled): content) }
             let button = Button{
                 Width: Label == nil ? resolved.HitSize!!: Length.Auto,
                 MinHeight: resolved.HitSize!!,

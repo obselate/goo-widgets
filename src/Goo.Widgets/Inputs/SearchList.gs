@@ -116,7 +116,7 @@ public data struct SearchList {
             BorderTopRightRadius: framed ? theme.ControlRadius!!: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
             BorderWidth: framed ? theme.BorderWidth: 0,
             BorderColor: theme.FieldBorder(theme.ControlStroke),
-            BoxShadows: framed ? theme.FieldShadows: []BoxShadow{},
+            BoxShadows: framed && !Disabled ? theme.FieldShadows: []BoxShadow{},
             Padding: Edges{Right: theme.ControlPadding, Left: theme.ControlPadding},
             BackgroundColor: framed ? BackgroundColor ?? theme.FieldColor: background,
             Color: foreground,
