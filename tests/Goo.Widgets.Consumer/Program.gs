@@ -264,7 +264,8 @@ func MaterialIconRegressions() {
     }
     let customMark = Text{Content: "custom"}
     let customCheckbox = (Checkbox{Value: AccessibilityChecked.True, CheckedContent: customMark}.Build() as Button)!!
-    Require((customCheckbox.Children[0] as Container)!!.Children[0] == customMark, "Checkbox replaced its custom mark.")
+    let markSlot = ((customCheckbox.Children[0] as Container)!!.Children[0] as Container)!!
+    Require(markSlot.Children[0] == customMark, "Checkbox replaced its custom mark.")
 
     var windowAction = ""
     let chrome = WindowChrome{
