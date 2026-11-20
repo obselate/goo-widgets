@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Requires Goo with `Window.BeginMove`, `Window.BeginResize` and `Window.MaximizeButton`.
+- `WindowChrome` menu has Move and Size items. Move starts the system move. On Windows, Size starts the system keyboard size mode. Elsewhere, Size starts a Goo keyboard mode: arrow keys size the window by 10 px (1 px with Shift) within `MinSize` and `MaxSize`, Enter keeps the change and Escape cancels it. The same keys move the window where the app can position it and no system move exists. A live status in the chrome reports the size or position.
+- `WindowChrome` marks its Maximize and Restore control, so Windows 11 shows the Snap Layouts flyout on hover.
+
 ## 0.23.0 - 2026-11-20
 
 - Requires the published Goo 0.32.0 package from NuGet.org.
