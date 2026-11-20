@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.23.1 - 2026-11-20
 
+- Requires the published Goo 0.32.1 package from NuGet.org.
 - Fixed: `TokenInput` supports touch text editing again: selection handles, handle dragging and the edit toolbar.
 - Fixed: `TokenInput` text selection uses the theme accent color, with the theme font weight and a text cursor, like `TextField`.
 - Fixed: `TokenInput` keeps accessibility fields such as `Description` and `Relationships` set in `ConfigureEntry`.
