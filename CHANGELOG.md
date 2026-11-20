@@ -9,6 +9,7 @@
 - Fixed: a disabled `Disclosure` dims its custom indicator.
 - Fixed: in right-to-left layout, the `DatePicker` calendar button is on the left with rounded outer corners.
 - Fixed: a disabled `SearchList` search field has no field shadow.
+- Fixed: Cells in slot content (`Leading`, `Trailing`, `Content` and similar) keep their state and focus when a control is disabled or enabled again.
 
 ## 0.23.0 - 2026-11-20
 
