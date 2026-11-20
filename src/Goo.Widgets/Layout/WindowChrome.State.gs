@@ -196,7 +196,9 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         guard let window = host else {
             return
         }
-        let result = move ? window.BeginMove(): window.BeginResize(WindowEdge.BottomRight)
+        let result = move
+            ? window.BeginMove()
+            : OperatingSystem.IsWindows() ? window.BeginResize(WindowEdge.BottomRight): WindowOperationResult.Unsupported
         if result != WindowOperationResult.Unsupported || (move && !window.CanMove) {
             return
         }
@@ -229,9 +231,11 @@ internal open class WindowChromeState : Cell[WindowChrome], IDisposable {
         if dx == 0.0 && dy == 0.0 {
             return true
         }
+        let min = window.MinSize
+        let max = window.MaxSize
         adjustTo = adjustingMove ? Point{X: adjustTo.X + dx, Y: adjustTo.Y + dy}: Point{
-            X: Math.Max(adjustTo.X + dx, Math.Max(1.0, window.MinSize.Width)),
-            Y: Math.Max(adjustTo.Y + dy, Math.Max(1.0, window.MinSize.Height))
+            X: Math.Clamp(adjustTo.X + dx, Math.Max(1.0, min.Width), max.Width > 0.0 ? max.Width: Double.PositiveInfinity),
+            Y: Math.Clamp(adjustTo.Y + dy, Math.Max(1.0, min.Height), max.Height > 0.0 ? max.Height: Double.PositiveInfinity)
         }
         ApplyAdjust(window, adjustTo)
         Rebuild()
