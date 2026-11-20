@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Switch focus rings follow the visible track while the larger pointer target stays unchanged.
+- `NumberInput`, `TimePicker`, `DatePicker` and `TokenInput` show editor focus outside the whole rounded frame. Their inner action buttons keep separate inset focus rings. `SearchList` search fields use a fully rounded frame inset from the list panel. `CommandPalette` keeps its custom header geometry.
 - Build with G# SDK 0.5.698.
 - Changed: disabled controls are dimmed once. Widget-owned text, borders, marks and icons use disabled colors at full opacity, and `Theme.DisabledOpacity` applies only to caller-supplied slot content such as `Leading`, `Trailing` and `IconButton.Icon`. Slot content that inherits the text color gets the enabled text color under that opacity, so it is not dimmed twice. Disabled controls are lighter and easier to read than before, and explicit disabled colors such as `ActionButton.DisabledTextColor` keep their contrast.
 - Changed: `IconButton.DisabledOpacity` applies only to the supplied icon.
