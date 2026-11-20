@@ -32,9 +32,10 @@ func MarkdownContracts() {
             kinds.Add(block.Kind)
             }}
     probe.Render(input)
+    let renderedHeadings = headings
     Require(
-        headings != nil && headings.Count == 3 && headings[0].Id == "same" && headings[1].Id == "same-2"
-        && headings[2].Id == "same-2-2",
+        renderedHeadings != nil && renderedHeadings.Count == 3 && renderedHeadings[0].Id == "same" && renderedHeadings[1].Id == "same-2"
+        && renderedHeadings[2].Id == "same-2-2",
         "Markdown heading IDs were not unique"
     )
     for kind in[]MarkdownBlockKind{

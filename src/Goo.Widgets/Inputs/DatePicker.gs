@@ -100,6 +100,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
     private var invalid bool
     private var ownedOpen bool
     private var disposed bool
+    private var focused bool
 
     /// Subscribes to field geometry changes.
     public init() {
@@ -165,7 +166,6 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             SelectionColor: theme.AccentColor.WithAlpha(0.35),
             PlaceholderColor: theme.PlaceholderColor,
             Cursor: Cursor.Text,
-            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
             TransitionProperties: theme.InteractionTransitions,
@@ -238,6 +238,13 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             }
         }
         theme.ApplyInteraction(entry, InteractionFamily.Field)
+        entry.FocusStyle = Style{BasedOn: entry.FocusStyle, OutlineWidth: 0}
+        let priorFocus = entry.OnFocus
+        entry.OnFocus = event -> {
+            focused = true
+            Rebuild()
+            priorFocus?.Invoke(event)
+        }
         entry.Key = "entry"
         entry.Handle = entryHandle
         entry.Value = draft
@@ -249,6 +256,8 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         entry.OnChange = Edited
         entry.OnSubmit = (value string) -> Submit()
         entry.OnBlur = (event FocusEvent) -> {
+            focused = false
+            Rebuild()
             if !(current.Open ?? ownedOpen) {
                 Submit()
             }
@@ -269,6 +278,9 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             Width: theme.ControlHeight,
             Height: theme.ControlHeight,
             Padding: theme.Spacing * 2.0,
+            BorderTopRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            BorderBottomRightRadius: Math.Max(0, theme.ControlRadius!! - theme.BorderWidth),
+            FocusStyle: Style{BasedOn: theme.FocusStyle, OutlineOffset: -theme.FocusRingWidth},
             BackgroundColor: Color.Transparent,
             TransitionMs: theme.TransitionMs,
             TransitionEasing: Easing.EaseOut,
@@ -328,6 +340,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
         buttonAccessibility.Relationships = buttonRelationships
         button.Accessibility = buttonAccessibility
         let field = Container{
+            BasedOn: focused && !current.Disabled ? theme.FieldFocusStyle: nil,
             Key: "field",
             Handle: fieldHandle,
             FlexDirection: FlexDirection.Row,
@@ -442,7 +455,7 @@ public open class DatePicker : Cell[DatePickerInput], IDisposable {
             } else if DateOnly.TryParse(draft, current.Culture!!, DateTimeStyles.None, out var date) {
                 parsed = date
             }
-            if parsed == nil || !Allowed(parsed!!) {
+            if parsed == nil || !Allowed(parsed) {
                 Reject()
                 return
             }

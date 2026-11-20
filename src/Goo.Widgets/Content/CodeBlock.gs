@@ -303,8 +303,8 @@ public open class CodeBlock : Cell[CodeBlockInput], IDisposable {
 
 internal data class CodeBlockLayout(Folded bool, Shortest float64, Limit Length?) : LayoutAlgorithm {
     public func Measure(context LayoutContext, available LayoutSize) LayoutSize {
-        let limit = Limit == nil || !Limit!!.HasMagnitude ? available.Height:
-            Math.Min(Limit!!.IsPercent ? available.Height * Limit!!.Magnitude / 100.0: Limit!!.Magnitude, available.Height)
+        let limit = Limit == nil || !Limit.HasMagnitude ? available.Height:
+            Math.Min(Limit.IsPercent ? available.Height * Limit!!.Magnitude / 100.0: Limit!!.Magnitude, available.Height)
         let overflows = !Folded && Shortest > limit
         let size = context.MeasureChild(
             Folded ? 1: 0,

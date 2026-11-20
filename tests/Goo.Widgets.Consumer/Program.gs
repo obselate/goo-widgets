@@ -226,8 +226,9 @@ func NumericAndIdentityRegressions() {
             },
         }.Build()
     )
+    let renderedRoot = empty
     Require(
-        empty != nil && empty.Children.Count == 2 && (empty.Children[1] as Text)!!.Content == "Nothing found",
+        renderedRoot != nil && renderedRoot.Children.Count == 2 && (renderedRoot.Children[1] as Text)!!.Content == "Nothing found",
         "No-match search did not replace its virtual viewport with the empty state."
     )
 }
