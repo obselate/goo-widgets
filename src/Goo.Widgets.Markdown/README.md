@@ -1,11 +1,11 @@
 # Goo.Widgets.Markdown
 
-An optional `MarkdownView` for Goo. Version `0.23.1` requires Goo `0.32.1` or later,
-Goo.Widgets `0.23.1`, and [Markdig 1.6.0](https://github.com/xoofx/markdig/tree/1.6.0).
+An optional `MarkdownView` for Goo. Version `0.23.2` requires Goo `0.32.1` or later,
+Goo.Widgets `0.23.2`, and [Markdig 1.6.0](https://github.com/xoofx/markdig/tree/1.6.0).
 The base Goo.Widgets package has no Markdown parser dependency.
 
 ```sh
-dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.23.1
+dotnet add YourApp.gsproj package Goo.Widgets.Markdown --version 0.23.2
 ```
 
 ```gsharp

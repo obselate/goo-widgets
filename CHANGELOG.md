@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.23.2 - 2026-11-23
 
 - Fixed: `DataGrid` cells from `CreateCellContent` are centered vertically again, and `CreateFullWidthRow` content keeps its start position and row height. 0.23.0 placed them at the top of the row and stretched full-width content.
 
