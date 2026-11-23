@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: `DataGrid` cells from `CreateCellContent` are centered vertically again, and `CreateFullWidthRow` content keeps its start position and row height. 0.23.0 placed them at the top of the row and stretched full-width content.
+
 ## 0.23.1 - 2026-11-20
 
 - Requires the published Goo 0.32.1 package from NuGet.org.

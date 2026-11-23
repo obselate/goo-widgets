@@ -2247,7 +2247,21 @@ func DataGridEditingInteractions() {
         GridKey(window, Key.Down)
         Require(String.Join(",", host.Events) == "begin,validate,set,end" && host.Input.ActiveRowId == "0",
             "A navigation commit chord moved the active cell")
-        host.Input = host.Input with{BeginEditKeys = nil, CommitEditKey = nil, AutoRowHeight = true, VirtualizeColumns = false,
+        let centered = ElementHandle()
+        let fullWidth = ElementHandle()
+        host.Input = host.Input with{BeginEditKeys = nil, CommitEditKey = nil,
+            CreateCellContent = (input DataGridInput, row DataGridRow, column DataGridColumn) -> Text{Handle: row.Id == "1" && column.Id == "name" ? centered: nil, Content: "x"},
+            CreateFullWidthRow = (input DataGridInput, row DataGridRow) -> row.Id == "0" ? (Container{Handle: fullWidth, Width: 40} as Blob): nil}
+        host.Refresh()
+        PumpFrames(window, 4)
+        let cellRow = host.RowBlobs["1"].Handle!!.BorderBox
+        let fullRow = host.RowBlobs["0"].Handle!!.BorderBox
+        Require(Math.Abs(centered.BorderBox.Y + centered.BorderBox.Height / 2.0 - cellRow.Y - cellRow.Height / 2.0) < 1 &&
+            Math.Abs(fullWidth.BorderBox.X - fullRow.X) < 1 && Math.Abs(fullWidth.BorderBox.Width - 40.0) < .1 &&
+            Math.Abs(fullWidth.BorderBox.Height - fullRow.Height) < 1,
+            "Custom cell content was not centered or full-width content did not keep its start, width and row height: cell=" +
+            centered.BorderBox.ToString() + " row=" + cellRow.ToString() + " full=" + fullWidth.BorderBox.ToString() + " fullRow=" + fullRow.ToString())
+        host.Input = host.Input with{CreateFullWidthRow = nil, AutoRowHeight = true, VirtualizeColumns = false,
             CreateCellContent = (input DataGridInput, row DataGridRow, column DataGridColumn) -> Container{Height: 84, Text{Content: "Tall content"}}}
         host.Refresh()
         PumpFrames(window, 8)
