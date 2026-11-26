@@ -359,7 +359,9 @@ public open partial class DataGrid {
             }
         }
         var root = Container{
-            BackgroundColor: isSelected ? snapshot.SelectedColor!!: Color.Transparent,
+            BackgroundColor: isSelected
+            ? snapshot.SelectedColor!!
+            : (rowIndex % 2 == 1 && snapshot.AlternatingRowColor != nil ? snapshot.AlternatingRowColor!!: Color.Transparent),
             HoverStyle: isSelected ? Style{BackgroundColor: snapshot.SelectedColor!!}: nil,
             ActiveStyle: Style{BackgroundColor: isSelected ? snapshot.SelectedColor!!:
                 pinnedCount == 0 || pressedId == id ? theme.PressedColor: hoveredId == id ? theme.HoverColor: Color.Transparent},

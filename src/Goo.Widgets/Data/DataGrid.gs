@@ -239,6 +239,12 @@ public data struct DataGridInput {
     var TextColor Color?
     /// Selected row fill. Nil uses the theme selection color.
     var SelectedColor Color?
+    /// Optional fill for odd-indexed unselected rows. Nil leaves unselected rows transparent.
+    var AlternatingRowColor Color?
+    /// Root border width in logical pixels. Nil uses 1.
+    var BorderWidth float64?
+    /// Root corner radius in logical pixels. Nil uses the nearest theme panel radius.
+    var BorderRadius float64?
     /// Keyboard focus outline color for the active row's cells.
     var FocusColor Color?
     /// Caller-owned handle attached to the composed root. Nil uses the widget-owned root handle.
@@ -759,9 +765,9 @@ public open partial class DataGrid : Cell[DataGridInput], IDisposable {
             MinWidth: 0,
             MinHeight: 0,
             BackgroundColor: input.BackgroundColor!!,
-            BorderWidth: 1,
+            BorderWidth: input.BorderWidth ?? 1,
             BorderColor: theme.BorderColor,
-            BorderRadius: theme.PanelRadius!!,
+            BorderRadius: input.BorderRadius ?? theme.PanelRadius!!,
             Padding: Edges{Right: theme.RowInset, Left: theme.RowInset},
             Overflow: Overflow.Hidden
         }
