@@ -231,6 +231,16 @@ public open class Slider : Cell[SliderInput] {
                 },
             }
         }
+        let halfThumb = resolved.ThumbSize!! / 2.0
+        let inner = Container{
+            Width: Percent(100.0),
+            Height: Percent(100.0),
+            Position: PositionType.Relative,
+            HitTestSelf: false,
+            track,
+            fill,
+            thumb,
+        }
         let root = Container{
             Handle: handle,
             Direction: theme.Direction,
@@ -245,6 +255,11 @@ public open class Slider : Cell[SliderInput] {
                 resolved.ThumbSize!!
             },
             Height: resolved.Height!!,
+            Padding: if horizontal {
+                Edges{Left: halfThumb, Right: halfThumb}
+            } else {
+                Edges{Top: halfThumb, Bottom: halfThumb}
+            },
             FlexShrink: 0.0,
             Position: PositionType.Relative,
             Cursor: if horizontal {
@@ -271,11 +286,14 @@ public open class Slider : Cell[SliderInput] {
                 KeyBinding{Key: Key.Up, Repeat: true, OnPress: () -> KeyAction(Key.Up)},
                 KeyBinding{Key: Key.Down, Repeat: true, OnPress: () -> KeyAction(Key.Down)},
             },
-            track,
-            fill,
-            thumb,
+            inner,
         }
-        theme.ApplyInteraction(root, InteractionFamily.Field)
+        if !resolved.Disabled {
+            let focus = theme.FocusStyle
+            focus.BasedOn = root.FocusStyle
+            root.FocusStyle = Style{BasedOn: focus, OutlineWidth: Math.Max(1.0, theme.FocusRingWidth)}
+        }
+        root.DisabledStyle = Style{BackgroundColor: Color.Transparent, BasedOn: root.DisabledStyle}
         let content Blob = root
         let requiredBindings = configureRoot == nil ? nil : root.KeyBindings
         if let configure = configureRoot {
@@ -441,7 +459,7 @@ public open class Slider : Cell[SliderInput] {
             FillColor = input.FillColor ?? theme.AccentColor,
             ThumbColor = input.ThumbColor ?? theme.AccentColor,
             ThumbBorderColor = input.ThumbBorderColor ?? (fluent ? theme.Mix(theme.RaisedColor, Color.White, 0.1F): theme.OnAccentColor),
-            BackgroundColor = input.BackgroundColor ?? theme.PanelColor,
+            BackgroundColor = input.BackgroundColor ?? Color.Transparent,
             FocusOutlineColor = input.FocusOutlineColor ?? theme.FocusColor,
         }
     }
@@ -472,11 +490,17 @@ public open class Slider : Cell[SliderInput] {
 
     private func ValueFromPointer(e PointerDragEvent) float64 {
         let box = handle.BorderBox
+        let halfThumb = resolved.ThumbSize!! / 2.0
         if resolved.Orientation == SliderOrientation.Horizontal {
             if box.Width <= 0.0 {
                 return current
             }
-            let fraction = Math.Clamp((e.WindowPosition.X - box.X) / box.Width, 0.0, 1.0)
+            let usable = box.Width - resolved.ThumbSize!!
+            let fraction = if usable > 0.0 {
+                Math.Clamp((e.WindowPosition.X - (box.X + halfThumb)) / usable, 0.0, 1.0)
+            } else {
+                Math.Clamp((e.WindowPosition.X - box.X) / box.Width, 0.0, 1.0)
+            }
             return resolved.Minimum!!+ (rightToLeft ? 1.0 - fraction: fraction) * (
                 resolved.Maximum!!- resolved.Minimum!!
             )
@@ -484,8 +508,14 @@ public open class Slider : Cell[SliderInput] {
         if box.Height <= 0.0 {
             return current
         }
+        let usable = box.Height - resolved.ThumbSize!!
+        let fraction = if usable > 0.0 {
+            Math.Clamp((e.WindowPosition.Y - (box.Y + halfThumb)) / usable, 0.0, 1.0)
+        } else {
+            Math.Clamp((e.WindowPosition.Y - box.Y) / box.Height, 0.0, 1.0)
+        }
         return resolved.Minimum!!+
-            (1.0 - Math.Clamp((e.WindowPosition.Y - box.Y) / box.Height, 0.0, 1.0)) * (
+            (1.0 - fraction) * (
             resolved.Maximum!!- resolved.Minimum!!
         )
     }
