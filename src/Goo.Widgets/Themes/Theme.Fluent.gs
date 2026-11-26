@@ -18,6 +18,16 @@ public data partial struct Theme {
             get -> FluentMicaPalette(false)
         }
 
+        /// Fixed light Windows 11 Fluent palette that does not follow system mode changes.
+        public prop FluentLight Theme {
+            get -> FluentPalette(false) with{Variant = nil}
+        }
+
+        /// Fixed dark Windows 11 Fluent palette that does not follow system mode changes.
+        public prop FluentDark Theme {
+            get -> FluentPalette(true) with{Variant = nil}
+        }
+
         private func FluentPalette(dark bool) Theme {
             let light = Default with{
                 CanvasColor = Color.Parse("#f3f3f3"),
@@ -138,4 +148,7 @@ public data partial struct Theme {
             }
         }
     }
+
+    /// Returns a fixed copy of this theme that does not switch automatically with system appearance changes.
+    public func Fixed() Theme -> this with{Variant = nil}
 }

@@ -52,6 +52,10 @@ public data struct SplitPaneInput {
     var Width Length?
     /// Root height. Nil resolves to 100%.
     var Height Length?
+    /// Flex grow factor for the split root inside a parent flex container. Nil leaves default flex behavior.
+    var FlexGrow float64?
+    /// Flex basis for the split root inside a parent flex container. Nil leaves default flex behavior.
+    var FlexBasis Length?
     /// Pointer target size of the divider in logical pixels. The visible line is the theme border width. Nil resolves to twice the theme spacing.
     var HandleSize float64?
     /// Divider line color. Nil uses the theme border color.
@@ -274,6 +278,12 @@ public open class SplitPane : Cell[SplitPaneInput], IDisposable {
         dividerAccessibility.OnAction = AccessibilityAction
         divider.Accessibility = dividerAccessibility
         var root = Container{Width: input.Width!!, Height: input.Height!!, MinWidth: 0, MinHeight: 0}
+        if let grow = input.FlexGrow {
+            root.FlexGrow = grow
+        }
+        if let basis = input.FlexBasis {
+            root.FlexBasis = basis
+        }
         root.Children.Clear()
         root.Children.Add(first)
         root.Children.Add(divider)

@@ -121,6 +121,7 @@ public data partial struct Theme {
             ThumbBorderWidth: BorderWidth,
             ThumbColor: AccentColor,
             ThumbBorderColor: OnAccentColor,
+            BackgroundColor: Color.Transparent,
         }
     }
 
